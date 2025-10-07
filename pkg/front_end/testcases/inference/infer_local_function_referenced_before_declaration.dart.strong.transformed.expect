@@ -2,14 +2,14 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:9:79: Error: Method not found: 'g'.
-//   /*@returnType=invalid-type*/ f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();
-//                                                                               ^
+// pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:8:50: Error: Method not found: 'g'.
+//   f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();
+//                                                  ^
 //
-// pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:9:79: Error: Local variable 'g' can't be referenced before it is declared.
-//   /*@returnType=invalid-type*/ f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();
-//                                                                               ^
-// pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:14:3: Context: This is the declaration of the variable 'g'.
+// pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:8:50: Error: Local variable 'g' can't be referenced before it is declared.
+//   f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();
+//                                                  ^
+// pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:12:3: Context: This is the declaration of the variable 'g'.
 //   g() => 0;
 //   ^
 //
@@ -18,9 +18,9 @@ import "dart:core" as core;
 
 static method test() → dynamic {
   function f() → invalid-type
-    return invalid-expression "pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:9:79: Error: Method not found: 'g'.
-  /*@returnType=invalid-type*/ f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();
-                                                                              ^";
+    return invalid-expression "pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:8:50: Error: Method not found: 'g'.
+  f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();
+                                                 ^";
   function g() → core::int
     return 0;
   () → invalid-type v = f;

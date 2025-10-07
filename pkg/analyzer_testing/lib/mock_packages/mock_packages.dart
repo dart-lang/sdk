@@ -151,9 +151,16 @@ mixin MockPackagesMixin {
   Folder _addFiles(String packageName) {
     var cachedFiles = _cachedFiles;
     if (cachedFiles == null) {
-      cachedFiles = {};
-      _cacheFiles(cachedFiles);
-      _cachedFiles = cachedFiles;
+      try {
+        cachedFiles = {};
+        _cacheFiles(cachedFiles);
+        _cachedFiles = cachedFiles;
+      } on StateError catch (e) {
+        throw StateError(
+          '${e.message}\nAdding built-in mock library for "$packageName" is '
+          'not supported when writing a test outside of the Dart SDK source repository.',
+        );
+      }
     }
 
     for (var entry in cachedFiles.entries) {

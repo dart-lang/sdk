@@ -106,7 +106,11 @@ class SuggestionBuilder {
   /// Initialize a newly created suggestion builder to build suggestions for the
   /// given [request].
   SuggestionBuilder(this.request, {this.listener, required this.useFilter})
-    : relevanceComputer = RelevanceComputer(request, listener) {
+    : relevanceComputer = RelevanceComputer(
+        request,
+        listener,
+        targetPrefix: request.targetPrefix,
+      ) {
     targetPrefixLower = request.targetPrefix.toLowerCase();
   }
 
@@ -122,9 +126,8 @@ class SuggestionBuilder {
     if (!_hasContainingMemberName) {
       _hasContainingMemberName = true;
       if (request.target.dotTarget is SuperExpression) {
-        var containingMethod =
-            request.target.containingNode
-                .thisOrAncestorOfType<MethodDeclaration>();
+        var containingMethod = request.target.containingNode
+            .thisOrAncestorOfType<MethodDeclaration>();
         if (containingMethod != null) {
           _cachedContainingMemberName = containingMethod.name.lexeme;
         }
@@ -298,8 +301,9 @@ class SuggestionBuilder {
         distance: inheritanceDistance,
       );
       var hasDeprecated = featureComputer.hasDeprecatedFeature(field);
-      var isConstant =
-          _preferConstants ? featureComputer.isConstantFeature(field) : 0.0;
+      var isConstant = _preferConstants
+          ? featureComputer.isConstantFeature(field)
+          : 0.0;
       var startsWithDollar = featureComputer.startsWithDollarFeature(
         field.name ?? '',
       );
@@ -343,10 +347,9 @@ class SuggestionBuilder {
       distance,
     );
     var elementKind = _computeElementKind(element);
-    var isConstant =
-        _preferConstants
-            ? request.featureComputer.isConstantFeature(element)
-            : 0.0;
+    var isConstant = _preferConstants
+        ? request.featureComputer.isConstantFeature(element)
+        : 0.0;
     relevance ??= relevanceComputer.computeScore(
       contextType: contextType,
       elementKind: elementKind,
@@ -423,8 +426,9 @@ class SuggestionBuilder {
         distance: inheritanceDistance,
       );
       var hasDeprecated = featureComputer.hasDeprecatedFeature(getter);
-      var isConstant =
-          _preferConstants ? featureComputer.isConstantFeature(getter) : 0.0;
+      var isConstant = _preferConstants
+          ? featureComputer.isConstantFeature(getter)
+          : 0.0;
       var startsWithDollar = featureComputer.startsWithDollarFeature(
         getter.displayName,
       );
@@ -607,10 +611,9 @@ class SuggestionBuilder {
       element,
       distance: localVariableDistance,
     );
-    var isConstant =
-        _preferConstants
-            ? request.featureComputer.isConstantFeature(element)
-            : 0.0;
+    var isConstant = _preferConstants
+        ? request.featureComputer.isConstantFeature(element)
+        : 0.0;
     relevance ??= relevanceComputer.computeScore(
       contextType: contextType,
       elementKind: elementKind,
@@ -651,8 +654,9 @@ class SuggestionBuilder {
       distance: inheritanceDistance,
     );
     var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
-    var isConstant =
-        _preferConstants ? featureComputer.isConstantFeature(method) : 0.0;
+    var isConstant = _preferConstants
+        ? featureComputer.isConstantFeature(method)
+        : 0.0;
     var isNoSuchMethod = featureComputer.isNoSuchMethodFeature(
       _containingMemberName,
       method.displayName,
@@ -970,8 +974,9 @@ class SuggestionBuilder {
         distance: inheritanceDistance,
       );
       var hasDeprecated = featureComputer.hasDeprecatedFeature(setter);
-      var isConstant =
-          _preferConstants ? featureComputer.isConstantFeature(setter) : 0.0;
+      var isConstant = _preferConstants
+          ? featureComputer.isConstantFeature(setter)
+          : 0.0;
       var startsWithDollar = featureComputer.startsWithDollarFeature(
         setter.displayName,
       );
@@ -1104,8 +1109,9 @@ class SuggestionBuilder {
       );
       var elementKind = _computeElementKind(getter);
       var hasDeprecated = featureComputer.hasDeprecatedFeature(getter);
-      var isConstant =
-          _preferConstants ? featureComputer.isConstantFeature(getter) : 0.0;
+      var isConstant = _preferConstants
+          ? featureComputer.isConstantFeature(getter)
+          : 0.0;
       var startsWithDollar = featureComputer.startsWithDollarFeature(
         getter.displayName,
       );
@@ -1156,8 +1162,9 @@ class SuggestionBuilder {
       );
       var elementKind = _computeElementKind(setter);
       var hasDeprecated = featureComputer.hasDeprecatedFeature(setter);
-      var isConstant =
-          _preferConstants ? featureComputer.isConstantFeature(setter) : 0.0;
+      var isConstant = _preferConstants
+          ? featureComputer.isConstantFeature(setter)
+          : 0.0;
       var startsWithDollar = featureComputer.startsWithDollarFeature(
         setter.displayName,
       );
@@ -1243,10 +1250,9 @@ class SuggestionBuilder {
   /// Add a suggestion for a type [parameter].
   void suggestTypeParameter(TypeParameterElement parameter, {int? relevance}) {
     var elementKind = _computeElementKind(parameter);
-    var isConstant =
-        _preferConstants
-            ? request.featureComputer.isConstantFeature(parameter)
-            : 0.0;
+    var isConstant = _preferConstants
+        ? request.featureComputer.isConstantFeature(parameter)
+        : 0.0;
     relevance ??= relevanceComputer.computeScore(
       elementKind: elementKind,
       isConstant: isConstant,
@@ -1263,8 +1269,9 @@ class SuggestionBuilder {
 
   /// Add a suggestion to use the [uri] in an import, export, or part directive.
   void suggestUri(String uri) {
-    var relevance =
-        uri == 'dart:core' ? Relevance.importDartCore : Relevance.import;
+    var relevance = uri == 'dart:core'
+        ? Relevance.importDartCore
+        : Relevance.import;
     _addSuggestion(
       CompletionSuggestion(
         CompletionSuggestionKind.IMPORT,
@@ -1433,14 +1440,14 @@ class SuggestionBuilder {
     bool? hasNamedParameters;
     CompletionDefaultArgumentList? defaultArgumentList;
     if (element is ExecutableElement && element is! PropertyAccessorElement) {
-      parameterNames =
-          element.formalParameters.map((parameter) {
-            return parameter.displayName;
-          }).toList();
-      parameterTypes =
-          element.formalParameters.map((FormalParameterElement parameter) {
-            return parameter.type.getDisplayString();
-          }).toList();
+      parameterNames = element.formalParameters.map((parameter) {
+        return parameter.displayName;
+      }).toList();
+      parameterTypes = element.formalParameters.map((
+        FormalParameterElement parameter,
+      ) {
+        return parameter.type.getDisplayString();
+      }).toList();
 
       var requiredParameters = element.formalParameters.where(
         (FormalParameterElement param) => param.isRequiredPositional,

@@ -349,7 +349,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// DartType p0: the type that is missing a native type annotation
+  /// Type p0: the type that is missing a native type annotation
   /// String p1: the superclass which is extended by this field's class
   static const FfiTemplate<
     LocatableDiagnostic Function({required DartType p0, required String p1})
@@ -420,8 +420,8 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type that should be a subtype
-  /// DartType p1: the supertype that the subtype is compared to
+  /// Type p0: the type that should be a subtype
+  /// Type p1: the supertype that the subtype is compared to
   /// String p2: the name of the function whose invocation depends on this
   ///            relationship
   static const FfiTemplate<
@@ -441,7 +441,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the return type that should be 'void'.
+  /// Type p0: the return type that should be 'void'.
   static const FfiTemplate<LocatableDiagnostic Function({required DartType p0})>
   mustReturnVoid = FfiTemplate(
     'MUST_RETURN_VOID',
@@ -454,7 +454,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: The invalid type.
+  /// Type p0: The invalid type.
   static const FfiTemplate<LocatableDiagnostic Function({required DartType p0})>
   nativeFieldInvalidType = FfiTemplate(
     'NATIVE_FIELD_INVALID_TYPE',
@@ -527,7 +527,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type that should be a valid dart:ffi native type.
+  /// Type p0: the type that should be a valid dart:ffi native type.
   static const FfiTemplate<LocatableDiagnostic Function({required DartType p0})>
   nonNativeFunctionTypeArgumentToPointer = FfiTemplate(
     'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
@@ -553,7 +553,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String p0: the name of the field
-  /// DartType p1: the type of the field
+  /// Type p1: the type of the field
   static const FfiTemplate<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >

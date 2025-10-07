@@ -366,6 +366,7 @@ contribute
 conveniently
 convention
 conversely
+conversions
 converter
 coordinated
 coordinating
@@ -1085,6 +1086,7 @@ macos
 macro
 macro's
 macros
+maintained
 maintaining
 malbounded
 man
@@ -1323,6 +1325,7 @@ pieces
 pipe
 pkg
 pkgs
+placement
 play
 player
 plugin
@@ -2050,6 +2053,7 @@ unifies
 uniform
 unify
 uninferable
+uninferred
 uninhabited
 uninstantiable
 uninstantiated

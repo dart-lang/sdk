@@ -157,7 +157,7 @@ class AnalysisVisitor extends StaticTypeVisitorBase {
       );
     }
     LocatedMessage locatedMessage = codeUnspecified
-        .withArguments(message)
+        .withArgumentsOld(message)
         .withLocation(uri, node.fileOffset, noLength);
     FormattedMessage diagnosticMessage = locatedMessage.withFormatting(
       formatWithLocationNoSdk(

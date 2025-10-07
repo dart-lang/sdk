@@ -44,7 +44,7 @@ base class D extends S {}
 @reflectiveTest
 class AddReopenTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_REOPEN;
+  FixKind get kind => DartFixKind.addReopen;
 
   @override
   String get lintCode => LintNames.implicit_reopen;

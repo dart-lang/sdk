@@ -635,6 +635,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InternalConstructorElement> get constructors {
+    element.constructors; // record requirements
     return _constructors ??= element.constructors.map((constructor) {
       return SubstitutedConstructorElementImpl.from2(constructor, this);
     }).toFixedList();
@@ -650,6 +651,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InternalGetterElement> get getters {
+    element.getters; // record requirements
     return _getters ??= element.getters.map((e) {
       return SubstitutedGetterElementImpl.forTargetType(e, this);
     }).toFixedList();
@@ -753,6 +755,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InternalMethodElement> get methods {
+    element.methods; // record requirements
     return _methods ??= element.methods.map((e) {
       return SubstitutedMethodElementImpl.forTargetType(e, this);
     }).toFixedList();
@@ -783,6 +786,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InternalSetterElement> get setters {
+    element.setters; // record requirements
     return _setters ??= element.setters.map((e) {
       return SubstitutedSetterElementImpl.forTargetType(e, this);
     }).toFixedList();
@@ -811,8 +815,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
   }
 
-  InheritanceManager3 get _inheritanceManager =>
-      element.library.session.inheritanceManager;
+  InheritanceManager3 get _inheritanceManager {
+    return element.library.internal.inheritanceManager;
+  }
 
   @override
   bool operator ==(Object other) {

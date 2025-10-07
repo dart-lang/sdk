@@ -168,8 +168,8 @@ abstract class FragmentFactory {
 
   void addLibraryDirective({
     required String? libraryName,
+    required int fileOffset,
     required List<MetadataBuilder>? metadata,
-    required bool isAugment,
   });
 
   void addPart(
@@ -180,12 +180,18 @@ abstract class FragmentFactory {
     int charOffset,
   );
 
-  void addPartOf(
-    List<MetadataBuilder>? metadata,
-    String? name,
-    String? uri,
-    int uriOffset,
-  );
+  void addPartOfWithName({
+    required List<MetadataBuilder>? metadata,
+    required String name,
+    required int fileOffset,
+  });
+
+  void addPartOfWithUri({
+    required List<MetadataBuilder>? metadata,
+    required String uri,
+    required int uriOffset,
+    required int fileOffset,
+  });
 
   void addImport({
     OffsetMap? offsetMap,

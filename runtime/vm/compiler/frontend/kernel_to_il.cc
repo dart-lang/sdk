@@ -4792,7 +4792,7 @@ Fragment FlowGraphBuilder::WrapTypedDataBaseInCompound(
       Class::ZoneHandle(Z, compound_type.type_class());
   compound_sub_class.EnsureIsFinalized(thread_);
 
-  auto& state = thread_->compiler_state();
+  ObjectStore* object_store = IG->object_store();
 
   Fragment body;
   LocalVariable* typed_data = MakeTemporary("typed_data_base");
@@ -4800,29 +4800,31 @@ Fragment FlowGraphBuilder::WrapTypedDataBaseInCompound(
   LocalVariable* compound = MakeTemporary("compound");
   body += LoadLocal(compound);
   body += LoadLocal(typed_data);
-  body += StoreField(state.CompoundTypedDataBaseField(),
-                     StoreFieldInstr::Kind::kInitializing);
+  body += StoreField(
+      Field::ZoneHandle(Z, object_store->compound_typed_data_base_field()),
+      StoreFieldInstr::Kind::kInitializing);
   body += LoadLocal(compound);
   body += IntConstant(0);
-  body += StoreField(state.CompoundOffsetInBytesField(),
-                     StoreFieldInstr::Kind::kInitializing);
+  body += StoreField(
+      Field::ZoneHandle(Z, object_store->compound_offset_in_bytes_field()),
+      StoreFieldInstr::Kind::kInitializing);
   body += DropTempsPreserveTop(1);  // Drop TypedData.
   return body;
 }
 
 Fragment FlowGraphBuilder::LoadTypedDataBaseFromCompound() {
   Fragment body;
-  auto& state = thread_->compiler_state();
-  body += LoadField(state.CompoundTypedDataBaseField(),
-                    /*calls_initializer=*/false);
+  const auto& field = Field::ZoneHandle(
+      Z, IG->object_store()->compound_typed_data_base_field());
+  body += LoadField(field, /*calls_initializer=*/false);
   return body;
 }
 
 Fragment FlowGraphBuilder::LoadOffsetInBytesFromCompound() {
   Fragment body;
-  auto& state = thread_->compiler_state();
-  body += LoadField(state.CompoundOffsetInBytesField(),
-                    /*calls_initializer=*/false);
+  const auto& field = Field::ZoneHandle(
+      Z, IG->object_store()->compound_offset_in_bytes_field());
+  body += LoadField(field, /*calls_initializer=*/false);
   return body;
 }
 

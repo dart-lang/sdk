@@ -446,8 +446,8 @@ AnalysisErrors
 
     // Write `package_config.json`, recreate analysis contexts.
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     await pumpEventQueue(times: 5000);
@@ -996,8 +996,8 @@ AnalysisErrors
 
     // Write `package_config.json`, recreate analysis contexts.
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     await pumpEventQueue(times: 5000);
@@ -1329,8 +1329,8 @@ class A {}
 
     // Write the empty file, without `package:aaa`.
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     newFile(testFilePath, '''
@@ -1907,8 +1907,8 @@ class A {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     newFile(testFilePath, '''
@@ -2446,8 +2446,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     );
 
     if (withPackageConfig) {
-      var packageConfig =
-          PackageConfigFileBuilder()..add(name: name, rootPath: packagePath);
+      var packageConfig = PackageConfigFileBuilder()
+        ..add(name: name, rootPath: packagePath);
       for (var plugin in plugins) {
         packageConfig.add(name: plugin.name, rootPath: plugin.path);
       }
@@ -2515,9 +2515,8 @@ class A {}
 ''');
     writePackageConfig(
       convertPath('/project'),
-      config:
-          (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
     );
     //
     addTestFile('''
@@ -2568,9 +2567,8 @@ class A {}
 ''');
     writePackageConfig(
       convertPath('/project'),
-      config:
-          (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
     );
     //
     addTestFile('// no "pkgA" reference');

@@ -17,6 +17,8 @@
 @Deprecated('Use dart:js_interop instead.')
 library dart.js_util;
 
+export 'dart:js_interop' show NullRejectionException;
+
 // Examples can assume:
 // class JS { const JS(); }
 // class Promise<T> {}
@@ -128,24 +130,6 @@ external bool delete<T>(Object o, Object property);
 /// Perform JavaScript unsigned right shift operator (`>>>`) on the given left
 /// operand by the amount specified by the given right operand.
 external num unsignedRightShift(Object? leftOperand, Object? rightOperand);
-
-/// Exception for when the promise is rejected with a `null` or `undefined`
-/// value.
-///
-/// This is public to allow users to catch when the promise is rejected with
-/// `null` or `undefined` versus some other value.
-class NullRejectionException implements Exception {
-  // Indicates whether the value is `undefined` or `null`.
-  final bool isUndefined;
-
-  NullRejectionException(this.isUndefined);
-
-  @override
-  String toString() {
-    var value = this.isUndefined ? 'undefined' : 'null';
-    return 'Promise was rejected with a value of `$value`.';
-  }
-}
 
 /// Converts a JavaScript Promise to a Dart [Future].
 ///

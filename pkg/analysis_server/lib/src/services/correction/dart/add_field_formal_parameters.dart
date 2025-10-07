@@ -24,11 +24,11 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
 
   AddFieldFormalParameters({required super.context})
     : _style = _Style.base,
-      fixKind = DartFixKind.ADD_INITIALIZING_FORMAL_PARAMETERS;
+      fixKind = DartFixKind.addInitializingFormalParameters;
 
   AddFieldFormalParameters.requiredNamed({required super.context})
     : _style = _Style.requiredNamed,
-      fixKind = DartFixKind.ADD_INITIALIZING_FORMAL_NAMED_PARAMETERS;
+      fixKind = DartFixKind.addInitializingFormalNamesParameters;
 
   @override
   CorrectionApplicability get applicability =>
@@ -83,8 +83,9 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     }
 
     var fieldsRecords = fields.map(_parameterForField).toList();
-    var requiredFirst =
-        getCodeStyleOptions(unitResult.file).requiredNamedParametersFirst;
+    var requiredFirst = getCodeStyleOptions(
+      unitResult.file,
+    ).requiredNamedParametersFirst;
     if (requiredFirst) {
       fieldsRecords.sort((a, b) {
         if (a.isRequired && !b.isRequired) {

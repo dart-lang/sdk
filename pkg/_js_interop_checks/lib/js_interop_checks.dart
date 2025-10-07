@@ -13,42 +13,43 @@ import 'package:front_end/src/api_prototype/codes.dart'
         Message,
         LocatedMessage,
         codeDartFfiLibraryInDart2Wasm,
+        codeJsInteropDartClassExtendsJSClass,
         codeJsInteropDartJsInteropAnnotationForStaticInteropOnly,
+        codeJsInteropDisallowedInteropLibraryInDart2Wasm,
         codeJsInteropEnclosingClassJSAnnotation,
         codeJsInteropEnclosingClassJSAnnotationContext,
         codeJsInteropExtensionTypeMemberNotInterop,
+        codeJsInteropExtensionTypeNotInterop,
         codeJsInteropExtensionTypeUsedWithWrongJsAnnotation,
         codeJsInteropExternalExtensionMemberOnTypeInvalid,
         codeJsInteropExternalExtensionMemberWithStaticDisallowed,
         codeJsInteropExternalMemberNotJSAnnotated,
         codeJsInteropFunctionToJSNamedParameters,
+        codeJsInteropFunctionToJSRequiresStaticType,
         codeJsInteropFunctionToJSTypeParameters,
+        codeJsInteropFunctionToJSTypeViolation,
         codeJsInteropInvalidStaticClassMemberName,
+        codeJsInteropJSClassExtendsDartClass,
         codeJsInteropNamedParameters,
+        codeJsInteropNativeClassInAnnotation,
         codeJsInteropNonExternalConstructor,
         codeJsInteropNonExternalMember,
+        codeJsInteropNonStaticWithStaticInteropSupertype,
+        codeJsInteropObjectLiteralConstructorPositionalParameters,
         codeJsInteropOperatorCannotBeRenamed,
         codeJsInteropOperatorsNotSupported,
+        codeJsInteropStaticInteropExternalAccessorTypeViolation,
+        codeJsInteropStaticInteropExternalFunctionTypeViolation,
         codeJsInteropStaticInteropGenerativeConstructor,
+        codeJsInteropStaticInteropNoJSAnnotation,
         codeJsInteropStaticInteropParameterInitializersAreIgnored,
         codeJsInteropStaticInteropSyntheticConstructor,
-        codeJsInteropDartClassExtendsJSClass,
-        codeJsInteropDisallowedInteropLibraryInDart2Wasm,
-        codeJsInteropJSClassExtendsDartClass,
-        codeJsInteropNonStaticWithStaticInteropSupertype,
-        codeJsInteropStaticInteropNoJSAnnotation,
-        codeJsInteropStaticInteropWithInstanceMembers,
-        codeJsInteropStaticInteropWithNonStaticSupertype,
-        codeJsInteropObjectLiteralConstructorPositionalParameters,
-        codeJsInteropNativeClassInAnnotation,
         codeJsInteropStaticInteropTearOffsDisallowed,
         codeJsInteropStaticInteropTrustTypesUsageNotAllowed,
         codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
-        codeJsInteropExtensionTypeNotInterop,
-        codeJsInteropFunctionToJSRequiresStaticType,
-        codeJsInteropStaticInteropExternalAccessorTypeViolation,
-        codeJsInteropStaticInteropExternalFunctionTypeViolation,
-        codeJsInteropStaticInteropToJSFunctionTypeViolation;
+        codeJsInteropStaticInteropWithInstanceMembers,
+        codeJsInteropStaticInteropWithNonStaticSupertype;
+
 // Used for importing CFE utility functions for constructor tear-offs.
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -65,6 +66,7 @@ class JsInteropChecks extends RecursiveVisitor {
   final CoreTypes _coreTypes;
   late final ExtensionIndex extensionIndex;
   final Procedure _functionToJSTarget;
+  final Procedure _functionToJSCaptureThisTarget;
   // Errors on constants need source information, so we use the surrounding
   // `ConstantExpression` as the source.
   ConstantExpression? _lastConstantExpression;
@@ -177,6 +179,10 @@ class JsInteropChecks extends RecursiveVisitor {
          'dart:js_interop',
          'FunctionToJSExportedDartFunction|get#toJS',
        ),
+       _functionToJSCaptureThisTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_interop',
+         'FunctionToJSExportedDartFunction|get#toJSCaptureThis',
+       ),
        _staticTypeContext = StatefulStaticTypeContext.stacked(
          TypeEnvironment(_coreTypes, hierarchy),
        ),
@@ -238,7 +244,7 @@ class JsInteropChecks extends RecursiveVisitor {
     if (hasDartJSInteropAnnotation(node) &&
         !extensionIndex.isInteropExtensionType(node)) {
       _reporter.report(
-        codeJsInteropExtensionTypeNotInterop.withArguments(
+        codeJsInteropExtensionTypeNotInterop.withArgumentsOld(
           node.name,
           node.declaredRepresentationType,
         ),
@@ -275,7 +281,7 @@ class JsInteropChecks extends RecursiveVisitor {
       }
       if (superclass != null && !hasJSInteropAnnotation(superclass)) {
         report(
-          codeJsInteropJSClassExtendsDartClass.withArguments(
+          codeJsInteropJSClassExtendsDartClass.withArgumentsOld(
             node.name,
             superclass.name,
           ),
@@ -284,7 +290,7 @@ class JsInteropChecks extends RecursiveVisitor {
     } else {
       if (superclass != null && hasJSInteropAnnotation(superclass)) {
         report(
-          codeJsInteropDartClassExtendsJSClass.withArguments(
+          codeJsInteropDartClassExtendsJSClass.withArgumentsOld(
             node.name,
             superclass.name,
           ),
@@ -296,12 +302,12 @@ class JsInteropChecks extends RecursiveVisitor {
     if (_classHasStaticInteropAnnotation) {
       if (!_classHasJSAnnotation) {
         report(
-          codeJsInteropStaticInteropNoJSAnnotation.withArguments(node.name),
+          codeJsInteropStaticInteropNoJSAnnotation.withArgumentsOld(node.name),
         );
       }
       if (superclass != null && !hasStaticInteropAnnotation(superclass)) {
         report(
-          codeJsInteropStaticInteropWithNonStaticSupertype.withArguments(
+          codeJsInteropStaticInteropWithNonStaticSupertype.withArgumentsOld(
             node.name,
             superclass.name,
           ),
@@ -312,7 +318,7 @@ class JsInteropChecks extends RecursiveVisitor {
       for (final supertype in node.implementedTypes) {
         if (!hasStaticInteropAnnotation(supertype.classNode)) {
           report(
-            codeJsInteropStaticInteropWithNonStaticSupertype.withArguments(
+            codeJsInteropStaticInteropWithNonStaticSupertype.withArgumentsOld(
               node.name,
               supertype.classNode.name,
             ),
@@ -327,7 +333,7 @@ class JsInteropChecks extends RecursiveVisitor {
       }
       if (superclass != null && hasStaticInteropAnnotation(superclass)) {
         report(
-          codeJsInteropNonStaticWithStaticInteropSupertype.withArguments(
+          codeJsInteropNonStaticWithStaticInteropSupertype.withArgumentsOld(
             node.name,
             superclass.name,
           ),
@@ -338,7 +344,7 @@ class JsInteropChecks extends RecursiveVisitor {
       for (final supertype in node.implementedTypes) {
         if (hasStaticInteropAnnotation(supertype.classNode)) {
           report(
-            codeJsInteropNonStaticWithStaticInteropSupertype.withArguments(
+            codeJsInteropNonStaticWithStaticInteropSupertype.withArgumentsOld(
               node.name,
               supertype.classNode.name,
             ),
@@ -351,7 +357,7 @@ class JsInteropChecks extends RecursiveVisitor {
     if (hasTrustTypesAnnotation(node)) {
       if (!_isAllowedTrustTypesUsage(node)) {
         report(
-          codeJsInteropStaticInteropTrustTypesUsageNotAllowed.withArguments(
+          codeJsInteropStaticInteropTrustTypesUsageNotAllowed.withArgumentsOld(
             node.name,
           ),
         );
@@ -359,7 +365,7 @@ class JsInteropChecks extends RecursiveVisitor {
       if (!_classHasStaticInteropAnnotation) {
         report(
           codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop
-              .withArguments(node.name),
+              .withArgumentsOld(node.name),
         );
       }
     }
@@ -436,10 +442,11 @@ class JsInteropChecks extends RecursiveVisitor {
         _checkNoNamedParameters(node.function);
       }
 
-      // JS static methods cannot use a JS name with dots.
+      // `package:js` JS static methods cannot use a JS name with dots.
       if (node.isStatic &&
           node.enclosingClass != null &&
-          getJSName(node).contains('.')) {
+          getJSName(node).contains('.') &&
+          !hasDartJSInteropAnnotation(node.enclosingClass!)) {
         report(codeJsInteropInvalidStaticClassMemberName);
       }
 
@@ -481,7 +488,7 @@ class JsInteropChecks extends RecursiveVisitor {
         !node.isFactory &&
         !node.isSynthetic) {
       report(
-        codeJsInteropStaticInteropWithInstanceMembers.withArguments(
+        codeJsInteropStaticInteropWithInstanceMembers.withArgumentsOld(
           node.enclosingClass!.name,
         ),
       );
@@ -495,7 +502,8 @@ class JsInteropChecks extends RecursiveVisitor {
   @override
   void visitStaticInvocation(StaticInvocation node) {
     final target = node.target;
-    if (target == _functionToJSTarget) {
+    if (target == _functionToJSTarget ||
+        target == _functionToJSCaptureThisTarget) {
       _checkFunctionToJSCall(node);
     } else {
       // Only check generated tear-offs in StaticInvocations.
@@ -509,7 +517,7 @@ class JsInteropChecks extends RecursiveVisitor {
   void visitField(Field node) {
     if (_classHasStaticInteropAnnotation && node.isInstanceMember) {
       _reporter.report(
-        codeJsInteropStaticInteropWithInstanceMembers.withArguments(
+        codeJsInteropStaticInteropWithInstanceMembers.withArgumentsOld(
           node.enclosingClass!.name,
         ),
         node.fileOffset,
@@ -640,7 +648,7 @@ class JsInteropChecks extends RecursiveVisitor {
         if (allowedToImport) return;
         final message = dependencyUriString == 'dart:ffi'
             ? codeDartFfiLibraryInDart2Wasm
-            : codeJsInteropDisallowedInteropLibraryInDart2Wasm.withArguments(
+            : codeJsInteropDisallowedInteropLibraryInDart2Wasm.withArgumentsOld(
                 dependencyUriString,
               );
         _reporter.report(
@@ -701,7 +709,7 @@ class JsInteropChecks extends RecursiveVisitor {
       final nativeClass = _nativeClasses[jsClass];
       if (nativeClass != null) {
         _reporter.report(
-          codeJsInteropNativeClassInAnnotation.withArguments(
+          codeJsInteropNativeClassInAnnotation.withArgumentsOld(
             node.name,
             nativeClass.name,
             nativeClass.enclosingLibrary.importUri.toString(),
@@ -825,7 +833,7 @@ class JsInteropChecks extends RecursiveVisitor {
         memberName = member.name.text;
       }
       _reporter.report(
-        codeJsInteropStaticInteropTearOffsDisallowed.withArguments(
+        codeJsInteropStaticInteropTearOffsDisallowed.withArgumentsOld(
           memberKind,
           memberName,
         ),
@@ -850,8 +858,8 @@ class JsInteropChecks extends RecursiveVisitor {
     return false;
   }
 
-  /// Checks that [node], which is a call to 'Function.toJS', is called with a
-  /// valid function type.
+  /// Checks that [node], which is a call to `Function.toJS` or
+  /// `Function.toJSCaptureThis`, is called with a valid function type.
   void _checkFunctionToJSCall(StaticInvocation node) {
     void report(Message message) => _reporter.report(
       message,
@@ -860,18 +868,28 @@ class JsInteropChecks extends RecursiveVisitor {
       node.location?.file,
     );
 
+    final conversion = node.target == _functionToJSTarget
+        ? 'toJS'
+        : 'toJSCaptureThis';
     final argument = node.arguments.positional.single;
     final functionType = argument.getStaticType(_staticTypeContext);
     if (functionType is! FunctionType) {
       report(
-        codeJsInteropFunctionToJSRequiresStaticType.withArguments(functionType),
+        codeJsInteropFunctionToJSRequiresStaticType.withArgumentsOld(
+          conversion,
+          functionType,
+        ),
       );
     } else {
       if (functionType.typeParameters.isNotEmpty) {
-        report(codeJsInteropFunctionToJSTypeParameters);
+        report(
+          codeJsInteropFunctionToJSTypeParameters.withArgumentsOld(conversion),
+        );
       }
       if (functionType.namedParameters.isNotEmpty) {
-        report(codeJsInteropFunctionToJSNamedParameters);
+        report(
+          codeJsInteropFunctionToJSNamedParameters.withArgumentsOld(conversion),
+        );
       }
       _reportFunctionToJSInvocationIfNotAllowedFunctionType(functionType, node);
     }
@@ -949,11 +967,12 @@ class JsInteropChecks extends RecursiveVisitor {
     if (positionalParams.isNotEmpty) {
       final firstPositionalParam = positionalParams[0];
       _reporter.report(
-        codeJsInteropObjectLiteralConstructorPositionalParameters.withArguments(
-          isAnonymousFactory
-              ? '@anonymous factories'
-              : 'Object literal constructors',
-        ),
+        codeJsInteropObjectLiteralConstructorPositionalParameters
+            .withArgumentsOld(
+              isAnonymousFactory
+                  ? '@anonymous factories'
+                  : 'Object literal constructors',
+            ),
         firstPositionalParam.fileOffset,
         firstPositionalParam.name!.length,
         firstPositionalParam.location!.file,
@@ -1154,9 +1173,8 @@ class JsInteropChecks extends RecursiveVisitor {
           : functionType.positionalParameters[0];
       if (!_isAllowedExternalType(accessorType)) {
         _reporter.report(
-          codeJsInteropStaticInteropExternalAccessorTypeViolation.withArguments(
-            accessorType,
-          ),
+          codeJsInteropStaticInteropExternalAccessorTypeViolation
+              .withArgumentsOld(accessorType),
           node.fileOffset,
           node.name.text.length,
           node.location?.file,
@@ -1166,9 +1184,10 @@ class JsInteropChecks extends RecursiveVisitor {
       // Methods, operators, constructors, factories.
       if (!_isAllowedExternalFunctionType(functionType)) {
         _reporter.report(
-          codeJsInteropStaticInteropExternalFunctionTypeViolation.withArguments(
-            _disallowedExternalFunctionTypeString(functionType),
-          ),
+          codeJsInteropStaticInteropExternalFunctionTypeViolation
+              .withArgumentsOld(
+                _disallowedExternalFunctionTypeString(functionType),
+              ),
           node.fileOffset,
           node.name.text.length,
           node.location?.file,
@@ -1183,7 +1202,8 @@ class JsInteropChecks extends RecursiveVisitor {
   ) {
     if (!_isAllowedExternalFunctionType(functionType)) {
       _reporter.report(
-        codeJsInteropStaticInteropToJSFunctionTypeViolation.withArguments(
+        codeJsInteropFunctionToJSTypeViolation.withArgumentsOld(
+          invocation.target == _functionToJSTarget ? 'toJS' : 'toJSCaptureThis',
           _disallowedExternalFunctionTypeString(functionType),
         ),
         invocation.fileOffset,

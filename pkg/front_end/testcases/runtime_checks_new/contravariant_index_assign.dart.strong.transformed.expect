@@ -38,12 +38,12 @@ static method main() → dynamic {}
 
 
 Extra constant evaluation status:
-Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:27:40 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:27:40 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:28:48 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:28:48 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:29:42 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:29:42 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:30:50 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:30:50 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:26:5 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:26:5 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:27:13 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:27:13 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:28:6 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:28:6 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:29:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:29:14 -> IntConstant(0)
 Extra constant evaluation: evaluated: 70, effectively constant: 8

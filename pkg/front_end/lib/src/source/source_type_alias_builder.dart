@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/messages.dart';
 import '../base/problems.dart' show unhandled;
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -14,8 +15,6 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../codes/cfe_codes.dart'
-    show codeCyclicTypedef, codeTypeArgumentMismatch;
 import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -23,7 +22,6 @@ import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-import 'source_loader.dart';
 import 'source_type_parameter_builder.dart';
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
@@ -176,7 +174,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               declaration,
             }) {
               seenTypeAliasBuilder.libraryBuilder.addProblem(
-                codeCyclicTypedef.withArguments(seenTypeAliasBuilder.name),
+                codeCyclicTypedef.withArgumentsOld(seenTypeAliasBuilder.name),
                 seenTypeAliasBuilder.fileOffset,
                 seenTypeAliasBuilder.name.length,
                 seenTypeAliasBuilder.fileUri,
@@ -392,7 +390,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       );
       return unhandled(
         codeTypeArgumentMismatch
-            .withArguments(typeParametersCount)
+            .withArgumentsOld(typeParametersCount)
             .problemMessage,
         "buildTypeArguments",
         -1,
@@ -422,8 +420,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       annotatable: typedef,
       annotatableFileUri: typedef.fileUri,
       metadata: _introductory.metadata,
+      annotationsFileUri: _introductory.fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
+      extensionScope: _introductory.enclosingCompilationUnit.extensionScope,
       scope: _introductory.enclosingScope,
     );
     if (typeParameters != null) {

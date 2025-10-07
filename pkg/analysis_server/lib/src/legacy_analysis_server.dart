@@ -175,6 +175,9 @@ class AnalysisServerOptions {
   /// Experiments which have been enabled (or disabled) via the
   /// `--enable-experiment` command-line option.
   List<String> enabledExperiments = [];
+
+  /// Whether to enable fine-grained dependencies.
+  bool withFineDependencies = false;
 }
 
 /// Instances of the class [LegacyAnalysisServer] implement a server that
@@ -777,14 +780,14 @@ class LegacyAnalysisServer extends AnalysisServer {
     return lspResponse is Map<String, Object?>
         ? lsp.ResponseMessage.fromJson(lspResponse)
         : lsp.ResponseMessage(
-          jsonrpc: lsp.jsonRpcVersion,
-          error: lsp.ResponseError(
-            code: lsp.ServerErrorCodes.UnhandledError,
-            message:
-                "The client responded to a '$method' LSP request but"
-                ' did not include a valid response in the lspResponse field',
-          ),
-        );
+            jsonrpc: lsp.jsonRpcVersion,
+            error: lsp.ResponseError(
+              code: lsp.ServerErrorCodes.UnhandledError,
+              message:
+                  "The client responded to a '$method' LSP request but"
+                  ' did not include a valid response in the lspResponse field',
+            ),
+          );
   }
 
   /// Send the given [notification] to the client.

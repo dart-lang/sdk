@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class CreateGetterMixinTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_GETTER;
+  FixKind get kind => DartFixKind.createGetter;
 
   Future<void> test_dotShorthand() async {
     await resolveTestCode('''
@@ -199,7 +199,7 @@ mixin M {
 @reflectiveTest
 class CreateGetterTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_GETTER;
+  FixKind get kind => DartFixKind.createGetter;
 
   Future<void> test_dotShorthand_class() async {
     await resolveTestCode('''
@@ -257,6 +257,25 @@ extension type A(String s) {
 void f(A a) {
   int v = a.test;
   print(v);
+}
+''');
+  }
+
+  Future<void> test_guard() async {
+    await resolveTestCode('''
+class A {
+  void f(Object? x) {
+    if (x case String() when getter) {}
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  bool get getter => null;
+
+  void f(Object? x) {
+    if (x case String() when getter) {}
+  }
 }
 ''');
   }

@@ -22,6 +22,9 @@ class AnalyzerPublicApiTest extends LintRuleTest {
 
   static String get badType => LinterLintCode.analyzerPublicApiBadType.name;
 
+  static String get experimentalInconsistency =>
+      LinterLintCode.analyzerPublicApiExperimentalInconsistency.name;
+
   static String get exportsNonPublicName =>
       LinterLintCode.analyzerPublicApiExportsNonPublicName.name;
 
@@ -55,7 +58,8 @@ class AnalyzerPublicApiTest extends LintRuleTest {
 
     var builder = PackageConfigFileBuilder()
       ..add(name: 'analyzer', rootPath: testPackageRootPath)
-      ..add(name: 'nonAnalyzer', rootPath: nonAnalyzerPackageRootPath);
+      ..add(name: 'nonAnalyzer', rootPath: nonAnalyzerPackageRootPath)
+      ..add(name: 'meta', rootPath: addMeta().parent.path);
     newPackageConfigJsonFileFromBuilder(testPackageRootPath, builder);
   }
 
@@ -2169,6 +2173,280 @@ class B {}
 B? v;
 ''');
     await assertDiagnosticsInFile(libSrcFile, [lint(94, 1, name: badType)]);
+  }
+
+  test_experimentalInconsistency_class_constructor_parameter() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+class C {
+  C(B b);
+}
+''');
+    await assertDiagnosticsInFile(libFile, [
+      lint(72, 1, name: experimentalInconsistency),
+    ]);
+  }
+
+  test_experimentalInconsistency_class_constructor_parameter_ok() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+class C {
+  @experimental
+  C(B b);
+}
+''');
+    await assertNoDiagnosticsInFile(libFile);
+  }
+
+  test_experimentalInconsistency_class_extends() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+class C extends B {}
+''');
+    await assertDiagnosticsInFile(libFile, [
+      lint(66, 1, name: experimentalInconsistency),
+    ]);
+  }
+
+  test_experimentalInconsistency_class_extends_ok() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+@experimental
+class C extends B {}
+''');
+    await assertNoDiagnosticsInFile(libFile);
+  }
+
+  test_experimentalInconsistency_class_implements() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+class C implements B {}
+''');
+    await assertDiagnosticsInFile(libFile, [
+      lint(66, 1, name: experimentalInconsistency),
+    ]);
+  }
+
+  test_experimentalInconsistency_class_implements_ok() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+@experimental
+class C implements B {}
+''');
+    await assertNoDiagnosticsInFile(libFile);
+  }
+
+  test_experimentalInconsistency_class_typeParameterBound() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+class C<T extends B> {}
+''');
+    await assertDiagnosticsInFile(libFile, [
+      lint(66, 1, name: experimentalInconsistency),
+    ]);
+  }
+
+  test_experimentalInconsistency_class_typeParameterBound_ok() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+@experimental
+class C<T extends B> {}
+''');
+    await assertNoDiagnosticsInFile(libFile);
+  }
+
+  test_experimentalInconsistency_class_with() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+mixin B {}
+
+class C with B {}
+''');
+    await assertDiagnosticsInFile(libFile, [
+      lint(66, 1, name: experimentalInconsistency),
+    ]);
+  }
+
+  test_experimentalInconsistency_class_with_ok() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+mixin B {}
+
+@experimental
+class C with B {}
+''');
+    await assertNoDiagnosticsInFile(libFile);
+  }
+
+  test_experimentalInconsistency_extension_on() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+mixin B {}
+
+extension E on B {}
+''');
+    await assertDiagnosticsInFile(libFile, [
+      lint(70, 1, name: experimentalInconsistency),
+    ]);
+  }
+
+  test_experimentalInconsistency_extension_on_ok() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+mixin B {}
+
+@experimental
+extension E on B {}
+''');
+    await assertNoDiagnosticsInFile(libFile);
+  }
+
+  test_experimentalInconsistency_functionDeclaration_parameter() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+void F(B b) {}
+''');
+    await assertDiagnosticsInFile(libFile, [
+      lint(65, 1, name: experimentalInconsistency),
+    ]);
+  }
+
+  test_experimentalInconsistency_functionDeclaration_parameter_ok() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+@experimental
+void F(B b) {}
+''');
+    await assertNoDiagnosticsInFile(libFile);
+  }
+
+  test_experimentalInconsistency_functionTypeAlias_parameter() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+typedef void F(B b);
+''');
+    await assertDiagnosticsInFile(libFile, [
+      lint(73, 1, name: experimentalInconsistency),
+    ]);
+  }
+
+  test_experimentalInconsistency_functionTypeAlias_parameter_ok() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+@experimental
+typedef void F(B b);
+''');
+    await assertNoDiagnosticsInFile(libFile);
+  }
+
+  test_experimentalInconsistency_functionTypeAlias_typeParameterBound() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+typedef void F<T extends B>(T t);
+''');
+    await assertDiagnosticsInFile(libFile, [
+      lint(73, 1, name: experimentalInconsistency),
+    ]);
+  }
+
+  test_experimentalInconsistency_functionTypeAlias_typeParameterBound_ok() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+@experimental
+typedef void F<T extends B>(T t);
+''');
+    await assertNoDiagnosticsInFile(libFile);
+  }
+
+  test_experimentalInconsistency_mixin_on() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+mixin M on B {}
+''');
+    await assertDiagnosticsInFile(libFile, [
+      lint(66, 1, name: experimentalInconsistency),
+    ]);
+  }
+
+  test_experimentalInconsistency_mixin_on_ok() async {
+    newFile(libFile, '''
+import 'package:meta/meta.dart';
+
+@experimental
+class B {}
+
+@experimental
+mixin M on B {}
+''');
+    await assertNoDiagnosticsInFile(libFile);
   }
 
   test_exportsNonPublicName_ignoredIfAnnotatedPublic() async {

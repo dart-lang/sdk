@@ -6,6 +6,7 @@ import 'package:front_end/src/builder/property_builder.dart';
 import 'package:kernel/ast.dart' show LibraryDependency;
 
 import '../base/combinator.dart';
+import '../base/extension_scope.dart';
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/name_space.dart';
@@ -27,9 +28,15 @@ class PrefixBuilder extends NamedBuilderImpl
   final ComputedMutableNameSpace _prefixNameSpace =
       new ComputedMutableNameSpace();
 
+  final ExtensionsBuilder _prefixExtensions = new ExtensionsBuilder();
+
+  /// The [PrefixBuilder] of the same name declared in an ancestor compilation
+  /// unit, if any.
+  final PrefixBuilder? parentPrefixBuilder;
+
   late final LookupScope _prefixScope = new NameSpaceLookupScope(
     _prefixNameSpace,
-    ScopeKind.library,
+    parent: parentPrefixBuilder?.prefixScope,
   );
 
   @override
@@ -55,6 +62,7 @@ class PrefixBuilder extends NamedBuilderImpl
     required this.fileUri,
     required int prefixOffset,
     required int importOffset,
+    required this.parentPrefixBuilder,
   }) : fileOffset = prefixOffset,
        isWildcard = name == '_' {
     assert(
@@ -74,7 +82,7 @@ class PrefixBuilder extends NamedBuilderImpl
   LookupScope get prefixScope => _prefixScope;
 
   void forEachExtension(void Function(ExtensionBuilder) f) {
-    _prefixNameSpace.forEachLocalExtension(f);
+    _prefixExtensions.forEachLocalExtension(f);
   }
 
   LibraryDependency? get dependency => loadLibraryBuilder?.importDependency;
@@ -92,7 +100,7 @@ class PrefixBuilder extends NamedBuilderImpl
   }) {
     if (deferred && member is ExtensionBuilder) {
       parent.addProblem(
-        codeDeferredExtensionImport.withArguments(name),
+        codeDeferredExtensionImport.withArgumentsOld(name),
         importOffset,
         noLength,
         fileUri,
@@ -118,7 +126,7 @@ class PrefixBuilder extends NamedBuilderImpl
       _prefixNameSpace.addLocalMember(name, member, setter: isSetter);
     }
     if (member is ExtensionBuilder) {
-      _prefixNameSpace.addExtension(member);
+      _prefixExtensions.addExtension(member);
     }
   }
 
@@ -156,7 +164,7 @@ class PrefixFragment {
     required this.prefixOffset,
   });
 
-  PrefixBuilder createPrefixBuilder() {
+  PrefixBuilder createPrefixBuilder(PrefixBuilder? parentPrefixBuilder) {
     LoadLibraryBuilder? loadLibraryBuilder;
     if (deferred) {
       loadLibraryBuilder = new LoadLibraryBuilder(
@@ -177,6 +185,7 @@ class PrefixFragment {
       fileUri: fileUri,
       prefixOffset: prefixOffset,
       importOffset: importOffset,
+      parentPrefixBuilder: parentPrefixBuilder,
     );
   }
 

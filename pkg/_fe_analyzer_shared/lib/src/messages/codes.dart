@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:_fe_analyzer_shared/src/scanner/errors.dart';
+/// @docImport 'package:analyzer/src/fasta/ast_builder.dart';
+/// @docImport 'package:analyzer/src/fasta/error_converter.dart';
 library _fe_analyzer_shared.messages.codes;
 
 import 'dart:convert' show JsonEncoder, json;
@@ -13,6 +16,8 @@ import '../scanner/token.dart' show Token;
 import 'severity.dart' show CfeSeverity;
 
 import '../util/relativize.dart' as util show isWindows, relativizeUri;
+
+import 'conversions.dart' as conversions;
 
 part 'codes_generated.dart';
 
@@ -26,14 +31,26 @@ class Code {
   /// this error to its corresponding Analyzer error.
   final int index;
 
-  final List<String>? analyzerCodes;
+  /// Enumerated value that can be used to map this [Code] to a corresponding
+  /// analyzer code.
+  ///
+  /// If this value is non-null, then manually maintained logic (such as
+  /// that in [translateErrorToken], [AstBuilder.addProblem],
+  /// [AstBuilder.handleRecoverableError], or
+  /// [FastaErrorReporter.reportMessage]) can use it to translate to a
+  /// corresponding analyzer error code.
+  ///
+  /// Note that error codes that require translation in this way are not truly
+  /// shared (hence the name "pseudoSharedCode"). Truly shared error codes are
+  /// mapped to corresponding analyzer error codes using [index].
+  final PseudoSharedCode? pseudoSharedCode;
 
   final CfeSeverity severity;
 
   const Code(
     this.name, {
     this.index = -1,
-    this.analyzerCodes,
+    this.pseudoSharedCode,
     this.severity = CfeSeverity.error,
   });
 
@@ -81,7 +98,7 @@ class MessageCode extends Code implements Message {
   const MessageCode(
     super.name, {
     super.index,
-    super.analyzerCodes,
+    super.pseudoSharedCode,
     super.severity,
     required this.problemMessage,
     this.correctionMessage,
@@ -104,12 +121,14 @@ class MessageCode extends Code implements Message {
   }
 }
 
-class Template<T> extends Code {
+class Template<TOld extends Function, T extends Function> extends Code {
   String get messageCode => name;
 
   final String problemMessageTemplate;
 
   final String? correctionMessageTemplate;
+
+  final TOld withArgumentsOld;
 
   final T withArguments;
 
@@ -117,9 +136,10 @@ class Template<T> extends Code {
     super.name, {
     this.correctionMessageTemplate,
     required this.problemMessageTemplate,
+    required this.withArgumentsOld,
     required this.withArguments,
     super.index = -1,
-    super.analyzerCodes,
+    super.pseudoSharedCode,
     super.severity = CfeSeverity.error,
   });
 
@@ -410,9 +430,6 @@ String itemizeNames(List<String> names) {
 /// For example, when compiling "class A extends S with M1, M2", the
 /// two synthetic classes will be named "_A&S&M1" and "_A&S&M1&M2".
 /// This function will return "S with M1" and "S with M1, M2", respectively.
-///
-/// This method is copied from package:kernel/ast.dart.
-// TODO(johnniwinther): Avoid the need for this method.
 String demangleMixinApplicationName(String name) {
   List<String> nameParts = name.split('&');
   if (nameParts.length < 2 || name == "&") return name;

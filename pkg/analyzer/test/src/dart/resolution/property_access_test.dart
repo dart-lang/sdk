@@ -44,7 +44,7 @@ PropertyAccess
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -85,7 +85,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -99,9 +99,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@extension::E::@getter::foo
+  readElement: <testLibrary>::@extension::E::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -136,7 +136,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -150,9 +150,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -572,7 +572,7 @@ PropertyAccess
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: A
       element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -607,7 +607,7 @@ AssignmentExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A
         element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -625,9 +625,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::foo
+  readElement: <testLibrary>::@class::A::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -653,7 +653,7 @@ AssignmentExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A
         element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -671,9 +671,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -813,7 +813,7 @@ CascadeExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: A
       element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -860,7 +860,7 @@ CascadeExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: A
       element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -1303,9 +1303,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@enum::E::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@enum::E::@setter::foo
+  writeElement: <testLibrary>::@enum::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -1538,7 +1538,7 @@ PropertyAccess
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: A
       element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -1576,7 +1576,7 @@ AssignmentExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A
         element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -1594,9 +1594,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@extension::E::@getter::foo
+  readElement: <testLibrary>::@extension::E::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1624,7 +1624,7 @@ AssignmentExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A
         element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -1642,9 +1642,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -1806,9 +1806,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extensionType::A::@setter::foo
+  writeElement: <testLibrary>::@extensionType::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -2495,9 +2495,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::foo
+  readElement: <testLibrary>::@class::A::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -2535,9 +2535,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int

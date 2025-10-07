@@ -138,9 +138,7 @@ void f() {
     // Having a newline is important because yaml_edit copies existing
     // newlines and we want to test the current platforms EOLs.
     // The content is normalized in newFile().
-    writeAnalysisOptionsFile('''
-include: package:lints/recommended.yaml
-''');
+    createAnalysisOptionsFile(includes: ['package:lints/recommended.yaml']);
 
     await resolveTestCode('''
   void f() {
@@ -148,7 +146,8 @@ include: package:lints/recommended.yaml
   }
   ''');
     await assertHasFix('''
-include: package:lints/recommended.yaml
+include:
+  - package:lints/recommended.yaml
 analyzer:
   errors:
     unused_local_variable: ignore

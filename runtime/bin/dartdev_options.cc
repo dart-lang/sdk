@@ -118,6 +118,8 @@ bool Options::ProcessVMOptions(const char* arg,
   V("--disable-service-auth-codes", arg)                                       \
   V("--write-service-info", arg)                                               \
   V("--enable-service-port-fallback", arg)                                     \
+  V("--define", arg)                                                           \
+  V("-D", arg)                                                                 \
   V("--disable-service-auth-codes", arg)                                       \
   V("--serve-observatory", arg)                                                \
   V("--print-dtd", arg)                                                        \

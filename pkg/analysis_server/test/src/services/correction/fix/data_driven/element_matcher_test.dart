@@ -675,9 +675,8 @@ String s = '';
     var packageRootPath = '$workspaceRootPath/other';
     newFile('$packageRootPath/lib/other.dart', '');
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'other', rootPath: packageRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'other', rootPath: packageRootPath),
     );
 
     await resolveTestCode('''

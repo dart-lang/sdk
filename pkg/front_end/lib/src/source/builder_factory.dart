@@ -53,10 +53,10 @@ void _checkAugmentation(
     switch (declaration.kind) {
       case _DeclarationKind.Class:
         message = declaration.inPatch
-            ? codeUnmatchedPatchClass.withArguments(declaration.displayName)
+            ? codeUnmatchedPatchClass.withArgumentsOld(declaration.displayName)
             :
               // Coverage-ignore(suite): Not run.
-              codeUnmatchedAugmentationClass.withArguments(
+              codeUnmatchedAugmentationClass.withArgumentsOld(
                 declaration.displayName,
               );
       case _DeclarationKind.Constructor:
@@ -65,22 +65,22 @@ void _checkAugmentation(
       case _DeclarationKind.Property:
         if (declaration.inLibrary) {
           message = declaration.inPatch
-              ? codeUnmatchedPatchLibraryMember.withArguments(
+              ? codeUnmatchedPatchLibraryMember.withArgumentsOld(
                   declaration.displayName,
                 )
               :
                 // Coverage-ignore(suite): Not run.
-                codeUnmatchedAugmentationLibraryMember.withArguments(
+                codeUnmatchedAugmentationLibraryMember.withArgumentsOld(
                   declaration.displayName,
                 );
         } else {
           message = declaration.inPatch
-              ? codeUnmatchedPatchClassMember.withArguments(
+              ? codeUnmatchedPatchClassMember.withArgumentsOld(
                   declaration.displayName,
                 )
               :
                 // Coverage-ignore(suite): Not run.
-                codeUnmatchedAugmentationClassMember.withArguments(
+                codeUnmatchedAugmentationClassMember.withArgumentsOld(
                   declaration.displayName,
                 );
         }
@@ -94,12 +94,12 @@ void _checkAugmentation(
       case _DeclarationKind.Typedef:
         // TODO(johnniwinther): Specialize more messages.
         message = declaration.inPatch
-            ? codeUnmatchedPatchDeclaration.withArguments(
+            ? codeUnmatchedPatchDeclaration.withArgumentsOld(
                 declaration.displayName,
               )
             :
               // Coverage-ignore(suite): Not run.
-              codeUnmatchedAugmentationDeclaration.withArguments(
+              codeUnmatchedAugmentationDeclaration.withArgumentsOld(
                 declaration.displayName,
               );
     }
@@ -1132,30 +1132,6 @@ class BuilderFactory {
     );
   }
 
-  void _createProperty({
-    required String name,
-    required UriOffsetLength uriOffset,
-    FieldDeclaration? fieldDeclaration,
-    GetterDeclaration? getterDeclaration,
-    List<GetterDeclaration>? getterAugmentationDeclarations,
-    SetterDeclaration? setterDeclaration,
-    List<SetterDeclaration>? setterAugmentationDeclarations,
-    required bool isStatic,
-    required bool inPatch,
-  }) {
-    _createPropertyBuilder(
-      name: name,
-      uriOffset: uriOffset,
-      fieldDeclaration: fieldDeclaration,
-      getterDeclaration: getterDeclaration,
-      getterAugmentations: getterAugmentationDeclarations ?? const [],
-      setterDeclaration: setterDeclaration,
-      setterAugmentations: setterAugmentationDeclarations ?? const [],
-      isStatic: isStatic,
-      inPatch: inPatch,
-    );
-  }
-
   void _createPropertyBuilder({
     required String name,
     required UriOffsetLength uriOffset,
@@ -1347,7 +1323,7 @@ class EnumValuesDeclaration extends _PropertyDeclaration
     _PropertyDeclaration declaration,
   ) {
     problemReporting.addProblem2(
-      codeInstanceAndSynthesizedStaticConflict.withArguments(displayName),
+      codeInstanceAndSynthesizedStaticConflict.withArgumentsOld(displayName),
       declaration.uriOffset,
     );
   }
@@ -1669,11 +1645,11 @@ mixin _DeclarationReportingMixin implements _Declaration {
       case _ExistingKind.Getable:
         if (newIsSetter) {
           problemReporting.addProblem2(
-            codeSetterConflictsWithDeclaration.withArguments(name),
+            codeSetterConflictsWithDeclaration.withArgumentsOld(name),
             newUriOffset,
             context: [
               codeSetterConflictsWithDeclarationCause
-                  .withArguments(name)
+                  .withArgumentsOld(name)
                   .withLocation2(existingUriOffset),
             ],
           );
@@ -1683,11 +1659,11 @@ mixin _DeclarationReportingMixin implements _Declaration {
       case _ExistingKind.ExplicitSetter:
         if (!newIsSetter) {
           problemReporting.addProblem2(
-            codeDeclarationConflictsWithSetter.withArguments(name),
+            codeDeclarationConflictsWithSetter.withArgumentsOld(name),
             newUriOffset,
             context: <LocatedMessage>[
               codeDeclarationConflictsWithSetterCause
-                  .withArguments(name)
+                  .withArgumentsOld(name)
                   .withLocation2(existingUriOffset),
             ],
           );
@@ -1696,11 +1672,11 @@ mixin _DeclarationReportingMixin implements _Declaration {
         break;
       case _ExistingKind.ImplicitSetter:
         problemReporting.addProblem2(
-          codeConflictsWithImplicitSetter.withArguments(name),
+          codeConflictsWithImplicitSetter.withArgumentsOld(name),
           newUriOffset,
           context: [
             codeConflictsWithImplicitSetterCause
-                .withArguments(name)
+                .withArgumentsOld(name)
                 .withLocation2(existingUriOffset),
           ],
         );
@@ -1708,11 +1684,11 @@ mixin _DeclarationReportingMixin implements _Declaration {
     }
 
     problemReporting.addProblem2(
-      codeDuplicatedDeclaration.withArguments(name),
+      codeDuplicatedDeclaration.withArgumentsOld(name),
       newUriOffset,
       context: <LocatedMessage>[
         codeDuplicatedDeclarationCause
-            .withArguments(name)
+            .withArgumentsOld(name)
             .withLocation2(existingUriOffset),
       ],
     );
@@ -1751,11 +1727,11 @@ class _FactoryConstructorDeclaration extends _ConstructorDeclaration
     //    }
     //
     problemReporting.addProblem2(
-      codeMemberConflictsWithFactory.withArguments(displayName),
+      codeMemberConflictsWithFactory.withArgumentsOld(displayName),
       nonConstructorDeclaration.uriOffset,
       context: [
         codeMemberConflictsWithFactoryCause
-            .withArguments(displayName)
+            .withArgumentsOld(displayName)
             .withLocation2(uriOffset),
       ],
     );
@@ -1850,11 +1826,11 @@ class _GenerativeConstructorDeclaration extends _ConstructorDeclaration
     //    }
     //
     problemReporting.addProblem2(
-      codeMemberConflictsWithConstructor.withArguments(displayName),
+      codeMemberConflictsWithConstructor.withArgumentsOld(displayName),
       nonConstructorDeclaration.uriOffset,
       context: [
         codeMemberConflictsWithConstructorCause
-            .withArguments(displayName)
+            .withArgumentsOld(displayName)
             .withLocation2(uriOffset),
       ],
     );
@@ -1938,11 +1914,11 @@ abstract class _NonConstructorDeclaration extends _Declaration {
       //    }
       //
       problemReporting.addProblem2(
-        codeConstructorConflictsWithMember.withArguments(displayName),
+        codeConstructorConflictsWithMember.withArgumentsOld(displayName),
         constructorDeclaration.uriOffset,
         context: [
           codeConstructorConflictsWithMemberCause
-              .withArguments(displayName)
+              .withArgumentsOld(displayName)
               .withLocation2(uriOffset),
         ],
       );
@@ -1959,11 +1935,11 @@ abstract class _NonConstructorDeclaration extends _Declaration {
       //    }
       //
       problemReporting.addProblem2(
-        codeFactoryConflictsWithMember.withArguments(displayName),
+        codeFactoryConflictsWithMember.withArgumentsOld(displayName),
         constructorDeclaration.uriOffset,
         context: [
           codeFactoryConflictsWithMemberCause
-              .withArguments(displayName)
+              .withArgumentsOld(displayName)
               .withLocation2(uriOffset),
         ],
       );
@@ -2029,21 +2005,21 @@ abstract class _PropertyDeclaration extends _NonConstructorDeclaration {
   ) {
     if (isStatic) {
       problemReporting.addProblem2(
-        codeInstanceConflictsWithStatic.withArguments(displayName),
+        codeInstanceConflictsWithStatic.withArgumentsOld(displayName),
         declaration.uriOffset,
         context: [
           codeInstanceConflictsWithStaticCause
-              .withArguments(displayName)
+              .withArgumentsOld(displayName)
               .withLocation2(uriOffset),
         ],
       );
     } else {
       problemReporting.addProblem2(
-        codeStaticConflictsWithInstance.withArguments(displayName),
+        codeStaticConflictsWithInstance.withArgumentsOld(displayName),
         declaration.uriOffset,
         context: [
           codeStaticConflictsWithInstanceCause
-              .withArguments(displayName)
+              .withArgumentsOld(displayName)
               .withLocation2(uriOffset),
         ],
       );
@@ -2592,16 +2568,16 @@ class _PropertyPreBuilder extends _PreBuilder {
 
   @override
   void createBuilders(BuilderFactory builderFactory) {
-    builderFactory._createProperty(
+    builderFactory._createPropertyBuilder(
       name: name,
       inPatch: inPatch,
       isStatic: isStatic,
       uriOffset: uriOffset,
       fieldDeclaration: _getterDeclaration?.declarations.field,
       getterDeclaration: _getterDeclaration?.declarations.getter,
-      getterAugmentationDeclarations: _getterAugmentations,
+      getterAugmentations: _getterAugmentations,
       setterDeclaration: _setterDeclaration?.declarations.setter,
-      setterAugmentationDeclarations: _setterAugmentations,
+      setterAugmentations: _setterAugmentations,
     );
   }
 }

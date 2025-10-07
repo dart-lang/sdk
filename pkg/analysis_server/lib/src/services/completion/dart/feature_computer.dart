@@ -447,10 +447,9 @@ class FeatureComputer {
   double superMatchesFeature(
     String? containingMethodName,
     String proposedMemberName,
-  ) =>
-      containingMethodName == null
-          ? 0.0
-          : (proposedMemberName == containingMethodName ? 1.0 : 0.0);
+  ) => containingMethodName == null
+      ? 0.0
+      : (proposedMemberName == containingMethodName ? 1.0 : 0.0);
 
   /// Return the inheritance distance between the [subclass] and the
   /// [superclass]. The set of [visited] elements is used to guard against

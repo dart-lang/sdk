@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 // The `value` parameter for `B::x` has a type, so it should not be inferred
@@ -21,7 +20,7 @@ abstract class B extends A {
 T f<T>() => throw '';
 
 g(B b) {
-  b. /*@target=B.x*/ x(/*@typeArgs=() -> dynamic*/ f());
+  b.x(f());
 }
 
 main() {}

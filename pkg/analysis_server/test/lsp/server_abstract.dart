@@ -111,6 +111,7 @@ abstract class AbstractLspAnalysisServerTest
       'c',
       server.notificationManager,
       server.instrumentationService,
+      isLegacy: true,
     );
     pluginManager.pluginIsolates.add(pluginIsolate);
 
@@ -120,10 +121,10 @@ abstract class AbstractLspAnalysisServerTest
         return response == null
             ? null
             : {
-              pluginIsolate: Future.delayed(
-                respondAfter,
-              ).then((_) => response.toResponse('-', 1)),
-            };
+                pluginIsolate: Future.delayed(
+                  respondAfter,
+                ).then((_) => response.toResponse('-', 1)),
+              };
       };
     }
 
@@ -456,13 +457,12 @@ mixin ClientCapabilitiesHelperMixin {
   void setChangeAnnotationSupport([bool supported = true]) {
     workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
       'workspaceEdit': {
-        'changeAnnotationSupport':
-            supported
-                ? <String, Object?>{
-                  // This is set to an empty object to indicate support. We don't
-                  // currently use any of the child properties.
-                }
-                : null,
+        'changeAnnotationSupport': supported
+            ? <String, Object?>{
+                // This is set to an empty object to indicate support. We don't
+                // currently use any of the child properties.
+              }
+            : null,
       },
     });
   }
@@ -500,11 +500,10 @@ mixin ClientCapabilitiesHelperMixin {
         'completion': {
           'completionItem': {
             'insertTextModeSupport': {
-              'valueSet':
-                  [
-                    InsertTextMode.adjustIndentation,
-                    InsertTextMode.asIs,
-                  ].map((k) => k.toJson()).toList(),
+              'valueSet': [
+                InsertTextMode.adjustIndentation,
+                InsertTextMode.asIs,
+              ].map((k) => k.toJson()).toList(),
             },
           },
         },
@@ -737,14 +736,13 @@ mixin ClientCapabilitiesHelperMixin {
       textDocumentCapabilities,
       {
         'codeAction': {
-          'codeActionLiteralSupport':
-              kinds != null
-                  ? {
-                    'codeActionKind': {
-                      'valueSet': kinds.map((k) => k.toJson()).toList(),
-                    },
-                  }
-                  : null,
+          'codeActionLiteralSupport': kinds != null
+              ? {
+                  'codeActionKind': {
+                    'valueSet': kinds.map((k) => k.toJson()).toList(),
+                  },
+                }
+              : null,
         },
       },
     );
@@ -757,16 +755,15 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void setTextDocumentDynamicRegistration(String name) {
-    var json =
-        name == 'semanticTokens'
-            ? SemanticTokensClientCapabilities(
-              dynamicRegistration: true,
-              requests: ClientSemanticTokensRequestOptions(),
-              formats: [],
-              tokenModifiers: [],
-              tokenTypes: [],
-            ).toJson()
-            : {'dynamicRegistration': true};
+    var json = name == 'semanticTokens'
+        ? SemanticTokensClientCapabilities(
+            dynamicRegistration: true,
+            requests: ClientSemanticTokensRequestOptions(),
+            formats: [],
+            tokenModifiers: [],
+            tokenTypes: [],
+          ).toJson()
+        : {'dynamicRegistration': true};
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,
       {name: json},
@@ -1188,10 +1185,9 @@ mixin LspAnalysisServerTestMixin
       method: method,
       params: params,
       jsonrpc: jsonRpcVersion,
-      clientRequestTime:
-          includeClientRequestTime
-              ? DateTime.now().millisecondsSinceEpoch
-              : null,
+      clientRequestTime: includeClientRequestTime
+          ? DateTime.now().millisecondsSinceEpoch
+          : null,
     );
   }
 
@@ -1201,10 +1197,9 @@ mixin LspAnalysisServerTestMixin
     Position pos,
     String newName,
   ) {
-    var docIdentifier =
-        version != null
-            ? VersionedTextDocumentIdentifier(version: version, uri: uri)
-            : TextDocumentIdentifier(uri: uri);
+    var docIdentifier = version != null
+        ? VersionedTextDocumentIdentifier(version: version, uri: uri)
+        : TextDocumentIdentifier(uri: uri);
     var request = makeRequest(
       Method.textDocument_rename,
       RenameParams(
@@ -1495,16 +1490,12 @@ mixin LspAnalysisServerTestMixin
         }
 
         if (params.value is Map<String, dynamic>) {
-          var isDesiredStatusMessage =
-              analyzing
-                  ? WorkDoneProgressBegin.canParse(
-                    params.value,
-                    nullLspJsonReporter,
-                  )
-                  : WorkDoneProgressEnd.canParse(
-                    params.value,
-                    nullLspJsonReporter,
-                  );
+          var isDesiredStatusMessage = analyzing
+              ? WorkDoneProgressBegin.canParse(
+                  params.value,
+                  nullLspJsonReporter,
+                )
+              : WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter);
 
           return isDesiredStatusMessage;
         } else {

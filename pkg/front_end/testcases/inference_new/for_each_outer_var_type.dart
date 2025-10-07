@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'dart:async';
@@ -20,8 +19,8 @@ test(Iterable<B> iterable, Stream<B> stream, A a, B b, int i) async {
   await for (b in stream) {}
   for (i in iterable) {}
   await for (i in stream) {}
-  for (a in /*@typeArgs=Iterable<A>*/ f()) {}
-  await for (a in /*@typeArgs=Stream<A>*/ f()) {}
+  for (a in f()) {}
+  await for (a in f()) {}
 }
 
 main() {}

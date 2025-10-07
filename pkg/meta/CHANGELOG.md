@@ -1,3 +1,7 @@
+## 1.18.0-dev
+
+- The `@redeclare` annotation is no longer considered experimental.
+
 ## 1.17.0
 
 - Introduce `@awaitNotRequired` to annotate `Future`-returning functions and

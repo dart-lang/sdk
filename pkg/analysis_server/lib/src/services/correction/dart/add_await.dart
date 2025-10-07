@@ -35,10 +35,7 @@ class AddAwait extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_AWAIT;
-
-  @override
-  FixKind get multiFixKind => DartFixKind.ADD_AWAIT_MULTI;
+  FixKind get fixKind => DartFixKind.addAwait;
 
   FunctionBody? get _functionBodyIfNotAsync {
     var body = node.thisOrAncestorOfType<FunctionBody>();
@@ -101,11 +98,10 @@ class AddAwait extends ResolvedCorrectionProducer {
               typeSystem.isAssignableTo(type, typeProvider.streamDynamicType);
           if (isStream ||
               _isValidFutureType(
-                isValid:
-                    (type) => typeSystem.isAssignableTo(
-                      type,
-                      typeProvider.iterableDynamicType,
-                    ),
+                isValid: (type) => typeSystem.isAssignableTo(
+                  type,
+                  typeProvider.iterableDynamicType,
+                ),
               )) {
             await _addAwait(
               builder,

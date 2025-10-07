@@ -75,15 +75,14 @@ class LspWithPluginThatTimesOutBencmark extends DartLanguageServerBenchmark {
 
       // ...and ask for completion.
       var firstCompletionStopwatch = Stopwatch()..start();
-      var completionResult =
-          await (await send(
-            LspMessages.completion(
-              runDetails.mainFile.uri,
-              largestIdSeen + 1,
-              line: 3,
-              character: 4 /* after the 'ge' just typed */,
-            ),
-          ))!.completer.future;
+      var completionResult = await (await send(
+        LspMessages.completion(
+          runDetails.mainFile.uri,
+          largestIdSeen + 1,
+          line: 3,
+          character: 4 /* after the 'ge' just typed */,
+        ),
+      ))!.completer.future;
       firstCompletionStopwatch.stop();
       List<dynamic> completionItems =
           completionResult['result']['items'] as List;

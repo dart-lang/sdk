@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:meta/meta.dart';
 
 /// Failure because of there is no most specific signature in [candidates].
 class CandidatesConflict extends Conflict {
@@ -130,7 +129,6 @@ class InheritanceManager3 {
 
   /// Returns signatures of all concrete members that the given [element]
   /// inherits from the superclasses and mixins.
-  @experimental
   Map<Name, ExecutableElement> getInheritedConcreteMap(
     InterfaceElement element,
   ) {
@@ -154,7 +152,6 @@ class InheritanceManager3 {
   ///
   /// If there is no most specific signature for a name, the corresponding name
   /// will not be included.
-  @experimental
   Map<Name, InternalExecutableElement> getInheritedMap(
     InterfaceElement element,
   ) {
@@ -196,7 +193,6 @@ class InheritanceManager3 {
   /// If [forMixinIndex] is specified, only the nominal superclass, and the
   /// given number of mixins after it are considered. For example for `1` in
   /// `class C extends S with M1, M2, M3`, only `S` and `M1` are considered.
-  @experimental
   InternalExecutableElement? getMember(
     InterfaceElement element,
     Name name, {
@@ -207,30 +203,35 @@ class InheritanceManager3 {
     element as InterfaceElementImpl; // TODO(scheglov): remove cast
 
     var interface = _getInterface(element);
+
+    InternalExecutableElement? result;
     if (forSuper) {
       if (element is ExtensionTypeElementImpl) {
         return null;
-      }
-      var superImplemented = interface.superImplemented;
-      if (forMixinIndex >= 0) {
-        return superImplemented[forMixinIndex][name];
-      }
-      if (superImplemented.isNotEmpty) {
-        return superImplemented.last[name];
       } else {
-        assert(element.name == 'Object');
-        return null;
+        var superImplemented = interface.superImplemented;
+        if (forMixinIndex >= 0) {
+          result = superImplemented[forMixinIndex][name];
+        } else if (superImplemented.isNotEmpty) {
+          result = superImplemented.last[name];
+        } else {
+          assert(element.name == 'Object');
+          return null;
+        }
       }
-    }
-    if (concrete) {
-      return interface.implemented[name];
+    } else if (concrete) {
+      result = interface.implemented[name];
+    } else {
+      result = interface.map[name];
     }
 
-    var result = interface.map[name];
     globalResultRequirements?.record_interface_getMember(
       element: element,
       nameObj: name,
       methodElement: result,
+      concrete: concrete,
+      forSuper: forSuper,
+      forMixinIndex: forMixinIndex,
     );
     return result;
   }

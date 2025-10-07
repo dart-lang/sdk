@@ -1917,17 +1917,32 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
 
-  if (FLAG_target_thread_sanitizer) {
-    if (index.IsRegister()) {
-      __ ComputeElementAddressForRegIndex(TMP, IsUntagged(), class_id(),
-                                          index_scale(), index_unboxed_, array,
-                                          index.reg());
-    } else {
-      __ ComputeElementAddressForIntIndex(TMP, IsUntagged(), class_id(),
-                                          index_scale(), array,
-                                          Smi::Cast(index.constant()).Value());
-    }
-    __ TsanRead(TMP, RepresentationUtils::ValueSize(rep));
+  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer) {
+    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+      if (index.IsRegister()) {
+        __ ComputeElementAddressForRegIndex(R0, IsUntagged(), class_id(),
+                                            index_scale(), index_unboxed_,
+                                            array, index.reg());
+      } else {
+        __ ComputeElementAddressForIntIndex(
+            R0, IsUntagged(), class_id(), index_scale(), array,
+            Smi::Cast(index.constant()).Value());
+      }
+      switch (RepresentationUtils::ValueSize(rep)) {
+        case 1:
+          return kTsanRead1RuntimeEntry;
+        case 2:
+          return kTsanRead2RuntimeEntry;
+        case 4:
+          return kTsanRead4RuntimeEntry;
+        case 8:
+          return kTsanRead8RuntimeEntry;
+        case 16:
+          return kTsanRead16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    });
   }
 
   compiler::Address element_address(TMP);  // Bad address.
@@ -2088,22 +2103,36 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location index = locs()->in(1);
   const Register temp = locs()->temp(0).reg();
   compiler::Address element_address(TMP);  // Bad address.
-
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
   ASSERT(RequiredInputRepresentation(2) == Boxing::NativeRepresentation(rep));
 
-  if (FLAG_target_thread_sanitizer) {
-    if (index.IsRegister()) {
-      __ ComputeElementAddressForRegIndex(TMP, IsUntagged(), class_id(),
-                                          index_scale(), index_unboxed_, array,
-                                          index.reg());
-    } else {
-      __ ComputeElementAddressForIntIndex(TMP, IsUntagged(), class_id(),
-                                          index_scale(), array,
-                                          Smi::Cast(index.constant()).Value());
-    }
-    __ TsanWrite(TMP, RepresentationUtils::ValueSize(rep));
+  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer) {
+    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+      if (index.IsRegister()) {
+        __ ComputeElementAddressForRegIndex(R0, IsUntagged(), class_id(),
+                                            index_scale(), index_unboxed_,
+                                            array, index.reg());
+      } else {
+        __ ComputeElementAddressForIntIndex(
+            R0, IsUntagged(), class_id(), index_scale(), array,
+            Smi::Cast(index.constant()).Value());
+      }
+      switch (RepresentationUtils::ValueSize(rep)) {
+        case 1:
+          return kTsanWrite1RuntimeEntry;
+        case 2:
+          return kTsanWrite2RuntimeEntry;
+        case 4:
+          return kTsanWrite4RuntimeEntry;
+        case 8:
+          return kTsanWrite8RuntimeEntry;
+        case 16:
+          return kTsanWrite16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    });
   }
 
   // Deal with a special case separately.

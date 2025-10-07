@@ -35,7 +35,7 @@ class LinkedElementFactory {
   final Reference rootReference;
   final Map<Uri, LibraryReader> _libraryReaders = {};
   bool isApplyingInformativeData = false;
-  final Map<Uri, LibraryManifest> libraryManifests = {};
+  final Map<Uri, LibraryManifestHandle> libraryManifests = {};
 
   LinkedElementFactory(
     this.analysisContext,
@@ -121,6 +121,12 @@ class LinkedElementFactory {
     }
   }
 
+  void discardLibraryManifestInstances() {
+    for (var handle in libraryManifests.values) {
+      handle.discardInstance();
+    }
+  }
+
   void dispose() {
     for (var libraryReference in rootReference.children) {
       _disposeLibrary(libraryReference.element);
@@ -152,6 +158,10 @@ class LinkedElementFactory {
       throw StateError('Expected existing element: $reference');
     }
     return element;
+  }
+
+  LibraryManifestHandle? libraryManifestOfUri(Uri uri) {
+    return libraryManifests[uri];
   }
 
   LibraryElementImpl? libraryOfUri(Uri uri) {

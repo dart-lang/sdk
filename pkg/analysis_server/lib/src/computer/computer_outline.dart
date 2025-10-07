@@ -321,8 +321,9 @@ class DartUnitOutlineComputer {
     var name = nameToken.lexeme;
 
     var aliasedType = node.type;
-    var aliasedFunctionType =
-        aliasedType is GenericFunctionType ? aliasedType : null;
+    var aliasedFunctionType = aliasedType is GenericFunctionType
+        ? aliasedType
+        : null;
 
     var element = Element(
       aliasedFunctionType != null
@@ -335,14 +336,12 @@ class DartUnitOutlineComputer {
       ),
       aliasedType: _safeToSource(aliasedType),
       location: _getLocationToken(nameToken),
-      parameters:
-          aliasedFunctionType != null
-              ? _safeToSource(aliasedFunctionType.parameters)
-              : null,
-      returnType:
-          aliasedFunctionType != null
-              ? _safeToSource(aliasedFunctionType.returnType)
-              : null,
+      parameters: aliasedFunctionType != null
+          ? _safeToSource(aliasedFunctionType.parameters)
+          : null,
+      returnType: aliasedFunctionType != null
+          ? _safeToSource(aliasedFunctionType.returnType)
+          : null,
       typeParameters: _getTypeParametersStr(node.typeParameters),
     );
 

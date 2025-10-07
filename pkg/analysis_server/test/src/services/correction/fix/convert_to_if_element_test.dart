@@ -47,7 +47,7 @@ String f2(bool b) {
 @reflectiveTest
 class ConvertToIfElementTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_IF_ELEMENT;
+  FixKind get kind => DartFixKind.convertToIfElement;
 
   @override
   String get lintCode =>

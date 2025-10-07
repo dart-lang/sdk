@@ -52,8 +52,9 @@ class PubApi {
     this.instrumentationService,
     http.Client? httpClient,
     String? envPubHostedUrl,
-  ) : httpClient =
-          httpClient != null ? _NoCloseHttpClient(httpClient) : http.Client(),
+  ) : httpClient = httpClient != null
+          ? _NoCloseHttpClient(httpClient)
+          : http.Client(),
       pubHostedUrl = _validPubHostedUrl(envPubHostedUrl);
 
   /// Fetches a list of package names from the Pub API.
@@ -92,8 +93,9 @@ class PubApi {
     }
 
     var pubspec = latest['pubspec'] as Map<String, Object?>?;
-    var description =
-        pubspec != null ? pubspec['description'] as String? : null;
+    var description = pubspec != null
+        ? pubspec['description'] as String?
+        : null;
     var version = latest['version'] as String?;
     return PubApiPackageDetails(packageName, description, version);
   }
@@ -151,9 +153,9 @@ class PubApi {
   static String _validPubHostedUrl(String? envPubHostedUrl) {
     var validUrl =
         envPubHostedUrl != null &&
-                (Uri.tryParse(envPubHostedUrl)?.isAbsolute ?? false)
-            ? envPubHostedUrl
-            : 'https://pub.dev';
+            (Uri.tryParse(envPubHostedUrl)?.isAbsolute ?? false)
+        ? envPubHostedUrl
+        : 'https://pub.dev';
 
     // Discard any trailing slashes, as all API paths start with them.
     return validUrl.endsWith('/')

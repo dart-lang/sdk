@@ -107,14 +107,13 @@ class LegacyTypingTemporaryMissingEndBraceBenchmark
     );
 
     // Ask for completion
-    Future<Map<String, dynamic>> completionFuture =
-        (await send(
-          LegacyMessages.getSuggestions2(
-            largestIdSeen + 1,
-            runDetails.orderedFileCopies.last.uri,
-            completionOffset,
-          ),
-        ))!.completer.future;
+    Future<Map<String, dynamic>> completionFuture = (await send(
+      LegacyMessages.getSuggestions2(
+        largestIdSeen + 1,
+        runDetails.orderedFileCopies.last.uri,
+        completionOffset,
+      ),
+    ))!.completer.future;
 
     stopwatch = Stopwatch()..start();
     var completionResponse = await completionFuture;

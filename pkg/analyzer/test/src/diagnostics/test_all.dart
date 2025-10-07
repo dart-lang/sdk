@@ -166,6 +166,7 @@ import 'constant_pattern_with_non_constant_expression_test.dart'
 import 'continue_label_invalid_test.dart' as continue_label_invalid;
 import 'could_not_infer_test.dart' as could_not_infer;
 import 'creation_of_struct_or_union_test.dart' as creation_of_struct_or_union;
+import 'creation_with_non_type_test.dart' as creation_with_non_type;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
 import 'default_value_in_function_type_test.dart'
@@ -188,6 +189,8 @@ import 'deprecated_implements_function_test.dart'
 import 'deprecated_instantiate_test.dart' as deprecated_instantiate;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
+import 'deprecated_mixin_test.dart' as deprecated_mixin;
+import 'deprecated_optional_test.dart' as deprecated_optional;
 import 'deprecated_subclass_test.dart' as deprecated_subclass;
 import 'doc_directive_argument_wrong_format_test.dart'
     as doc_directive_argument_wrong_format;
@@ -444,6 +447,10 @@ import 'invalid_deprecated_implement_annotation_test.dart'
     as invalid_deprecated_implement_annotation;
 import 'invalid_deprecated_instantiate_annotation_test.dart'
     as invalid_deprecated_instantiate_annotation;
+import 'invalid_deprecated_mixin_annotation_test.dart'
+    as invalid_deprecated_mixin_annotation;
+import 'invalid_deprecated_optional_annotation_test.dart'
+    as invalid_deprecated_optional_annotation;
 import 'invalid_deprecated_subclass_annotation_test.dart'
     as invalid_deprecated_subclass_annotation;
 import 'invalid_do_not_submit_test.dart' as invalid_do_not_submit;
@@ -480,11 +487,6 @@ import 'invalid_reference_to_generative_enum_constructor_test.dart'
     as invalid_reference_to_generative_enum_constructor;
 import 'invalid_reference_to_this_test.dart' as invalid_reference_to_this;
 import 'invalid_reopen_annotation_test.dart' as invalid_reopen_annotation;
-import 'invalid_required_named_param_test.dart' as invalid_required_named_param;
-import 'invalid_required_optional_positional_param_test.dart'
-    as invalid_required_optional_positional_param;
-import 'invalid_required_positional_param_test.dart'
-    as invalid_required_positional_param;
 import 'invalid_super_formal_parameter_location_test.dart'
     as invalid_super_formal_parameter_location;
 import 'invalid_super_in_initializer_test.dart' as invalid_super_in_initializer;
@@ -1060,6 +1062,7 @@ main() {
     continue_label_invalid.main();
     could_not_infer.main();
     creation_of_struct_or_union.main();
+    creation_with_non_type.main();
     dead_code.main();
     dead_null_aware_expression.main();
     default_value_in_function_type.main();
@@ -1076,6 +1079,8 @@ main() {
     deprecated_instantiate.main();
     deprecated_member_use.main();
     deprecated_mixin_function.main();
+    deprecated_mixin.main();
+    deprecated_optional.main();
     deprecated_subclass.main();
     doc_directive_argument_wrong_format.main();
     doc_directive_has_extra_arguments.main();
@@ -1234,6 +1239,8 @@ main() {
     invalid_deprecated_extend_annotation.main();
     invalid_deprecated_implement_annotation.main();
     invalid_deprecated_instantiate_annotation.main();
+    invalid_deprecated_mixin_annotation.main();
+    invalid_deprecated_optional_annotation.main();
     invalid_deprecated_subclass_annotation.main();
     invalid_do_not_submit.main();
     invalid_exception_value.main();
@@ -1259,9 +1266,6 @@ main() {
     invalid_reference_to_generative_enum_constructor.main();
     invalid_reference_to_this.main();
     invalid_reopen_annotation.main();
-    invalid_required_named_param.main();
-    invalid_required_optional_positional_param.main();
-    invalid_required_positional_param.main();
     invalid_super_formal_parameter_location.main();
     invalid_super_in_initializer.main();
     invalid_type_argument_in_const_list.main();

@@ -658,6 +658,12 @@ abstract class ResolvedCorrectionProducer
           return _coreTypeBool;
         }
       }
+      if (parent is WhenClause) {
+        var clause = parent;
+        if (clause.expression == expression) {
+          return _coreTypeBool;
+        }
+      }
       // `while ( myFunction() ) {}`.
       if (parent is WhileStatement) {
         var statement = parent;

@@ -91,7 +91,9 @@ class DartEditBuilderImpl extends DartEditBuilderImplTest {
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
     expect(
-        edits[0].replacement, equalsIgnoringWhitespace('covariant required a'));
+      edits[0].replacement,
+      equalsIgnoringWhitespace('covariant required a'),
+    );
   }
 
   Future<void> test_writeParameter_required_addImport() async {
@@ -193,7 +195,7 @@ class A<T extends int>{}
   }
 
   Future<void>
-      test_writeTypeParameter_no_extends_keyword_canNotWriteType() async {
+  test_writeTypeParameter_no_extends_keyword_canNotWriteType() async {
     var path = convertPath('$testPackageRootPath/lib/test.dart');
     var content = '''
 class A<T extends UnresolvedType>{}
@@ -219,10 +221,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      config: PackageConfigFileBuilder(),
-      meta: true,
-    );
+    writeTestPackageConfig(config: PackageConfigFileBuilder(), meta: true);
   }
 
   Future<void> test_insertField_enum() async {
@@ -295,7 +294,9 @@ class DartEditBuilderImplTest extends AbstractContextTest
     });
     var edit = getEdit(builder);
     expect(
-        edit.replacement, equalsIgnoringWhitespace('class C implements A { }'));
+      edit.replacement,
+      equalsIgnoringWhitespace('class C implements A { }'),
+    );
   }
 
   Future<void> test_writeClassDeclaration_isAbstract() async {
@@ -319,9 +320,12 @@ class DartEditBuilderImplTest extends AbstractContextTest
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
-        builder.writeClassDeclaration('C', membersWriter: () {
-          builder.write('/**/');
-        });
+        builder.writeClassDeclaration(
+          'C',
+          membersWriter: () {
+            builder.write('/**/');
+          },
+        );
       });
     });
     var edit = getEdit(builder);
@@ -356,8 +360,10 @@ class DartEditBuilderImplTest extends AbstractContextTest
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement,
-        equalsIgnoringWhitespace('class C extends A with B { }'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('class C extends A with B { }'),
+    );
   }
 
   Future<void> test_writeClassDeclaration_nameGroupName() async {
@@ -388,8 +394,11 @@ class DartEditBuilderImplTest extends AbstractContextTest
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
-        builder.writeClassDeclaration('C',
-            superclass: typeB, superclassGroupName: 'superclass');
+        builder.writeClassDeclaration(
+          'C',
+          superclass: typeB,
+          superclassGroupName: 'superclass',
+        );
       });
     });
     var edit = getEdit(builder);
@@ -409,9 +418,12 @@ class DartEditBuilderImplTest extends AbstractContextTest
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(9, (builder) {
-        builder.writeConstructorDeclaration('A', bodyWriter: () {
-          builder.write(' { print(42); }');
-        });
+        builder.writeConstructorDeclaration(
+          'A',
+          bodyWriter: () {
+            builder.write(' { print(42); }');
+          },
+        );
       });
     });
     var edit = getEdit(builder);
@@ -444,9 +456,12 @@ class C {
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(9, (builder) {
-        builder.writeConstructorDeclaration('A', initializerWriter: () {
-          builder.write('super()');
-        });
+        builder.writeConstructorDeclaration(
+          'A',
+          initializerWriter: () {
+            builder.write('super()');
+          },
+        );
       });
     });
     var edit = getEdit(builder);
@@ -460,9 +475,12 @@ class C {
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(9, (builder) {
-        builder.writeConstructorDeclaration('A', parameterWriter: () {
-          builder.write('int a, {this.b}');
-        });
+        builder.writeConstructorDeclaration(
+          'A',
+          parameterWriter: () {
+            builder.write('int a, {this.b}');
+          },
+        );
       });
     });
     var edit = getEdit(builder);
@@ -477,9 +495,12 @@ class C {
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        builder.writeFieldDeclaration('f', initializerWriter: () {
-          builder.write('e');
-        });
+        builder.writeFieldDeclaration(
+          'f',
+          initializerWriter: () {
+            builder.write('e');
+          },
+        );
       });
     });
     var edit = getEdit(builder);
@@ -626,7 +647,7 @@ class C {
   }
 
   Future<void>
-      test_writeFunctionDeclaration_noReturnType_noParams_body() async {
+  test_writeFunctionDeclaration_noReturnType_noParams_body() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = '';
     addSource(path, content);
@@ -634,9 +655,12 @@ class C {
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
-        builder.writeFunctionDeclaration('fib', bodyWriter: () {
-          builder.write('{ ... }');
-        });
+        builder.writeFunctionDeclaration(
+          'fib',
+          bodyWriter: () {
+            builder.write('{ ... }');
+          },
+        );
       });
     });
     var edit = getEdit(builder);
@@ -644,7 +668,7 @@ class C {
   }
 
   Future<void>
-      test_writeFunctionDeclaration_noReturnType_noParams_noBody() async {
+  test_writeFunctionDeclaration_noReturnType_noParams_noBody() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = '';
     addSource(path, content);
@@ -666,7 +690,7 @@ class C {
   }
 
   Future<void>
-      test_writeFunctionDeclaration_noReturnType_params_noBody() async {
+  test_writeFunctionDeclaration_noReturnType_params_noBody() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = '';
     addSource(path, content);
@@ -674,9 +698,12 @@ class C {
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
-        builder.writeFunctionDeclaration('fib', parameterWriter: () {
-          builder.write('p, q, r');
-        });
+        builder.writeFunctionDeclaration(
+          'fib',
+          parameterWriter: () {
+            builder.write('p, q, r');
+          },
+        );
       });
     });
     var edit = getEdit(builder);
@@ -684,7 +711,7 @@ class C {
   }
 
   Future<void>
-      test_writeFunctionDeclaration_returnType_noParams_noBody() async {
+  test_writeFunctionDeclaration_returnType_noParams_noBody() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'class A {}';
     addSource(path, content);
@@ -694,8 +721,11 @@ class C {
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
-        builder.writeFunctionDeclaration('fib',
-            returnType: typeA, returnTypeGroupName: 'type');
+        builder.writeFunctionDeclaration(
+          'fib',
+          returnType: typeA,
+          returnTypeGroupName: 'type',
+        );
       });
     });
     var edit = getEdit(builder);
@@ -716,9 +746,12 @@ class C {
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        builder.writeGetterDeclaration('g', bodyWriter: () {
-          builder.write('{}');
-        });
+        builder.writeGetterDeclaration(
+          'g',
+          bodyWriter: () {
+            builder.write('{}');
+          },
+        );
       });
     });
     var edit = getEdit(builder);
@@ -772,8 +805,11 @@ class C {
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        builder.writeGetterDeclaration('g',
-            returnType: typeA, returnTypeGroupName: 'returnType');
+        builder.writeGetterDeclaration(
+          'g',
+          returnType: typeA,
+          returnTypeGroupName: 'returnType',
+        );
       });
     });
     var edit = getEdit(builder);
@@ -800,7 +836,7 @@ import 'foo.dart';
       builder.addInsertion(0, (builder) {
         builder.writeImportedName([
           Uri.parse('package:test/foo.dart'),
-          Uri.parse('package:test/bar.dart')
+          Uri.parse('package:test/bar.dart'),
         ], 'Foo');
       });
     });
@@ -819,7 +855,7 @@ import 'bar.dart';
       builder.addInsertion(0, (builder) {
         builder.writeImportedName([
           Uri.parse('package:test/foo.dart'),
-          Uri.parse('package:test/bar.dart')
+          Uri.parse('package:test/bar.dart'),
         ], 'Foo');
       });
     });
@@ -837,15 +873,17 @@ import 'bar.dart';
       builder.addInsertion(0, (builder) {
         builder.writeImportedName([
           Uri.parse('package:test/foo.dart'),
-          Uri.parse('package:test/bar.dart')
+          Uri.parse('package:test/bar.dart'),
         ], 'Foo');
       });
     });
     var edits = getEdits(builder);
     expect(edits, hasLength(2));
     expect(edits[0].replacement, equalsIgnoringWhitespace('Foo'));
-    expect(edits[1].replacement,
-        equalsIgnoringWhitespace("import 'package:test/foo.dart';\n"));
+    expect(
+      edits[1].replacement,
+      equalsIgnoringWhitespace("import 'package:test/foo.dart';\n"),
+    );
     var result = SourceEdit.applySequence(content, edits);
     expect(result, '''
 import 'package:test/foo.dart';
@@ -863,15 +901,17 @@ Foo''');
       builder.addReplacement(SourceRange(0, 4), (builder) {
         builder.writeImportedName([
           Uri.parse('package:test/foo.dart'),
-          Uri.parse('package:test/bar.dart')
+          Uri.parse('package:test/bar.dart'),
         ], 'Foo');
       });
     });
     var edits = getEdits(builder);
     expect(edits, hasLength(2));
     expect(edits[0].replacement, equalsIgnoringWhitespace('Foo'));
-    expect(edits[1].replacement,
-        equalsIgnoringWhitespace("import 'package:test/foo.dart';\n"));
+    expect(
+      edits[1].replacement,
+      equalsIgnoringWhitespace("import 'package:test/foo.dart';\n"),
+    );
     var result = SourceEdit.applySequence(content, edits);
     expect(result, '''
 import 'package:test/foo.dart';
@@ -891,9 +931,12 @@ void f() {
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(11, (builder) {
-        builder.writeLocalVariableDeclaration('foo', initializerWriter: () {
-          builder.write('null');
-        });
+        builder.writeLocalVariableDeclaration(
+          'foo',
+          initializerWriter: () {
+            builder.write('null');
+          },
+        );
       });
     });
     var edit = getEdit(builder);
@@ -926,7 +969,7 @@ void f() {
   }
 
   Future<void>
-      test_writeLocalVariableDeclaration_noType_noInitializer_const() async {
+  test_writeLocalVariableDeclaration_noType_noInitializer_const() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = '''
 void f() {
@@ -946,7 +989,7 @@ void f() {
   }
 
   Future<void>
-      test_writeLocalVariableDeclaration_noType_noInitializer_final() async {
+  test_writeLocalVariableDeclaration_noType_noInitializer_final() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = '''
 void f() {
@@ -1032,7 +1075,7 @@ class MyClass {}''';
   }
 
   Future<void>
-      test_writeLocalVariableDeclaration_type_noInitializer_final() async {
+  test_writeLocalVariableDeclaration_type_noInitializer_final() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = '''
 void f() {
@@ -1081,11 +1124,13 @@ class MyClass {}''';
     });
     var edit = getEdit(builder);
     expect(
-        edit.replacement, equalsIgnoringWhitespace('mixin M implements A { }'));
+      edit.replacement,
+      equalsIgnoringWhitespace('mixin M implements A { }'),
+    );
   }
 
   Future<void>
-      test_writeMixinDeclaration_interfacesAndSuperclassConstraints() async {
+  test_writeMixinDeclaration_interfacesAndSuperclassConstraints() async {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {} class B {}');
     DartType typeA = await _getType(path, 'A');
@@ -1094,13 +1139,18 @@ class MyClass {}''';
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
-        builder.writeMixinDeclaration('M',
-            interfaces: [typeA], superclassConstraints: [typeB]);
+        builder.writeMixinDeclaration(
+          'M',
+          interfaces: [typeA],
+          superclassConstraints: [typeB],
+        );
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement,
-        equalsIgnoringWhitespace('mixin M on B implements A { }'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('mixin M on B implements A { }'),
+    );
   }
 
   Future<void> test_writeMixinDeclaration_memberWriter() async {
@@ -1110,9 +1160,12 @@ class MyClass {}''';
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(0, (builder) {
-        builder.writeMixinDeclaration('M', membersWriter: () {
-          builder.write('/**/');
-        });
+        builder.writeMixinDeclaration(
+          'M',
+          membersWriter: () {
+            builder.write('/**/');
+          },
+        );
       });
     });
     var edit = getEdit(builder);
@@ -1235,8 +1288,9 @@ class A {}
     var unit = (await resolveFile(path)).unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
-    var elements =
-        parameters?.parameters.map((p) => p.declaredFragment!.element);
+    var elements = parameters?.parameters.map(
+      (p) => p.declaredFragment!.element,
+    );
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1245,8 +1299,10 @@ class A {}
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement,
-        equalsIgnoringWhitespace('(int a, {bool b = false, String c})'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('(int a, {bool b = false, String c})'),
+    );
   }
 
   Future<void> test_writeParameters_noDefaults() async {
@@ -1257,8 +1313,9 @@ class A {}
     var unit = (await resolveFile(path)).unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
-    var elements =
-        parameters?.parameters.map((p) => p.declaredFragment!.element);
+    var elements = parameters?.parameters.map(
+      (p) => p.declaredFragment!.element,
+    );
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1267,8 +1324,10 @@ class A {}
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement,
-        equalsIgnoringWhitespace('(int a, {bool b, String c})'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('(int a, {bool b, String c})'),
+    );
   }
 
   Future<void> test_writeParameters_positional() async {
@@ -1278,8 +1337,9 @@ class A {}
     var unit = (await resolveFile(path)).unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
-    var elements =
-        parameters?.parameters.map((p) => p.declaredFragment!.element);
+    var elements = parameters?.parameters.map(
+      (p) => p.declaredFragment!.element,
+    );
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1288,8 +1348,10 @@ class A {}
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement,
-        equalsIgnoringWhitespace('(int a, [bool b = false, String c])'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('(int a, [bool b = false, String c])'),
+    );
   }
 
   Future<void> test_writeParameters_required() async {
@@ -1299,8 +1361,9 @@ class A {}
     var unit = (await resolveFile(path)).unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
-    var elements =
-        parameters?.parameters.map((p) => p.declaredFragment!.element);
+    var elements = parameters?.parameters.map(
+      (p) => p.declaredFragment!.element,
+    );
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1319,8 +1382,9 @@ class A {}
     var unit = (await resolveFile(path)).unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
-    var elements =
-        parameters?.parameters.map((p) => p.declaredFragment!.element);
+    var elements = parameters?.parameters.map(
+      (p) => p.declaredFragment!.element,
+    );
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1352,8 +1416,10 @@ f(int i, String s) {
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement,
-        equalsIgnoringWhitespace('String s, {required int index}'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('String s, {required int index}'),
+    );
   }
 
   Future<void> test_writeParametersMatchingArguments_required() async {
@@ -1485,9 +1551,12 @@ a''');
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        builder.writeSetterDeclaration('s', bodyWriter: () {
-          builder.write('{/* TODO */}');
-        });
+        builder.writeSetterDeclaration(
+          's',
+          bodyWriter: () {
+            builder.write('{/* TODO */}');
+          },
+        );
       });
     });
     var edit = getEdit(builder);
@@ -1541,8 +1610,11 @@ a''');
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        builder.writeSetterDeclaration('s',
-            parameterType: typeA, parameterTypeGroupName: 'returnType');
+        builder.writeSetterDeclaration(
+          's',
+          parameterType: typeA,
+          parameterTypeGroupName: 'returnType',
+        );
       });
     });
     var edit = getEdit(builder);
@@ -1645,8 +1717,11 @@ a''');
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        builder.writeType(typeC,
-            addSupertypeProposals: true, groupName: 'type');
+        builder.writeType(
+          typeC,
+          addSupertypeProposals: true,
+          groupName: 'type',
+        );
       });
     });
     var edit = getEdit(builder);
@@ -1734,9 +1809,11 @@ a''');
     expect(edits, hasLength(2));
     var edited = SourceEdit.applySequence(bContent, edits);
     expect(
-        edited,
-        equalsIgnoringWhitespace(
-            "import 'package:test/test_a.dart' hide C, B;D();A();"));
+      edited,
+      equalsIgnoringWhitespace(
+        "import 'package:test/test_a.dart' hide C, B;D();A();",
+      ),
+    );
   }
 
   Future<void> test_writeType_preserveHiddenTypesB() async {
@@ -1762,9 +1839,11 @@ a''');
     expect(edits, hasLength(2));
     var edited = SourceEdit.applySequence(bContent, edits);
     expect(
-        edited,
-        equalsIgnoringWhitespace(
-            "import 'package:test/test_a.dart' hide C, A;D();B();"));
+      edited,
+      equalsIgnoringWhitespace(
+        "import 'package:test/test_a.dart' hide C, A;D();B();",
+      ),
+    );
   }
 
   Future<void> test_writeType_preserveHiddenTypesC() async {
@@ -1790,9 +1869,11 @@ a''');
     expect(edits, hasLength(2));
     var edited = SourceEdit.applySequence(bContent, edits);
     expect(
-        edited,
-        equalsIgnoringWhitespace(
-            "import 'package:test/test_a.dart' hide B, A;D();C();"));
+      edited,
+      equalsIgnoringWhitespace(
+        "import 'package:test/test_a.dart' hide B, A;D();C();",
+      ),
+    );
   }
 
   Future<void> test_writeType_required_dynamic() async {
@@ -1862,9 +1943,11 @@ a''');
     expect(edits, hasLength(2));
     var edited = SourceEdit.applySequence(bContent, edits);
     expect(
-        edited,
-        equalsIgnoringWhitespace(
-            "import 'package:test/test_a.dart' show A, Other;A"));
+      edited,
+      equalsIgnoringWhitespace(
+        "import 'package:test/test_a.dart' show A, Other;A",
+      ),
+    );
   }
 
   /// The same test as [test_writeType_shownImport] but where the updated
@@ -1892,10 +1975,13 @@ import 'package:test/test_b.dart';
     var edits = getEdits(builder);
     expect(edits, hasLength(2));
     var edited = SourceEdit.applySequence(bContent, edits);
-    expect(edited, equalsIgnoringWhitespace('''
+    expect(
+      edited,
+      equalsIgnoringWhitespace('''
 import 'package:test/test_a.dart' show A, Other;
 import 'package:test/test_b.dart';
-A'''));
+A'''),
+    );
   }
 
   Future<void> test_writeType_shownImportUnsorted() async {
@@ -1921,9 +2007,11 @@ A'''));
     expect(edits, hasLength(2));
     var edited = SourceEdit.applySequence(bContent, edits);
     expect(
-        edited,
-        equalsIgnoringWhitespace(
-            "import 'package:test/test_a.dart' show C, A, B, D;D();B();"));
+      edited,
+      equalsIgnoringWhitespace(
+        "import 'package:test/test_a.dart' show C, A, B, D;D();B();",
+      ),
+    );
   }
 
   Future<void> test_writeType_shownImportWithCombinatorsOrdering() async {
@@ -1946,9 +2034,11 @@ A'''));
     expect(edits, hasLength(2));
     var edited = SourceEdit.applySequence(bContent, edits);
     expect(
-        edited,
-        equalsIgnoringWhitespace(
-            "import 'package:test/test_a.dart' show A, C, Other;Other"));
+      edited,
+      equalsIgnoringWhitespace(
+        "import 'package:test/test_a.dart' show A, C, Other;Other",
+      ),
+    );
   }
 
   Future<void> test_writeType_shownImportWithConfiguration() async {
@@ -1970,9 +2060,11 @@ A'''));
     expect(edits, hasLength(2));
     var edited = SourceEdit.applySequence(bContent, edits);
     expect(
-        edited,
-        equalsIgnoringWhitespace(
-            "import 'package:test/test_a.dart' show A, Other if (a.b);A"));
+      edited,
+      equalsIgnoringWhitespace(
+        "import 'package:test/test_a.dart' show A, Other if (a.b);A",
+      ),
+    );
   }
 
   Future<void> test_writeType_shownImportWithHide() async {
@@ -1995,9 +2087,11 @@ A'''));
     expect(edits, hasLength(2));
     var edited = SourceEdit.applySequence(bContent, edits);
     expect(
-        edited,
-        equalsIgnoringWhitespace(
-            "import 'package:test/test_a.dart' show A, OtherOne hide Other;A"));
+      edited,
+      equalsIgnoringWhitespace(
+        "import 'package:test/test_a.dart' show A, OtherOne hide Other;A",
+      ),
+    );
   }
 
   Future<void> test_writeType_shownImportWithHideSplit() async {
@@ -2020,9 +2114,11 @@ A'''));
     expect(edits, hasLength(1));
     var edited = SourceEdit.applySequence(bContent, edits);
     expect(
-        edited,
-        equalsIgnoringWhitespace(
-            "import 'package:test/test_a.dart' show OtherOne; import 'package:test/test_a.dart' hide Other;A"));
+      edited,
+      equalsIgnoringWhitespace(
+        "import 'package:test/test_a.dart' show OtherOne; import 'package:test/test_a.dart' hide Other;A",
+      ),
+    );
   }
 
   Future<void> test_writeType_shownImportWithMultipleCombinators() async {
@@ -2045,9 +2141,11 @@ A'''));
     expect(edits, hasLength(3));
     var edited = SourceEdit.applySequence(bContent, edits);
     expect(
-        edited,
-        equalsIgnoringWhitespace(
-            "import 'package:test/test_a.dart' show B hide C show A, D;A"));
+      edited,
+      equalsIgnoringWhitespace(
+        "import 'package:test/test_a.dart' show B hide C show A, D;A",
+      ),
+    );
   }
 
   Future<void> test_writeType_shownImportWithPrefix() async {
@@ -2069,9 +2167,11 @@ A'''));
     expect(edits, hasLength(2));
     var edited = SourceEdit.applySequence(bContent, edits);
     expect(
-        edited,
-        equalsIgnoringWhitespace(
-            "import 'package:test/test_a.dart' as pack show Other; import 'package:test/test_a.dart'; A"));
+      edited,
+      equalsIgnoringWhitespace(
+        "import 'package:test/test_a.dart' as pack show Other; import 'package:test/test_a.dart'; A",
+      ),
+    );
   }
 
   Future<void> test_writeType_simpleType() async {
@@ -2091,8 +2191,10 @@ A'''));
   }
 
   Future<void> test_writeType_typedef_typeArguments() async {
-    await _assertwriteType2('F<int, String>',
-        declarations: 'typedef void F<T, U>(T t, U u);');
+    await _assertwriteType2(
+      'F<int, String>',
+      declarations: 'typedef void F<T, U>(T t, U u);',
+    );
   }
 
   Future<void> test_writeType_void() async {
@@ -2190,7 +2292,9 @@ A'''));
   }
 
   Future<PropertyAccessorElement> _getTopLevelGetter(
-      String path, String name) async {
+    String path,
+    String name,
+  ) async {
     var unitResult = await resolveFile(path);
     return unitResult.libraryElement.getGetter(name)!;
   }
@@ -2428,8 +2532,10 @@ void functionAfter() {
   Future<void> test_importElementLibrary_libElement() async {
     var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
 
-    var resolvedLibUnit =
-        await resolveContent('/home/test/lib/a.dart', 'class A {}');
+    var resolvedLibUnit = await resolveContent(
+      '/home/test/lib/a.dart',
+      'class A {}',
+    );
 
     var findNode = FindNode(resolvedLibUnit.content, resolvedLibUnit.unit);
     var classElement = findNode.classDeclaration('A').declaredFragment!.element;
@@ -2442,8 +2548,10 @@ void functionAfter() {
 
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
-    expect(edits[0].replacement,
-        equalsIgnoringWhitespace("import 'package:test/a.dart';\n"));
+    expect(
+      edits[0].replacement,
+      equalsIgnoringWhitespace("import 'package:test/a.dart';\n"),
+    );
     expect(cache[classElement], resolvedLibUnit.libraryElement);
   }
 
@@ -2455,8 +2563,10 @@ void functionAfter() {
     var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
 
     // 'a.dart' exports just A.
-    var resolvedAUnit =
-        await resolveContent('/home/test/lib/a.dart', 'class A {}');
+    var resolvedAUnit = await resolveContent(
+      '/home/test/lib/a.dart',
+      'class A {}',
+    );
 
     // 'all.dart' exports both A and B.
     var resolvedAllUnit = await resolveContent('/home/test/lib/all.dart', '''
@@ -2464,14 +2574,14 @@ export 'a.dart';
 class B {}
 ''');
 
-    var classA = FindNode(resolvedAUnit.content, resolvedAUnit.unit)
-        .classDeclaration('A')
-        .declaredFragment!
-        .element;
-    var classB = FindNode(resolvedAllUnit.content, resolvedAllUnit.unit)
-        .classDeclaration('B')
-        .declaredFragment!
-        .element;
+    var classA = FindNode(
+      resolvedAUnit.content,
+      resolvedAUnit.unit,
+    ).classDeclaration('A').declaredFragment!.element;
+    var classB = FindNode(
+      resolvedAllUnit.content,
+      resolvedAllUnit.unit,
+    ).classDeclaration('B').declaredFragment!.element;
 
     var cache = <Element, LibraryElement?>{};
     var builder = await newBuilder();
@@ -2483,20 +2593,24 @@ class B {}
 
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
-    expect(edits[0].replacement,
-        equalsIgnoringWhitespace("import 'package:test/all.dart';\n"));
+    expect(
+      edits[0].replacement,
+      equalsIgnoringWhitespace("import 'package:test/all.dart';\n"),
+    );
   }
 
   /// [test_importElementLibrary_replacesPendingImports] verifies that
   /// `importElementLibrary` can replace pending imports, but it must not do so
   /// if they were added explicitly (and not to satisfy a given [Element]).
   Future<void>
-      test_importElementLibrary_replacesPendingImports_unlessImportedExplicitly() async {
+  test_importElementLibrary_replacesPendingImports_unlessImportedExplicitly() async {
     var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
 
     // 'a.dart' exports just A.
-    var resolvedAUnit =
-        await resolveContent('/home/test/lib/a.dart', 'class A {}');
+    var resolvedAUnit = await resolveContent(
+      '/home/test/lib/a.dart',
+      'class A {}',
+    );
 
     // 'all.dart' exports both A and B.
     var resolvedAllUnit = await resolveContent('/home/test/lib/all.dart', '''
@@ -2504,14 +2618,14 @@ export 'a.dart';
 class B {}
 ''');
 
-    var classA = FindNode(resolvedAUnit.content, resolvedAUnit.unit)
-        .classDeclaration('A')
-        .declaredFragment!
-        .element;
-    var classB = FindNode(resolvedAllUnit.content, resolvedAllUnit.unit)
-        .classDeclaration('B')
-        .declaredFragment!
-        .element;
+    var classA = FindNode(
+      resolvedAUnit.content,
+      resolvedAUnit.unit,
+    ).classDeclaration('A').declaredFragment!.element;
+    var classB = FindNode(
+      resolvedAllUnit.content,
+      resolvedAllUnit.unit,
+    ).classDeclaration('B').declaredFragment!.element;
 
     var cache = <Element, LibraryElement?>{};
     var builder = await newBuilder();
@@ -2526,10 +2640,13 @@ class B {}
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
     // Expect 'a.dart' was not removed, because it was added explicitly.
-    expect(edits[0].replacement, equalsIgnoringWhitespace('''
+    expect(
+      edits[0].replacement,
+      equalsIgnoringWhitespace('''
 import 'package:test/a.dart';
 import 'package:test/all.dart';
-        '''));
+        '''),
+    );
   }
 
   Future<void> test_importElementLibrary_sdkElement() async {
@@ -2540,25 +2657,33 @@ import 'package:test/all.dart';
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
       var builderImpl = builder as DartFileEditBuilderImpl;
-      await builderImpl.importElementLibrary(futureOrElement,
-          resultCache: cache);
+      await builderImpl.importElementLibrary(
+        futureOrElement,
+        resultCache: cache,
+      );
     });
 
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
     expect(
-        edits[0].replacement, equalsIgnoringWhitespace("import 'dart:async';"));
+      edits[0].replacement,
+      equalsIgnoringWhitespace("import 'dart:async';"),
+    );
     expect(cache[futureOrElement], futureOrElement.library);
   }
 
   Future<void> test_importElementLibrary_srcElement() async {
     var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
 
-    var resolvedSrcUnit =
-        await resolveContent('/home/test/lib/src/a.dart', 'class A {}');
+    var resolvedSrcUnit = await resolveContent(
+      '/home/test/lib/src/a.dart',
+      'class A {}',
+    );
 
-    var resolvedExportUnit =
-        await resolveContent('/home/test/lib/a.dart', "export 'src/a.dart'");
+    var resolvedExportUnit = await resolveContent(
+      '/home/test/lib/a.dart',
+      "export 'src/a.dart'",
+    );
 
     var findNode = FindNode(resolvedSrcUnit.content, resolvedSrcUnit.unit);
     var classElement = findNode.classDeclaration('A').declaredFragment!.element;
@@ -2571,8 +2696,10 @@ import 'package:test/all.dart';
 
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
-    expect(edits[0].replacement,
-        equalsIgnoringWhitespace("import 'package:test/a.dart';\n"));
+    expect(
+      edits[0].replacement,
+      equalsIgnoringWhitespace("import 'package:test/a.dart';\n"),
+    );
     expect(cache[classElement], resolvedExportUnit.libraryElement);
   }
 
@@ -2589,14 +2716,18 @@ import 'package:test/all.dart';
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
       var builderImpl = builder as DartFileEditBuilderImpl;
-      await builderImpl.importElementLibrary(futureOrElement,
-          resultCache: cache);
+      await builderImpl.importElementLibrary(
+        futureOrElement,
+        resultCache: cache,
+      );
     });
 
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
-    expect(edits[0].replacement,
-        equalsIgnoringWhitespace("import 'package:test/fake.dart';"));
+    expect(
+      edits[0].replacement,
+      equalsIgnoringWhitespace("import 'package:test/fake.dart';"),
+    );
     expect(cache[futureOrElement], resolvedFakeUnit.libraryElement);
   }
 
@@ -2614,16 +2745,21 @@ import 'package:test/all.dart';
     var builder = await newBuilder();
     await builder.addDartFileEdit(bPath, (builder) {
       // Add an import to ensure 'A' is visible without a prefix.
-      builder.importLibrary(Uri.parse('package:test/test_a.dart'),
-          showName: 'A', prefix: '');
+      builder.importLibrary(
+        Uri.parse('package:test/test_a.dart'),
+        showName: 'A',
+        prefix: '',
+      );
     });
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
     var edited = SourceEdit.applySequence(bContent, edits);
     expect(
-        edited,
-        equalsIgnoringWhitespace(
-            "import 'package:test/test_a.dart' show A, Other; A"));
+      edited,
+      equalsIgnoringWhitespace(
+        "import 'package:test/test_a.dart' show A, Other; A",
+      ),
+    );
   }
 
   Future<void> test_importLibrary_sorted() async {
@@ -2642,7 +2778,9 @@ import 'package:test/all.dart';
 
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
-    expect(edits[0].replacement, equalsIgnoringWhitespace('''
+    expect(
+      edits[0].replacement,
+      equalsIgnoringWhitespace('''
 import 'dart:a';
 import 'dart:x';
 import 'package:foo/a.dart';
@@ -2651,7 +2789,8 @@ import '../a.dart';
 import '../z.dart';
 import 'a.dart';
 import 'z.dart';
-'''));
+'''),
+    );
   }
 
   Future<void> test_multipleEdits_concurrently() async {
@@ -2752,8 +2891,10 @@ class C extends B {}
     );
     var suggestions = builder.suggestions;
     expect(suggestions, hasLength(4));
-    expect(suggestions.map((s) => s.value),
-        unorderedEquals(['Object', 'A', 'B', 'C']));
+    expect(
+      suggestions.map((s) => s.value),
+      unorderedEquals(['Object', 'A', 'B', 'C']),
+    );
   }
 
   Future<void> test_addSuperTypesAsSuggestions_questionSuffix() async {
@@ -2774,8 +2915,10 @@ class C extends B {}
     );
     var suggestions = builder.suggestions;
     expect(suggestions, hasLength(4));
-    expect(suggestions.map((s) => s.value),
-        unorderedEquals(['Object?', 'A?', 'B?', 'C?']));
+    expect(
+      suggestions.map((s) => s.value),
+      unorderedEquals(['Object?', 'A?', 'B?', 'C?']),
+    );
   }
 }
 
@@ -2955,11 +3098,14 @@ class A {}
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, initialCode);
     var builder = await newBuilder();
-    await builder.addDartFileEdit(path,
-        createEditsForImports: createEditsForImports, (builder) {
-      var uri = Uri.parse(uriString);
-      builder.importLibraryElement(uri, prefix: prefix, showName: showName);
-    });
+    await builder.addDartFileEdit(
+      path,
+      createEditsForImports: createEditsForImports,
+      (builder) {
+        var uri = Uri.parse(uriString);
+        builder.importLibraryElement(uri, prefix: prefix, showName: showName);
+      },
+    );
 
     var resultCode = initialCode;
     var edits = getEdits(builder);
@@ -3648,16 +3794,21 @@ import 'aaa.dart' as aaa2;
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, initialCode);
     var builder = await newBuilder();
-    await builder.addDartFileEdit(path,
-        createEditsForImports: createEditsForImports, (builder) {
-      for (var i = 0; i < uriList.length; ++i) {
-        var uri = Uri.parse(uriList[i]);
-        builder.importLibrary(uri, prefix: prefixList?[i]);
-      }
+    await builder.addDartFileEdit(
+      path,
+      createEditsForImports: createEditsForImports,
+      (builder) {
+        for (var i = 0; i < uriList.length; ++i) {
+          var uri = Uri.parse(uriList[i]);
+          builder.importLibrary(uri, prefix: prefixList?[i]);
+        }
 
-      expect(builder.requiredImports.map((uri) => uri.toString()),
-          uriList.toSet());
-    });
+        expect(
+          builder.requiredImports.map((uri) => uri.toString()),
+          uriList.toSet(),
+        );
+      },
+    );
 
     var resultCode = initialCode;
     var edits = getEdits(builder);
@@ -4237,8 +4388,9 @@ class B extends A {
       }
     }
 
-    var inherited =
-        targetElement.getInheritedMember(Name(null, nameToOverride));
+    var inherited = targetElement.getInheritedMember(
+      Name(null, nameToOverride),
+    );
     var displayBuffer = displayText != null ? StringBuffer() : null;
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {

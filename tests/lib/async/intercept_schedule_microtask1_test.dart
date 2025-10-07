@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'catch_errors.dart';
 
-main() {
+void main() {
   // Test that runZoned returns the result of executing the body.
   var result = runZonedScheduleMicrotask(
     () => 499,

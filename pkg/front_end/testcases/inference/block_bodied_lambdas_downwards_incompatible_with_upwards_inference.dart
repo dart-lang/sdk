@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 main() {
   String f() => '';
-  var /*@type=() -> String*/ g = f;
-  g = /*@returnType=String*/ () {
+  var g = f;
+  g = () {
     return /*error:RETURN_OF_INVALID_TYPE*/ 1;
   };
 }

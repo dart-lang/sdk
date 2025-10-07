@@ -2,11 +2,11 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:21:74: Error: The argument type 'NotA Function()' can't be assigned to the parameter type 'A Function()'.
+// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:20:43: Error: The argument type 'NotA Function()' can't be assigned to the parameter type 'A Function()'.
 //  - 'NotA' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
-//   var /*@type=C<A>*/ x = new /*error:COULD_NOT_INFER*/ /*@typeArgs=A*/ C(myF);
-//                                                                          ^
+//   var x = new /*error:COULD_NOT_INFER*/ C(myF);
+//                                           ^
 //
 import self as self;
 import "dart:core" as core;
@@ -30,11 +30,11 @@ class NotA extends core::Object {
 static method myF() → self::NotA
   return throw "";
 static method test() → dynamic {
-  self::C<self::A> x = new self::C::•<self::A>(invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:21:74: Error: The argument type 'NotA Function()' can't be assigned to the parameter type 'A Function()'.
+  self::C<self::A> x = new self::C::•<self::A>(invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:20:43: Error: The argument type 'NotA Function()' can't be assigned to the parameter type 'A Function()'.
  - 'NotA' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
  - 'A' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
-  var /*@type=C<A>*/ x = new /*error:COULD_NOT_INFER*/ /*@typeArgs=A*/ C(myF);
-                                                                         ^" in #C1 as{TypeError} () → self::A);
+  var x = new /*error:COULD_NOT_INFER*/ C(myF);
+                                          ^" in #C1 as{TypeError} () → self::A);
 }
 
 constants  {

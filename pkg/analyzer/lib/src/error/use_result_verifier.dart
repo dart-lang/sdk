@@ -253,6 +253,7 @@ class UseResultVerifier {
         parent is RecordLiteral ||
         parent is ReturnStatement ||
         parent is SetOrMapLiteral ||
+        parent is SwitchExpression ||
         parent is SwitchExpressionCase ||
         parent is SwitchStatement ||
         parent is ThrowExpression ||

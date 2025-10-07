@@ -10,11 +10,11 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 String name(DeclarationMirror? mirror) {
-  return (mirror == null) ? '<null>' : stringify(mirror.simpleName);
+  return (mirror == null) ? '<null>' : stringifySymbol(mirror.simpleName);
 }
 
 String stringifyMap(Map map) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer('{');
   bool first = true;
   var names = map.keys.map((s) => MirrorSystem.getName(s)).toList()..sort();
   for (String key in names) {
@@ -22,28 +22,31 @@ String stringifyMap(Map map) {
     first = false;
     buffer.write(key);
     buffer.write(': ');
-    buffer.write(stringify(map[new Symbol(key)]));
+    buffer.write(stringify(map[Symbol(key)]));
   }
-  return '{$buffer}';
+  buffer.write('}');
+  return buffer.toString();
 }
 
 String stringifyIterable(Iterable list) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer('[');
   bool first = true;
   for (String value in list.map(stringify)) {
     if (!first) buffer.write(', ');
     first = false;
     buffer.write(value);
   }
-  return '[$buffer]';
+  buffer.write(']');
+  return buffer.toString();
 }
 
 String stringifyInstance(InstanceMirror instance) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer('Instance(');
   if (instance.hasReflectee) {
     buffer.write('value = ${stringify(instance.reflectee)}');
   }
-  return 'Instance(${buffer})';
+  buffer.write(')');
+  return buffer.toString();
 }
 
 String stringifySymbol(Symbol symbol) => 's(${MirrorSystem.getName(symbol)})';
@@ -66,13 +69,14 @@ void writeVariableOn(VariableMirror variable, StringBuffer buffer) {
 }
 
 String stringifyVariable(VariableMirror variable) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer('Variable(');
   writeVariableOn(variable, buffer);
-  return 'Variable($buffer)';
+  buffer.write(')');
+  return buffer.toString();
 }
 
 String stringifyParameter(ParameterMirror parameter) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer('Parameter(');
   writeVariableOn(parameter, buffer);
   if (parameter.isOptional) buffer.write(', optional');
   if (parameter.isNamed) buffer.write(', named');
@@ -82,30 +86,34 @@ String stringifyParameter(ParameterMirror parameter) {
   }
   // TODO(ahe): Move to writeVariableOn.
   buffer.write(', type = ${stringify(parameter.type)}');
-  return 'Parameter($buffer)';
+  buffer.write(')');
+  return buffer.toString();
 }
 
 String stringifyTypeVariable(TypeVariableMirror typeVariable) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer('TypeVariable(');
   writeDeclarationOn(typeVariable, buffer);
   buffer.write(', upperBound = ${stringify(typeVariable.upperBound)}');
-  return 'TypeVariable($buffer)';
+  buffer.write(')');
+  return buffer.toString();
 }
 
 String stringifyType(TypeMirror type) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer('Type(');
   writeDeclarationOn(type, buffer);
-  return 'Type($buffer)';
+  buffer.write(')');
+  return buffer.toString();
 }
 
 String stringifyClass(ClassMirror cls) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer('Class(');
   writeDeclarationOn(cls, buffer);
-  return 'Class($buffer)';
+  buffer.write(')');
+  return buffer.toString();
 }
 
 String stringifyMethod(MethodMirror method) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer('Method(');
   writeDeclarationOn(method, buffer);
   if (method.isAbstract) buffer.write(', abstract');
   if (method.isSynthetic) buffer.write(', synthetic');
@@ -113,7 +121,8 @@ String stringifyMethod(MethodMirror method) {
   if (method.isGetter) buffer.write(', getter');
   if (method.isSetter) buffer.write(', setter');
   if (method.isConstructor) buffer.write(', constructor');
-  return 'Method($buffer)';
+  buffer.write(')');
+  return buffer.toString();
 }
 
 String stringifyDependencies(LibraryMirror l) {
@@ -132,9 +141,9 @@ String stringifyDependencies(LibraryMirror l) {
 
   int compareCom(a, b) => n(a.identifier).compareTo(n(b.identifier));
   int compareFirst(a, b) => a[0].compareTo(b[0]);
-  sortBy(c, p) => new List.from(c)..sort(p);
+  sortBy(c, p) => List.from(c)..sort(p);
 
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer();
   sortBy(l.libraryDependencies, compareDep).forEach((dep) {
     if (dep.isImport) buffer.write('import ');
     if (dep.isExport) buffer.write('export ');

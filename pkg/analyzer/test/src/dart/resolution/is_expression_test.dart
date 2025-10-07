@@ -36,7 +36,7 @@ IsExpression
   isOperator: is
   type: NamedType
     name: T
-    element2: #E0 T
+    element: #E0 T
     type: T
   staticType: bool
 ''');
@@ -78,7 +78,7 @@ IsExpression
   isOperator: is
   type: NamedType
     name: double
-    element2: dart:core::@class::double
+    element: dart:core::@class::double
     type: double
   staticType: bool
 ''');
@@ -101,7 +101,7 @@ IsExpression
   isOperator: is
   type: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   staticType: bool
 ''');
@@ -125,7 +125,7 @@ IsExpression
   notOperator: !
   type: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   staticType: bool
 ''');

@@ -1,0 +1,19 @@
+class A {
+  static String get foo => "A.foo";
+  static void set baz(num value) {}
+}
+
+extension E on A {
+  static String get foo => "E.foo";
+  static String get bar => "E.bar";
+  static void set baz(num value) {}
+  static void set quux(bool value) {}
+}
+
+main() {}
+
+expectEqual(a, b) {}
+
+expectThrows(Function() f) {}
+
+expectDoesntThrow(Function() f) {}

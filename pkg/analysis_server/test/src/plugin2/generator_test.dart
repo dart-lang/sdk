@@ -69,19 +69,18 @@ import 'package:no_ints/main.dart' as no_ints;
           source: VersionedPluginSource(constraint: '^1.0.0'),
         ),
       ],
-      dependencyOverrides: '''
-    dep_one: 2.0.0
-    dep_two:
-      path: /aaa/bbb/ccc
-''',
+      dependencyOverrides: {
+        'dep_one': VersionedPluginSource(constraint: '2.0.0'),
+        'dep_two': PathPluginSource(path: '/aaa/bbb/ccc'),
+      },
     );
     expect(
       pluginPackageGenerator.generatePubspec(),
       contains('''
 dependency_overrides:
-    dep_one: 2.0.0
-    dep_two:
-      path: /aaa/bbb/ccc
+  dep_one: 2.0.0
+  dep_two:
+    path: /aaa/bbb/ccc
 '''),
     );
   }

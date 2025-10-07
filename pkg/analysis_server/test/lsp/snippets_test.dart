@@ -18,13 +18,12 @@ void main() {
 @reflectiveTest
 class SnippetBuilderTest {
   Future<void> test_appendChoice() async {
-    var builder =
-        SnippetBuilder()
-          ..appendChoice({r'a'})
-          ..appendChoice({r'a', r'b'})
-          ..appendChoice({}, placeholderNumber: 6)
-          ..appendChoice({r'aaa', r'bbb'}, placeholderNumber: 12)
-          ..appendChoice({r'aaa', r'bbb \ bbb $ bbb | bbb , bbb } bbb'});
+    var builder = SnippetBuilder()
+      ..appendChoice({r'a'})
+      ..appendChoice({r'a', r'b'})
+      ..appendChoice({}, placeholderNumber: 6)
+      ..appendChoice({r'aaa', r'bbb'}, placeholderNumber: 12)
+      ..appendChoice({r'aaa', r'bbb \ bbb $ bbb | bbb , bbb } bbb'});
 
     expect(
       builder.value,
@@ -40,11 +39,10 @@ class SnippetBuilderTest {
   }
 
   Future<void> test_appendPlaceholder() async {
-    var builder =
-        SnippetBuilder()
-          ..appendPlaceholder(r'placeholder $ 1')
-          ..appendPlaceholder(r'')
-          ..appendPlaceholder(r'placeholder } 3', placeholderNumber: 6);
+    var builder = SnippetBuilder()
+      ..appendPlaceholder(r'placeholder $ 1')
+      ..appendPlaceholder(r'')
+      ..appendPlaceholder(r'placeholder } 3', placeholderNumber: 6);
 
     expect(
       builder.value,
@@ -55,11 +53,10 @@ class SnippetBuilderTest {
   }
 
   Future<void> test_appendTabStop() async {
-    var builder =
-        SnippetBuilder()
-          ..appendTabStop()
-          ..appendTabStop(placeholderNumber: 10)
-          ..appendTabStop();
+    var builder = SnippetBuilder()
+      ..appendTabStop()
+      ..appendTabStop(placeholderNumber: 10)
+      ..appendTabStop();
 
     expect(
       builder.value,
@@ -70,11 +67,10 @@ class SnippetBuilderTest {
   }
 
   Future<void> test_appendText() async {
-    var builder =
-        SnippetBuilder()
-          ..appendText(r'text 1')
-          ..appendText(r'text ${that needs} escaping $0')
-          ..appendText(r'text 2');
+    var builder = SnippetBuilder()
+      ..appendText(r'text 1')
+      ..appendText(r'text ${that needs} escaping $0')
+      ..appendText(r'text 2');
 
     expect(
       builder.value,
@@ -101,9 +97,8 @@ class SnippetBuilderTest {
       lsp.SnippetPlaceholder(22, 2, suggestions: ['aaa', 'bbb']),
     ];
 
-    var builder =
-        SnippetBuilder()
-          ..appendPlaceholders(code, placeholders, isPreSorted: false);
+    var builder = SnippetBuilder()
+      ..appendPlaceholders(code, placeholders, isPreSorted: false);
 
     expect(builder.value, r'''
 01${1:23}45678
@@ -115,15 +110,14 @@ class SnippetBuilderTest {
   }
 
   Future<void> test_mixed() async {
-    var builder =
-        SnippetBuilder()
-          ..appendText('text1')
-          ..appendPlaceholder('placeholder')
-          ..appendText('text2')
-          ..appendChoice({'aaa', 'bbb'})
-          ..appendText('text3')
-          ..appendTabStop()
-          ..appendText('text4');
+    var builder = SnippetBuilder()
+      ..appendText('text1')
+      ..appendPlaceholder('placeholder')
+      ..appendText('text2')
+      ..appendChoice({'aaa', 'bbb'})
+      ..appendText('text3')
+      ..appendTabStop()
+      ..appendText('text4');
 
     expect(
       builder.value,

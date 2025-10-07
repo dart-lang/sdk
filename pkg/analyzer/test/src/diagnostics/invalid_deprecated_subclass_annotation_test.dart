@@ -32,6 +32,19 @@ final class C {}
     );
   }
 
+  test_class_private() async {
+    await assertErrorsInCode(
+      r'''
+@Deprecated.subclass()
+class _C {}
+''',
+      [
+        error(WarningCode.invalidDeprecatedSubclassAnnotation, 1, 19),
+        error(WarningCode.unusedElement, 29, 2),
+      ],
+    );
+  }
+
   test_class_sealed() async {
     await assertErrorsInCode(
       r'''
@@ -66,6 +79,19 @@ mixin M {}
 base mixin M {}
 ''',
       [error(WarningCode.invalidDeprecatedSubclassAnnotation, 1, 19)],
+    );
+  }
+
+  test_mixin_private() async {
+    await assertErrorsInCode(
+      r'''
+@Deprecated.subclass()
+mixin _M {}
+''',
+      [
+        error(WarningCode.invalidDeprecatedSubclassAnnotation, 1, 19),
+        error(WarningCode.unusedElement, 29, 2),
+      ],
     );
   }
 

@@ -550,9 +550,9 @@ void testCookie() {
       Expect.equals(a.toString(), b.toString());
     }
 
-    void checkCookie(cookie, s) {
-      Expect.equals(s, cookie.toString());
-      var c = new _Cookie.fromSetCookieValue(s);
+    void checkCookie(Cookie cookie, String stringRepresentation) {
+      Expect.equals(stringRepresentation, cookie.toString());
+      var c = new _Cookie.fromSetCookieValue(stringRepresentation);
       checkCookiesEquals(cookie, c);
     }
 
@@ -820,7 +820,65 @@ void testForEach() {
   Expect.equals(4, totalValues);
 }
 
-main() {
+void testPreserveBackslash() {
+  // The `preserveBackslash` parameter of `HttpValue.parse` makes `\`s in
+  // property values be retained, except if before a `"`.
+  // (Is only allowed inside a `"..."`-quoted value.?)
+  final _backslashRE = RegExp(r'\\.');
+
+  // Preserves every `\` escaping a non-`"` character.
+  String preserve(Match m) {
+    // Preserve entire `\.` match unless `.` is `"`.
+    if (!m.input.startsWith('"', m.start + 1)) return m[0]!;
+    return '"';
+  }
+
+  // Preserves no escaping `\`.
+  String remove(Match m) => m.input[m.start + 1];
+
+  for (var preserveBackslash in [false, true]) {
+    void testInput(String input) {
+      var headerValue = HeaderValue.parse(
+        'value; name="$input"',
+        preserveBackslash: preserveBackslash,
+      );
+      Expect.stringEquals(
+        input.replaceAllMapped(
+          _backslashRE,
+          preserveBackslash ? preserve : remove,
+        ),
+        headerValue.parameters['name']!,
+        "$input (${preserveBackslash ? "preserved" : "removed"})",
+      );
+    }
+
+    testInput(r'\\');
+    testInput(r'\"');
+    testInput(r'\ ');
+    testInput(r'text\ \a\"text');
+    testInput(r'text\"\\\"');
+    testInput(r'\"; abc=\\\"');
+
+    // An escaping `\` cannot be last character of an input.
+    Expect.throws(
+      () => HeaderValue.parse(r'value; name="abc\"'),
+      null,
+      "Trailing backslash (${preserveBackslash ? "preserved" : "removed"})",
+    );
+
+    // Unquoted values do not treat backslash as escape,
+    // and ignore `preserveBackslash`. Backslash is just a another valid
+    // character and can occur anywhere until a terminator character.
+    var input = r'abc\"\de\';
+    Expect.stringEquals(
+      input,
+      HeaderValue.parse('value; name=$input').parameters['name']!,
+      "Escaping in unquoted value (${preserveBackslash ? "preserved" : "removed"})",
+    );
+  }
+}
+
+void main() {
   testMultiValue();
   testDate();
   testExpires();
@@ -843,4 +901,5 @@ main() {
   testLowercaseAdd();
   testLowercaseSet();
   testForEach();
+  testPreserveBackslash();
 }

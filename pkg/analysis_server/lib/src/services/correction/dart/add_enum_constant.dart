@@ -25,7 +25,7 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_constantName];
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_ENUM_CONSTANT;
+  FixKind get fixKind => DartFixKind.addEnumConstant;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

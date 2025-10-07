@@ -391,7 +391,7 @@ Message computeUsage(String programName, bool verbose) {
   }
   sb.write(options);
   // TODO(ahe): Don't use [codeUnspecified].
-  return codeUnspecified.withArguments("$sb");
+  return codeUnspecified.withArgumentsOld("$sb");
 }
 
 Future<T> runProtectedFromAbort<T>(

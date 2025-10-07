@@ -136,6 +136,9 @@ class Driver implements ServerStarter {
   /// Flag to not use a (Evicting)FileByteStore.
   static const String DISABLE_FILE_BYTE_STORE = 'disable-file-byte-store';
 
+  /// The name of the flag to enable fine-grained dependencies.
+  static const String WITH_FINE_DEPENDENCIES = 'with-fine-dependencies';
+
   /// The builder for attachments that should be included into crash reports.
   CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder =
       CrashReportingAttachmentsBuilder.empty;
@@ -184,6 +187,9 @@ class Driver implements ServerStarter {
     analysisServerOptions.packagesFile = results.option(PACKAGES_FILE);
     analysisServerOptions.reportProtocolVersion = results.option(
       REPORT_PROTOCOL_VERSION,
+    );
+    analysisServerOptions.withFineDependencies = results.flag(
+      WITH_FINE_DEPENDENCIES,
     );
 
     analysisServerOptions.enabledExperiments = results.multiOption(
@@ -377,10 +383,9 @@ class Driver implements ServerStarter {
     ErrorNotifier errorNotifier,
     SendPort? sendPort,
   ) {
-    var capture =
-        results.flag(DISABLE_SERVER_EXCEPTION_HANDLING)
-            ? (_, Function f, {void Function(String)? print}) => f()
-            : _captureExceptions;
+    var capture = results.flag(DISABLE_SERVER_EXCEPTION_HANDLING)
+        ? (_, Function f, {void Function(String)? print}) => f()
+        : _captureExceptions;
     var trainDirectory = results.option(TRAIN_USING);
     if (trainDirectory != null) {
       if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
@@ -479,10 +484,9 @@ class Driver implements ServerStarter {
             if (sendPort == null) exit(0);
           });
         },
-        print:
-            results.flag(INTERNAL_PRINT_TO_CONSOLE)
-                ? null
-                : diagnosticServer.httpServer.recordPrint,
+        print: results.flag(INTERNAL_PRINT_TO_CONSOLE)
+            ? null
+            : diagnosticServer.httpServer.recordPrint,
       );
     }
   }
@@ -496,10 +500,9 @@ class Driver implements ServerStarter {
     int? diagnosticServerPort,
     ErrorNotifier errorNotifier,
   ) {
-    var capture =
-        args.flag(DISABLE_SERVER_EXCEPTION_HANDLING)
-            ? (_, Function f, {void Function(String)? print}) => f()
-            : _captureExceptions;
+    var capture = args.flag(DISABLE_SERVER_EXCEPTION_HANDLING)
+        ? (_, Function f, {void Function(String)? print}) => f()
+        : _captureExceptions;
 
     linter.registerLintRules();
     registerBuiltInAssistGenerators();
@@ -555,14 +558,13 @@ class Driver implements ServerStarter {
       throw exception;
     }
 
-    var printFunction =
-        print == null
-            ? null
-            : (Zone self, ZoneDelegate parent, Zone zone, String line) {
-              // Note: we don't pass the line on to stdout, because that is
-              // reserved for communication to the client.
-              print(line);
-            };
+    var printFunction = print == null
+        ? null
+        : (Zone self, ZoneDelegate parent, Zone zone, String line) {
+            // Note: we don't pass the line on to stdout, because that is
+            // reserved for communication to the client.
+            print(line);
+          };
     var zoneSpecification = ZoneSpecification(
       handleUncaughtError: errorFunction,
       print: printFunction,
@@ -657,6 +659,7 @@ class Driver implements ServerStarter {
       'use-new-relevance',
       'use-fasta-parser',
       DISABLE_FILE_BYTE_STORE,
+      WITH_FINE_DEPENDENCIES,
     ];
     return knownArguments
         .where((argument) => results.wasParsed(argument))
@@ -853,6 +856,11 @@ class Driver implements ServerStarter {
       DISABLE_FILE_BYTE_STORE,
       help:
           'Disable use of (Evicting)FileByteStore. Intended for benchmarking.',
+      hide: true,
+    );
+    parser.addFlag(
+      WITH_FINE_DEPENDENCIES,
+      help: 'Enable fine-grained dependencies.',
       hide: true,
     );
     parser.addFlag(

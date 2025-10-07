@@ -35,23 +35,23 @@ abstract class Future<T> {
     throw 0;
   }
 
-  factory Future.value([FutureOr<T>? result]) {
+  factory Future.value([FutureOr<T>? value]) {
     throw 0;
   }
 
-  Future<T> catchError(Function onError, {bool test(Object error)});
+  Future<T> catchError(Function onError, {bool test(Object error)?});
 
   Future<R> then<R>(FutureOr<R> onValue(T value), {Function? onError});
 
-  Future<T> whenComplete(action());
+  Future<T> whenComplete(FutureOr<void> action());
 
-  static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
-    {void cleanUp(T successValue)?}) => throw 0;
+  static Future<List<T>> wait<T>(
+    Iterable<Future<T>> futures, {void cleanUp(T successValue)?,}) => throw 0;
 }
 
 abstract class FutureOr<T> {}
 
-abstract class Completer<T> {
+abstract interface class Completer<T> {
   factory Completer() {
     throw 0;
   }
@@ -67,11 +67,11 @@ abstract class Completer<T> {
   void completeError(Object error, [StackTrace? stackTrace]);
 }
 
-abstract class Timer {
+abstract interface class Timer {
   factory Timer(Duration duration, void Function() callback) {
     throw 0;
   }
-  static void run(void callback()) {}
+  static void run(void Function() callback) {}
 }
 
 @Since("2.15")
@@ -80,32 +80,35 @@ void unawaited(Future<void>? future) {}
   MockSdkLibraryUnit('async/stream.dart', r'''
 part of dart.async;
 
-abstract class Stream<T> {
-  Stream();
-  factory Stream.fromIterable(Iterable<T> data) {
+abstract mixin class Stream<T> {
+  const Stream();
+  factory Stream.fromIterable(Iterable<T> elements) {
     throw 0;
   }
 
-  @Since("2.5")
   factory Stream.value(T value) {
     throw 0;
   }
 
   Future<T> get first;
 
-  StreamSubscription<T> listen(void onData(T event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError});
+  StreamSubscription<T> listen(
+    void onData(T event)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  });
 
-  Stream<T> handleError(Function onError, {bool test(dynamic error)});
+  Stream<T> handleError(Function onError, {bool test(error)?});
 }
 
-abstract class StreamIterator<T> {}
+abstract interface class StreamIterator<T> {}
 
-abstract class StreamSubscription<T> {
+abstract interface class StreamSubscription<T> {
   bool get isPaused;
 
   Future<E> asFuture<E>([E? futureValue]);
-  Future cancel();
+  Future<void> cancel();
   void onData(void handleData(T data)?);
   void onError(Function? handleError);
   void onDone(void handleDone()?);
@@ -113,7 +116,9 @@ abstract class StreamSubscription<T> {
   void resume();
 }
 
-abstract class StreamTransformer<S, T> {}
+abstract interface class StreamTransformer<S, T> {}
+
+abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {}
 '''),
 ]);
 
@@ -129,11 +134,12 @@ final MockSdkLibrary _LIB_COLLECTION = MockSdkLibrary('collection', [
   MockSdkLibraryUnit('collection/collection.dart', '''
 library dart.collection;
 
-abstract class HashMap<K, V> implements Map<K, V> {
-  external factory HashMap(
-      {bool Function(K, K)? equals,
-      int Function(K)? hashCode,
-      bool Function(dynamic)? isValidKey});
+abstract final class HashMap<K, V> implements Map<K, V> {
+  external factory HashMap({
+    bool Function(K, K)? equals,
+    int Function(K)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  });
 
   external factory HashMap.identity();
 
@@ -145,10 +151,11 @@ abstract class HashMap<K, V> implements Map<K, V> {
     throw 0;
   }
 
-  factory HashMap.fromIterable(Iterable iterable,
-      {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
-    throw 0;
-  }
+  factory HashMap.fromIterable(
+    Iterable iterable, {
+    K Function(dynamic element)? key,
+    V Function(dynamic element)? value,
+  }) => throw 0;
 
   factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
     throw 0;
@@ -162,11 +169,12 @@ abstract class HashMap<K, V> implements Map<K, V> {
 
 abstract mixin class IterableMixin<E> implements Iterable<E> { }
 
-abstract class LinkedHashMap<K, V> implements Map<K, V> {
-  external factory LinkedHashMap(
-      {bool Function(K, K)? equals,
-      int Function(K)? hashCode,
-      bool Function(dynamic)? isValidKey});
+abstract final class LinkedHashMap<K, V> implements Map<K, V> {
+  external factory LinkedHashMap({
+    bool Function(K, K)? equals,
+    int Function(K)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  });
 
   external factory LinkedHashMap.identity();
 
@@ -178,10 +186,11 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
     throw 0;
   }
 
-  factory LinkedHashMap.fromIterable(Iterable iterable,
-      {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
-    throw 0;
-  }
+  factory LinkedHashMap.fromIterable(
+    Iterable iterable, {
+    K Function(dynamic element)? key,
+    V Function(dynamic element)? value,
+  }) => throw 0;
 
   factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
     throw 0;
@@ -193,11 +202,12 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   }
 }
 
-abstract class LinkedHashSet<E> implements Set<E> {
-  external factory LinkedHashSet(
-      {bool Function(E, E)? equals,
-      int Function(E)? hashCode,
-      bool Function(dynamic)? isValidKey});
+abstract final class LinkedHashSet<E> implements Set<E> {
+  external factory LinkedHashSet({
+    bool Function(E, E)? equals,
+    int Function(E)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  });
 
   external factory LinkedHashSet.identity();
 
@@ -210,7 +220,7 @@ abstract class LinkedHashSet<E> implements Set<E> {
   }
 }
 
-abstract base mixin class LinkedListEntry<E extends LinkedListEntry<E>> { }
+abstract base mixin class LinkedListEntry<E extends LinkedListEntry<E>> {}
 
 abstract mixin class ListMixin<E> implements List<E> { }
 
@@ -218,7 +228,7 @@ abstract mixin class MapMixin<K, V> implements Map<K, V> { }
 
 abstract mixin class SetMixin<E> implements Set<E> { }
 
-abstract class Queue<E> implements Iterable<E> {
+abstract interface class Queue<E> implements Iterable<E> {
   bool remove(Object? value);
 }
 '''),
@@ -230,25 +240,27 @@ library dart.convert;
 
 import 'dart:async';
 
-abstract class Converter<S, T> implements StreamTransformer {}
+abstract mixin class Converter<S, T> implements StreamTransformerBase<S, T> {}
 
 abstract class Encoding {}
 
-class JsonDecoder extends Converter<String, Object> {}
+final class JsonDecoder extends Converter<String, Object?> {}
 
 const JsonCodec json = JsonCodec();
 
-class JsonCodec {
+final class JsonCodec {
   const JsonCodec();
   String encode(Object? value, {Object? toEncodable(dynamic object)?}) => '';
 }
 
-abstract mixin class StringConversionSink { }
+abstract mixin class StringConversionSink {}
 
 typedef StringConversionSinkMixin = StringConversionSink;
 
-String jsonEncode(Object? object,
-        {Object? toEncodable(Object? nonEncodable)?}) => '';
+String jsonEncode(
+  Object? object, {
+  Object? toEncodable(Object? nonEncodable)?,
+}) => '';
 '''),
 ]);
 
@@ -262,76 +274,80 @@ import "dart:_internal" as internal show Symbol;
 @Since("2.1")
 export 'dart:async' show Future, Stream;
 
-const deprecated = const Deprecated("next release");
+const Deprecated deprecated = Deprecated("next release");
 
-const override = const _Override();
+const Object override = _Override();
 
 external bool identical(Object? a, Object? b);
 
 void print(Object? object) {}
 
 class ArgumentError extends Error {
-  ArgumentError([message]);
+  ArgumentError([dynamic message, @Since("2.14") String? name]);
 
-  @Since("2.1")
-  static T checkNotNull<@Since("2.8") T>(T? argument, [String? name]) => argument!;
+  static T checkNotNull<T>(T? argument, [String? name]) => argument!;
 }
 
 abstract final class BigInt implements Comparable<BigInt> {
-  int compareTo(BigInt other) => 0;
-  static BigInt parse(String source, {int? radix}) => throw 0;
+  int compareTo(BigInt other);
+  external static BigInt parse(String source, {int? radix});
 }
 
-abstract final class bool extends Object {
-  external const factory bool.fromEnvironment(String name,
-      {bool defaultValue = false});
+final class bool {
+  external const factory bool.fromEnvironment(
+    String name, {
+    bool defaultValue = false,
+  });
 
   external const factory bool.hasEnvironment(String name);
 
-  @Since("2.1")
-  bool operator &(bool other);
+  bool operator &(bool other) => throw 0;
 
-  @Since("2.1")
-  bool operator |(bool other);
+  bool operator |(bool other) => throw 0;
 
-  @Since("2.1")
-  bool operator ^(bool other);
+  bool operator ^(bool other) => throw 0;
 }
 
-abstract class Comparable<T> {
+abstract interface class Comparable<T> {
   int compareTo(T other);
   static int compare(Comparable a, Comparable b) => a.compareTo(b);
 }
 
 typedef Comparator<T> = int Function(T a, T b);
 
-class DateTime extends Object {
+class DateTime implements Comparable<DateTime> {
   external DateTime._now();
   DateTime.now() : this._now();
+  external int compareTo(DateTime other);
   external bool isBefore(DateTime other);
   external int get millisecondsSinceEpoch;
 }
 
-class Deprecated extends Object {
-  final String message;
+class Deprecated {
+  final String? message;
   final _DeprecationKind _kind;
-  const Deprecated(this.message)
-      : _kind = _DeprecationKind.use;
-  const Deprecated.implement([this.message = "next release"])
-      : _kind = _DeprecationKind.implement;
-  const Deprecated.extend([this.message = "next release"])
-      : _kind = _DeprecationKind.extend;
-  const Deprecated.subclass([this.message = "next release"])
-      : _kind = _DeprecationKind.subclass;
-  const Deprecated.instantiate([this.message = "next release"])
-      : _kind = _DeprecationKind.instantiate;
+  const Deprecated(this.message) : _kind = _DeprecationKind.use;
+  const Deprecated.implement([this.message])
+    : _kind = _DeprecationKind.implement;
+  const Deprecated.extend([this.message]) : _kind = _DeprecationKind.extend;
+  const Deprecated.subclass([this.message]) : _kind = _DeprecationKind.subclass;
+  const Deprecated.instantiate([this.message])
+    : _kind = _DeprecationKind.instantiate;
+  const Deprecated.mixin([this.message]) : _kind = _DeprecationKind.mixin;
+  const Deprecated.optional([this.message]) : _kind = _DeprecationKind.optional;
 }
 
 enum _DeprecationKind {
-  use, implement, extend, subclass, instantiate;
+  use,
+  implement,
+  extend,
+  subclass,
+  instantiate,
+  mixin,
+  optional,
 }
 
-class pragma {
+final class pragma {
   final String name;
   final Object? options;
   const pragma(this.name, [this.options]);
@@ -344,7 +360,6 @@ abstract final class double extends num {
   static const double minPositive = 5e-324;
   static const double maxFinite = 1.7976931348623157e+308;
 
-  bool get isNaN;
   double get sign;
   double operator %(num other);
   double operator *(num other);
@@ -365,8 +380,7 @@ abstract final class double extends num {
   int truncate();
   double truncateToDouble();
 
-  external static double parse(String source,
-      [@deprecated double onError(String source)?]);
+  external static double parse(String source);
 
   external static double? tryParse(String source);
 }
@@ -385,7 +399,7 @@ class Duration implements Comparable<Duration> {
 }
 
 @Since("2.14")
-abstract class Enum {
+abstract interface class Enum {
   // These two getters are a departure here, from the real SDK. Here we have
   // concrete getters; the SDK has abstract gettesr. The real implementations
   // of enums require a significant amount of desugaring.
@@ -408,7 +422,7 @@ class Error {
   external StackTrace? get stackTrace;
 }
 
-class Exception {
+abstract interface class Exception {
   factory Exception([var message]) {
     throw 0;
   }
@@ -419,11 +433,12 @@ class FormatException implements Exception {}
 abstract final class Function {}
 
 abstract final class int extends num {
-  external const factory int.fromEnvironment(String name,
-      {int defaultValue = 0});
+  external const factory int.fromEnvironment(
+    String name, {
+    int defaultValue = 0,
+  });
 
-  bool get isEven => false;
-  bool get isNegative;
+  bool get isEven;
   bool get isOdd;
   int get sign;
 
@@ -442,15 +457,14 @@ abstract final class int extends num {
   String toString();
   int truncate();
 
-  external static int parse(String source,
-      {int? radix, @deprecated int onError(String source)?});
+  external static int parse(String source, {int? radix});
 
   external static int? tryParse(String source, {int? radix});
 }
 
 abstract class Invocation {}
 
-abstract class Iterable<E> {
+abstract mixin class Iterable<E> {
   E get first;
   bool get isEmpty;
   bool get isNotEmpty;
@@ -463,17 +477,17 @@ abstract class Iterable<E> {
 
   bool contains(Object? element);
 
-  Iterable<T> expand<T>(Iterable<T> f(E element));
+  Iterable<T> expand<T>(Iterable<T> toElements(E element));
 
   E firstWhere(bool test(E element), {E orElse()?});
 
-  R fold<R>(R initialValue, R combine(R previousValue, E element));
+  T fold<T>(T initialValue, T combine(T previousValue, E element));
 
-  void forEach(void f(E element));
+  void forEach(void action(E element));
 
   E lastWhere(bool test(E element), {E orElse()?});
 
-  Iterable<R> map<R>(R f(E e));
+  Iterable<T> map<T>(T toElement(E e));
 
   E singleWhere(bool test(E element), {E orElse()?});
 
@@ -485,49 +499,51 @@ abstract class Iterable<E> {
   Iterable<T> whereType<T>();
 }
 
-abstract class Iterator<E> {
+abstract interface class Iterator<E> {
   E get current;
   bool moveNext();
 }
 
-class List<E> implements Iterable<E> {
+abstract interface class List<E> implements Iterable<E> {
   external factory List.filled(int length, E fill, {bool growable = false});
-
-  @Since("2.9")
   external factory List.empty({bool growable = false});
-
   external factory List.from(Iterable elements, {bool growable = true});
   external factory List.of(Iterable<E> elements, {bool growable = true});
-  external factory List.generate(int length, E generator(int index),
-      {bool growable = true});
+  external factory List.generate(
+    int length,
+    E generator(int index), {
+    bool growable = true,
+  });
   external factory List.unmodifiable(Iterable elements);
 
   E get last => throw 0;
   set length(int newLength) {}
-  E operator [](int index) => throw 0;
-  void operator []=(int index, E value) {}
-  void set first(E value) {}
+  E operator [](int index);
+  void operator []=(int index, E value);
+  void set first(E value);
 
-  void add(E value) {}
-  void addAll(Iterable<E> iterable) {}
-  Map<int, E> asMap() => throw 0;
-  void clear() {}
+  void add(E value);
+  void addAll(Iterable<E> iterable);
+  Map<int, E> asMap();
+  void clear();
   int indexOf(E element, [int start = 0]);
   bool remove(Object? value);
-  E removeLast() => throw 0;
 
-  noSuchMethod(Invocation invocation) => null;
+  E removeLast();
 }
 
-abstract class Map<K, V> {
+abstract interface class Map<K, V> {
   external factory Map();
-  external factory Map.from();
+  external factory Map.from(Map other);
   external Map.of(Map<K, V> other);
   external factory Map.unmodifiable(Map<dynamic, dynamic> other);
   external factory Map.identity();
 
-  external factory Map.fromIterable(Iterable iterable,
-      {K key(element)?, V value(element)?});
+  external factory Map.fromIterable(
+    Iterable iterable, {
+    K key(dynamic element)?,
+    V value(dynamic element)?,
+  });
 
   external factory Map.fromIterables(Iterable<K> keys, Iterable<V> values);
   external factory Map.fromEntries(Iterable<MapEntry<K, V>> entries);
@@ -535,7 +551,7 @@ abstract class Map<K, V> {
   Iterable<K> get keys;
   bool get isEmpty;
   bool get isNotEmpty;
-  int get length => 0;
+  int get length;
   Iterable<V> get values;
 
   V? operator [](Object? key);
@@ -550,7 +566,7 @@ abstract class Map<K, V> {
   V? remove(Object? key);
 }
 
-final class Null extends Object {
+final class Null {
   factory Null._uninstantiable() {
     throw 0;
   }
@@ -571,27 +587,24 @@ sealed class num implements Comparable<num> {
   num operator -();
   double operator /(num other);
   bool operator <(num other);
-  int operator <<(int other);
   bool operator <=(num other);
   bool operator ==(Object other);
   bool operator >(num other);
   bool operator >=(num other);
-  int operator >>(int other);
-  int operator ^(int other);
-  int operator |(int other);
-  int operator ~();
   int operator ~/(num other);
 
   num abs();
   num clamp(num lowerLimit, num upperLimit);
   int floor();
+  bool get isNaN;
+  bool get isNegative;
   num remainder(num other);
   int round();
   double toDouble();
   int toInt();
 }
 
-abstract class Match {
+abstract interface class Match {
   int get start;
 }
 
@@ -616,17 +629,17 @@ class Object {
   static int hashAllUnordered(Iterable<Object?> objects) => 0;
 }
 
-abstract class Pattern {
+abstract interface class Pattern {
   Iterable<Match> allMatches(String string, [int start = 0]);
 }
 
 abstract final class Record {}
 
-abstract class RegExp implements Pattern {
+abstract interface class RegExp implements Pattern {
   external factory RegExp(String source, {bool unicode = false});
 }
 
-abstract class Set<E> implements Iterable<E> {
+abstract interface class Set<E> implements Iterable<E> {
   external factory Set();
   external factory Set.identity();
   external factory Set.from(Iterable elements);
@@ -648,40 +661,48 @@ abstract class Set<E> implements Iterable<E> {
       throw '';
 }
 
-abstract class Sink {
+abstract interface class Sink<T> {
   void close();
 }
 
-class StackTrace {}
+abstract interface class StackTrace {}
+
+class Stopwatch {}
 
 abstract final class String implements Comparable<String>, Pattern {
-  external factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int? end]);
+  external factory String.fromCharCodes(
+    Iterable<int> charCodes, [
+    int start = 0,
+    int? end,
+  ]);
 
   external factory String.fromCharCode(int charCode);
 
-  external const factory String.fromEnvironment(String name,
-      {String defaultValue = ""});
+  external const factory String.fromEnvironment(
+    String name, {
+    String defaultValue = "",
+  });
 
   List<int> get codeUnits;
-  bool get isEmpty => false;
-  bool get isNotEmpty => false;
-  int get length => 0;
-
+  bool get isEmpty;
+  bool get isNotEmpty;
+  int get length;
   bool operator ==(Object other);
   String operator [](int index);
   String operator +(String other);
   String operator *(int times);
-
   int codeUnitAt(int index);
-  bool contains(String other, [int startIndex = 0]);
+  bool contains(Pattern other, [int startIndex = 0]);
   int indexOf(Pattern pattern, [int start = 0]);
   int lastIndexOf(Pattern pattern, [int? start]);
   bool startsWith(Pattern pattern, [int index = 0]);
   List<String> split(Pattern pattern);
-  String splitMapJoin(Pattern pattern,
-      {String Function(Match)? onMatch, String Function(String)? onNonMatch});
-  String substring(int startIndex, [int? endIndex]);
+  String splitMapJoin(
+    Pattern pattern, {
+    String Function(Match)? onMatch,
+    String Function(String)? onNonMatch,
+  });
+  String substring(int start, [int? end]);
   String toLowerCase();
   String toUpperCase();
 }
@@ -692,19 +713,19 @@ class StringBuffer implements StringSink {
 
 abstract interface class StringSink {}
 
-class Symbol {
+abstract class Symbol {
   const factory Symbol(String name) = internal.Symbol;
 }
 
-class Type {}
+abstract interface class Type {}
 
 class TypeError extends Error {}
 
-class UnsupportedError {
+class UnsupportedError extends Error {
   UnsupportedError(String message);
 }
 
-class Uri {
+abstract interface class Uri {
   factory Uri({
     String? scheme,
     String? userInfo,
@@ -750,10 +771,9 @@ abstract final class SizedNativeType implements NativeType {}
 @Since('2.9')
 abstract final class Handle implements NativeType {}
 
-@Since('2.12')
 abstract base class Opaque implements NativeType {}
 
-final class Void implements NativeType {}
+abstract final class Void implements NativeType {}
 
 final class Int8 implements SizedNativeType {
   const Int8();
@@ -826,22 +846,26 @@ final class IntPtr extends AbiSpecificInteger {
 final class Pointer<T extends NativeType> implements SizedNativeType {
   external factory Pointer.fromAddress(int ptr);
 
-  static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
-      @DartRepresentationOf("T") Function f,
-      [Object exceptionalReturn]) {}
+  external static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
+    @DartRepresentationOf('T') Function f, [
+    Object? exceptionalReturn,
+  ]);
 
   external Pointer<U> cast<U extends NativeType>();
-
 }
 
 final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
-class NativeCallable<T extends Function> {
-  NativeCallable.isolateLocal(
-      @DartRepresentationOf("T") Function callback,
-      {Object? exceptionalReturn}) {}
+@Since('3.1')
+abstract final class NativeCallable<T extends Function> {
+  factory NativeCallable.isolateLocal(
+    @DartRepresentationOf("T") Function callback, {
+    Object? exceptionalReturn,
+  }) => throw 0;
 
-  NativeCallable.listener(@DartRepresentationOf("T") Function callback) {}
+  factory NativeCallable.listener(
+    @DartRepresentationOf("T") Function callback,
+  ) => throw 0;
 
   Pointer<NativeFunction<T>> get nativeFunction;
 
@@ -853,7 +877,7 @@ extension NativeFunctionPointer<NF extends Function>
   external DF asFunction<DF extends Function>({bool isLeaf = false});
 }
 
-abstract final class _Compound implements NativeType {}
+final class _Compound implements NativeType {}
 
 abstract base class Struct extends _Compound implements SizedNativeType {
   @Since('3.4')
@@ -877,15 +901,16 @@ final class Packed {
   const Packed(this.memberAlignment);
 }
 
-abstract final class DynamicLibrary {
-  external factory DynamicLibrary.open(String name);
-
+final class DynamicLibrary {
+  external factory DynamicLibrary.open(String path);
   external Pointer<T> lookup<T extends NativeType>(String symbolName);
 }
 
 extension DynamicLibraryExtension on DynamicLibrary {
   external F lookupFunction<T extends Function, F extends Function>(
-      String symbolName, {bool isLeaf:false});
+    String symbolName, {
+    bool isLeaf = false,
+  });
 }
 
 abstract final class NativeFunction<T extends Function> implements NativeType {}
@@ -947,25 +972,25 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
     this.dimension3,
     this.dimension4,
     this.dimension5,
-  ])  : dimensions = null,
-        variableDimension = null;
+  ]) : dimensions = null,
+       variableDimension = null;
 
   const _ArraySize.multi(this.dimensions)
-      : dimension1 = null,
-        dimension2 = null,
-        dimension3 = null,
-        dimension4 = null,
-        dimension5 = null,
-        variableDimension = null;
+    : dimension1 = null,
+      dimension2 = null,
+      dimension3 = null,
+      dimension4 = null,
+      dimension5 = null,
+      variableDimension = null;
 
   const _ArraySize.variable([
     this.dimension2,
     this.dimension3,
     this.dimension4,
     this.dimension5,
-  ])  : dimension1 = 0,
-        dimensions = null,
-        variableDimension = 0;
+  ]) : dimension1 = 0,
+       dimensions = null,
+       variableDimension = 0;
 
   const _ArraySize.variableWithVariableDimension([
     this.dimension1,
@@ -973,26 +998,24 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
     this.dimension3,
     this.dimension4,
     this.dimension5,
-  ])  : dimensions = null,
-        variableDimension = dimension1;
+  ]) : dimensions = null,
+       variableDimension = dimension1;
 
   const _ArraySize.variableMulti(
     List<int> nestedDimensions, {
     int variableDimension = 0,
-  })  : dimensions = nestedDimensions,
-        dimension1 = null,
-        dimension2 = null,
-        dimension3 = null,
-        dimension4 = null,
-        dimension5 = null,
-        variableDimension = variableDimension;
+  }) : dimensions = nestedDimensions,
+       dimension1 = null,
+       dimension2 = null,
+       dimension3 = null,
+       dimension4 = null,
+       dimension5 = null,
+       variableDimension = variableDimension;
 }
 
 extension StructPointer<T extends Struct> on Pointer<T> {
   external T get ref;
-
   external T operator [](int index);
-
   @Since('3.7')
   external T refWithFinalizer(
     Pointer<NativeFinalizerFunction> finalizer, {
@@ -1003,30 +1026,25 @@ extension StructPointer<T extends Struct> on Pointer<T> {
 @Since('2.19')
 final class Native<T> {
   final String? symbol;
-  final String? asset;
+  final String? assetId;
   final bool isLeaf;
 
-  const Native({
-    this.asset,
-    this.isLeaf: false,
-    this.symbol,
-  });
+  const Native({this.assetId, this.isLeaf = false, this.symbol});
 
+  @Since('3.3')
   external static Pointer<T> addressOf<T extends NativeType>(
-      @DartRepresentationOf('T') Object object);
+    @DartRepresentationOf('T') Object native,
+  );
 }
 
+@Since('2.19')
 final class DefaultAsset {
   final String id;
   const DefaultAsset(this.id);
 }
 
-final class Asset {
-  final String asset;
-  const Asset(this.asset);
-}
-
-final class Abi {
+@Since('2.16')
+class Abi {
   static const androidArm = _androidArm;
   static const androidArm64 = _androidArm64;
   static const androidIA32 = _androidIA32;
@@ -1046,21 +1064,9 @@ final class Abi {
   const Abi._(this._architecture, this._os);
 }
 
-enum _Architecture {
-  arm,
-  arm64,
-  ia32,
-  x64,
-}
+enum _Architecture { arm, arm64, ia32, x64 }
 
-enum _OS {
-  android,
-  fuchsia,
-  ios,
-  linux,
-  macos,
-  windows,
-}
+enum _OS { android, fuchsia, ios, linux, macos, windows }
 
 @Since('2.16')
 base class AbiSpecificInteger implements SizedNativeType {
@@ -1112,69 +1118,69 @@ library dart.dom.html;
 
 import 'dart:async';
 
+class ClipboardEvent extends Event {}
+
 class Event {}
 
 class MouseEvent extends Event {}
 
 class FocusEvent extends Event {}
 
-class KeyEvent extends Event {}
+class KeyboardEvent extends Event {}
+
+class KeyEvent implements KeyboardEvent {}
 
 abstract class ElementStream<T extends Event> implements Stream<T> {}
 
-abstract class Element {
-  factory Element.html(String html,
-          {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) =>
-      new HtmlElement();
+class Element {
+  factory Element.html(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) => new HtmlElement();
 
   /// Stream of `cut` events handled by this [Element].
-  ElementStream<Event> get onCut => throw 0;
+  ElementStream<ClipboardEvent> get onCut => throw 0;
 
   String get id => throw 0;
 
   set id(String value) => throw 0;
 
-  DocumentFragment createFragment(String html,
-          {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) => null;
+  DocumentFragment createFragment(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) => throw 0;
 
-  void setInnerHtml(String html,
-          {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {}
-}
+  void setInnerHtml(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {}
 
-class HtmlElement extends Element {
-  int tabIndex;
+  int? get tabIndex => throw 0;
   ElementStream<Event> get onChange => throw 0;
   ElementStream<MouseEvent> get onClick => throw 0;
-  ElementStream<KeyEvent> get onKeyUp => throw 0;
-  ElementStream<KeyEvent> get onKeyDown => throw 0;
-
+  ElementStream<KeyboardEvent> get onKeyUp => throw 0;
+  ElementStream<KeyboardEvent> get onKeyDown => throw 0;
   bool get hidden => throw 0;
   set hidden(bool value) {}
+  set className(String value) {}
+  set tabIndex(int? value) {}
 
-  void set className(String s) {}
-  void set readOnly(bool b) {}
-  void set tabIndex(int i) {}
+  String? get _innerHtml => throw 0;
+  String? get innerHtml => throw 0;
 
-  String _innerHtml;
-  String get innerHtml {
-    throw 'not the real implementation';
-  }
-
-  set innerHtml(String value) {
-    // stuff
-  }
+  set innerHtml(String? html) {}
 }
 
-class AnchorElement extends HtmlElement {
-  factory AnchorElement({String href}) {
-    AnchorElement e = JS('returns:AnchorElement;creates:AnchorElement;new:true',
-        '#.createElement(#)', document, "a");
-    if (href != null) e.href = href;
-    return e;
-  }
+class HtmlElement extends Element {}
 
-  String href;
-  String _privateField;
+class AnchorElement extends HtmlElement {
+  factory AnchorElement({String? href}) => throw 0;
+
+  String? get href => throw 0;
+  set href(String? value) {}
 }
 
 class BodyElement extends HtmlElement {
@@ -1189,11 +1195,13 @@ class ButtonElement extends HtmlElement {
   }
   factory ButtonElement() => document.createElement("button");
 
-  bool autofocus;
+  bool get autofocus => throw 0;
+  set autofocus(bool value) {}
 }
 
-class EmbedElement extends HtmlEment {
-  String src;
+class EmbedElement extends HtmlElement {
+  String get src => throw 0;
+  set src(String value) {}
 }
 
 class HeadingElement extends HtmlElement {
@@ -1205,8 +1213,9 @@ class HeadingElement extends HtmlElement {
   factory HeadingElement.h3() => document.createElement("h3");
 }
 
-class ImageElement extends HtmlEment {
-  String src;
+class ImageElement extends HtmlElement {
+  String? get src => throw 0;
+  set src(String? value) {}
 }
 
 class InputElement extends HtmlElement {
@@ -1214,54 +1223,54 @@ class InputElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
   factory InputElement() => document.createElement("input");
-
-  String value;
-  String validationMessage;
+  String? get value => throw 0;
+  set value(String? value) {}
+  String get validationMessage => throw 0;
 }
 
 class IFrameElement extends HtmlElement {
   factory IFrameElement._() {
     throw new UnsupportedError("Not supported");
   }
-  factory IFrameElement() => JS(
-      'returns:IFrameElement;creates:IFrameElement;new:true',
-      '#.createElement(#)',
-      document,
-      "iframe");
-
-  String src;
-  set srcdoc(String? value) native;
+  factory IFrameElement() => throw 0;
+  String? get src => throw 0;
+  set src(Stirng? value) {}
+  set srcdoc(String? value) {}
 }
 
 class OptionElement extends HtmlElement {
-  factory OptionElement(
-      {String data: '', String value: '', bool selected: false}) {}
+  factory OptionElement({
+    String data = '',
+    String value = '',
+    bool selected = false,
+  }) => throw 0;
 
-  factory OptionElement._(
-      [String data, String value, bool defaultSelected, bool selected]) {}
+  factory OptionElement._([
+    String? data,
+    String? value,
+    bool? defaultSelected,
+    bool? selected,
+  ]) => throw 0;
 }
 
 class ScriptElement extends HtmlElement {
-  String src;
-  String type;
+  String get src => throw 0;
+  set src(String value) {}
+
+  String get type => throw 0;
+  set type(String value) {}
 }
 
 class TableSectionElement extends HtmlElement {
   List<TableRowElement> get rows => throw 0;
 
-  TableRowElement addRow() {}
+  TableRowElement addRow() => throw 0;
 
   TableRowElement insertRow(int index) => throw 0;
 
   factory TableSectionElement._() {
     throw new UnsupportedError("Not supported");
   }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  TableSectionElement.internal_() : super.internal_();
 }
 
 class TemplateElement extends HtmlElement {
@@ -1272,35 +1281,32 @@ class TemplateElement extends HtmlElement {
 }
 
 class AudioElement extends MediaElement {
-  factory AudioElement._([String src]) {
-    if (src != null) {
-      return AudioElement._create_1(src);
-    }
-    return AudioElement._create_2();
-  }
+  factory AudioElement._([String? src]) => throw 0;
 
-  static AudioElement _create_1(src) => JS('AudioElement', 'new Audio(#)', src);
-  static AudioElement _create_2() => JS('AudioElement', 'new Audio()');
-  AudioElement.created() : super.created();
+  static AudioElement _create_1(src) => throw 0;
+  static AudioElement _create_2() => throw 0;
 
-  factory AudioElement([String src]) => new AudioElement._(src);
+  factory AudioElement([String? src]) => throw 0;
 }
 
-class MediaElement extends Element {}
+class MediaElement extends HtmlElement {}
 
-class WindowBase {}
+abstract class WindowBase {}
 
-class Window extends WindowBase {
-  WindowBase open(String url, String name, [String options]) => null;
+class Window implements WindowBase {
+  WindowBase open(String url, String name, [String? options]) => throw 0;
 }
 
-class NodeValidator {}
+abstract class NodeValidator {}
 
-class NodeTreeSanitizer {}
+abstract class NodeTreeSanitizer {}
 
 class DocumentFragment {
-  DocumentFragment.html(String html,
-          {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {}
+  factory DocumentFragment.html(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) => throw 0;
 }
 
 dynamic JS(a, b, c, d) {}
@@ -1355,17 +1361,16 @@ int get exitCode => 0;
 
 void set exitCode(int code) {}
 
-abstract class Directory implements FileSystemEntity {
+abstract interface class Directory implements FileSystemEntity {
   factory Directory(String path) {
     throw 0;
   }
 }
 
-abstract class File implements FileSystemEntity {
+abstract interface class File implements FileSystemEntity {
   factory File(String path) {
     throw 0;
   }
-
   Future<DateTime> lastModified();
   DateTime lastModifiedSync();
   IOSink openWrite();
@@ -1381,12 +1386,14 @@ abstract class FileSystemEntity {
   static Future<bool> isLink(String path) async => true;
   static bool isLinkSync(String path) => true;
 
-  static Future<FileSystemEntityType> type(String path,
-          {bool followLinks: true}) =>
-      throw 0;
-  static FileSystemEntityType typeSync(String path,
-          {bool followLinks = true}) =>
-      throw 0;
+  static Future<FileSystemEntityType> type(
+    String path, {
+    bool followLinks = true,
+  }) => throw 0;
+  static FileSystemEntityType typeSync(
+    String path, {
+    bool followLinks = true,
+  }) => throw 0;
 
   Future<bool> exists();
   bool existsSync();
@@ -1395,33 +1402,33 @@ abstract class FileSystemEntity {
   FileStat statSync();
 }
 
-class IOSink implements Sink<List<int>> {
-  Future<dynamic> close() {}
-  void write(Object? object) {}
+abstract interface class IOSink implements Sink<List<int>> {
+  Future<dynamic> close();
+  void write(Object? object);
 }
 
-class Platform {
+abstract final class Platform {
   @deprecated
   static final bool isAndroid = (operatingSystem == "android");
 
   @deprecated
-  static final String localHostname = 'hostname';
+  static final localHostname = 'hostname';
 }
 
-class ProcessStartMode {
+final class ProcessStartMode {
   static const normal = const ProcessStartMode._internal(0);
-  const ProcessStartMode._internal(int mode);
+  const ProcessStartMode._internal(int _mode);
 }
 
-abstract class Process {
+abstract interface class Process {
   external static Future<Process> start(
     String executable,
     List<String> arguments, {
     String? workingDirectory,
     Map<String, String>? environment,
-    bool includeParentEnvironment: true,
-    bool runInShell: false,
-    ProcessStartMode mode: ProcessStartMode.normal,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    ProcessStartMode mode = ProcessStartMode.normal,
   });
 
   external static Future<ProcessResult> run(
@@ -1429,17 +1436,23 @@ abstract class Process {
     List<String> arguments, {
     String? workingDirectory,
     Map<String, String>? environment,
-    bool includeParentEnvironment: true,
-    bool runInShell: false,
-    Encoding? stdoutEncoding,
-    Encoding? stderrEncoding,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    Encoding? stdoutEncoding = systemEncoding,
+    Encoding? stderrEncoding = systemEncoding,
   });
 }
 
-abstract class Socket {
-  void destroy() {}
+abstract interface class Socket implements IOSink {
+  void destroy();
 
-  static Future<Socket> connect(dynamic host, int port) async => Socket();
+  static Future<Socket> connect(
+    host,
+    int port, {
+    sourceAddress,
+    int sourcePort = 0,
+    Duration? timeout,
+  }) => throw 0;
 }
 '''),
 ]);
@@ -1550,18 +1563,19 @@ const double e = 2.718281828459045;
 const double pi = 3.1415926535897932;
 const double ln10 = 2.302585092994046;
 
-T min<T extends num>(T a, T b) => throw 0;
-T max<T extends num>(T a, T b) => throw 0;
+external T min<T extends num>(T a, T b);
+external T max<T extends num>(T a, T b);
 
 external double cos(num radians);
 external double sin(num radians);
-external double sqrt(num radians);
+external double sqrt(num x);
 external double tan(num radians);
 
-class Random {
-  bool nextBool() => true;
-  double nextDouble() => 2.0;
-  int nextInt() => 1;
+abstract interface class Random {
+  external factory Random([int? seed]);
+  bool nextBool();
+  double nextDouble();
+  int nextInt(int max);
 }
 
 class Point<T extends num> {}

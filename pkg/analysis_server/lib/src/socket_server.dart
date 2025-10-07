@@ -88,20 +88,19 @@ class SocketServer implements AbstractSocketServer {
       stateLocation: analysisServerOptions.cacheFolder,
     );
 
-    var server =
-        analysisServer = LegacyAnalysisServer(
-          serverChannel,
-          resourceProvider,
-          analysisServerOptions,
-          sdkManager,
-          analyticsManager,
-          crashReportingAttachmentsBuilder,
-          instrumentationService,
-          requestStatistics: requestStatistics,
-          diagnosticServer: diagnosticServer,
-          detachableFileSystemManager: detachableFileSystemManager,
-          enableBlazeWatcher: true,
-        );
+    var server = analysisServer = LegacyAnalysisServer(
+      serverChannel,
+      resourceProvider,
+      analysisServerOptions,
+      sdkManager,
+      analyticsManager,
+      crashReportingAttachmentsBuilder,
+      instrumentationService,
+      requestStatistics: requestStatistics,
+      diagnosticServer: diagnosticServer,
+      detachableFileSystemManager: detachableFileSystemManager,
+      enableBlazeWatcher: true,
+    );
     detachableFileSystemManager?.setAnalysisServer(server);
   }
 }

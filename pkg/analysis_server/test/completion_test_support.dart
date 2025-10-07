@@ -10,13 +10,12 @@ import 'package:test/test.dart';
 import 'domain_completion_util.dart';
 
 /// A base class for classes containing completion tests.
-class CompletionTestCase extends AbstractCompletionDomainTest {
+abstract class CompletionTestCase extends AbstractCompletionDomainTest {
   static const String CURSOR_MARKER = '!';
 
-  List<String> get suggestedCompletions =>
-      suggestions
-          .map((CompletionSuggestion suggestion) => suggestion.completion)
-          .toList();
+  List<String> get suggestedCompletions => suggestions
+      .map((CompletionSuggestion suggestion) => suggestion.completion)
+      .toList();
 
   void assertHasCompletion(
     String completion, {
@@ -83,16 +82,15 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
   /// Discard any results that do not start with the characters the user has
   /// "already typed".
   void filterResults(String content) {
-    var charsAlreadyTyped =
-        content.substring(replacementOffset!, completionOffset).toLowerCase();
-    suggestions =
-        suggestions
-            .where(
-              (CompletionSuggestion suggestion) => suggestion.completion
-                  .toLowerCase()
-                  .startsWith(charsAlreadyTyped),
-            )
-            .toList();
+    var charsAlreadyTyped = content
+        .substring(replacementOffset!, completionOffset)
+        .toLowerCase();
+    suggestions = suggestions
+        .where(
+          (CompletionSuggestion suggestion) =>
+              suggestion.completion.toLowerCase().startsWith(charsAlreadyTyped),
+        )
+        .toList();
   }
 
   Future<void> runTest(
@@ -124,6 +122,16 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
     } finally {
       await super.tearDown();
     }
+  }
+
+  @override
+  Future<void> setUp() async {
+    // TODO(dantup): All tests that use this base class support normalization
+    //  however the base class of this (`AbstractCompletionDomainTest`) has a
+    //  lot of other tests classes that do not currently.
+    useLineEndingsForPlatform = true;
+
+    await super.setUp();
   }
 }
 

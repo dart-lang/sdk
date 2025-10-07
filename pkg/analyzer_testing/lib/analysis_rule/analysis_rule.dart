@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/dart/analysis/results.dart';
+library;
+
 import 'dart:convert' show json;
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
@@ -9,12 +12,27 @@ import 'package:analyzer/analysis_rule/pubspec.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/lint/pub.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:meta/meta.dart';
+
+ExpectedContextMessage contextMessage(
+  File file,
+  int offset,
+  int length, {
+  String? text,
+  List<Pattern> textContains = const [],
+}) => ExpectedContextMessage(
+  file,
+  offset,
+  length,
+  text: text,
+  textContains: textContains,
+);
 
 /// Returns an [ExpectedDiagnostic] with the given arguments.
 ///
@@ -24,7 +42,16 @@ ExpectedDiagnostic error(
   int offset,
   int length, {
   Pattern? messageContains,
-}) => ExpectedError(code, offset, length, messageContains: messageContains);
+  Pattern? correctionContains,
+  List<ExpectedContextMessage>? contextMessages,
+}) => ExpectedError(
+  code,
+  offset,
+  length,
+  messageContains: messageContains,
+  correctionContains: correctionContains,
+  contextMessages: contextMessages,
+);
 
 /// A base class for analysis rule tests that use test_reflective_loader.
 abstract class AnalysisRuleTest extends PubPackageResolutionTest {
@@ -32,6 +59,9 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
   String get analysisRule;
 
   /// Asserts that no diagnostics are reported when resolving [content].
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertNoPubspecDiagnostics(String content) async {
     newFile(testPackagePubspecPath, content);
     var errors = await _analyzePubspecFile(content);
@@ -39,6 +69,9 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
   }
 
   /// Asserts that [expectedDiagnostics] are reported when resolving [content].
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertPubspecDiagnostics(
     String content,
     List<ExpectedDiagnostic> expectedDiagnostics,
@@ -82,12 +115,14 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
     Pattern? messageContains,
     Pattern? correctionContains,
     String? name,
+    List<ExpectedContextMessage>? contextMessages,
   }) => ExpectedLint(
     name ?? analysisRule,
     offset,
     length,
     messageContains: messageContains,
     correctionContains: correctionContains,
+    contextMessages: contextMessages,
   );
 
   @mustCallSuper

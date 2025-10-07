@@ -30,6 +30,107 @@ var x = Foo();
     );
   }
 
+  test_annotatedClass_dotShorthand() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+@Deprecated.instantiate()
+class Foo {}
+''');
+    await assertErrorsInCode(
+      r'''
+import 'foo.dart';
+Foo x = .new();
+''',
+      [error(WarningCode.deprecatedInstantiate, 28, 3)],
+    );
+  }
+
+  test_annotatedClass_dotShorthand_named() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+@Deprecated.instantiate()
+class Foo {
+  Foo.named();
+}
+''');
+    await assertErrorsInCode(
+      r'''
+import 'foo.dart';
+Foo x = .named();
+''',
+      [error(WarningCode.deprecatedInstantiate, 28, 5)],
+    );
+  }
+
+  test_annotatedClass_redirectedFactory_named() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+import 'test.dart';
+@Deprecated.instantiate()
+class Foo extends Bar {
+  Foo.two() : super();
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'foo.dart';
+class Bar {
+  Bar();
+  factory Bar.one() = Foo.two;
+}
+''',
+      [error(WarningCode.deprecatedInstantiate, 62, 7)],
+    );
+  }
+
+  test_annotatedClass_redirectedFactory_unnamed() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+import 'test.dart';
+@Deprecated.instantiate()
+class Foo extends Bar {
+  Foo() : super();
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'foo.dart';
+class Bar {
+  Bar();
+  factory Bar.one() = Foo;
+}
+''',
+      [error(WarningCode.deprecatedInstantiate, 62, 3)],
+    );
+  }
+
+  test_annotatedClass_superInvocation_named() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+@Deprecated.instantiate()
+class Foo {
+  Foo.named();
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'foo.dart';
+class Bar extends Foo {
+  Bar.named() : super.named();
+}
+''');
+  }
+
+  test_annotatedClass_superInvocation_unnamed() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+@Deprecated.instantiate()
+class Foo {}
+''');
+    await assertNoErrorsInCode(r'''
+import 'foo.dart';
+class Bar extends Foo {
+  Bar() : super();
+}
+''');
+  }
+
   test_annotatedClass_tearoff() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 @Deprecated.instantiate()
@@ -56,6 +157,22 @@ typedef Foo2 = Foo;
 import 'foo.dart';
 var x = Foo2();
 ''');
+  }
+
+  test_annotatedClass_typedef_dotShorthand() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+@Deprecated.instantiate()
+class Foo {}
+typedef Foo2 = Foo;
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'foo.dart';
+Foo2 x = .new();
+''',
+      [error(WarningCode.deprecatedInstantiate, 29, 3)],
+    );
   }
 
   test_annotatedClass_typedef_tearoff() async {

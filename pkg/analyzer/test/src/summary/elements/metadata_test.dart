@@ -326,7 +326,7 @@ library
                     token: foo @30
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
           fields
             #F3 hasInitializer foo (nameOffset:54) (firstTokenOffset:54) (offset:54)
               element: <testLibrary>::@class::C::@field::foo
@@ -351,7 +351,7 @@ library
                     token: foo @66
                     element: <testLibrary>::@class::C::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@class::C::@getter::foo
+                  element: <testLibrary>::@class::C::@getter::foo
       topLevelVariables
         #F7 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -376,7 +376,7 @@ library
                 token: foo @30
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
       fields
         static const hasInitializer foo
           reference: <testLibrary>::@class::C::@field::foo
@@ -407,7 +407,7 @@ library
                 token: foo @66
                 element: <testLibrary>::@class::C::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@class::C::@getter::foo
+              element: <testLibrary>::@class::C::@getter::foo
           returnType: void
   topLevelVariables
     const hasInitializer foo
@@ -1496,7 +1496,7 @@ library
                       literal: 42 @27
                       staticType: int
                 rightParenthesis: ) @29
-              element2: package:test/a.dart::@class::A::@constructor::new
+              element: package:test/a.dart::@class::A::@constructor::new
   functions
     f
       reference: <testLibrary>::@function::f
@@ -1522,7 +1522,7 @@ library
                   literal: 42 @27
                   staticType: int
             rightParenthesis: ) @29
-          element2: package:test/a.dart::@class::A::@constructor::new
+          element: package:test/a.dart::@class::A::@constructor::new
       returnType: void
 ''');
   }
@@ -1550,7 +1550,7 @@ library
                     token: a @27
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
               typeName: C
               typeNameOffset: 29
               periodOffset: 30
@@ -1579,7 +1579,7 @@ library
                 token: a @27
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1619,7 +1619,7 @@ library
                     token: a @27
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
               typeName: C
               typeNameOffset: 29
       topLevelVariables
@@ -1647,7 +1647,7 @@ library
                 token: a @27
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1685,7 +1685,7 @@ library
         token: a @1
         element: <testLibrary>::@getter::a
         staticType: null
-      element2: <testLibrary>::@getter::a
+      element: <testLibrary>::@getter::a
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -1698,7 +1698,7 @@ library
                 token: a @1
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       topLevelVariables
         #F1 hasInitializer a (nameOffset:28) (firstTokenOffset:28) (offset:28)
           element: <testLibrary>::@topLevelVariable::a
@@ -1848,7 +1848,7 @@ library
                         token: a @40
                         element: <testLibrary>::@getter::a
                         staticType: null
-                      element2: <testLibrary>::@getter::a
+                      element: <testLibrary>::@getter::a
           getters
             #F5 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::C::@getter::x
@@ -1894,7 +1894,7 @@ library
                     token: a @40
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
@@ -1960,7 +1960,7 @@ library
                         token: a @37
                         element: <testLibrary>::@getter::a
                         staticType: null
-                      element2: <testLibrary>::@getter::a
+                      element: <testLibrary>::@getter::a
                   initializer: expression_0
                     NullLiteral
                       literal: null @48
@@ -2010,7 +2010,7 @@ library
                     token: a @37
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
               constantInitializer
                 fragment: #F4
                 expression: expression_0
@@ -2080,7 +2080,7 @@ library
                 token: a @17
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -2107,7 +2107,7 @@ library
             token: a @17
             element: <testLibrary>::@getter::a
             staticType: null
-          element2: <testLibrary>::@getter::a
+          element: <testLibrary>::@getter::a
       returnType: dynamic
 ''');
   }
@@ -2141,7 +2141,7 @@ library
                 token: a @17
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -2172,7 +2172,7 @@ library
             token: a @17
             element: <testLibrary>::@getter::a
             staticType: null
-          element2: <testLibrary>::@getter::a
+          element: <testLibrary>::@getter::a
       returnType: dynamic
       variable: <testLibrary>::@topLevelVariable::f
 ''');
@@ -2208,7 +2208,7 @@ library
                 token: a @17
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
           formalParameters
             #F5 value (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@setter::f::@formalParameter::value
@@ -2243,7 +2243,7 @@ library
             token: a @17
             element: <testLibrary>::@getter::a
             staticType: null
-          element2: <testLibrary>::@getter::a
+          element: <testLibrary>::@getter::a
       formalParameters
         #E0 requiredPositional hasImplicitType value
           firstFragment: #F5
@@ -2271,7 +2271,7 @@ library
                 token: a @17
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       topLevelVariables
         #F2 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -2293,7 +2293,7 @@ library
             token: a @17
             element: <testLibrary>::@getter::a
             staticType: null
-          element2: <testLibrary>::@getter::a
+          element: <testLibrary>::@getter::a
       aliasedType: dynamic Function()
   topLevelVariables
     const hasInitializer a
@@ -2344,7 +2344,7 @@ library
                     token: a @19
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -2375,7 +2375,7 @@ library
                 token: a @19
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       returnType: dynamic
 ''');
   }
@@ -2411,7 +2411,7 @@ library
                     token: a @20
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
               initializer: expression_1
                 NullLiteral
                   literal: null @28
@@ -2446,7 +2446,7 @@ library
                 token: a @20
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
           constantInitializer
             fragment: #F4
             expression: expression_1
@@ -2477,14 +2477,14 @@ library
                 token: a @33
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
             Annotation
               atSign: @ @35
               name: SimpleIdentifier
                 token: b @36
                 element: <testLibrary>::@getter::b
                 staticType: null
-              element2: <testLibrary>::@getter::b
+              element: <testLibrary>::@getter::b
       topLevelVariables
         #F2 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -2514,14 +2514,14 @@ library
             token: a @33
             element: <testLibrary>::@getter::a
             staticType: null
-          element2: <testLibrary>::@getter::a
+          element: <testLibrary>::@getter::a
         Annotation
           atSign: @ @35
           name: SimpleIdentifier
             token: b @36
             element: <testLibrary>::@getter::b
             staticType: null
-          element2: <testLibrary>::@getter::b
+          element: <testLibrary>::@getter::b
       aliasedType: void Function()
   topLevelVariables
     const hasInitializer a
@@ -2573,7 +2573,7 @@ library
         token: a @1
         element: <testLibrary>::@getter::a
         staticType: null
-      element2: <testLibrary>::@getter::a
+      element: <testLibrary>::@getter::a
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -2586,7 +2586,7 @@ library
                 token: a @1
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       topLevelVariables
         #F1 hasInitializer a (nameOffset:28) (firstTokenOffset:28) (offset:28)
           element: <testLibrary>::@topLevelVariable::a
@@ -2815,7 +2815,7 @@ library
         token: deprecated @1
         element: dart:core::@getter::deprecated
         staticType: null
-      element2: dart:core::@getter::deprecated
+      element: dart:core::@getter::deprecated
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -2831,7 +2831,7 @@ library
                 token: deprecated @1
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -2856,7 +2856,7 @@ library
         token: deprecated @1
         element: dart:core::@getter::deprecated
         staticType: null
-      element2: dart:core::@getter::deprecated
+      element: dart:core::@getter::deprecated
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -2871,7 +2871,7 @@ library
                 token: deprecated @1
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
 ''');
   }
 
@@ -2888,7 +2888,7 @@ library
         token: a @1
         element: <testLibrary>::@getter::a
         staticType: null
-      element2: <testLibrary>::@getter::a
+      element: <testLibrary>::@getter::a
   fragments
     #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:11)
       element: <testLibrary>
@@ -2950,7 +2950,7 @@ library
                     token: a @27
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
       topLevelVariables
         #F5 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -2986,7 +2986,7 @@ library
                 token: a @27
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::m
   topLevelVariables
@@ -3040,14 +3040,14 @@ library
                     token: a @45
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
                 Annotation
                   atSign: @ @49
                   name: SimpleIdentifier
                     token: b @50
                     element: <testLibrary>::@getter::b
                     staticType: null
-                  element2: <testLibrary>::@getter::b
+                  element: <testLibrary>::@getter::b
       topLevelVariables
         #F4 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -3085,14 +3085,14 @@ library
                 token: a @45
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
             Annotation
               atSign: @ @49
               name: SimpleIdentifier
                 token: b @50
                 element: <testLibrary>::@getter::b
                 staticType: null
-              element2: <testLibrary>::@getter::b
+              element: <testLibrary>::@getter::b
           returnType: dynamic
   topLevelVariables
     const hasInitializer a
@@ -3154,14 +3154,14 @@ library
                     token: a @45
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
                 Annotation
                   atSign: @ @49
                   name: SimpleIdentifier
                     token: b @50
                     element: <testLibrary>::@getter::b
                     staticType: null
-                  element2: <testLibrary>::@getter::b
+                  element: <testLibrary>::@getter::b
       topLevelVariables
         #F3 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -3197,14 +3197,14 @@ library
                 token: a @45
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
             Annotation
               atSign: @ @49
               name: SimpleIdentifier
                 token: b @50
                 element: <testLibrary>::@getter::b
                 staticType: null
-              element2: <testLibrary>::@getter::b
+              element: <testLibrary>::@getter::b
           returnType: dynamic
   topLevelVariables
     const hasInitializer a
@@ -3271,7 +3271,7 @@ library
                     token: a @29
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
               formalParameters
                 #F5 value (nameOffset:39) (firstTokenOffset:39) (offset:39)
                   element: <testLibrary>::@class::C::@setter::m::@formalParameter::value
@@ -3310,7 +3310,7 @@ library
                 token: a @29
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
           formalParameters
             #E0 requiredPositional hasImplicitType value
               firstFragment: #F5
@@ -3365,7 +3365,7 @@ library
                     token: foo @30
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
           fields
             #F3 hasInitializer foo (nameOffset:54) (firstTokenOffset:54) (offset:54)
               element: <testLibrary>::@mixin::M::@field::foo
@@ -3386,7 +3386,7 @@ library
                     token: foo @66
                     element: <testLibrary>::@mixin::M::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@mixin::M::@getter::foo
+                  element: <testLibrary>::@mixin::M::@getter::foo
       topLevelVariables
         #F6 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -3411,7 +3411,7 @@ library
                 token: foo @30
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
       superclassConstraints
         Object
       fields
@@ -3440,7 +3440,7 @@ library
                 token: foo @66
                 element: <testLibrary>::@mixin::M::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@mixin::M::@getter::foo
+              element: <testLibrary>::@mixin::M::@getter::foo
           returnType: void
   topLevelVariables
     const hasInitializer foo
@@ -3557,7 +3557,7 @@ library
                     token: foo @30
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
           constructors
             #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
@@ -3586,7 +3586,7 @@ library
                 token: foo @30
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
@@ -3637,7 +3637,7 @@ library
                     token: foo @29
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
               typeName: A
               typeNameOffset: 35
               formalParameters
@@ -3650,7 +3650,7 @@ library
                         token: foo @38
                         element: <testLibrary>::@getter::foo
                         staticType: null
-                      element2: <testLibrary>::@getter::foo
+                      element: <testLibrary>::@getter::foo
       topLevelVariables
         #F4 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -3676,7 +3676,7 @@ library
                 token: foo @29
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
           formalParameters
             #E0 requiredPositional a
               firstFragment: #F3
@@ -3688,7 +3688,7 @@ library
                     token: foo @38
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
   topLevelVariables
     const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -3742,7 +3742,7 @@ library
                     token: foo @29
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
       topLevelVariables
         #F5 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -3778,7 +3778,7 @@ library
                 token: foo @29
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
           returnType: int
           variable: <testLibrary>::@class::A::@field::getter
   topLevelVariables
@@ -3831,7 +3831,7 @@ library
                     token: foo @29
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
               typeParameters
                 #F4 T (nameOffset:52) (firstTokenOffset:47) (offset:52)
                   element: #E0 T
@@ -3842,7 +3842,7 @@ library
                         token: foo @48
                         element: <testLibrary>::@getter::foo
                         staticType: null
-                      element2: <testLibrary>::@getter::foo
+                      element: <testLibrary>::@getter::foo
               formalParameters
                 #F5 a (nameOffset:64) (firstTokenOffset:55) (offset:64)
                   element: <testLibrary>::@class::A::@method::method::@formalParameter::a
@@ -3853,7 +3853,7 @@ library
                         token: foo @56
                         element: <testLibrary>::@getter::foo
                         staticType: null
-                      element2: <testLibrary>::@getter::foo
+                      element: <testLibrary>::@getter::foo
       topLevelVariables
         #F6 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -3883,7 +3883,7 @@ library
                 token: foo @29
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
           typeParameters
             #E0 T
               firstFragment: #F4
@@ -3894,7 +3894,7 @@ library
                     token: foo @48
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
           formalParameters
             #E1 requiredPositional a
               firstFragment: #F5
@@ -3906,7 +3906,7 @@ library
                     token: foo @56
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
           returnType: void
   topLevelVariables
     const hasInitializer foo
@@ -3961,7 +3961,7 @@ library
                     token: foo @29
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
               formalParameters
                 #F5 a (nameOffset:55) (firstTokenOffset:46) (offset:55)
                   element: <testLibrary>::@class::A::@setter::setter::@formalParameter::a
@@ -3972,7 +3972,7 @@ library
                         token: foo @47
                         element: <testLibrary>::@getter::foo
                         staticType: null
-                      element2: <testLibrary>::@getter::foo
+                      element: <testLibrary>::@getter::foo
       topLevelVariables
         #F6 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -4008,7 +4008,7 @@ library
                 token: foo @29
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
           formalParameters
             #E0 requiredPositional a
               firstFragment: #F5
@@ -4020,7 +4020,7 @@ library
                     token: foo @47
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
           returnType: void
           variable: <testLibrary>::@class::A::@field::setter
   topLevelVariables
@@ -4076,7 +4076,7 @@ library
                     token: foo @53
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
           constructors
             #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::B::@constructor::new
@@ -4115,7 +4115,7 @@ library
                 token: foo @53
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
       supertype: A
       mixins
         M
@@ -4183,7 +4183,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -4197,7 +4197,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -4211,7 +4211,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -4368,7 +4368,7 @@ library
                     token: foo @34
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
       topLevelVariables
         #F3 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -4393,7 +4393,7 @@ library
                 token: foo @34
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
       extendedType: List<T>
   topLevelVariables
     const hasInitializer foo
@@ -4582,7 +4582,7 @@ library
         token: foo @25
         element: <testLibrary>::@getter::foo
         staticType: null
-      element2: <testLibrary>::@getter::foo
+      element: <testLibrary>::@getter::foo
   fragments
     #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:37)
       element: <testLibrary>
@@ -4640,7 +4640,7 @@ library
                     token: foo @30
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
       topLevelVariables
         #F3 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -4665,7 +4665,7 @@ library
                 token: foo @30
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
       superclassConstraints
         Object
   topLevelVariables
@@ -4709,7 +4709,7 @@ library
                 token: foo @17
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
           typeParameters
             #F2 T (nameOffset:41) (firstTokenOffset:36) (offset:41)
               element: #E0 T
@@ -4720,7 +4720,7 @@ library
                     token: foo @37
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
       topLevelVariables
         #F3 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -4742,7 +4742,7 @@ library
             token: foo @17
             element: <testLibrary>::@getter::foo
             staticType: null
-          element2: <testLibrary>::@getter::foo
+          element: <testLibrary>::@getter::foo
       typeParameters
         #E0 T
           firstFragment: #F2
@@ -4753,7 +4753,7 @@ library
                 token: foo @37
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
       aliasedType: void Function(int)
   topLevelVariables
     const hasInitializer foo
@@ -4796,7 +4796,7 @@ library
                 token: foo @17
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
           typeParameters
             #F2 T (nameOffset:36) (firstTokenOffset:31) (offset:36)
               element: #E0 T
@@ -4807,7 +4807,7 @@ library
                     token: foo @32
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
       topLevelVariables
         #F3 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -4829,7 +4829,7 @@ library
             token: foo @17
             element: <testLibrary>::@getter::foo
             staticType: null
-          element2: <testLibrary>::@getter::foo
+          element: <testLibrary>::@getter::foo
       typeParameters
         #E0 T
           firstFragment: #F2
@@ -4840,7 +4840,7 @@ library
                 token: foo @32
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
       aliasedType: void Function<U>(int)
   topLevelVariables
     const hasInitializer foo
@@ -4899,7 +4899,7 @@ library
                 token: foo @18
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
           unit: #F1
         part_1
           uri: package:test/b.dart
@@ -4911,7 +4911,7 @@ library
                 token: foo @39
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
           unit: #F2
       topLevelVariables
         #F3 hasInitializer foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
@@ -4983,7 +4983,7 @@ library
                 token: foo @17
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
           typeParameters
             #F4 T (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: #E0 T
@@ -4994,7 +4994,7 @@ library
                     token: foo @29
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
           formalParameters
             #F5 a (nameOffset:47) (firstTokenOffset:37) (offset:47)
               element: <testLibrary>::@function::f::@formalParameter::a
@@ -5005,7 +5005,7 @@ library
                     token: foo @38
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
               initializer: expression_1
                 IntegerLiteral
                   literal: 42 @51
@@ -5036,7 +5036,7 @@ library
             token: foo @17
             element: <testLibrary>::@getter::foo
             staticType: null
-          element2: <testLibrary>::@getter::foo
+          element: <testLibrary>::@getter::foo
       typeParameters
         #E0 T
           firstFragment: #F4
@@ -5047,7 +5047,7 @@ library
                 token: foo @29
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
       formalParameters
         #E1 optionalNamed a
           firstFragment: #F5
@@ -5059,7 +5059,7 @@ library
                 token: foo @38
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
           constantInitializer
             fragment: #F5
             expression: expression_1
@@ -5101,7 +5101,7 @@ library
                 token: foo @17
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
   topLevelVariables
     const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -5132,7 +5132,7 @@ library
             token: foo @17
             element: <testLibrary>::@getter::foo
             staticType: null
-          element2: <testLibrary>::@getter::foo
+          element: <testLibrary>::@getter::foo
       returnType: int
       variable: <testLibrary>::@topLevelVariable::getter
 ''');
@@ -5173,7 +5173,7 @@ library
                 token: foo @17
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
           formalParameters
             #F5 a (nameOffset:41) (firstTokenOffset:32) (offset:41)
               element: <testLibrary>::@setter::setter::@formalParameter::a
@@ -5184,7 +5184,7 @@ library
                     token: foo @33
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
   topLevelVariables
     const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -5216,7 +5216,7 @@ library
             token: foo @17
             element: <testLibrary>::@getter::foo
             staticType: null
-          element2: <testLibrary>::@getter::foo
+          element: <testLibrary>::@getter::foo
       formalParameters
         #E0 requiredPositional a
           firstFragment: #F5
@@ -5228,7 +5228,7 @@ library
                 token: foo @33
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
       returnType: void
       variable: <testLibrary>::@topLevelVariable::setter
 ''');
@@ -5266,7 +5266,7 @@ library
                 token: foo @17
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
         #F3 hasInitializer isConst (nameOffset:53) (firstTokenOffset:53) (offset:53)
           element: <testLibrary>::@topLevelVariable::isConst
           metadata
@@ -5276,7 +5276,7 @@ library
                 token: foo @43
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
           initializer: expression_1
             IntegerLiteral
               literal: 2 @63
@@ -5313,7 +5313,7 @@ library
             token: foo @17
             element: <testLibrary>::@getter::foo
             staticType: null
-          element2: <testLibrary>::@getter::foo
+          element: <testLibrary>::@getter::foo
       type: int
       getter: <testLibrary>::@getter::isNotConst
       setter: <testLibrary>::@setter::isNotConst
@@ -5327,7 +5327,7 @@ library
             token: foo @43
             element: <testLibrary>::@getter::foo
             staticType: null
-          element2: <testLibrary>::@getter::foo
+          element: <testLibrary>::@getter::foo
       type: int
       constantInitializer
         fragment: #F3
@@ -5383,7 +5383,7 @@ library
         token: a @1
         element: <testLibrary>::@getter::a
         staticType: null
-      element2: <testLibrary>::@getter::a
+      element: <testLibrary>::@getter::a
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -5399,7 +5399,7 @@ library
                 token: a @1
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
           unit: #F1
       topLevelVariables
         #F2 hasInitializer a (nameOffset:26) (firstTokenOffset:26) (offset:26)
@@ -5459,7 +5459,7 @@ library
                 token: a @12
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
           unit: #F1
       topLevelVariables
         #F2 hasInitializer a (nameOffset:37) (firstTokenOffset:37) (offset:37)
@@ -5507,10 +5507,7 @@ part 'b.dart';
 
     // The difference with the test above is that we ask the part first.
     // There was a bug that we were not loading library directives.
-    expect(
-      library.definingCompilationUnit.parts[0].metadata.annotations,
-      isEmpty,
-    );
+    expect(library.firstFragment.parts[0].metadata.annotations, isEmpty);
   }
 
   test_metadata_partOf_class() async {
@@ -5590,7 +5587,7 @@ library
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
 ''');
   }
 
@@ -5628,7 +5625,7 @@ library
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
 ''');
   }
 
@@ -5675,7 +5672,7 @@ library
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
           unit: #F2
     #F2 package:test/a.dart
       element: <testLibrary>
@@ -5747,7 +5744,7 @@ library
                     token: a @19
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5778,7 +5775,7 @@ library
                 token: a @19
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       returnType: dynamic
 ''');
   }
@@ -5817,7 +5814,7 @@ library
                         token: a @32
                         element: <testLibrary>::@getter::a
                         staticType: null
-                      element2: <testLibrary>::@getter::a
+                      element: <testLibrary>::@getter::a
       topLevelVariables
         #F5 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -5851,7 +5848,7 @@ library
                     token: a @32
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
           returnType: dynamic
   topLevelVariables
     const hasInitializer a
@@ -5908,7 +5905,7 @@ library
                     token: a @26
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5944,7 +5941,7 @@ library
                 token: a @26
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
 ''');
@@ -5981,7 +5978,7 @@ library
                     token: a @20
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
               initializer: expression_1
                 NullLiteral
                   literal: null @26
@@ -6016,7 +6013,7 @@ library
                 token: a @20
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
           constantInitializer
             fragment: #F4
             expression: expression_1
@@ -6070,7 +6067,7 @@ library
                         token: a @67
                         element: <testLibrary>::@getter::a
                         staticType: null
-                      element2: <testLibrary>::@getter::a
+                      element: <testLibrary>::@getter::a
       topLevelVariables
         #F7 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -6112,7 +6109,7 @@ library
                     token: a @67
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
           superConstructor: <testLibrary>::@class::A::@constructor::new
   topLevelVariables
     const hasInitializer a
@@ -6156,7 +6153,7 @@ library
                 token: a @17
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       getters
         #F3 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
@@ -6187,7 +6184,7 @@ library
             token: a @17
             element: <testLibrary>::@getter::a
             staticType: null
-          element2: <testLibrary>::@getter::a
+          element: <testLibrary>::@getter::a
       type: int
       getter: <testLibrary>::@getter::v
       setter: <testLibrary>::@setter::v
@@ -6236,7 +6233,7 @@ library
                     token: a @25
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
           constructors
             #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@constructor::new
@@ -6265,7 +6262,7 @@ library
                 token: a @25
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       constructors
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -6313,7 +6310,7 @@ library
                     token: a @25
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
           constructors
             #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@constructor::new
@@ -6354,7 +6351,7 @@ library
                 token: a @25
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       supertype: D
       mixins
         E
@@ -6433,7 +6430,7 @@ library
                     token: a @19
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -6463,7 +6460,7 @@ library
                 token: a @19
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       returnType: dynamic
 ''');
   }
@@ -6489,7 +6486,7 @@ library
                     token: a @27
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
       topLevelVariables
         #F3 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -6514,7 +6511,7 @@ library
                 token: a @27
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       aliasedType: dynamic Function()
   topLevelVariables
     const hasInitializer a
@@ -6566,7 +6563,7 @@ library
                 token: a @14
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       getters
         #F3 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
@@ -6597,7 +6594,7 @@ library
             token: a @14
             element: <testLibrary>::@getter::a
             staticType: null
-          element2: <testLibrary>::@getter::a
+          element: <testLibrary>::@getter::a
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
@@ -6725,7 +6722,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -6739,7 +6736,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -6753,7 +6750,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList

@@ -483,11 +483,9 @@ void f(int Function(int) p) {
   v = p;
 }
 ''');
-    // TODO(brianwilkerson): Improve `DartChangeBuilder.writeType` so that
-    //  unnecessary parameter names (`p1`) are not written.
     await assertHasAssist('''
 void f(int Function(int) p) {
-  int Function(int p1) v;
+  int Function(int) v;
   v = p;
 }
 ''');
@@ -678,6 +676,34 @@ void f() {
 ''');
   }
 
+  Future<void> test_local_shadowed() async {
+    newFile(join(testPackageLibPath, 'a.dart'), '''
+class A {}
+''');
+    newFile(join(testPackageLibPath, 'other.dart'), '''
+import 'a.dart';
+A getA() => A();
+''');
+    await resolveTestCode('''
+import 'other.dart';
+
+class A {}
+void f() {
+  var ^v = getA();
+}
+''');
+    await assertHasAssist('''
+import 'package:test/a.dart' as prefix0;
+
+import 'other.dart';
+
+class A {}
+void f() {
+  prefix0.A v = getA();
+}
+''');
+  }
+
   Future<void> test_local_unknown() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
@@ -848,8 +874,7 @@ class A<T> {
   }
 
   Future<void> test_privateType_list() async {
-    // This is now failing because we're suggesting "List" rather than nothing.
-    // Is it really better to produce nothing?
+    // This would work for impl types in a package, not just private types.
     newFile('$testPackageLibPath/my_lib.dart', '''
 library my_lib;
 class A {}

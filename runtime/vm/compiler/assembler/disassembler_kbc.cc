@@ -10,6 +10,7 @@
 #include "platform/assert.h"
 #include "vm/bytecode_reader.h"
 #include "vm/constants_kbc.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -395,6 +396,19 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
                 iter.IsYieldPoint() ? "yield" : "");
     }
     THR_Print("}\n");
+  }
+
+  if (bytecode.HasLocalVariablesInfo()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    THR_Print("Local variable information for function '%s' {\n",
+              function_fullname);
+    ZoneTextBuffer buffer(zone);
+    bytecode.WriteLocalVariablesInfo(zone, &buffer);
+    THR_Print("%s", buffer.buffer());
+    THR_Print("}\n");
+#else
+    UNREACHABLE();
+#endif
   }
 
   THR_Print("Exception Handlers for function '%s' {\n", function_fullname);

@@ -2,11 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:54:3: Error: The return type of the setter must be 'void' or absent.
-// Try removing the return type, or define a method rather than a setter.
-//   int? set methodAndSetter2() {}
-//   ^
-//
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:7:8: Error: 'methodAndField1' is already declared in this scope.
 //   int? methodAndField1;
 //        ^^^^^^^^^^^^^^^
@@ -216,6 +211,11 @@ library;
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:75:14: Context: Previous declaration of 'fieldAndFinalFieldAndSetter4'.
 //   final int? fieldAndFinalFieldAndSetter4 = 0;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:54:3: Error: The return type of the setter must be 'void' or absent.
+// Try removing the return type, or define a method rather than a setter.
+//   int? set methodAndSetter2() {}
+//   ^
 //
 import self as self;
 import "dart:core" as core;

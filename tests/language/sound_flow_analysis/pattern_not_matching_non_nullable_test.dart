@@ -5,8 +5,6 @@
 // Exercises flow analysis of patterns that fail to match a non-nullable
 // scrutinee when `sound-flow-analysis` is enabled.
 
-// SharedOptions=--enable-experiment=sound-flow-analysis
-
 import 'package:expect/expect.dart';
 
 import '../static_type_helper.dart';

@@ -108,10 +108,6 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   String get debugName => "Record";
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isVoidType => false;
-
-  @override
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write("(");
     bool isFirst = true;
@@ -218,13 +214,13 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
           RecordTypeFieldBuilder? existingField = fieldsMap[fieldName];
           if (existingField != null) {
             library.addProblem(
-              codeDuplicatedRecordTypeFieldName.withArguments(fieldName),
+              codeDuplicatedRecordTypeFieldName.withArgumentsOld(fieldName),
               field.charOffset,
               fieldName.length,
               fileUri,
               context: [
                 codeDuplicatedRecordTypeFieldNameContext
-                    .withArguments(fieldName)
+                    .withArgumentsOld(fieldName)
                     .withLocation(
                       fileUri,
                       existingField.charOffset,
@@ -295,13 +291,13 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         RecordTypeFieldBuilder? existingField = fieldsMap[name];
         if (existingField != null) {
           library.addProblem(
-            codeDuplicatedRecordTypeFieldName.withArguments(name),
+            codeDuplicatedRecordTypeFieldName.withArgumentsOld(name),
             field.charOffset,
             name.length,
             fileUri,
             context: [
               codeDuplicatedRecordTypeFieldNameContext
-                  .withArguments(name)
+                  .withArgumentsOld(name)
                   .withLocation(fileUri, existingField.charOffset, name.length),
             ],
           );

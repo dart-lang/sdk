@@ -1206,7 +1206,46 @@ struct FfiCallArguments {
 extern "C" void FfiCallTrampoline(FfiCallArguments* args);
 #else
 extern "C" typedef void (*ffiCallTrampoline)(FfiCallArguments* args);
+
+void FfiCallTrampoline(FfiCallArguments* args) {
+#if defined(HOST_ARCH_X64)
+  reinterpret_cast<ffiCallTrampoline>(
+      StubCode::FfiCallTrampoline().EntryPoint())(args);
+#else
+  UNIMPLEMENTED();
 #endif
+}
+#endif
+
+static int64_t TruncateFfiInt(int64_t value,
+                              compiler::ffi::PrimitiveType type,
+                              bool is_return) {
+#if defined(HOST_ARCH_RISCV64)
+  // 64-bit RISC-V represents C uint32 as sign-extended to 64 bits.
+  if (!is_return && (type == compiler::ffi::kUint32)) {
+    return static_cast<int32_t>(static_cast<uint32_t>(value));
+  }
+#endif
+  switch (type) {
+    case compiler::ffi::kInt8:
+      return static_cast<int8_t>(value);
+    case compiler::ffi::kUint8:
+      return static_cast<uint8_t>(value);
+    case compiler::ffi::kInt16:
+      return static_cast<int16_t>(value);
+    case compiler::ffi::kUint16:
+      return static_cast<uint16_t>(value);
+    case compiler::ffi::kInt32:
+      return static_cast<int32_t>(value);
+    case compiler::ffi::kUint32:
+      return static_cast<uint32_t>(value);
+    case compiler::ffi::kInt64:
+    case compiler::ffi::kUint64:
+      return value;
+    default:
+      UNREACHABLE();
+  }
+}
 
 static void PassFfiCallArguments(
     Thread* thread,
@@ -1231,14 +1270,35 @@ static void PassFfiCallArguments(
       } else if (marshaller.IsTypedDataPointer(i)) {
         value = reinterpret_cast<uword>(TypedDataBase::Cast(arg).DataAddr(0));
       } else if (marshaller.IsCompoundPointer(i)) {
-        UNIMPLEMENTED();
+        ObjectStore* object_store = thread->isolate_group()->object_store();
+        auto& obj = Object::Handle(zone);
+        obj = object_store->compound_offset_in_bytes_field();
+        ASSERT(!obj.IsNull());
+        obj = Instance::Cast(arg).GetField(Field::Cast(obj));
+        const uword offset_in_bytes =
+            static_cast<uword>(Integer::Cast(obj).Value());
+        obj = object_store->compound_typed_data_base_field();
+        ASSERT(!obj.IsNull());
+        obj = Instance::Cast(arg).GetField(Field::Cast(obj));
+        if (obj.IsPointer()) {
+          value = Pointer::Cast(obj).NativeAddress() + offset_in_bytes;
+        } else {
+          ASSERT(obj.IsTypedDataBase());
+          value = reinterpret_cast<uword>(
+              TypedDataBase::Cast(obj).DataAddr(offset_in_bytes));
+        }
       } else if (marshaller.IsBool(i)) {
         value = Bool::Cast(arg).value() ? static_cast<uword>(-1) : 0;
       } else {
         ASSERT(!marshaller.IsVoid(i));
         const auto rep = marshaller.RepInDart(i);
         if (RepresentationUtils::IsUnboxedInteger(rep)) {
-          value = Integer::Cast(arg).Value();
+          value = TruncateFfiInt(Integer::Cast(arg).Value(),
+                                 marshaller.Location(i)
+                                     .payload_type()
+                                     .AsPrimitive()
+                                     .representation(),
+                                 /*is_return=*/false);
         } else if (rep == kUnboxedDouble) {
           value = bit_cast<uint64_t, double>(Double::Cast(arg).value());
         } else if (rep == kUnboxedFloat) {
@@ -1271,6 +1331,15 @@ static void PassFfiCallArguments(
       }
     }
   }
+
+#if defined(TARGET_ARCH_X64)
+  if (marshaller.contains_varargs() &&
+      CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
+    // TODO(http://dartbug.com/38578): Use the number of used FPU registers.
+    args->cpu_registers[CallingConventions::kVarArgFpuRegisterCount] =
+        CallingConventions::kFpuArgumentRegisters;
+  }
+#endif  // defined(TARGET_ARCH_X64)
 }
 
 static ObjectPtr ReceiveFfiCallResult(
@@ -1294,20 +1363,32 @@ static ObjectPtr ReceiveFfiCallResult(
   } else if (marshaller.IsVoid(arg_index)) {
     return Object::null();
   } else if (marshaller.IsBool(arg_index)) {
-    uword value = args->cpu_registers[CallingConventions::kReturnReg];
+    int64_t value =
+        TruncateFfiInt(args->cpu_registers[CallingConventions::kReturnReg],
+                       marshaller.Location(arg_index)
+                           .payload_type()
+                           .AsPrimitive()
+                           .representation(),
+                       /*is_return=*/true);
     return Bool::Get(value != 0).ptr();
   } else {
     const auto rep = marshaller.RepInDart(arg_index);
     if (RepresentationUtils::IsUnboxedInteger(rep)) {
-      uword value = args->cpu_registers[CallingConventions::kReturnReg];
+      const int64_t value =
+          TruncateFfiInt(args->cpu_registers[CallingConventions::kReturnReg],
+                         marshaller.Location(arg_index)
+                             .payload_type()
+                             .AsPrimitive()
+                             .representation(),
+                         /*is_return=*/true);
       return Integer::New(value);
     } else if (rep == kUnboxedDouble) {
-      double value = args->fpu_registers[CallingConventions::kReturnFpuReg];
+      double value = bit_cast<double, uint64_t>(
+          args->fpu_registers[CallingConventions::kReturnFpuReg]);
       return Double::New(value);
     } else if (rep == kUnboxedFloat) {
-      float value = bit_cast<float, uint32_t>(
-          static_cast<uint32_t>(bit_cast<uint64_t, double>(
-              args->fpu_registers[CallingConventions::kReturnFpuReg])));
+      float value = bit_cast<float, uint32_t>(static_cast<uint32_t>(
+          args->fpu_registers[CallingConventions::kReturnFpuReg]));
       return Double::New(static_cast<double>(value));
     } else {
       UNREACHABLE();
@@ -1402,6 +1483,7 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
       function.IsFfiCallClosure() ? 1 : 0;
   const auto& c_signature =
       FunctionType::ZoneHandle(zone, function.FfiCSignature());
+  const bool is_leaf = function.FfiIsLeaf();
 
   // Used by compiler::ffi::CallMarshaller.
   CompilerState compiler_state(thread, /*is_aot=*/FLAG_precompiled_mode,
@@ -1433,27 +1515,17 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
   Api::Scope api_scope(thread);
 
   argv = argv - first_argument_parameter_offset - marshaller.num_args();
-  PassFfiCallArguments(thread, marshaller, argv, &args);
 
-#if defined(TARGET_ARCH_X64)
-  if (marshaller.contains_varargs() &&
-      CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
-    // TODO(http://dartbug.com/38578): Use the number of used FPU registers.
-    args.cpu_registers[CallingConventions::kVarArgFpuRegisterCount] =
-        CallingConventions::kFpuArgumentRegisters;
-  }
-#endif  // defined(TARGET_ARCH_X64)
+  if (is_leaf) {
+    NoSafepointScope no_safepoint;
 
-  {
-    TransitionVMToNative transition(thread);
-#if defined(HOST_ARCH_ARM64)
+    PassFfiCallArguments(thread, marshaller, argv, &args);
     FfiCallTrampoline(&args);
-#elif defined(HOST_ARCH_X64)
-    reinterpret_cast<ffiCallTrampoline>(
-        StubCode::FfiCallTrampoline().EntryPoint())(&args);
-#else
-    UNIMPLEMENTED();
-#endif
+  } else {
+    PassFfiCallArguments(thread, marshaller, argv, &args);
+
+    TransitionVMToNative transition(thread);
+    FfiCallTrampoline(&args);
   }
 
   arguments.SetReturn(
@@ -2175,6 +2247,14 @@ DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseStepping());
   ThrowIfError(error);
+#endif
+}
+
+DEFINE_RUNTIME_ENTRY(ResumptionBreakpointHandler, 0) {
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT)
+  isolate->debugger()->ResumptionBreakpoint();
+#else
+  UNREACHABLE();
 #endif
 }
 
@@ -4882,85 +4962,58 @@ DEFINE_LEAF_RUNTIME_ENTRY(ExitSafepoint,
                           /*argument_count=*/0,
                           DLRT_ExitSafepoint);
 
-// This is called by a native callback trampoline
-// (see StubCodeCompiler::GenerateFfiCallbackTrampolineStub). Not registered as
-// a runtime entry because we can't use Thread to look it up.
-extern "C" Thread* DLRT_GetFfiCallbackMetadata(
-    FfiCallbackMetadata::Trampoline trampoline,
-    uword* out_entry_point,
-    uword* out_trampoline_type) {
-  CHECK_STACK_ALIGNMENT;
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata %p",
-                     reinterpret_cast<void*>(trampoline));
-  ASSERT(out_entry_point != nullptr);
-  ASSERT(out_trampoline_type != nullptr);
+namespace {
+Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
+                               uword* out_entry_point,
+                               uword* out_trampoline_type) {
+  // NOTE: This is only thread safe if the user is using the API correctly.
+  // Otherwise, the callback could have been deleted and replaced, in which case
+  // IsLive would still be true. Or it could have been deleted after we looked
+  // it up, and the target isolate could be shut down. We delay recycling
+  // callbacks as long as possible, so this check is better than nothing, but
+  // it's not infallible. Ultimately it's the user's responsibility to avoid use
+  // after free errors. Trying to lock FfiCallbackMetadata::lock_, or any
+  // similar lock, leads to deadlocks.
 
-  if (!Isolate::IsolateCreationEnabled()) {
-    TRACE_RUNTIME_CALL("GetFfiCallbackMetadata called after shutdown %p",
-                       reinterpret_cast<void*>(trampoline));
-    return nullptr;
-  }
+  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
+  *out_entry_point = metadata.target_entry_point();
+  Isolate* target_isolate = metadata.target_isolate();
 
+  Isolate* current_isolate = nullptr;
   Thread* current_thread = Thread::Current();
-  auto* fcm = FfiCallbackMetadata::Instance();
-  auto metadata = fcm->LookupMetadataForTrampoline(trampoline);
-
-  // Is this an async callback?
-  if (metadata.trampoline_type() ==
-      FfiCallbackMetadata::TrampolineType::kAsync) {
-    // It's possible that the callback was deleted, or the target isolate was
-    // shut down, in between looking up the metadata above, and this point. So
-    // grab the lock and then check that the callback is still alive.
-    MutexLocker locker(fcm->lock());
-    auto metadata2 = fcm->LookupMetadataForTrampoline(trampoline);
-    *out_trampoline_type = static_cast<uword>(metadata2.trampoline_type());
-
-    // Check IsLive, but also check that the metdata hasn't changed. This is
-    // for the edge case that the callback was destroyed and recycled in between
-    // the two lookups.
-    if (!metadata.IsLive() || !metadata.IsSameCallback(metadata2)) {
-      TRACE_RUNTIME_CALL("GetFfiCallbackMetadata callback deleted %p",
-                         reinterpret_cast<void*>(trampoline));
-      return nullptr;
+  if (current_thread != nullptr) {
+    current_isolate = current_thread->isolate();
+    if (current_thread->execution_state() != Thread::kThreadInNative) {
+      FATAL("Cannot invoke native callback from a leaf call.");
     }
-
-    *out_entry_point = metadata.target_entry_point();
-    Isolate* target_isolate = metadata.target_isolate();
-
-    Isolate* current_isolate = nullptr;
-    if (current_thread != nullptr) {
-      current_isolate = current_thread->isolate();
-      if (current_thread->execution_state() != Thread::kThreadInNative) {
-        FATAL("Cannot invoke native callback from a leaf call.");
-      }
-      current_thread->ExitSafepointFromNative();
-      current_thread->set_execution_state(Thread::kThreadInVM);
-    }
-
-    // Enter the temporary isolate. If the current isolate is in the same group
-    // as the target isolate, we can skip entering the temp isolate, and marshal
-    // the args on the current isolate.
-    if (current_isolate == nullptr ||
-        current_isolate->group() != target_isolate->group()) {
-      if (current_isolate != nullptr) {
-        Thread::ExitIsolate(/*isolate_shutdown=*/false);
-      }
-      target_isolate->group()->EnterTemporaryIsolate();
-    }
-    Thread* const temp_thread = Thread::Current();
-    ASSERT(temp_thread != nullptr);
-    temp_thread->set_unboxed_int64_runtime_arg(metadata.send_port());
-    temp_thread->set_unboxed_int64_runtime_second_arg(
-        reinterpret_cast<intptr_t>(current_isolate));
-    ASSERT(!temp_thread->IsAtSafepoint());
-    return temp_thread;
+    current_thread->ExitSafepointFromNative();
+    current_thread->set_execution_state(Thread::kThreadInVM);
   }
 
-  // Otherwise, this is a sync callback, so verify that we're already entered
-  // into the target isolate.
-  if (!metadata.IsLive()) {
-    FATAL("Callback invoked after it has been deleted.");
+  // Enter the temporary isolate. If the current isolate is in the same group
+  // as the target isolate, we can skip entering the temp isolate, and marshal
+  // the args on the current isolate.
+  if (current_isolate == nullptr ||
+      current_isolate->group() != target_isolate->group()) {
+    if (current_isolate != nullptr) {
+      Thread::ExitIsolate(/*isolate_shutdown=*/false);
+    }
+    target_isolate->group()->EnterTemporaryIsolate();
   }
+  Thread* const temp_thread = Thread::Current();
+  ASSERT(temp_thread != nullptr);
+  temp_thread->set_unboxed_int64_runtime_arg(metadata.send_port());
+  temp_thread->set_unboxed_int64_runtime_second_arg(
+      reinterpret_cast<intptr_t>(current_isolate));
+  ASSERT(!temp_thread->IsAtSafepoint());
+  return temp_thread;
+}
+
+Thread* HandleSyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
+                              uword* out_entry_point,
+                              uword* out_trampoline_type) {
+  Thread* current_thread = Thread::Current();
+
   if (metadata.is_isolate_group_bound()) {
     *out_entry_point = metadata.target_entry_point();
     *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
@@ -5021,6 +5074,53 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata trampoline_type %p",
                      (void*)*out_trampoline_type);
   return current_thread;
+}
+}  // namespace
+
+// This is called by a native callback trampoline
+// (see StubCodeCompiler::GenerateFfiCallbackTrampolineStub). Not registered as
+// a runtime entry because we can't use Thread to look it up.
+extern "C" Thread* DLRT_GetFfiCallbackMetadata(
+    FfiCallbackMetadata::Trampoline trampoline,
+    uword* out_entry_point,
+    uword* out_trampoline_type) {
+  CHECK_STACK_ALIGNMENT;
+  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata %p",
+                     reinterpret_cast<void*>(trampoline));
+  ASSERT(out_entry_point != nullptr);
+  ASSERT(out_trampoline_type != nullptr);
+
+  if (!Isolate::IsolateCreationEnabled()) {
+    FATAL("GetFfiCallbackMetadata called after shutdown %p",
+          reinterpret_cast<void*>(trampoline));
+  }
+
+  // NOTE: We access the metadata for `trampoline` without a lock. This is safe
+  // because nobody will touch the metadata of the `trampoline` until it's
+  // deleted and the `NativeCallable` API requires the isolate to keep the
+  // trampoline (and therefore the metadata) alive until C code no longer
+  // attempts to call it.
+  //
+  // If a user of the `NativeCallable` API violates this agreement, we may
+  // have a use-after-free scenario here and therefore undefined behavior.
+  // We make some best effort to `FATAL()` in obvious cases of undefined
+  // behavior, but not all cases will be caught.
+  auto metadata =
+      FfiCallbackMetadata::Instance()->LookupMetadataForTrampolineUnlocked(
+          trampoline);
+
+  if (!metadata.IsLive()) {
+    FATAL("Callback invoked after it has been deleted.");
+  }
+
+  if (metadata.trampoline_type() ==
+      FfiCallbackMetadata::TrampolineType::kAsync) {
+    return HandleAsyncFfiCallback(metadata, out_entry_point,
+                                  out_trampoline_type);
+  } else {
+    return HandleSyncFfiCallback(metadata, out_entry_point,
+                                 out_trampoline_type);
+  }
 }
 
 extern "C" void DLRT_ExitIsolateGroupBoundIsolate() {
@@ -5198,17 +5298,49 @@ extern "C" void __tsan_func_entry(void* pc) {
 extern "C" void __tsan_func_exit() {
   UNREACHABLE();
 }
+#else
+#define CASE(x)                                                                \
+  extern "C" NO_SANITIZE_THREAD DISABLE_SANITIZER_INSTRUMENTATION void         \
+  jit_tsan_##x(void* addr) {                                                   \
+    __tsan_##x##_pc(                                                           \
+        addr, reinterpret_cast<void*>(                                         \
+                  reinterpret_cast<uintptr_t>(__builtin_return_address(0)) |   \
+                  (1ULL << 60)));                                              \
+  }
+
+CASE(read1)
+CASE(read2)
+CASE(read4)
+CASE(read8)
+CASE(read16)
+CASE(write1)
+CASE(write2)
+CASE(write4)
+CASE(write8)
+CASE(write16)
+#undef CASE
 #endif
 
 // These runtime entries are defined even when not using MSAN / TSAN to keep
 // offsets on Thread consistent.
-
 DEFINE_LEAF_RUNTIME_ENTRY(MsanUnpoison, 2, __msan_unpoison);
 DEFINE_LEAF_RUNTIME_ENTRY(MsanUnpoisonParam, 1, __msan_unpoison_param);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Load, 2, __tsan_atomic32_load);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Store, 3, __tsan_atomic32_store);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Load, 2, __tsan_atomic64_load);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Store, 3, __tsan_atomic64_store);
+#if defined(USING_THREAD_SANITIZER) && !defined(DART_PRECOMPILED_RUNTIME)
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead1, 1, jit_tsan_read1);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead2, 1, jit_tsan_read2);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead4, 1, jit_tsan_read4);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead8, 1, jit_tsan_read8);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead16, 1, jit_tsan_read16);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite1, 1, jit_tsan_write1);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite2, 1, jit_tsan_write2);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite4, 1, jit_tsan_write4);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite8, 1, jit_tsan_write8);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite16, 1, jit_tsan_write16);
+#else
 DEFINE_LEAF_RUNTIME_ENTRY(TsanRead1, 1, __tsan_read1);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanRead2, 1, __tsan_read2);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanRead4, 1, __tsan_read4);
@@ -5219,6 +5351,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite2, 1, __tsan_write2);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite4, 1, __tsan_write4);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite8, 1, __tsan_write8);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite16, 1, __tsan_write16);
+#endif
 DEFINE_LEAF_RUNTIME_ENTRY(TsanFuncEntry, 1, __tsan_func_entry);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanFuncExit, 0, __tsan_func_exit);
 

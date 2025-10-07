@@ -24,3 +24,4 @@ linter:
     - unnecessary_library_directive
     - unnecessary_parenthesis
     - unreachable_from_main
+    - use_null_aware_elements

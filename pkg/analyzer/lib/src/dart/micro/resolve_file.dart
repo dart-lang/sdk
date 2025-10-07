@@ -763,10 +763,6 @@ class FileResolver {
         packagesFile: null,
         withFineDependencies: false,
         testData: testData?.libraryContext,
-        linkedBundleProvider: LinkedBundleProvider(
-          byteStore: byteStore,
-          withFineDependencies: false,
-        ),
       );
 
       contextObjects!.analysisSession.elementFactory =
@@ -828,7 +824,10 @@ class FileResolver {
         performance.run('getOptionsFromFile', (_) {
           try {
             var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-            optionMap = optionsProvider.getOptionsFromSource(source);
+            optionMap = optionsProvider.getOptionsFromSource(
+              source,
+              resourceProvider.pathContext,
+            );
           } catch (_) {}
         });
       }

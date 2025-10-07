@@ -127,8 +127,6 @@ import '../utils/kernel_chain.dart'
         Print,
         TypeCheck,
         WriteDill;
-import '../utils/validating_instrumentation.dart'
-    show ValidatingInstrumentation;
 import 'environment_keys.dart';
 import 'folder_options.dart';
 import 'test_options.dart';
@@ -147,10 +145,6 @@ const String EXPECTATIONS = '''
   },
   {
     "name": "ExpectationFileMissing",
-    "group": "Fail"
-  },
-  {
-    "name": "InstrumentationMismatch",
     "group": "Fail"
   },
   {
@@ -2444,10 +2438,6 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         }
         excludedLibraries ??= const {};
 
-        ValidatingInstrumentation instrumentation =
-            new ValidatingInstrumentation(c);
-        await instrumentation.loadExpectations(description.uri);
-
         Component p;
         KernelTarget sourceTarget;
         compilationSetup.options.inputs.clear();
@@ -2458,7 +2448,6 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
               buildSummary: compileMode == CompileMode.outline,
               serializeIfBuildingSummary: false,
               buildComponent: compileMode != CompileMode.outline,
-              instrumentation: instrumentation,
               retainDataForTesting: true,
               additionalDillsForTesting: alsoAppend != null
                   ? [alsoAppend]
@@ -2473,28 +2462,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           sourceTarget.uriTranslator,
           excludedLibraries: excludedLibraries,
         );
-        if (compileMode != CompileMode.outline) {
-          instrumentation.finish();
-          if (instrumentation.hasProblems) {
-            if (updateComments) {
-              await instrumentation.fixSource(description.uri, false);
-            } else {
-              return new Result<ComponentResult>(
-                new ComponentResult(
-                  description,
-                  p,
-                  userLibraries,
-                  compilationSetup,
-                  sourceTarget,
-                ),
-                context.expectationSet["InstrumentationMismatch"],
-                instrumentation.problemsAsString,
-                autoFixCommand: '${EnvironmentKeys.updateComments}=true',
-                canBeFixWithUpdateExpectations: true,
-              );
-            }
-          }
-        }
+
         return pass(
           new ComponentResult(
             description,

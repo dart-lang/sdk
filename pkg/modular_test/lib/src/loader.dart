@@ -193,8 +193,6 @@ Future<Module> _createSdkModule(Uri root) async {
   // it doesn't list files that are transitively imported.
   var sdkLibrariesAndPatchesRoots = [
     'sdk/lib/',
-    'runtime/lib/',
-    'runtime/bin/',
   ];
   for (var path in sdkLibrariesAndPatchesRoots) {
     var dir = Directory.fromUri(root.resolve(path));

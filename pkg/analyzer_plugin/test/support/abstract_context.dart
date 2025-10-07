@@ -100,10 +100,7 @@ class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
 
   @mustCallSuper
   void setUp() {
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     newFolder(testPackageRootPath);
     writeTestPackageConfig();
@@ -121,9 +118,7 @@ class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
 
   /// Write an analysis options file based on the given arguments.
   // TODO(asashour): Use AnalysisOptionsFileConfig
-  void writeTestPackageAnalysisOptionsFile({
-    List<String>? lints,
-  }) {
+  void writeTestPackageAnalysisOptionsFile({List<String>? lints}) {
     var buffer = StringBuffer();
 
     if (lints != null) {

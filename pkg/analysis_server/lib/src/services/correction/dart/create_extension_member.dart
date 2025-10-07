@@ -29,7 +29,7 @@ class CreateExtensionGetter extends _CreateExtensionMember {
   List<String> get fixArguments => [_getterName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_GETTER;
+  FixKind get fixKind => DartFixKind.createExtensionGetter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -147,7 +147,7 @@ class CreateExtensionMethod extends _CreateExtensionMember {
   List<String> get fixArguments => [_methodName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_METHOD;
+  FixKind get fixKind => DartFixKind.createExtensionMethod;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -242,11 +242,10 @@ class CreateExtensionMethod extends _CreateExtensionMember {
 
       builder.writeTypeParameters(
         ([
-                isInvocation ? returnType : functionType?.returnType,
-                ...?functionType?.formalParameters.map((e) => e.type),
-                ...?invocation?.argumentList.arguments.map((e) => e.staticType),
-              ].typeParameters
-              ..addAll([...?functionType?.typeParameters]))
+              isInvocation ? returnType : functionType?.returnType,
+              ...?functionType?.formalParameters.map((e) => e.type),
+              ...?invocation?.argumentList.arguments.map((e) => e.staticType),
+            ].typeParameters..addAll([...?functionType?.typeParameters]))
             .whereNot([targetType].typeParameters.contains)
             .toList(),
       );
@@ -305,7 +304,7 @@ class CreateExtensionOperator extends _CreateExtensionMember {
   List<String>? get fixArguments => [_operator];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_OPERATOR;
+  FixKind get fixKind => DartFixKind.createExtensionOperator;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -438,7 +437,7 @@ class CreateExtensionSetter extends _CreateExtensionMember {
   List<String> get fixArguments => [_setterName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_SETTER;
+  FixKind get fixKind => DartFixKind.createExtensionSetter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -669,15 +668,14 @@ extension on List<DartType?> {
   /// it uses and get any type parameters they use by using this same getter.
   ///
   /// These types are added internally to a set so that we don't add duplicates.
-  List<TypeParameterElement> get typeParameters =>
-      {
-        for (var type in whereType<TypeParameterType>()) ...[
-          type.element,
-          ...[type.bound].typeParameters,
-        ],
-        for (var type in whereType<InterfaceType>())
-          ...type.typeArguments.typeParameters,
-      }.toList();
+  List<TypeParameterElement> get typeParameters => {
+    for (var type in whereType<TypeParameterType>()) ...[
+      type.element,
+      ...[type.bound].typeParameters,
+    ],
+    for (var type in whereType<InterfaceType>())
+      ...type.typeArguments.typeParameters,
+  }.toList();
 }
 
 extension on Element? {

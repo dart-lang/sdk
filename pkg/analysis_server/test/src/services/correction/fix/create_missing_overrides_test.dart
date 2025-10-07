@@ -21,7 +21,31 @@ void main() {
 @reflectiveTest
 class CreateMissingOverridesInheritsAbstractClassTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_MISSING_OVERRIDES;
+  FixKind get kind => DartFixKind.createMissingOverrides;
+
+  Future<void> test_binaryOperator() async {
+    await resolveTestCode('''
+abstract class A {
+  int operator +(int other);
+}
+
+class B extends A {
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int operator +(int other);
+}
+
+class B extends A {
+  @override
+  int operator +(int other) {
+    // TODO: implement +
+    throw UnimplementedError();
+  }
+}
+''');
+  }
 
   Future<void> test_brackets_both() async {
     await resolveTestCode('''
@@ -351,6 +375,30 @@ class B extends A {
   @override
   Map<aaa.Future<dynamic>, List<aaa.Future<dynamic>>> g(aaa.Future<dynamic> p) {
     // TODO: implement g
+    throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_index() async {
+    await resolveTestCode('''
+abstract class A {
+  int operator [](int other);
+}
+
+class B extends A {
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int operator [](int other);
+}
+
+class B extends A {
+  @override
+  int operator [](int other) {
+    // TODO: implement []
     throw UnimplementedError();
   }
 }
@@ -892,13 +940,60 @@ class B extends A {
 }
 ''');
   }
+
+  Future<void> test_setterIndex() async {
+    await resolveTestCode('''
+abstract class A {
+  void operator []=(int other, int value);
+}
+
+class B extends A {
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  void operator []=(int other, int value);
+}
+
+class B extends A {
+  @override
+  void operator []=(int other, int value) {
+    // TODO: implement []=
+  }
+}
+''');
+  }
+
+  Future<void> test_unary() async {
+    await resolveTestCode('''
+abstract class A {
+  int operator -();
+}
+
+class B extends A {
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int operator -();
+}
+
+class B extends A {
+  @override
+  int operator -() {
+    // TODO: implement -
+    throw UnimplementedError();
+  }
+}
+''');
+  }
 }
 
 /// Tests for MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_*.
 @reflectiveTest
 class CreateMissingOverridesMustBeOverriddenClassTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_MISSING_OVERRIDES;
+  FixKind get kind => DartFixKind.createMissingOverrides;
 
   @override
   void setUp() {

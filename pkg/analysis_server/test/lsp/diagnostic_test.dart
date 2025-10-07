@@ -268,9 +268,8 @@ void f() {
 
     var onePackagePath = convertPath('/home/one');
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'one', rootPath: onePackagePath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'one', rootPath: onePackagePath),
     );
     newFile(convertPath('$onePackagePath/lib/one.dart'), '''
     @deprecated
@@ -293,9 +292,8 @@ void f() {
   Future<void> test_diagnosticTag_notSupported() async {
     var onePackagePath = convertPath('/home/one');
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'one', rootPath: onePackagePath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'one', rootPath: onePackagePath),
     );
     newFile(convertPath('$onePackagePath/lib/one.dart'), '''
     @deprecated
@@ -616,9 +614,8 @@ linter:
     var projectPackagePath = '$rootWorkspacePath/my_project';
     writePackageConfig(
       projectPackagePath,
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'my_lints', rootPath: lintsPackagePath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_lints', rootPath: lintsPackagePath),
     );
     newFile('$projectPackagePath/analysis_options.yaml', '''
 include: package:my_lints/analysis_options.yaml
@@ -704,7 +701,8 @@ void f(dynamic a) => a.foo();
   Future<void> test_stableOrder() async {
     /// Helper to pad out the content in a way that has previously triggered
     /// this issue.
-    String wrappedContent(String content) => '''
+    String wrappedContent(String content) =>
+        '''
 //
 //
 //

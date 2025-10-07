@@ -7,9 +7,9 @@ import 'dart:async';
 import 'package:expect/async_helper.dart';
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   // Make sure that the zones use the scheduleMicrotask of their zones.
   int scheduleMicrotaskCount = 0;
@@ -19,12 +19,12 @@ main() {
   late Future future2;
   runZonedScheduleMicrotask(
     () {
-      completer = new Completer();
+      completer = Completer();
       completer.complete(499);
-      completer2 = new Completer.sync();
+      completer2 = Completer.sync();
       completer2.complete(-499);
-      future = new Future.value(42);
-      future2 = new Future.error(11);
+      future = Future.value(42);
+      future2 = Future.error(11);
     },
     onScheduleMicrotask: (f) {
       scheduleMicrotaskCount++;

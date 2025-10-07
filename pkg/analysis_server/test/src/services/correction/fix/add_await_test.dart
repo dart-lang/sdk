@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class AddAwaitTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_AWAIT;
+  FixKind get kind => DartFixKind.addAwait;
 
   @override
   String get lintCode => LintNames.unawaited_futures;
@@ -162,8 +162,8 @@ void f() async {
   await doSomething()
 }
 ''',
-      errorFilter:
-          (error) => error.diagnosticCode != ParserErrorCode.expectedToken,
+      errorFilter: (error) =>
+          error.diagnosticCode != ParserErrorCode.expectedToken,
     );
   }
 
@@ -202,7 +202,7 @@ Future<void> f() async {
 @reflectiveTest
 class AddAwaitTestArgumentAndAssignment extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_AWAIT;
+  FixKind get kind => DartFixKind.addAwait;
 
   Future<void> test_forIn_futureInt() async {
     await resolveTestCode('''
@@ -325,9 +325,8 @@ Future<void> baz() async {
   variable = await bar();
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
 
@@ -340,9 +339,8 @@ void baz() {
 }
 ''');
     await assertNoFix(
-      errorFilter:
-          (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
 
@@ -362,9 +360,8 @@ Future<void> baz() async {
   String variable = await bar();
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
 }

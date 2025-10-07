@@ -24,10 +24,10 @@ class ConvertDocumentationIntoLine extends ParsedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertDocumentationIntoLine;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_LINE_COMMENT;
+  FixKind get fixKind => DartFixKind.convertToLineComment;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_LINE_COMMENT_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToLineCommentMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

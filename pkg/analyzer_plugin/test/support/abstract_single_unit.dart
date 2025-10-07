@@ -38,10 +38,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
         as SimpleIdentifier;
   }
 
-  AstNode? findNodeAtOffset(
-    int offset, [
-    bool Function(AstNode)? predicate,
-  ]) {
+  AstNode? findNodeAtOffset(int offset, [bool Function(AstNode)? predicate]) {
     var node = testUnit.nodeCovering(offset: offset);
     if (node != null && predicate != null) {
       node = node.thisOrAncestorMatching(predicate);
@@ -105,15 +102,18 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testCode = result.content;
     testUnit = result.unit;
     if (verifyNoTestUnitErrors) {
-      expect(result.diagnostics.where((d) {
-        return d.diagnosticCode != WarningCode.deadCode &&
-            d.diagnosticCode != WarningCode.unusedCatchClause &&
-            d.diagnosticCode != WarningCode.unusedCatchStack &&
-            d.diagnosticCode != WarningCode.unusedElement &&
-            d.diagnosticCode != WarningCode.unusedField &&
-            d.diagnosticCode != WarningCode.unusedImport &&
-            d.diagnosticCode != WarningCode.unusedLocalVariable;
-      }), isEmpty);
+      expect(
+        result.diagnostics.where((d) {
+          return d.diagnosticCode != WarningCode.deadCode &&
+              d.diagnosticCode != WarningCode.unusedCatchClause &&
+              d.diagnosticCode != WarningCode.unusedCatchStack &&
+              d.diagnosticCode != WarningCode.unusedElement &&
+              d.diagnosticCode != WarningCode.unusedField &&
+              d.diagnosticCode != WarningCode.unusedImport &&
+              d.diagnosticCode != WarningCode.unusedLocalVariable;
+        }),
+        isEmpty,
+      );
     }
     findNode = FindNode(testCode, testUnit);
     findElement2 = FindElement2(testUnit);

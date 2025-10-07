@@ -89,7 +89,7 @@ Then run that file through your debugger or similar.
           ok = await Isolate.run(() async {
             ErrorNotingLogger logger = new ErrorNotingLogger();
             await testing.runMe(
-              const ["-DfastOnly=true"],
+              ["-DfastOnly=true", "--", ...work.filters],
               messages_suite.createContext,
               me: work.repoDir.resolve(
                 "pkg/front_end/test/messages_suite.dart",

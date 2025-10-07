@@ -8,10 +8,11 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
+import '../base/compiler_context.dart';
 import '../base/constant_context.dart' show ConstantContext;
+import '../base/extension_scope.dart';
 import '../base/lookup_result.dart';
-import '../base/messages.dart' show Message;
-import '../base/scope.dart';
+import '../base/messages.dart' show Message, ProblemReporting;
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -21,7 +22,6 @@ import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart' show LocatedMessage;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-import '../type_inference/inference_helper.dart' show InferenceHelper;
 import 'constness.dart' show Constness;
 import 'expression_generator.dart';
 import 'forest.dart' show Forest;
@@ -39,7 +39,9 @@ typedef Expression_Generator_Initializer = dynamic;
 /// Alias for Expression | Initializer
 typedef Expression_Initializer = dynamic;
 
-abstract class ExpressionGeneratorHelper implements InferenceHelper {
+abstract class ExpressionGeneratorHelper {
+  Uri get uri;
+
   SourceLibraryBuilder get libraryBuilder;
 
   ConstantContext get constantContext;
@@ -52,12 +54,32 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Forest get forest;
 
+  ProblemReporting get problemReporting;
+
+  CompilerContext get compilerContext;
+
+  ExtensionScope get extensionScope;
+
+  InvalidExpression buildProblem({
+    required Message message,
+    required Uri fileUri,
+    required int fileOffset,
+    required int length,
+    List<LocatedMessage>? context,
+    bool errorHasBeenReported = false,
+    Expression? expression,
+  });
+
   MemberLookupResult? lookupSuperConstructor(
     String name,
     LibraryBuilder accessingLibrary,
   );
 
   Expression toValue(Object? node);
+
+  String superConstructorNameForDiagnostics(String name);
+
+  String constructorNameForDiagnostics(String name, {String? className});
 
   Member? lookupSuperMember(Name name, {bool isSetter});
 
@@ -70,9 +92,9 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
     required String name,
     required Token nameToken,
     required int nameOffset,
-    required ScopeKind scopeKind,
     PrefixBuilder? prefix,
     Token? prefixToken,
+    required bool forStatementScope,
   });
 
   Expression_Generator_Initializer finishSend(
@@ -88,7 +110,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
     int offset = TreeNode.noOffset,
   ]);
 
-  List<Initializer> buildFieldInitializer(
+  List<Initializer> createFieldInitializer(
     String name,
     int fieldNameOffset,
     int assignmentOffset,
@@ -99,45 +121,32 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Initializer buildSuperInitializer(
     bool isSynthetic,
     Constructor constructor,
-    Arguments arguments, [
+    ArgumentsImpl arguments, [
     int offset = TreeNode.noOffset,
   ]);
 
   Initializer buildRedirectingInitializer(
     Name name,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int fileOffset,
   });
 
-  Expression buildStaticInvocation(
-    Member target,
-    Arguments arguments, {
-    Constness constness = Constness.implicit,
-    int charOffset = TreeNode.noOffset,
-    required bool isConstructorInvocation,
+  Expression buildStaticInvocation({
+    required Procedure target,
+    required ArgumentsImpl arguments,
+    required int fileOffset,
   });
 
   Expression buildUnresolvedError(
     String name,
-    int charOffset, {
-    Member candidate,
+    int fileOffset, {
     bool isSuper,
     required UnresolvedKind kind,
-    bool isStatic,
-    Arguments? arguments,
-    Expression? rhs,
-    LocatedMessage message,
     int? length,
     bool errorHasBeenReported,
   });
 
-  LocatedMessage? checkArgumentsForFunction(
-    FunctionNode function,
-    Arguments arguments,
-    int offset,
-    List<TypeParameter> typeParameters, {
-    Extension? extension,
-  });
+  Expression buildProblemFromLocatedMessage(LocatedMessage message);
 
   Expression wrapInDeferredCheck(
     Expression expression,
@@ -150,7 +159,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression buildMethodInvocation(
     Expression receiver,
     Name name,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
@@ -158,18 +167,18 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression buildSuperInvocation(
     Name name,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
     bool isImplicitCall = false,
   });
 
-  Expression buildConstructorInvocation(
+  Expression resolveAndBuildConstructorInvocation(
     TypeDeclarationBuilder type,
     Token nameToken,
     Token nameLastToken,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     String name,
     List<TypeBuilder>? typeArguments,
     int charOffset,
@@ -192,15 +201,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
     int length,
   );
 
-  Expression wrapInLocatedProblem(
-    Expression expression,
-    LocatedMessage message, {
-    List<LocatedMessage>? context,
-    bool includeExpression = true,
-  });
-
   Expression evaluateArgumentsBefore(
-    Arguments arguments,
+    ArgumentsImpl arguments,
     Expression expression,
   );
 
@@ -267,7 +269,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
     List<TypeBuilder>? typeArguments,
     String className,
     String constructorName,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int instantiationOffset,
     required int invocationOffset,
     required bool inImplicitCreationContext,

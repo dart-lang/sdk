@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../../api_prototype/experimental_flags.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
@@ -61,7 +62,8 @@ abstract class GetterDeclaration {
   });
 
   void checkGetterTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder,
   );
@@ -198,12 +200,14 @@ class RegularGetterDeclaration
 
   @override
   void checkGetterTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder,
   ) {
     _encoding.checkTypes(
-      libraryBuilder,
+      problemReporting,
+      libraryFeatures,
       typeEnvironment,
       setterBuilder,
       isAbstract: _fragment.modifiers.isAbstract,

@@ -35,10 +35,9 @@ class AddNullCheck extends ResolvedCorrectionProducer {
   final Token? _nullAwareToken;
 
   factory AddNullCheck({required CorrectionProducerContext context}) {
-    var (:target, :nullAwareToken) =
-        context is StubCorrectionProducerContext
-            ? (target: null, nullAwareToken: null)
-            : _computeTargetAndNullAwareToken(context.node);
+    var (:target, :nullAwareToken) = context is StubCorrectionProducerContext
+        ? (target: null, nullAwareToken: null)
+        : _computeTargetAndNullAwareToken(context.node);
 
     return AddNullCheck._(
       context: context,
@@ -52,10 +51,9 @@ class AddNullCheck extends ResolvedCorrectionProducer {
   factory AddNullCheck.withoutAssignabilityCheck({
     required CorrectionProducerContext context,
   }) {
-    var (:target, :nullAwareToken) =
-        context is StubCorrectionProducerContext
-            ? (target: null, nullAwareToken: null)
-            : _computeTargetAndNullAwareToken(context.node);
+    var (:target, :nullAwareToken) = context is StubCorrectionProducerContext
+        ? (target: null, nullAwareToken: null)
+        : _computeTargetAndNullAwareToken(context.node);
 
     return AddNullCheck._(
       context: context,
@@ -74,10 +72,9 @@ class AddNullCheck extends ResolvedCorrectionProducer {
     required Token? nullAwareToken,
   }) : _target = target,
        _nullAwareToken = nullAwareToken,
-       fixKind =
-           nullAwareToken == null
-               ? DartFixKind.ADD_NULL_CHECK
-               : DartFixKind.REPLACE_WITH_NULL_AWARE;
+       fixKind = nullAwareToken == null
+           ? DartFixKind.addNullCheck
+           : DartFixKind.REPLACE_WITH_NULL_AWARE;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -131,14 +128,14 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       if (literal is ListLiteral) {
         toType = literal.typeOrThrow.asInstanceOf(typeProvider.iterableElement);
       } else if (literal is SetOrMapLiteral) {
-        toType =
-            literal.typeOrThrow.isDartCoreSet
-                ? literal.typeOrThrow.asInstanceOf(typeProvider.iterableElement)
-                : literal.typeOrThrow.asInstanceOf(typeProvider.mapElement);
+        toType = literal.typeOrThrow.isDartCoreSet
+            ? literal.typeOrThrow.asInstanceOf(typeProvider.iterableElement)
+            : literal.typeOrThrow.asInstanceOf(typeProvider.mapElement);
       }
     } else if (parent is YieldStatement) {
-      var enclosingExecutable =
-          parent.thisOrAncestorOfType<FunctionBody>()?.parent;
+      var enclosingExecutable = parent
+          .thisOrAncestorOfType<FunctionBody>()
+          ?.parent;
       if (enclosingExecutable is MethodDeclaration) {
         toType = enclosingExecutable.returnType?.type;
       } else if (enclosingExecutable is FunctionExpressionImpl) {

@@ -549,7 +549,7 @@ class _IndexAssembler {
     return unitMap.putIfAbsent(unitElement, () {
       assert(unitLibraryUris.length == unitUnitUris.length);
       int id = unitUnitUris.length;
-      unitLibraryUris.add(_getUriInfo(unitElement.library.source.uri));
+      unitLibraryUris.add(_getUriInfo(unitElement.library.uri));
       unitUnitUris.add(_getUriInfo(unitElement.source.uri));
       return id;
     });

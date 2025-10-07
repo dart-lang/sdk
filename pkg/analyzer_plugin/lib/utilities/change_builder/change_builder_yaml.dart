@@ -10,8 +10,10 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 /// Clients may not extend, implement or mix-in this class.
 abstract class YamlEditBuilder implements EditBuilder {
   @override
-  void addLinkedEdit(String groupName,
-      void Function(YamlLinkedEditBuilder builder) buildLinkedEdit);
+  void addLinkedEdit(
+    String groupName,
+    void Function(YamlLinkedEditBuilder builder) buildLinkedEdit,
+  );
 }
 
 /// A [FileEditBuilder] used to build edits for YAML files.
@@ -20,11 +22,15 @@ abstract class YamlEditBuilder implements EditBuilder {
 abstract class YamlFileEditBuilder implements FileEditBuilder {
   @override
   void addInsertion(
-      int offset, void Function(YamlEditBuilder builder) buildEdit);
+    int offset,
+    void Function(YamlEditBuilder builder) buildEdit,
+  );
 
   @override
   void addReplacement(
-      SourceRange range, void Function(YamlEditBuilder builder) buildEdit);
+    SourceRange range,
+    void Function(YamlEditBuilder builder) buildEdit,
+  );
 }
 
 /// A [LinkedEditBuilder] used to build linked edits for YAML files.

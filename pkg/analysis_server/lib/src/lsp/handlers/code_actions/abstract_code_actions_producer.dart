@@ -27,8 +27,11 @@ import 'package:meta/meta.dart';
 
 typedef CodeActionWithPriority = ({CodeAction action, int priority});
 
-typedef CodeActionWithPriorityAndIndex =
-    ({CodeAction action, int priority, int index});
+typedef CodeActionWithPriorityAndIndex = ({
+  CodeAction action,
+  int priority,
+  int index,
+});
 
 /// A base for classes that produce [CodeAction]s for the LSP handler.
 abstract class AbstractCodeActionsProducer

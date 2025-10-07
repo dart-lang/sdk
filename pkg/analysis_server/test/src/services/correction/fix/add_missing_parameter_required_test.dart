@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class AddMissingParameterRequiredTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_MISSING_PARAMETER_REQUIRED;
+  FixKind get kind => DartFixKind.addMissingParameterRequired;
 
   Future<void> test_constructor_named_hasOne() async {
     await resolveTestCode('''
@@ -170,9 +170,8 @@ class AddMissingParameterRequiredTest_Workspace
     var a = newFile('/home/aaa/lib/a.dart', 'void test() {}');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
     );
 
     _workspace = DartChangeWorkspace([await session, await sessionFor(a)]);
@@ -192,9 +191,8 @@ void f() {
     newFile('/home/bbb/lib/b.dart', 'void test() {}');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'),
     );
 
     await resolveTestCode('''

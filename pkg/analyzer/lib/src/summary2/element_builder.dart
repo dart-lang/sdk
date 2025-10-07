@@ -162,7 +162,7 @@ class ElementBuilder {
               fragment,
             );
           case TypeAliasFragmentImpl():
-            _handleTypeAliasFragment(libraryFragment, lastFragment, fragment);
+            _handleTypeAliasFragment(libraryFragment, fragment);
           default:
             throw UnimplementedError('${fragment.runtimeType}');
         }
@@ -193,6 +193,12 @@ class ElementBuilder {
 
     if (fragment.isAugmentation && lastFragment is ClassFragmentImpl) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
       return;
     }
 
@@ -200,6 +206,12 @@ class ElementBuilder {
       _addTopReference('@class', fragment.name),
       fragment,
     );
+
+    for (var typeParameterFragment in fragment.typeParameters) {
+      // Side effect: set element for the fragment.
+      TypeParameterElementImpl(firstFragment: typeParameterFragment);
+    }
+
     libraryElement.addClass(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -214,6 +226,13 @@ class ElementBuilder {
 
     if (fragment.isAugmentation && lastFragment is EnumFragmentImpl) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
       return;
     }
 
@@ -221,6 +240,7 @@ class ElementBuilder {
       _addTopReference('@enum', fragment.name),
       fragment,
     );
+
     libraryElement.addEnum(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -235,6 +255,13 @@ class ElementBuilder {
 
     if (fragment.isAugmentation && lastFragment is ExtensionFragmentImpl) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
       return;
     }
 
@@ -256,6 +283,13 @@ class ElementBuilder {
 
     if (fragment.isAugmentation && lastFragment is ExtensionTypeFragmentImpl) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
       return;
     }
 
@@ -277,6 +311,18 @@ class ElementBuilder {
 
     if (fragment.isAugmentation && lastFragment is ConstructorFragmentImpl) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
+      fragment.formalParameters = _linkFormalParameters(
+        previousFragments: lastFragment.formalParameters,
+        currentFragments: fragment.formalParameters,
+      );
+
       return;
     }
 
@@ -295,11 +341,29 @@ class ElementBuilder {
 
   void _handleInstanceFieldFragment(
     InstanceElementImpl instanceElement,
-    FragmentImpl? lastFieldFragment,
+    FragmentImpl? lastFragment,
     FieldFragmentImpl fieldFragment,
   ) {
     var instanceFragment = fieldFragment.enclosingFragment;
+
+    // Move elements of `values` from augmentation to the first fragment.
+    if (fieldFragment.name == 'values' &&
+        instanceFragment is EnumFragmentImpl &&
+        instanceFragment.previousFragment != null) {
+      var implicitsMap = libraryBuilder.implicitEnumNodes;
+      var augmentationImplicit = implicitsMap.remove(instanceFragment)!;
+      var firstFragment = instanceFragment.element.firstFragment;
+      var firstImplicit = implicitsMap[firstFragment]!;
+      firstImplicit.valuesInitializer.addElements(
+        augmentationImplicit.valuesInitializer.elements,
+      );
+      return;
+    }
+
     instanceFragment.addField(fieldFragment);
+
+    var lastFieldElement = _fieldElement(lastFragment);
+    var lastFieldFragment = lastFieldElement?.lastFragment;
 
     if (fieldFragment.isAugmentation &&
         lastFieldFragment is FieldFragmentImpl) {
@@ -438,7 +502,24 @@ class ElementBuilder {
 
     if (lastFragment is MethodFragmentImpl && fragment.isAugmentation) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
+      fragment.formalParameters = _linkFormalParameters(
+        previousFragments: lastFragment.formalParameters,
+        currentFragments: fragment.formalParameters,
+      );
+
       return;
+    }
+
+    for (var typeParameterFragment in fragment.typeParameters) {
+      // Side effect: set element for the fragment.
+      TypeParameterElementImpl(firstFragment: typeParameterFragment);
     }
 
     instanceElement.addMethod(
@@ -516,9 +597,15 @@ class ElementBuilder {
   ) {
     assert(!fragment.isSynthetic);
     libraryFragment.addMixin(fragment);
-
     if (fragment.isAugmentation && lastFragment is MixinFragmentImpl) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
       return;
     }
 
@@ -526,6 +613,12 @@ class ElementBuilder {
       _addTopReference('@mixin', fragment.name),
       fragment,
     );
+
+    for (var typeParameterFragment in fragment.typeParameters) {
+      // Side effect: set element for the fragment.
+      TypeParameterElementImpl(firstFragment: typeParameterFragment);
+    }
+
     libraryElement.addMixin(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -540,6 +633,17 @@ class ElementBuilder {
     if (lastFragment is TopLevelFunctionFragmentImpl &&
         fragment.isAugmentation) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
+      fragment.formalParameters = _linkFormalParameters(
+        previousFragments: lastFragment.formalParameters,
+        currentFragments: fragment.formalParameters,
+      );
       return;
     }
 
@@ -652,15 +756,16 @@ class ElementBuilder {
 
   void _handleTopLevelVariableFragment(
     LibraryFragmentImpl libraryFragment,
-    FragmentImpl? lastVariableFragment,
+    FragmentImpl? lastFragment,
     TopLevelVariableFragmentImpl variableFragment,
   ) {
     assert(!variableFragment.isSynthetic);
     libraryFragment.addTopLevelVariable(variableFragment);
 
-    if (variableFragment.isAugmentation &&
-        lastVariableFragment is TopLevelVariableFragmentImpl) {
-      lastVariableFragment.addFragment(variableFragment);
+    var lastVariableElement = _topLevelVariableElement(lastFragment);
+
+    if (variableFragment.isAugmentation && lastVariableElement != null) {
+      lastVariableElement.lastFragment.addFragment(variableFragment);
       return;
     }
 
@@ -716,20 +821,131 @@ class ElementBuilder {
 
   void _handleTypeAliasFragment(
     LibraryFragmentImpl libraryFragment,
-    FragmentImpl? lastFragment,
     TypeAliasFragmentImpl fragment,
   ) {
     libraryFragment.addTypeAlias(fragment);
 
-    if (lastFragment is TypeAliasFragmentImpl && fragment.isAugmentation) {
-      lastFragment.addFragment(fragment);
-    } else {
-      var element = TypeAliasElementImpl(
-        _addTopReference('@typeAlias', fragment.name),
-        fragment,
-      );
-      libraryElement.typeAliases.add(element);
-      libraryBuilder.declare(element, element.reference);
+    var element = TypeAliasElementImpl(
+      _addTopReference('@typeAlias', fragment.name),
+      fragment,
+    );
+    libraryElement.typeAliases.add(element);
+    libraryBuilder.declare(element, element.reference);
+  }
+
+  List<FormalParameterFragmentImpl> _linkFormalParameters({
+    required List<FormalParameterFragmentImpl> previousFragments,
+    required List<FormalParameterFragmentImpl> currentFragments,
+  }) {
+    int getPositionalSize(List<FormalParameterFragmentImpl> fragments) {
+      return fragments.takeWhile((f) => f.isPositional).length;
+    }
+
+    FormalParameterFragmentImpl createFragment(
+      FormalParameterFragmentImpl previousParameter,
+    ) {
+      switch (previousParameter) {
+        case FieldFormalParameterFragmentImpl():
+          return FieldFormalParameterFragmentImpl(
+            name: previousParameter.name,
+            nameOffset: null,
+            parameterKind: previousParameter.parameterKind,
+          )..isSynthetic = true;
+        case SuperFormalParameterFragmentImpl():
+          return SuperFormalParameterFragmentImpl(
+            name: previousParameter.name,
+            nameOffset: null,
+            parameterKind: previousParameter.parameterKind,
+          )..isSynthetic = true;
+        default:
+          return FormalParameterFragmentImpl(
+            name: previousParameter.name,
+            nameOffset: null,
+            parameterKind: previousParameter.parameterKind,
+          )..isSynthetic = true;
+      }
+    }
+
+    var currentPositionalSize = getPositionalSize(currentFragments);
+    var resultPositional = currentFragments.sublist(0, currentPositionalSize);
+    var currentNamed = currentFragments.sublist(currentPositionalSize);
+
+    var previousPositionalSize = getPositionalSize(previousFragments);
+    var previousPositional = previousFragments.sublist(
+      0,
+      previousPositionalSize,
+    );
+    var previousNamed = previousFragments.sublist(previousPositionalSize);
+
+    // Trim extra positional parameters.
+    if (previousPositionalSize < currentPositionalSize) {
+      resultPositional.length = previousPositional.length;
+    }
+
+    // Synthesize missing positional parameters.
+    if (previousPositional.length > resultPositional.length) {
+      for (var i = currentPositionalSize; i < previousPositionalSize; i++) {
+        var previousParameter = previousPositional[i];
+        resultPositional.add(createFragment(previousParameter));
+      }
+    }
+
+    for (var i = 0; i < resultPositional.length; i++) {
+      previousPositional[i].addFragment(resultPositional[i]);
+    }
+
+    var resultNamed = <FormalParameterFragmentImpl>[];
+    var previousNamedMap = <String, List<FormalParameterFragmentImpl>>{};
+    for (var previousParameter in previousNamed) {
+      (previousNamedMap[previousParameter.name!] ??=
+              <FormalParameterFragmentImpl>[])
+          .add(previousParameter);
+    }
+
+    // Link common formal parameters between previous and current fragments.
+    for (var currentParameter in currentNamed) {
+      var previousParameters = previousNamedMap[currentParameter.name];
+      if (previousParameters != null && previousParameters.isNotEmpty) {
+        var previousParameter = previousParameters.removeAt(0);
+        previousParameter.addFragment(currentParameter);
+        resultNamed.add(currentParameter);
+      }
+    }
+
+    // Synthesize missing named parameters.
+    for (var previousParameters in previousNamedMap.values) {
+      for (var previousParameter in previousParameters) {
+        var parameter = createFragment(previousParameter);
+        previousParameter.addFragment(parameter);
+        resultNamed.add(parameter);
+      }
+    }
+
+    return [...resultPositional, ...resultNamed];
+  }
+
+  void _linkTypeParameters({
+    required List<TypeParameterFragmentImpl> lastFragments,
+    required List<TypeParameterFragmentImpl> fragments,
+    required void Function(TypeParameterFragmentImpl) add,
+  }) {
+    // Trim extra type parameters.
+    if (lastFragments.length < fragments.length) {
+      fragments.length = lastFragments.length;
+    }
+
+    // Synthesize missing type parameters.
+    if (lastFragments.length > fragments.length) {
+      for (var i = fragments.length; i < lastFragments.length; i++) {
+        add(
+          TypeParameterFragmentImpl(name: lastFragments[i].name)
+            ..isSynthetic = true,
+        );
+      }
+    }
+
+    for (var i = 0; i < lastFragments.length; i++) {
+      lastFragments[i].addFragment(fragments[i]);
     }
   }
 
@@ -1030,7 +1246,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
       // Build the 'values' field.
       var valuesField = FieldFragmentImpl(name: 'values')
-        ..hasEnclosingTypeParameterReference = false
         ..isConst = true
         ..isStatic = true
         ..isSynthetic = true;
@@ -1081,10 +1296,10 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       _addChildFragment(valuesField);
 
       _libraryBuilder.implicitEnumNodes[fragment] = ImplicitEnumNodes(
-        element: fragment,
+        fragment: fragment,
         valuesTypeNode: valuesTypeNode,
         valuesNode: variableDeclaration,
-        valuesElement: valuesField,
+        valuesFragment: valuesField,
         valuesNames: valuesNames,
         valuesInitializer: initializer,
       );
@@ -1544,10 +1759,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitPartOfDirective(PartOfDirective node) {
-    var libraryElement = _libraryBuilder.element;
-    libraryElement.hasPartOfDirective = true;
-  }
+  void visitPartOfDirective(PartOfDirective node) {}
 
   @override
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
@@ -1754,6 +1966,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var fieldFragment = FieldFragmentImpl(
       name: _getFragmentName(fieldNameToken),
     );
+    fieldFragment.isAugmentation = extensionFragment.isAugmentation;
     fieldFragment.isFinal = true;
     fieldFragment.metadata = _buildMetadata(representation.fieldMetadata);
 
@@ -1762,23 +1975,20 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     _addChildFragment(fieldFragment);
 
-    var formalParameterElement =
-        FieldFormalParameterFragmentImpl(
-            name: _getFragmentName(fieldNameToken),
-            nameOffset: null,
-            parameterKind: ParameterKind.REQUIRED,
-          )
-          ..field = fieldFragment
-          ..hasImplicitType = true;
+    var formalParameterFragment = FieldFormalParameterFragmentImpl(
+      name: _getFragmentName(fieldNameToken),
+      nameOffset: null,
+      parameterKind: ParameterKind.REQUIRED,
+    )..hasImplicitType = true;
 
     {
       var constructorFragment =
           ConstructorFragmentImpl(
               name: representation.constructorName?.name.lexeme ?? 'new',
             )
-            ..isAugmentation = extensionNode.augmentKeyword != null
+            ..isAugmentation = extensionFragment.isAugmentation
             ..isConst = extensionNode.constKeyword != null
-            ..formalParameters = [formalParameterElement];
+            ..formalParameters = [formalParameterFragment];
       constructorFragment.typeName = extensionFragment.name;
 
       representation.constructorFragment = constructorFragment;

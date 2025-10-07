@@ -6,6 +6,7 @@
 #define RUNTIME_VM_HEAP_POINTER_BLOCK_H_
 
 #include "platform/assert.h"
+#include "platform/memory_sanitizer.h"
 #include "vm/globals.h"
 #include "vm/os_thread.h"
 #include "vm/tagged_pointer.h"

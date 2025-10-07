@@ -315,7 +315,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   >
   incompatibleLintIncluded = AnalysisOptionsWarningTemplate(
     'INCOMPATIBLE_LINT',
-    "The rule '{0}' is incompatible with '{1}', which is included from {2} "
+    "The rule '{0}' is incompatible with {1}, which is included from {2} "
         "file{3}.",
     correctionMessage:
         "Try locally disabling all but one of the conflicting rules or "
@@ -372,6 +372,24 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     "Multiple plugins can't be enabled.",
     correctionMessage: "Remove all plugins following the first, '{0}'.",
     withArguments: _withArgumentsMultiplePlugins,
+    expectedTypes: [ExpectedType.string],
+  );
+
+  /// An error code indicating plugins have been specified in an "inner"
+  /// analysis options file.
+  ///
+  /// Parameters:
+  /// String contextRoot: the root of the analysis context
+  static const AnalysisOptionsWarningTemplate<
+    LocatableDiagnostic Function({required String contextRoot})
+  >
+  pluginsInInnerOptions = AnalysisOptionsWarningTemplate(
+    'PLUGINS_IN_INNER_OPTIONS',
+    "Plugins can only be specified in the root of a pub workspace or the root "
+        "of a package that isn't in a workspace.",
+    correctionMessage:
+        "Try specifying plugins in an analysis options file at '{0}'.",
+    withArguments: _withArgumentsPluginsInInnerOptions,
     expectedTypes: [ExpectedType.string],
   );
 
@@ -669,6 +687,12 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(multiplePlugins, [p0]);
+  }
+
+  static LocatableDiagnostic _withArgumentsPluginsInInnerOptions({
+    required String contextRoot,
+  }) {
+    return LocatableDiagnosticImpl(pluginsInInnerOptions, [contextRoot]);
   }
 
   static LocatableDiagnostic _withArgumentsRecursiveIncludeFile({

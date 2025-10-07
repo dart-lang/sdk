@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class AddEmptyArgumentListMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_EMPTY_ARGUMENT_LIST_MULTI;
+  FixKind get kind => DartFixKind.addEmptyArgumentListMulti;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -47,7 +47,7 @@ main() {}
 @reflectiveTest
 class AddEmptyArgumentListTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_EMPTY_ARGUMENT_LIST;
+  FixKind get kind => DartFixKind.addEmptyArgumentList;
 
   Future<void> test_annotationConstructorMissingArgs() async {
     await resolveTestCode('''

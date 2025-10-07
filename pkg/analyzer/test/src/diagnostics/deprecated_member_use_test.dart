@@ -13,10 +13,10 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DeprecatedMemberUse_PackageConfigWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_BlazeWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_GnWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_PackageBuildWorkspaceTest);
+    defineReflectiveTests(DeprecatedMemberUse_PackageConfigWorkspaceTest);
   });
 }
 
@@ -547,6 +547,29 @@ void f() {
       [
         error(WarningCode.unusedLocalVariable, 45, 1),
         error(HintCode.deprecatedMemberUse, 50, 3),
+      ],
+    );
+  }
+
+  test_dotShorthandInvocation_deprecatedMethod() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  @deprecated
+  static A m() => A();
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A a = .m();
+}
+''',
+      [
+        error(WarningCode.unusedLocalVariable, 45, 1),
+        error(HintCode.deprecatedMemberUse, 50, 1),
       ],
     );
   }
@@ -1312,6 +1335,40 @@ class A {
 
   @deprecated
   void foo() {}
+}
+''');
+  }
+
+  test_methodInvocation_nonUseKind() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  @Deprecated.extend()
+  void foo() {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {
+  a.foo();
+}
+''');
+  }
+
+  test_methodInvocation_unrelatedAnnotation() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  @override
+  void foo() {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {
+  a.foo();
 }
 ''');
   }

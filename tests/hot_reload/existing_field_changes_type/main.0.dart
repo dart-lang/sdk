@@ -13,11 +13,13 @@ class Foo {
   int x = 42;
 }
 
+helper() => Foo().x;
+
 Future<void> main() async {
-  Expect.type<int>(Foo().x);
-  Expect.equals(42, Foo().x);
+  Expect.type<int>(helper());
+  Expect.equals(42, helper());
   await hotReload();
 
-  Expect.type<String>(Foo().x);
-  Expect.equals('42', Foo().x);
+  Expect.type<String>(helper());
+  Expect.equals('42', helper());
 }

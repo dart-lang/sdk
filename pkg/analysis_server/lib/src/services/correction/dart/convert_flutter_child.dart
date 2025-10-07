@@ -20,7 +20,7 @@ class ConvertFlutterChild extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_FLUTTER_CHILD;
+  FixKind get fixKind => DartFixKind.convertFlutterChild;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -26,5 +26,5 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///nested_implicit_const_with_env_var.dart:5:23 -> IntConstant(0)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///nested_implicit_const_with_env_var.dart:5:23 -> IntConstant(0)
 Extra constant evaluation: evaluated: 3, effectively constant: 1

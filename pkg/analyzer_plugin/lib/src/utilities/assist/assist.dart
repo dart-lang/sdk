@@ -34,5 +34,9 @@ class DartAssistRequestImpl implements DartAssistRequest {
 
   /// Initialize a newly create request with the given data.
   DartAssistRequestImpl(
-      this.resourceProvider, this.offset, this.length, this.result);
+    this.resourceProvider,
+    this.offset,
+    this.length,
+    this.result,
+  );
 }

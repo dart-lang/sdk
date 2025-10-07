@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
@@ -27,6 +28,9 @@ void main() {
 @reflectiveTest
 class CompletionDomainHandlerGetSuggestionDetails2Test
     extends PubPackageAnalysisServerTest {
+  String get testEolEscaped =>
+      testEol.replaceAll('\r', r'\r').replaceAll('\n', r'\n');
+
   void assertDetailsText(
     CompletionGetSuggestionDetails2Result result,
     String expected, {
@@ -83,13 +87,13 @@ void f() {
       libraryUri: 'dart:math',
     );
 
-    assertDetailsText(details, r'''
+    assertDetailsText(details, '''
 completion: Random
   change
     testFile
       offset: 0
       length: 0
-      replacement: import 'dart:math';\n\n
+      replacement: import 'dart:math';$testEolEscaped$testEolEscaped
 ''');
   }
 
@@ -106,8 +110,8 @@ class Test {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
@@ -122,13 +126,13 @@ void f() {
       libraryUri: 'package:aaa/a.dart',
     );
 
-    assertDetailsText(details, r'''
+    assertDetailsText(details, '''
 completion: Test
   change
     testFile
       offset: 0
       length: 0
-      replacement: import 'package:aaa/a.dart';\n\n
+      replacement: import 'package:aaa/a.dart';$testEolEscaped$testEolEscaped
 ''');
   }
 
@@ -149,13 +153,13 @@ void f() {
       libraryUri: 'package:test/a.dart',
     );
 
-    assertDetailsText(details, r'''
+    assertDetailsText(details, '''
 completion: Test
   change
     testFile
       offset: 0
       length: 0
-      replacement: import 'package:test/a.dart';\n\n
+      replacement: import 'package:test/a.dart';$testEolEscaped$testEolEscaped
 ''');
   }
 
@@ -774,10 +778,9 @@ class A02 {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: aaaRoot.path)
-            ..add(name: 'bbb', rootPath: bbbRoot.path),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path)
+        ..add(name: 'bbb', rootPath: bbbRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
@@ -829,10 +832,9 @@ class A04 {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: aaaRoot.path)
-            ..add(name: 'bbb', rootPath: bbbRoot.path),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path)
+        ..add(name: 'bbb', rootPath: bbbRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
@@ -880,10 +882,9 @@ class A04 {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: aaaRoot.path)
-            ..add(name: 'bbb', rootPath: bbbRoot.path),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path)
+        ..add(name: 'bbb', rootPath: bbbRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
@@ -933,10 +934,9 @@ class A02 {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: aaaRoot.path)
-            ..add(name: 'bbb', rootPath: bbbRoot.path),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path)
+        ..add(name: 'bbb', rootPath: bbbRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
@@ -1252,6 +1252,49 @@ suggestions
     libraryUri: null
   foo02
     kind: methodInvocation
+    isNotImported: null
+    libraryUri: null
+''');
+  }
+
+  Future<void> test_numResults_includesLocalVariable() async {
+    await _configureWithWorkspaceRoot();
+
+    // Create many imported declarations to exceed the maxResults cap.
+    newFile(
+      '$testPackageLibPath/a.dart',
+      [
+        for (var i = 1; i <= 50; i++) 'class C$i {}',
+        for (var i = 1; i <= 50; i++) 'void f$i() {}',
+        for (var i = 1; i <= 50; i++) 'var v$i = $i;',
+      ].join('\n'),
+    );
+
+    // No prefix, no filtering.
+    // Local variables 'foo0*' must be included.
+    var response = await _getTestCodeSuggestions('''
+import 'a.dart';
+void f() {
+  var foo01 = 0;
+  var foo02 = 0;
+  ^
+}
+''', maxResults: 10);
+
+    // Only include local variables to keep the result stable.
+    printerConfiguration.filter = (suggestion) {
+      return suggestion.completion.startsWith('foo0');
+    };
+
+    // Note the variables order: the closer, the higher.
+    assertResponseText(response, r'''
+suggestions
+  foo02
+    kind: localVariable
+    isNotImported: null
+    libraryUri: null
+  foo01
+    kind: localVariable
     isNotImported: null
     libraryUri: null
 ''');
@@ -2025,16 +2068,16 @@ void f() {
 replacement
   left: 4
 suggestions
-  foo01
-    kind: topLevelVariable
-    isNotImported: null
-    libraryUri: null
-    relevance: 510
   foo02
     kind: topLevelVariable
     isNotImported: null
     libraryUri: null
     relevance: 558
+  foo01
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: null
+    relevance: 510
 ''');
   }
 
@@ -2172,7 +2215,7 @@ suggestions
     required String content,
     int maxResults = 1 << 10,
   }) async {
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     var completionOffset = code.position.offset;
 
     newFile(path, code.code);
@@ -2310,7 +2353,9 @@ class _SuggestionDetailsPrinter {
     _writelnWithIndent('offset: ${edit.offset}');
     _writelnWithIndent('length: ${edit.length}');
 
-    var replacementStr = edit.replacement.replaceAll('\n', r'\n');
+    var replacementStr = edit.replacement
+        .replaceAll('\n', r'\n')
+        .replaceAll('\r', r'\r');
     _writelnWithIndent('replacement: $replacementStr');
   }
 

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../builder/module.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
 
@@ -12,13 +11,13 @@ abstract class Global with Indexable, Exportable {
   final FinalizableIndex finalizableIndex;
   final GlobalType type;
   @override
-  final ModuleBuilder enclosingModule;
+  final Module enclosingModule;
 
   /// Name of the global in the names section.
-  final String? globalName;
+  String? globalName;
 
-  Global(
-      this.enclosingModule, this.finalizableIndex, this.type, this.globalName);
+  Global(this.enclosingModule, this.finalizableIndex, this.type,
+      [this.globalName]);
 
   @override
   String toString() => globalName ?? "$finalizableIndex";

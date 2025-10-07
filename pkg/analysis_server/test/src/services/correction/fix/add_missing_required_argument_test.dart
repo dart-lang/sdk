@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class AddMissingRequiredArgumentTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
+  FixKind get kind => DartFixKind.addMissingRequiredArgument;
 
   @override
   void setUp() {
@@ -317,6 +317,31 @@ void f() {
   test(a: "");
 }
 ''');
+  }
+
+  Future<void> test_flutter_closure_children() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends Widget {
+  MyWidget({required List<Widget> children, required void Function()? fn});
+}
+
+build() {
+  return new MyWidget();
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends Widget {
+  MyWidget({required List<Widget> children, required void Function()? fn});
+}
+
+build() {
+  return new MyWidget(fn: () {  }, children: [],);
+}
+''', errorFilter: (diagnostic) => diagnostic.message.contains("'children'"));
   }
 
   Future<void> test_functionType_noParameterName() async {

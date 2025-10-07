@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Position;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -60,7 +59,7 @@ class Bar {
             as ChangeContentOverlay;
 
     expect(
-      applySequenceOfEdits(content, notifiedChanges.edits),
+      SourceEdit.applySequence(content, notifiedChanges.edits),
       contentAfterUpdate,
     );
   }

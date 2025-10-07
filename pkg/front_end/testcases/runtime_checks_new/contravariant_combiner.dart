@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=checks*/
 library test;
 
 typedef void F<T>(T x);
@@ -19,23 +18,23 @@ class C {
 }
 
 void test1(B<num, F<num>> b) {
-  b /*@checkReturn=B<num, (num) -> void>*/ += 1;
-  var x = b /*@checkReturn=B<num, (num) -> void>*/ += 2;
+  b += 1;
+  var x = b += 2;
 }
 
 void test2(C c) {
-  c[0] /*@checkReturn=B<num, (num) -> void>*/ += 1;
-  var x = c[0] /*@checkReturn=B<num, (num) -> void>*/ += 2;
+  c[0] += 1;
+  var x = c[0] += 2;
 }
 
 void test3(C c) {
-  c.x /*@checkReturn=B<num, (num) -> void>*/ += 1;
-  var x = c.x /*@checkReturn=B<num, (num) -> void>*/ += 2;
+  c.x += 1;
+  var x = c.x += 2;
 }
 
 void test4(C c) {
-  C.y /*@checkReturn=B<num, (num) -> void>*/ += 1;
-  var x = C.y /*@checkReturn=B<num, (num) -> void>*/ += 2;
+  C.y += 1;
+  var x = C.y += 2;
 }
 
 void main() {}

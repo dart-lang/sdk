@@ -18,6 +18,7 @@ import 'package:kernel/text/ast_to_text.dart';
 
 import '../base/combinator.dart';
 import '../base/configuration.dart';
+import '../base/extension_scope.dart';
 import '../base/identifiers.dart';
 import '../base/modifiers.dart';
 import '../builder/declaration_builders.dart';
@@ -326,6 +327,7 @@ final TypeParameterFragment dummyTypeParameterFragment =
       kind: TypeParameterKind.function,
       isWildcard: false,
       variableName: '',
+      extensionScope: dummyExtensionScope,
       typeParameterScope: dummyLookupScope,
     );
 final SourceStructuralParameterBuilder dummyStructuralVariableBuilder =
@@ -349,15 +351,16 @@ final FieldInfo dummyFieldInfo = new FieldInfo(
 );
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');
 final LookupScope dummyLookupScope = new _DummyLookupScope();
+final ExtensionScope dummyExtensionScope = new _DummyExtensionScope();
 
 // Coverage-ignore(suite): Not run.
 class _DummyLookupScope implements LookupScope {
   @override
-  void forEachExtension(void Function(ExtensionBuilder p1) f) {}
-
-  @override
-  ScopeKind get kind => ScopeKind.library;
-
-  @override
   LookupResult? lookup(String name) => null;
+}
+
+// Coverage-ignore(suite): Not run.
+class _DummyExtensionScope implements ExtensionScope {
+  @override
+  void forEachExtension(void Function(ExtensionBuilder) f) {}
 }

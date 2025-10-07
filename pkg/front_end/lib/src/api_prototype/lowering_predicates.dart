@@ -917,12 +917,37 @@ const String unnamedExtensionSentinel = '<unnamed extension>';
 ///   extractQualifiedNameFromExtensionMethodName('_extension#3|set#bar'),
 ///   '<unnamed extension>.bar')
 ///
-String? extractQualifiedNameFromExtensionMethodName(String? methodName) {
+///  DartDocTest(
+///    extractQualifiedNameFromExtensionMethodName(
+///      '_extension#1|bar',
+///      keepUnnamedExtensionNamePrefix: true,
+///    ),
+///    '_extension#1.bar',
+///  )
+///  DartDocTest(
+///    extractQualifiedNameFromExtensionMethodName(
+///      '_extension#2|get#bar',
+///      keepUnnamedExtensionNamePrefix: true,
+///    ),
+///    '_extension#2.bar',
+///  )
+///  DartDocTest(
+///    extractQualifiedNameFromExtensionMethodName(
+///      '_extension#3|set#bar',
+///      keepUnnamedExtensionNamePrefix: true,
+///    ),
+///    '_extension#3.bar',
+///  )
+String? extractQualifiedNameFromExtensionMethodName(
+  String? methodName, {
+  bool keepUnnamedExtensionNamePrefix = false,
+}) {
   if (methodName == null) return null;
   int delimiterIndex = methodName.indexOf(NameScheme.extensionNameDelimiter);
   if (delimiterIndex == -1) return null;
   String extensionName = methodName.substring(0, delimiterIndex);
-  if (extensionName.startsWith(NameScheme.unnamedExtensionNamePrefix)) {
+  if (extensionName.startsWith(NameScheme.unnamedExtensionNamePrefix) &&
+      !keepUnnamedExtensionNamePrefix) {
     extensionName = unnamedExtensionSentinel;
   }
   String memberName = methodName.substring(

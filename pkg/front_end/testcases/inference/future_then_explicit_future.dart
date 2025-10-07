@@ -2,23 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import "dart:async";
 
 m1(Future<int> f) {
-  var /*@type=Future<Future<List<int>>>*/ x = f. /*@target=Future.then*/ then<
-          Future<List<int>>>(
-      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/
-      /*@returnType=FutureOr<Future<List<int>>>*/ (/*@type=int*/ x) => /*@typeArgs=dynamic*/ []);
+  var x = f.then<Future<List<int>>>(
+    /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/
+    (x) => [],
+  );
   Future<List<int>> y = x;
 }
 
 m2(Future<int> f) {
-  var /*@type=Future<List<int>>*/ x =
-      f. /*@target=Future.then*/ then<List<int>>(
-          /*@returnType=List<int>*/ (/*@type=int*/ x) => /*@typeArgs=int*/ []);
+  var x = f.then<List<int>>((x) => []);
   Future<List<int>> y = x;
 }
 

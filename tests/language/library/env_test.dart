@@ -37,10 +37,10 @@ main() {
     const bool.fromEnvironment("dart.library.web_gl"),
   );
 
-  // All web backends support `dart:js_util`
+  // All web backends support `dart:js_interop`
   Expect.equals(
     isWebConfiguration,
-    const bool.fromEnvironment("dart.library.js_util"),
+    const bool.fromEnvironment("dart.library.js_interop"),
   );
 
   // Web platforms override 'dart.library.io' to return "false".
@@ -53,7 +53,7 @@ main() {
 
   // `dart:mirrors` is only supported in JIT mode.
   Expect.equals(
-    isVmJitConfiguration,
+    isVmJitConfiguration && !configAsString.contains('-dyn-'),
     const bool.fromEnvironment("dart.library.mirrors"),
   );
 

@@ -93,7 +93,7 @@ library
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
 ''');
   }
 
@@ -167,7 +167,7 @@ library
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
 ''');
   }
 
@@ -1509,7 +1509,7 @@ package:test/a.dart
     for (var fragmentUri in fragmentUris) {
       sink.writelnWithIndent(fragmentUri);
       sink.withIndent(() {
-        var fragment = library.units.singleWhere((fragment) {
+        var fragment = library.fragments.singleWhere((fragment) {
           return fragment.source.uri == fragmentUri;
         });
 

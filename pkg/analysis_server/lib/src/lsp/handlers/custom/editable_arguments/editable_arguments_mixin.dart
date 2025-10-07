@@ -12,18 +12,17 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
 /// Information about the arguments and parameters for an invocation.
-typedef EditableInvocationInfo =
-    ({
-      AstNode invocation,
-      String? widgetName,
-      String? widgetDocumentation,
-      List<FormalParameterElement> parameters,
-      Map<FormalParameterElement, Expression> parameterArguments,
-      Map<FormalParameterElement, int> positionalParameterIndexes,
-      ArgumentList argumentList,
-      int numPositionals,
-      int numSuppliedPositionals,
-    });
+typedef EditableInvocationInfo = ({
+  AstNode invocation,
+  String? widgetName,
+  String? widgetDocumentation,
+  List<FormalParameterElement> parameters,
+  Map<FormalParameterElement, Expression> parameterArguments,
+  Map<FormalParameterElement, int> positionalParameterIndexes,
+  ArgumentList argumentList,
+  int numPositionals,
+  int numSuppliedPositionals,
+});
 
 mixin EditableArgumentsMixin {
   DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result);
@@ -115,10 +114,9 @@ mixin EditableArgumentsMixin {
     }
 
     var numPositionals = parameters.where((p) => p.isPositional).length;
-    var numSuppliedPositionals =
-        argumentList.arguments
-            .where((argument) => argument is! NamedExpression)
-            .length;
+    var numSuppliedPositionals = argumentList.arguments
+        .where((argument) => argument is! NamedExpression)
+        .length;
 
     // Build a map of parameters to their positional index so we can tell
     // whether a parameter that doesn't already have an argument will be

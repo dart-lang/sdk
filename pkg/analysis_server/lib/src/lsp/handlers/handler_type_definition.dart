@@ -180,10 +180,9 @@ class TypeDefinitionHandler
       _ => (null, null),
     };
 
-    var codeRange =
-        codeOffset != null && codeLength != null
-            ? toRange(targetUnit.lineInfo, codeOffset, codeLength)
-            : targetNameRange;
+    var codeRange = codeOffset != null && codeLength != null
+        ? toRange(targetUnit.lineInfo, codeOffset, codeLength)
+        : targetNameRange;
 
     return LocationLink(
       originSelectionRange: toRange(

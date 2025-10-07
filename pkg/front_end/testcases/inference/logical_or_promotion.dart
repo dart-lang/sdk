@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 abstract class A {}
@@ -15,7 +14,7 @@ class C {
   void f(Object o) {
     if (o is A || o is B) {
       if (o is A) {
-        /*@target=C.a*/ a = /*@promotedType=A*/ o;
+        a = o;
       }
     }
   }

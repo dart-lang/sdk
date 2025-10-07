@@ -44,16 +44,21 @@
 # parameter. Placeholders in the `problemMessage` and `correctionMessage`
 # strings take the form `#NAME`.
 #
-# If a diagnostic takes no parameters, it should have an entry of the
+# If a diagnostic takes no parameters, it must have an entry of the
 # form `parameters: none`.
 #
-# At the time the analyzer reports the error, it supplies
-# substitutions to take the place of the `#NAME` placeholders in the
-# form of a list whose order matches the order of the key/value pairs
-# in the `parameters` map. In the future, a new mechanism will be
-# introduced to allow the substitutions to be supplied using named
-# arguments, and statically type checked using the specified
-# TYPEs. For now, the TYPEs are unused.
+# Errors can be reported in two ways:
+#
+# - The old way (deprecated): at the time the analyzer reports the
+#   error, it supplies substitutions to take the place of the `#NAME`
+#   placeholders in the form of a list whose order matches the order
+#   of the key/value pairs in the `parameters` map. The number and
+#   types of the supplied values are checked at runtime.
+#
+# - The new way: at the time the analyzer reports the error, it calls
+#   the error code's `withArguments` method, supplying the
+#   substitutions in the form of named parameters. The number and
+#   types of the supplied values are checked at compile time.
 
 AnalysisOptionsErrorCode:
   INCLUDED_FILE_PARSE_ERROR:
@@ -166,7 +171,7 @@ AnalysisOptionsWarningCode:
       int p2: the number of files that include the incompatible rule
       String p3: plural suffix for the word "file"
     sharedName: INCOMPATIBLE_LINT
-    problemMessage: "The rule '#p0' is incompatible with '#p1', which is included from #p2 file#p3."
+    problemMessage: "The rule '#p0' is incompatible with #p1, which is included from #p2 file#p3."
     correctionMessage: "Try locally disabling all but one of the conflicting rules or removing one of the incompatible files."
     hasPublishedDocs: false
     comment: |-
@@ -196,6 +201,15 @@ AnalysisOptionsWarningCode:
     hasPublishedDocs: false
     comment: |-
       An error code indicating multiple plugins have been specified as enabled.
+  PLUGINS_IN_INNER_OPTIONS:
+    parameters:
+      String contextRoot: the root of the analysis context
+    problemMessage: "Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace."
+    correctionMessage: "Try specifying plugins in an analysis options file at '#contextRoot'."
+    hasPublishedDocs: false
+    comment: |-
+      An error code indicating plugins have been specified in an "inner"
+      analysis options file.
   RECURSIVE_INCLUDE_FILE:
     parameters:
       Object p0: the URI of the file to be included
@@ -9065,7 +9079,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
   INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
     parameters: none
-    problemMessage: Generative enum constructors can only be used as targets of redirection.
+    problemMessage: Generative enum constructors can only be used to create an enum constant.
     correctionMessage: Try using an enum value, or a factory constructor.
     hasPublishedDocs: true
     documentation: |-
@@ -9120,6 +9134,12 @@ CompileTimeErrorCode:
 
       E f() => E.c(2);
       ```
+  INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF:
+    sharedName: INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR
+    parameters: none
+    problemMessage: Generative enum constructors can't be torn off.
+    correctionMessage: Try using an enum value, or a factory constructor.
+    hasPublishedDocs: true
   INVALID_REFERENCE_TO_THIS:
     parameters: none
     problemMessage: "Invalid reference to 'this' expression."
@@ -22843,6 +22863,10 @@ PubspecWarningCode:
           - pkg/package_2
       ```
 ScannerErrorCode:
+  ENCODING:
+    parameters: none
+    problemMessage: Unable to decode bytes as UTF-8.
+    hasPublishedDocs: false
   EXPECTED_TOKEN:
     parameters:
       String p0: the token that was expected but not found
@@ -23929,8 +23953,8 @@ WarningCode:
       author or contact them directly to find out how to update your code.
   DEPRECATED_EXTEND:
     parameters:
-      Object p0: the name of the member
-    problemMessage: "Extending '#p0' is deprecated."
+      Object typeName: the name of the type
+    problemMessage: "Extending '#typeName' is deprecated."
     correctionMessage: Try removing the 'extends' clause.
     hasPublishedDocs: true
     documentation: |-
@@ -23940,9 +23964,9 @@ WarningCode:
       `@Deprecated.extend` is used in the `extends` clause of a class
       declaration.
 
-      This annotation indicates that the ability for classes to extend the
-      annotated class is deprecated, and will soon be removed, perhaps by
-      marking the annotated class with `interface`, `final`, or `sealed`.
+      This annotation indicates that the ability to extend the annotated class
+      is deprecated and will soon be removed. This change will likely be
+      enforced by marking the class with `interface`, `final`, or `sealed`.
 
       #### Example
 
@@ -23954,7 +23978,7 @@ WarningCode:
       class C {}
       ```
 
-      Then, the following code, when in a library other than `p`, produces this
+      Then, in any library other than `p`, the following code produces this
       diagnostic:
 
       ```dart
@@ -23965,8 +23989,8 @@ WarningCode:
 
       #### Common fixes
 
-      Follow any directions found in the `Deprecation.extend` annotation, or
-      just remove the `extends` clause.
+      Follow any directions found in the `Deprecation.extend` annotation.
+      Otherwise, remove the `extends` clause.
 
       ```dart
       class D {}
@@ -24004,18 +24028,18 @@ WarningCode:
       ```
   DEPRECATED_IMPLEMENT:
     parameters:
-      Object p0: the name of the member
-    problemMessage: "Implementing '#p0' is deprecated."
-    correctionMessage: Try removing '#p0' from the 'implements' clause.
+      Object typeName: the name of the type
+    problemMessage: "Implementing '#typeName' is deprecated."
+    correctionMessage: Try removing '#typeName' from the 'implements' clause.
     hasPublishedDocs: true
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when a class annotated with
       `@Deprecated.implement` is used in the `implements` clause of a class or
-      enum declaration. This annotation indicates that the ability for classes
-      to implement the annotated class is deprecated, and will soon be removed,
-      perhaps by marking the annotated class with `interface`, `final`, or
+      enum declaration. This annotation indicates that the ability to implement
+      the annotated class is deprecated and will soon be removed. This change
+      will likely be enforced by marking the class with `interface`, `final`, or
       `sealed`.
 
       #### Example
@@ -24028,7 +24052,7 @@ WarningCode:
       class C {}
       ```
 
-      Then, the following code, when in a library other than `p`, produces this
+      Then, in any library other than `p`, the following code produces this
       diagnostic:
 
       ```dart
@@ -24039,8 +24063,8 @@ WarningCode:
 
       #### Common fixes
 
-      Follow any directions found in the `Deprecation.implement` annotation, or
-      just remove the class name from the `implements` clause.
+      Follow any directions found in the `Deprecation.implement` annotation.
+      Otherwise, remove the `implements` clause.
 
       ```dart
       class D {}
@@ -24053,8 +24077,8 @@ WarningCode:
     hasPublishedDocs: true
   DEPRECATED_INSTANTIATE:
     parameters:
-      Object p0: the name of the member
-    problemMessage: "Instantiating '#p0' is deprecated."
+      Object typeName: the name of the type
+    problemMessage: "Instantiating '#typeName' is deprecated."
     correctionMessage: Try instantiating a non-abstract class.
     hasPublishedDocs: true
     documentation: |-
@@ -24062,8 +24086,9 @@ WarningCode:
 
       The analyzer produces this diagnostic when a class annotated with
       `@Deprecated.instantiate` is instantiated. This annotation indicates that
-      the ability to instantiate the class is deprecated, and will soon be removed,
-      perhaps by marking the annotated class with `abstract`, or `sealed`.
+      instantiating the class is deprecated and will soon be removed. This
+      change will likely be enforced by marking the class as `abstract` or
+      `sealed`.
 
       #### Example
 
@@ -24076,7 +24101,7 @@ WarningCode:
       class C {}
       ```
 
-      Then, the following code, when in a library other than `p`, produces this
+      Then, in any library other than `p`, the following code produces this
       diagnostic:
 
       ```dart
@@ -24088,12 +24113,107 @@ WarningCode:
       #### Common fixes
 
       Follow any directions found in the `Deprecation.instantiate` annotation.
+  DEPRECATED_MIXIN:
+    parameters:
+      Object typeName: the name of the type
+    problemMessage: "Mixing in '#typeName' is deprecated."
+    correctionMessage: Try removing '#typeName' from the 'with' clause.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a mixin class annotated with
+      `@Deprecated.mixin` is used in the `with` clause of a class or enum
+      declaration. This annotation indicates that using the annotated mixin is
+      deprecated and will soon be removed. This change will likely be enforced
+      by removing the `mixin` class modifier.
+
+      #### Example
+
+      If the library `p` defines a class annotated with `@Deprecated.mixin`:
+
+      ```dart
+      %uri="package:p/p.dart"
+      @Deprecated.mixin()
+      mixin class C {}
+      ```
+
+      Then, in any library other than `p`, the following code produces this
+      diagnostic:
+
+      ```dart
+      import 'package:p/p.dart';
+
+      class D with [!C!] {}
+      ```
+
+      #### Common fixes
+
+      Follow any directions found in the `Deprecation.mixin` annotation.
+      Otherwise, remove the mixin class name from the `with` clause.
+
+      ```dart
+      class D {}
+      ```
   DEPRECATED_MIXIN_FUNCTION:
     parameters: none
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
     problemMessage: "Mixing in 'Function' is deprecated."
     correctionMessage: "Try removing 'Function' from the 'with' clause."
     hasPublishedDocs: true
+  DEPRECATED_OPTIONAL:
+    parameters:
+      Object parameterName: the name of the parameter
+    problemMessage: "Omitting an argument for the '#parameterName' parameter is deprecated."
+    correctionMessage: Try passing an argument for '#parameterName'.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an argument is omitted for an
+      optional parameter annotated with `@Deprecated.optional`. This annotation
+      indicates that omitting an argument for the parameter is deprecated, and
+      the parameter will soon become required.
+
+      #### Example
+
+      Given a library `p` that defines a function with an optional parameter
+      annotated with `@Deprecated.optional`:
+
+      ```dart
+      %uri="package:p/p.dart"
+      void f({@Deprecated.optional() int a = 0}) {}
+      ```
+
+      The following code produces this diagnostic, because the invocation
+      doesn't pass a value for the parameter `a`:
+
+      ```dart
+      import 'package:p/p.dart';
+
+      void g() {
+        [!f!]();
+      }
+      ```
+
+      #### Common fixes
+
+      Follow any specific instructions provided in the `@Deprecated.optional`
+      annotation.
+
+      If no instructions are present, pass an appropriate argument for the
+      corresponding parameter:
+
+
+      ```dart
+      import 'package:p/p.dart';
+
+      void g() {
+        f(a: 0);
+      }
+      ```
+
+      Using the default value will preserve the current behavior of the code.
   DEPRECATED_NEW_IN_COMMENT_REFERENCE:
     parameters: none
     problemMessage: "Using the 'new' keyword in a comment reference is deprecated."
@@ -24150,9 +24270,9 @@ WarningCode:
       ```
   DEPRECATED_SUBCLASS:
     parameters:
-      Object p0: the name of the member
-    problemMessage: "Subclassing '#p0' is deprecated."
-    correctionMessage: Try removing the 'extends' clause, or removing '#p0' from the 'implements' clause.
+      Object typeName: the name of the type
+    problemMessage: "Subclassing '#typeName' is deprecated."
+    correctionMessage: Try removing the 'extends' clause, or removing '#typeName' from the 'implements' clause.
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -24161,9 +24281,9 @@ WarningCode:
       `@Deprecated.subclass` is used in the `extends` clause of a class
       declaration, or the `implements` clause of a class or enum declaration.
 
-      This annotation indicates that the ability for classes or enums to extend
-      or implement the annotated class is deprecated, and will soon be removed,
-      perhaps by marking the annotated class with `final` or `sealed`.
+      This annotation indicates that extending or implementing the annotated
+      class is deprecated and will soon be removed. This change will likely be
+      enforced by marking the class with `final` or `sealed`.
 
       #### Example
 
@@ -24175,7 +24295,7 @@ WarningCode:
       class C {}
       ```
 
-      Then, the following code, when in a library other than `p`, produces this
+      Then, in any library other than `p`, the following code produces this
       diagnostic:
 
       ```dart
@@ -24186,12 +24306,9 @@ WarningCode:
 
       #### Common fixes
 
-      If the annotation contains a description of how to deal with not being
-      able to subclass the class, then try following those directions.
-
-      If the annotation doesn't contain a description, or if the described
-      approach isn't appropriate for your case, then remove the relevant
-      `extends` clause or remove the class name from the `implements` clause:
+      Follow any specific instructions provided in the `@Deprecated.subclass`
+      annotation. Otherwise, remove the relevant `extends` clause or remove the
+      class name from the `implements` clause:
 
       ```dart
       class D {}
@@ -24681,6 +24798,11 @@ WarningCode:
       Note that literal maps preserve the order of their entries, so the choice
       of which entry to remove might affect the order in which the keys and
       values are returned by an iterator.
+  EXPERIMENTAL_MEMBER_USE:
+    parameters:
+      String member: the name of the member
+    problemMessage: "'#member' is experimental and could be removed or changed at any time."
+    hasPublishedDocs: false
   INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
     parameters:
       String p0: the name of the collection
@@ -24693,9 +24815,9 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when
-      - the language option `strict-inference` has been enabled in the analysis options file,
-      - a list, map or set literal doesn't have type arguments, and
+      The analyzer produces this diagnostic when:
+      - the language option `strict-inference` is enabled in the analysis options file,
+      - a list, map, or set literal has no type arguments, and
       - the values for the type arguments can't be inferred from the elements.
 
       #### Example
@@ -24709,8 +24831,8 @@ WarningCode:
           strict-inference: true
       ```
 
-      The following code produces this diagnostic because the type of the
-      elements of the list literal can't be inferred by the analyzer:
+      The following code produces this diagnostic because the type of the list
+      literal's elements can't be inferred:
 
       ```dart
       void f() {
@@ -24741,9 +24863,9 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when
-      - the language option `strict-inference` has been enabled in the analysis options file,
-      - the invocation of a method or function doesn't have type arguments, and
+      The analyzer produces this diagnostic when:
+      - the language option `strict-inference` is enabled in the analysis options file,
+      - the invocation of a method or function has no type arguments, and
       - the values for the type arguments can't be inferred.
 
       #### Example
@@ -24757,9 +24879,8 @@ WarningCode:
           strict-inference: true
       ```
 
-      The following code produces this diagnostic because the invocation of the
-      method `m` doesn't have type arguments and the type arguments can't be
-      inferred:
+      The following code produces this diagnostic because the invocation of `m`
+      has no explicit type arguments, and the arguments can't be inferred:
 
       ```dart
       abstract class C {
@@ -24786,7 +24907,8 @@ WarningCode:
       ```
   INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
     parameters:
-      String p0: the name of the function or method whose return type couldn't be inferred
+      String p0: the name of the function or method whose return type can't be
+                 inferred
     problemMessage: "The return type of '#p0' can't be inferred."
     correctionMessage: "Declare the return type of '#p0'."
     hasPublishedDocs: false
@@ -24799,9 +24921,9 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when
-      - the language option `strict-inference` has been enabled in the analysis options file,
-      - the declaration of a method or function doesn't have a return type, and
+      The analyzer produces this diagnostic when:
+      - the language option `strict-inference` is enabled in the analysis options file,
+      - the declaration of a method or function has no return type, and
       - the return type can't be inferred.
 
       #### Example
@@ -24864,9 +24986,9 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when
-      - the language option `strict-inference` has been enabled in the analysis options file,
-      - the declaration of a variable doesn't have a type, and
+      The analyzer produces this diagnostic when:
+      - the language option `strict-inference` is enabled in the analysis options file,
+      - the declaration of a variable has no type, and
       - the type of the variable can't be inferred.
 
       #### Example
@@ -24907,13 +25029,13 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when
-      - the language option `strict-inference` has been enabled in the analysis options file,
-      - the declaration of a formal parameter doesn't have a type, and
+      The analyzer produces this diagnostic when:
+      - the language option `strict-inference` is enabled in the analysis options file,
+      - the declaration of a formal parameter has no type, and
       - the type of the parameter can't be inferred.
 
-      The type of a parameter of a method can be inferred if the method
-      overrides an inherited method.
+      The type of a method's parameter can be inferred if it overrides an
+      inherited method.
 
       #### Example
 
@@ -25007,11 +25129,11 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when anything other than an
-      extendable class is annotated with
-      Deprecated.extend. An extendable class is a
-      class not declared with the `interface`, `final`, or `sealed` keywords,
-      and with at least one public generative constructor.
+      The analyzer produces this diagnostic when the `@Deprecated.extend`
+      annotation is applied to a declaration that isn't an extendable class. An
+      extendable class is one that isn't declared with the `interface`,
+      `final`, or `sealed` keywords and has at least one public, generative
+      constructor.
 
       #### Example
 
@@ -25040,11 +25162,10 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when anything other than an
-      implementable class or mixin is annotated with
-      Deprecated.implement. An implementable
-      class or mixin is one not declared with the `base`, `final`, or `sealed`
-      keywords.
+      The analyzer produces this diagnostic when the `@Deprecated.implement`
+      annotation is applied to a declaration that isn't an implementable class
+      or mixin. An implementable class or mixin is one that isn't declared with
+      the base, final, or sealed keywords.
 
       #### Example
 
@@ -25071,10 +25192,10 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when anything other than an
-      instantiable class is annotated with Deprecated.instantiate. An
-      instantiable class is one not declared with the `abstract` or `sealed`
-      keywords, and with at least one public, generative constructor.
+      The analyzer produces this diagnostic when the `@Deprecated.instantiate`
+      annotation is applied to a declaration that isn't an instantiable class.
+      An instantiable class is one that isn't declared with the `abstract` or
+      `sealed` keywords and has at least one public, generative constructor.
 
       #### Example
 
@@ -25093,6 +25214,75 @@ WarningCode:
       ```dart
       sealed class C {}
       ```
+  INVALID_DEPRECATED_MIXIN_ANNOTATION:
+    parameters: none
+    problemMessage: "The annotation '@Deprecated.mixin' can only be applied to classes."
+    correctionMessage: Try removing the '@Deprecated.mixin' annotation.
+    hasPublishedDocs: false
+    comment: |-
+      This warning is generated anywhere where `@Deprecated.mixin` annotates
+      something other than a mixin class.
+    # TODO(srawlins): link Deprecated.mixin below with:
+    # [`Deprecated.mixin`][meta-deprecated-mixin]
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `@Deprecated.mixin`
+      annotation is applied to a declaration that isn't a mixin class.
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      non-mixin class:
+
+      ```dart
+      @[!Deprecated.mixin!]()
+      class C {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      class C {}
+      ```
+  INVALID_DEPRECATED_OPTIONAL_ANNOTATION:
+    parameters: none
+    problemMessage: "The annotation '@Deprecated.optional' can only be applied to optional parameters."
+    correctionMessage: Try removing the '@Deprecated.optional' annotation.
+    hasPublishedDocs: true
+    comment: |-
+      This warning is generated anywhere where `@Deprecated.optional`
+      annotates something other than an optional parameter.
+    # TODO(srawlins): link Deprecated.optional below with:
+    # [`Deprecated.optional`][meta-deprecated-optional]
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `@Deprecated.optional`
+      annotation is applied to a parameter that isn't an optional parameter. The
+      annotation must not be used on a parameter in a local function, an
+      anonymous function, a function-typed parameter, or a typedef. It is only
+      valid on optional parameters in a top-level function, a method, or a
+      constructor.
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      required parameter:
+
+      ```dart
+      void f(@[!Deprecated.optional!]() int p) {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      void f(int p) {}
+      ```
   INVALID_DEPRECATED_SUBCLASS_ANNOTATION:
     parameters: none
     problemMessage: "The annotation '@Deprecated.subclass' can only be applied to subclassable classes and mixins."
@@ -25105,7 +25295,7 @@ WarningCode:
 
       The analyzer produces this diagnostic when anything other than a
       subclassable class or mixin is annotated with
-      Deprecated.subclass. A subclassable
+      `@Deprecated.subclass`. A subclassable
       class is a class not declared with the `final` or `sealed` keywords. A
       subclassable mixin is a mixin not declared with the `base` keyword.
 
@@ -25639,33 +25829,6 @@ WarningCode:
         void m() {}
       }
       ```
-  INVALID_REQUIRED_NAMED_PARAM:
-    parameters:
-      String p0: the name of the member
-    problemMessage: "The type parameter '#p0' is annotated with @required but only named parameters without a default value can be annotated with it."
-    correctionMessage: Remove @required.
-    hasPublishedDocs: false
-    comment: |-
-      This warning is generated anywhere where `@required` annotates a named
-      parameter with a default value.
-  INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
-    parameters:
-      String p0: the name of the member
-    problemMessage: "Incorrect use of the annotation @required on the optional positional parameter '#p0'. Optional positional parameters cannot be required."
-    correctionMessage: Remove @required.
-    hasPublishedDocs: false
-    comment: |-
-      This warning is generated anywhere where `@required` annotates an optional
-      positional parameter.
-  INVALID_REQUIRED_POSITIONAL_PARAM:
-    parameters:
-      String p0: the name of the member
-    problemMessage: "Redundant use of the annotation @required on the required positional parameter '#p0'."
-    correctionMessage: Remove @required.
-    hasPublishedDocs: false
-    comment: |-
-      This warning is generated anywhere where `@required` annotates a
-      non-optional positional parameter.
   INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER:
     parameters:
       String p0: the name of the member
@@ -27042,13 +27205,13 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when the type of the object being
-      matched can't ever be matched by the pattern.
+      The analyzer produces this diagnostic when the object's type can't be
+      matched by the pattern.
 
       #### Example
 
-      The following code produces this diagnostic because a `double` is being
-      matched by a pattern that requires an `int`, which can never succeed:
+      The following code produces this diagnostic because a `double` is matched
+      by an `int` pattern, which can never succeed:
 
       ```dart
       void f(String? s) {
@@ -27058,8 +27221,8 @@ WarningCode:
 
       #### Common fixes
 
-      If one of the types is wrong, then change one or both of the types so that
-      the pattern can succeed:
+      If one of the types is wrong, then change one or both so the pattern match
+      can succeed:
 
       ```dart
       void f(String? s) {
@@ -27067,7 +27230,7 @@ WarningCode:
       }
       ```
 
-      If the types aren't wrong, then remove the pattern match:
+      If the types are correct, then remove the pattern match:
 
       ```dart
       void f(double x) {}
@@ -27165,8 +27328,8 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a lint that has been removed is
-      used in an analysis options file. Because the lint has been removed, the
-      reference to it (such as enabling it) will have no effect.
+      used in an analysis options file. Because the lint no longer exists,
+      referencing it will have no effect.
 
       #### Example
 
@@ -27418,7 +27581,7 @@ WarningCode:
   SDK_VERSION_CONSTRUCTOR_TEAROFFS:
     parameters: none
     problemMessage: "Tearing off a constructor requires the 'constructor-tearoffs' language feature."
-    correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'."
+    correctionMessage: "Try updating your 'pubspec.yaml' to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'."
     hasPublishedDocs: true
     comment: |-
       There is also a [ParserErrorCode.experimentNotEnabled] code which

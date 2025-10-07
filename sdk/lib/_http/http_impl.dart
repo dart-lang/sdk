@@ -839,7 +839,10 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
     assert(challenge.length == 1);
     final _HeaderValue header;
     try {
-      header = _HeaderValue.parse(challenge[0], parameterSeparator: ",");
+      header = _HeaderValue.parse(
+        challenge[0],
+        parameterSeparator: _CharCode.COMMA,
+      );
     } on HttpException catch (_, s) {
       Error.throwWithStackTrace(
         HttpException(
@@ -2382,7 +2385,7 @@ class _HttpClientConnection {
               if (authInfo != null && authInfo.length == 1) {
                 var header = _HeaderValue.parse(
                   authInfo[0],
-                  parameterSeparator: ',',
+                  parameterSeparator: _CharCode.COMMA,
                 );
                 var nextnonce = header.parameters["nextnonce"];
                 if (nextnonce != null) proxyCreds.nonce = nextnonce;
@@ -2395,7 +2398,7 @@ class _HttpClientConnection {
               if (authInfo != null && authInfo.length == 1) {
                 var header = _HeaderValue.parse(
                   authInfo[0],
-                  parameterSeparator: ',',
+                  parameterSeparator: _CharCode.COMMA,
                 );
                 var nextnonce = header.parameters["nextnonce"];
                 if (nextnonce != null) creds.nonce = nextnonce;

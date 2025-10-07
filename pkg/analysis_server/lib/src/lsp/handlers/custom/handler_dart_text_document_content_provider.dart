@@ -39,10 +39,9 @@ class DartTextDocumentContentProviderHandler
     var uri = params.uri;
 
     if (!allowedSchemes.contains(uri.scheme)) {
-      var supportedSchemesString =
-          allowedSchemes.isEmpty
-              ? '(none)'
-              : allowedSchemes.map((scheme) => "'$scheme'").join(', ');
+      var supportedSchemesString = allowedSchemes.isEmpty
+          ? '(none)'
+          : allowedSchemes.map((scheme) => "'$scheme'").join(', ');
       return error(
         ErrorCodes.InvalidParams,
         "Fetching content for scheme '${uri.scheme}' is not supported. "

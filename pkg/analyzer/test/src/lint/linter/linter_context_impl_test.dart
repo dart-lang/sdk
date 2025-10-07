@@ -285,7 +285,7 @@ f<U>() => A<U>();
 
   void test_true_argument_list_nonBool() async {
     await resolve('''
-const bool kIsWeb = bool.fromEnvironment('dart.library.js_util');
+const bool kIsWeb = bool.fromEnvironment('dart.library.js_interop');
 class A {
   const A(List<int> l);
 }

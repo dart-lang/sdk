@@ -49,14 +49,15 @@ class ConvertAllFormalParametersToNamed extends RefactoringProducer {
       return ComputeStatusFailure();
     }
 
-    var formalParameterUpdates =
-        selection.formalParameters.map((formalParameter) {
-          var newKind = formalParameter.kind;
-          if (formalParameter.kind.isPositional) {
-            newKind = FormalParameterKind.requiredNamed;
-          }
-          return FormalParameterUpdate(id: formalParameter.id, kind: newKind);
-        }).toList();
+    var formalParameterUpdates = selection.formalParameters.map((
+      formalParameter,
+    ) {
+      var newKind = formalParameter.kind;
+      if (formalParameter.kind.isPositional) {
+        newKind = FormalParameterKind.requiredNamed;
+      }
+      return FormalParameterUpdate(id: formalParameter.id, kind: newKind);
+    }).toList();
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: formalParameterUpdates,

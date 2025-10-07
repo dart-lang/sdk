@@ -43,17 +43,21 @@ class FoldingMixinTest extends AbstractPluginTest {
 
   Future<void> test_sendFoldingNotification() async {
     await plugin.handleAnalysisSetContextRoots(
-        AnalysisSetContextRootsParams([contextRoot1]));
+      AnalysisSetContextRootsParams([contextRoot1]),
+    );
 
     var notificationReceived = Completer<void>();
-    channel.listen(null, onNotification: (Notification notification) {
-      expect(notification, isNotNull);
-      var params = AnalysisFoldingParams.fromNotification(notification);
-      expect(params.file, filePath1);
-      var regions = params.regions;
-      expect(regions, hasLength(7));
-      notificationReceived.complete();
-    });
+    channel.listen(
+      null,
+      onNotification: (Notification notification) {
+        expect(notification, isNotNull);
+        var params = AnalysisFoldingParams.fromNotification(notification);
+        expect(params.file, filePath1);
+        var regions = params.regions;
+        expect(regions, hasLength(7));
+        notificationReceived.complete();
+      },
+    );
     await plugin.sendFoldingNotification(filePath1);
     await notificationReceived.future;
   }
@@ -79,7 +83,7 @@ class _TestServerPlugin extends MockServerPlugin with FoldingMixin {
   List<FoldingContributor> getFoldingContributors(String path) {
     return <FoldingContributor>[
       _TestFoldingContributor(3),
-      _TestFoldingContributor(4)
+      _TestFoldingContributor(4),
     ];
   }
 

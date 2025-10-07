@@ -17,6 +17,7 @@ import 'package:front_end/src/kernel/collections.dart';
 import 'package:front_end/src/kernel/forest.dart';
 import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:package_config/package_config.dart';
 
@@ -127,7 +128,7 @@ void main() {
     _testBreakStatementImpl();
     _testCascade();
     _testDeferredCheck();
-    _testFactoryConstructorInvocationJudgment();
+    _testFactoryConstructorInvocation();
     _testTypeAliasedConstructorInvocation(c);
     _testTypeAliasedFactoryInvocation(c);
     _testFunctionDeclarationImpl();
@@ -162,7 +163,7 @@ void main() {
     _testExtensionIndexSet();
     _testIfNullIndexSet();
     _testIfNullSuperIndexSet();
-    _testIfNullExtensionIndexSet();
+    _testExtensionIfNullIndexSet();
     _testCompoundIndexSet();
     _testCompoundSuperIndexSet();
     _testExtensionCompoundIndexSet();
@@ -631,7 +632,7 @@ void _testDeferredCheck() {
 let final dynamic #0 = pre.checkLibraryIsLoaded() in 0''');
 }
 
-void _testFactoryConstructorInvocationJudgment() {
+void _testFactoryConstructorInvocation() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Class cls = new Class(name: 'Class', fileUri: dummyUri);
   library.addClass(cls);
@@ -644,7 +645,11 @@ void _testFactoryConstructorInvocationJudgment() {
   cls.addProcedure(factoryConstructor);
 
   testExpression(
-    new FactoryConstructorInvocation(factoryConstructor, new ArgumentsImpl([])),
+    new FactoryConstructorInvocation(
+      factoryConstructor,
+      new ArgumentsImpl([]),
+      isConst: false,
+    ),
     '''
 new Class()''',
     verbose: '''
@@ -654,11 +659,23 @@ new library test:dummy::Class()''',
   testExpression(
     new FactoryConstructorInvocation(
       factoryConstructor,
+      new ArgumentsImpl([]),
+      isConst: true,
+    ),
+    '''
+const Class()''',
+    verbose: '''
+const library test:dummy::Class()''',
+  );
+
+  testExpression(
+    new FactoryConstructorInvocation(
+      factoryConstructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
+      isConst: false,
     ),
     '''
 new Class<void>(0, bar: 1)''',
@@ -672,9 +689,9 @@ new library test:dummy::Class<void>(0, bar: 1)''',
       factoryConstructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
+      isConst: false,
     ),
     '''
 new Class<void>.foo(0, bar: 1)''',
@@ -738,9 +755,8 @@ new library test:dummy::Typedef()''',
       constructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
     ),
     '''
 new Typedef<void>(0, bar: 1)''',
@@ -755,9 +771,8 @@ new library test:dummy::Typedef<void>(0, bar: 1)''',
       constructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
     ),
     '''
 new Typedef<void>.foo(0, bar: 1)''',
@@ -772,9 +787,8 @@ new library test:dummy::Typedef<void>.foo(0, bar: 1)''',
       constructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
       isConst: true,
     ),
     '''
@@ -827,6 +841,7 @@ void _testTypeAliasedFactoryInvocation(CompilerContext c) {
       typeAliasBuilder,
       factoryConstructor,
       new ArgumentsImpl([]),
+      isConst: false,
     ),
     '''
 new Typedef()''',
@@ -840,9 +855,9 @@ new library test:dummy::Typedef()''',
       factoryConstructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
+      isConst: false,
     ),
     '''
 new Typedef<void>(0, bar: 1)''',
@@ -857,9 +872,9 @@ new library test:dummy::Typedef<void>(0, bar: 1)''',
       factoryConstructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
+      isConst: false,
     ),
     '''
 new Typedef<void>.foo(0, bar: 1)''',
@@ -874,9 +889,8 @@ new library test:dummy::Typedef<void>.foo(0, bar: 1)''',
       factoryConstructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
       isConst: true,
     ),
     '''
@@ -928,12 +942,11 @@ void _testInternalMethodInvocation() {
       new Name('boz'),
       new ArgumentsImpl(
         [new IntLiteral(1)],
-        types: [const VoidType(), const DynamicType()],
         named: [
           new NamedExpression('foo', new IntLiteral(2)),
           new NamedExpression('bar', new IntLiteral(3)),
         ],
-      ),
+      )..setExplicitTypeArguments([const VoidType(), const DynamicType()]),
       isNullAware: false,
     ),
     '''
@@ -955,12 +968,11 @@ void _testInternalMethodInvocation() {
       new Name('boz'),
       new ArgumentsImpl(
         [new IntLiteral(1)],
-        types: [const VoidType(), const DynamicType()],
         named: [
           new NamedExpression('foo', new IntLiteral(2)),
           new NamedExpression('bar', new IntLiteral(3)),
         ],
-      ),
+      )..setExplicitTypeArguments([const VoidType(), const DynamicType()]),
       isNullAware: true,
     ),
     '''
@@ -1021,12 +1033,11 @@ void _testExpressionInvocation() {
       new IntLiteral(0),
       new ArgumentsImpl(
         [new IntLiteral(1)],
-        types: [const VoidType(), const DynamicType()],
         named: [
           new NamedExpression('foo', new IntLiteral(2)),
           new NamedExpression('bar', new IntLiteral(3)),
         ],
-      ),
+      )..setExplicitTypeArguments([const VoidType(), const DynamicType()]),
     ),
     '''
 0<void, dynamic>(1, foo: 2, bar: 3)''',
@@ -1362,10 +1373,10 @@ Extension<void>(0)?.foo -= 1''',
 void _testCompoundPropertySet() {
   testExpression(
     new CompoundPropertySet(
-      new IntLiteral(0),
-      new Name('foo'),
-      new Name('+'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      propertyName: new Name('foo'),
+      binaryName: new Name('+'),
+      value: new IntLiteral(1),
       readOffset: TreeNode.noOffset,
       binaryOffset: TreeNode.noOffset,
       writeOffset: TreeNode.noOffset,
@@ -1378,10 +1389,10 @@ void _testCompoundPropertySet() {
 
   testExpression(
     new CompoundPropertySet(
-      new IntLiteral(0),
-      new Name('foo'),
-      new Name('+'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      propertyName: new Name('foo'),
+      binaryName: new Name('+'),
+      value: new IntLiteral(1),
       readOffset: TreeNode.noOffset,
       binaryOffset: TreeNode.noOffset,
       writeOffset: TreeNode.noOffset,
@@ -1747,7 +1758,24 @@ void _testIndexSet() {
   );
 }
 
-void _testSuperIndexSet() {}
+void _testSuperIndexSet() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Class cls = new Class(name: 'Super', fileUri: dummyUri);
+  library.addClass(cls);
+  Procedure setter = new Procedure(
+    new Name('[]='),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  cls.addProcedure(setter);
+
+  testExpression(
+    new SuperIndexSet(setter, new IntLiteral(0), new IntLiteral(1)),
+    '''
+super[0] = 1''',
+  );
+}
 
 void _testExtensionIndexGet() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
@@ -1903,19 +1931,184 @@ Extension<void>(0)?[1] = 2''',
   );
 }
 
-void _testIfNullIndexSet() {}
+void _testIfNullIndexSet() {
+  testExpression(
+    new IfNullIndexSet(
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      value: new IntLiteral(2),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      isNullAware: false,
+    ),
+    '''
+0[1] ??= 2''',
+  );
 
-void _testIfNullSuperIndexSet() {}
+  testExpression(
+    new IfNullIndexSet(
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      value: new IntLiteral(2),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      isNullAware: true,
+    ),
+    '''
+0?[1] ??= 2''',
+  );
+}
 
-void _testIfNullExtensionIndexSet() {}
+void _testIfNullSuperIndexSet() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Class cls = new Class(name: 'Super', fileUri: dummyUri);
+  library.addClass(cls);
+  Procedure getter = new Procedure(
+    new Name('[]'),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  cls.addProcedure(getter);
+  Procedure setter = new Procedure(
+    new Name('[]='),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  cls.addProcedure(setter);
+
+  testExpression(
+    new IfNullSuperIndexSet(
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(0),
+      value: new IntLiteral(1),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+    ),
+    '''
+super[0] ??= 1''',
+  );
+}
+
+void _testExtensionIfNullIndexSet() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Extension extension = new Extension(
+    name: 'Extension',
+    typeParameters: [new TypeParameter('T')],
+    fileUri: dummyUri,
+  );
+  library.addExtension(extension);
+  Procedure getter = new Procedure(
+    new Name('Extension|[]'),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  Procedure setter = new Procedure(
+    new Name('Extension|[]='),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  library.addProcedure(getter);
+  library.addProcedure(setter);
+
+  testExpression(
+    new ExtensionIfNullIndexSet(
+      extension: extension,
+      knownTypeArguments: null,
+      receiver: new IntLiteral(0),
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(1),
+      value: new IntLiteral(2),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      isNullAware: false,
+      extensionTypeArgumentOffset: -1,
+    ),
+    '''
+Extension(0)[1] ??= 2''',
+  );
+
+  testExpression(
+    new ExtensionIfNullIndexSet(
+      extension: extension,
+      knownTypeArguments: null,
+      receiver: new IntLiteral(0),
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(1),
+      value: new IntLiteral(2),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      isNullAware: true,
+      extensionTypeArgumentOffset: -1,
+    ),
+    '''
+Extension(0)?[1] ??= 2''',
+  );
+
+  testExpression(
+    new ExtensionIfNullIndexSet(
+      extension: extension,
+      knownTypeArguments: [const VoidType()],
+      receiver: new IntLiteral(0),
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(1),
+      value: new IntLiteral(2),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      isNullAware: false,
+      extensionTypeArgumentOffset: -1,
+    ),
+    '''
+Extension<void>(0)[1] ??= 2''',
+  );
+
+  testExpression(
+    new ExtensionIfNullIndexSet(
+      extension: extension,
+      knownTypeArguments: [const VoidType()],
+      receiver: new IntLiteral(0),
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(1),
+      value: new IntLiteral(2),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      isNullAware: true,
+      extensionTypeArgumentOffset: -1,
+    ),
+    '''
+Extension<void>(0)?[1] ??= 2''',
+  );
+}
 
 void _testCompoundIndexSet() {
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('+'),
-      new IntLiteral(2),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('+'),
+      value: new IntLiteral(2),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -1928,10 +2121,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('+'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('+'),
+      value: new IntLiteral(1),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -1944,10 +2137,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('-'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('-'),
+      value: new IntLiteral(1),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -1960,10 +2153,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('*'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('*'),
+      value: new IntLiteral(1),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -1976,10 +2169,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('+'),
-      new IntLiteral(2),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('+'),
+      value: new IntLiteral(2),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -1992,10 +2185,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('+'),
-      new IntLiteral(2),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('+'),
+      value: new IntLiteral(2),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -2008,10 +2201,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('+'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('+'),
+      value: new IntLiteral(1),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -2024,10 +2217,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('-'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('-'),
+      value: new IntLiteral(1),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -2040,7 +2233,91 @@ void _testCompoundIndexSet() {
   );
 }
 
-void _testCompoundSuperIndexSet() {}
+void _testCompoundSuperIndexSet() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Class cls = new Class(name: 'Super', fileUri: dummyUri);
+  library.addClass(cls);
+  Procedure getter = new Procedure(
+    new Name('[]'),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  cls.addProcedure(getter);
+  Procedure setter = new Procedure(
+    new Name('[]='),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  cls.addProcedure(setter);
+
+  testExpression(
+    new CompoundSuperIndexSet(
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(0),
+      value: new IntLiteral(1),
+      binaryName: plusName,
+      readOffset: -1,
+      binaryOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      forPostIncDec: false,
+    ),
+    '''
+super[0] += 1''',
+  );
+  testExpression(
+    new CompoundSuperIndexSet(
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(0),
+      value: new IntLiteral(1),
+      binaryName: minusName,
+      readOffset: -1,
+      binaryOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      forPostIncDec: false,
+    ),
+    '''
+super[0] -= 1''',
+  );
+
+  testExpression(
+    new CompoundSuperIndexSet(
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(0),
+      value: new IntLiteral(1),
+      binaryName: plusName,
+      readOffset: -1,
+      binaryOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      forPostIncDec: true,
+    ),
+    '''
+super[0]++''',
+  );
+  testExpression(
+    new CompoundSuperIndexSet(
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(0),
+      value: new IntLiteral(1),
+      binaryName: minusName,
+      readOffset: -1,
+      binaryOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      forPostIncDec: true,
+    ),
+    '''
+super[0]--''',
+  );
+}
 
 void _testExtensionCompoundIndexSet() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
@@ -3225,7 +3502,10 @@ void _testExtensionTypeRedirectingInitializer() {
   );
 
   testInitializer(
-    new ExtensionTypeRedirectingInitializer(unnamedTarget, new Arguments([])),
+    new ExtensionTypeRedirectingInitializer(
+      unnamedTarget,
+      new ArgumentsImpl([]),
+    ),
     '''
 this()''',
   );
@@ -3233,7 +3513,7 @@ this()''',
   testInitializer(
     new ExtensionTypeRedirectingInitializer(
       namedTarget,
-      new Arguments([new IntLiteral(0)]),
+      new ArgumentsImpl([new IntLiteral(0)]),
     ),
     '''
 this.named(0)''',

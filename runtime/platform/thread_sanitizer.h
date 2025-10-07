@@ -16,7 +16,14 @@
 #endif
 
 #if defined(USING_THREAD_SANITIZER)
-#define NO_SANITIZE_THREAD __attribute__((no_sanitize("thread")))
+#define NO_SANITIZE_THREAD __attribute__((no_sanitize_thread))
+#if defined(__clang__)
+#define DISABLE_SANITIZER_INSTRUMENTATION                                      \
+  __attribute__((disable_sanitizer_instrumentation))
+#else
+#define DISABLE_SANITIZER_INSTRUMENTATION
+#endif
+
 extern "C" uint32_t __tsan_atomic32_load(uint32_t* addr, int order);
 extern "C" void __tsan_atomic32_store(uint32_t* addr,
                                       uint32_t value,
@@ -35,10 +42,21 @@ extern "C" void __tsan_write2(void* addr);
 extern "C" void __tsan_write4(void* addr);
 extern "C" void __tsan_write8(void* addr);
 extern "C" void __tsan_write16(void* addr);
+extern "C" void __tsan_read1_pc(void* addr, void* pc);
+extern "C" void __tsan_read2_pc(void* addr, void* pc);
+extern "C" void __tsan_read4_pc(void* addr, void* pc);
+extern "C" void __tsan_read8_pc(void* addr, void* pc);
+extern "C" void __tsan_read16_pc(void* addr, void* pc);
+extern "C" void __tsan_write1_pc(void* addr, void* pc);
+extern "C" void __tsan_write2_pc(void* addr, void* pc);
+extern "C" void __tsan_write4_pc(void* addr, void* pc);
+extern "C" void __tsan_write8_pc(void* addr, void* pc);
+extern "C" void __tsan_write16_pc(void* addr, void* pc);
 extern "C" void __tsan_func_entry(void* pc);
 extern "C" void __tsan_func_exit();
 #else
 #define NO_SANITIZE_THREAD
+#define DISABLE_SANITIZER_INSTRUMENTATION
 #endif
 
 #if defined(USING_THREAD_SANITIZER)

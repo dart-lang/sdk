@@ -54,10 +54,9 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
     }
 
     var widgetName = widgetClassElement.displayName;
-    var stateName =
-        widgetClassElement.isPrivate
-            ? '${widgetName}State'
-            : '_${widgetName}State';
+    var stateName = widgetClassElement.isPrivate
+        ? '${widgetName}State'
+        : '_${widgetName}State';
 
     // Find fields assigned in constructors.
     var visitor = _FieldFinder();
@@ -332,8 +331,9 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
         element.enclosingElement == widgetClassElement &&
         !elementsToMove.contains(element)) {
       var offset = node.offset - linesRange.offset;
-      var qualifier =
-          element.isStatic ? widgetClassElement.displayName : 'widget';
+      var qualifier = element.isStatic
+          ? widgetClassElement.displayName
+          : 'widget';
 
       var parent = node.parent;
       if (parent is InterpolationExpression &&

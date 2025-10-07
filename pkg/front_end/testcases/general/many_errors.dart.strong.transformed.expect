@@ -7,7 +7,7 @@ library;
 //   const A.named1() sync* {}
 //   ^^^^^
 //
-// pkg/front_end/testcases/general/many_errors.dart:13:1: Error: An external or native method can't have a body.
+// pkg/front_end/testcases/general/many_errors.dart:15:1: Error: An external or native method can't have a body.
 // external foo(String x) {
 // ^^^^^^^^
 //
@@ -22,24 +22,26 @@ library;
 //   final x = null;
 //         ^
 //
-// pkg/front_end/testcases/general/many_errors.dart:10:24: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   const A.named2() : x = new Object();
+// pkg/front_end/testcases/general/many_errors.dart:12:24: Error: 'x' is a final instance variable that was initialized at the declaration.
+//   const A.named3() : x = const Object();
 //                        ^
+// pkg/front_end/testcases/general/many_errors.dart:6:9: Context: 'x' was initialized here.
+//   final x = null;
+//         ^
 //
 // pkg/front_end/testcases/general/many_errors.dart:8:26: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
 //   const A.named1() sync* {}
 //                          ^
 //
-// pkg/front_end/testcases/general/many_errors.dart:13:24: Error: An external or native method can't have a body.
+// pkg/front_end/testcases/general/many_errors.dart:15:24: Error: An external or native method can't have a body.
 // external foo(String x) {
 //                        ^
 //
-// pkg/front_end/testcases/general/many_errors.dart:28:9: Error: The class 'AbstractClass' is abstract and can't be instantiated.
+// pkg/front_end/testcases/general/many_errors.dart:30:9: Error: The class 'AbstractClass' is abstract and can't be instantiated.
 //   const AbstractClass.id();
 //         ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/many_errors.dart:29:27: Error: The getter 'b' isn't defined for the type 'B'.
+// pkg/front_end/testcases/general/many_errors.dart:31:27: Error: The getter 'b' isn't defined for the type 'B'.
 //  - 'B' is from 'pkg/front_end/testcases/general/many_errors.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
 //   (new C().b ??= new B()).b;
@@ -55,10 +57,10 @@ class A extends core::Object /*hasConstConstructor*/  {
   const A.named1() sync* {}
                          ^" /* emittedValueType= dynamic */ {}
   const constructor named2() → self::A
-    : final dynamic #t2 = throw invalid-expression "pkg/front_end/testcases/general/many_errors.dart:10:24: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  const A.named2() : x = new Object();
-                       ^", super core::Object::•()
+    : final dynamic #t2 = throw new core::_DuplicatedFieldInitializerError::•("x"), super core::Object::•()
+    ;
+  const constructor named3() → self::A
+    : final dynamic #t3 = throw new core::_DuplicatedFieldInitializerError::•("x"), super core::Object::•()
     ;
 }
 class B extends core::Object {
@@ -78,7 +80,7 @@ abstract class AbstractClass extends core::Object /*hasConstConstructor*/  {
     ;
 }
 external static method foo(core::String x) → dynamic {
-  invalid-expression "pkg/front_end/testcases/general/many_errors.dart:13:24: Error: An external or native method can't have a body.
+  invalid-expression "pkg/front_end/testcases/general/many_errors.dart:15:24: Error: An external or native method can't have a body.
 external foo(String x) {
                        ^";
   {
@@ -87,10 +89,10 @@ external foo(String x) {
 }
 static method m() → dynamic {
   invalid-expression "The class 'AbstractClass' is abstract and can't be instantiated.";
-  invalid-expression "pkg/front_end/testcases/general/many_errors.dart:29:27: Error: The getter 'b' isn't defined for the type 'B'.
+  invalid-expression "pkg/front_end/testcases/general/many_errors.dart:31:27: Error: The getter 'b' isn't defined for the type 'B'.
  - 'B' is from 'pkg/front_end/testcases/general/many_errors.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
   (new C().b ??= new B()).b;
-                          ^" in (let final self::C #t3 = new self::C::•() in let final self::B #t4 = #t3.{self::C::b}{self::B} in #t4 == null ?{self::B} #t3.{self::C::b} = new self::B::•() : #t4){<unresolved>}.b;
+                          ^" in (let final self::C #t4 = new self::C::•() in let final self::B #t5 = #t4.{self::C::b}{self::B} in #t5 == null ?{self::B} #t4.{self::C::b} = new self::B::•() : #t5){<unresolved>}.b;
 }
 static method main() → dynamic {}

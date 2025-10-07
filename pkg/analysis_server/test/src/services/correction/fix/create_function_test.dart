@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class CreateFunctionTearoffTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_FUNCTION_TEAROFF;
+  FixKind get kind => DartFixKind.createFunctionTearoff;
 
   Future<void> test_assignment() async {
     await resolveTestCode('''
@@ -306,7 +306,7 @@ A<int> test() {
 @reflectiveTest
 class CreateFunctionTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_FUNCTION;
+  FixKind get kind => DartFixKind.createFunction;
 
   Future<void> assert_returnType_bool(String lineWithTest) async {
     await resolveTestCode('''

@@ -108,7 +108,7 @@ void f(List<String> a, List<String> b) {
 @reflectiveTest
 class ConvertForEachToForLoopTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_FOR_EACH_TO_FOR_LOOP;
+  FixKind get kind => DartFixKind.convertForEachToForLoop;
 
   @override
   String get lintCode => LintNames.avoid_function_literals_in_foreach_calls;
@@ -198,10 +198,9 @@ void f(List<String> list) {
   }
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode.name ==
-              LintNames.avoid_function_literals_in_foreach_calls,
+      errorFilter: (error) =>
+          error.diagnosticCode.name ==
+          LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
 
@@ -227,10 +226,9 @@ void f(List<String> list) {
   }
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode.name ==
-              LintNames.avoid_function_literals_in_foreach_calls,
+      errorFilter: (error) =>
+          error.diagnosticCode.name ==
+          LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
 
@@ -260,10 +258,9 @@ void f(core.List<core.Set<core.String>> list) {
   }
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode.name ==
-              LintNames.avoid_function_literals_in_foreach_calls,
+      errorFilter: (error) =>
+          error.diagnosticCode.name ==
+          LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
 
@@ -309,10 +306,9 @@ void f(List<String> list) {
 }
 ''');
     await assertNoFix(
-      errorFilter:
-          (error) =>
-              error.diagnosticCode.name ==
-              LintNames.avoid_function_literals_in_foreach_calls,
+      errorFilter: (error) =>
+          error.diagnosticCode.name ==
+          LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
 
@@ -358,10 +354,9 @@ void f(List<String> list) {
   }
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode.name ==
-              LintNames.avoid_function_literals_in_foreach_calls,
+      errorFilter: (error) =>
+          error.diagnosticCode.name ==
+          LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
 
@@ -385,10 +380,9 @@ void f(List<String> list) {
   }
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode.name ==
-              LintNames.avoid_function_literals_in_foreach_calls,
+      errorFilter: (error) =>
+          error.diagnosticCode.name ==
+          LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
 
@@ -399,10 +393,9 @@ void f(List<String> list) {
 }
 ''');
     await assertNoFix(
-      errorFilter:
-          (error) =>
-              error.diagnosticCode.name ==
-              LintNames.avoid_function_literals_in_foreach_calls,
+      errorFilter: (error) =>
+          error.diagnosticCode.name ==
+          LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
 

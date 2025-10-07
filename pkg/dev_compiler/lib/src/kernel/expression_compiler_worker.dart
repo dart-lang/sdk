@@ -168,16 +168,17 @@ class ExpressionCompilerWorker {
     var parsedArgs = argParser.parse(args);
 
     FileSystem fileSystem = StandardFileSystem.instance;
-    var multiRoots = (parsedArgs['multi-root'] as Iterable<String>)
+    var multiRoots = parsedArgs
+        .multiOption('multi-root')
         .map(Uri.base.resolve)
         .toList();
-    var multiRootScheme = parsedArgs['multi-root-scheme'] as String;
+    var multiRootScheme = parsedArgs.option('multi-root-scheme')!;
     if (multiRoots.isNotEmpty) {
       fileSystem = MultiRootFileSystem(multiRootScheme, multiRoots, fileSystem);
     }
-    var assetServerAddress = parsedArgs['asset-server-address'] as String?;
+    var assetServerAddress = parsedArgs.option('asset-server-address');
     if (assetServerAddress != null) {
-      var assetServerPort = parsedArgs['asset-server-port'] as String?;
+      var assetServerPort = parsedArgs.option('asset-server-port');
       fileSystem = AssetFileSystem(
         fileSystem,
         assetServerAddress,
@@ -185,29 +186,25 @@ class ExpressionCompilerWorker {
       );
     }
     var explicitExperimentalFlags = parseExperimentalFlags(
-      parseExperimentalArguments(
-        parsedArgs['enable-experiment'] as List<String>,
-      ),
+      parseExperimentalArguments(parsedArgs.multiOption('enable-experiment')),
       onError: (e) => throw e,
     );
 
-    var moduleFormat = parseModuleFormat(parsedArgs['module-format'] as String);
+    var moduleFormat = parseModuleFormat(parsedArgs.option('module-format')!);
 
     return create(
-      librariesSpecificationUri: _argToUri(
-        parsedArgs['libraries-file'] as String?,
-      ),
-      packagesFile: _argToUri(parsedArgs['packages-file'] as String?),
-      sdkSummary: _argToUri(parsedArgs['dart-sdk-summary'] as String?),
+      librariesSpecificationUri: _argToUri(parsedArgs.option('libraries-file')),
+      packagesFile: _argToUri(parsedArgs.option('packages-file')),
+      sdkSummary: _argToUri(parsedArgs.option('dart-sdk-summary')),
       fileSystem: fileSystem,
       environmentDefines: environmentDefines,
       explicitExperimentalFlags: explicitExperimentalFlags,
-      sdkRoot: _argToUri(parsedArgs['sdk-root'] as String?),
-      trackWidgetCreation: parsedArgs['track-widget-creation'] as bool,
+      sdkRoot: _argToUri(parsedArgs.option('sdk-root')),
+      trackWidgetCreation: parsedArgs.flag('track-widget-creation'),
       moduleFormat: moduleFormat,
-      canaryFeatures: parsedArgs['canary'] as bool,
-      enableAsserts: parsedArgs['enable-asserts'] as bool,
-      verbose: parsedArgs['verbose'] as bool,
+      canaryFeatures: parsedArgs.flag('canary'),
+      enableAsserts: parsedArgs.flag('enable-asserts'),
+      verbose: parsedArgs.flag('verbose'),
       requestStream: requestStream,
       sendResponse: sendResponse,
       onDone: () {

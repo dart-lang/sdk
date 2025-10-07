@@ -731,10 +731,13 @@ class Class extends core::Object {
     ;
 }
 extension Extension on core::int? {
-  field extensionInstanceFieldAndSetter = self::Extension|extensionInstanceFieldAndSetter;
-  field extensionInstanceFieldAndDuplicateSetter = self::Extension|extensionInstanceFieldAndDuplicateSetter;
-  field duplicateExtensionInstanceFieldAndSetter1 = self::Extension|duplicateExtensionInstanceFieldAndSetter1;
-  field duplicateExtensionInstanceFieldAndSetter2 = self::Extension|duplicateExtensionInstanceFieldAndSetter2;
+  get extensionInstanceFieldAndSetter = self::Extension|get#extensionInstanceFieldAndSetter;
+  set extensionInstanceFieldAndSetter = self::Extension|set#extensionInstanceFieldAndSetter;
+  get extensionInstanceFieldAndDuplicateSetter = self::Extension|get#extensionInstanceFieldAndDuplicateSetter;
+  set extensionInstanceFieldAndDuplicateSetter = self::Extension|set#extensionInstanceFieldAndDuplicateSetter;
+  get duplicateExtensionInstanceFieldAndSetter1 = self::Extension|get#duplicateExtensionInstanceFieldAndSetter1;
+  set duplicateExtensionInstanceFieldAndSetter1 = self::Extension|set#duplicateExtensionInstanceFieldAndSetter1;
+  get duplicateExtensionInstanceFieldAndSetter2 = self::Extension|get#duplicateExtensionInstanceFieldAndSetter2;
   set duplicateExtensionInstanceFieldAndSetter2 = self::Extension|set#duplicateExtensionInstanceFieldAndSetter2;
   static field extensionStaticFieldAndSetter = self::Extension|extensionStaticFieldAndSetter;
   static field extensionStaticFieldAndDuplicateSetter = self::Extension|extensionStaticFieldAndDuplicateSetter;
@@ -745,10 +748,13 @@ extension Extension on core::int? {
   static field extensionStaticLateFinalFieldAndDuplicateSetter = self::Extension|extensionStaticLateFinalFieldAndDuplicateSetter;
   static field extensionStaticFieldAndInstanceSetter = self::Extension|extensionStaticFieldAndInstanceSetter;
   static field extensionStaticFieldAndInstanceDuplicateSetter = self::Extension|extensionStaticFieldAndInstanceDuplicateSetter;
-  field extensionInstanceFieldAndStaticSetter = self::Extension|extensionInstanceFieldAndStaticSetter;
-  field extensionInstanceFieldAndStaticDuplicateSetter = self::Extension|extensionInstanceFieldAndStaticDuplicateSetter;
-  field duplicateExtensionInstanceFieldAndStaticSetter1 = self::Extension|duplicateExtensionInstanceFieldAndStaticSetter1;
-  field duplicateExtensionInstanceFieldAndStaticSetter2 = self::Extension|duplicateExtensionInstanceFieldAndStaticSetter2;
+  get extensionInstanceFieldAndStaticSetter = self::Extension|get#extensionInstanceFieldAndStaticSetter;
+  set extensionInstanceFieldAndStaticSetter = self::Extension|set#extensionInstanceFieldAndStaticSetter;
+  get extensionInstanceFieldAndStaticDuplicateSetter = self::Extension|get#extensionInstanceFieldAndStaticDuplicateSetter;
+  set extensionInstanceFieldAndStaticDuplicateSetter = self::Extension|set#extensionInstanceFieldAndStaticDuplicateSetter;
+  get duplicateExtensionInstanceFieldAndStaticSetter1 = self::Extension|get#duplicateExtensionInstanceFieldAndStaticSetter1;
+  set duplicateExtensionInstanceFieldAndStaticSetter1 = self::Extension|set#duplicateExtensionInstanceFieldAndStaticSetter1;
+  get duplicateExtensionInstanceFieldAndStaticSetter2 = self::Extension|get#duplicateExtensionInstanceFieldAndStaticSetter2;
   static field duplicateExtensionStaticFieldAndInstanceSetter1 = self::Extension|duplicateExtensionStaticFieldAndInstanceSetter1;
   static field duplicateExtensionStaticFieldAndInstanceSetter2 = self::Extension|duplicateExtensionStaticFieldAndInstanceSetter2;
 }
@@ -758,10 +764,6 @@ static field core::int? duplicateTopLevelFieldAndSetter1;
 static final field core::int? duplicateTopLevelFieldAndSetter2;
 late static final [setter] field core::int? topLevelLateFinalFieldAndSetter;
 late static final [setter] field core::int? topLevelLateFinalFieldAndDuplicateSetter;
-static field core::int? Extension|extensionInstanceFieldAndSetter;
-static field core::int? Extension|extensionInstanceFieldAndDuplicateSetter;
-static field core::int? Extension|duplicateExtensionInstanceFieldAndSetter1;
-static final field core::int? Extension|duplicateExtensionInstanceFieldAndSetter2;
 static field core::int? Extension|extensionStaticFieldAndSetter;
 static field core::int? Extension|extensionStaticFieldAndDuplicateSetter;
 static field core::int? Extension|duplicateExtensionStaticFieldAndSetter1;
@@ -770,18 +772,28 @@ late static final [setter] field core::int? Extension|extensionStaticLateFinalFi
 late static final [setter] field core::int? Extension|extensionStaticLateFinalFieldAndDuplicateSetter;
 static field core::int? Extension|extensionStaticFieldAndInstanceSetter;
 static field core::int? Extension|extensionStaticFieldAndInstanceDuplicateSetter;
-static field core::int? Extension|extensionInstanceFieldAndStaticSetter;
-static field core::int? Extension|extensionInstanceFieldAndStaticDuplicateSetter;
-static field core::int? Extension|duplicateExtensionInstanceFieldAndStaticSetter1;
-static final field core::int? Extension|duplicateExtensionInstanceFieldAndStaticSetter2;
 static field core::int? Extension|duplicateExtensionStaticFieldAndInstanceSetter1;
 static final field core::int? Extension|duplicateExtensionStaticFieldAndInstanceSetter2;
 static set duplicateTopLevelFieldAndSetter2(core::int? value) → void
   ;
+static abstract extension-member method Extension|get#extensionInstanceFieldAndSetter(lowered core::int? #this) → core::int?;
+static abstract extension-member method Extension|set#extensionInstanceFieldAndSetter(lowered core::int? #this, synthesized core::int? #externalFieldValue) → void;
+static abstract extension-member method Extension|get#extensionInstanceFieldAndDuplicateSetter(lowered core::int? #this) → core::int?;
+static abstract extension-member method Extension|set#extensionInstanceFieldAndDuplicateSetter(lowered core::int? #this, synthesized core::int? #externalFieldValue) → void;
+static abstract extension-member method Extension|get#duplicateExtensionInstanceFieldAndSetter1(lowered core::int? #this) → core::int?;
+static abstract extension-member method Extension|set#duplicateExtensionInstanceFieldAndSetter1(lowered core::int? #this, synthesized core::int? #externalFieldValue) → void;
+static abstract extension-member method Extension|get#duplicateExtensionInstanceFieldAndSetter2(lowered core::int? #this) → core::int?;
 static extension-member method Extension|set#duplicateExtensionInstanceFieldAndSetter2(lowered final core::int? #this, core::int? value) → void
   ;
 static extension-member set Extension|duplicateExtensionStaticFieldAndSetter2(core::int? value) → void
   ;
+static abstract extension-member method Extension|get#extensionInstanceFieldAndStaticSetter(lowered core::int? #this) → core::int?;
+static abstract extension-member method Extension|set#extensionInstanceFieldAndStaticSetter(lowered core::int? #this, synthesized core::int? #externalFieldValue) → void;
+static abstract extension-member method Extension|get#extensionInstanceFieldAndStaticDuplicateSetter(lowered core::int? #this) → core::int?;
+static abstract extension-member method Extension|set#extensionInstanceFieldAndStaticDuplicateSetter(lowered core::int? #this, synthesized core::int? #externalFieldValue) → void;
+static abstract extension-member method Extension|get#duplicateExtensionInstanceFieldAndStaticSetter1(lowered core::int? #this) → core::int?;
+static abstract extension-member method Extension|set#duplicateExtensionInstanceFieldAndStaticSetter1(lowered core::int? #this, synthesized core::int? #externalFieldValue) → void;
+static abstract extension-member method Extension|get#duplicateExtensionInstanceFieldAndStaticSetter2(lowered core::int? #this) → core::int?;
 static method test() → dynamic
   ;
 static method main() → dynamic

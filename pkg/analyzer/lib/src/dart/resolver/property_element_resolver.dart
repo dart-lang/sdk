@@ -924,7 +924,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (targetType is InterfaceTypeImpl) {
       if (hasRead) {
-        var name = Name(_definingLibrary.source.uri, propertyName.name);
+        var name = Name(_definingLibrary.uri, propertyName.name);
         readElement = _resolver.inheritance.getMember(
           targetType.element,
           name,

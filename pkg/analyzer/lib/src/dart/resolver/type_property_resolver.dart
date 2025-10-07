@@ -240,7 +240,7 @@ class TypePropertyResolver {
   }
 
   void _lookupExtension(TypeImpl type) {
-    var getterName = Name(_definingLibrary.source.uri, _name);
+    var getterName = Name(_definingLibrary.uri, _name);
     var result = _extensionResolver.findExtension(
       type,
       _nameErrorEntity,
@@ -267,7 +267,7 @@ class TypePropertyResolver {
     var isSuper = _receiver is SuperExpression;
 
     if (_hasRead) {
-      var getterName = Name(_definingLibrary.source.uri, _name);
+      var getterName = Name(_definingLibrary.uri, _name);
       _getterRequested = _resolver.inheritance.getMember3(
         type,
         getterName,
@@ -285,7 +285,7 @@ class TypePropertyResolver {
     }
 
     if (_hasWrite) {
-      var setterName = Name(_definingLibrary.source.uri, '$_name=');
+      var setterName = Name(_definingLibrary.uri, '$_name=');
       _setterRequested = _resolver.inheritance.getMember3(
         type,
         setterName,
@@ -307,7 +307,7 @@ class TypePropertyResolver {
     // if there is the setter, i.e. the basename at all. If there is, we
     // should not check extensions.
     if (_hasRead && _getterRequested == null) {
-      var setterName = Name(_definingLibrary.source.uri, '$_name=');
+      var setterName = Name(_definingLibrary.uri, '$_name=');
       _setterRequested = _resolver.inheritance.getMember3(
         type,
         setterName,
@@ -316,7 +316,7 @@ class TypePropertyResolver {
     }
 
     if (_hasWrite && _setterRequested == null) {
-      var getterName = Name(_definingLibrary.source.uri, _name);
+      var getterName = Name(_definingLibrary.uri, _name);
       _getterRequested = _resolver.inheritance.getMember3(
         type,
         getterName,

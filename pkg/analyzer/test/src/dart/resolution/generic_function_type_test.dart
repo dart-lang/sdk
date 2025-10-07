@@ -77,7 +77,7 @@ TypeParameter
         token: a
         element: <testLibrary>::@getter::a
         staticType: null
-      element2: <testLibrary>::@getter::a
+      element: <testLibrary>::@getter::a
   name: T
   declaredElement: <testLibraryFragment> T@27
     defaultType: null

@@ -48,7 +48,7 @@ ForStatement
     loopVariable: DeclaredIdentifier
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: v
       declaredFragment: isPublic v@56
@@ -205,7 +205,7 @@ ForStatement
     loopVariable: DeclaredIdentifier
       type: NamedType
         name: dynamic
-        element2: dynamic
+        element: dynamic
         type: dynamic
       name: v
       declaredFragment: isPublic v@42
@@ -729,7 +729,7 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@27
@@ -870,7 +870,7 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredFragment: isPublic a@38
@@ -1063,7 +1063,7 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@39
@@ -1220,7 +1220,7 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredFragment: isPublic a@52
@@ -1306,7 +1306,7 @@ ForStatement
         leftParenthesis: (
         pattern: AssignedVariablePattern
           name: a
-          element2: a@17
+          element: a@17
           matchedValueType: int
         rightParenthesis: )
         matchedValueType: int
@@ -1395,7 +1395,7 @@ ForStatement
                 element: hasImplicitType isPublic
                   type: int
               matchedValueType: int
-            element2: <null>
+            element: <null>
           PatternField
             pattern: DeclaredVariablePattern
               name: b
@@ -1403,7 +1403,7 @@ ForStatement
                 element: hasImplicitType isPublic
                   type: bool
               matchedValueType: bool
-            element2: <null>
+            element: <null>
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
@@ -1425,9 +1425,9 @@ ForStatement
           element: a@36
           staticType: null
         operator: --
-        readElement2: a@36
+        readElement: a@36
         readType: int
-        writeElement2: a@36
+        writeElement: a@36
         writeType: int
         element: dart:core::@class::num::@method::-
         staticType: int

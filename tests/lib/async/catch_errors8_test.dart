@@ -9,9 +9,9 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
   // Test nested `catchErrors`.
@@ -22,10 +22,10 @@ main() {
     events.add("catch error entry");
     catchErrors(() {
       events.add("catch error entry2");
-      new Future.error("future error");
-      new Future.error("future error2");
-      new Future.value(499).then((x) => throw x);
-      new Future.delayed(const Duration(milliseconds: 50), () {
+      Future.error("future error");
+      Future.error("future error2");
+      Future.value(499).then((x) => throw x);
+      Future.delayed(const Duration(milliseconds: 50), () {
         throw "delayed error";
       });
       throw "catch error";

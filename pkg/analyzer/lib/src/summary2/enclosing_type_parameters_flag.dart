@@ -21,11 +21,9 @@ class EnclosingTypeParameterReferenceFlag {
             for (var field in topElement.fields) {
               if (!field.isSynthetic || field.isEnumValues) {
                 var result = _hasTypeParameterReference(topElement, field.type);
-                field.firstFragment.hasEnclosingTypeParameterReference = result;
-                field.getter?.firstFragment.hasEnclosingTypeParameterReference =
-                    result;
-                field.setter?.firstFragment.hasEnclosingTypeParameterReference =
-                    result;
+                field.hasEnclosingTypeParameterReference = result;
+                field.getter?.hasEnclosingTypeParameterReference = result;
+                field.setter?.hasEnclosingTypeParameterReference = result;
               }
             }
 
@@ -36,40 +34,27 @@ class EnclosingTypeParameterReferenceFlag {
                   topElement,
                   propertyAccessor.type,
                 );
-                propertyAccessor
-                        .firstFragment
-                        .hasEnclosingTypeParameterReference =
-                    result;
+                propertyAccessor.hasEnclosingTypeParameterReference = result;
                 if (propertyAccessor.variable case FieldElementImpl field) {
-                  field.firstFragment.hasEnclosingTypeParameterReference =
-                      result;
+                  field.hasEnclosingTypeParameterReference = result;
                 }
               }
             }
 
             for (var method in topElement.methods) {
-              method.firstFragment.hasEnclosingTypeParameterReference =
+              method.hasEnclosingTypeParameterReference =
                   _hasTypeParameterReference(topElement, method.type);
             }
           case PropertyAccessorElementImpl():
             // Top-level accessors don't have type parameters.
             if (!topElement.isSynthetic) {
-              topElement.firstFragment.hasEnclosingTypeParameterReference =
-                  false;
+              topElement.hasEnclosingTypeParameterReference = false;
             }
           case TopLevelVariableElementImpl():
             // Top-level variables dont have type parameters.
             if (!topElement.isSynthetic) {
-              topElement
-                      .getter
-                      ?.firstFragment
-                      .hasEnclosingTypeParameterReference =
-                  false;
-              topElement
-                      .setter
-                      ?.firstFragment
-                      .hasEnclosingTypeParameterReference =
-                  false;
+              topElement.getter?.hasEnclosingTypeParameterReference = false;
+              topElement.setter?.hasEnclosingTypeParameterReference = false;
             }
         }
       }

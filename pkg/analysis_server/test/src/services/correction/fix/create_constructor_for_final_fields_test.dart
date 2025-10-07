@@ -26,8 +26,7 @@ void main() {
 class CreateConstructorForFinalFieldsRequiredNamedTest
     extends FixProcessorTest {
   @override
-  FixKind get kind =>
-      DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS_REQUIRED_NAMED;
+  FixKind get kind => DartFixKind.createConstructorForFinalFieldsRequiredNamed;
 
   Future<void> test_class_excludesLate() async {
     await resolveTestCode('''
@@ -366,7 +365,7 @@ enum E {
 class CreateConstructorForFinalFieldsRequiredPositionalTest
     extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
+  FixKind get kind => DartFixKind.createConstructorForFinalFields;
 
   Future<void> test_class_excludesLate() async {
     await resolveTestCode('''
@@ -593,7 +592,7 @@ final int v;
 class CreateConstructorForFinalFieldsWithoutSuperParametersTest
     extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
+  FixKind get kind => DartFixKind.createConstructorForFinalFields;
 
   @override
   String get testPackageLanguageVersion => '2.16';

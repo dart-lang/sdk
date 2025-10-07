@@ -172,8 +172,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the actual argument type
-  /// DartType p1: the name of the expected type
+  /// Type p0: the name of the actual argument type
+  /// Type p1: the name of the expected type
   /// String p2: additional information, if any, when problem is associated with
   ///            records
   static const CompileTimeErrorTemplate<
@@ -504,7 +504,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the return type
+  /// Type p0: the name of the return type
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -633,7 +633,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the this of the switch case expression
+  /// Type p0: the this of the switch case expression
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -646,8 +646,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type of the case expression
-  /// DartType p1: the type of the switch expression
+  /// Type p0: the type of the case expression
+  /// Type p1: the type of the switch expression
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -1522,8 +1522,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// DartType p0: the name of the type of the initializer expression
-  /// DartType p1: the name of the type of the field
+  /// Type p0: the name of the type of the initializer expression
+  /// Type p1: the name of the type of the field
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -1575,7 +1575,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// DartType p0: the type of the entry's key
+  /// Type p0: the type of the entry's key
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -1606,7 +1606,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type of the element
+  /// Type p0: the type of the element
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -2280,7 +2280,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// DartType p0: the name of the disallowed type
+  /// Type p0: the name of the disallowed type
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -2386,8 +2386,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type of the argument
-  /// DartType p1: the extended type
+  /// Type p0: the type of the argument
+  /// Type p1: the extended type
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -2466,7 +2466,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the display string of the disallowed type
+  /// Type p0: the display string of the disallowed type
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -2492,8 +2492,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the implemented not extension type
-  /// DartType p1: the ultimate representation type
+  /// Type p0: the implemented not extension type
+  /// Type p1: the ultimate representation type
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -2508,9 +2508,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the representation type of the implemented extension type
+  /// Type p0: the representation type of the implemented extension type
   /// String p1: the name of the implemented extension type
-  /// DartType p2: the representation type of the this extension type
+  /// Type p2: the representation type of the this extension type
   /// String p3: the name of the this extension type
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({
@@ -2705,8 +2705,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the type of the initializer expression
-  /// DartType p1: the name of the type of the field
+  /// Type p0: the name of the type of the initializer expression
+  /// Type p1: the name of the type of the field
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -2740,8 +2740,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the type of the field formal parameter
-  /// DartType p1: the name of the type of the field
+  /// Type p0: the name of the type of the field formal parameter
+  /// Type p1: the name of the type of the field
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -2887,10 +2887,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type of the iterable expression.
+  /// Type p0: the type of the iterable expression.
   /// String p1: the sequence type -- Iterable for `for` or Stream for `await
   ///            for`.
-  /// DartType p2: the loop variable type.
+  /// Type p2: the loop variable type.
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({
       required DartType p0,
@@ -2908,7 +2908,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type of the iterable expression.
+  /// Type p0: the type of the iterable expression.
   /// String p1: the sequence type -- Iterable for `for` or Stream for `await
   ///            for`.
   static const CompileTimeErrorTemplate<
@@ -3168,7 +3168,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// DartType p0: the name of the disallowed type
+  /// Type p0: the name of the disallowed type
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -3236,7 +3236,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the superclass
+  /// Type p0: the name of the superclass
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -3621,8 +3621,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the right hand side type
-  /// DartType p1: the name of the left hand side type
+  /// Type p0: the name of the right hand side type
+  /// Type p1: the name of the left hand side type
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -3971,9 +3971,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String p0: the name of the declared member that is not a valid override.
   /// String p1: the name of the interface that declares the member.
-  /// DartType p2: the type of the declared member in the interface.
+  /// Type p2: the type of the declared member in the interface.
   /// String p3: the name of the interface with the overridden member.
-  /// DartType p4: the type of the overridden member.
+  /// Type p4: the type of the overridden member.
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({
       required String p0,
@@ -4031,11 +4031,23 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   invalidReferenceToGenerativeEnumConstructor = CompileTimeErrorWithoutArguments(
     'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
-    "Generative enum constructors can only be used as targets of redirection.",
+    "Generative enum constructors can only be used to create an enum constant.",
     correctionMessage: "Try using an enum value, or a factory constructor.",
     hasPublishedDocs: true,
     expectedTypes: [],
   );
+
+  /// No parameters.
+  static const CompileTimeErrorWithoutArguments
+  invalidReferenceToGenerativeEnumConstructorTearoff =
+      CompileTimeErrorWithoutArguments(
+        'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
+        "Generative enum constructors can't be torn off.",
+        correctionMessage: "Try using an enum value, or a factory constructor.",
+        hasPublishedDocs: true,
+        uniqueName: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF',
+        expectedTypes: [],
+      );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments invalidReferenceToThis =
@@ -4238,8 +4250,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// DartType p0: the actual type of the list element
-  /// DartType p1: the expected type of the list element
+  /// Type p0: the actual type of the list element
+  /// Type p1: the expected type of the list element
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -4252,8 +4264,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the actual type of the list element
-  /// DartType p1: the expected type of the list element
+  /// Type p0: the actual type of the list element
+  /// Type p1: the expected type of the list element
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -4324,8 +4336,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// DartType p0: the type of the expression being used as a key
-  /// DartType p1: the type of keys declared for the map
+  /// Type p0: the type of the expression being used as a key
+  /// Type p1: the type of keys declared for the map
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -4338,8 +4350,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type of the expression being used as a key
-  /// DartType p1: the type of keys declared for the map
+  /// Type p0: the type of the expression being used as a key
+  /// Type p1: the type of keys declared for the map
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -4353,8 +4365,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type of the expression being used as a value
-  /// DartType p1: the type of values declared for the map
+  /// Type p0: the type of the expression being used as a value
+  /// Type p1: the type of values declared for the map
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -4367,8 +4379,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type of the expression being used as a value
-  /// DartType p1: the type of values declared for the map
+  /// Type p0: the type of the expression being used as a value
+  /// Type p1: the type of values declared for the map
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -4525,10 +4537,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String p0: the name of the super-invoked member
-  /// DartType p1: the display name of the type of the super-invoked member in
-  ///              the mixin
-  /// DartType p2: the display name of the type of the concrete member in the
-  ///              class
+  /// Type p1: the display name of the type of the super-invoked member in the
+  ///          mixin
+  /// Type p2: the display name of the type of the concrete member in the class
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({
       required String p0,
@@ -4577,9 +4588,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the display name of the mixin
-  /// DartType p1: the display name of the superclass
-  /// DartType p2: the display name of the type that is not implemented
+  /// Type p0: the display name of the mixin
+  /// Type p1: the display name of the superclass
+  /// Type p2: the display name of the type that is not implemented
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({
       required DartType p0,
@@ -4662,7 +4673,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// DartType p0: the name of the disallowed type
+  /// Type p0: the name of the disallowed type
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -4765,7 +4776,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the disallowed type
+  /// Type p0: the name of the disallowed type
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -4926,8 +4937,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the superclass that does not define an implicitly
-  ///              invoked constructor
+  /// Type p0: the name of the superclass that does not define an implicitly
+  ///          invoked constructor
   /// String p1: the name of the subclass that does not contain any explicit
   ///            constructors
   static const CompileTimeErrorTemplate<
@@ -5358,7 +5369,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// DartType p0: the type of the switch scrutinee
+  /// Type p0: the type of the switch scrutinee
   /// String p1: the witness pattern for the unmatched value
   /// String p2: the suggested pattern for the unmatched value
   static const CompileTimeErrorTemplate<
@@ -5384,7 +5395,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type of the switch scrutinee
+  /// Type p0: the type of the switch scrutinee
   /// String p1: the witness pattern for the unmatched value
   /// String p2: the suggested pattern for the unmatched value
   static const CompileTimeErrorTemplate<
@@ -5874,8 +5885,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the matched type
-  /// DartType p1: the required type
+  /// Type p0: the matched type
+  /// Type p1: the required type
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -6296,8 +6307,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the redirected constructor
-  /// DartType p1: the name of the redirecting constructor
+  /// Type p0: the name of the redirected constructor
+  /// Type p1: the name of the redirecting constructor
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -6311,8 +6322,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the redirected constructor's return type
-  /// DartType p1: the name of the redirecting constructor's return type
+  /// Type p0: the name of the redirected constructor's return type
+  /// Type p1: the name of the redirecting constructor's return type
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -6328,7 +6339,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String p0: the name of the constructor
-  /// DartType p1: the name of the class containing the constructor
+  /// Type p1: the name of the class containing the constructor
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
@@ -6410,8 +6421,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the operand type
-  /// DartType p1: the parameter type of the invoked operator
+  /// Type p0: the operand type
+  /// Type p1: the parameter type of the invoked operator
   /// String p2: the name of the invoked operator
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({
@@ -6489,8 +6500,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the return type as declared in the return statement
-  /// DartType p1: the expected return type as defined by the method
+  /// Type p0: the return type as declared in the return statement
+  /// Type p1: the expected return type as defined by the method
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -6504,8 +6515,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the return type as declared in the return statement
-  /// DartType p1: the expected return type as defined by the enclosing class
+  /// Type p0: the return type as declared in the return statement
+  /// Type p1: the expected return type as defined by the enclosing class
   /// String p2: the name of the constructor
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({
@@ -6525,8 +6536,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the return type as declared in the return statement
-  /// DartType p1: the expected return type as defined by the method
+  /// Type p0: the return type as declared in the return statement
+  /// Type p1: the expected return type as defined by the method
   /// String p2: the name of the method
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({
@@ -6546,8 +6557,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type of the expression in the return statement
-  /// DartType p1: the expected return type as defined by the method
+  /// Type p0: the type of the expression in the return statement
+  /// Type p1: the expected return type as defined by the method
   /// String p2: the name of the method
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({
@@ -6606,8 +6617,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the actual type of the set element
-  /// DartType p1: the expected type of the set element
+  /// Type p0: the actual type of the set element
+  /// Type p1: the expected type of the set element
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -6620,8 +6631,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the actual type of the set element
-  /// DartType p1: the expected type of the set element
+  /// Type p0: the actual type of the set element
+  /// Type p1: the expected type of the set element
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -6702,8 +6713,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type of super-parameter
-  /// DartType p1: the type of associated super-constructor parameter
+  /// Type p0: the type of super-parameter
+  /// Type p1: the type of associated super-constructor parameter
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -6841,7 +6852,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// DartType p0: the type that can't be thrown
+  /// Type p0: the type that can't be thrown
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -6900,11 +6911,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the type used in the instance creation that
-  ///              should be limited by the bound as specified in the class
-  ///              declaration
+  /// Type p0: the name of the type used in the instance creation that should be
+  ///          limited by the bound as specified in the class declaration
   /// String p1: the name of the type parameter
-  /// DartType p2: the substituted bound of the type parameter
+  /// Type p2: the substituted bound of the type parameter
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({
       required DartType p0,
@@ -6937,7 +6947,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String p0: the name of the type parameter
-  /// DartType p1: the name of the bounding type
+  /// Type p1: the name of the bounding type
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
@@ -7149,8 +7159,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the superclass that does not define the invoked
-  ///              constructor
+  /// Type p0: the name of the superclass that does not define the invoked
+  ///          constructor
   /// String p1: the name of the constructor being invoked
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required String p1})
@@ -7432,8 +7442,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String p0: the name of the operator
-  /// DartType p1: the name of the enclosing type where the operator is being
-  ///              looked for
+  /// Type p1: the name of the enclosing type where the operator is being looked
+  ///          for
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
@@ -7466,8 +7476,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String p0: the name of the setter
-  /// DartType p1: the name of the enclosing type where the setter is being
-  ///              looked for
+  /// Type p1: the name of the enclosing type where the setter is being looked
+  ///          for
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
@@ -7503,8 +7513,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String p0: the name of the getter
-  /// DartType p1: the name of the enclosing type where the getter is being
-  ///              looked for
+  /// Type p1: the name of the enclosing type where the getter is being looked
+  ///          for
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
@@ -7540,8 +7550,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String p0: the name of the operator
-  /// DartType p1: the name of the enclosing type where the operator is being
-  ///              looked for
+  /// Type p1: the name of the enclosing type where the operator is being looked
+  ///          for
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
@@ -7557,8 +7567,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String p0: the name of the setter
-  /// DartType p1: the name of the enclosing type where the setter is being
-  ///              looked for
+  /// Type p1: the name of the enclosing type where the setter is being looked
+  ///          for
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
@@ -7910,7 +7920,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the method being referenced (<i>G</i>)
+  /// Type p0: the name of the method being referenced (<i>G</i>)
   /// int p1: the number of type parameters that were declared
   /// int p2: the number of type arguments provided
   static const CompileTimeErrorTemplate<
@@ -7936,7 +7946,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String p0: the name of the type parameter
-  /// DartType p1: the name of the super interface
+  /// Type p1: the name of the super interface
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
@@ -8003,8 +8013,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type of the expression after `yield*`
-  /// DartType p1: the return type of the function containing the `yield*`
+  /// Type p0: the type of the expression after `yield*`
+  /// Type p1: the return type of the function containing the `yield*`
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -8034,8 +8044,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the type of the expression after `yield`
-  /// DartType p1: the return type of the function containing the `yield`
+  /// Type p0: the type of the expression after `yield`
+  /// Type p1: the return type of the function containing the `yield`
   static const CompileTimeErrorTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -10620,8 +10630,8 @@ final class StaticWarningWithoutArguments extends StaticWarningCode
 
 class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
-  /// DartType p0: the name of the actual argument type
-  /// DartType p1: the name of the expected function return type
+  /// Type p0: the name of the actual argument type
+  /// Type p1: the name of the expected function return type
   static const WarningTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -10652,7 +10662,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the return type as derived by the type of the [Future].
+  /// Type p0: the return type as derived by the type of the [Future].
   static const WarningTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -10667,7 +10677,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the name of the declared return type
+  /// Type p0: the name of the declared return type
   static const WarningTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -10711,8 +10721,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// DartType p0: the matched value type
-  /// DartType p1: the constant value type
+  /// Type p0: the matched value type
+  /// Type p1: the constant value type
   static const WarningTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -10776,8 +10786,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// `A` was already caught.
   ///
   /// Parameters:
-  /// DartType p0: name of the subtype
-  /// DartType p1: name of the supertype
+  /// Type p0: name of the subtype
+  /// Type p1: name of the supertype
   static const WarningTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -10808,9 +10818,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// Object p0: the name of the member
+  /// Object typeName: the name of the type
   static const WarningTemplate<
-    LocatableDiagnostic Function({required Object p0})
+    LocatableDiagnostic Function({required Object typeName})
   >
   deprecatedExtend = WarningTemplate(
     'DEPRECATED_EXTEND',
@@ -10833,9 +10843,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// Object p0: the name of the member
+  /// Object typeName: the name of the type
   static const WarningTemplate<
-    LocatableDiagnostic Function({required Object p0})
+    LocatableDiagnostic Function({required Object typeName})
   >
   deprecatedImplement = WarningTemplate(
     'DEPRECATED_IMPLEMENT',
@@ -10859,9 +10869,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// Object p0: the name of the member
+  /// Object typeName: the name of the type
   static const WarningTemplate<
-    LocatableDiagnostic Function({required Object p0})
+    LocatableDiagnostic Function({required Object typeName})
   >
   deprecatedInstantiate = WarningTemplate(
     'DEPRECATED_INSTANTIATE',
@@ -10869,6 +10879,19 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try instantiating a non-abstract class.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDeprecatedInstantiate,
+    expectedTypes: [ExpectedType.object],
+  );
+
+  /// Parameters:
+  /// Object typeName: the name of the type
+  static const WarningTemplate<
+    LocatableDiagnostic Function({required Object typeName})
+  >
+  deprecatedMixin = WarningTemplate(
+    'DEPRECATED_MIXIN',
+    "Mixing in '{0}' is deprecated.",
+    correctionMessage: "Try removing '{0}' from the 'with' clause.",
+    withArguments: _withArgumentsDeprecatedMixin,
     expectedTypes: [ExpectedType.object],
   );
 
@@ -10894,9 +10917,22 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// Object p0: the name of the member
+  /// Object parameterName: the name of the parameter
   static const WarningTemplate<
-    LocatableDiagnostic Function({required Object p0})
+    LocatableDiagnostic Function({required Object parameterName})
+  >
+  deprecatedOptional = WarningTemplate(
+    'DEPRECATED_OPTIONAL',
+    "Omitting an argument for the '{0}' parameter is deprecated.",
+    correctionMessage: "Try passing an argument for '{0}'.",
+    withArguments: _withArgumentsDeprecatedOptional,
+    expectedTypes: [ExpectedType.object],
+  );
+
+  /// Parameters:
+  /// Object typeName: the name of the type
+  static const WarningTemplate<
+    LocatableDiagnostic Function({required Object typeName})
   >
   deprecatedSubclass = WarningTemplate(
     'DEPRECATED_SUBCLASS',
@@ -11196,6 +11232,18 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     expectedTypes: [],
   );
 
+  /// Parameters:
+  /// String member: the name of the member
+  static const WarningTemplate<
+    LocatableDiagnostic Function({required String member})
+  >
+  experimentalMemberUse = WarningTemplate(
+    'EXPERIMENTAL_MEMBER_USE',
+    "'{0}' is experimental and could be removed or changed at any time.",
+    withArguments: _withArgumentsExperimentalMemberUse,
+    expectedTypes: [ExpectedType.string],
+  );
+
   /// When "strict-inference" is enabled, collection literal types must be
   /// inferred via the context type, or have type arguments.
   ///
@@ -11235,8 +11283,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
   ///
   /// Parameters:
-  /// String p0: the name of the function or method whose return type couldn't
-  ///            be inferred
+  /// String p0: the name of the function or method whose return type can't be
+  ///            inferred
   static const WarningTemplate<
     LocatableDiagnostic Function({required String p0})
   >
@@ -11370,6 +11418,33 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     hasPublishedDocs: true,
     expectedTypes: [],
   );
+
+  /// This warning is generated anywhere where `@Deprecated.mixin` annotates
+  /// something other than a mixin class.
+  ///
+  /// No parameters.
+  static const WarningWithoutArguments invalidDeprecatedMixinAnnotation =
+      WarningWithoutArguments(
+        'INVALID_DEPRECATED_MIXIN_ANNOTATION',
+        "The annotation '@Deprecated.mixin' can only be applied to classes.",
+        correctionMessage: "Try removing the '@Deprecated.mixin' annotation.",
+        expectedTypes: [],
+      );
+
+  /// This warning is generated anywhere where `@Deprecated.optional`
+  /// annotates something other than an optional parameter.
+  ///
+  /// No parameters.
+  static const WarningWithoutArguments invalidDeprecatedOptionalAnnotation =
+      WarningWithoutArguments(
+        'INVALID_DEPRECATED_OPTIONAL_ANNOTATION',
+        "The annotation '@Deprecated.optional' can only be applied to optional "
+            "parameters.",
+        correctionMessage:
+            "Try removing the '@Deprecated.optional' annotation.",
+        hasPublishedDocs: true,
+        expectedTypes: [],
+      );
 
   /// No parameters.
   static const WarningWithoutArguments
@@ -11630,57 +11705,6 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         hasPublishedDocs: true,
         expectedTypes: [],
       );
-
-  /// This warning is generated anywhere where `@required` annotates a named
-  /// parameter with a default value.
-  ///
-  /// Parameters:
-  /// String p0: the name of the member
-  static const WarningTemplate<
-    LocatableDiagnostic Function({required String p0})
-  >
-  invalidRequiredNamedParam = WarningTemplate(
-    'INVALID_REQUIRED_NAMED_PARAM',
-    "The type parameter '{0}' is annotated with @required but only named "
-        "parameters without a default value can be annotated with it.",
-    correctionMessage: "Remove @required.",
-    withArguments: _withArgumentsInvalidRequiredNamedParam,
-    expectedTypes: [ExpectedType.string],
-  );
-
-  /// This warning is generated anywhere where `@required` annotates an optional
-  /// positional parameter.
-  ///
-  /// Parameters:
-  /// String p0: the name of the member
-  static const WarningTemplate<
-    LocatableDiagnostic Function({required String p0})
-  >
-  invalidRequiredOptionalPositionalParam = WarningTemplate(
-    'INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM',
-    "Incorrect use of the annotation @required on the optional positional "
-        "parameter '{0}'. Optional positional parameters cannot be required.",
-    correctionMessage: "Remove @required.",
-    withArguments: _withArgumentsInvalidRequiredOptionalPositionalParam,
-    expectedTypes: [ExpectedType.string],
-  );
-
-  /// This warning is generated anywhere where `@required` annotates a
-  /// non-optional positional parameter.
-  ///
-  /// Parameters:
-  /// String p0: the name of the member
-  static const WarningTemplate<
-    LocatableDiagnostic Function({required String p0})
-  >
-  invalidRequiredPositionalParam = WarningTemplate(
-    'INVALID_REQUIRED_POSITIONAL_PARAM',
-    "Redundant use of the annotation @required on the required positional "
-        "parameter '{0}'.",
-    correctionMessage: "Remove @required.",
-    withArguments: _withArgumentsInvalidRequiredPositionalParam,
-    expectedTypes: [ExpectedType.string],
-  );
 
   /// Parameters:
   /// String p0: the name of the member
@@ -12151,8 +12175,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// DartType p0: the matched value type
-  /// DartType p1: the required pattern type
+  /// Type p0: the matched value type
+  /// Type p1: the required pattern type
   static const WarningTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -12261,8 +12285,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the return type as declared in the return statement
-  /// DartType p1: the expected return type as defined by the type of the Future
+  /// Type p0: the return type as declared in the return statement
+  /// Type p1: the expected return type as defined by the type of the Future
   static const WarningTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -12277,8 +12301,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// DartType p0: the return type of the function
-  /// DartType p1: the expected return type as defined by the type of the Future
+  /// Type p0: the return type of the function
+  /// Type p1: the expected return type as defined by the type of the Future
   static const WarningTemplate<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
@@ -12304,7 +12328,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     "Tearing off a constructor requires the 'constructor-tearoffs' language "
         "feature.",
     correctionMessage:
-        "Try updating your pubspec.yaml to set the minimum SDK constraint to "
+        "Try updating your 'pubspec.yaml' to set the minimum SDK constraint to "
         "2.15 or higher, and running 'pub get'.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -12342,7 +12366,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// type arguments; instead, each type argument is instantiated to its bound.
   ///
   /// Parameters:
-  /// DartType p0: the name of the generic type
+  /// Type p0: the name of the generic type
   static const WarningTemplate<
     LocatableDiagnostic Function({required DartType p0})
   >
@@ -12941,27 +12965,39 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedExtend({
-    required Object p0,
+    required Object typeName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedExtend, [p0]);
+    return LocatableDiagnosticImpl(deprecatedExtend, [typeName]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedImplement({
-    required Object p0,
+    required Object typeName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedImplement, [p0]);
+    return LocatableDiagnosticImpl(deprecatedImplement, [typeName]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedInstantiate({
-    required Object p0,
+    required Object typeName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedInstantiate, [p0]);
+    return LocatableDiagnosticImpl(deprecatedInstantiate, [typeName]);
+  }
+
+  static LocatableDiagnostic _withArgumentsDeprecatedMixin({
+    required Object typeName,
+  }) {
+    return LocatableDiagnosticImpl(deprecatedMixin, [typeName]);
+  }
+
+  static LocatableDiagnostic _withArgumentsDeprecatedOptional({
+    required Object parameterName,
+  }) {
+    return LocatableDiagnosticImpl(deprecatedOptional, [parameterName]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedSubclass({
-    required Object p0,
+    required Object typeName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedSubclass, [p0]);
+    return LocatableDiagnosticImpl(deprecatedSubclass, [typeName]);
   }
 
   static LocatableDiagnostic _withArgumentsDocDirectiveArgumentWrongFormat({
@@ -13045,6 +13081,12 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(duplicateIgnore, [p0]);
+  }
+
+  static LocatableDiagnostic _withArgumentsExperimentalMemberUse({
+    required String member,
+  }) {
+    return LocatableDiagnosticImpl(experimentalMemberUse, [member]);
   }
 
   static LocatableDiagnostic _withArgumentsInferenceFailureOnCollectionLiteral({
@@ -13140,25 +13182,6 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
   }) {
     return LocatableDiagnosticImpl(invalidOverrideOfNonVirtualMember, [p0, p1]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidRequiredNamedParam({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(invalidRequiredNamedParam, [p0]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInvalidRequiredOptionalPositionalParam({required String p0}) {
-    return LocatableDiagnosticImpl(invalidRequiredOptionalPositionalParam, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidRequiredPositionalParam({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(invalidRequiredPositionalParam, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidUseOfDoNotSubmitMember({

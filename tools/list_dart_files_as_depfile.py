@@ -48,9 +48,8 @@ def main(argv):
                     '.dart') and not filename.endswith('_test.dart'):
                 fullname = os.path.join(directory, root, filename)
                 fullname = fullname.replace(os.sep, '/')
-                out.write(" \"")
-                out.write(fullname)
-                out.write("\"")
+                out.write(" ")
+                out.write(fullname.replace(" ", r"\ "))
 
     out.write("\n")
     out.close()

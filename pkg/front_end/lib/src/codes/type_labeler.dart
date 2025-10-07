@@ -9,6 +9,25 @@ import 'package:kernel/ast.dart';
 import 'cfe_codes.dart' show Message, codeTypeOrigin, codeTypeOriginWithFileUri;
 import 'denylisted_classes.dart' show denylistedCoreClasses;
 
+/// A labeled string returned by [TypeLabeler].
+///
+/// The methods [TypeLabeler.labelConstant] and [TypeLabeler.labelType] can't
+/// convert their inputs into strings in a single step, because it's not
+/// possible to know which names are ambiguous until all types or constants have
+/// been seen, so this data structure records all information necessary to fully
+/// disambiguate the labeled names. Once the caller has obtained all the
+/// [LabeledString] objects it needs, then it can call [toString] (or simply use
+/// the [LabeledString] object in a string interpolation) to fully label the
+/// objects.
+class LabeledString {
+  final List<Object> parts;
+
+  LabeledString(this.parts);
+
+  @override
+  String toString() => parts.join();
+}
+
 /// A pretty-printer for Kernel types and constants with the ability to label
 /// raw types with numeric markers in Dart comments (e.g. `/*1*/`) to
 /// distinguish different types with the same name. This is used in diagnostic
@@ -19,24 +38,27 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
 
   List<Object> result = const [];
 
-  /// Pretty-print a type.
+  /// Pretty-prints a type.
+  ///
   /// When all types and constants appearing in the same message have been
-  /// pretty-printed, the returned list can be converted to its string
-  /// representation (with labels on duplicated names) by the `join()` method.
-  List<Object> labelType(DartType type) {
+  /// pretty-printed, the returned [LabeledString] can be converted to its
+  /// string representation (with labels on duplicated names) by the
+  /// `toString()` method.
+  LabeledString labelType(DartType type) {
     result = [];
     type.accept(this);
-    return result;
+    return new LabeledString(result);
   }
 
   /// Pretty-print a constant.
   /// When all types and constants appearing in the same message have been
   /// pretty-printed, the returned list can be converted to its string
-  /// representation (with labels on duplicated names) by the `join()` method.
-  List<Object> labelConstant(Constant constant) {
+  /// representation (with labels on duplicated names) by the `toString()`
+  /// method.
+  LabeledString labelConstant(Constant constant) {
     result = [];
     constant.accept(this);
-    return result;
+    return new LabeledString(result);
   }
 
   /// Get a textual description of the origins of the raw types appearing in
@@ -640,10 +662,10 @@ class LabeledNode {
       }
     }
     Message message = (importUri == fileUri || importUri.isScheme('dart'))
-        ? codeTypeOrigin.withArguments(toString(), importUri)
+        ? codeTypeOrigin.withArgumentsOld(toString(), importUri)
         :
           // Coverage-ignore(suite): Not run.
-          codeTypeOriginWithFileUri.withArguments(
+          codeTypeOriginWithFileUri.withArgumentsOld(
             toString(),
             importUri,
             fileUri,

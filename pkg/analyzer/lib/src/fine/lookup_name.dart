@@ -2,24 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// The base name of an element.
 ///
 /// In contrast to [LookupName] there is no `=` at the end.
 extension type BaseName(String _it) {
-  factory BaseName.read(SummaryDataReader reader) {
-    var str = reader.readStringUtf8();
+  factory BaseName.read(BinaryReader reader) {
+    var str = reader.readStringReference();
     return BaseName(str);
   }
 
   /// Returns the underlying [String] value, explicitly.
   String get asString => _it;
 
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8(_it);
+  void write(BinaryWriter writer) {
+    writer.writeStringReference(_it);
   }
 
   static int compare(BaseName left, BaseName right) {
@@ -31,8 +31,8 @@ extension type BaseName(String _it) {
 ///
 /// Specifically, for setters there is `=` at the end.
 extension type LookupName(String _it) {
-  factory LookupName.read(SummaryDataReader reader) {
-    var str = reader.readStringUtf8();
+  factory LookupName.read(BinaryReader reader) {
+    var str = reader.readStringReference();
     return LookupName(str);
   }
 
@@ -108,8 +108,8 @@ extension type LookupName(String _it) {
     return _it.substring(0, _it.length - 1).asLookupName;
   }
 
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8(_it);
+  void write(BinaryWriter writer) {
+    writer.writeStringReference(_it);
   }
 
   static int compare(LookupName left, LookupName right) {
@@ -117,9 +117,35 @@ extension type LookupName(String _it) {
   }
 }
 
-extension BufferedSinkExtension on BufferedSink {
+extension BinaryReaderExtension on BinaryReader {
+  Set<BaseName> readBaseNameSet() {
+    var length = readUint30();
+    var result = <BaseName>{};
+    for (var i = 0; i < length; i++) {
+      var baseName = BaseName.read(this);
+      result.add(baseName);
+    }
+    return result;
+  }
+
+  List<LookupName> readLookupNameList() {
+    return readTypedList(() => LookupName.read(this));
+  }
+
+  Set<LookupName> readLookupNameSet() {
+    var length = readUint30();
+    var result = <LookupName>{};
+    for (var i = 0; i < length; i++) {
+      var lookupName = LookupName.read(this);
+      result.add(lookupName);
+    }
+    return result;
+  }
+}
+
+extension BinaryWriterExtension on BinaryWriter {
   void writeBaseNameIterable(Iterable<BaseName> names) {
-    writeUInt30(names.length);
+    writeUint30(names.length);
     for (var baseName in names) {
       baseName.write(this);
     }
@@ -137,8 +163,8 @@ extension IterableOfStringExtension on Iterable<String> {
 }
 
 extension LookupNameIterableExtension on Iterable<LookupName> {
-  void write(BufferedSink sink) {
-    sink.writeIterable(this, (name) => name.write(sink));
+  void write(BinaryWriter writer) {
+    writer.writeIterable(this, (name) => name.write(writer));
   }
 }
 
@@ -149,31 +175,5 @@ extension StringExtension on String {
 
   LookupName get asLookupName {
     return LookupName(this);
-  }
-}
-
-extension SummaryDataReaderExtension on SummaryDataReader {
-  Set<BaseName> readBaseNameSet() {
-    var length = readUInt30();
-    var result = <BaseName>{};
-    for (var i = 0; i < length; i++) {
-      var baseName = BaseName.read(this);
-      result.add(baseName);
-    }
-    return result;
-  }
-
-  List<LookupName> readLookupNameList() {
-    return readTypedList(() => LookupName.read(this));
-  }
-
-  Set<LookupName> readLookupNameSet() {
-    var length = readUInt30();
-    var result = <LookupName>{};
-    for (var i = 0; i < length; i++) {
-      var lookupName = LookupName.read(this);
-      result.add(lookupName);
-    }
-    return result;
   }
 }

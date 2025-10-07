@@ -20,7 +20,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
+  FixKind get fixKind => DartFixKind.addMissingEnumCaseClauses;
 
   // TODO(brianwilkerson): Consider enabling this lint for fix all in file.
   // @override

@@ -18,5 +18,5 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///downwards_inference_annotations_typedef.dart:
-- Foo. (from org-dartlang-testcase:///downwards_inference_annotations_typedef.dart:9:9)
+- Foo. (from org-dartlang-testcase:///downwards_inference_annotations_typedef.dart:8:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

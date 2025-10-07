@@ -48,7 +48,7 @@ class DocumentationCommentScope with _GettersAndSetters implements Scope {
         // TODO(kallentu): Handle combinators.
         for (var exportedReference in importedLibrary.exportedReferences) {
           var reference = exportedReference.reference;
-          var element = importedLibrary.session.elementFactory
+          var element = importedLibrary.internal.elementFactory
               .elementOfReference3(reference);
           if (element is SetterElement) {
             _addSetter(element);
@@ -179,7 +179,7 @@ class ImportsTrackingOfPrefix {
 
     // SAFETY: the scope adds only imports with libraries.
     var importedLibrary = import.importedLibrary!;
-    var elementFactory = importedLibrary.session.elementFactory;
+    var elementFactory = importedLibrary.internal.elementFactory;
 
     for (var exportedReference in importedLibrary.exportedReferences) {
       var reference = exportedReference.reference;
@@ -246,7 +246,7 @@ class ImportsTrackingOfPrefix {
   void _buildElementToImportsMap() {
     for (var import in scope._importElements) {
       var importedLibrary = import.importedLibrary!;
-      var elementFactory = importedLibrary.session.elementFactory;
+      var elementFactory = importedLibrary.internal.elementFactory;
       var combinators = import.combinators.build();
       for (var exportedReference in importedLibrary.exportedReferences) {
         var reference = exportedReference.reference;
@@ -284,7 +284,7 @@ class LibraryDeclarations with _GettersAndSetters {
     library.classes.forEach(_addGetter);
 
     // Add implicit 'dart:core' declarations.
-    if ('${library.source.uri}' == 'dart:core') {
+    if ('${library.uri}' == 'dart:core') {
       _addGetter(DynamicElementImpl.instance);
       _addGetter(NeverElementImpl.instance);
     }
@@ -518,6 +518,9 @@ class PrefixScope implements Scope {
 
   ImportsTrackingOfPrefix? _importsTracking;
 
+  final PrefixScopeRequirementState _requirementState =
+      PrefixScopeRequirementState();
+
   PrefixScope({
     required this.libraryFragment,
     required this.parent,
@@ -579,6 +582,7 @@ class PrefixScope implements Scope {
 
     if (globalResultRequirements case var resultRequirements?) {
       resultRequirements.record_importPrefixScope_lookup(
+        state: _requirementState,
         importedLibraries: _importedLibraries,
         id: id,
       );

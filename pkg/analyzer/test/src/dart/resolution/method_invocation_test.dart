@@ -1042,7 +1042,7 @@ MethodInvocation
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   operator: .
@@ -1332,7 +1332,7 @@ MethodInvocation
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -2445,7 +2445,7 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -3054,7 +3054,7 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -3089,7 +3089,7 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -7371,7 +7371,7 @@ CascadeExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: A
       element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -7856,7 +7856,7 @@ FunctionExpressionInvocation
           type: NamedType
             name: B
             question: ?
-            element2: <testLibrary>::@class::B
+            element: <testLibrary>::@class::B
             type: B?
           staticType: B?
         rightParenthesis: )
@@ -8339,7 +8339,7 @@ MethodInvocation
     arguments
       NamedType
         name: bool
-        element2: dart:core::@class::bool
+        element: dart:core::@class::bool
         type: bool
     rightBracket: >
   argumentList: ArgumentList
@@ -8376,11 +8376,11 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: double
-        element2: dart:core::@class::double
+        element: dart:core::@class::double
         type: double
     rightBracket: >
   argumentList: ArgumentList

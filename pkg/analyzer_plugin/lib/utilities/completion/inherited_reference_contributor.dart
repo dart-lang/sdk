@@ -33,9 +33,13 @@ class InheritedReferenceContributor
   /// should define those parameters and call on `computeSuggestionsForClass`.
   @override
   Future<void> computeSuggestions(
-      DartCompletionRequest request, CompletionCollector collector) async {
-    var target =
-        CompletionTarget.forOffset(request.result.unit, request.offset);
+    DartCompletionRequest request,
+    CompletionCollector collector,
+  ) async {
+    var target = CompletionTarget.forOffset(
+      request.result.unit,
+      request.offset,
+    );
     var optype = OpType.forCompletion(target, request.offset);
     if (!optype.includeIdentifiers) {
       return;
@@ -46,7 +50,11 @@ class InheritedReferenceContributor
     }
     containingLibrary = request.result.libraryElement;
     _computeSuggestionsForClass(
-        collector, target, classDecl.declaredFragment!.element, optype);
+      collector,
+      target,
+      classDecl.declaredFragment!.element,
+      optype,
+    );
   }
 
   /// Clients should not overload this function.
@@ -73,12 +81,20 @@ class InheritedReferenceContributor
       classElement = classDecl.declaredFragment!.element;
     }
     containingLibrary = request.result.libraryElement;
-    _computeSuggestionsForClass(collector, target, classElement, optype,
-        skipChildClass: skipChildClass);
+    _computeSuggestionsForClass(
+      collector,
+      target,
+      classElement,
+      optype,
+      skipChildClass: skipChildClass,
+    );
   }
 
-  void _addSuggestionsForType(InterfaceType type, OpType optype,
-      {bool isFunctionalArgument = false}) {
+  void _addSuggestionsForType(
+    InterfaceType type,
+    OpType optype, {
+    bool isFunctionalArgument = false,
+  }) {
     if (!isFunctionalArgument) {
       for (var elem in type.getters) {
         if (optype.includeReturnValueSuggestions) {
@@ -104,22 +120,32 @@ class InheritedReferenceContributor
     }
   }
 
-  void _computeSuggestionsForClass(CompletionCollector collector,
-      CompletionTarget target, ClassElement classElement, OpType optype,
-      {bool skipChildClass = true}) {
+  void _computeSuggestionsForClass(
+    CompletionCollector collector,
+    CompletionTarget target,
+    ClassElement classElement,
+    OpType optype, {
+    bool skipChildClass = true,
+  }) {
     var isFunctionalArgument = target.isFunctionalArgument();
     kind = isFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
         : CompletionSuggestionKind.INVOCATION;
 
     if (!skipChildClass) {
-      _addSuggestionsForType(classElement.thisType, optype,
-          isFunctionalArgument: isFunctionalArgument);
+      _addSuggestionsForType(
+        classElement.thisType,
+        optype,
+        isFunctionalArgument: isFunctionalArgument,
+      );
     }
 
     for (var type in classElement.allSupertypes) {
-      _addSuggestionsForType(type, optype,
-          isFunctionalArgument: isFunctionalArgument);
+      _addSuggestionsForType(
+        type,
+        optype,
+        isFunctionalArgument: isFunctionalArgument,
+      );
     }
     for (var suggestion in suggestions) {
       collector.addSuggestion(suggestion);

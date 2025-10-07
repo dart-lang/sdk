@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "platform/text_buffer.h"
+#include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/class_id.h"
 #include "vm/compiler/assembler/disassembler.h"

@@ -81,6 +81,8 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
         SharedType,
         SharedVoidType,
         Variance;
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show demangleMixinApplicationName;
 
 import 'src/extension_type_erasure.dart';
 import 'visitor.dart';
@@ -103,6 +105,8 @@ import 'src/printer.dart';
 import 'src/text_util.dart';
 
 export 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
+export 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show demangleMixinApplicationName;
 
 part 'src/ast/constants.dart';
 part 'src/ast/components.dart';

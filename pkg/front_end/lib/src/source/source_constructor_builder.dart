@@ -9,6 +9,8 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../api_prototype/experimental_flags.dart';
+import '../base/compiler_context.dart';
 import '../base/messages.dart'
     show
         LocatedMessage,
@@ -19,7 +21,8 @@ import '../base/messages.dart'
         codeRedirectingConstructorWithSuperInitializer,
         codeSuperInitializerNotLast,
         noLength,
-        codeCantInferTypeDueToCircularity;
+        codeCantInferTypeDueToCircularity,
+        ProblemReporting;
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -28,14 +31,15 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../fragment/constructor/declaration.dart';
-import '../kernel/expression_generator_helper.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart' show DelayedDefaultValueCloner;
 import '../kernel/type_algorithms.dart';
+import '../type_inference/external_ast_helper.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_inference_engine.dart';
 import '../util/reference_map.dart';
+import 'check_helper.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -68,7 +72,7 @@ class InferableConstructor implements InferableMember {
       name += ".${_builder.name}";
     }
     _builder.libraryBuilder.addProblem(
-      codeCantInferTypeDueToCircularity.withArguments(name),
+      codeCantInferTypeDueToCircularity.withArgumentsOld(name),
       _builder.fileOffset,
       name.length,
       _builder.fileUri,
@@ -283,62 +287,67 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   List<Initializer> get _initializers => _lastDeclaration.initializers;
 
-  void addInitializer(
-    Initializer initializer,
-    ExpressionGeneratorHelper helper, {
+  bool addInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
+    Initializer initializer, {
     required InitializerInferenceResult? inferenceResult,
     required TreeNode parent,
+    required Uri fileUri,
   }) {
     if (initializer is SuperInitializer) {
       if (superInitializer != null) {
         _injectInvalidInitializer(
+          compilerContext,
+          problemReporting,
           codeMoreThanOneSuperInitializer,
+          fileUri,
           initializer.fileOffset,
           "super".length,
-          helper,
           parent,
         );
+        return false;
       } else if (redirectingInitializer != null) {
         _injectInvalidInitializer(
+          compilerContext,
+          problemReporting,
           codeRedirectingConstructorWithSuperInitializer,
+          fileUri,
           initializer.fileOffset,
           "super".length,
-          helper,
           parent,
         );
+        return false;
       } else {
         inferenceResult?.applyResult(_initializers, parent);
         superInitializer = initializer;
 
-        LocatedMessage? message = helper.checkArgumentsForFunction(
-          initializer.target.function,
-          initializer.arguments,
-          initializer.arguments.fileOffset,
-          <TypeParameter>[],
+        LocatedMessage? message = problemReporting.checkArgumentsForFunction(
+          function: initializer.target.function,
+          arguments: initializer.arguments,
+          fileOffset: initializer.arguments.fileOffset,
+          fileUri: fileUri,
+          typeParameters: <TypeParameter>[],
         );
         if (message != null) {
           _initializers.add(
-            helper.buildInvalidInitializer(
-              helper.buildUnresolvedError(
-                helper.constructorNameForDiagnostics(
-                  initializer.target.name.text,
-                ),
-                initializer.fileOffset,
-                arguments: initializer.arguments,
-                isSuper: true,
+            createInvalidInitializer(
+              problemReporting.buildProblemFromLocatedMessage(
+                compilerContext: compilerContext,
                 message: message,
-                kind: UnresolvedKind.Constructor,
               ),
             )..parent = parent,
           );
+          return false;
         } else {
           _initializers.add(initializer..parent = parent);
+          return true;
         }
       }
     } else if (initializer
         case RedirectingInitializer(
               target: Member initializerTarget,
-              arguments: var initializerArguments,
+              arguments: var initializerArguments as ArgumentsImpl,
             ) ||
             ExtensionTypeRedirectingInitializer(
               target: Member initializerTarget,
@@ -347,33 +356,41 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       if (superInitializer != null) {
         // Point to the existing super initializer.
         _injectInvalidInitializer(
+          compilerContext,
+          problemReporting,
           codeRedirectingConstructorWithSuperInitializer,
+          fileUri,
           superInitializer!.fileOffset,
           "super".length,
-          helper,
           parent,
         );
         markAsErroneous();
+        return false;
       } else if (redirectingInitializer != null) {
         _injectInvalidInitializer(
+          compilerContext,
+          problemReporting,
           codeRedirectingConstructorWithMultipleRedirectInitializers,
+          fileUri,
           initializer.fileOffset,
           noLength,
-          helper,
           parent,
         );
         markAsErroneous();
+        return false;
       } else if (_initializers.isNotEmpty) {
         // Error on all previous ones.
         for (int i = 0; i < _initializers.length; i++) {
           Initializer initializer = _initializers[i];
           int length = noLength;
           if (initializer is AssertInitializer) length = "assert".length;
-          Initializer error = helper.buildInvalidInitializer(
-            helper.buildProblem(
-              codeRedirectingConstructorWithAnotherInitializer,
-              initializer.fileOffset,
-              length,
+          Initializer error = createInvalidInitializer(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: codeRedirectingConstructorWithAnotherInitializer,
+              fileUri: fileUri,
+              fileOffset: initializer.fileOffset,
+              length: length,
             ),
           );
           error.parent = parent;
@@ -385,63 +402,68 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
           redirectingInitializer = initializer;
         }
         markAsErroneous();
+        return false;
       } else {
         inferenceResult?.applyResult(_initializers, parent);
         if (initializer is RedirectingInitializer) {
           redirectingInitializer = initializer;
         }
 
-        LocatedMessage? message = helper.checkArgumentsForFunction(
-          initializerTarget.function!,
-          initializerArguments,
-          initializerArguments.fileOffset,
-          initializer is ExtensionTypeRedirectingInitializer
+        LocatedMessage? message = problemReporting.checkArgumentsForFunction(
+          function: initializerTarget.function!,
+          arguments: initializerArguments,
+          fileOffset: initializerArguments.fileOffset,
+          fileUri: fileUri,
+          typeParameters: initializer is ExtensionTypeRedirectingInitializer
               ? initializerTarget.function!.typeParameters
               : const <TypeParameter>[],
         );
         if (message != null) {
           _initializers.add(
-            helper.buildInvalidInitializer(
-              helper.buildUnresolvedError(
-                helper.constructorNameForDiagnostics(
-                  initializerTarget.name.text,
-                ),
-                initializer.fileOffset,
-                arguments: initializerArguments,
-                isSuper: false,
+            createInvalidInitializer(
+              problemReporting.buildProblemFromLocatedMessage(
+                compilerContext: compilerContext,
                 message: message,
-                kind: UnresolvedKind.Constructor,
               ),
             )..parent = parent,
           );
           markAsErroneous();
+          return false;
         } else {
           _initializers.add(initializer..parent = parent);
+          return true;
         }
       }
     } else if (redirectingInitializer != null) {
       int length = noLength;
       if (initializer is AssertInitializer) length = "assert".length;
       _injectInvalidInitializer(
+        compilerContext,
+        problemReporting,
         codeRedirectingConstructorWithAnotherInitializer,
+        fileUri,
         initializer.fileOffset,
         length,
-        helper,
         parent,
       );
       markAsErroneous();
+      return false;
     } else if (superInitializer != null) {
       _injectInvalidInitializer(
+        compilerContext,
+        problemReporting,
         codeSuperInitializerNotLast,
+        fileUri,
         initializer.fileOffset,
         noLength,
-        helper,
         parent,
       );
       markAsErroneous();
+      return false;
     } else {
       inferenceResult?.applyResult(_initializers, parent);
       _initializers.add(initializer..parent = parent);
+      return true;
     }
   }
 
@@ -534,14 +556,15 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {
     _introductory.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     for (int i = 0; i < _augmentations.length; i++) {
       ConstructorDeclaration augmentation = _augmentations[i];
-      augmentation.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
+      augmentation.checkTypes(problemReporting, nameSpace, typeEnvironment);
     }
   }
 
@@ -643,10 +666,12 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   }
 
   void _injectInvalidInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
     Message message,
-    int charOffset,
+    Uri fileUri,
+    int fileOffset,
     int length,
-    ExpressionGeneratorHelper helper,
     TreeNode parent,
   ) {
     Initializer lastInitializer = _initializers.removeLast();
@@ -654,8 +679,14 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       lastInitializer == superInitializer ||
           lastInitializer == redirectingInitializer,
     );
-    Initializer error = helper.buildInvalidInitializer(
-      helper.buildProblem(message, charOffset, length),
+    Initializer error = createInvalidInitializer(
+      problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: message,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        length: length,
+      ),
     );
     _initializers.add(error..parent = parent);
     _initializers.add(lastInitializer);

@@ -191,10 +191,9 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     var supportedSchemes = server.uriConverter.supportedSchemes;
     var isValidScheme = supportedSchemes.contains(uri.scheme);
     if (!isValidScheme) {
-      var supportedSchemesString =
-          supportedSchemes.isEmpty
-              ? '(none)'
-              : supportedSchemes.map((scheme) => "'$scheme'").join(', ');
+      var supportedSchemesString = supportedSchemes.isEmpty
+          ? '(none)'
+          : supportedSchemes.map((scheme) => "'$scheme'").join(', ');
       return ErrorOr<String>.error(
         ResponseError(
           code: ServerErrorCodes.InvalidFilePath,
@@ -428,8 +427,9 @@ abstract class MessageHandler<P, R, S extends AnalysisServer>
       );
     }
 
-    var params =
-        paramsJson != null ? jsonHandler.convertParams(paramsJson) : null as P;
+    var params = paramsJson != null
+        ? jsonHandler.convertParams(paramsJson)
+        : null as P;
     return handle(params, messageInfo, token);
   }
 }

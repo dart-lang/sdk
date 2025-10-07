@@ -34,8 +34,9 @@ class CodeCompletionPage extends DiagnosticPageWithNav
       return;
     }
 
-    var fastCount =
-        completions.where((c) => c.elapsedInMilliseconds <= 100).length;
+    var fastCount = completions
+        .where((c) => c.elapsedInMilliseconds <= 100)
+        .length;
     p(
       '${completions.length} results; ${printPercentage(fastCount / completions.length)} within 100ms.',
     );

@@ -25,26 +25,23 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   Stream<Notification> notificationStream;
 
   factory ByteStreamClientChannel(Stream<List<int>> input, IOSink output) {
-    var jsonStream =
-        input
-            .transform(const Utf8Decoder())
-            .transform(LineSplitter())
-            .transform(JsonStreamDecoder())
-            .where((json) => json is Map<String, Object?>)
-            .cast<Map<String, Object?>>()
-            .asBroadcastStream();
-    var responseStream =
-        jsonStream
-            .where((json) => json[Notification.EVENT] == null)
-            .transform(ResponseConverter())
-            .where((response) => response != null)
-            .cast<Response>()
-            .asBroadcastStream();
-    var notificationStream =
-        jsonStream
-            .where((json) => json[Notification.EVENT] != null)
-            .transform(NotificationConverter())
-            .asBroadcastStream();
+    var jsonStream = input
+        .transform(const Utf8Decoder())
+        .transform(LineSplitter())
+        .transform(JsonStreamDecoder())
+        .where((json) => json is Map<String, Object?>)
+        .cast<Map<String, Object?>>()
+        .asBroadcastStream();
+    var responseStream = jsonStream
+        .where((json) => json[Notification.EVENT] == null)
+        .transform(ResponseConverter())
+        .where((response) => response != null)
+        .cast<Response>()
+        .asBroadcastStream();
+    var notificationStream = jsonStream
+        .where((json) => json[Notification.EVENT] != null)
+        .transform(NotificationConverter())
+        .asBroadcastStream();
     return ByteStreamClientChannel._(
       output,
       responseStream,

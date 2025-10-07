@@ -319,14 +319,13 @@ abstract class AnalysisServer {
     }
     var disablePubCommandVariable =
         Platform.environment[PubCommand.disablePubCommandEnvironmentKey];
-    var pubCommand =
-        processRunner != null && disablePubCommandVariable == null
-            ? PubCommand(
-              instrumentationService,
-              resourceProvider.pathContext,
-              processRunner,
-            )
-            : null;
+    var pubCommand = processRunner != null && disablePubCommandVariable == null
+        ? PubCommand(
+            instrumentationService,
+            resourceProvider.pathContext,
+            processRunner,
+          )
+        : null;
 
     pubPackageService = PubPackageService(
       instrumentationService,
@@ -336,14 +335,13 @@ abstract class AnalysisServer {
     );
     performance = performanceDuringStartup;
 
-    this.pluginManager =
-        pluginManager ??= PluginManager(
-          resourceProvider,
-          resourceProvider.byteStorePath,
-          sdkManager.defaultSdkDirectory,
-          notificationManager,
-          instrumentationService,
-        );
+    this.pluginManager = pluginManager ??= PluginManager(
+      resourceProvider,
+      resourceProvider.byteStorePath,
+      sdkManager.defaultSdkDirectory,
+      notificationManager,
+      instrumentationService,
+    );
     var pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
 
     var logName = options.newAnalysisDriverLog;
@@ -383,6 +381,7 @@ abstract class AnalysisServer {
       analysisDriverScheduler,
       instrumentationService,
       enableBlazeWatcher: enableBlazeWatcher,
+      withFineDependencies: options.withFineDependencies,
     );
 
     _dartFixPrompt =
@@ -585,7 +584,8 @@ abstract class AnalysisServer {
     const M = 1024 * 1024 /*1 MiB*/;
     const G = 1024 * 1024 * 1024 /*1 GiB*/;
 
-    const memoryCacheSize = 128 * M;
+    const fileCacheSize = 4 * G;
+    const memoryCacheSize = 256 * M;
 
     if (providedByteStore case var providedByteStore?) {
       return providedByteStore;
@@ -601,10 +601,9 @@ abstract class AnalysisServer {
     if (resourceProvider is PhysicalResourceProvider) {
       var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
-        var timingByteStore =
-            _timingByteStore = TimingByteStore(
-              EvictingFileByteStore(stateLocation.path, G),
-            );
+        var timingByteStore = _timingByteStore = TimingByteStore(
+          EvictingFileByteStore(stateLocation.path, fileCacheSize),
+        );
         return MemoryCachingByteStore(timingByteStore, memoryCacheSize);
       }
     }
@@ -824,6 +823,7 @@ abstract class AnalysisServer {
       _isFirstAnalysisSinceContextsBuilt = false;
       _dartFixPrompt.triggerCheck();
     }
+    analyticsManager.analysisStatusChanged(status.isWorking);
   }
 
   /// Immediately handles an LSP message by delegating to the
@@ -840,10 +840,9 @@ abstract class AnalysisServer {
     // This is FutureOr<> because for the legacy server it's never a future, so
     // we can skip the await.
     var initializedLspHandler = lspInitialized;
-    var handler =
-        initializedLspHandler is lsp.InitializedStateMessageHandler
-            ? initializedLspHandler
-            : await initializedLspHandler;
+    var handler = initializedLspHandler is lsp.InitializedStateMessageHandler
+        ? initializedLspHandler
+        : await initializedLspHandler;
 
     return handler.handleMessage(
       message,

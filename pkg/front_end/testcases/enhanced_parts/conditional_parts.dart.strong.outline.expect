@@ -1,0 +1,8 @@
+library;
+import self as self;
+
+part conditional_parts_part2.dart;
+static method test() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///conditional_parts_part2.dart */ method2() → void
+  ;

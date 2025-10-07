@@ -17,7 +17,7 @@ class ConvertToNullAwareSpread extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_NULL_AWARE_SPREAD;
+  FixKind get fixKind => DartFixKind.convertToNullAwareSpread;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

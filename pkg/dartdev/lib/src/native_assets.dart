@@ -26,6 +26,7 @@ class DartNativeAssetsBuilder {
   final String runPackageName;
   final bool includeDevDependencies;
   final bool verbose;
+  final bool dataAssetsExperimentEnabled;
 
   static const _fileSystem = LocalFileSystem();
 
@@ -72,6 +73,7 @@ class DartNativeAssetsBuilder {
     required this.runPackageName,
     required this.includeDevDependencies,
     required this.verbose,
+    required this.dataAssetsExperimentEnabled,
     Target? target,
   }) : target = target ?? Target.current;
 
@@ -135,9 +137,7 @@ class DartNativeAssetsBuilder {
       macOS: _macOSConfig,
       cCompiler: _cCompilerConfig,
     ),
-    // TODO(dacoharkes,mosum): This should be gated behind a data-assets
-    // experiment flag.
-    DataAssetsExtension(),
+    if (dataAssetsExperimentEnabled) DataAssetsExtension(),
   ];
 
   Future<BuildResult?> _buildNativeAssetsShared({

@@ -17,7 +17,8 @@ import 'api.dart';
 import 'from_html.dart';
 
 /// Embedded stylesheet
-final String stylesheet = '''
+final String stylesheet =
+    '''
 body {
   font-family: 'Roboto', sans-serif;
   max-width: 800px;
@@ -123,10 +124,11 @@ a:focus, a:hover {
   list-style-type: none;
 }
 '''
-    .trim();
+        .trim();
 
-final GeneratedFile target =
-    GeneratedFile('analyzer_plugin/doc/api.html', (pkgRoot) async {
+final GeneratedFile target = GeneratedFile('analyzer_plugin/doc/api.html', (
+  pkgRoot,
+) async {
   var visitor = ToHtmlVisitor(readApi(pkgRoot));
   var document = dom.Document();
   for (var node in visitor.collectHtml(visitor.visitApi)) {
@@ -170,8 +172,11 @@ mixin HtmlMixin {
   void dl(void Function() callback) => element('dl', {}, callback);
   void dt(String cls, void Function() callback) =>
       element('dt', {'class': cls}, callback);
-  void element(String name, Map<String, String> attributes,
-      [void Function()? callback]);
+  void element(
+    String name,
+    Map<String, String> attributes, [
+    void Function()? callback,
+  ]);
   void gray(void Function() callback) =>
       element('span', {'style': 'color:#999999'}, callback);
   void h1(void Function() callback) => element('h1', {}, callback);
@@ -191,8 +196,11 @@ mixin HtmlMixin {
   void html(void Function() callback) => element('html', {}, callback);
   void i(void Function() callback) => element('i', {}, callback);
   void li(void Function() callback) => element('li', {}, callback);
-  void link(String id, void Function() callback,
-      [Map<String, String>? attributes]) {
+  void link(
+    String id,
+    void Function() callback, [
+    Map<String, String>? attributes,
+  ]) {
     attributes ??= {};
     attributes['href'] = '#$id';
     element('a', attributes, callback);
@@ -287,10 +295,13 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       element('ul', {}, () {
         for (var notification in notifications) {
           element(
-              'li',
-              {},
-              () => link('notification_${notification.longEvent}',
-                  () => write(notification.event)));
+            'li',
+            {},
+            () => link(
+              'notification_${notification.longEvent}',
+              () => write(notification.event),
+            ),
+          );
         }
       });
     });
@@ -308,10 +319,13 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       element('ul', {}, () {
         for (var refactoring in refactorings) {
           element(
-              'li',
-              {},
-              () => link('refactoring_${refactoring.kind}',
-                  () => write(refactoring.kind)));
+            'li',
+            {},
+            () => link(
+              'refactoring_${refactoring.kind}',
+              () => write(refactoring.kind),
+            ),
+          );
         }
       });
     });
@@ -323,10 +337,13 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       for (var request in requests) {
         if (!request.experimental) {
           element(
-              'li',
-              {},
-              () => link('request_${request.longMethod}',
-                  () => write(request.method)));
+            'li',
+            {},
+            () => link(
+              'request_${request.longMethod}',
+              () => write(request.method),
+            ),
+          );
         }
       }
     });
@@ -349,9 +366,13 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
           if (request.experimental) continue;
 
           li(() {
-            link('request_${request.longMethod}', () {
-              write(request.longMethod);
-            }, request.deprecated ? {'class': 'deprecated'} : null);
+            link(
+              'request_${request.longMethod}',
+              () {
+                write(request.longMethod);
+              },
+              request.deprecated ? {'class': 'deprecated'} : null,
+            );
           });
           writeln();
         }
@@ -395,8 +416,11 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   ///
   /// If [typeForBolding] is supplied, then fields in this type are shown in
   /// boldface.
-  void showType(String? shortDesc, TypeDecl type,
-      [TypeObject? typeForBolding]) {
+  void showType(
+    String? shortDesc,
+    TypeDecl type, [
+    TypeObject? typeForBolding,
+  ]) {
     var fieldsToBold = <String>{};
     if (typeForBolding != null) {
       for (var field in typeForBolding.fields) {
@@ -408,9 +432,11 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
         write('$shortDesc: ');
       }
       var typeVisitor = TypeVisitor(api, fieldsToBold: fieldsToBold);
-      addAll(typeVisitor.collectHtml(() {
-        typeVisitor.visitTypeDecl(type);
-      }));
+      addAll(
+        typeVisitor.collectHtml(() {
+          typeVisitor.visitTypeDecl(type);
+        }),
+      );
     });
   }
 
@@ -440,7 +466,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
                 'rel': 'stylesheet',
                 'href':
                     'https://fonts.googleapis.com/css?family=Source+Code+Pro|Roboto:500,400italic,300,400',
-                'type': 'text/css'
+                'type': 'text/css',
               });
               element('style', {}, () {
                 writeln(stylesheet);
@@ -525,7 +551,10 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     dd(() {
       box(() {
         showType(
-            'notification', notification.notificationType, notification.params);
+          'notification',
+          notification.notificationType,
+          notification.params,
+        );
       });
       translateHtml(notification.html);
       describePayload(notification.params, 'parameters:');
@@ -580,17 +609,21 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       return;
     }
     dt(
-        typeDefinition.deprecated
-            ? 'typeDefinition deprecated'
-            : 'typeDefinition', () {
-      anchor('type_${typeDefinition.name}', () {
-        write('${typeDefinition.name}: ');
-        var typeVisitor = TypeVisitor(api, short: true);
-        addAll(typeVisitor.collectHtml(() {
-          typeVisitor.visitTypeDecl(typeDefinition.type);
-        }));
-      });
-    });
+      typeDefinition.deprecated
+          ? 'typeDefinition deprecated'
+          : 'typeDefinition',
+      () {
+        anchor('type_${typeDefinition.name}', () {
+          write('${typeDefinition.name}: ');
+          var typeVisitor = TypeVisitor(api, short: true);
+          addAll(
+            typeVisitor.collectHtml(() {
+              typeVisitor.visitTypeDecl(typeDefinition.type);
+            }),
+          );
+        });
+      },
+    );
     dd(() {
       translateHtml(typeDefinition.html);
       visitTypeDecl(typeDefinition.type);
@@ -660,9 +693,11 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
         } else {
           write(': ');
           var typeVisitor = TypeVisitor(api, short: true);
-          addAll(typeVisitor.collectHtml(() {
-            typeVisitor.visitTypeDecl(typeObjectField.type);
-          }));
+          addAll(
+            typeVisitor.collectHtml(() {
+              typeVisitor.visitTypeDecl(typeObjectField.type);
+            }),
+          );
           if (typeObjectField.optional) {
             gray(() => write(' (optional)'));
           }
@@ -682,8 +717,10 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     translateHtml(types.html);
     dl(() {
       var sortedTypes = types.toList();
-      sortedTypes.sort((TypeDefinition first, TypeDefinition second) =>
-          first.name.compareTo(second.name));
+      sortedTypes.sort(
+        (TypeDefinition first, TypeDefinition second) =>
+            first.name.compareTo(second.name),
+      );
       sortedTypes.forEach(visitTypeDefinition);
     });
   }

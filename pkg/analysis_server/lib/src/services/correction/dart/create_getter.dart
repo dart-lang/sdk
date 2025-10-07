@@ -98,7 +98,7 @@ class CreateGetter extends CreateFieldOrGetter {
   List<String> get fixArguments => [_getterName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_GETTER;
+  FixKind get fixKind => DartFixKind.createGetter;
 
   @override
   Future<void> addForObjectPattern({

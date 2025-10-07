@@ -139,8 +139,9 @@ extension RangeFactoryExtensions on RangeFactory {
     // as headers and should never be included in the range.
     var isFirstItem = beginToken == node.root.beginToken;
 
-    var thisLeadingComment =
-        isFirstItem ? beginToken : _leadingComment(lineInfo, beginToken);
+    var thisLeadingComment = isFirstItem
+        ? beginToken
+        : _leadingComment(lineInfo, beginToken);
     var thisTrailingComment = trailingComment(
       lineInfo,
       node.endToken,

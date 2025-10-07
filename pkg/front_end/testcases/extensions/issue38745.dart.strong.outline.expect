@@ -32,18 +32,20 @@ class C<T extends core::Object? = dynamic> extends core::Object {
     ;
 }
 extension ext<T extends core::Object? = dynamic> on self::C<T%> {
-  field field = self::ext|field;
-  field property = self::ext|property;
+  get field = self::ext|get#field;
+  set field = self::ext|set#field;
+  get property = self::ext|get#property;
   set property = self::ext|set#property;
-  field property2 = self::ext|property2;
+  get property2 = self::ext|get#property2;
   method method = self::ext|method;
   method tearoff method = self::ext|get#method;
 }
-static field core::int ext|field;
-static final field core::int ext|property;
-static final field core::int ext|property2;
+static abstract extension-member method ext|get#field<T extends core::Object? = dynamic>(lowered self::C<self::ext|get#field::T%> #this) → core::int;
+static abstract extension-member method ext|set#field<T extends core::Object? = dynamic>(lowered self::C<self::ext|set#field::T%> #this, synthesized core::int #externalFieldValue) → void;
+static abstract extension-member method ext|get#property<T extends core::Object? = dynamic>(lowered self::C<self::ext|get#property::T%> #this) → core::int;
 static extension-member method ext|set#property<T extends core::Object? = dynamic>(lowered final self::C<self::ext|set#property::T%> #this, core::int value) → void
   ;
+static abstract extension-member method ext|get#property2<T extends core::Object? = dynamic>(lowered self::C<self::ext|get#property2::T%> #this) → core::int;
 static extension-member method ext|method<T extends core::Object? = dynamic>(lowered final self::C<self::ext|method::T%> #this) → dynamic
   ;
 static extension-member method ext|get#method<T extends core::Object? = dynamic>(lowered final self::C<self::ext|get#method::T%> #this) → () → dynamic

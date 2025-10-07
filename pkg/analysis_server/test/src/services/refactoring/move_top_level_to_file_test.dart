@@ -2041,13 +2041,15 @@ class B {}
     var otherFilePath = '$projectFolderPath/lib/other.dart';
     var otherFileContent = declarations;
 
-    var originalSource = '''
+    var originalSource =
+        '''
 import 'package:test/other.dart' as other;
 
 ${code.markedCode}
 ''';
 
-    var expected = '''
+    var expected =
+        '''
 >>>>>>>>>> lib/main.dart
 import 'package:test/other.dart' as other;
 >>>>>>>>>> lib/moving.dart created

@@ -40,7 +40,9 @@ abstract class HighlightsCollector {
 abstract class HighlightsContributor {
   /// Contribute highlight regions into the given [collector].
   void computeHighlights(
-      HighlightsRequest request, HighlightsCollector collector);
+    HighlightsRequest request,
+    HighlightsCollector collector,
+  );
 }
 
 /// A generator that will generate an 'analysis.highlights' notification.
@@ -63,13 +65,21 @@ class HighlightsGenerator {
       try {
         contributor.computeHighlights(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(PluginErrorParams(
-                false, exception.toString(), stackTrace.toString())
-            .toNotification());
+        notifications.add(
+          PluginErrorParams(
+            false,
+            exception.toString(),
+            stackTrace.toString(),
+          ).toNotification(),
+        );
       }
     }
-    notifications.add(AnalysisHighlightsParams(request.path, collector.regions)
-        .toNotification());
+    notifications.add(
+      AnalysisHighlightsParams(
+        request.path,
+        collector.regions,
+      ).toNotification(),
+    );
     return GeneratorResult(null, notifications);
   }
 }

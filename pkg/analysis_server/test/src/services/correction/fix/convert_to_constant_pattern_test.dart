@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertToConstantPatternPatternTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_CONSTANT_PATTERN;
+  FixKind get kind => DartFixKind.convertToConstantPattern;
 
   @override
   String get lintCode => LintNames.type_literal_in_constant_pattern;

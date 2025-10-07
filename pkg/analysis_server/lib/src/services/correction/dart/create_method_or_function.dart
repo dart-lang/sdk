@@ -29,7 +29,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     if (context is StubCorrectionProducerContext) {
       return CreateMethodOrFunction._(
         context: context,
-        fixKind: DartFixKind.CREATE_FUNCTION_TEAROFF,
+        fixKind: DartFixKind.createFunctionTearoff,
       );
     }
 
@@ -55,16 +55,15 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       return CreateMethodOrFunction._(
         context: context,
         targetElement: targetElement,
-        fixKind:
-            targetElement is InterfaceElement
-                ? DartFixKind.CREATE_METHOD_TEAROFF
-                : DartFixKind.CREATE_FUNCTION_TEAROFF,
+        fixKind: targetElement is InterfaceElement
+            ? DartFixKind.createMethodTearoff
+            : DartFixKind.createFunctionTearoff,
       );
     }
 
     return CreateMethodOrFunction._(
       context: context,
-      fixKind: DartFixKind.CREATE_FUNCTION_TEAROFF,
+      fixKind: DartFixKind.createFunctionTearoff,
     );
   }
 

@@ -34,7 +34,7 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredFragment: isFinal isPublic a@24
@@ -114,7 +114,7 @@ PatternVariableDeclarationStatement
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A
         element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -143,7 +143,7 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredFragment: isPublic a@22
@@ -182,7 +182,7 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@22
@@ -267,7 +267,7 @@ PatternVariableDeclarationStatement
               element: hasImplicitType isPublic
                 type: int
             matchedValueType: int
-          element2: <null>
+          element: <null>
         PatternField
           pattern: DeclaredVariablePattern
             name: b
@@ -275,7 +275,7 @@ PatternVariableDeclarationStatement
               element: hasImplicitType isPublic
                 type: String
             matchedValueType: String
-          element2: <null>
+          element: <null>
       rightParenthesis: )
       matchedValueType: (int, String)
     equals: =
@@ -314,7 +314,7 @@ PatternVariableDeclarationStatement
               element: hasImplicitType isPublic
                 type: int
             matchedValueType: int
-          element2: <null>
+          element: <null>
       rightParenthesis: )
       matchedValueType: (int,)
     equals: =

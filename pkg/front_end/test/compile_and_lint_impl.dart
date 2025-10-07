@@ -19,10 +19,11 @@ import 'package:front_end/src/builder/declaration_builders.dart'
     show TypeDeclarationBuilder;
 import 'package:front_end/src/builder/type_builder.dart' show TypeBuilder;
 import 'package:front_end/src/codes/cfe_codes.dart' as cfe show codeUnspecified;
-import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilder;
+import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilderImpl;
 import 'package:front_end/src/kernel/constness.dart' show Constness;
 import 'package:front_end/src/kernel/expression_generator_helper.dart'
     show UnresolvedKind;
+import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/kernel/kernel_target.dart' show BuildResult;
 import 'package:front_end/src/util/import_export_etc_helper.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -121,11 +122,7 @@ Future<int> runCompileAndLintTest({
       }
     },
     repoDir: repoDir,
-    bodyBuilderCreator: (
-      create: BodyBuilderTester.new,
-      createForField: BodyBuilderTester.forField,
-      createForOutlineExpression: BodyBuilderTester.forOutlineExpression,
-    ),
+    bodyBuilderCreator: BodyBuilderTester.new,
     splitCompileAndCompileLess: true,
   );
 
@@ -238,18 +235,18 @@ Set<Uri> _replaceParts(Uri packageConfigUri, Set<Uri> files) {
 
 class BodyBuilderTester = BodyBuilderTest with BodyBuilderTestMixin;
 
-mixin BodyBuilderTestMixin on BodyBuilder {
+mixin BodyBuilderTestMixin on BodyBuilderImpl {
   late Set<Uri> _ignoredDirs = {
     ..._ignoredDirectoryUris,
     ..._explicitCreationIgnoredDirectoryUris,
   };
 
   @override
-  Expression buildConstructorInvocation(
+  Expression resolveAndBuildConstructorInvocation(
     TypeDeclarationBuilder? type,
     Token nameToken,
     Token nameLastToken,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     String name,
     List<TypeBuilder>? typeArguments,
     int charOffset,
@@ -292,12 +289,12 @@ mixin BodyBuilderTestMixin on BodyBuilder {
     }
     if (doReport) {
       addProblem(
-        cfe.codeUnspecified.withArguments("Should use new or const"),
+        cfe.codeUnspecified.withArgumentsOld("Should use new or const"),
         nameToken.charOffset,
         nameToken.length,
       );
     }
-    return super.buildConstructorInvocation(
+    return super.resolveAndBuildConstructorInvocation(
       type,
       nameToken,
       nameLastToken,

@@ -1839,13 +1839,28 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                Smi::Cast(index.constant()).Value());
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
-  ASSERT(representation() == Boxing::NativeRepresentation(rep));
 
-  if (FLAG_target_thread_sanitizer) {
-    __ leaq(TMP, element_address);
-    __ TsanRead(TMP, RepresentationUtils::ValueSize(rep));
+  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer) {
+    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+      __ leaq(CallingConventions::ArgumentRegisters[0], element_address);
+      switch (RepresentationUtils::ValueSize(rep)) {
+        case 1:
+          return kTsanRead1RuntimeEntry;
+        case 2:
+          return kTsanRead2RuntimeEntry;
+        case 4:
+          return kTsanRead4RuntimeEntry;
+        case 8:
+          return kTsanRead8RuntimeEntry;
+        case 16:
+          return kTsanRead16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    });
   }
 
+  ASSERT(representation() == Boxing::NativeRepresentation(rep));
   if (RepresentationUtils::IsUnboxedInteger(rep)) {
     Register result = locs()->out(0).reg();
     __ Load(result, element_address, RepresentationUtils::OperandSize(rep));
@@ -2028,16 +2043,30 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          : compiler::Assembler::ElementAddressForIntIndex(
                                IsUntagged(), class_id(), index_scale_, array,
                                Smi::Cast(index.constant()).Value());
-
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
-  ASSERT(RequiredInputRepresentation(2) == Boxing::NativeRepresentation(rep));
 
-  if (FLAG_target_thread_sanitizer) {
-    __ leaq(TMP, element_address);
-    __ TsanWrite(TMP, RepresentationUtils::ValueSize(rep));
+  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer) {
+    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+      __ leaq(CallingConventions::ArgumentRegisters[0], element_address);
+      switch (RepresentationUtils::ValueSize(rep)) {
+        case 1:
+          return kTsanWrite1RuntimeEntry;
+        case 2:
+          return kTsanWrite2RuntimeEntry;
+        case 4:
+          return kTsanWrite4RuntimeEntry;
+        case 8:
+          return kTsanWrite8RuntimeEntry;
+        case 16:
+          return kTsanWrite16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    });
   }
 
+  ASSERT(RequiredInputRepresentation(2) == Boxing::NativeRepresentation(rep));
   if (IsClampedTypedDataBaseClassId(class_id())) {
     ASSERT(rep == kUnboxedUint8);
     if (locs()->in(2).IsConstant()) {

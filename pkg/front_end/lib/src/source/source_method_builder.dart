@@ -6,6 +6,8 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../api_prototype/experimental_flags.dart';
+import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/uri_offset.dart';
@@ -124,6 +126,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     MethodDeclaration lastFragment = augmentedFragments.removeLast();
     lastFragment.buildOutlineNode(
       libraryBuilder,
+      libraryBuilder,
       _nameScheme,
       f,
       reference: _reference,
@@ -133,6 +136,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
     for (MethodDeclaration augmented in augmentedFragments) {
       augmented.buildOutlineNode(
+        libraryBuilder,
         libraryBuilder,
         _nameScheme,
         noAddBuildNodesCallback,
@@ -180,17 +184,18 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   @override
   void checkTypes(
-    SourceLibraryBuilder library,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {
     // TODO(johnniwinther): Updated checks for default values to handle
     // default values declared on the introductory method and omitted on the
     // augmenting method.
-    _introductory.checkTypes(library, typeEnvironment);
+    _introductory.checkTypes(problemReporting, typeEnvironment);
     for (int i = 0; i < _augmentations.length; i++) {
       MethodDeclaration augmentation = _augmentations[i];
-      augmentation.checkTypes(library, typeEnvironment);
+      augmentation.checkTypes(problemReporting, typeEnvironment);
     }
   }
 

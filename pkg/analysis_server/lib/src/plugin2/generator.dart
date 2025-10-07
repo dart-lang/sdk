@@ -13,11 +13,11 @@ class PluginPackageGenerator {
   /// file.
   final List<PluginConfiguration> _configurations;
 
-  final String? _dependencyOverrides;
+  final Map<String, PluginSource>? _dependencyOverrides;
 
   PluginPackageGenerator({
     required List<PluginConfiguration> configurations,
-    String? dependencyOverrides,
+    Map<String, PluginSource>? dependencyOverrides,
   }) : _configurations = configurations,
        _dependencyOverrides = dependencyOverrides;
 
@@ -71,7 +71,7 @@ environment:
 dependencies:
   # The version of the analysis_server_plugin package that matches the protocol
   # used by the active analysis_server.
-  analysis_server_plugin: ^0.2.0
+  analysis_server_plugin: ^0.3.0
 ''');
 
     for (var configuration in _configurations) {
@@ -79,10 +79,10 @@ dependencies:
     }
 
     if (_dependencyOverrides != null) {
-      buffer.write('''
-dependency_overrides:
-$_dependencyOverrides
-''');
+      buffer.write('dependency_overrides:\n');
+      for (var configuration in _dependencyOverrides.entries) {
+        buffer.write(configuration.value.toYaml(name: configuration.key));
+      }
     }
 
     return buffer.toString();

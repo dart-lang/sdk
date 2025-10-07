@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 T f<T>() => throw '';
@@ -13,7 +12,7 @@ class C {
     var /*@type=dynamic*/ v2 = super.bar;
     var /*@type=dynamic*/ v3 = super[0];
     var /*@type=dynamic*/ v4 = super.bar = /*@typeArgs=dynamic*/ f();*/
-    var /*@type=invalid-type*/ v5 = super[0] = f();
+    var v5 = super[0] = f();
   }
 }
 

@@ -85,6 +85,70 @@ suggestions
 ''');
   }
 
+  Future<void> test_constructor_constantContext() async {
+    allowedIdentifiers = {'named', 'notConstant'};
+    await computeSuggestions('''
+class C {
+  const C.named();
+  C.notConstant();
+}
+void f() {
+  const C c = .^
+}
+''');
+    assertResponse(r'''
+suggestions
+  named
+    kind: constructorInvocation
+  notConstant
+    kind: constructor
+''');
+  }
+
+  Future<void> test_constructor_constantContext_withPrefix() async {
+    allowedIdentifiers = {'named', 'notConstant'};
+    await computeSuggestions('''
+class C {
+  const C.named();
+  C.notConstant();
+}
+void f() {
+  const C c = .n^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  named
+    kind: constructorInvocation
+  notConstant
+    kind: constructor
+''');
+  }
+
+  Future<void> test_constructor_constantContext_withPrefix_parentheses() async {
+    allowedIdentifiers = {'named', 'notConstant'};
+    await computeSuggestions('''
+class C {
+  const C.named();
+  C.notConstant();
+}
+void f() {
+  const C c = .n^()
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  named
+    kind: constructorInvocation
+  notConstant
+    kind: constructor
+''');
+  }
+
   Future<void> test_constructor_extensionType_named() async {
     allowedIdentifiers = {'named'};
     await computeSuggestions('''

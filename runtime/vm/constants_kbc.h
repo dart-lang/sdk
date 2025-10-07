@@ -427,69 +427,20 @@ class KernelBytecode {
     return DecodeOpcode(instr) == KernelBytecode::kSetFrame;
   }
 
-  DART_FORCE_INLINE static bool IsDebugCheckOpcode(const KBCInstr* instr) {
-    return DecodeOpcode(instr) == KernelBytecode::kDebugCheck;
-  }
-
-  // The interpreter, the bytecode generator, the bytecode compiler, and this
-  // function must agree on this list of opcodes.
-  // For each instruction with listed opcode:
-  // - The interpreter checks for a debug break.
-  // - The bytecode generator emits a source position.
-  // - The bytecode compiler may emit a DebugStepCheck call.
-  DART_FORCE_INLINE static bool IsDebugCheckedOpcode(const KBCInstr* instr) {
-    return IsDebugCheckedOpcode(DecodeOpcode(instr));
-  }
-
-  DART_FORCE_INLINE static bool IsDebugCheckedOpcode(Opcode op) {
-    switch (op) {
-      case KernelBytecode::kDebugCheck:
+  DART_FORCE_INLINE static bool IsDirectCallOpcode(const KBCInstr* instr) {
+    switch (DecodeOpcode(instr)) {
       case KernelBytecode::kDirectCall:
       case KernelBytecode::kDirectCall_Wide:
       case KernelBytecode::kUncheckedDirectCall:
       case KernelBytecode::kUncheckedDirectCall_Wide:
-      case KernelBytecode::kInterfaceCall:
-      case KernelBytecode::kInterfaceCall_Wide:
-      case KernelBytecode::kInstantiatedInterfaceCall:
-      case KernelBytecode::kInstantiatedInterfaceCall_Wide:
-      case KernelBytecode::kUncheckedClosureCall:
-      case KernelBytecode::kUncheckedClosureCall_Wide:
-      case KernelBytecode::kUncheckedInterfaceCall:
-      case KernelBytecode::kUncheckedInterfaceCall_Wide:
-      case KernelBytecode::kDynamicCall:
-      case KernelBytecode::kDynamicCall_Wide:
-      case KernelBytecode::kReturnTOS:
-      case KernelBytecode::kEqualsNull:
-      case KernelBytecode::kNegateInt:
-      case KernelBytecode::kNegateDouble:
-      case KernelBytecode::kAddInt:
-      case KernelBytecode::kSubInt:
-      case KernelBytecode::kMulInt:
-      case KernelBytecode::kTruncDivInt:
-      case KernelBytecode::kModInt:
-      case KernelBytecode::kBitAndInt:
-      case KernelBytecode::kBitOrInt:
-      case KernelBytecode::kBitXorInt:
-      case KernelBytecode::kShlInt:
-      case KernelBytecode::kShrInt:
-      case KernelBytecode::kCompareIntEq:
-      case KernelBytecode::kCompareIntGt:
-      case KernelBytecode::kCompareIntLt:
-      case KernelBytecode::kCompareIntGe:
-      case KernelBytecode::kCompareIntLe:
-      case KernelBytecode::kAddDouble:
-      case KernelBytecode::kSubDouble:
-      case KernelBytecode::kMulDouble:
-      case KernelBytecode::kDivDouble:
-      case KernelBytecode::kCompareDoubleEq:
-      case KernelBytecode::kCompareDoubleGt:
-      case KernelBytecode::kCompareDoubleLt:
-      case KernelBytecode::kCompareDoubleGe:
-      case KernelBytecode::kCompareDoubleLe:
         return true;
       default:
         return false;
     }
+  }
+
+  DART_FORCE_INLINE static bool IsReturnOpcode(const KBCInstr* instr) {
+    return DecodeOpcode(instr) == KernelBytecode::kReturnTOS;
   }
 
   DART_FORCE_INLINE static uint8_t DecodeArgc(const KBCInstr* ret_addr) {

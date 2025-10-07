@@ -9,7 +9,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class C extends Iterable<Object> {
 //       ^
 // sdk/lib/core/iterable.dart:*: Context: 'Iterable.iterator' is defined here.

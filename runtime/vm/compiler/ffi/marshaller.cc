@@ -47,7 +47,8 @@ const NativeFunctionType* NativeFunctionTypeFromFunctionType(
   intptr_t variadic_arguments_index = NativeFunctionType::kNoVariadicArguments;
   for (intptr_t i = 0; i < num_arguments; i++) {
     arg_type = c_signature.ParameterTypeAt(i + kNativeParamsStartAt);
-    const bool varargs = arg_type.type_class() == object_store->varargs_class();
+    const bool varargs =
+        arg_type.type_class() == object_store->ffi_varargs_class();
     if (varargs) {
       arg_type = TypeArguments::Handle(zone, Type::Cast(arg_type).arguments())
                      .TypeAt(0);
@@ -119,7 +120,7 @@ AbstractTypePtr BaseMarshaller::CType(intptr_t arg_index) const {
       zone, c_signature_.ParameterTypeAt(last_param_index));
   ObjectStore* object_store = IsolateGroup::Current()->object_store();
   const bool has_varargs =
-      last_arg_type.type_class() == object_store->varargs_class();
+      last_arg_type.type_class() == object_store->ffi_varargs_class();
 
   // Skip #0 argument, the function pointer.
   const intptr_t real_arg_index = arg_index + kNativeParamsStartAt;
@@ -198,15 +199,16 @@ bool BaseMarshaller::IsTypedDataPointer(intptr_t arg_index) const {
 }
 
 static bool IsCompound(Zone* zone, const AbstractType& type) {
-  auto& compiler_state = Thread::Current()->compiler_state();
+  ObjectStore* object_store =
+      Thread::Current()->isolate_group()->object_store();
   auto& cls = Class::Handle(zone, type.type_class());
-  if (cls.id() == compiler_state.CompoundClass().id() ||
-      cls.id() == compiler_state.ArrayClass().id()) {
+  if ((object_store->ffi_compound_class() == cls.ptr()) ||
+      (object_store->ffi_array_class() == cls.ptr())) {
     return true;
   }
   cls ^= cls.SuperClass();
-  if (cls.id() == compiler_state.StructClass().id() ||
-      cls.id() == compiler_state.UnionClass().id()) {
+  if ((object_store->ffi_struct_class() == cls.ptr()) ||
+      (object_store->ffi_union_class() == cls.ptr())) {
     return true;
   }
   return false;

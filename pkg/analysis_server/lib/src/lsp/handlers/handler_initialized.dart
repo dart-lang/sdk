@@ -24,8 +24,8 @@ class InitializedMessageHandler
     MessageInfo message,
     CancellationToken token,
   ) async {
-    var initializedHandler =
-        server.messageHandler = InitializedLspStateMessageHandler(server);
+    var initializedHandler = server.messageHandler =
+        InitializedLspStateMessageHandler(server);
 
     server.analyticsManager.initialized(openWorkspacePaths: openWorkspacePaths);
 

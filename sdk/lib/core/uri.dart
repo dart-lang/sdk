@@ -11,6 +11,7 @@ const int _AMPERSAND = 0x26;
 const int _PLUS = 0x2B;
 const int _DOT = 0x2E;
 const int _SLASH = 0x2F;
+const int _DIGIT_0 = 0x30;
 const int _COLON = 0x3A;
 const int _EQUALS = 0x3d;
 const int _UPPER_CASE_A = 0x41;
@@ -1404,51 +1405,112 @@ abstract interface class Uri {
   /// Parses the [host] as an IP version 4 (IPv4) address, returning the address
   /// as a list of 4 bytes in network byte order (big endian).
   ///
-  /// Throws a [FormatException] if [host] is not a valid IPv4 address
-  /// representation.
-  static List<int> parseIPv4Address(String host) =>
-      _parseIPv4Address(host, 0, host.length);
+  /// If [start] and [end] are provided, only that range, which must be a valid
+  /// range of [host], is parsed. Defaults to all of [host].
+  ///
+  /// Throws a [FormatException] if (the range of) [host] is not a valid
+  /// IPv4 address representation, meaning something of the form
+  /// `<octet>.<octet>.<octet>.<octet>` where each octet is a decimal
+  /// numeral in the range 0..255 with no leading zeros.
+  static List<int> parseIPv4Address(
+    String host, [
+    @Since('3.10') int start = 0,
+    @Since('3.10') int? end,
+  ]) {
+    end = RangeError.checkValidRange(start, end, host.length);
+    var list = Uint8List(4);
+    _parseIPv4Address(host, start, end, list, 0);
+    return list;
+  }
 
-  /// Implementation of [parseIPv4Address] that can work on a substring.
-  static List<int> _parseIPv4Address(String host, int start, int end) {
-    void error(String msg, int position) {
-      throw FormatException('Illegal IPv4 address, $msg', host, position);
-    }
+  static Never _ipv4FormatError(String msg, String source, int position) {
+    throw FormatException('Illegal IPv4 address, $msg', source, position);
+  }
 
-    var result = Uint8List(4);
-    int partIndex = 0;
-    int partStart = start;
-    for (int i = start; i < end; i++) {
-      int char = host.codeUnitAt(i);
-      if (char != _DOT) {
-        if (char ^ 0x30 > 9) {
-          // Fail on a non-digit character.
-          error("invalid character", i);
+  /// Parses an IPv4 address of a substring into [result].
+  ///
+  /// Returns when all characters from [start] to [end] have been parsed
+  /// successfully.
+  ///
+  /// It's an error if [host] from [start] to [end] does not *start with*
+  /// `<octet>.<octet>.<octet>.<octet>` where each octet is a sequence
+  /// of decimal digits with no leading zeros (the only numeral that can
+  /// start with zero is `0`) and no value above 255, which also limits
+  /// it to three digits.
+  /// It's also an error if such a dotted-quad of octets is followed by
+  /// a `.`. If it's followed by a non-digit, non-`.` character,
+  /// the parsing ends there, and that position is returned.
+  /// The caller can decide whether they consider an end of parsing
+  /// before [end] to be an error or not.
+  ///
+  /// The bytes are stored into four bytes of [target]
+  /// starting at [targetOffset].
+  ///
+  /// If an error is encountered, a [FormatException] is thrown,
+  /// using [_ipv4FormatError].
+  static void _parseIPv4Address(
+    String host,
+    int start,
+    int end,
+    Uint8List target,
+    int targetOffset,
+  ) {
+    assert(target.length >= targetOffset + 4);
+    var cursor = start;
+    var octetStart = cursor;
+    var octetIndex = 0;
+    var octetValue = 0;
+    while (true) {
+      // Any non-negative, non-digit, non-dot value works as sentinel.
+      var char = cursor >= end ? 0 : host.codeUnitAt(cursor);
+      var digit = char ^ _DIGIT_0;
+      if (digit <= 9) {
+        if (octetValue != 0 || cursor == octetStart) {
+          octetValue = octetValue * 10 + digit;
+          if (octetValue <= 255) {
+            cursor++;
+            continue;
+          }
+          _ipv4FormatError(
+            "each part must be in the range 0..255",
+            host,
+            octetStart,
+          );
         }
-      } else {
-        if (partIndex == 3) {
-          error('IPv4 address should contain exactly 4 parts', i);
-        }
-        int part = int.parse(host.substring(partStart, i));
-        if (part > 255) {
-          error("each part must be in the range 0..255", partStart);
-        }
-        result[partIndex++] = part;
-        partStart = i + 1;
+        _ipv4FormatError("parts must not have leading zeros", host, octetStart);
       }
+      if (cursor == octetStart) {
+        // No digit where octet expected.
+        if (cursor == end) break; // Report as missing part.
+        _ipv4FormatError("invalid character", host, cursor);
+      }
+      target[targetOffset + octetIndex++] = octetValue;
+      // Must have _DOT unless after fourth octet.
+      if (char == _DOT) {
+        if (octetIndex < 4) {
+          octetValue = 0;
+          octetStart = ++cursor;
+          continue;
+        }
+        break; // Too many parts (fourth `.`).
+      }
+      // Ended an octet without following `.`.
+      // Only valid at end with four octets.
+      if (cursor == end) {
+        if (octetIndex == 4) return;
+        break; // Too few parts.
+      }
+      _ipv4FormatError("invalid character", host, cursor);
     }
-
-    if (partIndex != 3) {
-      error('IPv4 address should contain exactly 4 parts', end);
-    }
-
-    int part = int.parse(host.substring(partStart, end));
-    if (part > 255) {
-      error("each part must be in the range 0..255", partStart);
-    }
-    result[partIndex] = part;
-
-    return result;
+    // More or less that 4 octets.
+    // Loop is broken to here if the start-end slice is a prefix of a valid
+    // IPv4 address, or it starts with a valid IPv4 address and
+    // then has an extra `.` after it.
+    _ipv4FormatError(
+      'IPv4 address should contain exactly 4 parts',
+      host,
+      cursor,
+    );
   }
 
   /// Checks if a (sub-)string is a valid IPv6 or IPvFuture address.
@@ -1501,7 +1563,7 @@ abstract interface class Uri {
       if (cursor < end) {
         char = host.codeUnitAt(cursor++);
         // Continue if ASCII digit.
-        if (char ^ 0x30 <= 9) continue;
+        if (char ^ _DIGIT_0 <= 9) continue;
         // Continue if a-f, A-F.
         var ucChar = char | 0x20;
         if (ucChar >= _LOWER_CASE_A && ucChar <= _LOWER_CASE_F) continue;
@@ -1518,7 +1580,7 @@ abstract interface class Uri {
         }
         return FormatException("Unexpected character", host, cursor - 1);
       }
-      // Found non-`.` chracter after zero or more hex digits.
+      // Found non-`.` character after zero or more hex digits.
       if (cursor - 1 == start) {
         return FormatException(
           "Missing hex-digit in IPvFuture address",
@@ -1586,7 +1648,7 @@ abstract interface class Uri {
   /// - one to seven such `:`-separated numerals, with either one pair is
   ///   separated by `::`, or a leading or trailing `::`.
   /// - either of the above with a trailing two `:`-separated numerals
-  ///   replaced by an IPv4 addresss.
+  ///   replaced by an IPv4 address.
   ///
   /// An IPv6 address with a zone ID (from RFC 6874) is an IPv6 address followed
   /// by `%25` (an escaped `%`) and valid zone characters.
@@ -1595,7 +1657,7 @@ abstract interface class Uri {
   /// ZoneID    ::= (unreserved | pct-encoded)+
   /// ```.
   static List<int> parseIPv6Address(String host, [int start = 0, int? end]) {
-    end ??= host.length;
+    end ??= RangeError.checkValidRange(start, end, host.length);
     // An IPv6 address consists of exactly 8 parts of 1-4 hex digits, separated
     // by `:`'s, with the following exceptions:
     //
@@ -1604,95 +1666,131 @@ abstract interface class Uri {
     //  - The last two parts may be replaced by an IPv4 "dotted-quad" address.
 
     // Helper function for reporting a badly formatted IPv6 address.
-    void error(String msg, int? position) {
+    Never error(String msg, int? position) {
       throw FormatException('Illegal IPv6 address, $msg', host, position);
     }
 
-    // Parse a hex block.
-    int parseHex(int start, int end) {
-      if (end - start > 4) {
-        error('an IPv6 part can only contain a maximum of 4 hex digits', start);
-      }
-      int value = int.parse(host.substring(start, end), radix: 16);
-      if (value < 0 || value > 0xFFFF) {
-        error('each part must be in the range of `0x0..0xFFFF`', start);
-      }
-      return value;
-    }
-
-    if (host.length < 2) error('address is too short', null);
-    List<int> parts = [];
-    bool wildcardSeen = false;
+    if (end - start < 2) error('address is too short', null);
+    Uint8List result = Uint8List(16);
     // Set if seeing a ".", suggesting that there is an IPv4 address.
-    bool seenDot = false;
     int partStart = start;
+    int wildcardAt = -1;
+    int partCount = 0;
+    int hexValue = 0;
+    bool decValue = true;
+    int cursor = start;
+    // Handle leading colons eagerly to make the loop simpler.
+    // After this, any colon encountered will be after another colon or
+    // a hex part.
+    if (host.codeUnitAt(cursor) == _COLON) {
+      if (host.codeUnitAt(cursor + 1) == _COLON) {
+        wildcardAt = 0;
+        partCount = 1;
+        partStart = cursor += 2;
+      } else {
+        error('invalid start colon', cursor);
+      }
+    }
     // Parse all parts, except a potential last one.
-    for (int i = start; i < end; i++) {
-      int char = host.codeUnitAt(i);
-      if (char == _COLON) {
-        if (i == start) {
-          // If we see a `:` in the beginning, expect wildcard.
-          i++;
-          if (host.codeUnitAt(i) != _COLON) {
-            error('invalid start colon.', i);
-          }
-          partStart = i;
-        }
-        if (i == partStart) {
-          // Wildcard. We only allow one.
-          if (wildcardSeen) {
-            error('only one wildcard `::` is allowed', i);
-          }
-          wildcardSeen = true;
-          parts.add(-1);
+    while (true) {
+      var char = cursor >= end ? 0 : host.codeUnitAt(cursor);
+      handleDigit:
+      {
+        int hexDigit;
+        if (char ^ _DIGIT_0 case var digit when digit <= 9) {
+          hexDigit = digit;
+        } else if (char | 0x20 case var letter
+            when letter >= _LOWER_CASE_A && letter <= _LOWER_CASE_F) {
+          hexDigit = letter - (_LOWER_CASE_A - 10);
+          decValue = false;
         } else {
-          // Found a single colon. Parse [partStart..i] as a hex entry.
-          parts.add(parseHex(partStart, i));
+          break handleDigit; // Not a digit.
         }
-        partStart = i + 1;
-      } else if (char == _DOT) {
-        seenDot = true;
-      }
-    }
-    if (parts.length == 0) error('too few parts', null);
-    bool atEnd = (partStart == end);
-    bool isLastWildcard = (parts.last == -1);
-    if (atEnd && !isLastWildcard) {
-      error('expected a part after last `:`', end);
-    }
-    if (!atEnd) {
-      if (!seenDot) {
-        parts.add(parseHex(partStart, end));
-      } else {
-        List<int> last = _parseIPv4Address(host, partStart, end);
-        parts.add(last[0] << 8 | last[1]);
-        parts.add(last[2] << 8 | last[3]);
-      }
-    }
-    if (wildcardSeen) {
-      if (parts.length > 7) {
-        error('an address with a wildcard must have less than 7 parts', null);
-      }
-    } else if (parts.length != 8) {
-      error('an address without a wildcard must contain exactly 8 parts', null);
-    }
-    List<int> bytes = Uint8List(16);
-    for (int i = 0, index = 0; i < parts.length; i++) {
-      int value = parts[i];
-      if (value == -1) {
-        int wildCardLength = 9 - parts.length;
-        for (int j = 0; j < wildCardLength; j++) {
-          bytes[index] = 0;
-          bytes[index + 1] = 0;
-          index += 2;
+        if (cursor < partStart + 4) {
+          hexValue = hexValue * 16 + hexDigit;
+          cursor++;
+          continue;
         }
-      } else {
-        bytes[index] = value >> 8;
-        bytes[index + 1] = value & 0xff;
-        index += 2;
+        error('an IPv6 part can contain a maximum of 4 hex digits', partStart);
+      }
+      if (cursor > partStart) {
+        // Non-empty part, value in hexValue.
+        if (char == _DOT) {
+          if (decValue) {
+            if (partCount <= 6) {
+              _parseIPv4Address(host, partStart, end, result, partCount * 2);
+              cursor = end; // Throws if IPv4 does not extend to end.
+              partCount += 2;
+              break; // Must be last.
+            }
+            error('an address must contain at most 8 parts', partStart);
+          }
+          break; // Any other dot is just an invalid character.
+        }
+        // Non-empty hex part.
+        result[partCount * 2] = hexValue >> 8;
+        result[partCount * 2 + 1] = hexValue & 0xFF;
+        partCount++;
+        if (char == _COLON) {
+          if (partCount < 8) {
+            // Start new part.
+            hexValue = 0;
+            decValue = true;
+            cursor++;
+            partStart = cursor;
+            continue;
+          }
+          error('an address must contain at most 8 parts', cursor);
+        }
+        break; // Unexpected character or the end sentinel.
+      }
+      // Empty part, after a colon.
+      if (char == _COLON) {
+        // Colon after empty part must be after colon.
+        // (Leading colons were checked before loop.)
+        if (wildcardAt < 0) {
+          wildcardAt = partCount;
+          partCount++; // A wildcard fills at least one part.
+          partStart = ++cursor;
+          continue;
+        }
+        error('only one wildcard `::` is allowed', cursor);
+      }
+      // Missing hex digits after colon.
+      // OK to end right after wildcard, not after another colon.
+      if (wildcardAt != partCount - 1) {
+        // Missing part after a single `:`.
+        // Error even at end.
+        error('missing part', cursor);
+      }
+      break; // Error if not at end.
+    }
+    if (cursor < end) error('invalid character', cursor);
+    if (partCount < 8) {
+      if (wildcardAt < 0) {
+        error(
+          'an address without a wildcard must contain exactly 8 parts',
+          end,
+        );
+      }
+      // Move everything after the wildcard to the end of the buffer, and fill
+      // the wildcard gap with zeros.
+      var partAfterWildcard = wildcardAt + 1;
+      int partsAfterWildcard = partCount - partAfterWildcard;
+      if (partsAfterWildcard > 0) {
+        var positionAfterWildcard = partAfterWildcard * 2;
+        var bytesAfterWildcard = partsAfterWildcard * 2;
+        var newPositionAfterWildcard = result.length - bytesAfterWildcard;
+        result.setRange(
+          newPositionAfterWildcard,
+          result.length,
+          result,
+          positionAfterWildcard,
+        );
+        result.fillRange(positionAfterWildcard, newPositionAfterWildcard, 0);
       }
     }
-    return bytes;
+    return result;
   }
 }
 
@@ -2765,7 +2863,7 @@ final class _Uri implements _PlatformUri {
   /// Normalizes using [_normalize] or returns substring of original.
   ///
   /// If [_normalize] returns `null` (original content is already normalized),
-  /// this methods returns the substring if [component] from [start] to [end].
+  /// this methods returns the substring of [component] from [start] to [end].
   static String _normalizeOrSubstring(
     String component,
     int start,
@@ -2896,7 +2994,7 @@ final class _Uri implements _PlatformUri {
       }
       int delta = baseEnd - newEnd;
       // If we see a "." or ".." segment in base, stop here and let
-      // _removeDotSegments handle it.
+      // _removeDotSegments or _normalizeRelativePath handle it.
       if ((delta == 2 || delta == 3) &&
           base.codeUnitAt(newEnd + 1) == _DOT &&
           (delta == 2 || base.codeUnitAt(newEnd + 2) == _DOT)) {
@@ -2955,45 +3053,132 @@ final class _Uri implements _PlatformUri {
 
   /// Removes all `.` segments and any non-leading `..` segments.
   ///
-  /// If the path starts with something that looks like a scheme,
-  /// and [allowScheme] is false, the colon is escaped.
+  /// Returns a new path that behaves the same as the input [path] when
+  /// used as a URI or URI Reference path.
   ///
-  /// Removing the ".." from a "bar/foo/.." sequence results in "bar/"
-  /// (trailing "/"). If the entire path is removed (because it contains as
-  /// many ".." segments as real segments), the result is "./".
-  /// This is different from an empty string, which represents "no path"
-  /// when you resolve it against a base URI with a path with a non-empty
-  /// final segment.
+  /// If [allowScheme] is `false` and the path starts with something that would
+  /// parse as a scheme, valid scheme-characters followed by a colon,
+  /// the colon is escaped to `%3A`. The `allowScheme` should be set to `true`
+  /// when the result will become the path of a URI with no scheme or authority.
+  ///
+  /// The result will contain no non-leading `..` segments. There may be
+  /// any number of leading `..` segments if the [path] contains more `..`
+  /// segments than prior actual segments. For example `a/b/../../../../c` will
+  /// normalize to `../../c`.
+  ///
+  /// The result will contain no non-leading `.` segment.
+  /// It will only start with a `.` segment if necessary to preserve
+  /// the behavior of the input [path]:
+  /// * The result is the path `./` if the result would otherwise
+  ///   have been an empty path, and the input `path` is not empty, or
+  /// * The result starts with `.//` to represent an otherwise leading
+  ///   empty segment without being an absolute path.
+  ///
+  /// The leading `.` segment
+  /// is only used to prefix a path that could otherwise behave differently
+  /// from the input [path]. An empty path means _no path_ in a URI, which
+  /// behaves differently from any non-empty path in some cases, and
+  /// URI paths cannot represent an empty leading path segment.
+  ///
+  /// The result will end with a `/` if the [path] does, or if the path
+  /// ends with a `.` or `..` segment.
   static String _normalizeRelativePath(String path, bool allowScheme) {
-    assert(!path.startsWith('/')); // Only get called for relative paths.
+    assert(!path.startsWith('/')); // Only get called with relative paths.
     if (!_mayContainDotSegments(path)) {
       if (!allowScheme) path = _escapeScheme(path);
       return path;
     }
     assert(path.isNotEmpty); // An empty path would not have dot segments.
+    // Collects segments to be joined by `/` to produce the result.
+    // Used as a stack where `..` can pop the last segment.
     List<String> output = [];
+    // Set to `true` after a `.` or `..` segment.
+    // If the path ends after a `.` or `..` with no trailing `/`,
+    // the result should have a trailing slash.
+    // For example "a/b" normalizes to "a/b", and "a/b/." normalizes to "a/b/",
+    // but the content of `output` will be the same in both cases.
+    // If the input ends with `appendSlash` set to `true`, the result will
+    // have an extra `/` added.
     bool appendSlash = false;
+    // Split input into segments so `.` and `..` segments can be handled
+    // and remaining segments combined into a normalized path.
+    // The first segment will never be empty, since the path is relative
+    // and non-empty, so the path start with a non-`/` character.
+    // A final empty string does not semantically represent a path segment,
+    // just that the path ends in `/`.
+    // It's handled the same as any other empty segment.
+    // There is no difference between an empty segment and "no segment"
+    // unless followed by a `..` or `.`, which the final string isn't.
     for (String segment in path.split("/")) {
-      appendSlash = false;
       if (".." == segment) {
+        appendSlash = true;
         if (!output.isEmpty && output.last != "..") {
           output.removeLast();
-          appendSlash = true;
         } else {
-          output.add("..");
+          output.add(".."); // The result can have a number of _leading_ `..`s.
         }
       } else if ("." == segment) {
         appendSlash = true;
       } else {
+        appendSlash = false;
+        if (segment.isEmpty && output.isEmpty) {
+          // Avoid a leading empty segment, which would become an absolute path.
+          // Can occur for inputs like `.//etc` or `a/..//etc`.
+          //
+          // The returned path will be the `output` list joined with `/`s.
+          // A leading empty segment in `output` would make the resulting join
+          // start with `/` and be an absolute path,
+          // which is not a correct normalization of a relative path.
+          // Using `./` as "first segment" represents that empty segment as the
+          // segment between the `./` and the following joining `/`.
+          //
+          // The `./` first segment combines correctly with any following
+          // segments, whether `.`, `..` or empty/non-empty segments.
+          // * A `.` leaves the empty segment and sets `appendSlash` to true.
+          // * A `..` removes the `./` segment, effectively removing
+          //   the empty segment between the `./` and the joining `/`
+          //   and making the `output` empty. It sets `appendSlash` to true.
+          // * Any other segment is just appended and preserves the empty
+          //   segment until an equal number of `..`s bring the `output`
+          //   back to just the leading `"./"`.
+          // * If reaching the end of input with only the `./` in the `output`
+          //   then either:
+          //   * `appendSlash` is `true`, and the result becomes the path `.//`,
+          //     which contains exactly the empty segment.
+          //   * `appendSlash` is `false`, in which case the end of input
+          //     was right after the empty segment that added the `./`,
+          //     an empty segment that came from a trailing `/` in the input
+          //     `path`. In that case, the empty segment shouldn't count
+          //     as a real segment, which makes the result path be empty.
+          //     In that case the result should be `./` anyway.
+          //
+          // In all cases, just treating `./` as a normal segment gives
+          // the desired behavior both when combined with later input segments
+          // and in the returned result.
+          //
+          // (This case could also be handled by checking at the end whether
+          // the first segment is empty, and if so, prepending the result with
+          // `"./"`. Simply changing the content of a first empty segment at
+          // this point is simple and cheap.)
+          segment = './';
+        }
         output.add(segment);
       }
     }
-    if (output.isEmpty || (output.length == 1 && output[0].isEmpty)) {
+    if (output.isEmpty) {
+      // Can happen for, fx, `.` or `a/..`.
+      // A URI Reference does not distinguish having an empty path from having
+      // _no path_, and a URI Reference with no path behaves differently when
+      // combined with another URI or URI reference than one with non-empty
+      // path. To make this normalization not change the behavior, instead
+      // return a minimal non-empty normalized path.
       return "./";
     }
-    if (appendSlash || output.last == '..') output.add("");
+    assert(!output.first.isEmpty); // Would be `./` instead.
+    if (appendSlash) output.add("");
     if (!allowScheme) output[0] = _escapeScheme(output[0]);
-    return output.join("/");
+    var result = output.join("/");
+    return result;
   }
 
   /// If [path] starts with a valid scheme, escape the percent.
@@ -3167,7 +3352,7 @@ final class _Uri implements _PlatformUri {
         targetScheme = _makeScheme(targetScheme, 0, targetScheme.length);
       }
       if (split <= afterScheme) {
-        if (targetUserInfo != null) {
+        if (targetUserInfo.isNotEmpty) {
           targetUserInfo = _makeUserInfo(
             targetUserInfo,
             0,

@@ -32,22 +32,21 @@ final recordedUses = Recordings(
     Definition(identifier: callId, loadingUnit: 'part_15.js'): [
       const CallWithArguments(
         positionalArguments: [
-          BoolConstant(false),
-          StringConstant('mercury'),
-          IntConstant(1),
-          StringConstant('jenkins'),
           StringConstant('lib_SHA1'),
+          BoolConstant(false),
+          IntConstant(1),
         ],
-        namedArguments: {},
+        namedArguments: {
+          'freddy': StringConstant('mercury'),
+          'leroy': StringConstant('jenkins'),
+        },
         loadingUnit: 'o.js',
         location: Location(uri: 'lib/test.dart'),
       ),
       const CallWithArguments(
         positionalArguments: [
           StringConstant('lib_SHA1'),
-          IntConstant(0),
           MapConstant<IntConstant>({'key': IntConstant(99)}),
-          StringConstant('jenkins'),
           ListConstant([
             StringConstant('camus'),
             ListConstant([
@@ -58,7 +57,10 @@ final recordedUses = Recordings(
             StringConstant('einstein'),
           ]),
         ],
-        namedArguments: {},
+        namedArguments: {
+          'freddy': IntConstant(0),
+          'leroy': StringConstant('jenkins'),
+        },
         loadingUnit: 'o.js',
         location: Location(uri: 'lib/test2.dart'),
       ),
@@ -112,12 +114,12 @@ final recordedUsesJson = '''{
   },
   "constants": [
     {
-      "type": "bool",
-      "value": false
+      "type": "String",
+      "value": "lib_SHA1"
     },
     {
-      "type": "String",
-      "value": "mercury"
+      "type": "bool",
+      "value": false
     },
     {
       "type": "int",
@@ -125,15 +127,11 @@ final recordedUsesJson = '''{
     },
     {
       "type": "String",
-      "value": "jenkins"
+      "value": "mercury"
     },
     {
       "type": "String",
-      "value": "lib_SHA1"
-    },
-    {
-      "type": "int",
-      "value": 0
+      "value": "jenkins"
     },
     {
       "type": "int",
@@ -142,7 +140,7 @@ final recordedUsesJson = '''{
     {
       "type": "map",
       "value": {
-        "key": 6
+        "key": 5
       }
     },
     {
@@ -160,18 +158,22 @@ final recordedUsesJson = '''{
     {
       "type": "list",
       "value": [
+        8,
         9,
-        10,
-        0
+        1
       ]
     },
     {
       "type": "list",
       "value": [
-        8,
-        11,
-        9
+        7,
+        10,
+        8
       ]
+    },
+    {
+      "type": "int",
+      "value": 0
     },
     {
       "type": "int",
@@ -218,22 +220,26 @@ final recordedUsesJson = '''{
           "positional": [
             0,
             1,
-            2,
-            3,
-            4
+            2
           ],
+          "named": {
+            "freddy": 3,
+            "leroy": 4
+          },
           "loading_unit": "o.js",
           "@": 0
         },
         {
           "type": "with_arguments",
           "positional": [
-            4,
-            5,
-            7,
-            3,
-            12
+            0,
+            6,
+            11
           ],
+          "named": {
+            "freddy": 12,
+            "leroy": 4
+          },
           "loading_unit": "o.js",
           "@": 1
         }

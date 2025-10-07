@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.54 Support declaring constructors.
+//
 // v0.53 Support static access shorthands.
 //
 // v0.52 Support a `switchExpression` with no cases.
@@ -403,13 +405,11 @@ functionFormalParameter
     ;
 
 simpleFormalParameter
-    :    declaredIdentifier
-    |    COVARIANT? identifier
+    :    COVARIANT? type? identifier
     ;
 
-// NB: It is an anomaly that VAR can be a return type (`var this.x()`).
 fieldFormalParameter
-    :    finalConstVarOrType? THIS '.' identifier (formalParameterPart '?'?)?
+    :    type? THIS '.' identifier (formalParameterPart '?'?)?
     ;
 
 superFormalParameter
@@ -430,9 +430,23 @@ typeWithParameters
 
 classDeclaration
     :    AUGMENT? (classModifiers | mixinClassModifiers)
-         CLASS typeWithParameters superclass? interfaces?
-         LBRACE (metadata classMemberDeclaration)* RBRACE
+         CLASS classNamePart superclass? interfaces? classBody
     |    classModifiers MIXIN? CLASS mixinApplicationClass
+    ;
+
+primaryConstructorNoConst
+    :    typeIdentifier typeParameters?
+         ('.' identifierOrNew)? declaringParameterList
+    ;
+
+classNamePart
+    :    CONST? primaryConstructorNoConst
+    |    typeWithParameters
+    ;
+
+classBody
+    :    LBRACE (metadata classMemberDeclaration)* RBRACE
+    |    ';'
     ;
 
 classModifiers
@@ -472,25 +486,21 @@ mixinDeclaration
          LBRACE (metadata mixinMemberDeclaration)* RBRACE
     ;
 
-// TODO: We might want to make this more strict.
 mixinMemberDeclaration
     :    classMemberDeclaration
     ;
 
 extensionTypeDeclaration
-    :    EXTENSION TYPE CONST? typeWithParameters
-         representationDeclaration interfaces?
-         LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
+    :    EXTENSION TYPE classNamePart interfaces? extensionTypeBody
     |    AUGMENT EXTENSION TYPE typeWithParameters interfaces?
-         LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
+         extensionTypeBody
     ;
 
-representationDeclaration
-    :    ('.' identifierOrNew)? '(' metadata typedIdentifier ')'
+extensionTypeBody
+    :    LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
+    |    ';'
     ;
 
-
-// TODO: We might want to make this more strict.
 extensionTypeMemberDeclaration
     :    classMemberDeclaration
     ;
@@ -570,13 +580,82 @@ setterSignature
 
 constructorSignature
     :    constructorName formalParameterList
+    |    declaringConstructorSignature
+    ;
+
+declaringConstructorSignature
+    :    THIS ('.' identifierOrNew)? declaringParameterList?
+    ;
+
+declaringConstantConstructorSignature
+    :    CONST THIS ('.' identifierOrNew)? declaringParameterList
+    ;
+
+declaringParameterList
+    :    '(' ')'
+    |    '(' declaringFormalParameters ','? ')'
+    |    '(' declaringFormalParameters ','
+         optionalOrNamedDeclaringFormalParameters ')'
+    |    '(' optionalOrNamedDeclaringFormalParameters ')'
+    ;
+
+declaringFormalParameters
+    :    declaringFormalParameter (',' declaringFormalParameter)*
+    ;
+
+declaringFormalParameter
+    :    metadata declaringFormalParameterNoMetadata
+    ;
+
+declaringFormalParameterNoMetadata
+    :    declaringFunctionFormalParameter
+    |    fieldFormalParameter
+    |    declaringSimpleFormalParameter
+    |    superFormalParameter
+    ;
+
+declaringFunctionFormalParameter
+    :    COVARIANT? (VAR | FINAL)? type?
+         identifier formalParameterPart '?'?
+    ;
+
+declaringSimpleFormalParameter
+    :    COVARIANT? (VAR | FINAL)? type? identifier
+    ;
+
+optionalOrNamedDeclaringFormalParameters
+    :    optionalPositionalDeclaringFormalParameters
+    |    namedDeclaringFormalParameters
+    ;
+
+optionalPositionalDeclaringFormalParameters
+    :    '[' defaultDeclaringFormalParameter
+         (',' defaultDeclaringFormalParameter)* ','? ']'
+    ;
+
+defaultDeclaringFormalParameter
+    :    declaringFormalParameter ('=' expression)?
+    ;
+
+namedDeclaringFormalParameters
+    :    LBRACE defaultDeclaringNamedParameter
+         (',' defaultDeclaringNamedParameter)* ','? RBRACE
+    ;
+
+defaultDeclaringNamedParameter
+    :    metadata REQUIRED? declaringFormalParameterNoMetadata
+         ('=' expression)?
     ;
 
 constructorName
-    :    typeIdentifier ('.' identifierOrNew)?
+    :    typeIdentifierOrNew ('.' identifierOrNew)?
     ;
 
-// TODO: Add this in the language specification, use it in grammar rules.
+typeIdentifierOrNew
+    :    typeIdentifier
+    |    NEW
+    ;
+
 identifierOrNew
     :    identifier
     |    NEW
@@ -619,6 +698,7 @@ redirectingFactoryConstructorSignature
 
 constantConstructorSignature
     :    CONST constructorName formalParameterList
+    |    declaringConstantConstructorSignature
     ;
 
 mixinApplication
@@ -626,8 +706,8 @@ mixinApplication
     ;
 
 enumType
-    :    AUGMENT? ENUM typeWithParameters mixins? interfaces? LBRACE
-         enumEntry (',' enumEntry)* (',')?
+    :    AUGMENT? ENUM classNamePart mixins? interfaces? LBRACE
+         enumEntry (',' enumEntry)* ','?
          (';' (metadata classMemberDeclaration)*)?
          RBRACE
     ;

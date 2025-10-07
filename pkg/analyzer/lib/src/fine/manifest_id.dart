@@ -4,9 +4,37 @@
 
 import 'dart:math';
 
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:collection/collection.dart';
+
+class ManifestIdTableBuilder {
+  final Map<ManifestItemId, int> _map = {};
+
+  int operator [](ManifestItemId id) {
+    return _map[id] ??= _map.length;
+  }
+
+  int write(BinaryWriter writer) {
+    var offset = writer.offset;
+    writer.writeUint30(_map.length);
+    for (var entry in _map.entries) {
+      var id = entry.key;
+      writer.writeUint32(id.hi32);
+      writer.writeUint32(id.lo32);
+    }
+    return offset;
+  }
+
+  static List<ManifestItemId> readTable(BinaryReader reader) {
+    var length = reader.readUint30();
+    return List.generate(length, (_) {
+      var hi = reader.readUint32();
+      var lo = reader.readUint32();
+      return ManifestItemId._(hi, lo);
+    }, growable: false);
+  }
+}
 
 /// The globally unique identifier.
 ///
@@ -34,16 +62,19 @@ class ManifestItemId implements Comparable<ManifestItemId> {
     return ManifestItemId._(_hi32, _nextLo32);
   }
 
-  factory ManifestItemId.read(SummaryDataReader reader) {
-    return ManifestItemId._(reader.readUInt32(), reader.readUInt32());
+  factory ManifestItemId.read(BinaryReader reader) {
+    return reader.readManifestItemId();
   }
 
   ManifestItemId._(this.hi32, this.lo32)
     : assert(hi32 >= 0 && hi32 <= _mask32),
       assert(lo32 >= 0 && lo32 <= _mask32);
 
+  @pragma("vm:prefer-inline")
   @override
-  int get hashCode => Object.hash(hi32, lo32);
+  int get hashCode {
+    return lo32;
+  }
 
   @override
   bool operator ==(Object other) {
@@ -60,16 +91,16 @@ class ManifestItemId implements Comparable<ManifestItemId> {
   @override
   String toString() => '($hi32, $lo32)';
 
-  void write(BufferedSink sink) {
-    sink.writeUInt32(hi32);
-    sink.writeUInt32(lo32);
+  @pragma("vm:prefer-inline")
+  void write(BinaryWriter writer) {
+    writer.writeManifestItemId(this);
   }
 
-  static List<ManifestItemId> readList(SummaryDataReader reader) {
+  static List<ManifestItemId> readList(BinaryReader reader) {
     return reader.readTypedList(() => ManifestItemId.read(reader));
   }
 
-  static ManifestItemId? readOptional(SummaryDataReader reader) {
+  static ManifestItemId? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => ManifestItemId.read(reader));
   }
 }
@@ -79,7 +110,7 @@ class ManifestItemIdList {
 
   ManifestItemIdList(this.ids);
 
-  factory ManifestItemIdList.read(SummaryDataReader reader) {
+  factory ManifestItemIdList.read(BinaryReader reader) {
     return ManifestItemIdList(ManifestItemId.readList(reader));
   }
 
@@ -104,25 +135,25 @@ class ManifestItemIdList {
     return '[${ids.join(', ')}]';
   }
 
-  void write(BufferedSink sink) {
-    sink.writeList(ids, (id) => id.write(sink));
+  void write(BinaryWriter writer) {
+    writer.writeList(ids, (id) => id.write(writer));
   }
 
-  static ManifestItemIdList? readOptional(SummaryDataReader reader) {
+  static ManifestItemIdList? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => ManifestItemIdList.read(reader));
   }
 }
 
 extension ManifestItemIdExtension on ManifestItemId? {
-  void writeOptional(BufferedSink sink) {
-    sink.writeOptionalObject(this, (it) {
-      it.write(sink);
+  void writeOptional(BinaryWriter writer) {
+    writer.writeOptionalObject(this, (it) {
+      it.write(writer);
     });
   }
 }
 
 extension ManifestItemIdListOrNullExtension on ManifestItemIdList? {
-  void writeOptional(BufferedSink sink) {
-    sink.writeOptionalObject(this, (it) => it.write(sink));
+  void writeOptional(BinaryWriter writer) {
+    writer.writeOptionalObject(this, (it) => it.write(writer));
   }
 }

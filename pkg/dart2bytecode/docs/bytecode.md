@@ -805,6 +805,13 @@ type ConstantExternalCall extends ConstantPoolEntry {
 type ConstantFfiCall extends ConstantPoolEntry {
   Byte tag = 16;
 }
+
+type ConstantDeferredLibraryPrefix extends ConstantPoolEntry {
+  Byte tag = 17;
+  PackedObject name;
+  PackedObject enclosingLibrary;
+  PackedObject targetLibrary;
+}
 ```
 
 ### Exceptions table
@@ -862,7 +869,7 @@ type SourcePositionEntry = {
 
 ```
 type SourceFile {
-  UInt flags = (hasLineStarts, hasSource)
+  UInt flags = (hasLineStarts, hasSource, hasConstConstructorCoverageFlag)
   PackedObject importUri;
 
   if hasLineStarts
@@ -871,6 +878,9 @@ type SourceFile {
 
   if hasSource
     PackedString source;
+
+  if hasConstConstructorCoverageFlag
+    List<PackedObject> coveredConstConstructors;
 }
 
 type LineStarts {

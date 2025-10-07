@@ -18,10 +18,10 @@ class ConvertToFlutterStyleTodo extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_FLUTTER_STYLE_TODO;
+  FixKind get fixKind => DartFixKind.convertToFlutterStyleTodo;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_FLUTTER_STYLE_TODO_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToFlutterStyleTodoMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

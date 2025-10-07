@@ -252,7 +252,7 @@ library
                                   type: dynamic Function()
                                 type: dynamic Function()
                             rightBracket: > @71
-                          element2: <testLibrary>::@class::A
+                          element: <testLibrary>::@class::A
                           type: A<dynamic Function()>
                         element: ConstructorMember
                           baseElement: <testLibrary>::@class::A::@constructor::new
@@ -693,7 +693,7 @@ library
                       constructorName: ConstructorName
                         type: NamedType
                           name: B @80
-                          element2: <testLibrary>::@class::B
+                          element: <testLibrary>::@class::B
                           type: B<int, double>
                         element: ConstructorMember
                           baseElement: <testLibrary>::@class::B::@constructor::new
@@ -782,7 +782,7 @@ library
                       constructorName: ConstructorName
                         type: NamedType
                           name: B @67
-                          element2: <testLibrary>::@class::B
+                          element: <testLibrary>::@class::B
                           type: B<Never>
                         element: ConstructorMember
                           baseElement: <testLibrary>::@class::B::@constructor::new
@@ -877,7 +877,7 @@ library
                       constructorName: ConstructorName
                         type: NamedType
                           name: B @132
-                          element2: <testLibrary>::@class::B
+                          element: <testLibrary>::@class::B
                           type: B<Never>
                         element: ConstructorMember
                           baseElement: <testLibrary>::@class::B::@constructor::new
@@ -970,7 +970,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: B @56
-                      element2: <testLibrary>::@class::B
+                      element: <testLibrary>::@class::B
                       type: B<Never>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@class::B::@constructor::new
@@ -1055,7 +1055,7 @@ library
                       constructorName: ConstructorName
                         type: NamedType
                           name: B @68
-                          element2: <testLibrary>::@class::B
+                          element: <testLibrary>::@class::B
                           type: B<Never>
                         element: ConstructorMember
                           baseElement: <testLibrary>::@class::B::@constructor::new
@@ -1152,7 +1152,7 @@ library
                       constructorName: ConstructorName
                         type: NamedType
                           name: B @83
-                          element2: <testLibrary>::@class::B
+                          element: <testLibrary>::@class::B
                           type: B<Never, Never>
                         element: ConstructorMember
                           baseElement: <testLibrary>::@class::B::@constructor::new
@@ -1250,7 +1250,7 @@ library
                       constructorName: ConstructorName
                         type: NamedType
                           name: B @68
-                          element2: <testLibrary>::@class::B
+                          element: <testLibrary>::@class::B
                           type: B<Never>
                         element: ConstructorMember
                           baseElement: <testLibrary>::@class::B::@constructor::new

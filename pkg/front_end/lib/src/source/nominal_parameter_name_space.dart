@@ -34,7 +34,7 @@ class NominalParameterNameSpace {
             tv.fileUri,
             context: [
               codeTypeParameterDuplicatedNameCause
-                  .withArguments(tv.name)
+                  .withArgumentsOld(tv.name)
                   .withLocation(
                     existing.fileUri,
                     existing.fileOffset,

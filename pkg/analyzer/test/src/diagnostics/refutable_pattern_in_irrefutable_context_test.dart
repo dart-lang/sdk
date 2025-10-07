@@ -139,7 +139,7 @@ PatternVariableDeclaration
       operand: IntegerLiteral
         literal: 0
         staticType: int
-      element2: dart:core::@class::num::@method::>
+      element: dart:core::@class::num::@method::>
       matchedValueType: int
     rightParenthesis: )
     matchedValueType: int

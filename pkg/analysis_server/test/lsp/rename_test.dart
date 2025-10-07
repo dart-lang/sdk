@@ -856,13 +856,12 @@ class MyNewClass {}
       version: referencedVersion,
     );
 
-    var result =
-        (await rename(
-          mainFileUri,
-          mainVersion,
-          mainCode.position.position,
-          'MyNewClass',
-        ))!;
+    var result = (await rename(
+      mainFileUri,
+      mainVersion,
+      mainCode.position.position,
+      'MyNewClass',
+    ))!;
 
     var expectedVersions = {
       mainFileUri: mainVersion,
@@ -1023,8 +1022,12 @@ final a = new MyNewClass();
     await initialize();
     await openFile(mainFileUri, code.code, version: 222);
 
-    var result =
-        (await rename(mainFileUri, 222, code.position.position, 'MyNewClass'))!;
+    var result = (await rename(
+      mainFileUri,
+      222,
+      code.position.position,
+      'MyNewClass',
+    ))!;
 
     verifyEdit(result, expectedContent);
   }
@@ -1153,10 +1156,9 @@ final a = new MyNewClass();
 
     var code = TestCode.parse(content);
     await initialize(
-      experimentalCapabilities:
-          supportsWindowShowMessageRequest
-              ? const {'supportsWindowShowMessageRequest': true}
-              : null,
+      experimentalCapabilities: supportsWindowShowMessageRequest
+          ? const {'supportsWindowShowMessageRequest': true}
+          : null,
     );
     await openFile(mainFileUri, code.code, version: openFileVersion);
 
@@ -1189,10 +1191,9 @@ final a = new MyNewClass();
 
     var code = TestCode.parseNormalized(content);
     await initialize(
-      experimentalCapabilities:
-          supportsWindowShowMessageRequest
-              ? const {'supportsWindowShowMessageRequest': true}
-              : null,
+      experimentalCapabilities: supportsWindowShowMessageRequest
+          ? const {'supportsWindowShowMessageRequest': true}
+          : null,
     );
     await openFile(mainFileUri, code.code, version: openFileVersion);
 
@@ -1259,10 +1260,9 @@ final a = new MyNewClass();
 
     var code = TestCode.parse(content);
     await initialize(
-      experimentalCapabilities:
-          supportsWindowShowMessageRequest
-              ? const {'supportsWindowShowMessageRequest': true}
-              : null,
+      experimentalCapabilities: supportsWindowShowMessageRequest
+          ? const {'supportsWindowShowMessageRequest': true}
+          : null,
       workspaceFolders: workspaceFolders,
     );
     await openFile(fileUri, code.code, version: documentVersion);
@@ -1281,7 +1281,8 @@ final a = new MyNewClass();
       // For convenience, if a test doesn't provide an full set of edits
       // we assume only a single edit of the file that was being modified.
       if (!expectedContent.startsWith(LspChangeVerifier.editMarkerStart)) {
-        expectedContent = '''
+        expectedContent =
+            '''
 ${LspChangeVerifier.editMarkerStart} ${relativePath(filePath)}
 $expectedContent''';
       }

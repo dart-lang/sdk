@@ -34,7 +34,7 @@ B<int> b = B(0);
 ConstructorName
   type: NamedType
     name: B
-    element2: <testLibrary>::@class::B
+    element: <testLibrary>::@class::B
     type: B<int>
   element: ConstructorMember
     baseElement: <testLibrary>::@class::B::@constructor::new
@@ -96,7 +96,7 @@ ConstructorDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: a
-        element2: <testLibrary>::@class::a
+        element: <testLibrary>::@class::a
         type: a
       name: a
       declaredElement: <testLibraryFragment> a@28
@@ -146,7 +146,7 @@ ConstructorDeclaration
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -193,10 +193,10 @@ ConstructorDeclaration
         arguments
           NamedType
             name: U
-            element2: #E0 U
+            element: #E0 U
             type: U
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<U>
     period: .
     name: SimpleIdentifier
@@ -245,7 +245,7 @@ ConstructorDeclaration
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -289,7 +289,7 @@ ConstructorDeclaration
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     element: <testLibrary>::@class::A::@constructor::new
   body: EmptyFunctionBody
@@ -333,10 +333,10 @@ ConstructorDeclaration
         arguments
           NamedType
             name: U
-            element2: #E0 U
+            element: #E0 U
             type: U
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<U>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -380,7 +380,7 @@ ConstructorDeclaration
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     element: <null>
   body: EmptyFunctionBody

@@ -776,7 +776,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
       rewrittenBody = js.LabeledStatement(outerLabelName, rewrittenBody);
     }
     rewrittenBody = js.js
-        .statement('while (true) #', rewrittenBody)
+        .statement('for (;;) #', rewrittenBody)
         .withSourceInformation(bodySourceInformation);
     List<js.VariableInitialization> variables = [];
 

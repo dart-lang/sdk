@@ -213,18 +213,21 @@ class TypesBuilder {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces,
-    );
+    element.interfaces = [
+      ...element.interfaces,
+      ..._toInterfaceTypeList(node.implementsClause?.interfaces),
+    ];
 
     _addFragmentWithClause(fragment, node.withClause);
   }
 
   void _extensionDeclaration(ExtensionDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
     if (node.onClause case var onClause?) {
-      var extendedType = onClause.extendedType.typeOrThrow;
-      fragment.element.extendedType = extendedType;
+      var fragment = node.declaredFragment!;
+      if (fragment.previousFragment == null) {
+        var extendedType = onClause.extendedType.typeOrThrow;
+        fragment.element.extendedType = extendedType;
+      }
     }
   }
 
@@ -239,7 +242,7 @@ class TypesBuilder {
         .where(typeSystem.isValidExtensionTypeSuperinterface)
         .toFixedList();
     if (interfaces != null) {
-      element.interfaces = interfaces;
+      element.interfaces = [...element.interfaces, ...interfaces];
     }
   }
 
@@ -279,7 +282,9 @@ class TypesBuilder {
 
     var fragment = node.declaredFragment!;
     var element = fragment.element;
-    element.returnType = returnType;
+    if (fragment.previousFragment == null) {
+      element.returnType = returnType;
+    }
     _setSyntheticVariableType(element);
   }
 
@@ -346,10 +351,14 @@ class TypesBuilder {
     var constraints = _toInterfaceTypeList(
       node.onClause?.superclassConstraints,
     );
-    element.superclassConstraints = constraints;
-    element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces,
-    );
+    element.superclassConstraints = [
+      ...element.superclassConstraints,
+      ...constraints,
+    ];
+    element.interfaces = [
+      ...element.interfaces,
+      ..._toInterfaceTypeList(node.implementsClause?.interfaces),
+    ];
   }
 
   NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {
@@ -363,7 +372,10 @@ class TypesBuilder {
   void _setSyntheticVariableType(ExecutableElementImpl element) {
     switch (element) {
       case GetterElementImpl():
-        element.variable.type = element.returnType;
+        var variable = element.variable;
+        if (variable.isSynthetic) {
+          variable.type = element.returnType;
+        }
       case SetterElementImpl():
         var variable = element.variable;
         if (variable.isSynthetic && variable.getter == null) {
@@ -375,7 +387,9 @@ class TypesBuilder {
 
   void _simpleFormalParameter(SimpleFormalParameterImpl node) {
     var fragment = node.declaredFragment!;
-    fragment.element.type = node.type?.type ?? _dynamicType;
+    if (fragment.previousFragment == null) {
+      fragment.element.type = node.type?.type ?? _dynamicType;
+    }
   }
 
   void _superFormalParameter(SuperFormalParameterImpl node) {
@@ -396,7 +410,9 @@ class TypesBuilder {
 
   void _typeParameter(TypeParameterImpl node) {
     var fragment = node.declaredFragment!;
-    fragment.element.bound = node.bound?.type;
+    if (fragment.previousFragment == null) {
+      fragment.element.bound = node.bound?.type;
+    }
   }
 
   List<TypeParameterFragmentImpl> _typeParameters(TypeParameterListImpl? node) {
@@ -412,8 +428,9 @@ class TypesBuilder {
     if (type != null) {
       for (var variable in node.variables) {
         var variableFragment = variable.declaredFragment!;
-        var variableElement = variableFragment.element;
-        variableElement.type = type;
+        if (variableFragment.previousFragment == null) {
+          variableFragment.element.type = type;
+        }
       }
     }
   }

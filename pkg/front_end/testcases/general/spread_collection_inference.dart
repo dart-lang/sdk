@@ -5,8 +5,6 @@
 // This test case checks that inference works for spread collections, and that
 // the errors are reported when necessary.
 
-/*@testedFeatures=inference*/
-
 Map<K, V> bar<K, V>() => throw '';
 
 foo(dynamic dynVar) {
@@ -18,91 +16,68 @@ foo(dynamic dynVar) {
   Map<int, num> mapIntNum = <int, num>{42: 42};
   List<num> listNum = <num>[42];
 
-  var /*@type=List<dynamic>*/ lhs10 = /*@ typeArgs=dynamic */ [
-    ... /*@ typeArgs=dynamic */ []
-  ];
+  var lhs10 = [...[]];
 
-  var /*@type=Set<dynamic>*/ set10 = <dynamic>{... /*@ typeArgs=dynamic */ []};
+  var set10 = <dynamic>{...[]};
 
-  var /*@type=Map<dynamic, dynamic>*/ map10 = <dynamic, dynamic>{
-    ... /*@ typeArgs=dynamic, dynamic */ {}
-  };
+  var map10 = <dynamic, dynamic>{...{}};
 
-  var /*@type=Map<dynamic, dynamic>*/ map10ambiguous =
-      /*@ typeArgs=dynamic, dynamic */ {
-    ... /*@ typeArgs=dynamic, dynamic */ {}
-  };
+  var map10ambiguous = {...{}};
 
-  var /*@type=List<int>*/ lhs20 = /*@typeArgs=int*/ [...spread];
+  var lhs20 = [...spread];
 
-  var /*@type=Set<int>*/ set20 = /*@typeArgs=int*/ {...spread, 42};
+  var set20 = {...spread, 42};
 
-  var /*@type=Set<int>*/ set20ambiguous = /*@typeArgs=int*/ {...spread};
+  var set20ambiguous = {...spread};
 
-  var /*@type=Map<String, int>*/ map20 = /*@typeArgs=String, int*/
-      {...mapSpread, "baz": 42};
+  var map20 = {...mapSpread, "baz": 42};
 
-  var /*@type=Map<String, int>*/ map20ambiguous = /*@typeArgs=String, int*/
-      {...mapSpread};
+  var map20ambiguous = {...mapSpread};
 
-  var /*@type=List<dynamic>*/ lhs21 = /*@ typeArgs=dynamic */ [
-    ...(spread as dynamic)
-  ];
+  var lhs21 = [...(spread as dynamic)];
 
-  var /*@type=Set<dynamic>*/ set21 = /*@ typeArgs=dynamic */ {
-    ...(spread as dynamic),
-    42
-  };
+  var set21 = {...(spread as dynamic), 42};
 
-  var /*@type=Map<dynamic, dynamic>*/ map21 = /*@ typeArgs=dynamic, dynamic */
-      {...(mapSpread as dynamic), "baz": 42};
+  var map21 = {...(mapSpread as dynamic), "baz": 42};
 
   dynamic map21ambiguous = {...(mapSpread as dynamic)};
 
-  List<int> lhs22 = /*@typeArgs=int*/ [... /*@typeArgs=int*/ []];
+  List<int> lhs22 = [...[]];
 
-  Set<int> set22 = /*@typeArgs=int*/ {... /*@typeArgs=int*/ [], 42};
+  Set<int> set22 = {...[], 42};
 
-  Set<int> set22ambiguous = /*@typeArgs=int*/ {... /*@typeArgs=int*/ []};
+  Set<int> set22ambiguous = {...[]};
 
-  Map<String, int> map22 = /*@typeArgs=String, int*/
-      {... /*@typeArgs=String, int*/ {}};
+  Map<String, int> map22 = {...{}};
 
-  List<List<int>> lhs23 = /*@typeArgs=List<int>*/ [
-    ... /*@typeArgs=List<int>*/
-    [/*@typeArgs=int*/ []]
+  List<List<int>> lhs23 = [
+    ...[[]],
   ];
 
-  Set<List<int>> set23 = /*@typeArgs=List<int>*/ {
-    ... /*@typeArgs=List<int>*/
-    [/*@typeArgs=int*/ []],
-    <int>[42]
+  Set<List<int>> set23 = {
+    ...[[]],
+    <int>[42],
   };
 
-  Set<List<int>> set23ambiguous = /*@typeArgs=List<int>*/
-      {
-    ... /*@typeArgs=List<int>*/ [/*@typeArgs=int*/ []]
+  Set<List<int>> set23ambiguous = {
+    ...[[]],
   };
 
-  Map<String, List<int>> map23 = /*@typeArgs=String, List<int>*/
-      {
-    ... /*@typeArgs=String, List<int>*/ {"baz": /*@typeArgs=int*/ [] }
+  Map<String, List<int>> map23 = {
+    ...{"baz": []},
   };
 
   dynamic map24ambiguous = {...spread, ...mapSpread};
 
-  int lhs30 = /*@typeArgs=int*/ [...spread];
+  int lhs30 = [...spread];
 
-  int set30 = /*@typeArgs=int*/ {...spread, 42};
+  int set30 = {...spread, 42};
 
-  int set30ambiguous = /*@typeArgs=int*/
-      {...spread};
+  int set30ambiguous = {...spread};
 
-  int map30 = /*@typeArgs=String, int*/
-      {...mapSpread, "baz": 42};
+  int map30 = {...mapSpread, "baz": 42};
 
-  int map30ambiguous = /*@typeArgs=String, int*/
-      {...mapSpread};
+  int map30ambiguous = {...mapSpread};
 
   List<dynamic> lhs40 = <dynamic>[...notSpreadInt];
 
@@ -128,12 +103,7 @@ foo(dynamic dynVar) {
 
   Set<int> set70 = <int>{...null};
 
-  var /*@type=Set<dynamic>*/ set71ambiguous = /*@ typeArgs=dynamic */
-      {
-    ...null,
-    ... /*@ typeArgs=dynamic */
-    []
-  };
+  var set71ambiguous = {...null, ...[]};
 
   Map<String, int> map70 = <String, int>{...null};
 
@@ -141,14 +111,11 @@ foo(dynamic dynVar) {
 
   Set<int> set80 = <int>{...?null};
 
-  var /*@type=Set<dynamic>*/ set81ambiguous = /*@ typeArgs=dynamic */
-      {...?null, ... /*@ typeArgs=dynamic */ []};
+  var set81ambiguous = {...?null, ...[]};
 
   Map<String, int> map80 = <String, int>{...?null};
 
-  var /*@type=Map<String, int>*/ map90 = <String, int>{
-    ... /*@typeArgs=String, int*/ bar()
-  };
+  var map90 = <String, int>{...bar()};
 
   List<int> list100 = <int>[...listNum];
 

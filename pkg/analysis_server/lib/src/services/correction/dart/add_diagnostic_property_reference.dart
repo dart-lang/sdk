@@ -29,11 +29,10 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.addDiagnosticPropertyReference;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
+  FixKind get fixKind => DartFixKind.addDiagnosticPropertyReference;
 
   @override
-  FixKind get multiFixKind =>
-      DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE_MULTI;
+  FixKind get multiFixKind => DartFixKind.addDiagnosticPropertyReferenceMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -465,9 +464,8 @@ class _PropertyInfo {
 }
 
 extension on ClassDeclaration {
-  MethodDeclaration? get debugFillPropertiesDeclaration =>
-      members
-          .whereType<MethodDeclaration>()
-          .where((e) => e.name.lexeme == 'debugFillProperties')
-          .singleOrNull;
+  MethodDeclaration? get debugFillPropertiesDeclaration => members
+      .whereType<MethodDeclaration>()
+      .where((e) => e.name.lexeme == 'debugFillProperties')
+      .singleOrNull;
 }

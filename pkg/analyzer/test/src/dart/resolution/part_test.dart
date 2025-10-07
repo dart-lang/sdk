@@ -124,7 +124,7 @@ CompilationUnit
         type: NamedType
           name: A
           question: ?
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A?
         variables
           VariableDeclaration
@@ -227,7 +227,7 @@ CompilationUnit
         type: NamedType
           name: A
           question: ?
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A?
         variables
           VariableDeclaration
@@ -433,7 +433,7 @@ CompilationUnit
         type: NamedType
           name: A
           question: ?
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A?
         variables
           VariableDeclaration

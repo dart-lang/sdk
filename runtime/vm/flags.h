@@ -6,6 +6,8 @@
 #define RUNTIME_VM_FLAGS_H_
 
 #include "platform/assert.h"
+#include "platform/memory_sanitizer.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/flag_list.h"
 #include "vm/globals.h"
 

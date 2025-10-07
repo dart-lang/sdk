@@ -14,6 +14,7 @@ import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/configuration.dart' show Configuration;
+import '../base/directives.dart';
 import '../base/export.dart' show Export;
 import '../base/identifiers.dart' show Identifier, QualifiedNameIdentifier;
 import '../base/import.dart' show Import;
@@ -41,7 +42,6 @@ import 'name_space_builder.dart';
 import 'native_method_registry.dart';
 import 'nominal_parameter_name_space.dart';
 import 'offset_map.dart';
-import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_type_parameter_builder.dart';
 import 'type_parameter_factory.dart';
@@ -49,10 +49,10 @@ import 'type_scope.dart';
 
 abstract class CompilationUnitRegistry {
   void registerLibraryDirective({
-    required String? libraryName,
+    required LibraryDirective libraryDirective,
     required List<MetadataBuilder>? metadata,
   });
-  void registerPartOf({required String? name, required Uri? resolvedUri});
+  void registerPartOf(PartOf partOf);
   void registerPart(Part part);
   void registerLibraryPart(LibraryPart libraryPart);
   void registerImport(Import import);
@@ -773,7 +773,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       // or to the initial quote if no position is given.
       // (Assumes the directive is using a single-line string.)
       _problemReporting.addProblem(
-        codeCouldNotParseUri.withArguments(uri, e.message),
+        codeCouldNotParseUri.withArgumentsOld(uri, e.message),
         uriOffset +
             1 +
             (e.offset ?? // Coverage-ignore(suite): Not run.
@@ -842,31 +842,55 @@ class FragmentFactoryImpl implements FragmentFactory {
   }
 
   @override
-  void addPartOf(
-    List<MetadataBuilder>? metadata,
-    String? name,
-    String? uri,
-    int uriOffset,
-  ) {
-    Uri? resolvedUri;
-    if (uri != null) {
-      resolvedUri = _resolve(_compilationUnit.importUri, uri, uriOffset);
-      // To support absolute paths from within packages in the part of uri, we
-      // try to translate the file uri from the resolved import uri before
-      // resolving through the file uri of this library. See issue #52964.
-      Uri newFileUri =
-          loader.target.uriTranslator.translate(resolvedUri) ??
-          _resolve(_compilationUnit.fileUri, uri, uriOffset);
-      loader.read(
-        resolvedUri,
-        uriOffset,
-        fileUri: newFileUri,
-        accessor: _compilationUnit,
+  void addPartOfWithName({
+    required List<MetadataBuilder>? metadata,
+    required String name,
+    required int fileOffset,
+  }) {
+    _compilationUnitRegistry.registerPartOf(
+      new PartOf.withName(
+        fileUri: _compilationUnit.fileUri,
+        fileOffset: fileOffset,
+        name: name,
+      ),
+    );
+    if (_scriptTokenOffset != null) {
+      // Coverage-ignore-block(suite): Not run.
+      _problemReporting.addProblem(
+        codeScriptTagInPartFile,
+        _scriptTokenOffset!,
+        noLength,
+        _compilationUnit.fileUri,
       );
     }
+  }
+
+  @override
+  void addPartOfWithUri({
+    required List<MetadataBuilder>? metadata,
+    required String uri,
+    required int uriOffset,
+    required int fileOffset,
+  }) {
+    Uri resolvedUri = _resolve(_compilationUnit.importUri, uri, uriOffset);
+    // To support absolute paths from within packages in the part of uri, we
+    // try to translate the file uri from the resolved import uri before
+    // resolving through the file uri of this library. See issue #52964.
+    Uri newFileUri =
+        loader.target.uriTranslator.translate(resolvedUri) ??
+        _resolve(_compilationUnit.fileUri, uri, uriOffset);
+    loader.read(
+      resolvedUri,
+      uriOffset,
+      fileUri: newFileUri,
+      accessor: _compilationUnit,
+    );
     _compilationUnitRegistry.registerPartOf(
-      name: name,
-      resolvedUri: resolvedUri,
+      new PartOf.withUri(
+        fileUri: _compilationUnit.fileUri,
+        fileOffset: fileOffset,
+        parentUri: resolvedUri,
+      ),
     );
     if (_scriptTokenOffset != null) {
       _problemReporting.addProblem(
@@ -985,7 +1009,6 @@ class FragmentFactoryImpl implements FragmentFactory {
     int uriOffset,
   ) {
     if (configurations != null) {
-      // Coverage-ignore-block(suite): Not run.
       for (Configuration config in configurations) {
         if (loader.getLibrarySupportValue(config.dottedName) ==
             config.condition) {
@@ -1805,7 +1828,7 @@ class FragmentFactoryImpl implements FragmentFactory {
         _compilationUnit.fileUri,
         context: [
           codeConstructorWithWrongNameContext
-              .withArguments(enclosingDeclaration.name)
+              .withArgumentsOld(enclosingDeclaration.name)
               .withLocation2(enclosingDeclaration.uriOffset),
         ],
       );
@@ -2288,7 +2311,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           _compilationUnit.fileUri,
           context: [
             codeTypeParameterDuplicatedNameCause
-                .withArguments(tv.name)
+                .withArgumentsOld(tv.name)
                 .withLocation(
                   _compilationUnit.fileUri,
                   existing.fileOffset,
@@ -2330,6 +2353,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       kind: kind,
       isWildcard: isWildcard,
       variableName: variableName,
+      extensionScope: _compilationUnit.extensionScope,
       typeParameterScope: _typeScopes.current.lookupScope,
     );
     return fragment;
@@ -2364,11 +2388,15 @@ class FragmentFactoryImpl implements FragmentFactory {
   @override
   void addLibraryDirective({
     required String? libraryName,
+    required int fileOffset,
     required List<MetadataBuilder>? metadata,
-    required bool isAugment,
   }) {
     _compilationUnitRegistry.registerLibraryDirective(
-      libraryName: libraryName,
+      libraryDirective: new LibraryDirective(
+        fileUri: _compilationUnit.fileUri,
+        fileOffset: fileOffset,
+        name: libraryName,
+      ),
       metadata: metadata,
     );
   }

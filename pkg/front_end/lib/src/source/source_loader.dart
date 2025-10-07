@@ -35,11 +35,11 @@ import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart';
 import '../base/common.dart';
 import '../base/export.dart' show Export;
+import '../base/extension_scope.dart';
 import '../base/import_chains.dart';
-import '../base/instrumentation.dart' show Instrumentation;
 import '../base/loader.dart' show Loader, untranslatableUriScheme;
-import '../base/local_scope.dart';
 import '../base/lookup_result.dart';
+import '../base/messages.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
 import '../base/ticker.dart' show Ticker;
@@ -53,12 +53,10 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../codes/cfe_codes.dart';
 import '../codes/denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
 import '../dill/dill_library_builder.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides;
-import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/exhaustiveness.dart';
 import '../kernel/hierarchy/class_member.dart';
@@ -69,14 +67,14 @@ import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart'
     show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
+import '../kernel/resolver.dart';
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../type_inference/inference_visitor.dart'
     show ExpressionEvaluationHelper;
 import '../type_inference/type_inference_engine.dart';
-import '../type_inference/type_inferrer.dart';
 import '../util/reference_map.dart';
 import 'diet_listener.dart' show DietListener;
-import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
+import 'diet_parser.dart' show DietParser;
 import 'offset_map.dart';
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
@@ -94,7 +92,7 @@ import 'source_library_builder.dart'
 import 'stack_listener_impl.dart' show offsetForToken;
 import 'type_parameter_factory.dart';
 
-class SourceLoader extends Loader {
+class SourceLoader extends Loader implements ProblemReportingHelper {
   /// The [FileSystem] which should be used to access files.
   final FileSystem fileSystem;
 
@@ -138,8 +136,6 @@ class SourceLoader extends Loader {
   DartType get streamOfBottom => _streamOfBottom!;
 
   TypeInferenceEngineImpl? _typeInferenceEngine;
-
-  Instrumentation? instrumentation;
 
   final SourceLoaderDataForTesting? dataForTesting;
 
@@ -262,14 +258,7 @@ class SourceLoader extends Loader {
     allComponentProblems.clear();
   }
 
-  /// Assert that a compile-time error was reported during [expectedPhase] of
-  /// compilation.
-  ///
-  /// The parameters [location] and [originalStackTrace] are supposed to help to
-  /// locate the place where the expectation was declared.
-  ///
-  /// To avoid spending resources on stack trace computations, it is recommended
-  /// to wrap the calls to [assertProblemReportedElsewhere] into `assert`s.
+  @override
   bool assertProblemReportedElsewhere(
     String location, {
     required CompilationPhaseForProblemReporting expectedPhase,
@@ -557,7 +546,7 @@ class SourceLoader extends Loader {
           );
           if (version > target.currentSdkVersion) {
             packageLanguageVersionProblem = codeLanguageVersionTooHighPackage
-                .withArguments(
+                .withArgumentsOld(
                   version.major,
                   version.minor,
                   packageForLanguageVersion.name,
@@ -573,7 +562,7 @@ class SourceLoader extends Loader {
             );
           } else if (version < target.leastSupportedVersion) {
             packageLanguageVersionProblem = codeLanguageVersionTooLowPackage
-                .withArguments(
+                .withArgumentsOld(
                   version.major,
                   version.minor,
                   packageForLanguageVersion.name,
@@ -851,7 +840,7 @@ class SourceLoader extends Loader {
     logSummary(codeSourceBodySummary);
   }
 
-  void logSummary(Template<SummaryTemplate> template) {
+  void logSummary(Template<SummaryTemplate, Function> template) {
     ticker.log(
       // Coverage-ignore(suite): Not run.
       (Duration elapsed, Duration sinceStart) {
@@ -863,7 +852,7 @@ class SourceLoader extends Loader {
         }
         double ms =
             elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
-        Message message = template.withArguments(
+        Message message = template.withArgumentsOld(
           libraryCount,
           byteCount,
           ms,
@@ -943,7 +932,7 @@ severity: $severity
     }
     if (message.code.severity == CfeSeverity.context) {
       internalProblem(
-        codeInternalProblemContextSeverity.withArguments(message.code.name),
+        codeInternalProblemContextSeverity.withArgumentsOld(message.code.name),
         charOffset,
         fileUri,
       );
@@ -1010,22 +999,6 @@ severity: $severity
     annotatable.addAnnotation(annotation);
   }
 
-  BodyBuilder createBodyBuilderForOutlineExpression(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope scope,
-    Uri fileUri, {
-    LocalScope? formalParameterScope,
-  }) {
-    return new BodyBuilder.forOutlineExpression(
-      libraryBuilder,
-      bodyBuilderContext,
-      scope,
-      fileUri,
-      formalParameterScope: formalParameterScope,
-    );
-  }
-
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");
     return _coreTypes!;
@@ -1052,7 +1025,7 @@ severity: $severity
 
   ClassMembersBuilder get membersBuilder => _membersBuilder!;
 
-  Template<SummaryTemplate> get outlineSummaryTemplate =>
+  Template<SummaryTemplate, Function> get outlineSummaryTemplate =>
       codeSourceOutlineSummary;
 
   /// The [SourceCompilationUnit]s for the `dart:` libraries that are not
@@ -1085,7 +1058,7 @@ severity: $severity
           _unavailableDartLibraries.add(compilationUnit);
         } else {
           compilationUnit.addProblemAtAccessors(
-            codeUntranslatableUri.withArguments(importUri),
+            codeUntranslatableUri.withArgumentsOld(importUri),
           );
         }
         bytes = synthesizeSourceForMissingFile(importUri, null);
@@ -1093,7 +1066,7 @@ severity: $severity
         // Coverage-ignore-block(suite): Not run.
         target.benchmarker?.endSubdivide();
         return internalProblem(
-          codeInternalProblemUriMissingScheme.withArguments(fileUri),
+          codeInternalProblemUriMissingScheme.withArgumentsOld(fileUri),
           -1,
           compilationUnit.importUri,
         );
@@ -1113,7 +1086,7 @@ severity: $severity
       try {
         rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
       } on FileSystemException catch (e) {
-        Message message = codeCantReadFile.withArguments(
+        Message message = codeCantReadFile.withArgumentsOld(
           fileUri,
           target.context.options.osErrorMessage(e.message),
         );
@@ -1258,7 +1231,9 @@ severity: $severity
       for (SourceCompilationUnit compilationUnit in _unavailableDartLibraries) {
         List<LocatedMessage>? context;
         Uri importUri = compilationUnit.importUri;
-        Message message = codeUnavailableDartLibrary.withArguments(importUri);
+        Message message = codeUnavailableDartLibrary.withArgumentsOld(
+          importUri,
+        );
         if (rootLibrary != null) {
           loadedLibraries ??= new LoadedLibrariesImpl([
             rootLibrary,
@@ -1279,7 +1254,7 @@ severity: $severity
             if (importChain.containsAll(verboseImportChain)) {
               context = [
                 codeImportChainContextSimple
-                    .withArguments(
+                    .withArgumentsOld(
                       compilationUnit.importUri,
                       importChain.map((part) => '    $part\n').join(),
                     )
@@ -1288,7 +1263,7 @@ severity: $severity
             } else {
               context = [
                 codeImportChainContext
-                    .withArguments(
+                    .withArgumentsOld(
                       compilationUnit.importUri,
                       importChain.map((part) => '    $part\n').join(),
                       verboseImportChain.map((part) => '    $part\n').join(),
@@ -1319,7 +1294,9 @@ severity: $severity
       // message.
       for (SourceCompilationUnit compilationUnit in _unavailableDartLibraries) {
         Uri importUri = compilationUnit.importUri;
-        Message message = codeUnavailableDartLibrary.withArguments(importUri);
+        Message message = codeUnavailableDartLibrary.withArgumentsOld(
+          importUri,
+        );
 
         if (compilationUnit.accessors.length > 1) {
           for (LibraryAccess access in compilationUnit.accessors) {
@@ -1344,16 +1321,16 @@ severity: $severity
     compilationUnit.buildOutline(tokens);
   }
 
-  /// Builds all the method bodies found in the given [library].
-  Future<Null> buildBody(SourceLibraryBuilder? library) async {
+  /// Builds all the method bodies found in the given [libraryBuilder].
+  Future<Null> buildBody(SourceLibraryBuilder? libraryBuilder) async {
     // [library] is only nullable so we can call this a "dummy-time" to get rid
     // of a semi-leak.
-    if (library == null) return;
+    if (libraryBuilder == null) return;
 
     // We tokenize source files twice to keep memory usage low. This is the
     // second time, and the first time was in [buildOutline] above. So this
     // time we suppress lexical errors.
-    SourceCompilationUnit compilationUnit = library.compilationUnit;
+    SourceCompilationUnit compilationUnit = libraryBuilder.compilationUnit;
     Token tokens = await tokenize(
       compilationUnit,
       suppressLexicalErrors: true,
@@ -1375,9 +1352,9 @@ severity: $severity
         );
         DietParser parser = new DietParser(
           new ForwardingListener(),
-          allowPatterns: library.libraryFeatures.patterns.isEnabled,
+          allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
           enableFeatureEnhancedParts:
-              library.libraryFeatures.enhancedParts.isEnabled,
+              libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
         );
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
@@ -1389,9 +1366,9 @@ severity: $severity
         );
         Parser parser = new Parser(
           new ForwardingListener(),
-          allowPatterns: library.libraryFeatures.patterns.isEnabled,
+          allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
           enableFeatureEnhancedParts:
-              library.libraryFeatures.enhancedParts.isEnabled,
+              libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
         );
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
@@ -1399,33 +1376,35 @@ severity: $severity
     }
 
     DietListener listener = createDietListener(
-      library,
-      compilationUnit.compilationUnitScope,
-      compilationUnit.offsetMap,
+      libraryBuilder: libraryBuilder,
+      extensionScope: compilationUnit.extensionScope,
+      compilationUnitScope: compilationUnit.compilationUnitScope,
+      offsetMap: compilationUnit.offsetMap,
     );
     DietParser parser = new DietParser(
       listener,
-      allowPatterns: library.libraryFeatures.patterns.isEnabled,
+      allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
       enableFeatureEnhancedParts:
-          library.libraryFeatures.enhancedParts.isEnabled,
+          libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
     );
     parser.parseUnit(tokens);
-    for (SourceCompilationUnit compilationUnit in library.parts) {
+    for (SourceCompilationUnit compilationUnit in libraryBuilder.parts) {
       Token tokens = await tokenize(
         compilationUnit,
         suppressLexicalErrors: true,
         allowLazyStrings: false,
       );
       DietListener listener = createDietListener(
-        library,
-        compilationUnit.compilationUnitScope,
-        compilationUnit.offsetMap,
+        libraryBuilder: libraryBuilder,
+        extensionScope: compilationUnit.extensionScope,
+        compilationUnitScope: compilationUnit.compilationUnitScope,
+        offsetMap: compilationUnit.offsetMap,
       );
       DietParser parser = new DietParser(
         listener,
-        allowPatterns: library.libraryFeatures.patterns.isEnabled,
+        allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
         enableFeatureEnhancedParts:
-            library.libraryFeatures.enhancedParts.isEnabled,
+            libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
       );
       parser.parseUnit(tokens);
     }
@@ -1443,6 +1422,8 @@ severity: $severity
   ) async {
     // TODO(johnniwinther): Support expression compilation in a specific
     //  compilation unit.
+    ExtensionScope extensionScope =
+        libraryBuilder.compilationUnit.extensionScope;
     LookupScope memberScope =
         libraryBuilder.compilationUnit.compilationUnitScope;
 
@@ -1457,7 +1438,6 @@ severity: $severity
             //  fragment in which we are compiling the expression.
             memberScope = new NameSpaceLookupScope(
               builder.nameSpace,
-              ScopeKind.declaration,
               parent: TypeParameterScope.fromList(
                 memberScope,
                 builder.typeParameters,
@@ -1469,7 +1449,6 @@ severity: $severity
             //  fragment in which we are compiling the expression.
             memberScope = new NameSpaceLookupScope(
               builder.nameSpace,
-              ScopeKind.declaration,
               // TODO(johnniwinther): Shouldn't type parameters be in scope?
               parent: memberScope,
             );
@@ -1489,57 +1468,46 @@ severity: $severity
       suppressLexicalErrors: false,
       allowLazyStrings: false,
     );
-    DietListener dietListener = createDietListener(
-      libraryBuilder,
-      memberScope,
-      // Expression compilation doesn't build an outline, and thus doesn't
-      // support members from source, so we provide an empty [DeclarationMap].
-      new OffsetMap(libraryBuilder.fileUri),
-    );
 
-    BodyBuilder listener = dietListener.createListener(
-      new ExpressionCompilerProcedureBodyBuildContext(
-        dietListener,
+    return createResolver().buildSingleExpression(
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: new ExpressionCompilerProcedureBodyBuildContext(
         procedure,
         libraryBuilder,
         declarationBuilder,
         isDeclarationInstanceMember: isClassInstanceMember,
       ),
-      memberScope,
-      thisVariable: extensionThis,
-    );
-    for (VariableDeclaration variable
-        in procedure.function.positionalParameters) {
-      listener.typeInferrer.assignedVariables.declare(variable);
-    }
-
-    return listener.parseSingleExpression(
-      new Parser(
-        listener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-        enableFeatureEnhancedParts:
-            libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
-      ),
-      token,
-      procedure.function,
-      extraKnownVariables,
-      expressionEvaluationHelper,
+      fileUri: libraryBuilder.fileUri,
+      extensionScope: extensionScope,
+      scope: memberScope,
+      token: token,
+      procedure: procedure,
+      extraKnownVariables: extraKnownVariables,
+      expressionEvaluationHelper: expressionEvaluationHelper,
+      extensionThis: extensionThis,
     );
   }
 
-  DietListener createDietListener(
-    SourceLibraryBuilder library,
-    LookupScope compilationUnitScope,
-    OffsetMap offsetMap,
-  ) {
+  DietListener createDietListener({
+    required SourceLibraryBuilder libraryBuilder,
+    required ExtensionScope extensionScope,
+    required LookupScope compilationUnitScope,
+    required OffsetMap offsetMap,
+  }) {
     return new DietListener(
-      library,
-      compilationUnitScope,
-      hierarchy,
-      coreTypes,
-      typeInferenceEngine,
-      offsetMap,
+      libraryBuilder: libraryBuilder,
+      extensionScope: extensionScope,
+      outermostScope: compilationUnitScope,
+      offsetMap: offsetMap,
+    );
+  }
+
+  Resolver createResolver() {
+    return new Resolver(
+      classHierarchy: hierarchy,
+      coreTypes: coreTypes,
+      typeInferenceEngine: typeInferenceEngine,
+      benchmarker: target.benchmarker,
     );
   }
 
@@ -1923,7 +1891,7 @@ severity: $severity
         // TODO(johnniwinther): Update the message for when an extension type
         //  depends on a cycle but does not depend on itself.
         extensionTypeBuilder.libraryBuilder.addProblem(
-          codeCyclicClassHierarchy.withArguments(
+          codeCyclicClassHierarchy.withArgumentsOld(
             extensionTypeBuilder.fullNameForErrors,
           ),
           extensionTypeBuilder.fileOffset,
@@ -1947,7 +1915,7 @@ severity: $severity
       ConstructorBuilder constructorBuilder = iterator.current;
       if (!constructorBuilder.isSynthetic) {
         classBuilder.libraryBuilder.addProblem(
-          codeIllegalMixinDueToConstructors.withArguments(
+          codeIllegalMixinDueToConstructors.withArgumentsOld(
             mixinClassBuilder.fullNameForErrors,
           ),
           classBuilder.fileOffset,
@@ -1955,7 +1923,7 @@ severity: $severity
           classBuilder.fileUri,
           context: [
             codeIllegalMixinDueToConstructorsCause
-                .withArguments(mixinClassBuilder.fullNameForErrors)
+                .withArgumentsOld(mixinClassBuilder.fullNameForErrors)
                 .withLocation(
                   constructorBuilder.fileUri!,
                   constructorBuilder.fileOffset,
@@ -1971,7 +1939,7 @@ severity: $severity
     if (!classBuilder.libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
       // Coverage-ignore-block(suite): Not run.
       classBuilder.libraryBuilder.addProblem(
-        codeEnumSupertypeOfNonAbstractClass.withArguments(classBuilder.name),
+        codeEnumSupertypeOfNonAbstractClass.withArgumentsOld(classBuilder.name),
         classBuilder.fileOffset,
         noLength,
         classBuilder.fileUri,
@@ -1994,7 +1962,7 @@ severity: $severity
       TypeDeclarationBuilder? supertype = directSupertypes[i];
       if (supertype is SourceEnumBuilder) {
         classBuilder.libraryBuilder.addProblem(
-          codeExtendingEnum.withArguments(supertype.name),
+          codeExtendingEnum.withArgumentsOld(supertype.name),
           classBuilder.fileOffset,
           noLength,
           classBuilder.fileUri,
@@ -2006,7 +1974,9 @@ severity: $severity
         TypeAliasBuilder? aliasBuilder = directSupertypeMap[supertype];
         if (aliasBuilder != null) {
           classBuilder.libraryBuilder.addProblem(
-            codeExtendingRestricted.withArguments(supertype!.fullNameForErrors),
+            codeExtendingRestricted.withArgumentsOld(
+              supertype!.fullNameForErrors,
+            ),
             classBuilder.fileOffset,
             noLength,
             classBuilder.fileUri,
@@ -2020,7 +1990,9 @@ severity: $severity
           );
         } else {
           classBuilder.libraryBuilder.addProblem(
-            codeExtendingRestricted.withArguments(supertype!.fullNameForErrors),
+            codeExtendingRestricted.withArgumentsOld(
+              supertype!.fullNameForErrors,
+            ),
             classBuilder.fileOffset,
             noLength,
             classBuilder.fileUri,
@@ -2041,7 +2013,7 @@ severity: $severity
           if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
               denyListedClasses.contains(unaliasedDeclaration)) {
             classBuilder.libraryBuilder.addProblem(
-              codeExtendingRestricted.withArguments(
+              codeExtendingRestricted.withArgumentsOld(
                 mixedInTypeBuilder.fullNameForErrors,
               ),
               classBuilder.fileOffset,
@@ -2074,7 +2046,7 @@ severity: $severity
           // TODO(ahe): Either we need to check this for superclass and
           // interfaces, or this shouldn't be necessary (or handled elsewhere).
           classBuilder.libraryBuilder.addProblem(
-            codeIllegalMixin.withArguments(
+            codeIllegalMixin.withArgumentsOld(
               mixedInTypeBuilder.fullNameForErrors,
             ),
             classBuilder.fileOffset,
@@ -2094,7 +2066,7 @@ severity: $severity
           if (!unaliasedDeclaration.errorHasBeenReported) {
             // Coverage-ignore-block(suite): Not run.
             classBuilder.libraryBuilder.addProblem(
-              codeIllegalMixin.withArguments(
+              codeIllegalMixin.withArgumentsOld(
                 mixedInTypeBuilder.fullNameForErrors,
               ),
               classBuilder.fileOffset,
@@ -2306,12 +2278,12 @@ severity: $severity
               return;
             }
           }
-          final Template<Message Function(String, String)> template =
+          final Template<Message Function(String, String), Function> template =
               cls.isMixinDeclaration
               ? codeMixinSubtypeOfFinalIsNotBase
               : codeSubtypeOfFinalIsNotBaseFinalOrSealed;
           cls.libraryBuilder.addProblem(
-            template.withArguments(
+            template.withArgumentsOld(
               cls.fullNameForErrors,
               baseOrFinalSuperClass.fullNameForErrors,
             ),
@@ -2320,12 +2292,12 @@ severity: $severity
             cls.fileUri,
           );
         } else if (baseOrFinalSuperClass.isBase) {
-          final Template<Message Function(String, String)> template =
+          final Template<Message Function(String, String), Function> template =
               cls.isMixinDeclaration
               ? codeMixinSubtypeOfBaseIsNotBase
               : codeSubtypeOfBaseIsNotBaseFinalOrSealed;
           cls.libraryBuilder.addProblem(
-            template.withArguments(
+            template.withArgumentsOld(
               cls.fullNameForErrors,
               baseOrFinalSuperClass.fullNameForErrors,
             ),
@@ -2349,7 +2321,7 @@ severity: $severity
               !mayIgnoreClassModifiers(supertypeDeclaration)) {
             if (supertypeDeclaration.isInterface && !cls.isMixinDeclaration) {
               cls.libraryBuilder.addProblem(
-                codeInterfaceClassExtendedOutsideOfLibrary.withArguments(
+                codeInterfaceClassExtendedOutsideOfLibrary.withArgumentsOld(
                   supertypeDeclaration.fullNameForErrors,
                 ),
                 supertypeBuilder.charOffset ?? TreeNode.noOffset,
@@ -2361,7 +2333,7 @@ severity: $severity
               if (cls.isMixinDeclaration) {
                 cls.libraryBuilder.addProblem(
                   codeFinalClassUsedAsMixinConstraintOutsideOfLibrary
-                      .withArguments(supertypeDeclaration.fullNameForErrors),
+                      .withArgumentsOld(supertypeDeclaration.fullNameForErrors),
                   supertypeBuilder.charOffset ?? TreeNode.noOffset,
                   noLength,
                   supertypeBuilder
@@ -2370,7 +2342,7 @@ severity: $severity
                 );
               } else {
                 cls.libraryBuilder.addProblem(
-                  codeFinalClassExtendedOutsideOfLibrary.withArguments(
+                  codeFinalClassExtendedOutsideOfLibrary.withArgumentsOld(
                     supertypeDeclaration.fullNameForErrors,
                   ),
                   supertypeBuilder.charOffset ?? TreeNode.noOffset,
@@ -2389,7 +2361,7 @@ severity: $severity
             supertypeDeclaration.isSealed &&
             cls.libraryBuilder != supertypeDeclaration.libraryBuilder) {
           cls.libraryBuilder.addProblem(
-            codeSealedClassSubtypeOutsideOfLibrary.withArguments(
+            codeSealedClassSubtypeOutsideOfLibrary.withArgumentsOld(
               supertypeDeclaration.fullNameForErrors,
             ),
             supertypeBuilder.charOffset ?? TreeNode.noOffset,
@@ -2416,7 +2388,7 @@ severity: $severity
               !mixedInTypeDeclaration.isMixinClass &&
               !mayIgnoreClassModifiers(mixedInTypeDeclaration)) {
             cls.libraryBuilder.addProblem(
-              codeCantUseClassAsMixin.withArguments(
+              codeCantUseClassAsMixin.withArgumentsOld(
                 mixedInTypeDeclaration.fullNameForErrors,
               ),
               mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
@@ -2432,7 +2404,7 @@ severity: $severity
             mixedInTypeDeclaration.isSealed &&
             cls.libraryBuilder != mixedInTypeDeclaration.libraryBuilder) {
           cls.libraryBuilder.addProblem(
-            codeSealedClassSubtypeOutsideOfLibrary.withArguments(
+            codeSealedClassSubtypeOutsideOfLibrary.withArgumentsOld(
               mixedInTypeDeclaration.fullNameForErrors,
             ),
             mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
@@ -2462,7 +2434,7 @@ severity: $severity
               final List<LocatedMessage> context = [
                 if (checkedClass != interfaceDeclaration)
                   codeBaseOrFinalClassImplementedOutsideOfLibraryCause
-                      .withArguments(
+                      .withArgumentsOld(
                         interfaceDeclaration.fullNameForErrors,
                         checkedClass.fullNameForErrors,
                       )
@@ -2476,12 +2448,12 @@ severity: $severity
               if (checkedClass.isBase && !cls.cls.isAnonymousMixin) {
                 // Report an error for a class implementing a base class outside
                 // of its library.
-                final Template<Message Function(String)> template =
+                final Template<Message Function(String), Function> template =
                     checkedClass.isMixinDeclaration
                     ? codeBaseMixinImplementedOutsideOfLibrary
                     : codeBaseClassImplementedOutsideOfLibrary;
                 cls.libraryBuilder.addProblem(
-                  template.withArguments(checkedClass.fullNameForErrors),
+                  template.withArgumentsOld(checkedClass.fullNameForErrors),
                   interfaceBuilder.charOffset ?? TreeNode.noOffset,
                   noLength,
                   interfaceBuilder
@@ -2494,13 +2466,13 @@ severity: $severity
               } else if (checkedClass.isFinal) {
                 // Report an error for a class implementing a final class
                 // outside of its library.
-                final Template<Message Function(String)> template =
+                final Template<Message Function(String), Function> template =
                     cls.cls.isAnonymousMixin &&
                         checkedClass == interfaceDeclaration
                     ? codeFinalClassUsedAsMixinConstraintOutsideOfLibrary
                     : codeFinalClassImplementedOutsideOfLibrary;
                 cls.libraryBuilder.addProblem(
-                  template.withArguments(checkedClass.fullNameForErrors),
+                  template.withArgumentsOld(checkedClass.fullNameForErrors),
                   interfaceBuilder.charOffset ?? TreeNode.noOffset,
                   noLength,
                   interfaceBuilder
@@ -2521,7 +2493,7 @@ severity: $severity
               interfaceDeclaration.isSealed &&
               cls.libraryBuilder != interfaceDeclaration.libraryBuilder) {
             cls.libraryBuilder.addProblem(
-              codeSealedClassSubtypeOutsideOfLibrary.withArguments(
+              codeSealedClassSubtypeOutsideOfLibrary.withArgumentsOld(
                 interfaceDeclaration.fullNameForErrors,
               ),
               interfaceBuilder.charOffset ?? TreeNode.noOffset,
@@ -2713,7 +2685,7 @@ severity: $severity
                 member.enclosingClass != classBuilder.cls &&
                 member.isAbstract == false) {
               classBuilder.libraryBuilder.addProblem(
-                codeEnumInheritsRestricted.withArguments(name.text),
+                codeEnumInheritsRestricted.withArgumentsOld(name.text),
                 classBuilder.fileOffset,
                 classBuilder.name.length,
                 classBuilder.fileUri,
@@ -2911,8 +2883,7 @@ severity: $severity
 
   void createTypeInferenceEngine() {
     _typeInferenceEngine = new TypeInferenceEngineImpl(
-      instrumentation,
-      target.benchmarker,
+      benchmarker: target.benchmarker,
     );
   }
 
@@ -3073,7 +3044,7 @@ severity: $severity
           if (!typeEnvironment.isSubtypeOf(listOfString, parameterType)) {
             if (mainBuilder.libraryBuilder != libraryBuilder) {
               libraryBuilder.addProblem(
-                codeMainWrongParameterTypeExported.withArguments(
+                codeMainWrongParameterTypeExported.withArgumentsOld(
                   parameterType,
                   listOfString,
                 ),
@@ -3090,7 +3061,7 @@ severity: $severity
               );
             } else {
               libraryBuilder.addProblem(
-                codeMainWrongParameterType.withArguments(
+                codeMainWrongParameterType.withArgumentsOld(
                   parameterType,
                   listOfString,
                 ),
@@ -3150,7 +3121,6 @@ severity: $severity
     sourceBytes.clear();
     target.releaseAncillaryResources();
     _coreTypes = null;
-    instrumentation = null;
   }
 
   @override
@@ -3199,22 +3169,6 @@ severity: $severity
   @override
   TypeBuilder computeTypeBuilder(DartType type) {
     return _typeBuilderComputer.visit(type);
-  }
-
-  BodyBuilder createBodyBuilderForField(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope enclosingScope,
-    TypeInferrer typeInferrer,
-    Uri uri,
-  ) {
-    return new BodyBuilder.forField(
-      libraryBuilder,
-      bodyBuilderContext,
-      enclosingScope,
-      typeInferrer,
-      uri,
-    );
   }
 }
 
@@ -3569,7 +3523,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
 
   void _checkMember(
     Name name, {
-    required Template<Message Function(String name)> template,
+    required Template<Message Function(String name), Function> template,
     required bool isSetter,
     required int accessFileOffset,
   }) {
@@ -3580,7 +3534,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
     );
     if (member == null) {
       _sourceLibraryBuilder.addProblem(
-        template.withArguments(name.text),
+        template.withArgumentsOld(name.text),
         _typeBuilder.charOffset!,
         noLength,
         _typeBuilder.fileUri!,
@@ -3689,21 +3643,4 @@ class _SuperMemberCache {
     }
     return null;
   }
-}
-
-/// This enum is used to mark the expected compilation phase for a compile-time
-/// error to be reported.
-enum CompilationPhaseForProblemReporting {
-  /// The outline building phase.
-  ///
-  /// The outline building phase includes outline expressions, such as default
-  /// values of parameters, annotations, and initializers of top-level constant
-  /// fields.
-  outline,
-
-  /// The body building phase.
-  ///
-  /// The body building phase includes initializers of non-constant fields,
-  /// bodies of method, getters, setters, constructors, etc.
-  bodyBuilding,
 }

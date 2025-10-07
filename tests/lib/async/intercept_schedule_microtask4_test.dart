@@ -11,7 +11,7 @@ import 'catch_errors.dart';
 
 var events = [];
 
-body() {
+int body() {
   events.add("body entry");
   scheduleMicrotask(() {
     events.add("run async body");
@@ -22,13 +22,13 @@ body() {
   return 499;
 }
 
-handler(fun) {
+void handler(fun) {
   events.add("handler");
   scheduleMicrotask(fun);
   events.add("handler done");
 }
 
-main() {
+void main() {
   asyncStart();
 
   // Test that body of a scheduleMicrotask goes to the zone it came from.

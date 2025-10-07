@@ -11,7 +11,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class ConcreteSuper {
 //       ^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/concrete_extends_getter.dart:16:11: Context: 'ConcreteSuper.declaredAbstractExtendsAbstractGetter' is defined here.
@@ -33,7 +32,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class ConcreteClass extends ConcreteSuper {
 //       ^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/concrete_extends_getter.dart:30:11: Context: 'ConcreteClass.declaredAbstractExtendsAbstractGetter' is defined here.

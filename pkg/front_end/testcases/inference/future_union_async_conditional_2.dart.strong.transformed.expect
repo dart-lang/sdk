@@ -2,7 +2,7 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/future_union_async_conditional_2.dart:29:39: Error: A value of type 'Object' can't be returned from an async function with return type 'Future<int>'.
+// pkg/front_end/testcases/inference/future_union_async_conditional_2.dart:24:39: Error: A value of type 'Object' can't be returned from an async function with return type 'Future<int>'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Future' is from 'dart:async'.
 //   return /*info:DOWN_CAST_COMPOSITE*/ y;
@@ -39,7 +39,7 @@ static method g2(core::bool x) → asy::Future<core::int> async /* emittedValueT
   return x ?{FutureOr<core::int>} 42 : new self::MyFuture::value<core::int>(42);
 static method g3(core::bool x) → asy::Future<core::int> async /* emittedValueType= core::int */ {
   core::Object y = x ?{core::Object} 42 : new self::MyFuture::value<dynamic>(42);
-  return invalid-expression "pkg/front_end/testcases/inference/future_union_async_conditional_2.dart:29:39: Error: A value of type 'Object' can't be returned from an async function with return type 'Future<int>'.
+  return invalid-expression "pkg/front_end/testcases/inference/future_union_async_conditional_2.dart:24:39: Error: A value of type 'Object' can't be returned from an async function with return type 'Future<int>'.
  - 'Object' is from 'dart:core'.
  - 'Future' is from 'dart:async'.
   return /*info:DOWN_CAST_COMPOSITE*/ y;

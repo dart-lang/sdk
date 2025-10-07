@@ -108,15 +108,30 @@ class MappingTest extends AbstractLspAnalysisServerTest {
 
   void test_relevanceToSortText() {
     // The expected order is the same as from the highest relevance.
-    var expectedOrder =
-        [999999, 1000, 100, 1, 0].map(lsp.relevanceToSortText).toList();
+    var expectedOrder = [
+      999999,
+      1000,
+      100,
+      1,
+      0,
+    ].map(lsp.relevanceToSortText).toList();
 
     // Test with inputs in both directions to ensure the results are actually
     // unique and sorted.
-    var results1 =
-        [999999, 1000, 100, 1, 0].map(lsp.relevanceToSortText).toList()..sort();
-    var results2 =
-        [0, 1, 100, 1000, 999999].map(lsp.relevanceToSortText).toList()..sort();
+    var results1 = [
+      999999,
+      1000,
+      100,
+      1,
+      0,
+    ].map(lsp.relevanceToSortText).toList()..sort();
+    var results2 = [
+      0,
+      1,
+      100,
+      1000,
+      999999,
+    ].map(lsp.relevanceToSortText).toList()..sort();
 
     expect(results1, equals(expectedOrder));
     expect(results2, equals(expectedOrder));

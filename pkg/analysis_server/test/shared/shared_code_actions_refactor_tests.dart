@@ -706,7 +706,8 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''';
-    var expectedContent = '''
+    var expectedContent =
+        '''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {

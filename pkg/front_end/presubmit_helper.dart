@@ -85,6 +85,7 @@ const Set<String> _generatedFilesUpToDateFiles = {
   "pkg/_fe_analyzer_shared/lib/src/messages/codes_generated.dart",
   "pkg/_fe_analyzer_shared/lib/src/parser/listener.dart",
   "pkg/_fe_analyzer_shared/lib/src/parser/parser_impl.dart",
+  "pkg/_fe_analyzer_shared/messages.yaml",
   "pkg/front_end/lib/src/api_prototype/experimental_flags_generated.dart",
   "pkg/front_end/lib/src/codes/cfe_codes_generated.dart",
   "pkg/front_end/lib/src/util/parser_ast_helper.dart",
@@ -201,17 +202,21 @@ LintWork? _createLintWork(List<String> changedFiles) {
   return new LintWork(filters: filters, repoDir: _repoDir);
 }
 
+final RegExp _messagesYamlPathRegExp = RegExp('^pkg/(.+)/messages.yaml\$');
+
 MessagesWork? _createMessagesTestWork(List<String> changedFiles) {
   // TODO(jensj): Could we detect what ones are changed/added and only test
   // those?
+  List<String> filters = [];
   for (String file in changedFiles) {
-    if (file == "pkg/front_end/messages.yaml") {
-      return new MessagesWork(repoDir: _repoDir);
+    if (_messagesYamlPathRegExp.matchAsPrefix(file) case var match?) {
+      filters.add('messages/${match.group(1)}/...');
     }
   }
 
-  // messages.yaml not changed.
-  return null;
+  if (filters.isEmpty) return null;
+
+  return new MessagesWork(filters: filters, repoDir: _repoDir);
 }
 
 SpellNotSourceWork? _createSpellingTestNotSourceWork(
@@ -555,9 +560,10 @@ class LintWork extends Work {
 }
 
 class MessagesWork extends Work {
+  final List<String> filters;
   final Uri repoDir;
 
-  MessagesWork({required this.repoDir});
+  MessagesWork({required this.filters, required this.repoDir});
 
   @override
   String get name => "messages test";
@@ -566,12 +572,16 @@ class MessagesWork extends Work {
   Map<String, Object?> toJson() {
     return {
       "WorkTypeIndex": WorkEnum.Messages.index,
+      "filters": filters,
       "repoDir": repoDir.toString(),
     };
   }
 
   static Work fromJson(Map<String, Object?> json) {
-    return new MessagesWork(repoDir: Uri.parse(json["repoDir"] as String));
+    return new MessagesWork(
+      filters: List<String>.from(json["filters"] as Iterable),
+      repoDir: Uri.parse(json["repoDir"] as String),
+    );
   }
 }
 

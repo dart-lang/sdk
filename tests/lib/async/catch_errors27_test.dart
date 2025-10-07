@@ -9,9 +9,9 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
   StreamController controller;
@@ -21,7 +21,7 @@ main() {
   // counts is the zone where `listen` was invoked.
   catchErrors(() {
     catchErrors(() {
-          controller = new StreamController();
+          controller = StreamController();
 
           // Assignment to "global" `stream`.
           stream = controller.stream.map((x) {
@@ -32,7 +32,7 @@ main() {
           // Consume stream in the nested zone.
           stream
               .transform(
-                new StreamTransformer.fromHandlers(
+                StreamTransformer.fromHandlers(
                   handleError: (e, st, sink) {
                     sink.add("error $e");
                   },
@@ -47,7 +47,7 @@ main() {
             controller.add(1);
             controller.addError(2);
             controller.close();
-            new Future.error("done");
+            Future.error("done");
           });
         })
         .listen((x) {

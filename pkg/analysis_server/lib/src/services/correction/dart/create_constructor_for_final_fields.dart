@@ -86,8 +86,9 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         return;
     }
 
-    var requiredNamedParametersFirst =
-        getCodeStyleOptions(unitResult.file).requiredNamedParametersFirst;
+    var requiredNamedParametersFirst = getCodeStyleOptions(
+      unitResult.file,
+    ).requiredNamedParametersFirst;
 
     if (superType.isExactlyStatelessWidgetType ||
         superType.isExactlyStatefulWidgetType) {
@@ -517,9 +518,9 @@ class _FixContext {
 
 enum _Style {
   requiredNamed(
-    fixKind: DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS_REQUIRED_NAMED,
+    fixKind: DartFixKind.createConstructorForFinalFieldsRequiredNamed,
   ),
-  requiredPositional(fixKind: DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS);
+  requiredPositional(fixKind: DartFixKind.createConstructorForFinalFields);
 
   final FixKind fixKind;
 

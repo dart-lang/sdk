@@ -2,25 +2,25 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:18:22: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:16:20: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
-//     (/*@target=A.+*/ ++new /*@type=B*/ B().   /*@target=B.a*//*@target=B.a*/a);
-//                      ^
+// var v_prefix_pp = (++new B().a);
+//                    ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:20:22: Error: A value of type 'double' can't be assigned to a variable of type 'A'.
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:17:20: Error: A value of type 'double' can't be assigned to a variable of type 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
-//     (/*@target=A.-*/ --new /*@type=B*/ B().   /*@target=B.a*//*@target=B.a*/a);
-//                      ^
+// var v_prefix_mm = (--new B().a);
+//                    ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:23:54: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:18:30: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
-//      /*@target=B.a*//*@target=B.a*/a /*@target=A.+*/ ++);
-//                                                      ^
+// var v_postfix_pp = (new B().a++);
+//                              ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:26:54: Error: A value of type 'double' can't be assigned to a variable of type 'A'.
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:19:30: Error: A value of type 'double' can't be assigned to a variable of type 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
-//      /*@target=B.a*//*@target=B.a*/a /*@target=A.-*/ --);
-//                                                      ^
+// var v_postfix_mm = (new B().a--);
+//                              ^
 //
 import self as self;
 import "dart:core" as core;

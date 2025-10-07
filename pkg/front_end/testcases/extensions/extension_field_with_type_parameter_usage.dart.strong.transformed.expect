@@ -46,34 +46,37 @@ import self as self;
 import "dart:core" as core;
 
 extension E<U extends core::Object? = dynamic> on core::String {
-  field field1 = self::E|field1;
-  field field2 = self::E|field2;
-  field field3 = self::E|field3;
-  field field4 = self::E|field4;
-  field field5 = self::E|field5;
-  field field6 = self::E|field6;
-  field field7 = self::E|field7;
-  field field8 = self::E|field8;
+  get field1 = self::E|get#field1;
+  set field1 = self::E|set#field1;
+  get field2 = self::E|get#field2;
+  set field2 = self::E|set#field2;
+  get field3 = self::E|get#field3;
+  set field3 = self::E|set#field3;
+  get field4 = self::E|get#field4;
+  set field4 = self::E|set#field4;
+  get field5 = self::E|get#field5;
+  set field5 = self::E|set#field5;
+  get field6 = self::E|get#field6;
+  set field6 = self::E|set#field6;
+  get field7 = self::E|get#field7;
+  set field7 = self::E|set#field7;
+  get field8 = self::E|get#field8;
+  set field8 = self::E|set#field8;
 }
-static field invalid-type E|field1 = null;
-static field core::int? E|field2 = (() → Null {
-  has-declared-initializer invalid-type x = null;
-  return null;
-})(){() → Null};
-static field core::List<invalid-type>? E|field3 = null;
-static field (invalid-type) →? invalid-type E|field4 = null;
-static field (core::List<invalid-type>) →? core::List<invalid-type> E|field5 = null;
-static field core::int? E|field6 = (<E extends core::Object? = dynamic>() → Null {
-  has-declared-initializer E? x = null;
-  return null;
-})<core::String>(){() → Null};
-static field core::int? E|field7 = (<E extends core::Object? = dynamic>() → Null {
-  has-declared-initializer E? x = null;
-  return null;
-})<invalid-type>(){() → Null};
-static field core::Type E|field8 = #C1;
+static abstract extension-member method E|get#field1<U extends core::Object? = dynamic>(lowered core::String #this) → invalid-type;
+static abstract extension-member method E|set#field1<U extends core::Object? = dynamic>(lowered core::String #this, synthesized invalid-type #externalFieldValue) → void;
+static abstract extension-member method E|get#field2<U extends core::Object? = dynamic>(lowered core::String #this) → core::int?;
+static abstract extension-member method E|set#field2<U extends core::Object? = dynamic>(lowered core::String #this, synthesized core::int? #externalFieldValue) → void;
+static abstract extension-member method E|get#field3<U extends core::Object? = dynamic>(lowered core::String #this) → core::List<invalid-type>?;
+static abstract extension-member method E|set#field3<U extends core::Object? = dynamic>(lowered core::String #this, synthesized core::List<invalid-type>? #externalFieldValue) → void;
+static abstract extension-member method E|get#field4<U extends core::Object? = dynamic>(lowered core::String #this) → (invalid-type) →? invalid-type;
+static abstract extension-member method E|set#field4<U extends core::Object? = dynamic>(lowered core::String #this, synthesized (invalid-type) →? invalid-type #externalFieldValue) → void;
+static abstract extension-member method E|get#field5<U extends core::Object? = dynamic>(lowered core::String #this) → (core::List<invalid-type>) →? core::List<invalid-type>;
+static abstract extension-member method E|set#field5<U extends core::Object? = dynamic>(lowered core::String #this, synthesized (core::List<invalid-type>) →? core::List<invalid-type> #externalFieldValue) → void;
+static abstract extension-member method E|get#field6<U extends core::Object? = dynamic>(lowered core::String #this) → core::int?;
+static abstract extension-member method E|set#field6<U extends core::Object? = dynamic>(lowered core::String #this, synthesized core::int? #externalFieldValue) → void;
+static abstract extension-member method E|get#field7<U extends core::Object? = dynamic>(lowered core::String #this) → core::int?;
+static abstract extension-member method E|set#field7<U extends core::Object? = dynamic>(lowered core::String #this, synthesized core::int? #externalFieldValue) → void;
+static abstract extension-member method E|get#field8<U extends core::Object? = dynamic>(lowered core::String #this) → core::Type;
+static abstract extension-member method E|set#field8<U extends core::Object? = dynamic>(lowered core::String #this, synthesized core::Type #externalFieldValue) → void;
 static method main() → dynamic {}
-
-constants  {
-  #C1 = TypeLiteralConstant(invalid-type)
-}

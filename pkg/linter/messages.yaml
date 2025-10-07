@@ -470,6 +470,35 @@ LintCode:
       the referenced type with `@AnalyzerPublicApi(...)`. The advantage of
       marking the referenced type with `@AnalyzerPublicApi(...)` is that it
       causes the members of referenced type to be checked by this lint.
+  analyzer_public_api_experimental_inconsistency:
+    parameters:
+      String types: "list of types, separated by `, `"
+    problemMessage: "Element makes use of experimental type(s), but is not itself marked with `@experimental`: #types."
+    hasPublishedDocs: false
+    state:
+      internal: "3.10"
+    categories: [publicInterface]
+    deprecatedDetails: "For internal use only."
+    comment: |-
+      Lint issued if an element in the analyzer public API makes use
+      of a type that's annotated `@experimental`, but the element
+      itself is not annotated `@experimental`.
+
+      The reason this is a problem is that it makes it possible for
+      analyzer clients to implicitly reference analyzer experimental
+      types. This can happen in many ways; here are some examples:
+
+      - If `C` is a non-experimental public API class that implements
+        `B`, and `B` is an experimental public API class with a getter
+        called `x`, then a client can access `B.x` via `C`.
+
+      - If `f` has return type `T`, and `T` is an experimental public
+        API class with a getter called `x`, then a client can access
+        `T.x` via `f().x`.
+
+      - If `f` has type `void Function(T)`, and `T` is an experimental
+        public API class with a getter called `x`, then a client can
+        access `T.x` via `var g = f; g = (t) { print(t.x); }`.
   analyzer_public_api_exports_non_public_name:
     parameters:
       String elements: "List of elements, separated by `, `"
@@ -10886,6 +10915,93 @@ LintCode:
       **GOOD:**
       ```dart
       int get field => _field;
+      ```
+  remove_deprecations_in_breaking_versions:
+    parameters: none
+    problemMessage: "Remove deprecated elements in breaking versions."
+    correctionMessage: "Try removing the deprecated element."
+    state:
+      stable: "3.10"
+    categories: [publicInterface]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic in packages that have a "breaking"
+      version number (`x.0.0` or `0.x.0`) for every declaration that has a
+      `@Deprecated` annotation.
+
+      #### Example
+
+      Given a package with a `pubspec.yaml` file containing:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: p
+      version: 2.0.0
+      environment:
+        sdk: ^3.9.0
+      ```
+
+      The following code produces this diagnostic because the function `f` is
+      annotated with `@deprecated`:
+
+      ```dart
+      @[!deprecated!]
+      void f() {}
+
+      void g() {}
+      ```
+
+      #### Common fixes
+
+      * If the declaration should be removed in the next release of the package,
+      then remove the declaration:
+
+      ```dart
+      void g() {}
+      ```
+
+      * If you are not making a breaking change, then use a minor or patch
+        version increment for the package:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: p
+      version: 1.0.1
+      environment:
+        sdk: ^3.9.0
+      ```
+    deprecatedDetails: |-
+      **DO** Remove deprecated elements in breaking version numbers.
+      Breaking version numbers are on the form `x.0.0` or `0.x.0`.
+
+      For example given a package with a `pubspec.yaml` file containing:
+
+      ```yaml
+      name: p
+      version: 2.0.0
+      environment:
+        sdk: ^3.9.0
+      ```
+
+      **BAD:**
+      ```dart
+      @deprecated
+      void f() {}
+      ```
+
+      **GOOD:**
+      ```dart
+      // (f is removed).
+      ```
+
+      **GOOD:**
+      ```yaml
+      name: p
+      version: 1.0.1
+      environment:
+        sdk: ^3.9.0
       ```
   require_trailing_commas:
     parameters: none

@@ -108,8 +108,8 @@ class NotImportedCompletionPass {
     var filter = FileStateFilter(fsState.getFileForPath(request.path));
 
     try {
-      await performance.runAsync('discoverAvailableFiles', (_) async {
-        await analysisDriver.discoverAvailableFiles().timeout(budget.left);
+      performance.run('discoverAvailableFiles', (_) {
+        analysisDriver.discoverAvailableFiles();
       });
     } on TimeoutException {
       _collector.isIncomplete = true;

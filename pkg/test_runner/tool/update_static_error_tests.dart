@@ -133,10 +133,7 @@ Future<void> main(List<String> args) async {
     analyzerErrors = await _runAnalyzer(testFiles);
   }
 
-  // If we're inserting web errors, we also need to gather the CFE errors to
-  // tell which web errors are web-specific.
-  if (insertSources.contains(ErrorSource.cfe) ||
-      insertSources.contains(ErrorSource.web)) {
+  if (insertSources.contains(ErrorSource.cfe)) {
     cfeErrors = await _runCfe(testFiles);
   }
 
@@ -187,10 +184,13 @@ List<TestFile> _listFiles(List<String> pathGlobs,
     // or relative to the current directory.
     var root = pathGlob.startsWith("tests") ? "." : "tests";
 
-    // [Glob] doesn't handle Windows path delimiters, so we normalize it using
-    // [Path]. [Glob] doesn't handle absolute Windows paths, though, so this
-    // only supports the relative paths.
-    pathGlob = Path.normalize(pathGlob);
+    pathGlob = Uri.file(pathGlob).toFilePath(windows: false);
+    if (Platform.isWindows && p.isAbsolute(pathGlob)) {
+      // Trim absolute path's leading forward slash on Windows to accommodate
+      // Glob, which doesn't handle proper backslash-separated Windows paths
+      // and proper absolute file uri on Windows look like '/c:/abc/temp.txt'.
+      pathGlob = pathGlob.substring(1);
+    }
 
     for (var file in Glob(pathGlob, recursive: true).listSync(root: root)) {
       if (file is! File) continue;
@@ -408,9 +408,13 @@ Future<Map<TestFile, List<StaticError>>> _runCfe(
     FastaCommandOutput.parseErrors(
         result.stdout as String, parsedErrors, parsedErrors);
     for (var error in parsedErrors) {
+      // If an error occurs in a file that is included in the current one, then
+      // `error.path` may not be found, and `testFile` will be null.
       var testFile =
-          testFiles.firstWhere((test) => test.path == Path(error.path));
-      errors.putIfAbsent(testFile, () => []).add(error);
+          testFiles.firstWhereOrNull((test) => test.path == Path(error.path));
+      if (testFile != null) {
+        errors.putIfAbsent(testFile, () => []).add(error);
+      }
     }
   }
 
@@ -442,7 +446,8 @@ Future<List<StaticError>> _runDart2jsOnFile(
   ]);
 
   var errors = <StaticError>[];
-  Dart2jsCompilerCommandOutput.parseErrors(result.stdout as String, errors);
+  Dart2jsCompilerCommandOutput.parseErrors(
+      result.stdout as String, errors, errors);
 
   // We only want the web-specific errors from dart2js, so filter out any errors
   // that are also reported by the CFE.

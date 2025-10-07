@@ -1266,7 +1266,7 @@ library name.and.dots;
     assertParsedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
-  name2: LibraryIdentifier
+  name: LibraryIdentifier
     components
       SimpleIdentifier
         token: name

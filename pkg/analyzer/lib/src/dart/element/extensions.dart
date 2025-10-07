@@ -74,24 +74,6 @@ extension Element2Extension on Element {
     return false;
   }
 
-  /// Whether the use of this element is deprecated.
-  bool get isUseDeprecated {
-    var element = this;
-
-    var metadata = (element is PropertyAccessorElement && element.isSynthetic)
-        ? element.variable.metadata
-        : element.metadata;
-
-    var annotations = metadata.annotations.where((e) => e.isDeprecated);
-    return annotations.any((annotation) {
-      var value = annotation.computeConstantValue();
-      var kindValue = value?.getField('_kind');
-      if (kindValue == null) return true;
-      var kind = kindValue.getField('_name')?.toStringValue();
-      return kind == 'use';
-    });
-  }
-
   /// Whether this element is a wildcard variable.
   bool get isWildcardVariable {
     return name == '_' &&
@@ -104,12 +86,6 @@ extension Element2Extension on Element {
                 this is! SuperFormalParameterElement)) &&
         library.hasWildcardVariablesFeatureEnabled;
   }
-
-  /// Whether this Element is annotated with a `Deprecated` annotation with a
-  /// `_DeprecationKind` of [kind].
-  bool isDeprecatedWithKind(String kind) => metadata.annotations
-      .where((e) => e.isDeprecated)
-      .any((e) => e.deprecationKind == kind);
 }
 
 extension Element2OrNullExtension on Element? {
@@ -123,19 +99,6 @@ extension ElementAnnotationExtension on ElementAnnotation {
   static final Map<String, TargetKind> _targetKindsByName = {
     for (var kind in TargetKind.values) kind.name: kind,
   };
-
-  /// The kind of deprecation, if this annotation is a `Deprecated` annotation.
-  ///
-  /// `null` is returned if this is not a `Deprecated` annotation.
-  String? get deprecationKind {
-    if (!isDeprecated) return null;
-    return computeConstantValue()
-            ?.getField('_kind')
-            ?.getField('_name')
-            ?.toStringValue() ??
-        // For SDKs where the `Deprecated` class does not have a deprecation kind.
-        'use';
-  }
 
   /// Return the target kinds defined for this [ElementAnnotation].
   Set<TargetKind> get targetKinds {

@@ -45,21 +45,20 @@ void main() {
   });
 }
 
-typedef ExpectedLabel =
-    ({
-      // Main label of the completion (eg 'myFunc')
-      String? label,
-      // The detail part of the label (shown after label, usually truncated signature)
-      String? labelDetail,
-      // Additional label description (usually the auto-import URI)
-      String? labelDescription,
-      // Filter text (usually same as label, never with `()` or other suffixes)
-      String? filterText,
-      // Main detail (shown in popout, usually full signature)
-      String? detail,
-      // Sometimes resolved detail has a prefix added (eg. "Auto-import from").
-      String? resolvedDetailPrefix,
-    });
+typedef ExpectedLabel = ({
+  // Main label of the completion (eg 'myFunc')
+  String? label,
+  // The detail part of the label (shown after label, usually truncated signature)
+  String? labelDetail,
+  // Additional label description (usually the auto-import URI)
+  String? labelDescription,
+  // Filter text (usually same as label, never with `()` or other suffixes)
+  String? filterText,
+  // Main detail (shown in popout, usually full signature)
+  String? detail,
+  // Sometimes resolved detail has a prefix added (eg. "Auto-import from").
+  String? resolvedDetailPrefix,
+});
 
 abstract class AbstractCompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
@@ -1261,9 +1260,8 @@ void f() {
     var res = await getCompletion(mainFileUri, code.position.position);
     var item = res.singleWhere(
       (c) => c.label == completion,
-      orElse:
-          () =>
-              throw 'Did not find $completion in ${res.map((r) => r.label).toList()}',
+      orElse: () =>
+          throw 'Did not find $completion in ${res.map((r) => r.label).toList()}',
     );
 
     expect(item.insertTextFormat, equals(insertTextFormat));
@@ -1380,7 +1378,7 @@ void g() {
     await verifyCompletions(
       mainFileUri,
       content,
-      expectCompletions: ['(a, b) {}', '(a, b) =>'],
+      expectCompletions: ['(a, b) =>', '(a, b) {}'],
       applyEditsFor: '(a, b) =>',
       expectedContent: expectedContent,
     );
@@ -1408,7 +1406,7 @@ void g() {
       content,
       // Display text does not contain 'required' because it makes the
       // completion much longer, we just include it in the completion text.
-      expectCompletions: ['({a, b}) {}', '({a, b}) =>'],
+      expectCompletions: ['({a, b}) =>', '({a, b}) {}'],
       applyEditsFor: '({a, b}) =>',
       expectedContent: expectedContent,
     );
@@ -2422,12 +2420,7 @@ void main() {
 
     var completionLabel = 'MyEnum.value1';
 
-    await _checkCompletionEdits(
-      mainFileUri,
-      content,
-      completionLabel,
-      expectedContent,
-    );
+    await _checkCompletionEdits(mainFileUri, completionLabel, expectedContent);
   }
 
   Future<void> test_importedSymbol_libraryImported_showingEnum() async {
@@ -2456,12 +2449,7 @@ void main() {
 
     var completionLabel = 'MyEnum.value1';
 
-    await _checkCompletionEdits(
-      mainFileUri,
-      content,
-      completionLabel,
-      expectedContent,
-    );
+    await _checkCompletionEdits(mainFileUri, completionLabel, expectedContent);
   }
 
   Future<void> test_insertReplaceRanges() async {
@@ -2957,19 +2945,22 @@ final a = Flex(children: []);
       required String expectedReplace,
       required String expectedInsert,
     }) async {
-      content = '''
+      content =
+          '''
 class A { const A({int argOne, int argTwo, String argThree}); }
 final varOne = '';
 $code
 void f() { }
 ''';
-      var expectedReplaced = '''
+      var expectedReplaced =
+          '''
 class A { const A({int argOne, int argTwo, String argThree}); }
 final varOne = '';
 $expectedReplace
 void f() { }
 ''';
-      var expectedInserted = '''
+      var expectedInserted =
+          '''
 class A { const A({int argOne, int argTwo, String argThree}); }
 final varOne = '';
 $expectedInsert
@@ -3263,7 +3254,36 @@ class B extends A {
     var labels = completions.map((c) => c.label).toList();
     expect(labels, contains('override ==(Object other) { … }'));
     expect(labels, contains('override -(int other) { … }'));
-    expect(labels, contains('override unary-() { … }'));
+    expect(labels, contains('override -() { … }'));
+  }
+
+  Future<void> test_override() async {
+    setCompletionItemSnippetSupport();
+    content = '''
+abstract class Base {
+  String get name;
+}
+
+class Derived extends Base {
+  ^
+}
+''';
+
+    var expectedContent = r'''
+abstract class Base {
+  String get name;
+}
+
+class Derived extends Base {
+  @override
+  // TODO: implement name
+  String get name => ${0:throw UnimplementedError()};
+}
+''';
+
+    var completionLabel = 'override name => …';
+
+    await _checkCompletionEdits(mainFileUri, completionLabel, expectedContent);
   }
 
   Future<void> test_plainText() async {
@@ -3396,11 +3416,10 @@ void f() {
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
-    var setters =
-        res
-            .where((c) => c.label.endsWith('Setter'))
-            .map((c) => c.detail != null ? '${c.label} (${c.detail})' : c.label)
-            .toList();
+    var setters = res
+        .where((c) => c.label.endsWith('Setter'))
+        .map((c) => c.detail != null ? '${c.label} (${c.detail})' : c.label)
+        .toList();
     expect(setters, [
       'stringSetter (String)',
       'noArgSetter (dynamic)',
@@ -3692,8 +3711,9 @@ void f() {
     await initialAnalysis;
     var res = await getCompletion(mainFileUri, code.position.position);
 
-    var enumCompletions =
-        res.where((c) => c.label.startsWith('MyExportedEnum')).toList();
+    var enumCompletions = res
+        .where((c) => c.label.startsWith('MyExportedEnum'))
+        .toList();
     expect(
       enumCompletions.map((c) => c.label),
       unorderedEquals([
@@ -3772,8 +3792,9 @@ void f() {
     await initialAnalysis;
     var res = await getCompletion(mainFileUri, code.position.position);
 
-    var completions =
-        res.where((c) => c.label == 'MyExportedEnum.One').toList();
+    var completions = res
+        .where((c) => c.label == 'MyExportedEnum.One')
+        .toList();
     expect(completions, hasLength(1));
     var resolved = await resolveCompletion(completions.first);
     // It should not include auto-import text since it's already imported.
@@ -3892,12 +3913,7 @@ void f() {
 
     var completionLabel = 'MyClass';
 
-    await _checkCompletionEdits(
-      mainFileUri,
-      content,
-      completionLabel,
-      expectedContent,
-    );
+    await _checkCompletionEdits(mainFileUri, completionLabel, expectedContent);
   }
 
   Future<void>
@@ -3923,12 +3939,7 @@ void f() {
 ''';
 
     var completionLabel = 'myExtensionMethod()';
-    await _checkCompletionEdits(
-      mainFileUri,
-      content,
-      completionLabel,
-      expectedContent,
-    );
+    await _checkCompletionEdits(mainFileUri, completionLabel, expectedContent);
   }
 
   Future<void>
@@ -4197,12 +4208,7 @@ void f() {
 
     var completionLabel = 'MyClass1';
 
-    await _checkCompletionEdits(
-      mainFileUri,
-      content,
-      completionLabel,
-      expectedContent,
-    );
+    await _checkCompletionEdits(mainFileUri, completionLabel, expectedContent);
   }
 
   Future<void> test_unimportedSymbols_libraryImported_hidingOne() async {
@@ -4227,12 +4233,7 @@ void f() {
 
     var completionLabel = 'MyClass1';
 
-    await _checkCompletionEdits(
-      mainFileUri,
-      content,
-      completionLabel,
-      expectedContent,
-    );
+    await _checkCompletionEdits(mainFileUri, completionLabel, expectedContent);
   }
 
   Future<void> test_unimportedSymbols_libraryImported_showingOther() async {
@@ -4257,12 +4258,7 @@ void f() {
 
     var completionLabel = 'MyClass1';
 
-    await _checkCompletionEdits(
-      mainFileUri,
-      content,
-      completionLabel,
-      expectedContent,
-    );
+    await _checkCompletionEdits(mainFileUri, completionLabel, expectedContent);
   }
 
   // Code completion doesn't include prefixes for auto-imports so when an
@@ -4291,12 +4287,7 @@ void f() {
 
     var completionLabel = 'MyClass1';
 
-    await _checkCompletionEdits(
-      mainFileUri,
-      content,
-      completionLabel,
-      expectedContent,
-    );
+    await _checkCompletionEdits(mainFileUri, completionLabel, expectedContent);
   }
 
   /// This test reproduces a bug where the pathKey hash used in
@@ -4493,7 +4484,6 @@ void f() {
 
     await _checkCompletionEdits(
       importingFileUri,
-      content,
       completionLabel,
       expectedContent,
     );
@@ -4539,7 +4529,6 @@ void f() {
 
     await _checkCompletionEdits(
       importingFileUri,
-      content,
       completionLabel,
       expectedContent,
     );
@@ -4628,9 +4617,11 @@ void f() {
   ///
   /// [content] should contain a `^` at the location where completion should be
   /// invoked/accepted.
+  ///
+  /// [expectedContent] can contain LSP snippet syntax if supported and expected
+  /// in the result.
   Future<void> _checkCompletionEdits(
     Uri fileUri,
-    String content,
     String completionLabel,
     String expectedContent,
   ) async {
@@ -4639,7 +4630,7 @@ void f() {
     await initialAnalysis;
     var res = await getCompletion(fileUri, code.position.position);
 
-    var completion = res.where((c) => c.label == completionLabel).single;
+    var completion = res.singleWhere((c) => c.label == completionLabel);
     var resolvedCompletion = await resolveCompletion(completion);
 
     // Apply both the main completion edit and the additionalTextEdits atomically.
@@ -4647,7 +4638,7 @@ void f() {
       code.code,
       [
         toTextEdit(resolvedCompletion.textEdit!),
-      ].followedBy(resolvedCompletion.additionalTextEdits!).toList(),
+      ].followedBy(resolvedCompletion.additionalTextEdits ?? []).toList(),
     );
 
     expect(newContent, equalsNormalized(expectedContent));

@@ -54,6 +54,7 @@ linter:
     - avoid_dynamic_calls
     - avoid_redundant_argument_values
     - avoid_unused_constructor_parameters
+    - comment_references
     - discarded_futures
     - flutter_style_todos
     - no_literal_bool_comparisons

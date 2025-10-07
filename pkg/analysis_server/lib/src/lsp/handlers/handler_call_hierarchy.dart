@@ -101,13 +101,12 @@ class IncomingCallHierarchyHandler
         itemLineInfo,
         supportedSymbolKinds: supportedSymbolKinds,
       ),
-      fromRanges:
-          calls.ranges
-              // For incoming calls, ranges are in the referenced item so we use
-              // itemLineInfo and not localLineInfo (which is for the original
-              // target we're collecting calls to).
-              .map((call) => sourceRangeToRange(itemLineInfo, call))
-              .toList(),
+      fromRanges: calls.ranges
+          // For incoming calls, ranges are in the referenced item so we use
+          // itemLineInfo and not localLineInfo (which is for the original
+          // target we're collecting calls to).
+          .map((call) => sourceRangeToRange(itemLineInfo, call))
+          .toList(),
     );
   }
 }
@@ -174,13 +173,12 @@ class OutgoingCallHierarchyHandler
         itemLineInfo,
         supportedSymbolKinds: supportedSymbolKinds,
       ),
-      fromRanges:
-          calls.ranges
-              // For incoming calls, ranges are in original target so we use
-              // localLineInfo and not itemLineInfo (which is for call target
-              // the outbound call points to).
-              .map((call) => sourceRangeToRange(localLineInfo, call))
-              .toList(),
+      fromRanges: calls.ranges
+          // For incoming calls, ranges are in original target so we use
+          // localLineInfo and not itemLineInfo (which is for call target
+          // the outbound call points to).
+          .map((call) => sourceRangeToRange(localLineInfo, call))
+          .toList(),
     );
   }
 }

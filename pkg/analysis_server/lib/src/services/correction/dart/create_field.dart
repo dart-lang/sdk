@@ -28,7 +28,7 @@ class CreateField extends CreateFieldOrGetter {
   List<String> get fixArguments => [_fieldName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_FIELD;
+  FixKind get fixKind => DartFixKind.createField;
 
   @override
   Future<void> addForObjectPattern({

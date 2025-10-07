@@ -8,11 +8,11 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/util/collection.dart';
@@ -20,9 +20,9 @@ import 'package:analyzer/src/util/comment.dart';
 
 Uint8List writeUnitInformative(CompilationUnit unit) {
   var info = _InfoBuilder().build(unit);
-  var sink = BufferedSink();
-  info.write(sink);
-  return sink.takeBytes();
+  var writer = BinaryWriter();
+  info.write(writer);
+  return writer.takeBytes();
 }
 
 class InformativeDataApplier {
@@ -44,7 +44,7 @@ class InformativeDataApplier {
     }
     elementFactory.isApplyingInformativeData = true;
 
-    for (var unitElement in libraryElement.units) {
+    for (var unitElement in libraryElement.internal.fragments) {
       var uri = unitElement.source.uri;
       if (unitsInformativeBytes[uri] case var infoBytes?) {
         _applyFromBytes(unitElement, infoBytes);
@@ -55,21 +55,21 @@ class InformativeDataApplier {
   }
 
   void _applyFromBytes(LibraryFragmentImpl unitElement, Uint8List infoBytes) {
-    var unitReader = SummaryDataReader(infoBytes);
+    var unitReader = BinaryReader(infoBytes);
     var unitInfo = _InfoUnit.read(unitReader);
     _applyFromInfo(unitElement, unitInfo);
   }
 
   void _applyFromInfo(LibraryFragmentImpl unitElement, _InfoUnit unitInfo) {
     var libraryElement = unitElement.library;
-    if (identical(libraryElement.definingCompilationUnit, unitElement)) {
+    if (identical(libraryElement.internal.firstFragment, unitElement)) {
       _applyToLibrary(libraryElement, unitInfo);
     }
 
     unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
     unitElement.lineInfo = LineInfo(unitInfo.lineStarts);
 
-    unitElement.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToImports(unitElement.libraryImports, unitInfo);
       _applyToExports(unitElement.libraryExports, unitInfo);
       _applyToPartIncludes(unitElement.parts, unitInfo);
@@ -173,7 +173,7 @@ class InformativeDataApplier {
       element.nameOffset = info.nameOffset;
       element.documentationComment = info.documentationComment;
 
-      element.withoutLoadingResolution(() {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
         _applyToFormalParameters(element.formalParameters, info.parameters);
       });
 
@@ -194,7 +194,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    element.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
     });
 
@@ -204,7 +204,7 @@ class InformativeDataApplier {
     });
 
     _scheduleApplyMembersOffsets(element, () {
-      element.withoutLoadingResolution(() {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
         _applyToConstructors(element.constructors, info.constructors);
         _applyToFields(element.fields, info.fields);
         _applyToAccessors(element.getters, info.getters);
@@ -223,7 +223,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    element.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
     });
 
@@ -266,7 +266,7 @@ class InformativeDataApplier {
       element.nameOffset = info.nameOffset;
       element.documentationComment = info.documentationComment;
 
-      element.withoutLoadingResolution(() {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
         _applyToFormalParameters(element.formalParameters, info.parameters);
       });
 
@@ -287,7 +287,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    element.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       _applyToConstructors(element.constructors, info.constructors);
       _applyToFields(element.fields, info.fields);
@@ -318,7 +318,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    element.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
     });
 
@@ -342,7 +342,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    element.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
     });
 
@@ -358,7 +358,7 @@ class InformativeDataApplier {
       applier.applyToMetadata(representationField.metadata);
     });
 
-    element.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       var primaryConstructor = element.constructors.first;
       primaryConstructor.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
       primaryConstructor.typeNameOffset = info.nameOffset;
@@ -367,7 +367,7 @@ class InformativeDataApplier {
       primaryConstructor.nameOffset = infoRep.constructorNameOffset;
       primaryConstructor.nameEnd = infoRep.constructorNameEnd;
 
-      primaryConstructor.withoutLoadingResolution(() {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
         var representation = primaryConstructor.formalParameters.first;
         representation.firstTokenOffset = infoRep.firstTokenOffset;
         representation.nameOffset = infoRep.fieldNameOffset;
@@ -412,6 +412,7 @@ class InformativeDataApplier {
     List<FormalParameterFragmentImpl> parameters,
     List<_InfoFormalParameter> infoList,
   ) {
+    parameters = parameters.where((p) => !p.isSynthetic).toList();
     forCorrespondingPairs(parameters, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
@@ -430,7 +431,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    element.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       _applyToFormalParameters(element.formalParameters, info.parameters);
     });
@@ -451,7 +452,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    element.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       if (element.aliasedElement case GenericFunctionTypeFragmentImpl aliased) {
         _applyToFormalParameters(aliased.formalParameters, info.parameters);
@@ -474,7 +475,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    element.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       if (element.aliasedElement case GenericFunctionTypeFragmentImpl aliased) {
         _applyToTypeParameters(
@@ -527,7 +528,7 @@ class InformativeDataApplier {
       element.nameOffset = info.nameOffset;
       element.documentationComment = info.documentationComment;
 
-      element.withoutLoadingResolution(() {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
         _applyToTypeParameters(element.typeParameters, info.typeParameters);
         _applyToFormalParameters(element.formalParameters, info.parameters);
       });
@@ -549,7 +550,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    element.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       _applyToConstructors(element.constructors, info.constructors);
       _applyToFields(element.fields, info.fields);
@@ -1290,14 +1291,14 @@ class _InfoClassTypeAlias extends _InfoNode {
 
   _InfoClassTypeAlias.read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),
-      constantOffsets = reader.readUInt30List(),
+      constantOffsets = reader.readUint30List(),
       super.read();
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeList(typeParameters, (v) => v.write(sink));
-    sink.writeUint30List(constantOffsets);
-    super.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeList(typeParameters, (v) => v.write(writer));
+    writer.writeUint30List(constantOffsets);
+    super.write(writer);
   }
 }
 
@@ -1307,16 +1308,16 @@ class _InfoCombinator {
 
   _InfoCombinator({required this.offset, required this.end});
 
-  factory _InfoCombinator.read(SummaryDataReader reader) {
+  factory _InfoCombinator.read(BinaryReader reader) {
     return _InfoCombinator(
-      offset: reader.readUInt30(),
-      end: reader.readUInt30(),
+      offset: reader.readUint30(),
+      end: reader.readUint30(),
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUInt30(offset);
-    sink.writeUInt30(end);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(offset);
+    writer.writeUint30(end);
   }
 }
 
@@ -1340,17 +1341,17 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
   });
 
   _InfoConstructorDeclaration.read(super.reader)
-    : typeNameOffset = reader.readUInt30(),
-      periodOffset = reader.readOptionalUInt30(),
-      nameEnd = reader.readOptionalUInt30(),
+    : typeNameOffset = reader.readUint30(),
+      periodOffset = reader.readOptionalUint30(),
+      nameEnd = reader.readOptionalUint30(),
       super.read();
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeUInt30(typeNameOffset);
-    sink.writeOptionalUInt30(periodOffset);
-    sink.writeOptionalUInt30(nameEnd);
-    super.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(typeNameOffset);
+    writer.writeOptionalUint30(periodOffset);
+    writer.writeOptionalUint30(nameEnd);
+    super.write(writer);
   }
 }
 
@@ -1379,15 +1380,15 @@ class _InfoExecutableDeclaration extends _InfoNode {
   _InfoExecutableDeclaration.read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),
       parameters = reader.readList(_InfoFormalParameter.read),
-      constantOffsets = reader.readUInt30List(),
+      constantOffsets = reader.readUint30List(),
       super.read();
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeList(typeParameters, (v) => v.write(sink));
-    sink.writeList(parameters, (v) => v.write(sink));
-    sink.writeUint30List(constantOffsets);
-    super.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeList(typeParameters, (v) => v.write(writer));
+    writer.writeList(parameters, (v) => v.write(writer));
+    writer.writeUint30List(constantOffsets);
+    super.write(writer);
   }
 }
 
@@ -1397,16 +1398,16 @@ class _InfoExport {
 
   _InfoExport({required this.exportKeywordOffset, required this.combinators});
 
-  factory _InfoExport.read(SummaryDataReader reader) {
+  factory _InfoExport.read(BinaryReader reader) {
     return _InfoExport(
-      exportKeywordOffset: reader.readUInt30(),
+      exportKeywordOffset: reader.readUint30(),
       combinators: reader.readList(_InfoCombinator.read),
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUInt30(exportKeywordOffset);
-    sink.writeList(combinators, (v) => v.write(sink));
+  void write(BinaryWriter writer) {
+    writer.writeUint30(exportKeywordOffset);
+    writer.writeList(combinators, (v) => v.write(writer));
   }
 }
 
@@ -1429,9 +1430,9 @@ class _InfoExtensionTypeDeclaration extends _InfoInterfaceDeclaration {
       super.read();
 
   @override
-  void write(BufferedSink sink) {
-    representation.write(sink);
-    super.write(sink);
+  void write(BinaryWriter writer) {
+    representation.write(writer);
+    super.write(writer);
   }
 }
 
@@ -1456,28 +1457,28 @@ class _InfoExtensionTypeRepresentation {
     required this.fieldConstantOffsets,
   });
 
-  factory _InfoExtensionTypeRepresentation.read(SummaryDataReader reader) {
+  factory _InfoExtensionTypeRepresentation.read(BinaryReader reader) {
     return _InfoExtensionTypeRepresentation(
-      firstTokenOffset: reader.readUInt30(),
-      codeOffset: reader.readUInt30(),
-      codeLength: reader.readUInt30(),
-      constructorPeriodOffset: reader.readOptionalUInt30(),
-      constructorNameOffset: reader.readOptionalUInt30(),
-      constructorNameEnd: reader.readOptionalUInt30(),
-      fieldNameOffset: reader.readOptionalUInt30(),
-      fieldConstantOffsets: reader.readUInt30List(),
+      firstTokenOffset: reader.readUint30(),
+      codeOffset: reader.readUint30(),
+      codeLength: reader.readUint30(),
+      constructorPeriodOffset: reader.readOptionalUint30(),
+      constructorNameOffset: reader.readOptionalUint30(),
+      constructorNameEnd: reader.readOptionalUint30(),
+      fieldNameOffset: reader.readOptionalUint30(),
+      fieldConstantOffsets: reader.readUint30List(),
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUInt30(firstTokenOffset);
-    sink.writeUInt30(codeOffset);
-    sink.writeUInt30(codeLength);
-    sink.writeOptionalUInt30(constructorPeriodOffset);
-    sink.writeOptionalUInt30(constructorNameOffset);
-    sink.writeOptionalUInt30(constructorNameEnd);
-    sink.writeOptionalUInt30(fieldNameOffset);
-    sink.writeUint30List(fieldConstantOffsets);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(firstTokenOffset);
+    writer.writeUint30(codeOffset);
+    writer.writeUint30(codeLength);
+    writer.writeOptionalUint30(constructorPeriodOffset);
+    writer.writeOptionalUint30(constructorNameOffset);
+    writer.writeOptionalUint30(constructorNameEnd);
+    writer.writeOptionalUint30(fieldNameOffset);
+    writer.writeUint30List(fieldConstantOffsets);
   }
 }
 
@@ -1494,13 +1495,13 @@ class _InfoFieldDeclaration extends _InfoNode {
   }) : super();
 
   _InfoFieldDeclaration.read(super.reader)
-    : constantOffsets = reader.readUInt30List(),
+    : constantOffsets = reader.readUint30List(),
       super.read();
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeUint30List(constantOffsets);
-    super.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeUint30List(constantOffsets);
+    super.write(writer);
   }
 }
 
@@ -1523,10 +1524,10 @@ class _InfoFormalParameter extends _InfoNode {
       super.read();
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeList(typeParameters, (v) => v.write(sink));
-    sink.writeList(parameters, (v) => v.write(sink));
-    super.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeList(typeParameters, (v) => v.write(writer));
+    writer.writeList(parameters, (v) => v.write(writer));
+    super.write(writer);
   }
 }
 
@@ -1549,15 +1550,15 @@ class _InfoFunctionTypeAlias extends _InfoNode {
   _InfoFunctionTypeAlias.read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),
       parameters = reader.readList(_InfoFormalParameter.read),
-      constantOffsets = reader.readUInt30List(),
+      constantOffsets = reader.readUint30List(),
       super.read();
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeList(typeParameters, (v) => v.write(sink));
-    sink.writeList(parameters, (v) => v.write(sink));
-    sink.writeUint30List(constantOffsets);
-    super.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeList(typeParameters, (v) => v.write(writer));
+    writer.writeList(parameters, (v) => v.write(writer));
+    writer.writeUint30List(constantOffsets);
+    super.write(writer);
   }
 }
 
@@ -1583,16 +1584,16 @@ class _InfoGenericTypeAlias extends _InfoNode {
     : typeParameters = reader.readList(_InfoTypeParameter.read),
       aliasedTypeParameters = reader.readList(_InfoTypeParameter.read),
       aliasedFormalParameters = reader.readList(_InfoFormalParameter.read),
-      constantOffsets = reader.readUInt30List(),
+      constantOffsets = reader.readUint30List(),
       super.read();
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeList(typeParameters, (v) => v.write(sink));
-    sink.writeList(aliasedTypeParameters, (v) => v.write(sink));
-    sink.writeList(aliasedFormalParameters, (v) => v.write(sink));
-    sink.writeUint30List(constantOffsets);
-    super.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeList(typeParameters, (v) => v.write(writer));
+    writer.writeList(aliasedTypeParameters, (v) => v.write(writer));
+    writer.writeList(aliasedFormalParameters, (v) => v.write(writer));
+    writer.writeUint30List(constantOffsets);
+    super.write(writer);
   }
 }
 
@@ -1607,18 +1608,18 @@ class _InfoImport {
     required this.combinators,
   });
 
-  factory _InfoImport.read(SummaryDataReader reader) {
+  factory _InfoImport.read(BinaryReader reader) {
     return _InfoImport(
-      importKeywordOffset: reader.readUInt30(),
-      prefixOffset: reader.readOptionalUInt30(),
+      importKeywordOffset: reader.readUint30(),
+      prefixOffset: reader.readOptionalUint30(),
       combinators: reader.readList(_InfoCombinator.read),
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUInt30(importKeywordOffset);
-    sink.writeOptionalUInt30(prefixOffset);
-    sink.writeList(combinators, (v) => v.write(sink));
+  void write(BinaryWriter writer) {
+    writer.writeUint30(importKeywordOffset);
+    writer.writeOptionalUint30(prefixOffset);
+    writer.writeList(combinators, (v) => v.write(writer));
   }
 }
 
@@ -1651,18 +1652,18 @@ abstract class _InfoInstanceDeclaration extends _InfoNode {
       getters = reader.readList(_InfoExecutableDeclaration.read),
       setters = reader.readList(_InfoExecutableDeclaration.read),
       methods = reader.readList(_InfoExecutableDeclaration.read),
-      constantOffsets = reader.readUInt30List(),
+      constantOffsets = reader.readUint30List(),
       super.read();
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeList(typeParameters, (v) => v.write(sink));
-    sink.writeList(fields, (v) => v.write(sink));
-    sink.writeList(getters, (v) => v.write(sink));
-    sink.writeList(setters, (v) => v.write(sink));
-    sink.writeList(methods, (v) => v.write(sink));
-    sink.writeUint30List(constantOffsets);
-    super.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeList(typeParameters, (v) => v.write(writer));
+    writer.writeList(fields, (v) => v.write(writer));
+    writer.writeList(getters, (v) => v.write(writer));
+    writer.writeList(setters, (v) => v.write(writer));
+    writer.writeList(methods, (v) => v.write(writer));
+    writer.writeUint30List(constantOffsets);
+    super.write(writer);
   }
 }
 
@@ -1678,9 +1679,9 @@ abstract class _InfoInterfaceDeclaration extends _InfoInstanceDeclaration {
       super.read();
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeList(constructors, (v) => v.write(sink));
-    super.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeList(constructors, (v) => v.write(writer));
+    super.write(writer);
   }
 }
 
@@ -1690,16 +1691,16 @@ class _InfoLibraryName {
 
   _InfoLibraryName({required this.offset, required this.length});
 
-  factory _InfoLibraryName.read(SummaryDataReader reader) {
+  factory _InfoLibraryName.read(BinaryReader reader) {
     return _InfoLibraryName(
-      offset: reader.readUInt30() - 1,
-      length: reader.readUInt30(),
+      offset: reader.readUint30() - 1,
+      length: reader.readUint30(),
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUInt30(offset + 1);
-    sink.writeUInt30(length);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(offset + 1);
+    writer.writeUint30(length);
   }
 }
 
@@ -1724,19 +1725,19 @@ abstract class _InfoNode {
     required this.documentationComment,
   });
 
-  _InfoNode.read(SummaryDataReader reader)
-    : firstTokenOffset = reader.readUInt30(),
-      codeOffset = reader.readUInt30(),
-      codeLength = reader.readUInt30(),
-      nameOffset = reader.readOptionalUInt30(),
+  _InfoNode.read(BinaryReader reader)
+    : firstTokenOffset = reader.readUint30(),
+      codeOffset = reader.readUint30(),
+      codeLength = reader.readUint30(),
+      nameOffset = reader.readOptionalUint30(),
       documentationComment = reader.readStringUtf8().nullIfEmpty;
 
-  void write(BufferedSink sink) {
-    sink.writeUInt30(firstTokenOffset);
-    sink.writeUInt30(codeOffset);
-    sink.writeUInt30(codeLength);
-    sink.writeOptionalUInt30(nameOffset);
-    sink.writeStringUtf8(documentationComment ?? '');
+  void write(BinaryWriter writer) {
+    writer.writeUint30(firstTokenOffset);
+    writer.writeUint30(codeOffset);
+    writer.writeUint30(codeLength);
+    writer.writeOptionalUint30(nameOffset);
+    writer.writeStringUtf8(documentationComment ?? '');
   }
 }
 
@@ -1745,12 +1746,12 @@ class _InfoPart {
 
   _InfoPart({required this.partKeywordOffset});
 
-  factory _InfoPart.read(SummaryDataReader reader) {
-    return _InfoPart(partKeywordOffset: reader.readUInt30());
+  factory _InfoPart.read(BinaryReader reader) {
+    return _InfoPart(partKeywordOffset: reader.readUint30());
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUInt30(partKeywordOffset);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(partKeywordOffset);
   }
 }
 
@@ -1767,13 +1768,13 @@ class _InfoTopLevelVariable extends _InfoNode {
   }) : super();
 
   _InfoTopLevelVariable.read(super.reader)
-    : constantOffsets = reader.readUInt30List(),
+    : constantOffsets = reader.readUint30List(),
       super.read();
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeUint30List(constantOffsets);
-    super.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeUint30List(constantOffsets);
+    super.write(writer);
   }
 }
 
@@ -1835,12 +1836,12 @@ class _InfoUnit {
     required this.topLevelVariable,
   });
 
-  _InfoUnit.read(SummaryDataReader reader)
-    : codeOffset = reader.readUInt30(),
-      codeLength = reader.readUInt30(),
-      lineStarts = reader.readUInt30List(),
+  _InfoUnit.read(BinaryReader reader)
+    : codeOffset = reader.readUint30(),
+      codeLength = reader.readUint30(),
+      lineStarts = reader.readUint30List(),
       libraryName = _InfoLibraryName.read(reader),
-      libraryConstantOffsets = reader.readUInt30List(),
+      libraryConstantOffsets = reader.readUint30List(),
       docComment = reader.readOptionalStringUtf8(),
       imports = reader.readList(_InfoImport.read),
       exports = reader.readList(_InfoExport.read),
@@ -1858,28 +1859,28 @@ class _InfoUnit {
       topLevelSetters = reader.readList(_InfoExecutableDeclaration.read),
       topLevelVariable = reader.readList(_InfoTopLevelVariable.read);
 
-  void write(BufferedSink sink) {
-    sink.writeUInt30(codeOffset);
-    sink.writeUInt30(codeLength);
-    sink.writeUint30List(lineStarts);
-    libraryName.write(sink);
-    sink.writeUint30List(libraryConstantOffsets);
-    sink.writeOptionalStringUtf8(docComment);
-    sink.writeList(imports, (v) => v.write(sink));
-    sink.writeList(exports, (v) => v.write(sink));
-    sink.writeList(parts, (v) => v.write(sink));
-    sink.writeList(classDeclarations, (v) => v.write(sink));
-    sink.writeList(classTypeAliases, (v) => v.write(sink));
-    sink.writeList(enums, (v) => v.write(sink));
-    sink.writeList(extensions, (v) => v.write(sink));
-    sink.writeList(extensionTypes, (v) => v.write(sink));
-    sink.writeList(functionTypeAliases, (v) => v.write(sink));
-    sink.writeList(genericTypeAliases, (v) => v.write(sink));
-    sink.writeList(mixinDeclarations, (v) => v.write(sink));
-    sink.writeList(topLevelFunctions, (v) => v.write(sink));
-    sink.writeList(topLevelGetters, (v) => v.write(sink));
-    sink.writeList(topLevelSetters, (v) => v.write(sink));
-    sink.writeList(topLevelVariable, (v) => v.write(sink));
+  void write(BinaryWriter writer) {
+    writer.writeUint30(codeOffset);
+    writer.writeUint30(codeLength);
+    writer.writeUint30List(lineStarts);
+    libraryName.write(writer);
+    writer.writeUint30List(libraryConstantOffsets);
+    writer.writeOptionalStringUtf8(docComment);
+    writer.writeList(imports, (v) => v.write(writer));
+    writer.writeList(exports, (v) => v.write(writer));
+    writer.writeList(parts, (v) => v.write(writer));
+    writer.writeList(classDeclarations, (v) => v.write(writer));
+    writer.writeList(classTypeAliases, (v) => v.write(writer));
+    writer.writeList(enums, (v) => v.write(writer));
+    writer.writeList(extensions, (v) => v.write(writer));
+    writer.writeList(extensionTypes, (v) => v.write(writer));
+    writer.writeList(functionTypeAliases, (v) => v.write(writer));
+    writer.writeList(genericTypeAliases, (v) => v.write(writer));
+    writer.writeList(mixinDeclarations, (v) => v.write(writer));
+    writer.writeList(topLevelFunctions, (v) => v.write(writer));
+    writer.writeList(topLevelGetters, (v) => v.write(writer));
+    writer.writeList(topLevelSetters, (v) => v.write(writer));
+    writer.writeList(topLevelVariable, (v) => v.write(writer));
   }
 }
 
@@ -2437,8 +2438,8 @@ class _SafeListIterator<T> {
   }
 }
 
-extension on SummaryDataReader {
-  List<T> readList<T>(T Function(SummaryDataReader) read) {
+extension on BinaryReader {
+  List<T> readList<T>(T Function(BinaryReader) read) {
     return readTypedList(() => read(this));
   }
 }

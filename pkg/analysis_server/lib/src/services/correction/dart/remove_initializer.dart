@@ -74,8 +74,8 @@ class RemoveInitializer extends ResolvedCorrectionProducer {
           }
         }
       } else {
-        var initializer =
-            node.thisOrAncestorOfType<ConstructorFieldInitializer>();
+        var initializer = node
+            .thisOrAncestorOfType<ConstructorFieldInitializer>();
         var parent = initializer?.parent;
         if (parent is ConstructorDeclaration) {
           await builder.addDartFileEdit(file, (builder) {

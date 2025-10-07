@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class AddCurlyBracesTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_CURLY_BRACES;
+  FixKind get kind => DartFixKind.addCurlyBraces;
 
   @override
   String get lintCode => LintNames.curly_braces_in_flow_control_structures;

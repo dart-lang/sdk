@@ -37,7 +37,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class A extends Enum { // Error.
 //       ^
 // sdk/lib/core/enum.dart:*: Context: 'Enum.index' is defined here.
@@ -51,7 +50,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class B implements Enum { // Error.
 //       ^
 // sdk/lib/core/enum.dart:*: Context: 'Enum.index' is defined here.
@@ -65,7 +63,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class EnumClass2 extends AbstractEnumClass {} // Error.
 //       ^^^^^^^^^^
 // sdk/lib/core/enum.dart:*: Context: 'Enum.index' is defined here.
@@ -79,7 +76,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class EnumClass3 extends AbstractEnumClass2 {} // Error.
 //       ^^^^^^^^^^
 // sdk/lib/core/enum.dart:*: Context: 'Enum.index' is defined here.

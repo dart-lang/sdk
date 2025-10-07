@@ -833,9 +833,11 @@ class DispatchTable {
         // module must've been loaded to call the constructor.
         if (fun != null) {
           final targetModule = fun.enclosingModule;
+          final targetModuleBuilder =
+              translator.moduleToBuilder[fun.enclosingModule]!;
           if (targetModule == _definedWasmTable.enclosingModule) {
             if (isDynamicSubmoduleTable &&
-                targetModule == translator.dynamicSubmodule &&
+                targetModuleBuilder == translator.dynamicSubmodule &&
                 fun is w.ImportedFunction) {
               // Functions imported into submodules may need to be wrapped to
               // match the updated dispatch table signature.
@@ -846,8 +848,8 @@ class DispatchTable {
           } else {
             // This will generate the imported table if it doesn't already
             // exist.
-            (getWasmTable(targetModule) as w.ImportedTable).setElements[i] =
-                fun;
+            (getWasmTable(targetModuleBuilder) as w.ImportedTable)
+                .setElements[i] = fun;
           }
         }
       }

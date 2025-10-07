@@ -93,7 +93,7 @@ class MyWidget extends StatelessWidget {
 @reflectiveTest
 class AddKeyToConstructorsTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_KEY_TO_CONSTRUCTORS;
+  FixKind get kind => DartFixKind.addKeyToConstructors;
 
   @override
   String get lintCode => LintNames.use_key_in_widget_constructors;
@@ -545,7 +545,7 @@ class MyWidget extends ParentWidget {
 class AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest
     extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_KEY_TO_CONSTRUCTORS;
+  FixKind get kind => DartFixKind.addKeyToConstructors;
 
   @override
   String get lintCode => LintNames.use_key_in_widget_constructors;
@@ -593,7 +593,7 @@ class B extends A {
 class AddKeyToConstructorsWithoutSuperParametersTest
     extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_KEY_TO_CONSTRUCTORS;
+  FixKind get kind => DartFixKind.addKeyToConstructors;
 
   @override
   String get lintCode => LintNames.use_key_in_widget_constructors;

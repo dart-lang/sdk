@@ -27,7 +27,7 @@ class Export {
   }
 }
 
-class ExportedReference {
+sealed class ExportedReference {
   final Reference reference;
 
   ExportedReference({required this.reference});
@@ -87,11 +87,6 @@ class ExportLocation {
     return other is ExportLocation &&
         other.fragmentIndex == fragmentIndex &&
         other.exportIndex == exportIndex;
-  }
-
-  LibraryExportImpl exportOf(LibraryElementImpl library) {
-    var fragment = library.units[fragmentIndex];
-    return fragment.libraryExports[exportIndex];
   }
 
   @override

@@ -229,6 +229,8 @@ import 'prefer_void_to_null_test.dart' as prefer_void_to_null;
 import 'provide_deprecation_message_test.dart' as provide_deprecation_message;
 import 'public_member_api_docs_test.dart' as public_member_api_docs;
 import 'recursive_getters_test.dart' as recursive_getters;
+import 'remove_deprecations_in_breaking_test.dart'
+    as remove_deprecations_in_breaking;
 import 'require_trailing_commas_test.dart' as require_trailing_commas;
 import 'secure_pubspec_urls_test.dart' as secure_pubspec_urls;
 import 'sized_box_for_whitespace_test.dart' as sized_box_for_whitespace;
@@ -494,6 +496,7 @@ void main() {
   provide_deprecation_message.main();
   public_member_api_docs.main();
   recursive_getters.main();
+  remove_deprecations_in_breaking.main();
   require_trailing_commas.main();
   secure_pubspec_urls.main();
   sized_box_for_whitespace.main();

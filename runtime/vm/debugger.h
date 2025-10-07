@@ -423,7 +423,7 @@ class ActivationFrame : public ZoneAllocated {
   void PrintContextMismatchError(intptr_t ctx_slot,
                                  intptr_t frame_ctx_level,
                                  intptr_t var_ctx_level);
-  void PrintDescriptorsError(const char* message);
+  void PrintContextLevelError(const char* message);
 
   intptr_t TryIndex();
   intptr_t DeoptId();

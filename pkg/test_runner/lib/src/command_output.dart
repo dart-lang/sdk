@@ -876,9 +876,10 @@ class CompilationCommandOutput extends CommandOutput {
 
 class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
     with _StaticErrorOutput {
-  static void parseErrors(String stdout, List<StaticError> errors) {
+  static void parseErrors(String stdout, List<StaticError> errors,
+      [List<StaticError>? warnings]) {
     _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.web, _errorRegexp, stdout, errors);
+        ErrorSource.web, _errorRegexp, stdout, errors, warnings);
   }
 
   /// Matches the location and message of a dart2js error message, which looks
@@ -893,7 +894,8 @@ class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
   /// suggested fixes, so we only parse the first line.
   // TODO(rnystrom): Support validating context messages.
   static final _errorRegexp =
-      RegExp(r"^([^:\n\r]+):(\d+):(\d+):\n(Error): (.*)$", multiLine: true);
+      RegExp(r"^([^:\n\r]+):(\d+):(\d+):\n(Error|Warning): (.*)$",
+          multiLine: true);
 
   Dart2jsCompilerCommandOutput(super.command, super.exitCode, super.timedOut,
       super.stdout, super.stderr, super.time, super.compilationSkipped);
@@ -901,16 +903,19 @@ class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
   @override
   void _parseErrors() {
     var errors = <StaticError>[];
-    parseErrors(decodeUtf8(stdout), errors);
+    var warnings = <StaticError>[];
+    parseErrors(decodeUtf8(stdout), errors, warnings);
     errors.forEach(addError);
+    warnings.forEach(addWarning);
   }
 }
 
 class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
     with _StaticErrorOutput {
-  static void parseErrors(String stdout, List<StaticError> errors) {
+  static void parseErrors(String stdout, List<StaticError> errors,
+      [List<StaticError>? warnings]) {
     _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.web, _errorRegexp, stdout, errors);
+        ErrorSource.web, _errorRegexp, stdout, errors, warnings);
   }
 
   /// Matches the location and message of a dart2wasm error message, which looks
@@ -924,7 +929,8 @@ class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
   /// suggested fixes, so we only parse the first line.
   // TODO(rnystrom): Support validating context messages.
   static final _errorRegexp =
-      RegExp(r"^([^:\n\r]+):(\d+):(\d+): (Error): (.*)$", multiLine: true);
+      RegExp(r"^([^:\n\r]+):(\d+):(\d+): (Error|Warning): (.*)$",
+          multiLine: true);
 
   Dart2WasmCompilerCommandOutput(super.command, super.exitCode, super.timedOut,
       super.stdout, super.stderr, super.time, super.compilationSkipped);
@@ -954,16 +960,19 @@ class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
   @override
   void _parseErrors() {
     var errors = <StaticError>[];
+    var warnings = <StaticError>[];
     // We expect errors to be printed to `stderr` for dart2wasm.
-    parseErrors(decodeUtf8(stderr), errors);
+    parseErrors(decodeUtf8(stderr), errors, warnings);
     errors.forEach(addError);
+    warnings.forEach(addWarning);
   }
 }
 
 class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
-  static void parseErrors(String stdout, List<StaticError> errors) {
+  static void parseErrors(String stdout, List<StaticError> errors,
+      [List<StaticError>? warnings]) {
     _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.web, _errorRegexp, stdout, errors);
+        ErrorSource.web, _errorRegexp, stdout, errors, warnings);
   }
 
   /// Matches the first line of a DDC error message. DDC prints errors to
@@ -978,7 +987,7 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
   /// suggested fixes, so we only parse the first line.
   // TODO(rnystrom): Support validating context messages.
   static final _errorRegexp = RegExp(
-      r"^org-dartlang-app:/([^\n\r]+):(\d+):(\d+): (Error): (.*)$",
+      r"^org-dartlang-app:/([^\n\r]+):(\d+):(\d+): (Error|Warning): (.*)$",
       multiLine: true);
 
   DevCompilerCommandOutput(
@@ -1011,8 +1020,10 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
   @override
   void _parseErrors() {
     var errors = <StaticError>[];
-    parseErrors(decodeUtf8(stdout), errors);
+    var warnings = <StaticError>[];
+    parseErrors(decodeUtf8(stdout), errors, warnings);
     errors.forEach(addError);
+    warnings.forEach(addWarning);
   }
 }
 
@@ -1242,7 +1253,7 @@ mixin _StaticErrorOutput on CommandOutput {
         if (severity == "Error") {
           errors.add(error);
         } else {
-          warnings!.add(error);
+          warnings?.add(error);
         }
         previousError = error;
       }

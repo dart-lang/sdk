@@ -139,6 +139,7 @@ a:focus, a:hover {
   
   
   
+  
 <h3>Requests</h3><dl><dt class="request"><a name="request_plugin.versionCheck">plugin.versionCheck</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "plugin.versionCheck"
@@ -215,6 +216,26 @@ a:focus, a:hover {
           information. This value is ignored if the <tt>isCompatible</tt>
           field is <tt>false</tt>. Otherwise, it will be used to identify
           the files for which the plugin should be notified of changes.
+        </p>
+      </dd></dl></dd><dt class="request"><a name="request_plugin.details">plugin.details</a></dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "plugin.details"
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+  "result": {
+    "<b>plugins</b>": List&lt;<a href="#type_PluginDetails">PluginDetails</a>&gt;
+  }
+}</pre></div>
+    <p>
+      Details regarding the registered plugins, for analytics-reporting and
+      insights-reporting purposes.
+    </p>
+    
+  <h4>returns:</h4><dl><dt class="field"><b>plugins: List&lt;<a href="#type_PluginDetails">PluginDetails</a>&gt;</b></dt><dd>
+        
+        <p>
+          A list of the details of all registered plugins.
         </p>
       </dd></dl></dd><dt class="request"><a name="request_plugin.shutdown">plugin.shutdown</a></dt><dd><div class="box"><pre>request: {
   "id": String
@@ -995,6 +1016,21 @@ a:focus, a:hover {
   <dl><dt class="field"><b>isAnalyzing: bool</b></dt><dd>
         
         <p>True if analysis is currently being performed.</p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_AssistDescription">AssistDescription: object</a></dt><dd>
+    <p>
+      The description of a registered assist.
+    </p>
+    
+  <dl><dt class="field"><b>id: String</b></dt><dd>
+        
+        <p>
+          The ID.
+        </p>
+      </dd><dt class="field"><b>message: String</b></dt><dd>
+        
+        <p>
+          The message that is presented to the user, to carry out this assist.
+        </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_ChangeContentOverlay">ChangeContentOverlay: object</a></dt><dd>
     <p>
       A directive to modify an existing file content overlay. One or more ranges
@@ -1409,7 +1445,27 @@ a:focus, a:hover {
       not absolute or is not normalized, then an error of type
       <tt>INVALID_FILE_PATH_FORMAT</tt> will be generated.
     </p>
-  </dd><dt class="typeDefinition"><a name="type_FoldingKind">FoldingKind: String</a></dt><dd>
+  </dd><dt class="typeDefinition"><a name="type_FixDescription">FixDescription: object</a></dt><dd>
+    <p>
+      The description of a registered fix.
+    </p>
+    
+  <dl><dt class="field"><b>id: String</b></dt><dd>
+        
+        <p>
+          The ID.
+        </p>
+      </dd><dt class="field"><b>message: String</b></dt><dd>
+        
+        <p>
+          The message that is presented to the user, to carry out this fix.
+        </p>
+      </dd><dt class="field"><b>codes: List&lt;String&gt;</b></dt><dd>
+        
+        <p>
+          The IDs of the diagnostic codes with which this fix was registered.
+        </p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_FoldingKind">FoldingKind: String</a></dt><dd>
     <p>
       An enumeration of the kinds of folding regions.
     </p>
@@ -1733,6 +1789,38 @@ a:focus, a:hover {
         <p>
           The children of the node. The field will be omitted if the node has no
           children. Children are sorted by offset.
+        </p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_PluginDetails">PluginDetails: object</a></dt><dd>
+    <p>
+      The details of an active plugin.
+    </p>
+    
+  <dl><dt class="field"><b>name: String</b></dt><dd>
+        
+        <p>
+          The name of the plugin.
+        </p>
+      </dd><dt class="field"><b>lintRules: List&lt;String&gt;</b></dt><dd>
+        
+        <p>
+          A list of the IDs of the analysis rules which have been registered as
+          lint rules.
+        </p>
+      </dd><dt class="field"><b>warningRules: List&lt;String&gt;</b></dt><dd>
+        
+        <p>
+          A list of the IDs of the analysis rules which have been registered as
+          warning rules.
+        </p>
+      </dd><dt class="field"><b>assists: List&lt;<a href="#type_AssistDescription">AssistDescription</a>&gt;</b></dt><dd>
+        
+        <p>
+          A list of the descriptions of registered assists.
+        </p>
+      </dd><dt class="field"><b>fixes: List&lt;<a href="#type_FixDescription">FixDescription</a>&gt;</b></dt><dd>
+        
+        <p>
+          A list of the descriptions of registered fixes.
         </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_Position">Position: object</a></dt><dd>
     <p>
@@ -2421,6 +2509,6 @@ a:focus, a:hover {
         </p>
       </dd></dl></dd></dl>
 <h2 class="domain"><a name="index">Index</a></h2>
-<h3>Domains</h3><h4>plugin (<a href="#domain_plugin">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_plugin.versionCheck">versionCheck</a></li><li><a href="#request_plugin.shutdown">shutdown</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_plugin.error">error</a></li><li><a href="#notification_plugin.status">status</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.handleWatchEvents">handleWatchEvents</a></li><li><a href="#request_analysis.setContextRoots">setContextRoots</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li></ul></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getFixes">getFixes</a></li></ul></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_AnalysisStatus">AnalysisStatus</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextRoot">ContextRoot</a></li><li><a href="#type_DiagnosticMessage">DiagnosticMessage</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PrioritizedSourceChange">PrioritizedSourceChange</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_WatchEvent">WatchEvent</a></li><li><a href="#type_WatchEventType">WatchEventType</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
+<h3>Domains</h3><h4>plugin (<a href="#domain_plugin">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_plugin.versionCheck">versionCheck</a></li><li><a href="#request_plugin.details">details</a></li><li><a href="#request_plugin.shutdown">shutdown</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_plugin.error">error</a></li><li><a href="#notification_plugin.status">status</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.handleWatchEvents">handleWatchEvents</a></li><li><a href="#request_analysis.setContextRoots">setContextRoots</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li></ul></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getFixes">getFixes</a></li></ul></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_AnalysisStatus">AnalysisStatus</a></li><li><a href="#type_AssistDescription">AssistDescription</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextRoot">ContextRoot</a></li><li><a href="#type_DiagnosticMessage">DiagnosticMessage</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FixDescription">FixDescription</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_PluginDetails">PluginDetails</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PrioritizedSourceChange">PrioritizedSourceChange</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_WatchEvent">WatchEvent</a></li><li><a href="#type_WatchEventType">WatchEventType</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
 </body>
 </html>

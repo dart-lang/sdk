@@ -16,10 +16,10 @@ class AddTrailingComma extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_TRAILING_COMMA;
+  FixKind get fixKind => DartFixKind.addTrailingComma;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_TRAILING_COMMA_MULTI;
+  FixKind get multiFixKind => DartFixKind.addTrailingCommaMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

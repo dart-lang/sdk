@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../api_prototype/experimental_flags.dart';
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/problems.dart';
@@ -21,7 +22,6 @@ import '../kernel/type_algorithms.dart';
 import 'source_class_builder.dart';
 import 'source_declaration_builder.dart';
 import 'source_library_builder.dart';
-import 'source_loader.dart';
 import 'source_member_builder.dart';
 import 'source_type_parameter_builder.dart';
 
@@ -65,6 +65,9 @@ mixin SourceDeclarationBuilderBaseMixin
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
+    ProblemReporting problemReporting = libraryBuilder;
+    LibraryFeatures libraryFeatures = libraryBuilder.libraryFeatures;
+
     Iterator<SourceMemberBuilder> memberIterator = filteredMembersIterator(
       includeDuplicates: false,
     );
@@ -79,14 +82,20 @@ mixin SourceDeclarationBuilderBaseMixin
       if (enclosingClassBuilder != null) {
         builder.checkVariance(enclosingClassBuilder, typeEnvironment);
       }
-      builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
+      builder.checkTypes(
+        problemReporting,
+        libraryFeatures,
+        nameSpace,
+        typeEnvironment,
+      );
     }
 
     Iterator<SourceMemberBuilder> constructorIterator =
         filteredConstructorsIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
       constructorIterator.current.checkTypes(
-        libraryBuilder,
+        problemReporting,
+        libraryFeatures,
         nameSpace,
         typeEnvironment,
       );
@@ -132,7 +141,7 @@ mixin SourceDeclarationBuilderBaseMixin
       );
       return unhandled(
         codeTypeArgumentMismatch
-            .withArguments(typeParametersCount)
+            .withArgumentsOld(typeParametersCount)
             .problemMessage,
         "buildTypeArguments",
         -1,
@@ -191,7 +200,7 @@ mixin SourceDeclarationBuilderMixin
           libraryBuilder.addProblem(
             // TODO(johnniwinther): Use a different error message for
             //  extension type declarations.
-            codeExtensionMemberConflictsWithObjectMember.withArguments(name),
+            codeExtensionMemberConflictsWithObjectMember.withArgumentsOld(name),
             declaration.fileOffset,
             name.length,
             declaration.fileUri,

@@ -24,10 +24,10 @@ class ConvertToMapLiteral extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertToMapLiteral;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_MAP_LITERAL;
+  FixKind get fixKind => DartFixKind.convertToMapLiteral;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_MAP_LITERAL_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToMapLiteralMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -54,8 +54,8 @@ class ConvertToMapLiteral extends ResolvedCorrectionProducer {
     var constructorTypeArguments = creation.constructorName.type.typeArguments;
     List<DartType>? staticTypeArguments;
     if (constructorTypeArguments == null) {
-      var variableDeclarationList =
-          creation.thisOrAncestorOfType<VariableDeclarationList>();
+      var variableDeclarationList = creation
+          .thisOrAncestorOfType<VariableDeclarationList>();
       if (variableDeclarationList?.type == null) {
         staticTypeArguments = type.typeArguments;
         if (staticTypeArguments.first is DynamicType &&

@@ -53,6 +53,7 @@ defaultasset
 dname
 e.g
 enclose
+enhanced
 erase
 exhaustively
 exportable

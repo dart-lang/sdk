@@ -150,8 +150,10 @@ class RegularNominalParameterDeclaration
       annotatable: parameter,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.extensionScope,
       scope: _fragment.typeParameterScope,
     );
   }

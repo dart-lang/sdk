@@ -17,10 +17,10 @@ class ConvertToWhereType extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_WHERE_TYPE;
+  FixKind get fixKind => DartFixKind.convertToWhereType;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_WHERE_TYPE_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToWhereTypeMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

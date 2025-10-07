@@ -8,9 +8,9 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show Token, scanString;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/constant_context.dart';
 import 'package:front_end/src/base/local_scope.dart';
 import 'package:front_end/src/base/name_space.dart';
-import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/builder/compilation_unit.dart';
 import 'package:front_end/src/builder/declaration_builders.dart';
@@ -20,10 +20,11 @@ import 'package:front_end/src/codes/cfe_codes.dart'
     show Message, codeUnspecified;
 import 'package:front_end/src/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/dill/dill_type_parameter_builder.dart';
-import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilder;
+import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilderImpl;
 import 'package:front_end/src/kernel/body_builder_context.dart';
 import 'package:front_end/src/kernel/expression_generator.dart';
 import 'package:front_end/src/kernel/expression_generator_helper.dart';
+import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/kernel/kernel_target.dart' show KernelTarget;
 import 'package:front_end/src/kernel/load_library_builder.dart';
 import 'package:front_end/src/source/name_space_builder.dart';
@@ -33,9 +34,9 @@ import 'package:front_end/src/source/source_library_builder.dart'
     show ImplicitLanguageVersion, SourceLibraryBuilder;
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/type_inference/type_inference_engine.dart';
+import 'package:front_end/src/type_inference/type_inferrer.dart';
 import 'package:kernel/ast.dart'
     show
-        Arguments,
         Class,
         Component,
         DynamicType,
@@ -73,7 +74,7 @@ Future<void> main() async {
     CoreTypes coreTypes = new CoreTypes(component);
     ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
 
-    Arguments arguments = new Arguments(<Expression>[new StringLiteral("arg")]);
+    ArgumentsImpl arguments = new ArgumentsImpl([new StringLiteral("arg")]);
     Expression expression = new VariableGet(
       new VariableDeclaration("expression"),
     );
@@ -153,7 +154,7 @@ Future<void> main() async {
       new FunctionNode(null),
       fileUri: uri,
     );
-    Message message = codeUnspecified.withArguments("My Message.");
+    Message message = codeUnspecified.withArgumentsOld("My Message.");
     Name binaryOperator = new Name("+");
     Name name = new Name("bar");
     PrefixBuilder prefixBuilder = new PrefixBuilder(
@@ -164,6 +165,7 @@ Future<void> main() async {
       fileUri: uri,
       prefixOffset: -1,
       importOffset: -1,
+      parentPrefixBuilder: null,
     );
     String assignmentOperator = "+=";
     TypeDeclarationBuilder declaration = new DillNominalParameterBuilder(
@@ -175,26 +177,29 @@ Future<void> main() async {
       isSynthesized: true,
     );
 
-    TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl(null, null);
+    TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl();
     engine.prepareTopLevel(coreTypes, hierarchy);
 
-    BodyBuilder helper = new BodyBuilder(
+    TypeInferrer typeInferrer = engine.createTypeInferrer(
+      thisType: null,
+      libraryBuilder: libraryBuilder,
+      extensionScope: compilationUnit.extensionScope,
+    );
+
+    LocalScope lookupScope = new FixedLocalScope(
+      kind: LocalScopeKind.enclosing,
+    );
+    ExpressionGeneratorHelper helper = new BodyBuilderImpl(
       libraryBuilder: libraryBuilder,
       context: new LibraryBodyBuilderContext(libraryBuilder),
       uri: uri,
-      enclosingScope: new FixedLocalScope(
-        kind: ScopeKind.library,
-        debugName: "dummy",
-      ),
+      enclosingScope: lookupScope,
+      extensionScope: compilationUnit.extensionScope,
       coreTypes: coreTypes,
       hierarchy: hierarchy,
-      typeInferrer: engine.createTopLevelTypeInferrer(
-        uri,
-        null,
-        libraryBuilder,
-        compilationUnit.compilationUnitScope,
-        null,
-      ),
+      assignedVariables: typeInferrer.assignedVariables,
+      typeEnvironment: typeInferrer.typeSchemaEnvironment,
+      constantContext: ConstantContext.none,
     );
 
     Generator generator = new ThisAccessGenerator(
@@ -356,6 +361,7 @@ Future<void> main() async {
         token,
         name,
         UnresolvedKind.Unknown,
+        false,
       ),
     );
     check(

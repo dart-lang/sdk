@@ -84,7 +84,10 @@ static void MatchCallPattern(uword* pc) {
 static void MatchDataLoadFromPool(uword* pc, intptr_t* data_index) {
   // movq RBX, [PP + offset]
   static int16_t load_data_disp8[] = {
-      0x49, 0x8b, 0x5f, -1,  //
+      0x49,
+      0x8b,
+      0x5f,
+      -1,  //
   };
   static int16_t load_data_disp32[] = {
       0x49, 0x8b, 0x9f, -1, -1, -1, -1,
@@ -147,7 +150,7 @@ class UnoptimizedCall : public ValueObject {
   }
 
   void set_target(const Code& target) const {
-    object_pool_.SetObjectAt(code_index_, target);
+    object_pool_.SetObjectAt<std::memory_order_release>(code_index_, target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
@@ -181,7 +184,8 @@ class NativeCall : public ValueObject {
   }
 
   void set_native_function(NativeFunction func) const {
-    object_pool_.SetRawValueAt(argument_index(), reinterpret_cast<uword>(func));
+    object_pool_.SetRawValueAt<std::memory_order_relaxed>(
+        argument_index(), reinterpret_cast<uword>(func));
   }
 
   CodePtr target() const {
@@ -191,7 +195,7 @@ class NativeCall : public ValueObject {
   }
 
   void set_target(const Code& target) const {
-    object_pool_.SetObjectAt(code_index_, target);
+    object_pool_.SetObjectAt<std::memory_order_release>(code_index_, target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
@@ -220,7 +224,7 @@ class InstanceCall : public UnoptimizedCall {
   ObjectPtr data() const { return object_pool_.ObjectAt(argument_index()); }
   void set_data(const Object& data) const {
     ASSERT(data.IsArray() || data.IsICData() || data.IsMegamorphicCache());
-    object_pool_.SetObjectAt(argument_index(), data);
+    object_pool_.SetObjectAt<std::memory_order_release>(argument_index(), data);
   }
 
  private:
@@ -265,7 +269,7 @@ class PoolPointerCall : public ValueObject {
   }
 
   void SetTarget(const Code& target) const {
-    object_pool_.SetObjectAt(code_index_, target);
+    object_pool_.SetObjectAt<std::memory_order_release>(code_index_, target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
@@ -292,9 +296,9 @@ class SwitchableCallBase : public ValueObject {
 
   ObjectPtr data() const { return object_pool_.ObjectAt(data_index()); }
 
-  void SetData(const Object& data) const {
+  void SetDataRelease(const Object& data) const {
     ASSERT(!Object::Handle(object_pool_.ObjectAt(data_index())).IsCode());
-    object_pool_.SetObjectAt(data_index(), data);
+    object_pool_.SetObjectAt<std::memory_order_release>(data_index(), data);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
@@ -333,7 +337,10 @@ class SwitchableCall : public SwitchableCallBase {
 
     // movq CODE_REG, [PP + offset]
     static int16_t load_code_disp8[] = {
-        0x4d, 0x8b, 0x67, -1,  //
+        0x4d,
+        0x8b,
+        0x67,
+        -1,  //
     };
     static int16_t load_code_disp32[] = {
         0x4d, 0x8b, 0xa7, -1, -1, -1, -1,
@@ -351,9 +358,9 @@ class SwitchableCall : public SwitchableCallBase {
     ASSERT(Object::Handle(object_pool_.ObjectAt(target_index_)).IsCode());
   }
 
-  void SetTarget(const Code& target) const {
+  void SetTargetRelease(const Code& target) const {
     ASSERT(Object::Handle(object_pool_.ObjectAt(target_index())).IsCode());
-    object_pool_.SetObjectAt(target_index(), target);
+    object_pool_.SetObjectAt<std::memory_order_release>(target_index(), target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
@@ -373,7 +380,8 @@ class BareSwitchableCall : public SwitchableCallBase {
 
     // callq RCX
     static int16_t call_pattern[] = {
-        0xff, 0xd1,  //
+        0xff,
+        0xd1,  //
     };
     if (MatchesPattern(pc, call_pattern, ARRAY_SIZE(call_pattern))) {
       pc -= ARRAY_SIZE(call_pattern);
@@ -383,7 +391,10 @@ class BareSwitchableCall : public SwitchableCallBase {
 
     // movq RBX, [PP + offset]
     static int16_t load_data_disp8[] = {
-        0x49, 0x8b, 0x5f, -1,  //
+        0x49,
+        0x8b,
+        0x5f,
+        -1,  //
     };
     static int16_t load_data_disp32[] = {
         0x49, 0x8b, 0x9f, -1, -1, -1, -1,
@@ -402,7 +413,10 @@ class BareSwitchableCall : public SwitchableCallBase {
 
     // movq RCX, [PP + offset]
     static int16_t load_code_disp8[] = {
-        0x49, 0x8b, 0x4f, -1,  //
+        0x49,
+        0x8b,
+        0x4f,
+        -1,  //
     };
     static int16_t load_code_disp32[] = {
         0x49, 0x8b, 0x8f, -1, -1, -1, -1,
@@ -421,10 +435,11 @@ class BareSwitchableCall : public SwitchableCallBase {
            ObjectPool::EntryType::kImmediate);
   }
 
-  void SetTarget(const Code& target) const {
+  void SetTargetRelease(const Code& target) const {
     ASSERT(object_pool_.TypeAt(target_index()) ==
            ObjectPool::EntryType::kImmediate);
-    object_pool_.SetRawValueAt(target_index(), target.MonomorphicEntryPoint());
+    object_pool_.SetRawValueAt<std::memory_order_release>(
+        target_index(), target.MonomorphicEntryPoint());
   }
 
   uword target_entry() const { return object_pool_.RawValueAt(target_index()); }
@@ -503,28 +518,19 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Code& caller_code,
                                         const Object& data,
                                         const Code& target) {
-  auto thread = Thread::Current();
-  // Ensure all threads are suspended as we update data and target pair.
-  thread->isolate_group()->RunWithStoppedMutators([&]() {
-    PatchSwitchableCallAtWithMutatorsStopped(thread, return_address,
-                                             caller_code, data, target);
-  });
-}
-
-void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
-    Thread* thread,
-    uword return_address,
-    const Code& caller_code,
-    const Object& data,
-    const Code& target) {
+  // First update target to a stub that does not read 'data' so that concurrent
+  // Dart execution cannot observe the new stub with the old data or the old
+  // stub with the new data.
   if (FLAG_precompiled_mode) {
     BareSwitchableCall call(return_address);
-    call.SetData(data);
-    call.SetTarget(target);
+    call.SetTargetRelease(StubCode::SwitchableCallMiss());
+    call.SetDataRelease(data);
+    call.SetTargetRelease(target);
   } else {
     SwitchableCall call(return_address, caller_code);
-    call.SetData(data);
-    call.SetTarget(target);
+    call.SetTargetRelease(StubCode::SwitchableCallMiss());
+    call.SetDataRelease(data);
+    call.SetTargetRelease(target);
   }
 }
 

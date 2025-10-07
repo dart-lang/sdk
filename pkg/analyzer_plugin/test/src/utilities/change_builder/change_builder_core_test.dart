@@ -353,8 +353,8 @@ class EditBuilderImplTest extends AbstractChangeBuilderTest {
   Future<void> test_createLinkedEditBuilder() async {
     await builder.addGenericFileEdit(path, (builder) {
       builder.addInsertion(10, (builder) {
-        var linkBuilder =
-            (builder as EditBuilderImpl).createLinkedEditBuilder();
+        var linkBuilder = (builder as EditBuilderImpl)
+            .createLinkedEditBuilder();
         expect(linkBuilder, const TypeMatcher<LinkedEditBuilder>());
       });
     });
@@ -448,8 +448,10 @@ class EditBuilderImplTest extends AbstractChangeBuilderTest {
     expect(edit, isNotNull);
     expect(edit.offset, offset);
     expect(edit.length, length);
-    expect(edit.replacement == '$text\n' || edit.replacement == '$text\r\n',
-        isTrue);
+    expect(
+      edit.replacement == '$text\n' || edit.replacement == '$text\r\n',
+      isTrue,
+    );
   }
 }
 
@@ -625,7 +627,7 @@ class FileEditBuilderImplTest extends AbstractChangeBuilderTest {
   }
 
   Future<void>
-      test_addSimpleInsertion_updatesSelectionRange_futureEdits() async {
+  test_addSimpleInsertion_updatesSelectionRange_futureEdits() async {
     // Set a selection range.
     await builder.addGenericFileEdit(path, (builder) {
       builder.addInsertion(5, (builder) => builder.selectHere());
@@ -677,7 +679,9 @@ class FileEditBuilderImplTest extends AbstractChangeBuilderTest {
     await builder.addGenericFileEdit(path, (builder) {
       builder.addSimpleReplacement(SourceRange(firstOffset, firstLength), text);
       builder.addSimpleReplacement(
-          SourceRange(secondOffset, secondLength), text);
+        SourceRange(secondOffset, secondLength),
+        text,
+      );
     });
     var edits = builder.sourceChange.edits[0].edits;
     expect(edits, hasLength(2));
@@ -727,8 +731,10 @@ class FileEditBuilderImplTest extends AbstractChangeBuilderTest {
     await builder.addGenericFileEdit(path, (builder) {
       var offset = 4;
       var length = 5;
-      var editBuilder =
-          (builder as FileEditBuilderImpl).createEditBuilder(offset, length);
+      var editBuilder = (builder as FileEditBuilderImpl).createEditBuilder(
+        offset,
+        length,
+      );
       expect(editBuilder, const TypeMatcher<EditBuilder>());
       var sourceEdit = editBuilder.sourceEdit;
       expect(sourceEdit.length, length);

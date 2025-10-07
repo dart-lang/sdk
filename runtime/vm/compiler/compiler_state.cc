@@ -141,40 +141,10 @@ DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float64x2, float64x2)
     return *Lower##_class_;                                                    \
   }
 
-DEFINE_CLASS_GETTER(Ffi, Array, array, Array)
-DEFINE_CLASS_GETTER(Ffi, Compound, compound, Compound)
-DEFINE_CLASS_GETTER(Ffi, Struct, struct, Struct)
-DEFINE_CLASS_GETTER(Ffi, Union, union, Union)
 DEFINE_CLASS_GETTER(TypedData, TypedData, typed_data, TypedData)
 DEFINE_CLASS_GETTER(TypedData, TypedList, typed_list, _TypedList)
 
 #undef DEFINE_CLASS_GETTER
-
-const Field& CompilerState::CompoundOffsetInBytesField() {
-  if (compound_offset_in_bytes_field_ == nullptr) {
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    const auto& field =
-        Field::ZoneHandle(zone, CompoundClass().LookupInstanceFieldAllowPrivate(
-                                    Symbols::_offsetInBytes()));
-    ASSERT(!field.IsNull());
-    compound_offset_in_bytes_field_ = &field;
-  }
-  return *compound_offset_in_bytes_field_;
-}
-
-const Field& CompilerState::CompoundTypedDataBaseField() {
-  if (compound_typed_data_base_field_ == nullptr) {
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    const auto& field =
-        Field::ZoneHandle(zone, CompoundClass().LookupInstanceFieldAllowPrivate(
-                                    Symbols::_typedDataBase()));
-    ASSERT(!field.IsNull());
-    compound_typed_data_base_field_ = &field;
-  }
-  return *compound_typed_data_base_field_;
-}
 
 const Field& CompilerState::ErrorStackTraceField() {
   if (error_stack_trace_field_ == nullptr) {

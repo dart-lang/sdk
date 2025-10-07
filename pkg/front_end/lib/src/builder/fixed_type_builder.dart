@@ -38,10 +38,6 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isVoidType => type is VoidType;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write('type=${type}');
     return buffer;

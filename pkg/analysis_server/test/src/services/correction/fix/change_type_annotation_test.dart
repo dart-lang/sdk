@@ -10,14 +10,33 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ChangeTypeAnnotationPriorityTest);
     defineReflectiveTests(ChangeTypeAnnotationTest);
   });
 }
 
 @reflectiveTest
+class ChangeTypeAnnotationPriorityTest extends FixPriorityTest {
+  Future<void> test_futureType() async {
+    await resolveTestCode('''
+Future<int> foo() async => 0;
+
+Future<void> bar() async {
+  int _ = foo();
+}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.addAwait,
+      DartFixKind.changeTypeAnnotation,
+      DartFixKind.addExplicitCast,
+    ]);
+  }
+}
+
+@reflectiveTest
 class ChangeTypeAnnotationTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CHANGE_TYPE_ANNOTATION;
+  FixKind get kind => DartFixKind.changeTypeAnnotation;
 
   Future<void> test_generic() async {
     await resolveTestCode('''

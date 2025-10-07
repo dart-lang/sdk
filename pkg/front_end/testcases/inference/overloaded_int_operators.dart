@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 main() {
@@ -11,56 +10,56 @@ main() {
   double d = 1.0;
 
   // (double, double) -> double
-  var /*@type=double*/ ddPlus = d /*@target=double.+*/ + d;
-  var /*@type=double*/ ddMinus = d /*@target=double.-*/ - d;
-  var /*@type=double*/ ddTimes = d /*@target=double.**/ * d;
-  var /*@type=double*/ ddMod = d /*@target=double.%*/ % d;
+  var ddPlus = d + d;
+  var ddMinus = d - d;
+  var ddTimes = d * d;
+  var ddMod = d % d;
 
   // (double, int) -> double
-  var /*@type=double*/ diPlus = d /*@target=double.+*/ + i;
-  var /*@type=double*/ diMinus = d /*@target=double.-*/ - i;
-  var /*@type=double*/ diTimes = d /*@target=double.**/ * i;
-  var /*@type=double*/ diMod = d /*@target=double.%*/ % i;
+  var diPlus = d + i;
+  var diMinus = d - i;
+  var diTimes = d * i;
+  var diMod = d % i;
 
   // (double, num) -> double
-  var /*@type=double*/ dnPlus = d /*@target=double.+*/ + n;
-  var /*@type=double*/ dnMinus = d /*@target=double.-*/ - n;
-  var /*@type=double*/ dnTimes = d /*@target=double.**/ * n;
-  var /*@type=double*/ dnMod = d /*@target=double.%*/ % n;
+  var dnPlus = d + n;
+  var dnMinus = d - n;
+  var dnTimes = d * n;
+  var dnMod = d % n;
 
   // (int, double) -> double
-  var /*@type=double*/ idPlus = i /*@target=num.+*/ + d;
-  var /*@type=double*/ idMinus = i /*@target=num.-*/ - d;
-  var /*@type=double*/ idTimes = i /*@target=num.**/ * d;
-  var /*@type=double*/ idMod = i /*@target=num.%*/ % d;
+  var idPlus = i + d;
+  var idMinus = i - d;
+  var idTimes = i * d;
+  var idMod = i % d;
 
   // (int, int) -> int
-  var /*@type=int*/ iiPlus = i /*@target=num.+*/ + i;
-  var /*@type=int*/ iiMinus = i /*@target=num.-*/ - i;
-  var /*@type=int*/ iiTimes = i /*@target=num.**/ * i;
-  var /*@type=int*/ iiMod = i /*@target=num.%*/ % i;
+  var iiPlus = i + i;
+  var iiMinus = i - i;
+  var iiTimes = i * i;
+  var iiMod = i % i;
 
   // (int, num) -> num
-  var /*@type=num*/ inPlus = i /*@target=num.+*/ + n;
-  var /*@type=num*/ inMinus = i /*@target=num.-*/ - n;
-  var /*@type=num*/ inTimes = i /*@target=num.**/ * n;
-  var /*@type=num*/ inMod = i /*@target=num.%*/ % n;
+  var inPlus = i + n;
+  var inMinus = i - n;
+  var inTimes = i * n;
+  var inMod = i % n;
 
   // (num, double) -> num
-  var /*@type=double*/ ndPlus = n /*@target=num.+*/ + d;
-  var /*@type=double*/ ndMinus = n /*@target=num.-*/ - d;
-  var /*@type=double*/ ndTimes = n /*@target=num.**/ * d;
-  var /*@type=double*/ ndMod = n /*@target=num.%*/ % d;
+  var ndPlus = n + d;
+  var ndMinus = n - d;
+  var ndTimes = n * d;
+  var ndMod = n % d;
 
   // (num, int) -> num
-  var /*@type=num*/ niPlus = n /*@target=num.+*/ + i;
-  var /*@type=num*/ niMinus = n /*@target=num.-*/ - i;
-  var /*@type=num*/ niTimes = n /*@target=num.**/ * i;
-  var /*@type=num*/ niMod = n /*@target=num.%*/ % i;
+  var niPlus = n + i;
+  var niMinus = n - i;
+  var niTimes = n * i;
+  var niMod = n % i;
 
   // (num, num) -> num
-  var /*@type=num*/ nnPlus = n /*@target=num.+*/ + n;
-  var /*@type=num*/ nnMinus = n /*@target=num.-*/ - n;
-  var /*@type=num*/ nnTimes = n /*@target=num.**/ * n;
-  var /*@type=num*/ nnMod = n /*@target=num.%*/ % n;
+  var nnPlus = n + n;
+  var nnMinus = n - n;
+  var nnTimes = n * n;
+  var nnMod = n % n;
 }

@@ -16,8 +16,10 @@ ConstructorInvocation createConstructorInvocation(
   Constructor target,
   Arguments arguments, {
   required int fileOffset,
+  bool isConst = false,
 }) {
-  return new ConstructorInvocation(target, arguments)..fileOffset = fileOffset;
+  return new ConstructorInvocation(target, arguments, isConst: isConst)
+    ..fileOffset = fileOffset;
 }
 
 /// Creates a static invocation of [target] with the given arguments.
@@ -25,8 +27,21 @@ StaticInvocation createStaticInvocation(
   Procedure target,
   Arguments arguments, {
   required int fileOffset,
+  bool isConst = false,
 }) {
-  return new StaticInvocation(target, arguments)..fileOffset = fileOffset;
+  return new StaticInvocation(target, arguments, isConst: isConst)
+    ..fileOffset = fileOffset;
+}
+
+/// Creates a super method invocation of [target] with the given arguments.
+SuperMethodInvocation createSuperMethodInvocation(
+  Name name,
+  Procedure target,
+  Arguments arguments, {
+  required int fileOffset,
+}) {
+  return new SuperMethodInvocation(name, arguments, target)
+    ..fileOffset = fileOffset;
 }
 
 /// Creates a `== null` test on [expression].
@@ -350,4 +365,13 @@ LabeledStatement createLabeledStatement(
   required int fileOffset,
 }) {
   return new LabeledStatement(statement)..fileOffset = fileOffset;
+}
+
+Initializer createInvalidInitializer(
+  Expression expression, [
+  int charOffset = -1,
+]) {
+  return new ShadowInvalidInitializer(
+    new VariableDeclaration.forValue(expression),
+  )..fileOffset = charOffset;
 }

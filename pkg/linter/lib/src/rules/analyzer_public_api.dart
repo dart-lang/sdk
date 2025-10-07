@@ -32,6 +32,7 @@ class AnalyzerPublicApi extends MultiAnalysisRule {
   List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.analyzerPublicApiBadPartDirective,
     LinterLintCode.analyzerPublicApiBadType,
+    LinterLintCode.analyzerPublicApiExperimentalInconsistency,
     LinterLintCode.analyzerPublicApiExportsNonPublicName,
     LinterLintCode.analyzerPublicApiImplInPublicApi,
   ];
@@ -48,23 +49,38 @@ class AnalyzerPublicApi extends MultiAnalysisRule {
   }
 }
 
+/// Types of problematic uses of types that can be detected by this lint.
+enum _ProblematicTypeUseKind {
+  /// Use of a non-public type by a part of the analyzer public API.
+  useOfNonPublicType,
+
+  /// Use of an experimental type by a non-experimental part of the analyzer
+  /// public API.
+  useOfExperimentalType,
+}
+
+/// Lightweight object representing a public import.
+class _PublicImport {
+  final Element? Function(String name) lookup;
+
+  _PublicImport({required this.lookup});
+}
+
 class _Visitor extends SimpleAstVisitor<void> {
   final MultiAnalysisRule rule;
 
-  /// Elements that are imported into the current compilation unit's import
-  /// namespace via `import` directives that do *not* access a package's `src`
-  /// directory.
-  ///
-  /// Elements in this set are part of the public APIs of their respective
-  /// packages, so it is safe for a part of the analyzer public API to refer to
-  /// them.
-  late Set<Element> importedPublicElements;
+  /// Public imports of the current unit.
+  List<_PublicImport> _publicImports = [];
+
+  /// Cache for [_isPubliclyImported].
+  Map<Element, bool> _isImportedMemo = Map.identity();
 
   _Visitor(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    importedPublicElements = _computeImportedPublicElements(node);
+    _publicImports = _getPublicImports(node);
+    _isImportedMemo = Map.identity();
     node.declaredFragment!.children.forEach(_checkTopLevelFragment);
   }
 
@@ -125,7 +141,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _checkMember(Fragment fragment) {
+  void _checkMember(Fragment fragment, {required bool isParentExperimental}) {
     if (fragment is ConstructorFragment &&
         fragment.element.enclosingElement is EnumElement) {
       // Enum constructors aren't callable from outside of the enum, so they
@@ -138,7 +154,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (fragment is ExecutableFragment) {
-      _checkType(fragment.element.type, fragment: fragment);
+      _checkType(
+        fragment.element.type,
+        fragment: fragment,
+        isUsageSiteExperimental:
+            isParentExperimental || fragment.element.metadata.hasExperimental,
+      );
     }
   }
 
@@ -153,38 +174,73 @@ class _Visitor extends SimpleAstVisitor<void> {
         diagnosticCode: LinterLintCode.analyzerPublicApiImplInPublicApi,
       );
     }
+    var isUsageSiteExperimental = fragment.element.metadata.hasExperimental;
     switch (fragment) {
       case ExtensionFragment(name: null):
         // Unnamed extensions are not public, so ignore.
         break;
       case InstanceFragment(:var typeParameters, :var children):
         for (var typeParameter in typeParameters) {
-          _checkTypeParameter(typeParameter, fragment: fragment);
+          _checkTypeParameter(
+            typeParameter,
+            fragment: fragment,
+            isUsageSiteExperimental: isUsageSiteExperimental,
+          );
         }
         if (fragment is InterfaceFragment) {
           var element = fragment.element;
-          _checkType(element.supertype, fragment: fragment);
+          _checkType(
+            element.supertype,
+            fragment: fragment,
+            isUsageSiteExperimental: isUsageSiteExperimental,
+          );
           for (var t in element.interfaces) {
-            _checkType(t, fragment: fragment);
+            _checkType(
+              t,
+              fragment: fragment,
+              isUsageSiteExperimental: isUsageSiteExperimental,
+            );
           }
           for (var t in element.mixins) {
-            _checkType(t, fragment: fragment);
+            _checkType(
+              t,
+              fragment: fragment,
+              isUsageSiteExperimental: isUsageSiteExperimental,
+            );
           }
         }
         if (fragment case ExtensionFragment(:var element)) {
-          _checkType(element.extendedType, fragment: fragment);
+          _checkType(
+            element.extendedType,
+            fragment: fragment,
+            isUsageSiteExperimental: isUsageSiteExperimental,
+          );
         }
         if (fragment case MixinFragment(:var superclassConstraints)) {
           for (var t in superclassConstraints) {
-            _checkType(t, fragment: fragment);
+            _checkType(
+              t,
+              fragment: fragment,
+              isUsageSiteExperimental: isUsageSiteExperimental,
+            );
           }
         }
-        children.forEach(_checkMember);
+        for (var child in children) {
+          _checkMember(child, isParentExperimental: isUsageSiteExperimental);
+        }
       case ExecutableFragment():
-        _checkType(fragment.element.type, fragment: fragment);
+        _checkType(
+          fragment.element.type,
+          fragment: fragment,
+          isUsageSiteExperimental: isUsageSiteExperimental,
+        );
       case TypeAliasFragment(:var element, :var typeParameters):
         var aliasedType = element.aliasedType;
-        _checkType(element.aliasedType, fragment: fragment);
+        _checkType(
+          aliasedType,
+          fragment: fragment,
+          isUsageSiteExperimental: isUsageSiteExperimental,
+        );
         if (typeParameters.isNotEmpty &&
             aliasedType is FunctionType &&
             aliasedType.typeParameters.isEmpty) {
@@ -192,72 +248,135 @@ class _Visitor extends SimpleAstVisitor<void> {
           // why.
           // TODO(paulberry): consider fixing this in the analyzer.
           for (var typeParameter in typeParameters) {
-            _checkTypeParameter(typeParameter, fragment: fragment);
+            _checkTypeParameter(
+              typeParameter,
+              fragment: fragment,
+              isUsageSiteExperimental: isUsageSiteExperimental,
+            );
           }
         }
     }
   }
 
-  void _checkType(DartType? type, {required Fragment fragment}) {
+  void _checkType(
+    DartType? type, {
+    required Fragment fragment,
+    required bool isUsageSiteExperimental,
+  }) {
     if (type == null) return;
-    var problems = _problemsForAnalyzerPublicApi(type);
-    if (problems.isEmpty) return;
-    int offset;
-    int length;
-    while (true) {
-      if (fragment.nameOffset != null) {
-        offset = fragment.nameOffset!;
-        length = fragment.name!.length;
-        break;
-      } else if (fragment case PropertyAccessorFragment()
-          when fragment.element.variable.firstFragment.nameOffset != null) {
-        offset = fragment.element.variable.firstFragment.nameOffset!;
-        length = fragment.element.variable.name!.length;
-        break;
-      } else if (fragment is ConstructorFragment &&
-          fragment.typeNameOffset != null) {
-        offset = fragment.typeNameOffset!;
-        length = fragment.enclosingFragment!.name!.length;
-        break;
-      } else if (fragment.enclosingFragment case var enclosingFragment?) {
-        fragment = enclosingFragment;
-      } else {
-        // This should never happen. But if it does, make sure we generate a
-        // lint anyway.
-        offset = 0;
-        length = 1;
-        break;
-      }
-    }
-    rule.reportAtOffset(
-      offset,
-      length,
-      diagnosticCode: LinterLintCode.analyzerPublicApiBadType,
-      arguments: [problems.join(', ')],
+    var nonPublicProblems = _problemsForAnalyzerPublicApi(
+      type,
+      kind: _ProblematicTypeUseKind.useOfNonPublicType,
     );
+    var experimentalProblems = isUsageSiteExperimental
+        ? const <String>{}
+        : _problemsForAnalyzerPublicApi(
+            type,
+            kind: _ProblematicTypeUseKind.useOfExperimentalType,
+          );
+    late var offsetAndLength = _offsetAndLengthForFragment(fragment);
+    if (nonPublicProblems.isNotEmpty) {
+      rule.reportAtOffset(
+        offsetAndLength.offset,
+        offsetAndLength.length,
+        diagnosticCode: LinterLintCode.analyzerPublicApiBadType,
+        arguments: [nonPublicProblems.join(', ')],
+      );
+    }
+    if (experimentalProblems.isNotEmpty) {
+      rule.reportAtOffset(
+        offsetAndLength.offset,
+        offsetAndLength.length,
+        diagnosticCode:
+            LinterLintCode.analyzerPublicApiExperimentalInconsistency,
+        arguments: [nonPublicProblems.join(', ')],
+      );
+    }
   }
 
   void _checkTypeParameter(
     TypeParameterFragment typeParameter, {
     required Fragment fragment,
+    required bool isUsageSiteExperimental,
   }) {
-    _checkType(typeParameter.element.bound, fragment: fragment);
+    _checkType(
+      typeParameter.element.bound,
+      fragment: fragment,
+      isUsageSiteExperimental: isUsageSiteExperimental,
+    );
   }
 
-  Set<String> _problemsForAnalyzerPublicApi(DartType type) {
+  /// Whether [element] is visible through at least one public import.
+  bool _isPubliclyImported(Element element) {
+    var lookupName = element.lookupName;
+    if (lookupName == null) return false;
+
+    if (_isImportedMemo[element] case var cached?) {
+      return cached;
+    }
+
+    for (var import in _publicImports) {
+      var lookedUp = import.lookup(lookupName);
+      if (lookedUp?.baseElement == element.baseElement) {
+        _isImportedMemo[element] = true;
+        return true;
+      }
+    }
+
+    _isImportedMemo[element] = false;
+    return false;
+  }
+
+  ({int length, int offset}) _offsetAndLengthForFragment(Fragment fragment) {
+    while (true) {
+      if (fragment.nameOffset != null) {
+        return (offset: fragment.nameOffset!, length: fragment.name!.length);
+      } else if (fragment case PropertyAccessorFragment()
+          when fragment.element.variable.firstFragment.nameOffset != null) {
+        return (
+          offset: fragment.element.variable.firstFragment.nameOffset!,
+          length: fragment.element.variable.name!.length,
+        );
+      } else if (fragment is ConstructorFragment &&
+          fragment.typeNameOffset != null) {
+        return (
+          offset: fragment.typeNameOffset!,
+          length: fragment.enclosingFragment!.name!.length,
+        );
+      } else if (fragment.enclosingFragment case var enclosingFragment?) {
+        // ignore: parameter_assignments
+        fragment = enclosingFragment;
+      } else {
+        // This should never happen. But if it does, make sure we generate a
+        // lint anyway.
+        return (offset: 0, length: 1);
+      }
+    }
+  }
+
+  Set<String> _problemsForAnalyzerPublicApi(
+    DartType type, {
+    required _ProblematicTypeUseKind kind,
+  }) {
     switch (type) {
       case RecordType(:var positionalFields, :var namedFields):
         return {
           for (var f in positionalFields)
-            ..._problemsForAnalyzerPublicApi(f.type),
-          for (var f in namedFields) ..._problemsForAnalyzerPublicApi(f.type),
+            ..._problemsForAnalyzerPublicApi(f.type, kind: kind),
+          for (var f in namedFields)
+            ..._problemsForAnalyzerPublicApi(f.type, kind: kind),
         };
       case InterfaceType(:var element, :var typeArguments):
+        var isProblematicElement = switch (kind) {
+          _ProblematicTypeUseKind.useOfNonPublicType =>
+            !_isPubliclyImported(element) && !element.isOkForAnalyzerPublicApi,
+          _ProblematicTypeUseKind.useOfExperimentalType =>
+            element.metadata.hasExperimental,
+        };
         return {
-          if (!importedPublicElements.contains(element) &&
-              !element.isOkForAnalyzerPublicApi)
-            element.name!,
-          for (var t in typeArguments) ..._problemsForAnalyzerPublicApi(t),
+          if (isProblematicElement) element.name!,
+          for (var t in typeArguments)
+            ..._problemsForAnalyzerPublicApi(t, kind: kind),
         };
       case NeverType():
       case DynamicType():
@@ -271,36 +390,42 @@ class _Visitor extends SimpleAstVisitor<void> {
         :var formalParameters,
       ):
         return {
-          ..._problemsForAnalyzerPublicApi(returnType),
+          ..._problemsForAnalyzerPublicApi(returnType, kind: kind),
           for (var p in typeParameters)
-            if (p.bound != null) ..._problemsForAnalyzerPublicApi(p.bound!),
+            if (p.bound != null)
+              ..._problemsForAnalyzerPublicApi(p.bound!, kind: kind),
           for (var p in formalParameters)
-            ..._problemsForAnalyzerPublicApi(p.type),
+            ..._problemsForAnalyzerPublicApi(p.type, kind: kind),
         };
       default:
         throw StateError('Unexpected type $runtimeType');
     }
   }
 
-  /// Called during [visitCompilationUnit] to compute the value of
-  /// [importedPublicElements].
-  static Set<Element> _computeImportedPublicElements(
-    CompilationUnit compilationUnit,
-  ) {
-    var elements = <Element>{};
-    for (var directive in compilationUnit.directives) {
+  static List<_PublicImport> _getPublicImports(CompilationUnit unit) {
+    var result = <_PublicImport>[];
+    for (var directive in unit.directives) {
       if (directive is! ImportDirective) continue;
       var libraryImport = directive.libraryImport!;
       var importedLibrary = libraryImport.importedLibrary;
-      if (importedLibrary == null) {
-        // Import was unresolved. Ignore.
-        continue;
-      }
-      if (importedLibrary.uri.isPublic) {
-        elements.addAll(libraryImport.namespace.definedNames2.values);
-      }
+      if (importedLibrary == null) continue;
+      if (!importedLibrary.uri.isPublic) continue;
+      var combinators = libraryImport.combinators;
+      result.add(
+        _PublicImport(
+          lookup: (lookupName) {
+            var baseName = lookupName.endsWith('=')
+                ? lookupName.substring(0, lookupName.length - 1)
+                : lookupName;
+            if (combinators.any((c) => c.blocksName(baseName))) {
+              return null;
+            }
+            return importedLibrary.exportNamespace.get2(lookupName);
+          },
+        ),
+      );
     }
-    return elements;
+    return result;
   }
 }
 

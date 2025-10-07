@@ -127,7 +127,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
       if (!isValid) {
         if (getterIsDeclared && setterIsDeclared) {
           libraryBuilder.addProblem(
-            codeInvalidGetterSetterType.withArguments(
+            codeInvalidGetterSetterType.withArgumentsOld(
               getterType,
               getterFullName,
               setterType,
@@ -138,18 +138,21 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             getterUri,
             context: [
               codeInvalidGetterSetterTypeSetterContext
-                  .withArguments(setterFullName)
+                  .withArgumentsOld(setterFullName)
                   .withLocation(setterUri, setterOffset, name.text.length),
             ],
           );
         } else if (getterIsDeclared) {
-          Template<Message Function(DartType, String, DartType, String)>
+          Template<
+            Message Function(DartType, String, DartType, String),
+            Function
+          >
           template = codeInvalidGetterSetterTypeSetterInheritedGetter;
           if (getterIsField) {
             template = codeInvalidGetterSetterTypeSetterInheritedField;
           }
           libraryBuilder.addProblem(
-            template.withArguments(
+            template.withArgumentsOld(
               getterType,
               getterFullName,
               setterType,
@@ -160,21 +163,24 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             getterUri,
             context: [
               codeInvalidGetterSetterTypeSetterContext
-                  .withArguments(setterFullName)
+                  .withArgumentsOld(setterFullName)
                   .withLocation(setterUri, setterOffset, name.text.length),
             ],
           );
         } else if (setterIsDeclared) {
-          Template<Message Function(DartType, String, DartType, String)>
+          Template<
+            Message Function(DartType, String, DartType, String),
+            Function
+          >
           template = codeInvalidGetterSetterTypeGetterInherited;
-          Template<Message Function(String)> context =
+          Template<Message Function(String), Function> context =
               codeInvalidGetterSetterTypeGetterContext;
           if (getterIsField) {
             template = codeInvalidGetterSetterTypeFieldInherited;
             context = codeInvalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
-            template.withArguments(
+            template.withArgumentsOld(
               getterType,
               getterFullName,
               setterType,
@@ -185,21 +191,24 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             setterUri,
             context: [
               context
-                  .withArguments(getterFullName)
+                  .withArgumentsOld(getterFullName)
                   .withLocation(getterUri, getterOffset, name.text.length),
             ],
           );
         } else {
-          Template<Message Function(DartType, String, DartType, String)>
+          Template<
+            Message Function(DartType, String, DartType, String),
+            Function
+          >
           template = codeInvalidGetterSetterTypeBothInheritedGetter;
-          Template<Message Function(String)> context =
+          Template<Message Function(String), Function> context =
               codeInvalidGetterSetterTypeGetterContext;
           if (getterIsField) {
             template = codeInvalidGetterSetterTypeBothInheritedField;
             context = codeInvalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
-            template.withArguments(
+            template.withArgumentsOld(
               getterType,
               getterFullName,
               setterType,
@@ -210,10 +219,10 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             declarationUri,
             context: [
               context
-                  .withArguments(getterFullName)
+                  .withArgumentsOld(getterFullName)
                   .withLocation(getterUri, getterOffset, name.text.length),
               codeInvalidGetterSetterTypeSetterContext
-                  .withArguments(setterFullName)
+                  .withArgumentsOld(setterFullName)
                   .withLocation(setterUri, setterOffset, name.text.length),
             ],
           );

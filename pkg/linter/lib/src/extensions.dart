@@ -331,7 +331,7 @@ extension ElementExtension on Element? {
     var self = this;
     return self is TopLevelFunctionElement &&
         self.name == 'print' &&
-        self.firstFragment.libraryFragment.element.isDartCore;
+        self.library.isDartCore;
   }
 
   /// Returns the class member that is overridden by `this`, if there is one,

@@ -116,6 +116,6 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
   /// of the cursor position in completions.
   String withCaret(String contents, InsertTextFormat? format) =>
       format == InsertTextFormat.Snippet
-          ? contents.replaceFirst(r'$0', '^')
-          : contents;
+      ? contents.replaceFirst(r'$0', '^')
+      : contents;
 }

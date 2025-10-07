@@ -98,7 +98,7 @@ static method negateInt(core::int i) → core::int
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testNativeCallableIsolateLocalInt() → void {
-  final ffi::NativeCallable<(ffi::Int32) → ffi::Int> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Int>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>(ffi::_nativeCallbackFunction<(ffi::Int32) → ffi::Int>(#C3, 123), null, true));
+  final ffi::NativeCallable<(ffi::Int32) → ffi::Int> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Int>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>(ffi::_nativeCallbackFunction<(ffi::Int32) → ffi::Int>(#C3, #C4), null, true));
   core::print([@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.nativeFunction] [@vm.inferred-type.metadata=dart.ffi::Pointer] callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>});
   [@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.close] [@vm.inferred-type.metadata=? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
 }
@@ -108,7 +108,7 @@ static method testNativeCallableIsolateLocalIntClosure() → void {
   [@vm.inferred-type.metadata=dart.core::_Smi (value: 123)] core::int j = 123;
   function closure(core::int i) → core::int
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(j){(core::num) → core::int};
-  final ffi::NativeCallable<(ffi::Int32) → ffi::Int> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Int>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>(ffi::_nativeIsolateLocalCallbackFunction<(ffi::Int32) → ffi::Int>(123), closure, true));
+  final ffi::NativeCallable<(ffi::Int32) → ffi::Int> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Int>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>(ffi::_nativeIsolateLocalCallbackFunction<(ffi::Int32) → ffi::Int>(#C4), closure, true));
   core::print([@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.nativeFunction] [@vm.inferred-type.metadata=dart.ffi::Pointer] callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>});
   [@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.close] [@vm.inferred-type.metadata=? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
 }
@@ -116,4 +116,5 @@ constants  {
   #C1 = static-tearoff self::printInt
   #C2 = static-tearoff self::intToPointer
   #C3 = static-tearoff self::negateInt
+  #C4 = 123
 }

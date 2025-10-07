@@ -7,7 +7,7 @@ import 'builder.dart';
 import 'util.dart';
 
 class MemoriesBuilder with Builder<ir.Memories> {
-  final ModuleBuilder _module;
+  final ir.Module _module;
 
   MemoriesBuilder(this._module);
 

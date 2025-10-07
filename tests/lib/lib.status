@@ -6,11 +6,17 @@ html/cross_frame_test: Skip # Issue 32039, test reloads itself (not by design - 
 [ $arch == simarm ]
 convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
+[ $compiler == dart2bytecode ]
+isolate/illegal_msg_mirror_test: SkipByDesign # dart:mirrors is not supported.
+mirrors/*: SkipByDesign # dart:mirrors is not supported.
+
 [ $compiler == dart2wasm ]
 fix_data_tests/*: SkipByDesign
 html/*: SkipByDesign # dart:html not supported on dart2wasm
 isolate/*: SkipByDesign
 js/(?!export|static_interop_test)*: SkipByDesign
+js/export/create_dart_export_test: SkipByDesign # dart:js_util not supported on dart2wasm
+js/export/static_interop_mock/*: SkipByDesign # dart:js_util not supported on dart2wasm
 js/static_interop_test/allowed_external_member_native_type_test: SkipByDesign # dart:html and dart:svg not supported on dart2wasm.
 js/static_interop_test/extension_type/non_interop_extension_type_static_test: SkipByDesign # Some external checks are not run on dart2wasm.
 js/static_interop_test/external_static_member_lowerings_trusttypes_test: SkipByDesign # Tests @trustTypes, which is unsupported on dart2wasm.
@@ -191,7 +197,6 @@ isolate/deferred_in_isolate2_test: Crash # Requires deferred libraries
 isolate/deferred_in_isolate_test: Crash # Requires deferred libraries
 isolate/issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
-mirrors/deferred_constraints_constants_test: Crash # Requires deferred libraries
 mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
 mirrors/deferred_mirrors_update_test: Crash # Deferred loading

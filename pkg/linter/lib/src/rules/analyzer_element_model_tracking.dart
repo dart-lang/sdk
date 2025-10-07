@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../lint_codes.dart';
@@ -76,7 +75,9 @@ class _Visitor extends SimpleAstVisitor<void> {
               if (fieldElement.isPublic && fieldElement.isInstance) {
                 var hasRequired = false;
                 for (var annotation in trackingAnnotations) {
-                  if (annotation.element.isTrackedIncludedInId) {
+                  if (annotation.element.isTrackedIncludedInId ||
+                      annotation.element.isTrackedIndirectly ||
+                      annotation.element.isTrackedInternal) {
                     if (hasRequired) {
                       _reportMoreThanOne(annotation);
                     }
@@ -105,7 +106,8 @@ class _Visitor extends SimpleAstVisitor<void> {
                         annotation.element.isTrackedDirectlyExpensive ||
                         annotation.element.isTrackedDirectlyOpaque ||
                         annotation.element.isTrackedIncludedInId ||
-                        annotation.element.isTrackedIndirectly) {
+                        annotation.element.isTrackedIndirectly ||
+                        annotation.element.isTrackedInternal) {
                       if (hasRequired) {
                         _reportMoreThanOne(annotation);
                       }
@@ -125,15 +127,15 @@ class _Visitor extends SimpleAstVisitor<void> {
               case MethodElement methodElement:
                 if (methodElement.isPublic &&
                     methodElement.isInstance &&
-                    !methodElement.isAbstract &&
-                    methodElement.returnType is! VoidType) {
+                    !methodElement.isAbstract) {
                   var hasRequired = false;
                   for (var annotation in trackingAnnotations) {
                     if (annotation.element.isTrackedDirectly ||
                         annotation.element.isTrackedDirectlyExpensive ||
                         annotation.element.isTrackedDirectlyOpaque ||
                         annotation.element.isTrackedIncludedInId ||
-                        annotation.element.isTrackedIndirectly) {
+                        annotation.element.isTrackedIndirectly ||
+                        annotation.element.isTrackedInternal) {
                       if (hasRequired) {
                         _reportMoreThanOne(annotation);
                       }
@@ -193,7 +195,8 @@ extension on ElementAnnotation {
       isTrackedDirectlyExpensive ||
       isTrackedDirectlyOpaque ||
       isTrackedIncludedInId ||
-      isTrackedIndirectly;
+      isTrackedIndirectly ||
+      isTrackedInternal;
 
   bool get isElementClass => _isAnnotation('elementClass');
 
@@ -207,6 +210,8 @@ extension on ElementAnnotation {
   bool get isTrackedIncludedInId => _isAnnotation('trackedIncludedInId');
 
   bool get isTrackedIndirectly => _isAnnotation('trackedIndirectly');
+
+  bool get isTrackedInternal => _isAnnotation('trackedInternal');
 
   bool _isAnnotation(String name) {
     if (element case GetterElement element) {

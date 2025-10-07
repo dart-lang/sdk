@@ -7,6 +7,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/local_scope.dart';
+import '../../base/messages.dart';
 import '../../base/scope.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
@@ -16,6 +17,7 @@ import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/internal_ast.dart';
 import '../../kernel/type_algorithms.dart';
+import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_function_builder.dart';
@@ -157,6 +159,7 @@ sealed class SetterEncoding {
 
   void buildOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback f,
     required PropertyReferences? references,
@@ -165,7 +168,7 @@ sealed class SetterEncoding {
   });
 
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment, {
     required bool isAbstract,
     required bool isExternal,
@@ -238,11 +241,13 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
       bodyBuilderContext: bodyBuilderContext,
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
     );
 
     buildTypeParametersForOutlineExpressions(
@@ -258,6 +263,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       libraryBuilder,
       declarationBuilder,
       _fragment.declaredFormals,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );
@@ -266,6 +272,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
   @override
   void buildOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback f,
     required PropertyReferences? references,
@@ -291,10 +298,20 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       supportsTypeParameters: true,
     );
     if (_fragment.returnType is! InferableTypeBuilder) {
-      function.returnType = _fragment.returnType.build(
+      DartType returnType = _fragment.returnType.build(
         libraryBuilder,
         TypeUse.returnType,
       );
+      if (returnType is! VoidType) {
+        problemReporting.addProblem(
+          codeNonVoidReturnSetter,
+          _fragment.returnType.charOffset!,
+          noLength,
+          _fragment.fileUri,
+        );
+        returnType = const VoidType();
+      }
+      function.returnType = returnType;
     }
     if (_fragment.declaredFormals?.length != 1 ||
         _fragment.declaredFormals![0].isOptionalPositional) {
@@ -336,7 +353,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment, {
     required bool isAbstract,
     required bool isExternal,
@@ -347,11 +364,11 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
         ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(libraryBuilder, typeParameters);
+      checkTypeParameterDependencies(problemReporting, typeParameters);
     }
-    libraryBuilder.checkInitializersInFormals(
-      _fragment.declaredFormals,
-      typeEnvironment,
+    problemReporting.checkInitializersInFormals(
+      formals: _fragment.declaredFormals,
+      typeEnvironment: typeEnvironment,
       isAbstract: isAbstract,
       isExternal: isExternal,
     );
@@ -514,11 +531,13 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
       bodyBuilderContext: bodyBuilderContext,
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
     );
 
     buildTypeParametersForOutlineExpressions(
@@ -534,6 +553,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       libraryBuilder,
       declarationBuilder,
       _fragment.declaredFormals,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );
@@ -548,6 +568,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       libraryBuilder,
       declarationBuilder,
       _thisFormal,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );
@@ -556,6 +577,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
   @override
   void buildOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback f,
     required PropertyReferences? references,
@@ -610,10 +632,20 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       function.requiredParameterCount = 2;
     }
     if (_fragment.returnType is! InferableTypeBuilder) {
-      function.returnType = _fragment.returnType.build(
+      DartType returnType = _fragment.returnType.build(
         libraryBuilder,
         TypeUse.returnType,
       );
+      if (returnType is! VoidType) {
+        problemReporting.addProblem(
+          codeNonVoidReturnSetter,
+          _fragment.returnType.charOffset!,
+          noLength,
+          _fragment.fileUri,
+        );
+        returnType = const VoidType();
+      }
+      function.returnType = returnType;
     }
 
     MemberName memberName = nameScheme.getProcedureMemberName(
@@ -644,7 +676,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment, {
     required bool isAbstract,
     required bool isExternal,
@@ -655,11 +687,11 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
         ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(libraryBuilder, typeParameters);
+      checkTypeParameterDependencies(problemReporting, typeParameters);
     }
-    libraryBuilder.checkInitializersInFormals(
-      _fragment.declaredFormals,
-      typeEnvironment,
+    problemReporting.checkInitializersInFormals(
+      formals: _fragment.declaredFormals,
+      typeEnvironment: typeEnvironment,
       isAbstract: isAbstract,
       isExternal: isExternal,
     );

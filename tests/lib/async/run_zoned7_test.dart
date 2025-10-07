@@ -7,23 +7,21 @@ import 'dart:async';
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import 'catch_errors.dart';
-
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
-  // Test runZoned with periodic Timers.
+  // Test runZoned with periodic Timer. Still works inside a zone.
   runZoned(() {
     int counter = 0;
-    new Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (counter == 5) {
+    Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      counter++;
+      events.add(counter);
+      if (counter == 6) {
         timer.cancel();
         done.complete(true);
       }
-      counter++;
-      events.add(counter);
     });
   });
 

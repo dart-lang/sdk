@@ -26,12 +26,11 @@ class ElementLocation {
       [String library, String topName] => ElementLocation._(library, topName),
       [String library, String topName, String memberName] =>
         _MemberElementLocation._(library, topName, memberName),
-      _ =>
-        throw ArgumentError.value(
-          encoded,
-          'encoded',
-          "Encoded string should be in the format 'libraryUri;topLevelName[;memberName]'",
-        ),
+      _ => throw ArgumentError.value(
+        encoded,
+        'encoded',
+        "Encoded string should be in the format 'libraryUri;topLevelName[;memberName]'",
+      ),
     };
   }
 

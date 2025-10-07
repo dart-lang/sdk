@@ -4,6 +4,7 @@
 
 #include "platform/assert.h"
 
+#include "platform/thread_sanitizer.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
@@ -29,19 +30,27 @@ const int64_t kValidTimeStamp = 1;
 // SampleVisitor ignores samples with pc == 0.
 const uword kValidPc = 0xFF;
 
+NO_SANITIZE_THREAD
+static void SetIgnoreRace(bool* flag, bool value) {
+  *flag = value;
+}
+
 // Some tests are written assuming native stack trace profiling is disabled.
 class DisableNativeProfileScope : public ValueObject {
  public:
   DisableNativeProfileScope()
       : FLAG_profile_vm_(FLAG_profile_vm),
         FLAG_profile_vm_allocation_(FLAG_profile_vm_allocation) {
-    FLAG_profile_vm = false;
-    FLAG_profile_vm_allocation = false;
+    // Ignore race: we generally don't try to ensure the profiler is disabled
+    // when changing setting for unit tests. On Linux/Android, there is no way
+    // to wait for outstanding SIGPROFs.
+    SetIgnoreRace(&FLAG_profile_vm, false);
+    SetIgnoreRace(&FLAG_profile_vm_allocation, false);
   }
 
   ~DisableNativeProfileScope() {
-    FLAG_profile_vm = FLAG_profile_vm_;
-    FLAG_profile_vm_allocation = FLAG_profile_vm_allocation_;
+    SetIgnoreRace(&FLAG_profile_vm, FLAG_profile_vm_);
+    SetIgnoreRace(&FLAG_profile_vm_allocation, FLAG_profile_vm_allocation_);
   }
 
  private:

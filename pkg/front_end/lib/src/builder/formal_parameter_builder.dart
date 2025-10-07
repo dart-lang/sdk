@@ -15,13 +15,13 @@ import 'package:kernel/ast.dart'
         VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 
-import '../base/constant_context.dart' show ConstantContext;
+import '../base/extension_scope.dart';
 import '../base/lookup_result.dart';
 import '../base/modifiers.dart';
 import '../base/scope.dart' show LookupScope;
-import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
+import '../kernel/resolver.dart';
 import '../kernel/wildcard_lowering.dart';
 import '../source/fragment_factory.dart';
 import '../source/source_constructor_builder.dart';
@@ -286,6 +286,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
   void buildOutlineExpressions(
     SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder, {
+    required ExtensionScope extensionScope,
     required LookupScope scope,
     required bool buildDefaultValue,
   }) {
@@ -296,30 +297,23 @@ class FormalParameterBuilder extends NamedBuilderImpl
           declarationBuilder,
           this,
         );
-        BodyBuilder bodyBuilder = libraryBuilder.loader
-            .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              bodyBuilderContext,
-              scope,
-              fileUri,
-            );
-        bodyBuilder.constantContext = ConstantContext.required;
         assert(!initializerWasInferred);
-        Expression initializer = bodyBuilder.parseFieldInitializer(
-          initializerToken!,
-        );
-        initializer = bodyBuilder.typeInferrer.inferParameterInitializer(
-          bodyBuilder,
-          initializer,
-          variable!.type,
-          hasDeclaredInitializer,
+        Resolver resolver = libraryBuilder.loader.createResolver();
+        Expression initializer = resolver.buildParameterInitializer(
+          libraryBuilder: libraryBuilder,
+          bodyBuilderContext: bodyBuilderContext,
+          extensionScope: extensionScope,
+          scope: scope,
+          fileUri: fileUri,
+          initializerToken: initializerToken!,
+          declaredType: variable!.type,
+          hasDeclaredInitializer: hasDeclaredInitializer,
         );
         variable!.initializer = initializer..parent = variable;
         if (initializer is InvalidExpression) {
           variable!.isErroneouslyInitialized = true;
         }
         initializerWasInferred = true;
-        bodyBuilder.performBacklogComputations();
       } else if (kind.isOptional) {
         // As done by BodyBuilder.endFormalParameter.
         variable!.initializer = new NullLiteral()..parent = variable;

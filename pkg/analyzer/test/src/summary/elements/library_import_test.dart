@@ -395,7 +395,7 @@ library
     var library = await buildLibrary('''
 import "dart:math" hide e, pi;
 ''');
-    var import = library.definingCompilationUnit.libraryImports[0];
+    var import = library.firstFragment.libraryImports[0];
     var combinator = import.combinators[0] as HideElementCombinator;
     expect(combinator.offset, 19);
     expect(combinator.end, 29);
@@ -416,7 +416,7 @@ library
         token: foo @1
         element: <null>
         staticType: null
-      element2: <null>
+      element: <null>
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -429,7 +429,7 @@ library
                 token: foo @1
                 element: <null>
                 staticType: null
-              element2: <null>
+              element: <null>
 ''');
   }
 
@@ -491,8 +491,7 @@ library
     newFile('$testPackageLibPath/a.dart', 'library a; class C {}');
     var library = await buildLibrary('import "a.dart" as a; a.C c;');
 
-    var prefixElement =
-        library.definingCompilationUnit.libraryImports[0].prefix!;
+    var prefixElement = library.firstFragment.libraryImports[0].prefix!;
     expect(prefixElement.nameOffset, 19);
 
     checkElementText(library, r'''
@@ -569,7 +568,7 @@ import 'test.dart' as p;
 class C {}
 class D extends p.C {} // Prevent "unused import" warning
 ''');
-    var libraryImports = library.definingCompilationUnit.libraryImports;
+    var libraryImports = library.firstFragment.libraryImports;
     expect(libraryImports, hasLength(2));
     expect(libraryImports[1].importedLibrary!.isDartCore, true);
     checkElementText(library, r'''
@@ -703,7 +702,7 @@ library
     var library = await buildLibrary('''
 import "dart:math" show e, pi;
 ''');
-    var import = library.definingCompilationUnit.libraryImports[0];
+    var import = library.firstFragment.libraryImports[0];
     var combinator = import.combinators[0] as ShowElementCombinator;
     expect(combinator.offset, 19);
     expect(combinator.end, 29);
@@ -714,7 +713,7 @@ import "dart:math" show e, pi;
 import 'foo.dart';
 ''');
 
-    var libraryImports = library.definingCompilationUnit.libraryImports;
+    var libraryImports = library.firstFragment.libraryImports;
     var uri = libraryImports[0].uri as DirectiveUriWithLibrary;
     expect(uri.relativeUriString, 'foo.dart');
   }
@@ -822,10 +821,10 @@ import 'dart:async' as p1;
 import 'dart:collection' as p2;
 import 'dart:math' as p1;
 ''');
-    var p1 = library.definingCompilationUnit.prefixes.singleWhere(
+    var p1 = library.firstFragment.prefixes.singleWhere(
       (prefix) => prefix.name == 'p1',
     );
-    var libraryImports = library.definingCompilationUnit.libraryImports;
+    var libraryImports = library.firstFragment.libraryImports;
     var import_async = libraryImports[0];
     var import_math = libraryImports[2];
     expect(p1.imports, unorderedEquals([import_async, import_math]));
@@ -964,7 +963,7 @@ library
         token: a @1
         element: <testLibrary>::@getter::a
         staticType: null
-      element2: <testLibrary>::@getter::a
+      element: <testLibrary>::@getter::a
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -977,7 +976,7 @@ library
                 token: a @1
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       topLevelVariables
         #F1 hasInitializer a (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::a
@@ -1023,7 +1022,7 @@ library
         token: a @1
         element: <testLibrary>::@getter::a
         staticType: null
-      element2: <testLibrary>::@getter::a
+      element: <testLibrary>::@getter::a
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -1036,7 +1035,7 @@ library
                 token: a @1
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
           combinators
             show: Random
       topLevelVariables
@@ -1128,7 +1127,7 @@ library
 
   test_unresolved_import() async {
     var library = await buildLibrary("import 'foo.dart';");
-    var libraryImports = library.definingCompilationUnit.libraryImports;
+    var libraryImports = library.firstFragment.libraryImports;
     var importedLibrary = libraryImports[0].importedLibrary!;
     expect(importedLibrary.loadLibraryFunction, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);

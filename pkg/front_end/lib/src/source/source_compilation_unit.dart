@@ -10,7 +10,9 @@ import 'package:kernel/reference_from_index.dart' show IndexedLibrary;
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
+import '../base/directives.dart';
 import '../base/export.dart' show Export;
+import '../base/extension_scope.dart';
 import '../base/import.dart' show Import;
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
@@ -93,6 +95,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   final LookupScope? _parentScope;
 
+  final ExtensionScope? _parentExtensionScope;
+
   SourceCompilationUnit? _parentCompilationUnit;
 
   /// Map used to find objects created in the [OutlineBuilder] from within
@@ -141,11 +145,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   final ComputedMutableNameSpace _importNameSpace;
 
+  final ExtensionsBuilder _importedExtensions = new ExtensionsBuilder();
+
   late final LookupScope _importScope;
 
   final MutableNameSpace _prefixNameSpace;
 
   late final LookupScope _prefixScope;
+
+  late final ExtensionScope _prefixExtensionScope;
 
   LibraryFeatures? _libraryFeatures;
 
@@ -163,6 +171,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   late final LookupScope _compilationUnitScope;
 
+  late final ExtensionScope _compilationUnitExtensionScope;
+
   late final TypeScope _typeScope;
 
   @override
@@ -177,6 +187,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     required IndexedLibrary? indexedLibrary,
     Map<String, Builder>? omittedTypeDeclarationBuilders,
     LookupScope? parentScope,
+    ExtensionScope? parentExtensionScope,
     required bool forAugmentationLibrary,
     required SourceCompilationUnit? augmentationRoot,
     required LibraryBuilder? resolveInLibrary,
@@ -200,6 +211,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       originImportUri: originImportUri,
       indexedLibrary: indexedLibrary,
       parentScope: parentScope,
+      parentExtensionScope: parentExtensionScope,
       importNameSpace: importNameSpace,
       prefixNameSpace: prefixNameSpace,
       forAugmentationLibrary: forAugmentationLibrary,
@@ -223,6 +235,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     required this.originImportUri,
     required this.indexedLibrary,
     LookupScope? parentScope,
+    ExtensionScope? parentExtensionScope,
     required ComputedMutableNameSpace importNameSpace,
     required ComputedMutableNameSpace prefixNameSpace,
     required this.forAugmentationLibrary,
@@ -241,6 +254,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
        _prefixNameSpace = prefixNameSpace,
        _nameOrigin = resolveInLibrary,
        _parentScope = parentScope,
+       _parentExtensionScope = parentExtensionScope,
        _referenceIsPartOwner = referenceIsPartOwner,
        _problemReporting = new LibraryProblemReporting(loader, fileUri),
        _augmentationRoot = augmentationRoot {
@@ -248,24 +262,38 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       this,
       _importNameSpace,
     );
+    ExtensionScope extensionScope = new CompilationUnitImportExtensionScope(
+      this,
+      _importedExtensions,
+    );
     _prefixScope = new CompilationUnitPrefixScope(
       prefixNameSpace,
-      ScopeKind.prefix,
       parent: scope,
     );
+    _prefixExtensionScope = new CompilationUnitPrefixExtensionScope(
+      prefixNameSpace,
+      parent: extensionScope,
+    );
     LookupScope libraryScope = _prefixScope;
+    ExtensionScope libraryExtensionScope = _prefixExtensionScope;
     if (resolveInLibrary != null) {
       // Coverage-ignore-block(suite): Not run.
       libraryScope = new NameSpaceLookupScope(
         resolveInLibrary.libraryNameSpace,
-        ScopeKind.library,
         parent: libraryScope,
+      );
+      libraryExtensionScope = new ParentLibraryExtensionScope(
+        resolveInLibrary.libraryExtensions,
+        parent: libraryExtensionScope,
       );
     }
     _compilationUnitScope = new CompilationUnitScope(
       this,
-      ScopeKind.compilationUnit,
       parent: libraryScope,
+    );
+    _compilationUnitExtensionScope = new CompilationUnitExtensionScope(
+      this,
+      parent: libraryExtensionScope,
     );
     _typeScope = new TypeScope(TypeScopeKind.library, _compilationUnitScope);
   }
@@ -463,7 +491,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       // If trying to set a language version that is higher than the current sdk
       // version it's an error.
       addPostponedProblem(
-        codeLanguageVersionTooHighExplicit.withArguments(
+        codeLanguageVersionTooHighExplicit.withArgumentsOld(
           version.major,
           version.minor,
           loader.target.currentSdkVersion.major,
@@ -484,7 +512,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       );
     } else if (version < loader.target.leastSupportedVersion) {
       addPostponedProblem(
-        codeLanguageVersionTooLowExplicit.withArguments(
+        codeLanguageVersionTooLowExplicit.withArgumentsOld(
           version.major,
           version.minor,
           loader.target.leastSupportedVersion.major,
@@ -636,6 +664,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           isAugmentation: forAugmentationLibrary,
           isPatch: forPatchLibrary,
           parentScope: _parentScope,
+          parentExtensionScope: _parentExtensionScope,
           importNameSpace: _importNameSpace,
           libraryNameSpaceBuilder: _libraryNameSpaceBuilder,
         );
@@ -716,10 +745,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  String? get partOfName => _compilationUnitData.partOfName;
+  PartOf? get partOfDirective => _compilationUnitData.partOf;
 
   @override
-  Uri? get partOfUri => _compilationUnitData.partOfUri;
+  ExtensionScope get extensionScope => _compilationUnitExtensionScope;
 
   @override
   LookupScope get compilationUnitScope => _compilationUnitScope;
@@ -731,7 +760,18 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   LookupScope get prefixScope => _prefixScope;
 
   @override
+  ExtensionScope get prefixExtensionScope => _prefixExtensionScope;
+
+  @override
   NameSpace get prefixNameSpace => _prefixNameSpace;
+
+  @override
+  PrefixBuilder? lookupPrefixBuilder(String name) {
+    PrefixBuilder? declaredPrefixBuilder =
+        prefixNameSpace.lookup(name)?.getable as PrefixBuilder?;
+    return declaredPrefixBuilder ??
+        parentCompilationUnit?.lookupPrefixBuilder(name);
+  }
 
   @override
   void includeParts(
@@ -754,16 +794,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }) {
     Set<Uri> seenParts = new Set<Uri>();
     for (Part part in _compilationUnitData.parts) {
-      // TODO(johnniwinther): Use [part.offset] in messages.
       if (part.compilationUnit == this) {
-        addProblem(codePartOfSelf, -1, noLength, fileUri);
+        addProblem(codePartOfSelf, part.fileOffset, noLength, part.fileUri);
       } else if (seenParts.add(part.compilationUnit.fileUri)) {
         if (part.compilationUnit.partOfLibrary != null) {
           addProblem(
             codePartOfTwoLibraries,
-            -1,
+            part.fileOffset,
             noLength,
-            part.compilationUnit.fileUri,
+            part.fileUri,
             context: [
               codePartOfTwoLibrariesContext.withLocation(
                 part.compilationUnit.partOfLibrary!.fileUri,
@@ -788,10 +827,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         }
       } else {
         addProblem(
-          codePartTwice.withArguments(part.compilationUnit.fileUri),
-          -1,
+          codePartTwice.withArgumentsOld(part.compilationUnit.fileUri),
+          part.fileOffset,
           noLength,
-          fileUri,
+          part.fileUri,
         );
       }
     }
@@ -831,29 +870,17 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }) {
     switch (part) {
       case SourceCompilationUnit():
-        if (part.partOfUri != null) {
-          if (isNotMalformedUriScheme(part.partOfUri!) &&
-              part.partOfUri != parentCompilationUnit.importUri) {
-            parentCompilationUnit.addProblem(
-              codePartOfUriMismatch.withArguments(
-                part.fileUri,
-                parentCompilationUnit.importUri,
-                part.partOfUri!,
-              ),
-              partOffset,
-              noLength,
-              parentCompilationUnit.fileUri,
-            );
-            return;
-          }
-        } else if (part.partOfName != null) {
-          if (parentCompilationUnit.name != null) {
-            if (part.partOfName != parentCompilationUnit.name) {
+        PartOf? partOf = part.partOfDirective;
+        if (partOf != null) {
+          Uri? partOfUri = partOf.parentUri;
+          if (partOfUri != null) {
+            if (isNotMalformedUriScheme(partOfUri) &&
+                partOfUri != parentCompilationUnit.importUri) {
               parentCompilationUnit.addProblem(
-                codePartOfLibraryNameMismatch.withArguments(
+                codePartOfUriMismatch.withArgumentsOld(
                   part.fileUri,
-                  parentCompilationUnit.name!,
-                  part.partOfName!,
+                  parentCompilationUnit.importUri,
+                  partOfUri,
                 ),
                 partOffset,
                 noLength,
@@ -862,23 +889,50 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
               return;
             }
           } else {
-            parentCompilationUnit.addProblem(
-              codePartOfUseUri.withArguments(
-                part.fileUri,
+            String partOfName = partOf.name!;
+            String? libraryName = parentCompilationUnit.libraryDirective?.name;
+            if (libraryName != null) {
+              if (partOfName != libraryName) {
+                parentCompilationUnit.addProblem(
+                  codePartOfLibraryNameMismatch.withArgumentsOld(
+                    part.fileUri,
+                    libraryName,
+                    partOfName,
+                  ),
+                  partOffset,
+                  noLength,
+                  parentCompilationUnit.fileUri,
+                );
+                return;
+              }
+            } else {
+              parentCompilationUnit.addProblem(
+                codePartOfUseUri.withArgumentsOld(
+                  part.fileUri,
+                  parentCompilationUnit.fileUri,
+                  partOfName,
+                ),
+                partOffset,
+                noLength,
                 parentCompilationUnit.fileUri,
-                part.partOfName!,
-              ),
-              partOffset,
+              );
+              return;
+            }
+          }
+          LibraryDirective? libraryDirective = part.libraryDirective;
+          if (libraryDirective != null) {
+            part.addProblem(
+              codePartWithLibraryDirective,
+              libraryDirective.fileOffset,
               noLength,
-              parentCompilationUnit.fileUri,
+              libraryDirective.fileUri,
             );
-            return;
           }
         } else {
           assert(!part.isPart);
           if (isNotMalformedUriScheme(part.fileUri)) {
             parentCompilationUnit.addProblem(
-              codeMissingPartOf.withArguments(part.fileUri),
+              codeMissingPartOf.withArgumentsOld(part.fileUri),
               partOffset,
               noLength,
               parentCompilationUnit.fileUri,
@@ -908,7 +962,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         // "part of" declaration).
         if (isNotMalformedUriScheme(part.fileUri)) {
           parentCompilationUnit.addProblem(
-            codeMissingPartOf.withArguments(part.fileUri),
+            codeMissingPartOf.withArgumentsOld(part.fileUri),
             partOffset,
             noLength,
             parentCompilationUnit.fileUri,
@@ -1109,8 +1163,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: metadata,
+      annotationsFileUri: fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
+      extensionScope: extensionScope,
       scope: compilationUnitScope,
     );
   }
@@ -1166,7 +1222,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     for (Import import in _compilationUnitData.imports) {
       if (import.importedCompilationUnit?.isPart ?? false) {
         addProblem(
-          codePartOfInLibrary.withArguments(
+          codePartOfInLibrary.withArgumentsOld(
             import.importedCompilationUnit!.fileUri,
           ),
           import.importOffset,
@@ -1229,7 +1285,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       _importNameSpace.addLocalMember(name, builder, setter: isSetter);
     }
     if (builder is ExtensionBuilder) {
-      _importNameSpace.addExtension(builder);
+      _importedExtensions.addExtension(builder);
     }
   }
 
@@ -1267,7 +1323,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   List<MetadataBuilder>? get metadata => _compilationUnitData.metadata;
 
   @override
-  String? get name => _compilationUnitData.name;
+  LibraryDirective? get libraryDirective =>
+      _compilationUnitData.libraryDirective;
 
   @override
   int computeDefaultTypes(
@@ -1356,7 +1413,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           ? feature.enabledVersion.toText()
           : "the current release";
       if (_languageVersion.isExplicit) {
-        message = codeExperimentOptOutExplicit.withArguments(
+        message = codeExperimentOptOutExplicit.withArgumentsOld(
           feature.flag.name,
           enabledVersionText,
         );
@@ -1367,7 +1424,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           fileUri,
           context: <LocatedMessage>[
             codeExperimentOptOutComment
-                .withArguments(feature.flag.name)
+                .withArgumentsOld(feature.flag.name)
                 .withLocation(
                   _languageVersion.fileUri!,
                   _languageVersion.charOffset,
@@ -1376,7 +1433,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           ],
         );
       } else {
-        message = codeExperimentOptOutImplicit.withArguments(
+        message = codeExperimentOptOutImplicit.withArgumentsOld(
           feature.flag.name,
           enabledVersionText,
         );
@@ -1386,17 +1443,18 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       if (feature.flag.isEnabledByDefault) {
         // Coverage-ignore-block(suite): Not run.
         if (_languageVersion.version < feature.enabledVersion) {
-          message = codeExperimentDisabledInvalidLanguageVersion.withArguments(
-            feature.flag.name,
-            feature.enabledVersion.toText(),
-          );
+          message = codeExperimentDisabledInvalidLanguageVersion
+              .withArgumentsOld(
+                feature.flag.name,
+                feature.enabledVersion.toText(),
+              );
           addProblem(message, charOffset, length, fileUri);
         } else {
-          message = codeExperimentDisabled.withArguments(feature.flag.name);
+          message = codeExperimentDisabled.withArgumentsOld(feature.flag.name);
           addProblem(message, charOffset, length, fileUri);
         }
       } else {
-        message = codeExperimentNotEnabledOffByDefault.withArguments(
+        message = codeExperimentNotEnabledOffByDefault.withArgumentsOld(
           feature.flag.name,
         );
         addProblem(message, charOffset, length, fileUri);
@@ -1412,7 +1470,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     int charOffset,
   ) {
     Builder? existing = prefixNameSpace.lookup(name)?.getable;
-    existing ??= libraryBuilder.libraryNameSpace.lookup(name)?.getable;
     if (existing is PrefixBuilder) {
       assert(existing.next is! PrefixBuilder);
       int? deferredFileOffset;
@@ -1426,29 +1483,33 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       }
       if (deferredFileOffset != null) {
         _problemReporting.addProblem(
-          codeDeferredPrefixDuplicated.withArguments(name),
+          codeDeferredPrefixDuplicated.withArgumentsOld(name),
           deferredFileOffset,
           noLength,
           fileUri,
           context: [
             codeDeferredPrefixDuplicatedCause
-                .withArguments(name)
+                .withArgumentsOld(name)
                 .withLocation(fileUri, otherFileOffset!, noLength),
           ],
         );
       }
       prefixFragment.builder = existing;
       return false;
-    } else if (existing != null) {
+    }
+
+    LookupResult? result = libraryBuilder.libraryNameSpace.lookup(name);
+    if (result != null) {
+      NamedBuilder existing = result.getable ?? result.setable!;
       String fullName = name;
       _problemReporting.addProblem(
-        codeDuplicatedDeclaration.withArguments(fullName),
+        codeDuplicatedDeclaration.withArgumentsOld(fullName),
         charOffset,
         fullName.length,
         prefixFragment.fileUri,
         context: <LocatedMessage>[
           codeDuplicatedDeclarationCause
-              .withArguments(fullName)
+              .withArgumentsOld(fullName)
               .withLocation(
                 existing.fileUri!,
                 existing.fileOffset,
@@ -1457,9 +1518,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         ],
       );
     }
+
     _prefixNameSpace.addLocalMember(
       name,
-      prefixFragment.createPrefixBuilder(),
+      prefixFragment.createPrefixBuilder(
+        parentCompilationUnit?.lookupPrefixBuilder(name),
+      ),
       setter: false,
     );
     return true;
@@ -1467,11 +1531,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 }
 
 class _CompilationUnitData implements CompilationUnitRegistry {
-  String? _name;
+  LibraryDirective? _libraryDirective;
 
-  Uri? _partOfUri;
-
-  String? _partOfName;
+  PartOf? _partOf;
 
   List<MetadataBuilder>? _metadata;
 
@@ -1486,17 +1548,16 @@ class _CompilationUnitData implements CompilationUnitRegistry {
 
   @override
   void registerLibraryDirective({
-    required String? libraryName,
+    required LibraryDirective libraryDirective,
     required List<MetadataBuilder>? metadata,
   }) {
-    _name = libraryName;
+    _libraryDirective = libraryDirective;
     _metadata = metadata;
   }
 
   @override
-  void registerPartOf({required String? name, required Uri? resolvedUri}) {
-    _partOfName = name;
-    _partOfUri = resolvedUri;
+  void registerPartOf(PartOf partOf) {
+    _partOf = partOf;
   }
 
   @override
@@ -1519,15 +1580,13 @@ class _CompilationUnitData implements CompilationUnitRegistry {
     _exports.add(export);
   }
 
-  String? get name => _name;
+  LibraryDirective? get libraryDirective => _libraryDirective;
 
   List<MetadataBuilder>? get metadata => _metadata;
 
-  bool get isPart => _partOfName != null || _partOfUri != null;
+  bool get isPart => _partOf != null;
 
-  String? get partOfName => _partOfName;
-
-  Uri? get partOfUri => _partOfUri;
+  PartOf? get partOf => _partOf;
 
   List<Part> get parts => _parts;
 

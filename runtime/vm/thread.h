@@ -16,6 +16,7 @@
 #include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/safe_stack.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/bitfield.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
@@ -23,6 +24,7 @@
 #include "vm/handles.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/heap/sampler.h"
+#include "vm/intrusive_dlist.h"
 #include "vm/os_thread.h"
 #include "vm/pending_deopts.h"
 #include "vm/random.h"
@@ -364,7 +366,7 @@ class MutatorThreadVisitor {
 // a thread is allocated by ThreadRegistry::GetFromFreelistLocked either
 // before entering an isolate or entering an isolate group, and destroyed
 // automatically when the underlying OS thread exits.
-class Thread : public ThreadState {
+class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
  public:
   // The kind of task this thread is performing. Sampled by the profiler.
   enum TaskKind {
@@ -569,6 +571,8 @@ class Thread : public ThreadState {
 
   // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
+  NO_SANITIZE_THREAD
+  Isolate* isolate_ignore_race() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
   static intptr_t isolate_group_offset() {
     return OFFSET_OF(Thread, isolate_group_);
@@ -624,9 +628,11 @@ class Thread : public ThreadState {
 
   // Is |this| executing Dart code?
   bool IsExecutingDartCode() const;
+  bool IsExecutingDartCodeIgnoreRace() const;
 
   // Has |this| exited Dart code?
   bool HasExitedDartCode() const;
+  bool HasExitedDartCodeIgnoreRace() const;
 
   bool HasCompilerState() const { return compiler_state_ != nullptr; }
 
@@ -734,6 +740,8 @@ class Thread : public ThreadState {
   }
 
   uword top_exit_frame_info() const { return top_exit_frame_info_; }
+  NO_SANITIZE_THREAD
+  uword top_exit_frame_info_ignore_race() const { return top_exit_frame_info_; }
   void set_top_exit_frame_info(uword top_exit_frame_info) {
     top_exit_frame_info_ = top_exit_frame_info;
   }
@@ -864,6 +872,8 @@ class Thread : public ThreadState {
 #endif
 
   uword vm_tag() const { return vm_tag_; }
+  NO_SANITIZE_THREAD
+  uword vm_tag_ignore_race() const { return vm_tag_; }
   void set_vm_tag(uword tag) { vm_tag_ = tag; }
   static intptr_t vm_tag_offset() { return OFFSET_OF(Thread, vm_tag_); }
 
@@ -1333,6 +1343,8 @@ class Thread : public ThreadState {
   }
 
   bool IsDeoptimizing() const { return deopt_context_ != nullptr; }
+  NO_SANITIZE_THREAD
+  bool IsDeoptimizingIgnoreRace() const { return deopt_context_ != nullptr; }
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
     ASSERT(value == nullptr || deopt_context_ == nullptr);
@@ -1351,6 +1363,8 @@ class Thread : public ThreadState {
   }
 
   uword user_tag() const { return user_tag_; }
+  NO_SANITIZE_THREAD
+  uword user_tag_ignore_race() const { return user_tag_; }
   static intptr_t user_tag_offset() { return OFFSET_OF(Thread, user_tag_); }
   static intptr_t current_tag_offset() {
     return OFFSET_OF(Thread, current_tag_);

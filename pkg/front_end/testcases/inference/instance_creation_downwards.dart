@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A<T> {
@@ -12,6 +11,5 @@ class A<T> {
 class B<T> {}
 
 main() {
-  var /*@type=A<Object?>*/ x =
-      new /*@typeArgs=Object?*/ A(new /*@typeArgs=List<Object?>*/ B());
+  var x = new A(new B());
 }

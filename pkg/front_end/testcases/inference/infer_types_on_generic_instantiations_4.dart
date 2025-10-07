@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A<T> {
@@ -11,12 +10,12 @@ class A<T> {
 
 class B<E> extends A<E> {
   E y = throw '';
-  get x => /*@target=B.y*/ y;
+  get x => y;
 }
 
 foo() {
-  int y = /*error:INVALID_ASSIGNMENT*/ new B<String>(). /*@target=B.x*/ x;
-  String z = new B<String>(). /*@target=B.x*/ x;
+  int y = /*error:INVALID_ASSIGNMENT*/ new B<String>().x;
+  String z = new B<String>().x;
 }
 
 main() {

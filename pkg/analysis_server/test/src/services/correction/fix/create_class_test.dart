@@ -23,7 +23,7 @@ void main() {
 @reflectiveTest
 class CreateClassLowercaseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_CLASS_LOWERCASE;
+  FixKind get kind => DartFixKind.createClassLowercase;
 
   Future<void> test_instanceMethod_noFix() async {
     await resolveTestCode('''
@@ -132,7 +132,7 @@ class _newName {
 @reflectiveTest
 class CreateClassLowercaseWithTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_CLASS_LOWERCASE_WITH;
+  FixKind get kind => DartFixKind.createClassLowercaseWith;
 
   Future<void> test_with() async {
     await resolveTestCode('''
@@ -156,8 +156,8 @@ void f() {
 }
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.CREATE_CLASS_UPPERCASE,
-      DartFixKind.CREATE_FUNCTION,
+      DartFixKind.createClassUppercase,
+      DartFixKind.createFunction,
     ]);
   }
 
@@ -170,8 +170,8 @@ class A {
 }
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.CREATE_CLASS_UPPERCASE,
-      DartFixKind.CREATE_METHOD,
+      DartFixKind.createClassUppercase,
+      DartFixKind.createMethod,
     ]);
   }
 
@@ -180,8 +180,8 @@ class A {
 void f(M m) {}
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.CREATE_CLASS_UPPERCASE,
-      DartFixKind.CREATE_MIXIN_UPPERCASE,
+      DartFixKind.createClassUppercase,
+      DartFixKind.createMixinUppercase,
     ]);
   }
 
@@ -190,8 +190,8 @@ void f(M m) {}
 void f(newName m) {}
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.CREATE_CLASS_LOWERCASE,
-      DartFixKind.CREATE_MIXIN_LOWERCASE,
+      DartFixKind.createClassLowercase,
+      DartFixKind.createMixinLowercase,
     ]);
   }
 
@@ -202,8 +202,8 @@ void f() {
 }
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.CREATE_FUNCTION,
-      DartFixKind.CREATE_CLASS_LOWERCASE,
+      DartFixKind.createFunction,
+      DartFixKind.createClassLowercase,
     ]);
   }
 
@@ -226,7 +226,7 @@ A? a;
       DartFixKind.IMPORT_LIBRARY_PROJECT1,
       DartFixKind.IMPORT_LIBRARY_PROJECT2,
       DartFixKind.IMPORT_LIBRARY_PROJECT3,
-      DartFixKind.CREATE_CLASS_UPPERCASE,
+      DartFixKind.createClassUppercase,
     ]);
   }
 
@@ -239,8 +239,8 @@ class A {
 }
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.CREATE_METHOD,
-      DartFixKind.CREATE_CLASS_LOWERCASE,
+      DartFixKind.createMethod,
+      DartFixKind.createClassLowercase,
     ]);
   }
 
@@ -249,8 +249,8 @@ class A {
 class Class with myMixin {}
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.CREATE_MIXIN_LOWERCASE_WITH,
-      DartFixKind.CREATE_CLASS_LOWERCASE_WITH,
+      DartFixKind.createMixinLowercaseWith,
+      DartFixKind.createClassLowercaseWith,
     ]);
   }
 
@@ -259,8 +259,8 @@ class Class with myMixin {}
 class Class with MyMixin {}
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.CREATE_MIXIN_UPPERCASE_WITH,
-      DartFixKind.CREATE_CLASS_UPPERCASE_WITH,
+      DartFixKind.createMixinUppercaseWith,
+      DartFixKind.createClassUppercaseWith,
     ]);
   }
 }
@@ -268,7 +268,7 @@ class Class with MyMixin {}
 @reflectiveTest
 class CreateClassUppercaseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_CLASS_UPPERCASE;
+  FixKind get kind => DartFixKind.createClassUppercase;
 
   Future<void> test_annotation() async {
     await resolveTestCode('''
@@ -629,7 +629,7 @@ class Foo {
 @reflectiveTest
 class CreateClassUppercaseWithTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_CLASS_UPPERCASE_WITH;
+  FixKind get kind => DartFixKind.createClassUppercaseWith;
 
   Future<void> test_with() async {
     await resolveTestCode('''

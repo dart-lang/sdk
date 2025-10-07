@@ -538,14 +538,32 @@ class _ErrorHelper {
       var instanceCreation = constructorName.parent;
       if (instanceCreation is InstanceCreationExpression) {
         var errorRange = _getErrorRange(node, skipImportPrefix: true);
-        diagnosticReporter.atOffset(
-          offset: errorRange.offset,
-          length: errorRange.length,
-          diagnosticCode: instanceCreation.isConst
-              ? CompileTimeErrorCode.constWithNonType
-              : CompileTimeErrorCode.newWithNonType,
-          arguments: [node.name.lexeme],
-        );
+        var importPrefix = node.importPrefix;
+        if (importPrefix != null && importPrefix.element == null) {
+          // The constructor name is in two or three parts and the first part,
+          // which is either a prefix or a class name, is unresolved. In this
+          // case, report that the first name is undefined, instead of reporting
+          // that the last name is not a class.
+          // TODO(johnniwinther): We could report "Undefined prefix 'x'." when
+          // we know it can only be a prefix, for instance in `x.y.z()`.
+          String prefixOrClassName = importPrefix.name.lexeme;
+          diagnosticReporter.atOffset(
+            offset: errorRange.offset,
+            length: errorRange.length,
+            diagnosticCode: CompileTimeErrorCode.undefinedIdentifier,
+            arguments: [prefixOrClassName],
+          );
+        } else {
+          String className = node.name.lexeme;
+          diagnosticReporter.atOffset(
+            offset: errorRange.offset,
+            length: errorRange.length,
+            diagnosticCode: instanceCreation.isConst
+                ? CompileTimeErrorCode.constWithNonType
+                : CompileTimeErrorCode.newWithNonType,
+            arguments: [className],
+          );
+        }
         return true;
       }
     }

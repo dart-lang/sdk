@@ -59,7 +59,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
@@ -552,7 +551,6 @@ abstract class DirectiveUriWithSource extends DirectiveUriWithRelativeUri {
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
   /// The library fragment referenced by the [source].
-  @experimental
   LibraryFragment get libraryFragment;
 }
 
@@ -838,6 +836,10 @@ abstract class Element {
   @Deprecated('Use isAccessibleIn instead')
   bool isAccessibleIn2(LibraryElement library);
 
+  /// Whether this Element is annotated with a `Deprecated` annotation with a
+  /// `_DeprecationKind` of [kind].
+  bool isDeprecatedWithKind(String kind);
+
   /// Returns either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`.
   ///
@@ -884,6 +886,11 @@ abstract class ElementAnnotation {
   /// If a value has been produced but no errors were generated, then the
   /// list will be empty.
   List<Diagnostic>? get constantEvaluationErrors;
+
+  /// The kind of deprecation, if this annotation is a `Deprecated` annotation.
+  ///
+  /// `null` is returned if this is not a `Deprecated` annotation.
+  String? get deprecationKind;
 
   /// Returns the element referenced by this annotation.
   ///
@@ -2048,7 +2055,9 @@ abstract class HideElementCombinator implements NamespaceCombinator {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InstanceElement
-    implements TypeDefiningElement, TypeParameterizedElement {
+    implements
+        TypeDefiningElement, // ignore:deprecated_member_use_from_same_package
+        TypeParameterizedElement {
   @override
   InstanceElement get baseElement;
 
@@ -2198,7 +2207,9 @@ abstract class InstanceElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InstanceFragment
-    implements TypeDefiningFragment, TypeParameterizedFragment {
+    implements
+        TypeDefiningFragment, // ignore:deprecated_member_use_from_same_package
+        TypeParameterizedFragment {
   @override
   InstanceElement get element;
 
@@ -3161,8 +3172,8 @@ abstract class Metadata {
   /// Whether the receiver has an annotation of the form `@awaitNotRequired`.
   bool get hasAwaitNotRequired;
 
-  /// Whether the receiver has an annotation of the form `@deprecated`
-  /// or `@Deprecated('..')`.
+  /// Whether the receiver has an annotation of the form `@deprecated`,
+  /// `@Deprecated('..')`, or any other `Deprecated` constructor.
   bool get hasDeprecated;
 
   /// Whether the receiver has an annotation of the form `@doNotStore`.
@@ -3883,7 +3894,10 @@ abstract class TopLevelVariableFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeAliasElement
-    implements TypeParameterizedElement, TypeDefiningElement {
+    implements
+        TypeParameterizedElement,
+        TypeDefiningElement // ignore:deprecated_member_use_from_same_package
+        {
   /// If the aliased type has structure, return the corresponding element.
   /// For example, it could be [GenericFunctionTypeElement].
   ///
@@ -3937,7 +3951,10 @@ abstract class TypeAliasElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeAliasFragment
-    implements TypeParameterizedFragment, TypeDefiningFragment {
+    implements
+        TypeParameterizedFragment,
+        TypeDefiningFragment // ignore:deprecated_member_use_from_same_package
+        {
   @override
   TypeAliasElement get element;
 
@@ -3945,20 +3962,17 @@ abstract class TypeAliasFragment
   LibraryFragment? get enclosingFragment;
 
   @override
-  TypeAliasFragment? get nextFragment;
+  Null get nextFragment;
 
   @override
-  TypeAliasFragment? get previousFragment;
+  Null get previousFragment;
 }
 
 /// An element that defines a type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeDefiningElement
-    implements
-        Element,
-        Annotatable // ignore:deprecated_member_use_from_same_package
-        {
+@Deprecated('Check for specific elements instead')
+abstract class TypeDefiningElement implements Element, Annotatable {
   // TODO(brianwilkerson): Evaluate to see whether this type is actually needed
   //  after converting clients to the new API.
 
@@ -3972,11 +3986,8 @@ abstract class TypeDefiningElement
 /// The portion of a [TypeDefiningElement] contributed by a single declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeDefiningFragment
-    implements
-        Fragment,
-        Annotatable // ignore:deprecated_member_use_from_same_package
-        {
+@Deprecated('Check for specific fragments instead')
+abstract class TypeDefiningFragment implements Fragment, Annotatable {
   @override
   TypeDefiningElement get element;
 
@@ -3997,7 +4008,10 @@ abstract class TypeDefiningFragment
 /// A type parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterElement implements TypeDefiningElement {
+abstract class TypeParameterElement
+    implements
+        TypeDefiningElement // ignore:deprecated_member_use_from_same_package
+        {
   @override
   TypeParameterElement get baseElement;
 
@@ -4023,7 +4037,10 @@ abstract class TypeParameterElement implements TypeDefiningElement {
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterFragment implements TypeDefiningFragment {
+abstract class TypeParameterFragment
+    implements
+        TypeDefiningFragment // ignore:deprecated_member_use_from_same_package
+        {
   @override
   TypeParameterElement get element;
 

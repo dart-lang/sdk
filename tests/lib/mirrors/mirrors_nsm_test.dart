@@ -2,68 +2,85 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
+// Library name is used in test.
 library MirrorsTest;
 
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
-bool isNSMContainingFieldName(e, String fieldName, bool isSetter) {
+bool isNSMContainingFieldName(Object? e, String fieldName, bool isSetter) {
   if (e is! NoSuchMethodError) return false;
   String needle = fieldName;
   if (isSetter) needle += "=";
   return "$e".contains(needle) && !"$e".contains(needle + "=");
 }
 
-final finalTopLevel = 0;
-
 class A {
   final finalInstance = 0;
-  static final finalStatic = 0;
 }
 
-class B {
-  B(a, b);
-  factory B.fac(a, b) => new B(a, b);
-}
-
-testMessageContents() {
+void testMessageContents() {
   var mirrors = currentMirrorSystem();
   var libMirror = mirrors.findLibrary(#MirrorsTest);
-  Expect.throws(() => libMirror.invoke(#foo, []),
-      (e) => isNSMContainingFieldName(e, "foo", false));
-  Expect.throws(() => libMirror.getField(#foo),
-      (e) => isNSMContainingFieldName(e, "foo", false));
-  Expect.throws(() => libMirror.setField(#foo, null),
-      (e) => isNSMContainingFieldName(e, "foo", true));
-  Expect.throws(() => libMirror.setField(#finalTopLevel, null),
-      (e) => isNSMContainingFieldName(e, "finalTopLevel", true));
+  Expect.throws(
+    () => libMirror.invoke(#foo, []),
+    (e) => isNSMContainingFieldName(e, "foo", false),
+  );
+  Expect.throws(
+    () => libMirror.getField(#foo),
+    (e) => isNSMContainingFieldName(e, "foo", false),
+  );
+  Expect.throws(
+    () => libMirror.setField(#foo, null),
+    (e) => isNSMContainingFieldName(e, "foo", true),
+  );
+  Expect.throws(
+    () => libMirror.setField(#finalTopLevel, null),
+    (e) => isNSMContainingFieldName(e, "finalTopLevel", true),
+  );
 
   var classMirror = reflectClass(A);
-  Expect.throws(() => classMirror.invoke(#foo, []),
-      (e) => isNSMContainingFieldName(e, "foo", false));
-  Expect.throws(() => classMirror.getField(#foo),
-      (e) => isNSMContainingFieldName(e, "foo", false));
-  Expect.throws(() => classMirror.setField(#foo, null),
-      (e) => isNSMContainingFieldName(e, "foo", true));
-  Expect.throws(() => classMirror.setField(#finalStatic, null),
-      (e) => isNSMContainingFieldName(e, "finalStatic", true));
+  Expect.throws(
+    () => classMirror.invoke(#foo, []),
+    (e) => isNSMContainingFieldName(e, "foo", false),
+  );
+  Expect.throws(
+    () => classMirror.getField(#foo),
+    (e) => isNSMContainingFieldName(e, "foo", false),
+  );
+  Expect.throws(
+    () => classMirror.setField(#foo, null),
+    (e) => isNSMContainingFieldName(e, "foo", true),
+  );
+  Expect.throws(
+    () => classMirror.setField(#finalStatic, null),
+    (e) => isNSMContainingFieldName(e, "finalStatic", true),
+  );
 
-  var instanceMirror = reflect(new A());
-  Expect.throws(() => instanceMirror.invoke(#foo, []),
-      (e) => isNSMContainingFieldName(e, "foo", false));
-  Expect.throws(() => instanceMirror.getField(#foo),
-      (e) => isNSMContainingFieldName(e, "foo", false));
-  Expect.throws(() => instanceMirror.setField(#foo, null),
-      (e) => isNSMContainingFieldName(e, "foo", true));
-  Expect.throws(() => instanceMirror.setField(#finalInstance, null),
-      (e) => isNSMContainingFieldName(e, "finalInstance", true));
+  var instanceMirror = reflect(A());
+  Expect.throws(
+    () => instanceMirror.invoke(#foo, []),
+    (e) => isNSMContainingFieldName(e, "foo", false),
+  );
+  Expect.throws(
+    () => instanceMirror.getField(#foo),
+    (e) => isNSMContainingFieldName(e, "foo", false),
+  );
+  Expect.throws(
+    () => instanceMirror.setField(#foo, null),
+    (e) => isNSMContainingFieldName(e, "foo", true),
+  );
+  Expect.throws(
+    () => instanceMirror.setField(#finalInstance, null),
+    (e) => isNSMContainingFieldName(e, "finalInstance", true),
+  );
 }
 
-expectMatchingErrors(reflectiveAction, baseAction) {
-  var reflectiveError, baseError;
+void expectMatchingErrors(
+  void Function() reflectiveAction,
+  void Function() baseAction,
+) {
+  Object? reflectiveError, baseError;
   try {
     reflectiveAction();
   } catch (e) {
@@ -76,43 +93,30 @@ expectMatchingErrors(reflectiveAction, baseAction) {
     baseError = e;
   }
 
-  if (baseError.toString() != reflectiveError.toString()) {
-    print("\n==Base==\n $baseError");
-    print("\n==Reflective==\n $reflectiveError");
-    throw "Expected matching errors";
-  }
+  Expect.equals(baseError.toString(), reflectiveError.toString());
 }
 
-testMatchingMessages() {
+void testMatchingMessages() {
   var mirrors = currentMirrorSystem();
-  var libMirror = mirrors.findLibrary(#MirrorsTest);
-  expectMatchingErrors(() => libMirror.invoke(#foo, []), () => foo());
-  expectMatchingErrors(() => libMirror.getField(#foo), () => foo);
-  expectMatchingErrors(() => libMirror.setField(#foo, null), () => foo = null);
-  expectMatchingErrors(() => libMirror.setField(#finalTopLevel, null),
-      () => finalTopLevel = null);
 
-  var classMirror = reflectClass(A);
-  expectMatchingErrors(() => classMirror.invoke(#foo, []), () => A.foo());
-  expectMatchingErrors(() => classMirror.getField(#foo), () => A.foo);
+  var instanceMirror = reflect(A());
+  var instance = A() as dynamic;
   expectMatchingErrors(
-      () => classMirror.setField(#foo, null), () => A.foo = null);
-  expectMatchingErrors(() => classMirror.setField(#finalStatic, null),
-      () => A.finalStatic = null);
-  expectMatchingErrors(() => classMirror.newInstance(#constructor, [1, 2, 3]),
-      () => new A.constructor(1, 2, 3));
-
-  var instanceMirror = reflect(new A());
+    () => instanceMirror.invoke(#foo, []),
+    () => instance.foo(),
+  );
+  expectMatchingErrors(() => instanceMirror.getField(#foo), () => instance.foo);
   expectMatchingErrors(
-      () => instanceMirror.invoke(#foo, []), () => new A().foo());
-  expectMatchingErrors(() => instanceMirror.getField(#foo), () => new A().foo);
+    () => instanceMirror.setField(#foo, null),
+    () => instance.foo = null,
+  );
   expectMatchingErrors(
-      () => instanceMirror.setField(#foo, null), () => new A().foo = null);
-  expectMatchingErrors(() => instanceMirror.setField(#finalInstance, null),
-      () => new A().finalInstance = null);
+    () => instanceMirror.setField(#finalInstance, null),
+    () => instance.finalInstance = null,
+  );
 }
 
-main() {
+void main() {
   testMessageContents();
-  testMatchingMessages(); //# dart2js: ok
+  testMatchingMessages();
 }

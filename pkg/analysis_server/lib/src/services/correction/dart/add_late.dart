@@ -30,7 +30,7 @@ class AddLate extends ResolvedCorrectionProducer {
   AssistKind? get assistKind => DartAssistKind.addLate;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_LATE;
+  FixKind get fixKind => DartFixKind.addLate;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

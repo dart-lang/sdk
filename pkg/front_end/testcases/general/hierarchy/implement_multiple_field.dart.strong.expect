@@ -12,7 +12,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class ConcreteClass implements Interface1, Interface2 {
 //       ^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/implement_multiple_field.dart:24:16: Context: 'ConcreteClass.declareAbstractImplementMultipleField' is defined here.
@@ -40,7 +39,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class ConcreteSub extends AbstractClass {}
 //       ^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/implement_multiple_field.dart:30:16: Context: 'AbstractClass.declareAbstractImplementMultipleField' is defined here.

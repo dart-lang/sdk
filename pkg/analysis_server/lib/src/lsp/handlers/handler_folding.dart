@@ -73,16 +73,12 @@ class FoldingHandler
       // line mode below.
       regions.sort((r1, r2) => r1.offset.compareTo(r2.offset));
 
-      var foldingRanges =
-          regions
-              .map(
-                (region) => _toFoldingRange(
-                  lineInfo!,
-                  region,
-                  lineOnly: lineFoldingOnly,
-                ),
-              )
-              .toList();
+      var foldingRanges = regions
+          .map(
+            (region) =>
+                _toFoldingRange(lineInfo!, region, lineOnly: lineFoldingOnly),
+          )
+          .toList();
 
       // When in line-only mode, ranges that end on the same line that another
       // ranges starts should be truncated to be on the line before (and if this

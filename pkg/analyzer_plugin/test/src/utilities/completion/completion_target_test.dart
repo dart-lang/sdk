@@ -66,7 +66,7 @@ main() {
   }
 
   Future<void>
-      test_InstanceCreationExpression_generic_explicitTypeArgument() async {
+  test_InstanceCreationExpression_generic_explicitTypeArgument() async {
     await createTarget('''
 class Foo<T> {
   Foo(T a, T b);
@@ -86,7 +86,7 @@ main() {
   }
 
   Future<void>
-      test_InstanceCreationExpression_generic_inferredTypeArgument() async {
+  test_InstanceCreationExpression_generic_inferredTypeArgument() async {
     await createTarget('''
 class Foo<T> {
   Foo(T a, T b);
@@ -416,35 +416,40 @@ class CompletionTargetTest extends _Base {
   Future<void> test_AsExpression_identifier() async {
     // SimpleIdentifier  TypeName  AsExpression
     await createTarget(
-        'class A {var b; X _c; foo() {var a; (a^ as String).foo();}');
+      'class A {var b; X _c; foo() {var a; (a^ as String).foo();}',
+    );
     assertTarget('a as String', '(a as String)');
   }
 
   Future<void> test_AsExpression_keyword() async {
     // SimpleIdentifier  TypeName  AsExpression
     await createTarget(
-        'class A {var b; X _c; foo() {var a; (a ^as String).foo();}');
+      'class A {var b; X _c; foo() {var a; (a ^as String).foo();}',
+    );
     assertTarget('as', 'a as String');
   }
 
   Future<void> test_AsExpression_keyword2() async {
     // SimpleIdentifier  TypeName  AsExpression
     await createTarget(
-        'class A {var b; X _c; foo() {var a; (a a^s String).foo();}');
+      'class A {var b; X _c; foo() {var a; (a a^s String).foo();}',
+    );
     assertTarget('as', 'a as String');
   }
 
   Future<void> test_AsExpression_keyword3() async {
     // SimpleIdentifier  TypeName  AsExpression
     await createTarget(
-        'class A {var b; X _c; foo() {var a; (a as^ String).foo();}');
+      'class A {var b; X _c; foo() {var a; (a as^ String).foo();}',
+    );
     assertTarget('as', 'a as String');
   }
 
   Future<void> test_AsExpression_type() async {
     // SimpleIdentifier  TypeName  AsExpression
     await createTarget(
-        'class A {var b; X _c; foo() {var a; (a as ^String).foo();}');
+      'class A {var b; X _c; foo() {var a; (a as ^String).foo();}',
+    );
     assertTarget('String', 'a as String');
   }
 
@@ -456,13 +461,15 @@ class CompletionTargetTest extends _Base {
 
   Future<void> test_Block_keyword() async {
     await createTarget(
-        'class C { static C get instance => null; } main() {C.in^}');
+      'class C { static C get instance => null; } main() {C.in^}',
+    );
     assertTarget('in', 'C.in');
   }
 
   Future<void> test_Block_keyword2() async {
     await createTarget(
-        'class C { static C get instance => null; } main() {C.i^n}');
+      'class C { static C get instance => null; } main() {C.i^n}',
+    );
     assertTarget('in', 'C.in');
   }
 
@@ -604,7 +611,7 @@ class CompletionTargetTest extends _Base {
   }
 
   Future<void>
-      test_FunctionDeclaration_returnType_afterLineDocComment2() async {
+  test_FunctionDeclaration_returnType_afterLineDocComment2() async {
     // SimpleIdentifier  FunctionDeclaration  CompilationUnit
     await createTarget('''
 /// some dartdoc
@@ -631,7 +638,7 @@ class CompletionTargetTest extends _Base {
   }
 
   Future<void>
-      test_FunctionDeclaration_returnType_afterStarDocComment2() async {
+  test_FunctionDeclaration_returnType_afterStarDocComment2() async {
     // FunctionDeclaration  CompilationUnit
     await createTarget('/** */^ zoo(z) { } String name;');
     assertTarget('zoo', 'zoo(z) {}');
@@ -898,11 +905,7 @@ class _Base extends AbstractContextTest {
     String? expectedExecutable,
     String? expectedParameter,
   }) {
-    expect(
-      target.entity.toString(),
-      entityText,
-      reason: 'entity',
-    );
+    expect(target.entity.toString(), entityText, reason: 'entity');
 
     expect(
       target.containingNode.toString(),
@@ -910,11 +913,7 @@ class _Base extends AbstractContextTest {
       reason: 'containingNode',
     );
 
-    expect(
-      target.argIndex,
-      argIndex,
-      reason: 'argIndex',
-    );
+    expect(target.argIndex, argIndex, reason: 'argIndex');
 
     expect(
       target.droppedToken?.toString(),

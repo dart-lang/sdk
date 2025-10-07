@@ -8,6 +8,7 @@ import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
@@ -18,6 +19,7 @@ import '../../../generated/test_support.dart';
 abstract class AbstractAnalysisOptionsTest
     with ResourceProviderMixin, LintRegistrationMixin {
   late SourceFactory sourceFactory;
+  Map<String, String>? dependencies;
 
   late File analysisOptionsFile = newFile(analysisOptionsPath, '');
   late String analysisOptionsPath = convertPath('/analysis_options.yaml');
@@ -64,7 +66,14 @@ abstract class AbstractAnalysisOptionsTest
   );
 
   void setUp() {
-    var resolvers = [ResourceUriResolver(resourceProvider)];
+    var resolvers = [
+      ResourceUriResolver(resourceProvider),
+      if (dependencies != null)
+        PackageMapUriResolver(resourceProvider, {
+          for (var entry in dependencies!.entries)
+            entry.key: [getFolder(convertPath(entry.value))],
+        }),
+    ];
     sourceFactory = SourceFactoryImpl(resolvers);
   }
 

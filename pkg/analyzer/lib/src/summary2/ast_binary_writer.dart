@@ -14,13 +14,8 @@ import 'package:analyzer/src/summary2/tokens_writer.dart';
 /// Serializer of fully resolved ASTs.
 class AstBinaryWriter extends ThrowingAstVisitor<void> {
   final ResolutionSink _sink;
-  final StringIndexer _stringIndexer;
 
-  AstBinaryWriter({
-    required ResolutionSink sink,
-    required StringIndexer stringIndexer,
-  }) : _sink = sink,
-       _stringIndexer = stringIndexer;
+  AstBinaryWriter({required ResolutionSink sink}) : _sink = sink;
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -453,8 +448,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
           isPositive ? Tag.IntegerLiteralPositive : Tag.IntegerLiteralNegative,
         );
         _writeStringReference(node.literal.lexeme);
-        _writeUInt32(value >> 32);
-        _writeUInt32(value & 0xFFFFFFFF);
+        _writeUint32(value >> 32);
+        _writeUint32(value & 0xFFFFFFFF);
       }
     }
 
@@ -812,7 +807,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(Tag.SymbolLiteral);
 
     var components = node.components;
-    _writeUInt30(components.length);
+    _writeUint30(components.length);
     for (var token in components) {
       _writeStringReference(token.lexeme);
     }
@@ -973,7 +968,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   void _writeNodeList(List<AstNode> nodeList) {
-    _writeUInt30(nodeList.length);
+    _writeUint30(nodeList.length);
     for (var i = 0; i < nodeList.length; ++i) {
       nodeList[i].accept(this);
     }
@@ -989,17 +984,16 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   void _writeStringReference(String string) {
-    var index = _stringIndexer[string];
-    _writeUInt30(index);
+    _sink.writeStringReference(string);
   }
 
   @pragma("vm:prefer-inline")
-  void _writeUInt30(int value) {
-    _sink.writeUInt30(value);
+  void _writeUint30(int value) {
+    _sink.writeUint30(value);
   }
 
-  void _writeUInt32(int value) {
-    _sink.writeUInt32(value);
+  void _writeUint32(int value) {
+    _sink.writeUint32(value);
   }
 
   /// Return `true` if the expression might be successfully serialized.

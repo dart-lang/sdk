@@ -125,7 +125,6 @@ const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 
 const _Protected protected = _Protected();
 
-@experimental
 const _Redeclare redeclare = _Redeclare();
 
 const _Reopen reopen = _Reopen();

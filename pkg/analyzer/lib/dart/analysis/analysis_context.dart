@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:meta/meta.dart';
 
 /// A representation of a body of code and the context in which the code is to
 /// be analyzed.
@@ -61,6 +60,5 @@ abstract class AnalysisContext {
   ///
   /// NOTE: this API is experimental and subject to change in a future
   /// release (see https://github.com/dart-lang/sdk/issues/53876 for context).
-  @experimental
   AnalysisOptions getAnalysisOptionsForFile(File file);
 }

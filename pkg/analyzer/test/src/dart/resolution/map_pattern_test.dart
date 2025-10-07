@@ -40,7 +40,7 @@ MapPattern
       value: DeclaredVariablePattern
         type: NamedType
           name: String
-          element2: dart:core::@class::String
+          element: dart:core::@class::String
           type: String
         name: a
         declaredFragment: isPublic a@47
@@ -108,11 +108,11 @@ MapPattern
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   leftBracket: {
@@ -342,11 +342,11 @@ MapPattern
     arguments
       NamedType
         name: bool
-        element2: dart:core::@class::bool
+        element: dart:core::@class::bool
         type: bool
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -437,7 +437,7 @@ MapPattern
       value: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@43
@@ -496,11 +496,11 @@ MapPattern
     arguments
       NamedType
         name: bool
-        element2: dart:core::@class::bool
+        element: dart:core::@class::bool
         type: bool
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -538,11 +538,11 @@ MapPattern
     arguments
       NamedType
         name: bool
-        element2: dart:core::@class::bool
+        element: dart:core::@class::bool
         type: bool
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -663,11 +663,11 @@ PatternVariableDeclaration
       arguments
         NamedType
           name: bool
-          element2: dart:core::@class::bool
+          element: dart:core::@class::bool
           type: bool
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     leftBracket: {
@@ -729,7 +729,7 @@ PatternVariableDeclaration
         value: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@28

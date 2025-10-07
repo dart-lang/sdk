@@ -2,13 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
-library test.reflected_type_generics_test;
-
-import 'dart:mirrors';
+import 'dart:mirrors' show reflectType, ClassMirror;
 
 import 'package:expect/expect.dart';
 
@@ -36,65 +30,66 @@ class Helper<T> {
   Type get param => T;
 }
 
-class Mixin<T extends P> {}
+mixin Mixin<T extends P> {}
 
 class Composite<K extends P, V> extends Object with Mixin<K> {}
 
-main() {
+void main() {
   // "Happy" paths:
   expectReflectedType(reflectType(A, [P]), new A<P>().runtimeType);
   expectReflectedType(reflectType(C, [B, P]), new C<B, P>().runtimeType);
   expectReflectedType(reflectType(D, [P]), new D<P>().runtimeType);
   expectReflectedType(reflectType(E, [P]), new E<P>().runtimeType);
   expectReflectedType(
-      reflectType(FBounded, [new FBounded<Never>().runtimeType]), new FBounded<FBounded<Never>>().runtimeType);
+    reflectType(FBounded, [new FBounded<Never>().runtimeType]),
+    new FBounded<FBounded<Never>>().runtimeType,
+  );
 
   var predicateHelper = new Helper<Predicate>();
-  expectReflectedType(reflectType(Predicate), predicateHelper.param); //# 01: ok
+  expectReflectedType(reflectType(Predicate), predicateHelper.param);
   var composite = new Composite<P, int>();
   expectReflectedType(reflectType(Composite, [P, int]), composite.runtimeType);
 
   // Edge cases:
   Expect.throws(
-      () => reflectType(P, []),
-      (e) => e is ArgumentError && e.invalidValue is List,
-      "Should throw an ArgumentError if reflecting not a generic class with "
-      "empty list of type arguments");
-  Expect.throws( //                                                             //# 03: ok
-      () => reflectType(P, [B]), //                                             //# 03: continued
-      (e) => e is Error, //                                                     //# 03: continued
-      "Should throw an ArgumentError if reflecting not a generic class with " //# 03: continued
-      "some type arguments"); //                                                //# 03: continued
+    () => reflectType(P, []),
+    (e) => e is ArgumentError && e.invalidValue is List,
+    "Should throw an ArgumentError if reflecting not a generic class with "
+    "empty list of type arguments",
+  );
+  Expect.throwsArgumentError(
+    () => reflectType(P, [B]),
+    "Should throw an ArgumentError if reflecting not a generic class with "
+    "some type arguments",
+  );
   Expect.throws(
-      () => reflectType(A, []),
-      (e) => e is ArgumentError && e.invalidValue is List,
-      "Should throw an ArgumentError if type argument list is empty for a "
-      "generic class");
-  Expect.throws( //                                                             //# 04: ok
-      () => reflectType(A, [P, B]), //                                          //# 04: continued
-      (e) => e is ArgumentError && e.invalidValue is List, //                   //# 04: continued
-      "Should throw an ArgumentError if number of type arguments is not " //    //# 04: continued
-      "correct"); //                                                            //# 04: continued
-  Expect.throws(() => reflectType(B, [P]), (e) => e is Error, //            //# 05: ok
-      "Should throw an ArgumentError for non-generic class extending " //   //# 05: continued
-      "generic one"); //                                                    //# 05: continued
-/*  Expect.throws(
-      () => reflectType(A, ["non-type"]),
-      (e) => e is ArgumentError && e.invalidValue is List,
-      "Should throw an ArgumentError when any of type arguments is not a
-      Type");*/
-  Expect.throws( //                                                                //# 06: ok
-      () => reflectType(A, [P, B]), //                                              //# 06: continued
-      (e) => e is ArgumentError && e.invalidValue is List, //                       //# 06: continued
-      "Should throw an ArgumentError if number of type arguments is not correct " //# 06: continued
-      "for generic extending another generic"); //                                  //# 06: continued
+    () => reflectType(A, []),
+    (e) => e is ArgumentError && e.invalidValue is List,
+    "Should throw an ArgumentError if type argument list is empty for a "
+    "generic class",
+  );
   Expect.throws(
-      () => reflectType(reflectType(F).typeVariables[0].reflectedType, [int]));
-  Expect.throws(() => reflectType(FBounded, [int])); //# 02: ok
-  var boundedType =
-      reflectType(FBounded).typeVariables[0].upperBound.reflectedType;
-  Expect.throws(() => reflectType(boundedType, [int])); //# 02: ok
-  Expect.throws(() => reflectType(Composite, [int, int])); //# 02: ok
+    () => reflectType(A, [P, B]),
+    (e) => e is ArgumentError && e.invalidValue is List,
+    "Should throw an ArgumentError if number of type arguments is not "
+    "correct",
+  );
+  Expect.throws(
+    () => reflectType(B, [P]),
+    (e) => e is ArgumentError,
+    "Should throw an ArgumentError for non-generic class extending "
+    "generic one",
+  );
+  Expect.throws(
+    () => reflectType(A, [P, B]),
+    (e) => e is ArgumentError && e.invalidValue is List,
+    "Should throw an ArgumentError if number of type arguments is not correct "
+    "for generic extending another generic",
+  );
+  Expect.throwsUnsupportedError(
+    () => reflectType(reflectType(F).typeVariables[0].reflectedType, [int]),
+    "Type variables types cannot be reflected with type arguments",
+  );
 
   // Instantiation of a generic class preserves type information:
   ClassMirror m = reflectType(A, [P]) as ClassMirror;

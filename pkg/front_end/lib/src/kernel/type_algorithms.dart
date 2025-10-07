@@ -300,12 +300,12 @@ List<NonSimplicityIssue> _getInboundReferenceIssues(
             issues.add(
               new NonSimplicityIssue(
                 parameter,
-                codeBoundIssueViaRawTypeWithNonSimpleBounds.withArguments(
+                codeBoundIssueViaRawTypeWithNonSimpleBounds.withArgumentsOld(
                   type.declaration!.name,
                 ),
                 <LocatedMessage>[
                   codeNonSimpleBoundViaVariable
-                      .withArguments(dependency.declaration!.name)
+                      .withArgumentsOld(dependency.declaration!.name)
                       .withLocation(
                         dependent.fileUri!,
                         dependent.fileOffset,
@@ -321,7 +321,7 @@ List<NonSimplicityIssue> _getInboundReferenceIssues(
           issues.add(
             new NonSimplicityIssue(
               parameter,
-              codeBoundIssueViaRawTypeWithNonSimpleBounds.withArguments(
+              codeBoundIssueViaRawTypeWithNonSimpleBounds.withArgumentsOld(
                 type.declaration!.name,
               ),
               const <LocatedMessage>[],
@@ -581,7 +581,7 @@ List<NonSimplicityIssue> _convertRawTypeCyclesIntoIssues(
       issues.add(
         new NonSimplicityIssue(
           declaration,
-          codeBoundIssueViaLoopNonSimplicity.withArguments(
+          codeBoundIssueViaLoopNonSimplicity.withArgumentsOld(
             cycle.single.type.declaration!.name,
           ),
           null,
@@ -593,7 +593,7 @@ List<NonSimplicityIssue> _convertRawTypeCyclesIntoIssues(
       for (RawTypeCycleElement cycleElement in cycle) {
         context.add(
           codeNonSimpleBoundViaReference
-              .withArguments(cycleElement.type.declaration!.name)
+              .withArgumentsOld(cycleElement.type.declaration!.name)
               .withLocation(
                 cycleElement.typeParameterBuilder!.fileUri!,
                 cycleElement.typeParameterBuilder!.fileOffset,
@@ -605,7 +605,7 @@ List<NonSimplicityIssue> _convertRawTypeCyclesIntoIssues(
       issues.add(
         new NonSimplicityIssue(
           declaration,
-          codeBoundIssueViaCycleNonSimplicity.withArguments(
+          codeBoundIssueViaCycleNonSimplicity.withArgumentsOld(
             declaration.name,
             cycle.first.type.declaration!.name,
           ),

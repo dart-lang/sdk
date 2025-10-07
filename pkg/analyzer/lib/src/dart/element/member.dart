@@ -53,6 +53,11 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
   ConstructorFragmentImpl get firstFragment => baseElement.firstFragment;
 
   @override
+  FirstFragmentLocation get firstFragmentLocation {
+    return baseElement.firstFragmentLocation;
+  }
+
+  @override
   List<ConstructorFragmentImpl> get fragments {
     return baseElement.fragments;
   }
@@ -245,6 +250,10 @@ abstract class SubstitutedElementImpl implements Element {
   bool isAccessibleIn2(LibraryElement library) {
     return isAccessibleIn(library);
   }
+
+  @override
+  bool isDeprecatedWithKind(String kind) =>
+      baseElement.isDeprecatedWithKind(kind);
 
   @override
   Element? thisOrAncestorMatching(bool Function(Element e) predicate) {

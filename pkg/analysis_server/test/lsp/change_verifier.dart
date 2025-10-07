@@ -185,10 +185,9 @@ class LspChangeVerifier {
 
   String _applyTextDocumentEditEdit(String content, TextDocumentEdit edit) {
     // Extract the edits from the union (they all have the same superclass).
-    var edits =
-        edit.edits
-            .map((edit) => edit.map((e) => e, (e) => e, (e) => e))
-            .toList();
+    var edits = edit.edits
+        .map((edit) => edit.map((e) => e, (e) => e, (e) => e))
+        .toList();
     return _applyTextEdits(content, edits);
   }
 
@@ -343,8 +342,7 @@ class _Change {
 }
 
 extension on Range {
-  String toDisplayString() =>
-      start.line == end.line
-          ? 'line ${start.line + 1}'
-          : 'lines ${start.line + 1}-${end.line + 1}';
+  String toDisplayString() => start.line == end.line
+      ? 'line ${start.line + 1}'
+      : 'lines ${start.line + 1}-${end.line + 1}';
 }

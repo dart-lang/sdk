@@ -18,7 +18,7 @@ extension IntExtension on int {
 
   bool get isLetterOrDigit => isLetter || isDigit;
 
-  bool get isLetterOrDigitOrUnderscore => isLetter || isDigit || this == 0x5F;
+  bool get isLetterOrDigitOrUnderscore => isLetter || isDigit || isUnderscore;
 
   /// Whether this, as an ASCII character, is a newline (not a carriage
   /// return) character.
@@ -28,6 +28,8 @@ extension IntExtension on int {
 
   /// Whether this, as an ASCII character, is a space or tab character.
   bool get isSpace => this == 0x20 || this == 0x09;
+
+  bool get isUnderscore => this == 0x5F;
 
   /// Whether this, as an ASCII character, is a space (as per [isSpace]) or EOL
   /// character (as per [isEOL]).
@@ -158,55 +160,6 @@ extension StringExtension on String {
     } else {
       return null;
     }
-  }
-
-  /// Converts `SCREAMING_SNAKE_CASE` or `snake_case` to `camelCase`.
-  String toCamelCase() {
-    var parts = toLowerCase().split('_');
-    var buffer = StringBuffer();
-    var i = 0;
-    // Preserve initial '_'s
-    while (i < parts.length - 1 && parts[i].isEmpty) {
-      buffer.write('_');
-      ++i;
-    }
-    if (i < parts.length) {
-      // Convert first word to lower case
-      buffer.write(parts[i].toLowerCase());
-      ++i;
-      // Convert remaining words to initial upper case
-      while (i < parts.length) {
-        var part = parts[i];
-        if (part.isNotEmpty) {
-          buffer.write(part[0].toUpperCase());
-          buffer.write(part.substring(1));
-        }
-        ++i;
-      }
-    }
-    return buffer.toString();
-  }
-
-  /// Converts `SCREAMING_SNAKE_CASE` or `snake_case` to `PascalCase`.
-  String toPascalCase() {
-    var parts = toLowerCase().split('_');
-    var buffer = StringBuffer();
-    var i = 0;
-    // Preserve initial '_'s
-    while (i < parts.length - 1 && parts[i].isEmpty) {
-      buffer.write('_');
-      ++i;
-    }
-    // Convert words to initial upper case
-    while (i < parts.length) {
-      var part = parts[i];
-      if (part.isNotEmpty) {
-        buffer.write(part[0].toUpperCase());
-        buffer.write(part.substring(1));
-      }
-      ++i;
-    }
-    return buffer.toString();
   }
 
   /// Converts `camelCase` / `PascalCase` to `SCREAMING_SNAKE_CASE`.

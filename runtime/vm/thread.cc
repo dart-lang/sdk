@@ -366,6 +366,9 @@ void Thread::AssertEmptyThreadInvariants() {
   ASSERT(stack_limit_.load() == 0);
   ASSERT(safepoint_state_ == 0);
 
+  ASSERT(default_tag_ == UserTag::null());
+  ASSERT(current_tag_ == UserTag::null());
+
   // Avoid running these asserts for `vm-isolate`.
   if (active_stacktrace_.untag() != 0) {
     ASSERT(field_table_values_ == nullptr);
@@ -432,6 +435,16 @@ void Thread::EnterIsolate(Isolate* isolate) {
     // Descheduled isolates are reloadable (if nothing else prevents it).
     RawReloadParticipationScope enable_reload(thread);
     thread->ExitSafepoint();
+  }
+
+  if (thread->current_tag() == UserTag::null()) {
+    // Set up current tag if it was not set up by the callback.
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    if (group->tag_table() != GrowableObjectArray::null()) {
+      const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag(thread));
+      thread->set_current_tag(default_tag);
+    }
   }
 
   ASSERT(!thread->IsAtSafepoint());
@@ -537,10 +550,10 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
   isolate_group->IncreaseMutatorCount(/*thread=*/nullptr,
                                       /*is_nested_reenter=*/true,
                                       /*was_stolen=*/false);
-  isolate_group->RegisterIsolateGroupMutator();
-
+  isolate_group->IncrementIsolateGroupMutatorCount();
   Thread* thread = AddActiveThread(isolate_group, /*isolate=*/nullptr,
                                    kMutatorTask, bypass_safepoint);
+
   RELEASE_ASSERT(thread != nullptr);
   // Even if [bypass_safepoint] is true, a thread may need mutator state (e.g.
   // parallel scavenger threads write to the [Thread]s storebuffer)
@@ -584,7 +597,7 @@ void Thread::ExitIsolateGroupAsMutator(bool bypass_safepoint) {
   SuspendThreadInternal(thread, VMTag::kInvalidTagId);
   auto group = thread->isolate_group();
   FreeActiveThread(thread, /*isolate=*/nullptr, bypass_safepoint);
-  group->UnregisterIsolateGroupMutator();
+  group->DecrementIsolateGroupMutatorCount();
   group->DecreaseMutatorCount(/*is_nested_exit=*/true);
 }
 
@@ -693,9 +706,12 @@ Thread* Thread::AddActiveThread(IsolateGroup* group,
   thread->isolate_ = isolate;  // May be nullptr.
   thread->isolate_group_ = group;
   thread->scheduled_dart_mutator_isolate_ = isolate;
-  if (isolate != nullptr && task_kind == kMutatorTask) {
-    ASSERT(thread_registry->threads_lock()->IsOwnedByCurrentThread());
-    isolate->mutator_thread_ = thread;
+  if (task_kind == kMutatorTask) {
+    if (isolate != nullptr) {
+      isolate->mutator_thread_ = thread;
+    } else {
+      group->RegisterIsolateGroupMutator(thread);
+    }
   }
 
   // We start at being at-safepoint (in case any safepoint operation is
@@ -750,14 +766,19 @@ void Thread::FreeActiveThread(Thread* thread,
   thread->isolate_ = nullptr;
   thread->isolate_group_ = nullptr;
   thread->scheduled_dart_mutator_isolate_ = nullptr;
-  if (isolate != nullptr && thread->task_kind() == kMutatorTask) {
-    ASSERT(thread_registry->threads_lock()->IsOwnedByCurrentThread());
-    isolate->mutator_thread_ = nullptr;
+  if (thread->task_kind() == kMutatorTask) {
+    if (isolate != nullptr) {
+      isolate->mutator_thread_ = nullptr;
+    } else {
+      group->UnregisterIsolateGroupMutator(thread);
+    }
   }
   thread->set_execution_state(Thread::kThreadInNative);
   thread->stack_limit_.store(0);
   thread->safepoint_state_ = 0;
   thread->ResetStateLocked();
+  thread->current_tag_ = UserTag::null();
+  thread->default_tag_ = UserTag::null();
 
   thread->AssertEmptyThreadInvariants();
   thread_registry->ReturnThreadLocked(thread);
@@ -1041,8 +1062,18 @@ bool Thread::IsExecutingDartCode() const {
   return (top_exit_frame_info() == 0) && VMTag::IsDartTag(vm_tag());
 }
 
+bool Thread::IsExecutingDartCodeIgnoreRace() const {
+  return (top_exit_frame_info_ignore_race() == 0) &&
+         VMTag::IsDartTag(vm_tag_ignore_race());
+}
+
 bool Thread::HasExitedDartCode() const {
   return (top_exit_frame_info() != 0) && !VMTag::IsDartTag(vm_tag());
+}
+
+bool Thread::HasExitedDartCodeIgnoreRace() const {
+  return (top_exit_frame_info_ignore_race() != 0) &&
+         !VMTag::IsDartTag(vm_tag_ignore_race());
 }
 
 template <class C>

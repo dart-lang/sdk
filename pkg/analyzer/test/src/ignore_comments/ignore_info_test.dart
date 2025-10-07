@@ -97,6 +97,19 @@ class IgnoreInfoTest extends PubPackageResolutionTest {
     );
   }
 
+  test_pluginName_starts_with_underscore() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '// ignore: _plugin_one/foo',
+    );
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredName(
+      ignoredElements[0],
+      name: 'foo',
+      offset: 11,
+      pluginName: '_plugin_one',
+    );
+  }
+
   test_trailingComma() async {
     var ignoredElements = await _parseIgnoredElements('// ignore: foo,');
     expect(ignoredElements, hasLength(1));

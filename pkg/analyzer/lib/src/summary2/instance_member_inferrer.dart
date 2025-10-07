@@ -18,7 +18,7 @@ import 'package:collection/collection.dart';
 /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md
 class InstanceMemberInferrer {
   final InheritanceManager3 inheritance;
-  final Set<InterfaceElementImpl> elementsBeingInferred = {};
+  final Set<InterfaceElementImpl> interfacesToInfer = {};
 
   late InterfaceElementImpl currentInterfaceElement;
 
@@ -29,11 +29,11 @@ class InstanceMemberInferrer {
     return currentInterfaceElement.library.typeSystem;
   }
 
-  void inferLibrary(LibraryElementImpl library) {
-    _inferClasses(library.classes);
-    _inferClasses(library.enums);
-    _inferExtensionTypes(library.extensionTypes);
-    _inferClasses(library.mixins);
+  void perform(List<InterfaceElementImpl> elements) {
+    interfacesToInfer.addAll(elements);
+    for (var element in elements) {
+      _inferClass(element);
+    }
   }
 
   /// Return `true` if the elements corresponding to the [elements] have the
@@ -105,19 +105,19 @@ class InstanceMemberInferrer {
       if (getter.isSynthetic || getter.isStatic) {
         return;
       }
-      elementLibraryUri = getter.library.source.uri;
+      elementLibraryUri = getter.library.uri;
       elementName = getter.displayName;
     } else if (setter != null) {
       if (setter.isSynthetic || setter.isStatic) {
         return;
       }
-      elementLibraryUri = setter.library.source.uri;
+      elementLibraryUri = setter.library.uri;
       elementName = setter.displayName;
     } else if (field != null) {
       if (field.isSynthetic || field.isStatic) {
         return;
       }
-      elementLibraryUri = field.library.source.uri;
+      elementLibraryUri = field.library.uri;
       elementName = field.name ?? '';
     } else {
       throw UnimplementedError();
@@ -317,67 +317,43 @@ class InstanceMemberInferrer {
   /// Infer type information for all of the instance members in the given
   /// [element].
   void _inferClass(InterfaceElementImpl element) {
-    if (element.hasBeenInferred) {
+    if (!interfacesToInfer.remove(element)) {
       return;
     }
 
     _setInducedModifier(element);
 
-    if (!elementsBeingInferred.add(element)) {
-      // We have found a circularity in the class hierarchy. For now we just
-      // stop trying to infer any type information for any classes that
-      // inherit from any class in the cycle. We could potentially limit the
-      // algorithm to only not inferring types in the classes in the cycle,
-      // but it isn't clear that the results would be significantly better.
-      throw _CycleException();
+    //
+    // Ensure that all of instance members in the supertypes have had types
+    // inferred for them.
+    //
+    _inferType(element.supertype);
+    element.mixins.forEach(_inferType);
+    element.interfaces.forEach(_inferType);
+
+    //
+    // Then infer the types for the members.
+    //
+    currentInterfaceElement = element;
+    for (var field in element.fields) {
+      _inferAccessorOrField(field: field);
+    }
+    for (var getter in element.getters) {
+      _inferAccessorOrField(getter: getter);
+    }
+    for (var setter in element.setters) {
+      _inferAccessorOrField(setter: setter);
+    }
+    for (var method in element.methods) {
+      _inferExecutable(method);
     }
 
-    try {
-      //
-      // Ensure that all of instance members in the supertypes have had types
-      // inferred for them.
-      //
-      _inferType(element.supertype);
-      element.mixins.forEach(_inferType);
-      element.interfaces.forEach(_inferType);
-      //
-      // Then infer the types for the members.
-      //
-      // TODO(scheglov): get other members from the container
-      currentInterfaceElement = element;
-      for (var field in element.fields) {
-        _inferAccessorOrField(field: field);
-      }
-      for (var getter in element.getters) {
-        _inferAccessorOrField(getter: getter);
-      }
-      for (var setter in element.setters) {
-        _inferAccessorOrField(setter: setter);
-      }
-      for (var method in element.methods) {
-        _inferExecutable(method);
-      }
-      //
-      // Infer initializing formal parameter types. This must happen after
-      // field types are inferred.
-      //
-      for (var constructor in element.constructors) {
-        _inferConstructor(constructor);
-      }
-      element.hasBeenInferred = true;
-    } finally {
-      elementsBeingInferred.remove(element);
-    }
-  }
-
-  void _inferClasses(List<InterfaceElementImpl> elements) {
-    for (var element in elements) {
-      try {
-        _inferClass(element);
-      } on _CycleException {
-        // This is a short circuit return to prevent types that inherit from
-        // types containing a circular reference from being inferred.
-      }
+    //
+    // Infer initializing formal parameter types. This must happen after
+    // field types are inferred.
+    //
+    for (var constructor in element.constructors) {
+      _inferConstructor(constructor);
     }
   }
 
@@ -492,14 +468,6 @@ class InstanceMemberInferrer {
     }
 
     _resetOperatorEqualParameterTypeToDynamic(element, overriddenElements);
-  }
-
-  void _inferExtensionTypes(List<ExtensionTypeElementImpl> extensionTypes) {
-    for (var extensionType in extensionTypes) {
-      for (var constructor in extensionType.constructors) {
-        _inferConstructor(constructor);
-      }
-    }
   }
 
   void _inferMixinApplicationConstructor(
@@ -756,9 +724,6 @@ class InstanceMemberInferrer {
     return false;
   }
 }
-
-/// A class of exception that is not used anywhere else.
-class _CycleException implements Exception {}
 
 extension on InterfaceElementImpl {
   bool get isBase {

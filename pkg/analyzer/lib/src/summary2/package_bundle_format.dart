@@ -4,8 +4,8 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:meta/meta.dart';
 
 class PackageBundleBuilder {
@@ -24,26 +24,26 @@ class PackageBundleBuilder {
     required Uint8List resolutionBytes,
     PackageBundleSdk? sdk,
   }) {
-    var sink = BufferedSink();
+    var writer = BinaryWriter();
 
     if (sdk != null) {
-      sink.writeByte(1);
-      sdk._write(sink);
+      writer.writeByte(1);
+      sdk._write(writer);
     } else {
-      sink.writeByte(0);
+      writer.writeByte(0);
     }
 
-    sink.writeList(_libraries, (PackageBundleLibrary library) {
-      sink.writeStringUtf8(library.uriStr);
-      sink.writeList(
+    writer.writeList(_libraries, (PackageBundleLibrary library) {
+      writer.writeStringUtf8(library.uriStr);
+      writer.writeList(
         library.units,
-        (PackageBundleUnit unit) => sink.writeStringUtf8(unit.uriStr),
+        (PackageBundleUnit unit) => writer.writeStringUtf8(unit.uriStr),
       );
     });
 
-    sink.writeUint8List(resolutionBytes);
+    writer.writeUint8List(resolutionBytes);
 
-    return sink.takeBytes();
+    return writer.takeBytes();
   }
 }
 
@@ -61,17 +61,17 @@ class PackageBundleReader {
   late final Uint8List _resolutionBytes;
 
   PackageBundleReader(Uint8List bytes) {
-    var reader = SummaryDataReader(bytes);
+    var reader = BinaryReader(bytes);
 
     var hasSdk = reader.readByte() != 0;
     if (hasSdk) {
       _sdk = PackageBundleSdk._fromReader(reader);
     }
 
-    var librariesLength = reader.readUInt30();
+    var librariesLength = reader.readUint30();
     for (var i = 0; i < librariesLength; i++) {
       var uriStr = reader.readStringUtf8();
-      var unitsLength = reader.readUInt30();
+      var unitsLength = reader.readUint30();
       var units = List.generate(unitsLength, (_) {
         var uriStr = reader.readStringUtf8();
         return PackageBundleUnit(uriStr);
@@ -100,18 +100,18 @@ class PackageBundleSdk {
     required this.allowedExperimentsJson,
   });
 
-  factory PackageBundleSdk._fromReader(SummaryDataReader reader) {
+  factory PackageBundleSdk._fromReader(BinaryReader reader) {
     return PackageBundleSdk(
-      languageVersionMajor: reader.readUInt30(),
-      languageVersionMinor: reader.readUInt30(),
+      languageVersionMajor: reader.readUint30(),
+      languageVersionMinor: reader.readUint30(),
       allowedExperimentsJson: reader.readStringUtf8(),
     );
   }
 
-  void _write(BufferedSink sink) {
-    sink.writeUInt30(languageVersionMajor);
-    sink.writeUInt30(languageVersionMinor);
-    sink.writeStringUtf8(allowedExperimentsJson);
+  void _write(BinaryWriter writer) {
+    writer.writeUint30(languageVersionMajor);
+    writer.writeUint30(languageVersionMinor);
+    writer.writeStringUtf8(allowedExperimentsJson);
   }
 }
 

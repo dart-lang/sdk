@@ -8,11 +8,13 @@ library;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer_testing/package_root.dart';
 import 'package:analyzer_utilities/html_dom.dart' as dom;
 import 'package:analyzer_utilities/html_generator.dart';
 import 'package:analyzer_utilities/text_formatter.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 final RegExp trailingSpacesInLineRegExp = RegExp(r' +$', multiLine: true);
 final RegExp trailingWhitespaceRegExp = RegExp(r'[\n ]+$');
@@ -243,11 +245,37 @@ class CodeGeneratorSettings {
 
 /// A utility class for invoking 'dart format'.
 class DartFormat {
-  static String get _dartPath => Platform.resolvedExecutable;
+  static final String _dartPath = join(
+    packageRoot,
+    '..',
+    'tools',
+    'sdks',
+    'dart-sdk',
+    'bin',
+    Platform.isWindows ? 'dart.exe' : 'dart',
+  );
 
   static void formatFile(File file) {
     var result = Process.runSync(_dartPath, ['format', file.path]);
     _throwIfExitCode(result);
+  }
+
+  static String formatString(String text, {required Version languageVersion}) {
+    var tempDir = Directory.systemTemp.createTempSync('format');
+    try {
+      var file = File(join(tempDir.path, 'input.dart'));
+      file.writeAsStringSync(text);
+      var result = Process.runSync(_dartPath, [
+        'format',
+        file.path,
+        '--language-version',
+        '${languageVersion.major}.${languageVersion.minor}',
+      ]);
+      _throwIfExitCode(result);
+      return file.readAsStringSync();
+    } finally {
+      tempDir.deleteSync(recursive: true);
+    }
   }
 
   static void _throwIfExitCode(ProcessResult result) {

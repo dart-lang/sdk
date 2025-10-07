@@ -30,10 +30,9 @@ class PlatformUseCaseTest extends DataDrivenFixProcessorTest {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p', rootPath: '$workspaceRootPath/p')
-            ..add(name: 'p2', rootPath: '$workspaceRootPath/p2'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p')
+        ..add(name: 'p2', rootPath: '$workspaceRootPath/p2'),
     );
 
     addPackageDataFile('''
@@ -88,9 +87,8 @@ class HostPlatform {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
     );
 
     addPackageDataFile('''
@@ -146,9 +144,8 @@ class NativePlatform {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
     );
 
     addPackageDataFile('''
@@ -204,9 +201,8 @@ class NativePlatform {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
     );
 
     addSdkDataFile('''
@@ -257,9 +253,8 @@ class HostPlatform {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
     );
 
     addSdkDataFile('''

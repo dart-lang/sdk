@@ -744,21 +744,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   bool _isConst(Expression expr) {
-    if (expr is Literal) {
-      return true;
-    }
-    if (expr is Identifier) {
-      var element = expr.element;
-      if (element is VariableElement && element.isConst) {
-        return true;
-      }
-      if (element is PropertyAccessorElement) {
-        if (element.variable.isConst) {
-          return true;
-        }
-      }
-    }
-    return false;
+    var computedConstant = expr.computeConstantValue();
+    return computedConstant?.value != null;
   }
 
   bool _isLeaf(NodeList<Expression>? args) {

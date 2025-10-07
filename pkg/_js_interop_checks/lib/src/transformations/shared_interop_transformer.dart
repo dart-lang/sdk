@@ -138,18 +138,25 @@ class SharedInteropTransformer extends Transformer {
     _invocation = node;
     TreeNode replacement = invocation;
     final target = invocation.target;
-    if (target == _createDartExport || target == _createJSInteropWrapper) {
+    if (target == _createDartExport) {
       final typeArguments = invocation.arguments.types;
       assert(typeArguments.length == 1);
       if (_verifyExportable(typeArguments[0])) {
         final interface = typeArguments[0] as InterfaceType;
-        if (target == _createJSInteropWrapper) {
-          replacement = _createExport(
-            interface,
-            ExtensionType(_jsObject, Nullability.nonNullable),
-          );
-        }
         replacement = _createExport(interface);
+      }
+    } else if (target == _createJSInteropWrapper) {
+      final typeArguments = invocation.arguments.types;
+      assert(typeArguments.length == 1);
+      if (_verifyExportable(typeArguments[0])) {
+        final interface = typeArguments[0] as InterfaceType;
+        final arguments = invocation.arguments.positional;
+        assert(arguments.length == 1 || arguments.length == 2);
+        replacement = _createExport(
+          interface,
+          ExtensionType(_jsObject, Nullability.nonNullable),
+          arguments.length == 2 ? arguments[1] : null,
+        );
       }
     } else if (target == _createStaticInteropMock) {
       final typeArguments = invocation.arguments.types;
@@ -197,7 +204,7 @@ class SharedInteropTransformer extends Transformer {
         if (!_inIsATearoff) {
           assert(interopType is TypeParameterType);
           _diagnosticReporter.report(
-            codeJsInteropIsAInvalidTypeVariable.withArguments(interopType),
+            codeJsInteropIsAInvalidTypeVariable.withArgumentsOld(interopType),
             invocation.fileOffset,
             invocation.name.text.length,
             invocation.location?.file,
@@ -240,7 +247,7 @@ class SharedInteropTransformer extends Transformer {
   bool _verifyExportable(DartType dartType) {
     if (dartType is! InterfaceType) {
       _diagnosticReporter.report(
-        codeJsInteropExportInvalidTypeArgument.withArguments(dartType),
+        codeJsInteropExportInvalidTypeArgument.withArgumentsOld(dartType),
         invocation.fileOffset,
         invocation.name.text.length,
         invocation.location?.file,
@@ -252,7 +259,9 @@ class SharedInteropTransformer extends Transformer {
         js_interop.hasStaticInteropAnnotation(dartClass) ||
         js_interop.hasAnonymousAnnotation(dartClass)) {
       _diagnosticReporter.report(
-        codeJsInteropExportInvalidInteropTypeArgument.withArguments(dartType),
+        codeJsInteropExportInvalidInteropTypeArgument.withArgumentsOld(
+          dartType,
+        ),
         invocation.fileOffset,
         invocation.name.text.length,
         invocation.location?.file,
@@ -274,7 +283,7 @@ class SharedInteropTransformer extends Transformer {
     var exportStatus = _exportChecker.exportStatus[dartClass.reference];
     if (exportStatus == ExportStatus.nonExportable) {
       _diagnosticReporter.report(
-        codeJsInteropExportClassNotMarkedExportable.withArguments(
+        codeJsInteropExportClassNotMarkedExportable.withArgumentsOld(
           dartClass.name,
         ),
         invocation.fileOffset,
@@ -582,7 +591,7 @@ class SharedInteropTransformer extends Transformer {
           if (descriptorNode is Procedure &&
               _extensionIndex.isLiteralConstructor(descriptorNode)) {
             _diagnosticReporter.report(
-              codeJsInteropIsAObjectLiteralType.withArguments(interopType),
+              codeJsInteropIsAObjectLiteralType.withArgumentsOld(interopType),
               invocation.fileOffset,
               invocation.name.text.length,
               invocation.location?.file,
@@ -611,7 +620,7 @@ class SharedInteropTransformer extends Transformer {
     if (typeofString != null) {
       if (interopTypeDecl != jsType) {
         _diagnosticReporter.report(
-          codeJsInteropIsAPrimitiveExtensionType.withArguments(
+          codeJsInteropIsAPrimitiveExtensionType.withArgumentsOld(
             interopType,
             jsTypeName,
           ),

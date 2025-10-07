@@ -350,6 +350,15 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
 
       List<Object> expectedTypeParameters =
           getTypeParameterIndexerForTesting().index.keys.toList();
+      if (currentMember != null &&
+          !currentMember!.isInstanceMember &&
+          currentMember is! Constructor &&
+          currentClass != null &&
+          currentClass!.typeParameters.isNotEmpty) {
+        expectedTypeParameters = (expectedTypeParameters.toSet()
+              ..removeAll(currentClass!.typeParameters))
+            .toList();
+      }
 
       VariableIndexer2? varIndexer =
           getVariableIndexerForTesting() as VariableIndexer2?;

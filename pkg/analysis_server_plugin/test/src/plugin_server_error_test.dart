@@ -198,6 +198,9 @@ plugins:
 
 class _FixThrowsAsyncErrorPlugin extends Plugin {
   @override
+  String get name => 'Fix Throws Async Error Plugin';
+
+  @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(NoBoolsRule());
     registry.registerFixForRule(NoBoolsRule.code, _ThrowsAsyncErrorFix.new);
@@ -205,6 +208,9 @@ class _FixThrowsAsyncErrorPlugin extends Plugin {
 }
 
 class _FixThrowsSyncErrorPlugin extends Plugin {
+  @override
+  String get name => 'Fix Throws Sync Error Plugin';
+
   @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(NoBoolsRule());
@@ -226,12 +232,18 @@ class _MissingFixKindFix extends ResolvedCorrectionProducer {
 
 class _PluginWithAssistWithNoAssistKind extends Plugin {
   @override
+  String get name => 'Plugin with Assist with no Assist Kind';
+
+  @override
   void register(PluginRegistry registry) {
     registry.registerAssist(_ThrowsSyncErrorFix.new);
   }
 }
 
 class _PluginWithFixWithNoFixKind extends Plugin {
+  @override
+  String get name => 'Plugin with Fix with no Fix Kind';
+
   @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(NoBoolsRule());
@@ -241,12 +253,18 @@ class _PluginWithFixWithNoFixKind extends Plugin {
 
 class _RuleThrowsAsyncErrorPlugin extends Plugin {
   @override
+  String get name => 'Rule Throws Async Error Plugin';
+
+  @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(_ThrowsAsyncErrorRule());
   }
 }
 
 class _RuleThrowsSyncErrorPlugin extends Plugin {
+  @override
+  String get name => 'Rule Throws Sync Error Plugin';
+
   @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(_ThrowsSyncErrorRule());

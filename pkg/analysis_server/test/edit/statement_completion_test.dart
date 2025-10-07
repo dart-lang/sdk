@@ -108,7 +108,7 @@ void f() {
           testFileContent,
           change.edits[0].edits,
         );
-        var parsedExpected = TestCode.parse(expectedCode);
+        var parsedExpected = TestCode.parseNormalized(expectedCode);
         expect(resultCode, parsedExpected.code);
         if (parsedExpected.positions.isNotEmpty) {
           expect(change.selection!.offset, parsedExpected.position.offset);

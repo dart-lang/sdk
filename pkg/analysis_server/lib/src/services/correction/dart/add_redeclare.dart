@@ -16,10 +16,10 @@ class AddRedeclare extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_REDECLARE;
+  FixKind get fixKind => DartFixKind.addRedeclare;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_REDECLARE_MULTI;
+  FixKind get multiFixKind => DartFixKind.addRedeclareMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

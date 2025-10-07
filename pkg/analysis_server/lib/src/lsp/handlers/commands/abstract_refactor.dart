@@ -106,8 +106,9 @@ abstract class AbstractRefactorCommandHandler
         // inject their own user-provided names until LSP has some native
         // support:
         // https://github.com/microsoft/language-server-protocol/issues/764
-        refactor.name =
-            options != null ? options['name'] as String : 'NewWidget';
+        refactor.name = options != null
+            ? options['name'] as String
+            : 'NewWidget';
         return success(refactor);
 
       case RefactoringKind.INLINE_LOCAL_VARIABLE:

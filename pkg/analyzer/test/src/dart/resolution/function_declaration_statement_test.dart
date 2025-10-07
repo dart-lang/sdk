@@ -32,7 +32,7 @@ FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: T
-      element2: #E0 T
+      element: #E0 T
       type: T
     name: g
     functionExpression: FunctionExpression
@@ -53,7 +53,7 @@ FunctionDeclarationStatement
         parameter: SimpleFormalParameter
           type: NamedType
             name: T
-            element2: #E0 T
+            element: #E0 T
             type: T
           name: a
           declaredElement: <testLibraryFragment> a@25
@@ -62,7 +62,7 @@ FunctionDeclarationStatement
         parameter: SimpleFormalParameter
           type: NamedType
             name: U
-            element2: #E1 U
+            element: #E1 U
             type: U
           name: b
           declaredElement: <testLibraryFragment> b@30
@@ -102,7 +102,7 @@ FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -114,7 +114,7 @@ FunctionDeclarationStatement
             extendsKeyword: extends
             bound: NamedType
               name: U
-              element2: #E0 U
+              element: #E0 U
               type: U
             declaredElement: <testLibraryFragment> T@20
               defaultType: dynamic
@@ -127,7 +127,7 @@ FunctionDeclarationStatement
             extendsKeyword: extends
             bound: NamedType
               name: U
-              element2: #E0 U
+              element: #E0 U
               type: U
             declaredElement: <testLibraryFragment> V@36
               defaultType: dynamic
@@ -137,7 +137,7 @@ FunctionDeclarationStatement
         parameter: SimpleFormalParameter
           type: NamedType
             name: T
-            element2: #E1 T
+            element: #E1 T
             type: T
           name: x
           declaredElement: <testLibraryFragment> x@51
@@ -146,7 +146,7 @@ FunctionDeclarationStatement
         parameter: SimpleFormalParameter
           type: NamedType
             name: U
-            element2: #E0 U
+            element: #E0 U
             type: U
           name: y
           declaredElement: <testLibraryFragment> y@56
@@ -155,7 +155,7 @@ FunctionDeclarationStatement
         parameter: SimpleFormalParameter
           type: NamedType
             name: V
-            element2: #E2 V
+            element: #E2 V
             type: V
           name: z
           declaredElement: <testLibraryFragment> z@61
@@ -192,7 +192,7 @@ FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -212,7 +212,7 @@ FunctionDeclarationStatement
             type: NamedType
               name: T
               question: ?
-              element2: #E0 T
+              element: #E0 T
               type: T?
             name: a
             declaredElement: <testLibraryFragment> a@27
@@ -253,7 +253,7 @@ FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -273,7 +273,7 @@ FunctionDeclarationStatement
             type: NamedType
               name: T
               question: ?
-              element2: #E0 T
+              element: #E0 T
               type: T?
             name: a
             declaredElement: <testLibraryFragment> a@27
@@ -314,7 +314,7 @@ FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -335,7 +335,7 @@ FunctionDeclarationStatement
             type: NamedType
               name: T
               question: ?
-              element2: #E0 T
+              element: #E0 T
               type: T?
             name: a
             declaredElement: <testLibraryFragment> a@36
@@ -376,7 +376,7 @@ FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -393,7 +393,7 @@ FunctionDeclarationStatement
         parameter: SimpleFormalParameter
           type: NamedType
             name: T
-            element2: #E0 T
+            element: #E0 T
             type: T
           name: a
           declaredElement: <testLibraryFragment> a@25

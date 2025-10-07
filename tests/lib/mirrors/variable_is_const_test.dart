@@ -2,20 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
-library test.variable_is_const;
-
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
 class Class {
-  const //# 01: compile-time error
-      int instanceWouldBeConst = 1;
   var instanceNonConst = 2;
-
   static const staticConst = 3;
   static var staticNonConst = 4;
 }
@@ -23,16 +15,17 @@ class Class {
 const topLevelConst = 5;
 var topLevelNonConst = 6;
 
-main() {
-  bool isConst(m, Symbol s) => (m.declarations[s] as VariableMirror).isConst;
+void main() {
+  bool isConst(Map<Symbol, DeclarationMirror> m, Symbol s) =>
+      (m[s] as VariableMirror).isConst;
 
   ClassMirror cm = reflectClass(Class);
-  Expect.isFalse(isConst(cm, #instanceWouldBeConst));
-  Expect.isFalse(isConst(cm, #instanceNonConst));
-  Expect.isTrue(isConst(cm, #staticConst));
-  Expect.isFalse(isConst(cm, #staticNonConst));
+  Map<Symbol, DeclarationMirror> cd = cm.declarations;
+  Expect.isFalse(isConst(cd, #instanceNonConst));
+  Expect.isTrue(isConst(cd, #staticConst));
+  Expect.isFalse(isConst(cd, #staticNonConst));
 
-  LibraryMirror lm = cm.owner as LibraryMirror;
-  Expect.isTrue(isConst(lm, #topLevelConst));
-  Expect.isFalse(isConst(lm, #topLevelNonConst));
+  Map<Symbol, DeclarationMirror> ld = (cm.owner as LibraryMirror).declarations;
+  Expect.isTrue(isConst(ld, #topLevelConst));
+  Expect.isFalse(isConst(ld, #topLevelNonConst));
 }

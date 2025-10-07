@@ -2,72 +2,56 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 void test() {
   {
     String f<S>(int x) => throw '';
-    var /*@type=<S extends Object? = dynamic>(int) -> String*/ v = f;
-    v = <T> /*@returnType=Never*/ (int x) => throw '';
-    v = <T> /*@returnType=String*/ (int x) => "hello";
-    v = /*error:INVALID_ASSIGNMENT*/ <T> /*@returnType=String*/ (String x) =>
-        "hello";
-    v = /*error:INVALID_ASSIGNMENT*/ <T> /*@returnType=String*/ (int x) => 3;
-    v = <T> /*@returnType=String*/ (int x) {
+    var v = f;
+    v = <T>(int x) => throw '';
+    v = <T>(int x) => "hello";
+    v = /*error:INVALID_ASSIGNMENT*/ <T>(String x) => "hello";
+    v = /*error:INVALID_ASSIGNMENT*/ <T>(int x) => 3;
+    v = <T>(int x) {
       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
     };
   }
   {
     String f<S>(int x) => throw '';
-    var /*@type=<S extends Object? = dynamic>(int) -> String*/ v = f;
-    v = <T> /*@returnType=Never*/ (/*@type=int*/ x) => throw '';
-    v = <T> /*@returnType=String*/ (/*@type=int*/ x) => "hello";
-    v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ <
-            T> /*@returnType=String*/ (/*@type=int*/ x) =>
-        3;
-    v = <T> /*@returnType=String*/ (/*@type=int*/ x) {
+    var v = f;
+    v = <T>(x) => throw '';
+    v = <T>(x) => "hello";
+    v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ <T>(x) => 3;
+    v = <T>(x) {
       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
     };
-    v = <T> /*@returnType=String*/ (/*@type=int*/ x) {
+    v = <T>(x) {
       return /*error:RETURN_OF_INVALID_TYPE*/ x;
     };
   }
   {
     List<String> f<S>(int x) => throw '';
-    var /*@type=<S extends Object? = dynamic>(int) -> List<String>*/ v = f;
-    v = <T> /*@returnType=Never*/ (int x) => throw '';
-    v = <T> /*@returnType=List<String>*/ (int x) => /*@typeArgs=String*/ [
-          "hello"
-        ];
-    v = /*error:INVALID_ASSIGNMENT*/ <T> /*@returnType=List<String>*/ (String
-        x) => /*@typeArgs=String*/ ["hello"];
-    v = <T> /*@returnType=List<String>*/ (int x) => /*@typeArgs=String*/ [
-          /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3
-        ];
-    v = <T> /*@returnType=List<String>*/ (int x) {
-      return /*@typeArgs=String*/ [
-        /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3
-      ];
+    var v = f;
+    v = <T>(int x) => throw '';
+    v = <T>(int x) => ["hello"];
+    v = /*error:INVALID_ASSIGNMENT*/ <T>(String x) => ["hello"];
+    v = <T>(int x) => [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3];
+    v = <T>(int x) {
+      return [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3];
     };
   }
   {
     int int2int<S>(int x) => throw '';
     String int2String<T>(int x) => throw '';
     String string2String<T>(String x) => throw '';
-    var /*@type=<S extends Object? = dynamic>(int) -> int*/ x = int2int;
-    x = <T> /*@returnType=int*/ (/*@type=int*/ x) => x;
-    x = <T> /*@returnType=int*/ (/*@type=int*/ x) => x /*@target=num.+*/ + 1;
-    var /*@type=<T extends Object? = dynamic>(int) -> String*/ y = int2String;
-    y = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ <
-            T> /*@returnType=String*/ (/*@type=int*/ x) =>
-        x;
-    y = <T> /*@returnType=String*/ (/*@type=int*/ x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/ x
-        .substring(3);
-    var /*@type=<T extends Object? = dynamic>(String) -> String*/ z =
-        string2String;
-    z = <T> /*@returnType=String*/ (/*@type=String*/ x) =>
-        x. /*@target=String.substring*/ substring(3);
+    var x = int2int;
+    x = <T>(x) => x;
+    x = <T>(x) => x + 1;
+    var y = int2String;
+    y = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ <T>(x) => x;
+    y = <T>(x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/ x.substring(3);
+    var z = string2String;
+    z = <T>(x) => x.substring(3);
   }
 }
 

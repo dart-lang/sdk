@@ -27,7 +27,7 @@ class A {
 FieldFormalParameter
   type: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   thisKeyword: this
   period: .
@@ -37,7 +37,7 @@ FieldFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredElement: <testLibraryFragment> a@44
@@ -65,7 +65,7 @@ class A {
 FieldFormalParameter
   type: NamedType
     name: U
-    element2: #E0 U
+    element: #E0 U
     type: U
   thisKeyword: this
   period: .
@@ -83,7 +83,7 @@ FieldFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element2: #E0 U
+        element: #E0 U
         type: U
       name: a
       declaredElement: <testLibraryFragment> a@50
@@ -109,7 +109,7 @@ class A<V> {
 FieldFormalParameter
   type: NamedType
     name: T
-    element2: #E0 T
+    element: #E0 T
     type: T
   thisKeyword: this
   period: .
@@ -131,7 +131,7 @@ FieldFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element2: #E1 U
+        element: #E1 U
         type: U
       name: a
       declaredElement: <testLibraryFragment> a@62
@@ -140,7 +140,7 @@ FieldFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: V
-        element2: #E2 V
+        element: #E2 V
         type: V
       name: b
       declaredElement: <testLibraryFragment> b@67
@@ -186,7 +186,7 @@ class A {
 FieldFormalParameter
   type: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   thisKeyword: this
   period: .

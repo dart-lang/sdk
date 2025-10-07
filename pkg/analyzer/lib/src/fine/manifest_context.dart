@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/manifest_type.dart';
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 
 class EncodeContext {
@@ -113,12 +113,12 @@ final class ManifestElement {
     required this.id,
   });
 
-  factory ManifestElement.read(SummaryDataReader reader) {
+  factory ManifestElement.read(BinaryReader reader) {
     return ManifestElement(
       libraryUri: reader.readUri(),
       kind: reader.readEnum(ManifestElementKind.values),
-      topLevelName: reader.readStringUtf8(),
-      memberName: reader.readOptionalStringUtf8(),
+      topLevelName: reader.readStringReference(),
+      memberName: reader.readOptionalStringReference(),
       id: reader.readOptionalObject(() => ManifestItemId.read(reader)),
     );
   }
@@ -170,12 +170,12 @@ final class ManifestElement {
     return true;
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUri(libraryUri);
-    sink.writeEnum(kind);
-    sink.writeStringUtf8(topLevelName);
-    sink.writeOptionalStringUtf8(memberName);
-    id.writeOptional(sink);
+  void write(BinaryWriter writer) {
+    writer.writeUri(libraryUri);
+    writer.writeEnum(kind);
+    writer.writeStringReference(topLevelName);
+    writer.writeOptionalStringReference(memberName);
+    id.writeOptional(writer);
   }
 
   static ManifestElement encode(EncodeContext context, Element element) {
@@ -199,8 +199,19 @@ final class ManifestElement {
     );
   }
 
-  static List<ManifestElement> readList(SummaryDataReader reader) {
+  static ManifestElement? encodeOptional(
+    EncodeContext context,
+    Element? element,
+  ) {
+    return element != null ? encode(context, element) : null;
+  }
+
+  static List<ManifestElement> readList(BinaryReader reader) {
     return reader.readTypedList(() => ManifestElement.read(reader));
+  }
+
+  static ManifestElement? readOptional(BinaryReader reader) {
+    return reader.readOptionalObject(() => ManifestElement.read(reader));
   }
 }
 
@@ -354,14 +365,14 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
     var libraryUri = topLevelElement.library!.uri;
 
     // Prepare the external library manifest.
-    var manifest = libraryManifests[libraryUri];
+    var manifest = libraryManifests[libraryUri]?.instance;
     if (manifest == null) {
       return null;
     }
 
     // SAFETY: if we can reference the element, it has a name.
     var topLevelName = topLevelElement.lookupName!.asLookupName;
-    TopLevelItem? topLevelItem;
+    ManifestItem? topLevelItem;
     switch (topLevelElement) {
       case ClassElement():
         topLevelItem = manifest.declaredClasses[topLevelName];
@@ -433,5 +444,20 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
         (throw '[runtimeType: ${element.runtimeType}]'
             '[topLevelName: $topLevelName]'
             '[memberName: $memberName]');
+  }
+}
+
+extension ManifestElementExtension on ManifestElement? {
+  bool match(MatchContext context, Element? element) {
+    if (this case var self?) {
+      return element != null && self.match(context, element);
+    }
+    return element == null;
+  }
+
+  void writeOptional(BinaryWriter writer) {
+    writer.writeOptionalObject(this, (it) {
+      it.write(writer);
+    });
   }
 }

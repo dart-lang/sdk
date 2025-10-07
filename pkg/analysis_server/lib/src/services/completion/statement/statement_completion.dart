@@ -411,10 +411,9 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_controlFlowBlock(AstNode node) {
-    var expr =
-        (node is ExpressionStatement)
-            ? node.expression
-            : (node is ReturnStatement ? node.expression : null);
+    var expr = (node is ExpressionStatement)
+        ? node.expression
+        : (node is ReturnStatement ? node.expression : null);
     if (!(node is ReturnStatement || expr is ThrowExpression)) {
       return false;
     }
@@ -1028,8 +1027,9 @@ class StatementCompletionProcessor {
       var member = _findInvalidElement(node.members);
       if (member != null) {
         if (member.colon.isSynthetic) {
-          var loc =
-              member is SwitchCase ? member.expression.end : member.keyword.end;
+          var loc = member is SwitchCase
+              ? member.expression.end
+              : member.keyword.end;
           sb = SourceBuilder(file, loc);
           sb.append(': ');
           exitPosition = Position(file, loc + 2);

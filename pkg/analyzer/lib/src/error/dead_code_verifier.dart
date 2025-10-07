@@ -138,9 +138,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Resolve the names in the given [combinator] in the scope of the given
   /// [library].
   void _checkCombinator(LibraryElementImpl library, Combinator combinator) {
-    Namespace namespace = NamespaceBuilder().createExportNamespaceForLibrary(
-      library,
-    );
+    Namespace namespace = library.exportNamespace;
     NodeList<SimpleIdentifier> names;
     DiagnosticCode warningCode;
     if (combinator is HideCombinator) {
@@ -304,7 +302,7 @@ class NullSafetyDeadCodeVerifier {
           offset = node.end;
         }
       } else if (parent is ForParts) {
-        node = parent.updaters.last;
+        if (parent.updaters.lastOrNull case var last?) node = last;
       } else if (parent is BinaryExpression) {
         offset = parent.operator.offset;
         node = parent.rightOperand;

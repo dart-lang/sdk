@@ -218,7 +218,7 @@ void CollectScriptTokenPositionsFromKernel(
 }  // namespace kernel
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-ArrayPtr Script::CollectConstConstructorCoverageFrom() const {
+ArrayPtr Script::CollectConstConstructorCoverageFromKernel() const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   kernel::TranslationHelper helper(thread);
@@ -229,8 +229,8 @@ ArrayPtr Script::CollectConstConstructorCoverageFrom() const {
       KernelProgramInfo::Handle(zone, kernel_program_info());
   helper.InitFromKernelProgramInfo(kernel_info);
 
-  const auto& data =
-      TypedDataView::Handle(zone, interesting_script.constant_coverage());
+  const auto& data = TypedDataView::Handle(
+      zone, interesting_script.kernel_constant_coverage());
 
   kernel::KernelReaderHelper kernel_reader(zone, &helper, data, 0);
 

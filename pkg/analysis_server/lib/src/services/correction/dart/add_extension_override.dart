@@ -80,7 +80,7 @@ class _AddOverride extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_name];
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_EXTENSION_OVERRIDE;
+  FixKind get fixKind => DartFixKind.addExtensionOverride;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

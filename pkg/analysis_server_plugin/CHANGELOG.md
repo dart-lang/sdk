@@ -1,9 +1,24 @@
-## 0.2.3-dev
+## 0.3.2-dev
+
+- Fix support for automatic re-analysis of '*.dart' files _added_, both on-disk
+  and for files added in the IDE.
+
+## 0.3.1
+
+- Write more of a README.
+- Perform less redundant work when producing diagnostics.
+
+## 0.3.0
 
 - Require version `8.2.0` of the `analyzer` package.
 - Require Dart SDK `^3.9.0`.
 - Add support for automatic re-analysis of files changed on-disk (as opposed to
   file contents changed in the IDE, which is already supported).
+- Add support for analyzing and reporting diagnostics in part files.
+- Add support for `RuleContext.isInLibDir` and `RuleContext.package`.
+- Add support for priority files in an IDE.
+- Correct the text range over which fixes are calculated.
+- Breaking change: a `Plugin` class must now implement `String get name`.
 
 ## 0.2.2
 

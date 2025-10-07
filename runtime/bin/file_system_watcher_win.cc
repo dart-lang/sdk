@@ -18,16 +18,16 @@
 namespace dart {
 namespace bin {
 
+void FileSystemWatcher::InitOnce() {}
+
+void FileSystemWatcher::Cleanup() {}
+
 bool FileSystemWatcher::IsSupported() {
   return true;
 }
 
 intptr_t FileSystemWatcher::Init() {
   return 0;
-}
-
-void FileSystemWatcher::Close(intptr_t id) {
-  USE(id);
 }
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
@@ -58,7 +58,12 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
   DirectoryWatchHandle* handle =
       new DirectoryWatchHandle(dir, list_events, recursive);
   handle->Start();
+  handle->Retain();
   return reinterpret_cast<intptr_t>(handle);
+}
+
+void FileSystemWatcher::DestroyWatch(intptr_t path_id) {
+  FileSystemWatcher::UnwatchPath(0, path_id);
 }
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
@@ -66,6 +71,7 @@ void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
   DirectoryWatchHandle* handle =
       reinterpret_cast<DirectoryWatchHandle*>(path_id);
   handle->Stop();
+  handle->Release();
 }
 
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
@@ -91,7 +97,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
     FILE_NOTIFY_INFORMATION* e =
         reinterpret_cast<FILE_NOTIFY_INFORMATION*>(buffer + offset);
 
-    Dart_Handle event = Dart_NewList(5);
+    Dart_Handle event = Dart_NewList(kEventNumElements);
     int mask = 0;
     if (e->Action == FILE_ACTION_ADDED) {
       mask |= kCreate;
@@ -106,17 +112,16 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
       mask |= kMove;
     }
     if (e->Action == FILE_ACTION_RENAMED_NEW_NAME) {
-      mask |= kMove;
+      mask |= kMove | kMovedTo;
     }
-    Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
+    Dart_ListSetAt(event, kEventFlagsIndex, Dart_NewInteger(mask));
     // Move events come in pairs. Just 'enable' by default.
-    Dart_ListSetAt(event, 1, Dart_NewInteger(1));
+    Dart_ListSetAt(event, kEventCookieIndex, Dart_NewInteger(1));
     Dart_ListSetAt(
-        event, 2,
+        event, kEventPathIndex,
         Dart_NewStringFromUTF16(reinterpret_cast<uint16_t*>(e->FileName),
                                 e->FileNameLength / 2));
-    Dart_ListSetAt(event, 3, Dart_NewBoolean(true));
-    Dart_ListSetAt(event, 4, Dart_NewInteger(path_id));
+    Dart_ListSetAt(event, kEventPathIdIndex, Dart_NewInteger(path_id));
     Dart_ListSetAt(events, i, event);
     i++;
     if (e->NextEntryOffset == 0) {

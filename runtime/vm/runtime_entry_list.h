@@ -26,6 +26,7 @@ namespace dart {
   V(BoxFloat64x2)                                                              \
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
+  V(ResumptionBreakpointHandler)                                               \
   V(CloneContext)                                                              \
   V(CloneSuspendState)                                                         \
   V(DoubleToInteger)                                                           \

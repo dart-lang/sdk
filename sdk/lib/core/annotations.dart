@@ -66,21 +66,168 @@ class Deprecated {
   /// The message should explain how to migrate away from the feature if an
   /// alternative is available, and when the deprecated feature is expected to be
   /// removed.
-  final String message;
+  final String? message;
 
-  /// Create a deprecation annotation which specifies the migration path and
+  final _DeprecationKind _kind;
+
+  /// Creates a deprecation annotation which specifies the migration path and
   /// expiration of the annotated feature.
   ///
-  /// The [message] argument should be readable by programmers, and should state
-  /// an alternative feature (if available) as well as when an annotated feature
-  /// is expected to be removed.
-  const Deprecated(this.message);
+  /// The [message] is displayed as part of the warning. The message should be
+  /// aimed at the programmer using the annotated feature, and should recommend
+  /// an alternative (if available), and say when this feature is expected to
+  /// be removed if that is sooner or later than the next major version.
+  const Deprecated(this.message) : _kind = _DeprecationKind.use;
+
+  /// Creates an annotation which deprecates implementing a class or mixin.
+  ///
+  /// The annotation can be used on `class` or `mixin` declarations whose
+  /// interface can currently be implemented, so they are not marked `final`,
+  /// `sealed`, or `base`, but where the ability to implement will be removed
+  /// in a later release.
+  ///
+  /// Any existing class, mixin or enum declaration which `implements` the
+  /// interface will cause a warning that such use is deprecated. Does not
+  /// affect classes which extend or mix in the annotated class or mixin (see
+  /// [Deprecated.extend], [Deprecated.mixin], and [Deprecated.subclass]).
+  ///
+  /// The annotation is not inherited by subclasses. If a public subclass will
+  /// also become unimplementable, which it will if the annotated declaration
+  /// becomes `final` or `base`, but not if it becomes `sealed`, then the
+  /// subclass should deprecate implementation as well.
+  ///
+  /// The [message], if given, is displayed as part of the warning. The message
+  /// should be aimed at the programmer who owns the implementing class, and
+  /// should recommend an alternative (if available), and say when this
+  /// functionality is expected to be removed if that is sooner or later than
+  /// the next major version.
+  const Deprecated.implement([this.message])
+    : _kind = _DeprecationKind.implement;
+
+  /// Creates an annotation which deprecates extending a class.
+  ///
+  /// The annotation can be used on `class` declarations which can currently be
+  /// extended, so they are not marked `final`, `sealed`, or `interface`, but
+  /// where the ability to extend will be removed in a later release.
+  ///
+  /// Any existing class declaration which `extends` the class will cause a
+  /// warning that such use is deprecated. Does not affect classes which
+  /// implement or mix in the annotated class (see [Deprecated.implement],
+  /// [Deprecated.mixin], and [Deprecated.subclass]).
+  ///
+  /// The annotation is not inherited by subclasses. If a public subclass will
+  /// also become unextendable, which it will if the annotated declaration
+  /// becomes `final` or `interface`, but not if it becomes `sealed`, then the
+  /// subclass should deprecate extendability as well.
+  ///
+  /// The [message], if given, is displayed as part of the warning. The message
+  /// should be aimed at the programmer who owns the extending class, and
+  /// should recommend an alternative (if available), and say when this
+  /// functionality is expected to be removed if that is sooner or later than
+  /// the next major version.
+  const Deprecated.extend([this.message]) : _kind = _DeprecationKind.extend;
+
+  /// Creates an annotation which deprecates subclassing (implementing or
+  /// extending) a class.
+  ///
+  /// The annotation can be used on `class` and `mixin` declarations which can
+  /// currently be subclassed, so they are not marked `final`, or `sealed`, but
+  /// where the ability to subclass will be removed in a later release.
+  ///
+  /// Any existing class declaration which `extends` or `implements` the
+  /// annotated class or mixin will cause a warning that such use is
+  /// deprecated. Does not affect classes which mix in the annotated class (see
+  /// [Deprecated.extend], [Deprecated.implement] and [Deprecated.mixin]).
+  ///
+  /// The annotation is not inherited by subclasses. If a public subclass will
+  /// also become unsubclassable, which it will if the annotated declaration
+  /// becomes `final`, but not if it becomes `sealed`, then the subclass should
+  /// deprecate subclassability as well.
+  ///
+  /// The [message], if given, is displayed as part of the warning. The message
+  /// should be aimed at the programmer who owns the subclassing class, and
+  /// should recommend an alternative (if available), and say when this
+  /// functionality is expected to be removed if that is sooner or later than
+  /// the next major version.
+  const Deprecated.subclass([this.message]) : _kind = _DeprecationKind.subclass;
+
+  /// Creates an annotation which deprecates instantiating a class.
+  ///
+  /// The annotation can be used on `class` declarations which can currently be
+  /// instantiated, so they are not marked `abstract` or `sealed`, but where
+  /// the ability to instantiate will be removed in a later release.
+  ///
+  /// Any existing code which instantiates the annotated class will cause a
+  /// warning that such use is deprecated.
+  ///
+  /// The [message], if given, is displayed as part of the warning. The message
+  /// should be aimed at the programmer who owns the instantiating code, and
+  /// should recommend an alternative (if available), and say when this
+  /// functionality is expected to be removed if that is sooner or later than
+  /// the next major version.
+  const Deprecated.instantiate([this.message])
+    : _kind = _DeprecationKind.instantiate;
+
+  /// Creates an annotation which deprecates mixing in a class.
+  ///
+  /// The annotation can be used on `class` declarations which can currently be
+  /// mixed in, so they are marked `mixin`, but where the ability to mix in
+  /// will be removed in a later release.
+  ///
+  /// Any existing class declaration which mixes in the annotated class will
+  /// cause a warning that such use is deprecated. Does not affect classes
+  /// which extend or implement the annotated class (see [Deprecated.extend],
+  /// [Deprecated.implement] and [Deprecated.subclass]).
+  ///
+  /// The [message], if given, is displayed as part of the warning. The message
+  /// should be aimed at the programmer who owns the class which mixes in the
+  /// annotated class, and should recommend an alternative (if available), and
+  /// say when this functionality is expected to be removed if that is sooner
+  /// or later than the next major version.
+  const Deprecated.mixin([this.message]) : _kind = _DeprecationKind.mixin;
+
+  /// Creates an annotation which deprecates omitting an argument for the
+  /// annotated parameter.
+  ///
+  /// The annotation can be used on optional parameters of methods,
+  /// constructors, or top-level functions, indicating the parameter will be
+  /// required in a later release.
+  ///
+  /// Any call to a function which does not pass a value for the annotated
+  /// parameter will cause a warning that such omission is deprecated.
+  ///
+  /// The annotation is not inherited in method overrides.
+  ///
+  /// The [message], if given, is displayed as part of the warning. The message
+  /// should be aimed at the programmer who is calling the function with the
+  /// annotated parameter, and should recommend an alternative (if available),
+  /// and say when this functionality is expected to be removed if that is
+  /// sooner or later than the next major version.
+  const Deprecated.optional([this.message]) : _kind = _DeprecationKind.optional;
 
   String toString() => "Deprecated feature: $message";
 }
 
 /// Marks a feature as [Deprecated] until the next release.
 const Deprecated deprecated = Deprecated("next release");
+
+/// The various kinds of deprecations with which a feature can be annotated.
+///
+/// Each deprecation kind is paired directly with a [Deprecated] constructor.
+/// [_DeprecationKind.use] is used by the unnamed [Deprecated.new] constructor
+/// and the [deprecated] constant.
+///
+/// This enum can be private because the information is only intended for
+/// static tooling, such as the analyzer. Values may be added.
+enum _DeprecationKind {
+  use,
+  implement,
+  extend,
+  subclass,
+  instantiate,
+  mixin,
+  optional,
+}
 
 class _Override {
   const _Override();

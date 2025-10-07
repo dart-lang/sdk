@@ -20,10 +20,10 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_BOOL_EXPRESSION;
+  FixKind get fixKind => DartFixKind.convertToBoolExpression;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_BOOL_EXPRESSION_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToBoolExpressionMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -65,12 +65,11 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
       await (switch ((thenExpression, elseExpression)) {
         (BooleanLiteral then, BooleanLiteral elseExp) => () async {
           var equalValues = then.value == elseExp.value;
-          var rangeStart =
-              equalValues
-                  // keep `then`
-                  ? range.startStart(condition, then)
-                  // keep `condition`
-                  : range.endEnd(condition, then);
+          var rangeStart = equalValues
+              // keep `then`
+              ? range.startStart(condition, then)
+              // keep `condition`
+              : range.endEnd(condition, then);
           // remove ` : elseExp`
           var rangeEnd = range.endEnd(then, elseExp);
           await _addEdit(
@@ -95,8 +94,9 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
               then.value ? operator : null,
             ),
             bangBeforeParens: true,
-            parensRange2:
-                elseExp.needsParens(operator) ? range.node(elseExp) : null,
+            parensRange2: elseExp.needsParens(operator)
+                ? range.node(elseExp)
+                : null,
           );
         }(),
         (Expression then, BooleanLiteral elseExp) => () async {

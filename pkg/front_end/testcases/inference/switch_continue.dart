@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 // Note: there are no expectations to fulfill here; we just want to make sure
@@ -10,11 +9,11 @@ library test;
 
 void test(int x, void f()) {
   switch (x) {
-    case /*@target=num.==*/ 0:
+    case 0:
       f();
       continue L;
     L:
-    case /*@target=num.==*/ 1:
+    case 1:
       f();
       break;
   }

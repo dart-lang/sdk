@@ -533,7 +533,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E::@def::0
+                      element: <testLibrary>::@enum::E::@def::0
                       type: E
                     element: <testLibrary>::@enum::E::@def::0::@constructor::new
                   argumentList: ArgumentList
@@ -547,7 +547,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E::@def::0
+                      element: <testLibrary>::@enum::E::@def::0
                       type: E
                     element: <testLibrary>::@enum::E::@def::0::@constructor::new
                   argumentList: ArgumentList
@@ -591,7 +591,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E::@def::0
+                      element: <testLibrary>::@enum::E::@def::0
                       type: E
                     element: <testLibrary>::@enum::E::@def::0::@constructor::new
                   argumentList: ArgumentList
@@ -605,7 +605,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E::@def::0
+                      element: <testLibrary>::@enum::E::@def::0
                       type: E
                     element: <testLibrary>::@enum::E::@def::0::@constructor::new
                   argumentList: ArgumentList
@@ -619,7 +619,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E::@def::0
+                      element: <testLibrary>::@enum::E::@def::0
                       type: E
                     element: <testLibrary>::@enum::E::@def::0::@constructor::new
                   argumentList: ArgumentList

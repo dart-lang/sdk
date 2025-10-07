@@ -26,6 +26,7 @@ workspace:
   - pkg/async_helper
   - pkg/bisect_dart
   - pkg/build_integration
+  - pkg/cfg
   - pkg/compiler
   - pkg/dart2bytecode
   - pkg/dart2js_info
@@ -58,6 +59,7 @@ workspace:
   - pkg/meta
   - pkg/mmap
   - pkg/modular_test
+  - pkg/native_compiler
   - pkg/native_stack_traces
   - pkg/node_preamble
   - pkg/record_use
@@ -317,4 +319,4 @@ dependency_overrides:
   # observatory needs a migration to language version 3.6 before it can be
   # included in the workspace. (If it is not deleted before)
   observatory:
-    path: runtime/observatory
+    path: pkg/observatory

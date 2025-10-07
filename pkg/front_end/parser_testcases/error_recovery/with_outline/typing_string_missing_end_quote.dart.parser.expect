@@ -1,0 +1,39 @@
+NOTICE: Stream was rewritten by parser!
+
+class A {
+method1() {}
+method2() {}
+}
+
+class B {
+method1(String foo) {
+print("hello world"
+);}
+
+method2() {}
+}
+
+class C {
+method1() {}
+method2() {}
+}
+
+
+[UnterminatedString][UnmatchedToken]class[KeywordToken] A[StringToken] {[BeginToken]
+method1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+method2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] B[StringToken] {[BeginToken]
+method1[StringToken]([BeginToken]String[StringToken] foo[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"hello world"[SyntheticStringToken]
+)[SyntheticToken];[SyntheticToken]}[SimpleToken]
+
+method2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+method1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+method2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

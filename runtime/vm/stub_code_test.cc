@@ -29,6 +29,7 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
     owner_class.SetFunctions(functions);
   }
   lib.AddClass(owner_class);
+  code.set_owner(function);
   function.AttachCode(code);
   return function;
 }

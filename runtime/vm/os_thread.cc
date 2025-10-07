@@ -6,6 +6,7 @@
 
 #include "platform/address_sanitizer.h"
 #include "platform/atomic.h"
+#include "platform/memory_sanitizer.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/thread_interrupter.h"

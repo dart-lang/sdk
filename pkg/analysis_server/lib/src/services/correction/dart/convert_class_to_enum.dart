@@ -32,10 +32,10 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertClassToEnum;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_CLASS_TO_ENUM;
+  FixKind get fixKind => DartFixKind.convertClassToEnum;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_CLASS_TO_ENUM_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertClassToEnumMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -699,8 +699,9 @@ class _EnumVisitor extends _BaseVisitor {
   /// Initialize a newly created visitor to visit the class declaration
   /// corresponding to the given [classElement].
   _EnumVisitor(super.classElement, List<_ConstantField> fieldsToConvert)
-    : fieldsToConvert =
-          fieldsToConvert.map((field) => field.declaration).toList();
+    : fieldsToConvert = fieldsToConvert
+          .map((field) => field.declaration)
+          .toList();
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {

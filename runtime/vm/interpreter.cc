@@ -133,9 +133,8 @@ class InterpreterHelpers {
                : TypeArguments::null();
   }
 
-  // The usage counter is actually a 'hotness' counter.
-  // For an instance call, both the usage counters of the caller and of the
-  // calle will get incremented, as well as the ICdata counter at the call site.
+  // The usage counter is actually a 'hotness' counter. For a Dart->Dart
+  // call, both the caller's and callee's usage counters are incremented.
   DART_FORCE_INLINE static void IncrementUsageCounter(FunctionPtr f) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
     f->untag()->usage_counter_++;
@@ -260,6 +259,7 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
                                           ObjectPtr* result) {
   ASSERT(instance_size > 0);
   ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
+  ASSERT(IsAllocatableInNewSpace(instance_size));
 
   const uword top = thread->top();
   const intptr_t remaining = thread->end() - top;
@@ -847,8 +847,30 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     WriteInstructionToTrace(pc);                                               \
   }                                                                            \
   icount_++;
+#define BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION                                  \
+  do {                                                                         \
+    if (IsTracingExecution()) {                                                \
+      /* Use the original instruction count. */                                \
+      auto const icount = icount_ - 1;                                         \
+      auto const instr_size = KernelBytecode::kInstructionSize[op];            \
+      THR_Print("%" Pu64 " ", icount);                                         \
+      THR_Print("dispatching to original instruction\n");                      \
+      THR_Print("%" Pu64 " ", icount);                                         \
+      if (FLAG_support_disassembler) {                                         \
+        KBCInstr temp[6];                                                      \
+        *temp = op;                                                            \
+        memmove(temp + 1, pc + 1, instr_size - 1);                             \
+        KernelBytecodeDisassembler::Disassemble(                               \
+            reinterpret_cast<uword>(temp),                                     \
+            reinterpret_cast<uword>(temp + instr_size));                       \
+      } else {                                                                 \
+        THR_Print("Disassembler not supported in this mode.\n");               \
+      }                                                                        \
+    }                                                                          \
+  } while (0)
 #else
 #define TRACE_INSTRUCTION
+#define BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION
 #endif  // defined(DEBUG)
 
 #if !defined(PRODUCT)
@@ -864,13 +886,27 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 
 // Decode opcode and A part of the given value and dispatch to the
 // corresponding bytecode handler.
-#ifdef DART_HAS_COMPUTED_GOTO
+#if defined(DART_HAS_COMPUTED_GOTO)
 #define DISPATCH_OP(val)                                                       \
   do {                                                                         \
     op = (val);                                                                \
     TRACE_INSTRUCTION                                                          \
     goto* dispatch[ADJUST_FOR_SINGLE_STEPPING(op)];                            \
   } while (0)
+#if !defined(PRODUCT)
+// The breakpoint should dispatch to the single step handler, if any, in case
+// the breakpoint was set on a call that should then be stepped into or over
+// appropriately. Note that op has already been set to the original opcode
+// that had been replaced with the breakpoint opcode during patching.
+#define BREAKPOINT_DISPATCH                                                    \
+  do {                                                                         \
+    BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;                                     \
+    goto* dispatch[ADJUST_FOR_SINGLE_STEPPING(op)];                            \
+  } while (0)
+// The dispatch from a single step check back to the original instruction
+// implementation should ignore single_stepping_offset.
+#define DISPATCH_ORIGINAL_OPCODE goto* dispatch[op]
+#endif  // !defined(PRODUCT)
 #else
 #define DISPATCH_OP(val)                                                       \
   do {                                                                         \
@@ -878,6 +914,20 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     TRACE_INSTRUCTION                                                          \
     goto SwitchDispatch;                                                       \
   } while (0)
+#if !defined(PRODUCT)
+// The breakpoint should dispatch to the single step handler, if any, in case
+// the breakpoint was set on a call that should then be stepped into or over
+// appropriately. Note that op has already been set to the original opcode
+// that had been replaced with the breakpoint opcode during patching.
+#define BREAKPOINT_DISPATCH                                                    \
+  do {                                                                         \
+    BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;                                     \
+    goto SwitchDispatch;                                                       \
+  } while (0)
+// The dispatch from a single step check back to the original instruction
+// implementation should ignore single_stepping_offset.
+#define DISPATCH_ORIGINAL_OPCODE goto SwitchDispatchNoSingleStep
+#endif  // !defined(PRODUCT)
 #endif  // defined(DART_HAS_COMPUTED_GOTO)
 
 // Fetch next operation from PC and dispatch.
@@ -1532,7 +1582,9 @@ bool Interpreter::AllocateArray(Thread* thread,
                                 ObjectPtr* SP) {
   if (LIKELY(!length_object->IsHeapObject())) {
     const intptr_t length = Smi::Value(Smi::RawCast(length_object));
-    if (LIKELY(Array::IsValidLength(length))) {
+    if (LIKELY(static_cast<uintptr_t>(length) <=
+               static_cast<uintptr_t>(Array::kMaxNewSpaceElements))) {
+      ASSERT(Array::IsValidLength(length));
       ArrayPtr result;
       if (TryAllocate(thread, kArrayCid, Array::InstanceSize(length),
                       reinterpret_cast<ObjectPtr*>(&result))) {
@@ -1797,6 +1849,16 @@ ObjectPtr Interpreter::Resume(Thread* thread,
   pp_ = bytecode->untag()->object_pool();
   fp_ = FP;
 
+#if !defined(PRODUCT)
+  if (auto* const isolate = thread->isolate()) {
+    if (isolate->has_resumption_breakpoints()) {
+      Exit(thread, FP, SP + 1, pc_);
+      InvokeRuntime(thread, this, DRT_ResumptionBreakpointHandler,
+                    NativeArguments(thread, 0, nullptr, nullptr));
+    }
+  }
+#endif
+
   return Run(thread, SP, rethrow_exception);
 }
 
@@ -1846,7 +1908,7 @@ ObjectPtr Interpreter::Run(Thread* thread,
     goto RethrowException;
   }
 
-#ifdef DART_HAS_COMPUTED_GOTO
+#if defined(DART_HAS_COMPUTED_GOTO)
   static const void* dispatch[] = {
 #define TARGET(name, fmt, kind, fmta, fmtb, fmtc) &&bc##name,
       KERNEL_BYTECODES_LIST(TARGET)
@@ -1877,7 +1939,19 @@ SwitchDispatch:
     default:
       FATAL1("Undefined opcode: %d\n", op);
   }
-#endif
+#if !defined(PRODUCT)
+SwitchDispatchNoSingleStep:
+  switch (op & 0xFF) {
+#define TARGET(name, fmt, kind, fmta, fmtb, fmtc)                              \
+  case KernelBytecode::k##name:                                                \
+    goto bc##name;
+    KERNEL_BYTECODES_LIST(TARGET)
+#undef TARGET
+    default:
+      FATAL1("Undefined opcode: %d\n", op);
+  }
+#endif  // !defined(PRODUCT)
+#endif  // defined(DART_HAS_COMPUTED_GOTO)
 
   // KernelBytecode handlers (see constants_kbc.h for bytecode descriptions).
   {
@@ -1890,6 +1964,7 @@ SwitchDispatch:
     }
     SP = FP + num_locals - 1;
 
+    InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
     DISPATCH();
   }
 
@@ -1897,6 +1972,7 @@ SwitchDispatch:
     BYTECODE(EntryOptional, A_B_C);
     SP = FP - 1;
     if (CopyParameters(thread, &pc, &FP, &SP, rA, rB, rC, 0)) {
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       DISPATCH();
     } else {
       SP[1] = FrameFunction(FP);
@@ -1909,6 +1985,7 @@ SwitchDispatch:
     FP[kKBCSuspendStateSlotFromFp] = null_value;
     SP = FP + kKBCSuspendStateSlotFromFp;
     if (CopyParameters(thread, &pc, &FP, &SP, rA, rB, rC, 1)) {
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       DISPATCH();
     } else {
       SP[1] = FrameFunction(FP);
@@ -4071,80 +4148,6 @@ SwitchDispatch:
     DISPATCH();
   }
 
-#if !defined(PRODUCT)
-#if defined(DEBUG)
-#define BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION                                  \
-  do {                                                                         \
-    if (IsTracingExecution()) {                                                \
-      /* Use the original instruction count. */                                \
-      auto const icount = icount_ - 1;                                         \
-      auto const instr_size = KernelBytecode::kInstructionSize[op];            \
-      THR_Print("%" Pu64 " ", icount);                                         \
-      THR_Print("dispatching to original instruction\n");                      \
-      THR_Print("%" Pu64 " ", icount);                                         \
-      if (FLAG_support_disassembler) {                                         \
-        KBCInstr temp[6];                                                      \
-        *temp = op;                                                            \
-        memmove(temp + 1, pc + 1, instr_size - 1);                             \
-        KernelBytecodeDisassembler::Disassemble(                               \
-            reinterpret_cast<uword>(temp),                                     \
-            reinterpret_cast<uword>(temp + instr_size));                       \
-      } else {                                                                 \
-        THR_Print("Disassembler not supported in this mode.\n");               \
-      }                                                                        \
-    }                                                                          \
-  } while (0)
-#else
-#define BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION
-#endif
-
-// The dispatch from a single step check or a breakpoint back to the original
-// patched instruction should ignore single_stepping_offset.
-#if defined(DART_HAS_COMPUTED_GOTO)
-#define DISPATCH_ORIGINAL_OPCODE goto* dispatch[op]
-#else
-#define DISPATCH_ORIGINAL_OPCODE goto SwitchDispatchNoSingleStep
-  {
-  SwitchDispatchNoSingleStep:
-    switch (op & 0xFF) {
-#define TARGET(name, fmt, kind, fmta, fmtb, fmtc)                              \
-  case KernelBytecode::k##name:                                                \
-    goto bc##name;
-      KERNEL_BYTECODES_LIST(TARGET)
-#undef TARGET
-      default:
-        FATAL1("Undefined opcode: %d\n", op);
-    }
-  }
-#endif
-
-#define DEFINE_BREAKPOINT(Format)                                              \
-  {                                                                            \
-    BYTECODE(VMInternal_Breakpoint_##Format, Format)                           \
-    SP[1] = 0; /* Smi containing the original opcode. */                       \
-    Exit(thread, FP, SP + 2, pc);                                              \
-    INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler,                               \
-                   NativeArguments(thread, 0, nullptr, SP + 1));               \
-    uint32_t old_op = RawSmiValue(Smi::RawCast(SP[1]));                        \
-    ASSERT_EQUAL(KernelBytecode::BreakpointOpcode(                             \
-                     static_cast<KernelBytecode::Opcode>(old_op)),             \
-                 op);                                                          \
-    op = old_op;                                                               \
-    /* The pc is moved to the next instruction during the dispatch to  */      \
-    /* the original instruction's implementation, so re-adjust it to   */      \
-    /* before the breakpoint/original instruction prior to dispatch.   */      \
-    pc -= KernelBytecode::kInstructionSize[op];                                \
-    BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;                                     \
-    DISPATCH_ORIGINAL_OPCODE;                                                  \
-  }
-  DEFINE_BREAKPOINT(0)      // size 1
-  DEFINE_BREAKPOINT(D)      // size 2 and 5
-  DEFINE_BREAKPOINT(A_E)    // size 3 and 6
-  DEFINE_BREAKPOINT(A_B_C)  // size 4
-#undef DEFINE_BREAKPOINT
-#undef BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION
-#endif  // !defined(PRODUCT)
-
   {
   TailCallSP1:
     FunctionPtr function = Function::RawCast(SP[1]);
@@ -4326,6 +4329,30 @@ SwitchDispatch:
   }
 
 #if !defined(PRODUCT)
+#define DEFINE_BREAKPOINT(Format)                                              \
+  {                                                                            \
+    BYTECODE(VMInternal_Breakpoint_##Format, Format)                           \
+    SP[1] = 0; /* Smi containing the original opcode. */                       \
+    Exit(thread, FP, SP + 2, pc);                                              \
+    INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler,                               \
+                   NativeArguments(thread, 0, nullptr, SP + 1));               \
+    uint32_t old_op = RawSmiValue(Smi::RawCast(SP[1]));                        \
+    ASSERT_EQUAL(KernelBytecode::BreakpointOpcode(                             \
+                     static_cast<KernelBytecode::Opcode>(old_op)),             \
+                 op);                                                          \
+    op = old_op;                                                               \
+    /* The pc is moved to the next instruction during the dispatch to  */      \
+    /* the original instruction's implementation, so re-adjust it to   */      \
+    /* before the breakpoint/original instruction prior to dispatch.   */      \
+    pc -= KernelBytecode::kInstructionSize[op];                                \
+    BREAKPOINT_DISPATCH;                                                       \
+  }
+  DEFINE_BREAKPOINT(0)      // size 1
+  DEFINE_BREAKPOINT(D)      // size 2 and 5
+  DEFINE_BREAKPOINT(A_E)    // size 3 and 6
+  DEFINE_BREAKPOINT(A_B_C)  // size 4
+#undef DEFINE_BREAKPOINT
+
   {
 #define SINGLE_STEP_HANDLER_ENTRY(Name, __, ___, ____, _____, ______)          \
   bc##Name##_SingleStep:
@@ -4340,8 +4367,9 @@ SwitchDispatch:
     }
 #endif
 
-    /* The frame should include the PC of the to-be-executed instruction. */
-    Exit(thread, FP, SP + 1, pc);
+    // The debugger expects return addresses in the frames when retrieving
+    // source positions, so use the next instruction's address.
+    Exit(thread, FP, SP + 1, KernelBytecode::Next(pc));
     INVOKE_RUNTIME(DRT_SingleStepHandler,
                    NativeArguments(thread, 0, nullptr, nullptr));
     DISPATCH_ORIGINAL_OPCODE;

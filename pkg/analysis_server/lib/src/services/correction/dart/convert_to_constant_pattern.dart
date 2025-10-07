@@ -17,7 +17,7 @@ class ConvertToConstantPattern extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_CONSTANT_PATTERN;
+  FixKind get fixKind => DartFixKind.convertToConstantPattern;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

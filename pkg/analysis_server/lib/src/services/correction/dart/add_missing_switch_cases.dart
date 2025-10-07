@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/generated/exhaustiveness.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -21,7 +22,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_MISSING_SWITCH_CASES;
+  FixKind get fixKind => DartFixKind.addMissingSwitchCases;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -57,11 +58,25 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   /// Returns whether [parts] references an enum field where either the enum
   /// class itself or the missing field is not reachable because it's private.
   bool _hasInaccessibleEnumMemberPart(List<MissingPatternPart> parts) {
-    for (var part in parts) {
-      if (part is MissingPatternEnumValuePart &&
-          (part.enumElement2.isPrivate || part.value2.isPrivate) &&
+    for (var part in parts.whereType<MissingPatternEnumValuePart>()) {
+      if ((part.enumElement2.isPrivate || part.value2.isPrivate) &&
           libraryElement2 != part.enumElement2.library) {
         return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// Returns whether [parts] references a type from within a `src/` library
+  /// that is not from the current project.
+  Future<bool> _hasInaccessibleTypePart(List<MissingPatternPart> parts) async {
+    for (var part in parts.whereType<MissingPatternTypePart>()) {
+      if (part.type.element case Element(:var name?) && var element) {
+        var declarations = await getTopLevelDeclarations(name);
+        if (!declarations.containsValue(element)) {
+          return true;
+        }
       }
     }
 
@@ -80,6 +95,16 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     // of the switch. For instance, an enum with a private member can't be
     // matched outside of its library.
     var needsDefault = false;
+    for (var patternParts in patternPartsList.toList()) {
+      if (_hasInaccessibleEnumMemberPart(patternParts)) {
+        needsDefault = true;
+        patternPartsList.remove(patternParts);
+      }
+      if (await _hasInaccessibleTypePart(patternParts)) {
+        patternPartsList.remove(patternParts);
+        needsDefault = true;
+      }
+    }
 
     await builder.addDartFileEdit(file, (builder) {
       builder.insertCaseClauseAtEnd(
@@ -89,11 +114,6 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
         rightBracket: node.rightBracket,
         (builder) {
           for (var patternParts in patternPartsList) {
-            if (_hasInaccessibleEnumMemberPart(patternParts)) {
-              needsDefault = true;
-              continue;
-            }
-
             builder.write(lineIndent);
             builder.write(singleIndent);
             builder.writeln('// TODO: Handle this case.');

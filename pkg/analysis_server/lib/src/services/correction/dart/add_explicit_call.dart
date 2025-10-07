@@ -18,10 +18,10 @@ class AddExplicitCall extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_EXPLICIT_CALL;
+  FixKind get fixKind => DartFixKind.addExplicitCall;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_EXPLICIT_CALL_MULTI;
+  FixKind get multiFixKind => DartFixKind.addExplicitCallMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

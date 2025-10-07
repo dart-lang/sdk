@@ -2,7 +2,7 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_assign_to_property_null_aware.dart:22:5: Error: Field 'member' should be initialized because its type 'B' doesn't allow null.
+// pkg/front_end/testcases/inference/infer_assign_to_property_null_aware.dart:21:5: Error: Field 'member' should be initialized because its type 'B' doesn't allow null.
 //  - 'B' is from 'pkg/front_end/testcases/inference/infer_assign_to_property_null_aware.dart'.
 //   B member;
 //     ^^^^^^

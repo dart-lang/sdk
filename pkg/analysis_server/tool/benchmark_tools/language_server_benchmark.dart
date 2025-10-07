@@ -24,6 +24,7 @@ abstract class DartLanguageServerBenchmark {
   int? _headerContentLength;
   bool _printedVmServiceStuff = false;
   final String executableToUse;
+  bool latestIsAnalyzing = false;
 
   /// There's something weird about getting (several) id 3's that wasn't
   /// requested...
@@ -368,8 +369,9 @@ abstract class DartLanguageServerBenchmark {
             _printedVmServiceStuff = true;
           }
           if (header.startsWith('Content-Length:')) {
-            String contentLength =
-                header.substring('Content-Length:'.length).trim();
+            String contentLength = header
+                .substring('Content-Length:'.length)
+                .trim();
             _headerContentLength = int.parse(contentLength);
             break;
           }
@@ -400,11 +402,11 @@ abstract class DartLanguageServerBenchmark {
             (!_lsp && message['event'] == 'server.status')) {
           dynamic params = message['params'];
           if (params is Map) {
-            dynamic isAnalyzing =
-                _lsp
-                    ? params['isAnalyzing']
-                    : params['analysis']?['isAnalyzing'];
+            dynamic isAnalyzing = _lsp
+                ? params['isAnalyzing']
+                : params['analysis']?['isAnalyzing'];
             if (isAnalyzing is bool) {
+              latestIsAnalyzing = isAnalyzing;
               _analyzingCompleter.complete(isAnalyzing);
               _analyzingCompleter = Completer<bool>();
               if (verbosity > 0) {

@@ -75,11 +75,13 @@ class CommunicationsPage extends DiagnosticPageWithNav {
   ) {
     var requestCount = perf.requestCount;
     var latencyCount = perf.latencyCount;
-    var averageLatency =
-        latencyCount > 0 ? (perf.requestLatency ~/ latencyCount) : 0;
+    var averageLatency = latencyCount > 0
+        ? (perf.requestLatency ~/ latencyCount)
+        : 0;
     var maximumLatency = perf.maxLatency;
-    var slowRequestPercent =
-        latencyCount > 0 ? (perf.slowRequestCount / latencyCount) : 0.0;
+    var slowRequestPercent = latencyCount > 0
+        ? (perf.slowRequestCount / latencyCount)
+        : 0.0;
 
     buf.write('<table>');
     writeRow(['$requestCount', 'requests'], classes: ['right', null]);

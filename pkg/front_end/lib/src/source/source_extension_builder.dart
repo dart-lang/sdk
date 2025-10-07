@@ -204,8 +204,10 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       annotatable: extension,
       annotatableFileUri: extension.fileUri,
       metadata: fragment.metadata,
+      annotationsFileUri: fragment.fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
+      extensionScope: fragment.enclosingCompilationUnit.extensionScope,
       scope: fragment.enclosingScope,
     );
   }

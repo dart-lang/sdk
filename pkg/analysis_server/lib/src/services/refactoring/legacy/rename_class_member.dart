@@ -145,10 +145,9 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       if (constructor != null) {
         var previous = constructor.separator ?? constructor.parameters;
         var replacement = '$newName = ${parameter.name.lexeme}';
-        replacement =
-            constructor.initializers.isEmpty
-                ? ' : $replacement'
-                : ' $replacement,';
+        replacement = constructor.initializers.isEmpty
+            ? ' : $replacement'
+            : ' $replacement,';
         var edit = SourceEdit(previous.end, 0, replacement);
         doSourceChange_addSourceEdit(change, reference.unitSource, edit);
       }
@@ -240,8 +239,9 @@ class _BaseClassMemberValidator {
     required bool isRename,
     required Set<InterfaceElement> subClasses,
   }) async {
-    var superClasses =
-        interfaceElement.allSupertypes.map((e) => e.element).toSet();
+    var superClasses = interfaceElement.allSupertypes
+        .map((e) => e.element)
+        .toSet();
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
@@ -391,14 +391,6 @@ class _MatchShadowedBy {
   _MatchShadowedBy(this.match, this.element);
 }
 
-class _MatchShadowedByLocal extends _MatchShadowedBy {
-  @override
-  final LocalElement element;
-
-  _MatchShadowedByLocal(SearchMatch match, this.element)
-    : super(match, element);
-}
-
 /// Helper to check if the renamed [element] will cause any conflicts.
 class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   final Element element;
@@ -508,9 +500,6 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
         var elementRange = visibleRangeMap[localElement];
         if (elementRange != null &&
             elementRange.intersects(match.sourceRange)) {
-          if (localElement is LocalElement) {
-            return _MatchShadowedByLocal(match, localElement);
-          }
           return _MatchShadowedBy(match, localElement);
         }
       }
@@ -531,13 +520,12 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       var interfaceElement = element.enclosingElement;
       if (interfaceElement is InterfaceElement &&
           interfaceElement is! ExtensionTypeElement) {
-        var formalParameters =
-            interfaceElement.constructors
-                .expand((constructor) => constructor.formalParameters)
-                .whereType<FieldFormalParameterElement>()
-                .where((formalParameter) => formalParameter.field == element)
-                .cast<FormalParameterElement>()
-                .toList();
+        var formalParameters = interfaceElement.constructors
+            .expand((constructor) => constructor.formalParameters)
+            .whereType<FieldFormalParameterElement>()
+            .where((formalParameter) => formalParameter.field == element)
+            .cast<FormalParameterElement>()
+            .toList();
 
         // The language doesn't allow private named formal parameters.
         if (name.startsWith('_')) {

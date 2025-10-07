@@ -259,7 +259,7 @@ abstract class AstCodeGenerator
       final localIndex = implicitParams + index;
       w.Local local = paramLocals[localIndex];
       final variableName = variable.name;
-      if (variableName != null) {
+      if (variableName != null && variableName.isNotEmpty) {
         b.localNames[local.index] = variableName;
       }
       if (defaultValue == ParameterInfo.defaultValueSentinel) {
@@ -816,7 +816,7 @@ abstract class AstCodeGenerator
     } else if (local != null && !local.type.defaultable) {
       // Uninitialized variable
       translator
-          .getDummyValuesCollectorForModule(b.module)
+          .getDummyValuesCollectorForModule(b.moduleBuilder)
           .instantiateDummyValue(b, local.type);
       b.local_set(local);
     }
@@ -972,7 +972,7 @@ abstract class AstCodeGenerator
 
     // Insert a catch instruction which will catch any thrown Dart
     // exceptions.
-    b.catch_legacy(translator.getExceptionTag(b.module));
+    b.catch_legacy(translator.getExceptionTag(b.moduleBuilder));
 
     b.local_set(thrownStackTrace);
     b.local_set(thrownException);
@@ -1116,7 +1116,7 @@ abstract class AstCodeGenerator
     }
 
     // Handle Dart exceptions.
-    b.catch_legacy(translator.getExceptionTag(b.module));
+    b.catch_legacy(translator.getExceptionTag(b.moduleBuilder));
     translateStatement(node.finalizer);
     b.rethrow_(tryBlock);
 
@@ -1759,7 +1759,7 @@ abstract class AstCodeGenerator
     final namedArguments = node.arguments.named;
     final memberName = node.name;
     final forwarder = translator
-        .getDynamicForwardersForModule(b.module)
+        .getDynamicForwardersForModule(b.moduleBuilder)
         .getDynamicInvocationForwarder(memberName);
 
     // Evaluate receiver
@@ -1998,7 +1998,7 @@ abstract class AstCodeGenerator
 
     if (callPolymorphicDispatcher) {
       b.invoke(translator
-          .getPolymorphicDispatchersForModule(b.module)
+          .getPolymorphicDispatchersForModule(b.moduleBuilder)
           .getPolymorphicDispatcher(selector,
               useUncheckedEntry: useUncheckedEntry));
     } else {
@@ -2113,7 +2113,7 @@ abstract class AstCodeGenerator
     if (target is Procedure && !target.isGetter) {
       // Super tear-off
       w.StructType closureStruct = _pushClosure(
-          translator.getTearOffClosure(target, b.module),
+          translator.getTearOffClosure(target, b.moduleBuilder),
           translator.getTearOffType(target),
           () => visitThis(w.RefType.struct(nullable: false)));
       return w.RefType.def(closureStruct, nullable: false);
@@ -2183,7 +2183,7 @@ abstract class AstCodeGenerator
     final receiver = node.receiver;
     final memberName = node.name;
     final forwarder = translator
-        .getDynamicForwardersForModule(b.module)
+        .getDynamicForwardersForModule(b.moduleBuilder)
         .getDynamicGetForwarder(memberName);
 
     // Evaluate receiver
@@ -2216,7 +2216,7 @@ abstract class AstCodeGenerator
     final value = node.value;
     final memberName = node.name;
     final forwarder = translator
-        .getDynamicForwardersForModule(b.module)
+        .getDynamicForwardersForModule(b.moduleBuilder)
         .getDynamicSetForwarder(memberName);
 
     // Evaluate receiver
@@ -2413,7 +2413,7 @@ abstract class AstCodeGenerator
     ClosureImplementation closure = translator.getClosure(
         functionNode,
         lambda.function,
-        b.module,
+        b.moduleBuilder,
         ParameterInfo.fromLocalFunction(functionNode),
         "closure wrapper at ${functionNode.location}");
     return _pushClosure(
@@ -2450,7 +2450,7 @@ abstract class AstCodeGenerator
       translator.globals.readGlobal(
           b,
           translator
-              .getDummyValuesCollectorForModule(b.module)
+              .getDummyValuesCollectorForModule(b.moduleBuilder)
               .dummyStructGlobal); // Dummy context
     }
   }
@@ -2792,7 +2792,7 @@ abstract class AstCodeGenerator
     final exceptionLocals = tryBlockLocals.last;
     b.local_get(exceptionLocals.exceptionLocal);
     b.local_get(exceptionLocals.stackTraceLocal);
-    b.throw_(translator.getExceptionTag(b.module));
+    b.throw_(translator.getExceptionTag(b.moduleBuilder));
     return expectedType;
   }
 
@@ -2850,7 +2850,7 @@ abstract class AstCodeGenerator
 
     final target = useSharedCreator
         ? translator
-            .getPartialInstantiatorForModule(b.module)
+            .getPartialInstantiatorForModule(b.moduleBuilder)
             .getOneTypeArgumentForwarder(targetReference, node.typeArgument,
                 'create${passArray ? '' : 'Empty'}List<${node.typeArgument}>')
         : translator.functions.getFunction(targetReference);
@@ -2896,7 +2896,7 @@ abstract class AstCodeGenerator
 
     final target = useSharedCreator
         ? translator
-            .getPartialInstantiatorForModule(b.module)
+            .getPartialInstantiatorForModule(b.moduleBuilder)
             .getTwoTypeArgumentForwarder(
                 targetReference,
                 node.keyType,
@@ -2939,7 +2939,7 @@ abstract class AstCodeGenerator
 
     final target = useSharedCreator
         ? translator
-            .getPartialInstantiatorForModule(b.module)
+            .getPartialInstantiatorForModule(b.moduleBuilder)
             .getOneTypeArgumentForwarder(targetReference, node.typeArgument,
                 'create${passArray ? '' : 'Empty'}Set<${node.typeArgument}>')
         : translator.functions.getFunction(targetReference);
@@ -3442,7 +3442,7 @@ class TearOffCodeGenerator extends AstCodeGenerator {
     Procedure procedure = member as Procedure;
     DartType functionType = translator.getTearOffType(procedure);
     ClosureImplementation closure =
-        translator.getTearOffClosure(procedure, b.module);
+        translator.getTearOffClosure(procedure, b.moduleBuilder);
     w.StructType struct = closure.representation.closureStruct;
 
     ClassInfo info = translator.closureInfo;

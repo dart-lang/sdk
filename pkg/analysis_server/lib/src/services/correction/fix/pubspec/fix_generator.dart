@@ -228,18 +228,16 @@ class PubspecFixGenerator {
               }
             }
 
-            var startOffset =
-                prevEntry != null
-                    ? prevEntry.value.span.end.offset
-                    : (currentEntry.key as YamlNode).span.start.offset;
+            var startOffset = prevEntry != null
+                ? prevEntry.value.span.end.offset
+                : (currentEntry.key as YamlNode).span.start.offset;
             // If nextEntry is null, this is the last entry in the
             // dev_dependencies section, and also dev_dependencies is the last
             // section in the pubspec file. So delete till the end of the
             // section.
-            var endOffset =
-                nextEntry == null
-                    ? currentEntry.value.span.end.offset
-                    : (nextEntry.key as YamlNode).span.start.offset;
+            var endOffset = nextEntry == null
+                ? currentEntry.value.span.end.offset
+                : (nextEntry.key as YamlNode).span.start.offset;
             // If entry in the middle of two other entries that are not to be
             // removed, delete the line.
             if (prevEntry != null &&
@@ -322,10 +320,9 @@ class PubspecFixGenerator {
       buffer.write(endOfLine);
     }
 
-    var offset =
-        section == null
-            ? node.span.end.offset
-            : (section as YamlNode).span.end.offset;
+    var offset = section == null
+        ? node.span.end.offset
+        : (section as YamlNode).span.end.offset;
 
     return (buffer.toString(), offset);
   }

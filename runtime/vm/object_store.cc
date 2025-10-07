@@ -502,6 +502,7 @@ void ObjectStore::LazyInitFfiMembers() {
   if (handle_finalizer_message_function_.load() == Function::null()) {
     auto* const zone = thread->zone();
     auto& cls = Class::Handle(zone);
+    auto& field = Field::Handle(zone);
     auto& function = Function::Handle(zone);
     auto& error = Error::Handle(zone);
 
@@ -535,9 +536,35 @@ void ObjectStore::LazyInitFfiMembers() {
     ASSERT(!function.IsNull());
     ffi_resolver_function_.store(function.ptr());
 
+    cls = ffi_lib.LookupClass(Symbols::Array());
+    ASSERT(!cls.IsNull());
+    ffi_array_class_.store(cls.ptr());
+
+    cls = ffi_lib.LookupClassAllowPrivate(Symbols::_Compound());
+    ASSERT(!cls.IsNull());
+    error = cls.EnsureIsFinalized(thread);
+    ASSERT(error.IsNull());
+    ffi_compound_class_.store(cls.ptr());
+
+    field = cls.LookupInstanceFieldAllowPrivate(Symbols::_offsetInBytes());
+    ASSERT(!field.IsNull());
+    compound_offset_in_bytes_field_.store(field.ptr());
+
+    field = cls.LookupInstanceFieldAllowPrivate(Symbols::_typedDataBase());
+    ASSERT(!field.IsNull());
+    compound_typed_data_base_field_.store(field.ptr());
+
+    cls = ffi_lib.LookupClass(Symbols::Struct());
+    ASSERT(!cls.IsNull());
+    ffi_struct_class_.store(cls.ptr());
+
+    cls = ffi_lib.LookupClass(Symbols::Union());
+    ASSERT(!cls.IsNull());
+    ffi_union_class_.store(cls.ptr());
+
     cls = ffi_lib.LookupClass(Symbols::VarArgs());
     ASSERT(!cls.IsNull());
-    varargs_class_.store(cls.ptr());
+    ffi_varargs_class_.store(cls.ptr());
   }
 }
 

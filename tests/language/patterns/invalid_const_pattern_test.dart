@@ -480,16 +480,12 @@ class Class {
       //         ^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
       // [cfe] New expression is not a constant expression.
-      //             ^
-      // [cfe] New expression is not a constant expression.
     }
 
     switch (o) {
       case new Class(): // Error
       //   ^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
-      // [cfe] New expression is not a constant expression.
-      //       ^
       // [cfe] New expression is not a constant expression.
     }
 

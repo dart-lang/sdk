@@ -170,6 +170,21 @@ class StringExtensionTest {
     expect('.'.codeUnitAt(0).isLetterOrDigit, isFalse);
   }
 
+  void test_isLetterOrDigitOrUnderscore() {
+    for (var c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
+      expect(c.isLetterOrDigitOrUnderscore, isTrue);
+    }
+    for (var c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
+      expect(c.isLetterOrDigitOrUnderscore, isTrue);
+    }
+    for (var c in '0123456789'.codeUnits) {
+      expect(c.isLetterOrDigitOrUnderscore, isTrue);
+    }
+    expect('_'.codeUnitAt(0).isLetterOrDigitOrUnderscore, isTrue);
+    expect(' '.codeUnitAt(0).isLetterOrDigitOrUnderscore, isFalse);
+    expect('.'.codeUnitAt(0).isLetterOrDigitOrUnderscore, isFalse);
+  }
+
   void test_isSpace() {
     expect(' '.codeUnitAt(0).isSpace, isTrue);
     expect('\t'.codeUnitAt(0).isSpace, isTrue);
@@ -177,6 +192,12 @@ class StringExtensionTest {
     expect('\n'.codeUnitAt(0).isSpace, isFalse);
     expect('0'.codeUnitAt(0).isSpace, isFalse);
     expect('A'.codeUnitAt(0).isSpace, isFalse);
+  }
+
+  void test_isUnderscore() {
+    expect('_'.codeUnitAt(0).isUnderscore, isTrue);
+    expect(' '.codeUnitAt(0).isUnderscore, isFalse);
+    expect('A'.codeUnitAt(0).isUnderscore, isFalse);
   }
 
   void test_isWhitespace() {
@@ -195,30 +216,6 @@ class StringExtensionTest {
     expect('01234'.removeSuffix('01234'), '');
     expect('01234'.removeSuffix('012345'), isNull);
     expect('01234'.removeSuffix('5'), isNull);
-  }
-
-  void test_toCamelCase() {
-    expect('CAMEL_CASE'.toCamelCase(), 'camelCase');
-    expect('alreadyCamel_case'.toCamelCase(), 'alreadycamelCase');
-    expect('FOO_123_BAR'.toCamelCase(), 'foo123Bar');
-    expect('FOO'.toCamelCase(), 'foo');
-    expect('___'.toCamelCase(), '___');
-    expect(''.toCamelCase(), '');
-    expect('_FOO_BAR'.toCamelCase(), '_fooBar');
-    expect('FOO__BAR'.toCamelCase(), 'fooBar');
-    expect('FOO_BAR_'.toCamelCase(), 'fooBar');
-  }
-
-  void test_toPascalCase() {
-    expect('PASCAL_CASE'.toPascalCase(), 'PascalCase');
-    expect('AlreadyPascal_case'.toPascalCase(), 'AlreadypascalCase');
-    expect('FOO_123_BAR'.toPascalCase(), 'Foo123Bar');
-    expect('FOO'.toPascalCase(), 'Foo');
-    expect('___'.toPascalCase(), '___');
-    expect(''.toPascalCase(), '');
-    expect('_FOO_BAR'.toPascalCase(), '_FooBar');
-    expect('FOO__BAR'.toPascalCase(), 'FooBar');
-    expect('FOO_BAR_'.toPascalCase(), 'FooBar');
   }
 
   void test_toScreamingSnake() {

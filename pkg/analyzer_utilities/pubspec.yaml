@@ -10,13 +10,15 @@ resolution: workspace
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   analyzer: any
+  analyzer_testing: any
   collection: any
-  dart_style: any
   package_config: any
   path: any
   pub_semver: any
   test: any
+  yaml: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   lints: any
+  test_reflective_loader: any

@@ -44,6 +44,9 @@ abstract final class LintNames {
   static const String analyzer_public_api_bad_type =
       'analyzer_public_api_bad_type';
 
+  static const String analyzer_public_api_experimental_inconsistency =
+      'analyzer_public_api_experimental_inconsistency';
+
   static const String analyzer_public_api_exports_non_public_name =
       'analyzer_public_api_exports_non_public_name';
 
@@ -456,6 +459,9 @@ abstract final class LintNames {
   static const String public_member_api_docs = 'public_member_api_docs';
 
   static const String recursive_getters = 'recursive_getters';
+
+  static const String remove_deprecations_in_breaking_versions =
+      'remove_deprecations_in_breaking_versions';
 
   static const String require_trailing_commas = 'require_trailing_commas';
 

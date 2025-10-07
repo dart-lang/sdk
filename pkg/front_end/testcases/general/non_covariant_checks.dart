@@ -2,24 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=checks*/
-
 class C<T> {
   C(this.field1)
-      : field2 = (() => field1),
-        field3 = ((T t) {}),
-        field4 = ((T t) => t),
-        field5 = (() => () => field1),
-        field6 = ((T Function() f) {}),
-        field7 = ((T Function() f) => field1),
-        field8 = ((void Function(T) f) {}),
-        field9 = ((void Function(T) f) => field1),
-        field10 = ((T Function(T) f) {}),
-        field11 = ((T Function(T) f) => field1),
-        field12 = <S extends T>() => throw '',
-        field13 = <S extends T>(S s) {},
-        field14 = <S extends T>(S s) => s,
-        field15 = ((S Function<S extends T>() f) {});
+    : field2 = (() => field1),
+      field3 = ((T t) {}),
+      field4 = ((T t) => t),
+      field5 = (() =>
+          () => field1),
+      field6 = ((T Function() f) {}),
+      field7 = ((T Function() f) => field1),
+      field8 = ((void Function(T) f) {}),
+      field9 = ((void Function(T) f) => field1),
+      field10 = ((T Function(T) f) {}),
+      field11 = ((T Function(T) f) => field1),
+      field12 = <S extends T>() => throw '',
+      field13 = <S extends T>(S s) {},
+      field14 = <S extends T>(S s) => s,
+      field15 = ((S Function<S extends T>() f) {});
 
   T field1;
   T Function() field2;
@@ -89,7 +88,8 @@ class C<T> {
   }
 
   void set setter9(
-      /*covariant*/ T Function(void Function(/*covariant*/ T)) value) {
+    /*covariant*/ T Function(void Function(/*covariant*/ T)) value,
+  ) {
     field9 = value;
   }
 
@@ -98,7 +98,8 @@ class C<T> {
   }
 
   void set setter11(
-      /*covariant*/ T Function(T Function(/*covariant*/ T)) value) {
+    /*covariant*/ T Function(T Function(/*covariant*/ T)) value,
+  ) {
     field11 = value;
   }
 
@@ -115,7 +116,8 @@ class C<T> {
   }
 
   void set setter15(
-      void Function(S Function<S extends /*invariant*/ T>()) value) {
+    void Function(S Function<S extends /*invariant*/ T>()) value,
+  ) {
     field15 = value;
   }
 
@@ -185,26 +187,26 @@ main() {
   c.field1;
   c.field2;
   try {
-    c. /*@checkReturn=(num) -> void*/ field3;
+    c.field3;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=(num) -> num*/ field4;
+    c.field4;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   c.field5;
   try {
-    c. /*@checkReturn=(() -> num) -> void*/ field6;
+    c.field6;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=(() -> num) -> num*/ field7;
+    c.field7;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
@@ -212,37 +214,37 @@ main() {
   c.field8;
   c.field9;
   try {
-    c. /*@checkReturn=((num) -> num) -> void*/ field10;
+    c.field10;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=((num) -> num) -> num*/ field11;
+    c.field11;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=<S extends num = dynamic>() -> S*/ field12;
+    c.field12;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=<S extends num = dynamic>(S) -> void*/ field13;
+    c.field13;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=<S extends num = dynamic>(S) -> S*/ field14;
+    c.field14;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=(<S extends num = dynamic>() -> S) -> void*/ field15;
+    c.field15;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
@@ -251,26 +253,26 @@ main() {
   c.getter1;
   c.getter2;
   try {
-    c. /*@checkReturn=(num) -> void*/ getter3;
+    c.getter3;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=(num) -> num*/ getter4;
+    c.getter4;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   c.getter5;
   try {
-    c. /*@checkReturn=(() -> num) -> void*/ getter6;
+    c.getter6;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=(() -> num) -> num*/ getter7;
+    c.getter7;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
@@ -278,37 +280,37 @@ main() {
   c.getter8;
   c.getter9;
   try {
-    c. /*@checkReturn=((num) -> num) -> void*/ getter10;
+    c.getter10;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=((num) -> num) -> num*/ getter11;
+    c.getter11;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=<S extends num = dynamic>() -> S*/ getter12;
+    c.getter12;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=<S extends num = dynamic>(S) -> void*/ getter13;
+    c.getter13;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=<S extends num = dynamic>(S) -> S*/ getter14;
+    c.getter14;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=(<S extends num = dynamic>() -> S) -> void*/ getter15;
+    c.getter15;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
@@ -334,7 +336,8 @@ main() {
     print(e);
   }
   try {
-    c.setter5 = () => () => 0.5;
+    c.setter5 = () =>
+        () => 0.5;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
@@ -415,7 +418,10 @@ main() {
     print(e);
   }
   try {
-    c.method5(() => () => 0.5);
+    c.method5(
+      () =>
+          () => 0.5,
+    );
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);

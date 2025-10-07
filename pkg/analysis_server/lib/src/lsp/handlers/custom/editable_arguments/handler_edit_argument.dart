@@ -116,8 +116,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       }
 
       var argument = parameterArguments[parameter];
-      var valueExpression =
-          argument is NamedExpression ? argument.expression : argument;
+      var valueExpression = argument is NamedExpression
+          ? argument.expression
+          : argument;
 
       // Determine whether a value for this parameter is editable.
       var notEditableReason = getNotEditableReason(
@@ -179,10 +180,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         currentArgument is SimpleIdentifier ||
         currentArgument == null;
 
-    var enumValue =
-        preferDotShorthand
-            ? getDotShorthandEnumConstantName(enumConstant) ?? requestValue
-            : requestValue;
+    var enumValue = preferDotShorthand
+        ? getDotShorthandEnumConstantName(enumConstant) ?? requestValue
+        : requestValue;
 
     return enumValue.toString();
   }
@@ -294,11 +294,10 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     // It is a bug if we produced edits in some file other than the one we
     // expect.
     var fileEdits = changeBuilder.sourceChange.edits;
-    var otherFilesEdited =
-        fileEdits
-            .map((edit) => edit.file)
-            .where((file) => file != result.path)
-            .toSet();
+    var otherFilesEdited = fileEdits
+        .map((edit) => edit.file)
+        .where((file) => file != result.path)
+        .toSet();
     if (otherFilesEdited.isNotEmpty) {
       var otherNames = otherFilesEdited.join(', ');
       throw 'Argument edit for ${result.path} unexpectedly produced edits for $otherNames';
@@ -405,8 +404,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     // If this parameter is positional, we need to first ensure arguments for
     // any earlier positional parameters are present.
     if (parameter.isPositional) {
-      var existingPositionalArguments =
-          argumentList.arguments.where((a) => a is! NamedExpression).length;
+      var existingPositionalArguments = argumentList.arguments
+          .where((a) => a is! NamedExpression)
+          .length;
       var unspecifiedPositionals = parameters
           .where((p) => p.isPositional)
           .skip(existingPositionalArguments)
@@ -422,8 +422,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     }
 
     var parameterName = parameter.name;
-    var argumentNamePrefix =
-        parameter.isNamed && parameterName != null ? '$parameterName: ' : '';
+    var argumentNamePrefix = parameter.isNamed && parameterName != null
+        ? '$parameterName: '
+        : '';
     var argumentCode = '$argumentNamePrefix$newValueCode';
 
     // Usually we insert at the end (after the last argument), but if the last
@@ -447,10 +448,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         lineInfo.getLocation(argumentList.rightParenthesis.offset).lineNumber;
 
     // If we are multiline, indent one level more than the invocation.
-    var indent =
-        isMultiline
-            ? '${utils.getLinePrefix(argumentList.leftParenthesis.offset)}  '
-            : '';
+    var indent = isMultiline
+        ? '${utils.getLinePrefix(argumentList.leftParenthesis.offset)}  '
+        : '';
 
     // The prefix we need depends on whether there is an argument before us
     // and whether we are multiline.

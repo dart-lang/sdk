@@ -39,8 +39,10 @@ class Notification {
 
   /// Initialize a newly created instance based on the given JSON data.
   factory Notification.fromJson(Map json) {
-    return Notification(json[Notification.EVENT] as String,
-        json[Notification.PARAMS] as Map<String, Object>);
+    return Notification(
+      json[Notification.EVENT] as String,
+      json[Notification.PARAMS] as Map<String, Object>,
+    );
   }
 
   /// Return a table representing the structure of the Json object that will be
@@ -89,9 +91,12 @@ class Request {
   /// Initialize a newly created [Request] to have the given [id] and [method]
   /// name. If [params] is supplied, it is used as the "params" map for the
   /// request. Otherwise an empty "params" map is allocated.
-  Request(this.id, this.method,
-      [Map<String, Object?>? params, this.serverRequestTime])
-      : params = params ?? <String, Object?>{};
+  Request(
+    this.id,
+    this.method, [
+    Map<String, Object?>? params,
+    this.serverRequestTime,
+  ]) : params = params ?? <String, Object?>{};
 
   /// Return a request parsed from the given json, or `null` if the [data] is
   /// not a valid json representation of a request. The [data] is expected to
@@ -230,15 +235,17 @@ class RequestErrorFactory {
   /// Return a request error representing an error condition caused by a
   /// [request] that had an invalid edit object.
   static RequestError invalidOverlayChangeInvalidEdit() => RequestError(
-      RequestErrorCode.INVALID_OVERLAY_CHANGE,
-      'Invalid overlay change: invalid edit');
+    RequestErrorCode.INVALID_OVERLAY_CHANGE,
+    'Invalid overlay change: invalid edit',
+  );
 
   /// Return a request error representing an error condition caused by a
   /// [request] that attempted to change an existing overlay when no overlay
   /// existed.
   static RequestError invalidOverlayChangeNoContent() => RequestError(
-      RequestErrorCode.INVALID_OVERLAY_CHANGE,
-      'Invalid overlay change: no content to change');
+    RequestErrorCode.INVALID_OVERLAY_CHANGE,
+    'Invalid overlay change: no content to change',
+  );
 
   /// Return a request error representing an error condition caused by a request
   /// that had an invalid parameter. The [path] is the path to the invalid
@@ -246,18 +253,25 @@ class RequestErrorFactory {
   /// "foo" contained a key "bar" whose value was the wrong type). The
   /// [expectation] is a description of the type of data that was expected.
   static RequestError invalidParameter(String path, String expectation) =>
-      RequestError(RequestErrorCode.INVALID_PARAMETER,
-          "Invalid parameter '$path'. $expectation.");
+      RequestError(
+        RequestErrorCode.INVALID_PARAMETER,
+        "Invalid parameter '$path'. $expectation.",
+      );
 
   /// Return a request error representing an error that occurred in the plugin.
   static RequestError pluginError(dynamic exception, String? stackTrace) =>
-      RequestError(RequestErrorCode.PLUGIN_ERROR, exception.toString(),
-          stackTrace: stackTrace);
+      RequestError(
+        RequestErrorCode.PLUGIN_ERROR,
+        exception.toString(),
+        stackTrace: stackTrace,
+      );
 
   /// Return a request error representing an error condition caused by a request
   /// with the given [method] that cannot be handled by any known handlers.
   static RequestError unknownRequest(String method) => RequestError(
-      RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request: $method');
+    RequestErrorCode.UNKNOWN_REQUEST,
+    'Unknown request: $method',
+  );
 }
 
 /// An exception that occurred during the handling of a request that requires
@@ -322,8 +336,11 @@ class Response {
     RequestError? decodedError;
     var error = json[ERROR];
     if (error is Map) {
-      decodedError =
-          RequestError.fromJson(ResponseDecoder(null), '.error', error);
+      decodedError = RequestError.fromJson(
+        ResponseDecoder(null),
+        '.error',
+        error,
+      );
     }
 
     var requestTime = json[REQUEST_TIME];
@@ -337,8 +354,12 @@ class Response {
       decodedResult = result;
     }
 
-    return Response(id, requestTime,
-        error: decodedError, result: decodedResult);
+    return Response(
+      id,
+      requestTime,
+      error: decodedError,
+      result: decodedResult,
+    );
   }
 
   /// Return a table representing the structure of the Json object that will be

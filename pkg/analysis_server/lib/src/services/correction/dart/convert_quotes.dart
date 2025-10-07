@@ -22,10 +22,10 @@ class ConvertQuotes extends _ConvertQuotes {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_QUOTES;
+  FixKind get fixKind => DartFixKind.convertQuotes;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_QUOTES_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertQuotesMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -52,10 +52,10 @@ class ConvertToDoubleQuotes extends _ConvertQuotes {
   AssistKind get assistKind => DartAssistKind.convertToDoubleQuotedString;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
+  FixKind get fixKind => DartFixKind.convertToDoubleQuotedString;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_DOUBLE_QUOTED_STRING_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToDoubleQuotedStringMulti;
 
   @override
   bool get _fromSingle => true;
@@ -72,10 +72,10 @@ class ConvertToSingleQuotes extends _ConvertQuotes {
   AssistKind get assistKind => DartAssistKind.convertToSingleQuotedString;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING;
+  FixKind get fixKind => DartFixKind.convertToSingleQuotedString;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToSingleQuotedStringMulti;
 
   @override
   bool get _fromSingle => false;

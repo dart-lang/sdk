@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -12,6 +13,8 @@ import 'package:profiling/src/elf_utils.dart';
 // binaries and Flutter applications. Prototype code for that is available
 // in https://dart-review.googlesource.com/c/sdk/+/239661.
 void main(List<String> args) async {
+  args = args.toList();
+  bool dryRun = args.remove('--dry-run');
   if (args.length != 3) {
     print(
         'Usage: pkg/vm/tool/set_uprobe.dart <probe-name> <symbol> <AOT snapshot SO file>');
@@ -21,12 +24,11 @@ void main(List<String> args) async {
   final [probeName, symbol, sharedObject] = args;
 
   final uprobeAddress =
-      await _computeProbesVirtualAddress(sharedObject, symbol);
+      await _computeProbesVirtualAddress(sharedObject, symbol, silent: dryRun);
   final loadingBias = loadingBiasOf(sharedObject);
 
   final uprobeFileOffset = (uprobeAddress + loadingBias).toRadixString(16);
 
-  final soName = p.basename(sharedObject);
   final soPath = p.canonicalize(p.absolute(sharedObject));
 
   // TODO(vegorov) ARM64 support
@@ -40,11 +42,14 @@ void main(List<String> args) async {
   final probe = 'p:$probeName $soPath:0x$uprobeFileOffset $uprobeFormat';
   print(probe);
 
-  File('/sys/kernel/tracing/uprobe_events').writeAsStringSync(probe);
+  if (!dryRun) {
+    File('/sys/kernel/tracing/uprobe_events').writeAsStringSync(probe);
+  }
 }
 
 Future<int> _computeProbesVirtualAddress(
-    String sharedObject, String targetSymbol) async {
+    String sharedObject, String targetSymbol,
+    {required bool silent}) async {
   int offset = 0;
   if (targetSymbol == 'AllocationProbePoint') {
     offset = await _determineAllocProbeOffset(sharedObject);
@@ -65,8 +70,10 @@ Future<int> _computeProbesVirtualAddress(
   }
 
   final entry = matches.entries.single;
-  print('placing uprobe on ${entry.key} at '
-      '0x${entry.value.toRadixString(16)}+$offset');
+  if (!silent) {
+    print('placing uprobe on ${entry.key} at '
+        '0x${entry.value.toRadixString(16)}+$offset');
+  }
   return entry.value + offset;
 }
 
@@ -106,14 +113,18 @@ Future<String> _getThreadTopOffset() async {
       workingDirectory: sdkSrc);
   final offsets =
       await _exec(p.join(sdkSrc, 'out/ReleaseX64/offsets_extractor'), []);
-  final line = offsets
-      .split('\n')
-      .firstWhere((line) => line.contains('Thread_top_offset'));
-  final offset = RegExp(r' = (?<offset>0x[a-f\d]+);$')
-      .firstMatch(line)!
-      .namedGroup('offset')!;
-
-  return int.parse(offset).toString();
+  var jsonOffsets = json.decode(offsets)['offsets'] as List;
+  for (var offset in jsonOffsets) {
+    if (offset
+        case {
+          'class': 'Thread',
+          'name': 'top_offset',
+          'value': final String value
+        } when int.tryParse(value) != null) {
+      return value;
+    }
+  }
+  throw 'Did not find expect json entry in offsets_extractor output.';
 }
 
 Future<String> _exec(String executable, List<String> args,

@@ -20,13 +20,12 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path show posix, Context;
 
-typedef _FileReference =
-    ({
-      SourceRange range,
-      String sourceFile,
-      String targetFile,
-      String quotedUriValue,
-    });
+typedef _FileReference = ({
+  SourceRange range,
+  String sourceFile,
+  String targetFile,
+  String quotedUriValue,
+});
 
 /// [MoveFileRefactoring] implementation.
 class MoveFileRefactoringImpl extends RefactoringImpl
@@ -159,11 +158,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
             var newSource = resolvedMapping[sourceFile] ?? sourceFile;
             var newTarget = resolvedMapping[targetFile] ?? targetFile;
 
-            var (
-              :startQuote,
-              :endQuote,
-              unquotedValue: uriValue,
-            ) = _extractQuotes(reference.quotedUriValue);
+            var (:startQuote, :endQuote, unquotedValue: uriValue) =
+                _extractQuotes(reference.quotedUriValue);
 
             var newUri = _computeNewUri(
               sourceFile: newSource,
@@ -352,12 +348,11 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   /// Gets the string for the URI in a directive, or `null` if it's not a
   /// directive with a URI.
   SimpleStringLiteral? _getDirectiveUri(Directive directive) {
-    var uri =
-        directive is PartOfDirective
-            ? directive.uri
-            : directive is UriBasedDirective
-            ? directive.uri
-            : null;
+    var uri = directive is PartOfDirective
+        ? directive.uri
+        : directive is UriBasedDirective
+        ? directive.uri
+        : null;
 
     // We only handle simple string literals.
     return uri is SimpleStringLiteral ? uri : null;

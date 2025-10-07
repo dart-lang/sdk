@@ -2,11 +2,11 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/duplicated_named_args_3.dart:13:13: Error: Duplicated named argument 'a'.
+// pkg/front_end/testcases/general/duplicated_named_args_3.dart:12:13: Error: Duplicated named argument 'a'.
 //   C.m(a: 1, a: 2, a: 3);
 //             ^
 //
-// pkg/front_end/testcases/general/duplicated_named_args_3.dart:13:19: Error: Duplicated named argument 'a'.
+// pkg/front_end/testcases/general/duplicated_named_args_3.dart:12:19: Error: Duplicated named argument 'a'.
 //   C.m(a: 1, a: 2, a: 3);
 //                   ^
 //
@@ -20,10 +20,10 @@ class C extends core::Object {
   static method m({core::int a = #C1}) → dynamic {}
 }
 static method test() → void {
-  self::C::m(a: invalid-expression "pkg/front_end/testcases/general/duplicated_named_args_3.dart:13:19: Error: Duplicated named argument 'a'.
+  self::C::m(a: invalid-expression "pkg/front_end/testcases/general/duplicated_named_args_3.dart:12:19: Error: Duplicated named argument 'a'.
   C.m(a: 1, a: 2, a: 3);
                   ^" in block {
-    invalid-expression "pkg/front_end/testcases/general/duplicated_named_args_3.dart:13:13: Error: Duplicated named argument 'a'.
+    invalid-expression "pkg/front_end/testcases/general/duplicated_named_args_3.dart:12:13: Error: Duplicated named argument 'a'.
   C.m(a: 1, a: 2, a: 3);
             ^" in block {
       1;

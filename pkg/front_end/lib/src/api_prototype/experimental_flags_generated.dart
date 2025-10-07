@@ -116,6 +116,15 @@ class ExperimentalFlag {
     experimentReleasedVersion: const Version(2, 0),
   );
 
+  static const ExperimentalFlag dataAssets = const ExperimentalFlag(
+    name: 'data-assets',
+    isEnabledByDefault: false,
+    isExpired: false,
+    enabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  );
+
   static const ExperimentalFlag digitSeparators = const ExperimentalFlag(
     name: 'digit-separators',
     isEnabledByDefault: true,
@@ -173,7 +182,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag getterSetterError = const ExperimentalFlag(
     name: 'getter-setter-error',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     enabledVersion: const Version(3, 9),
     experimentEnabledVersion: const Version(3, 9),
     experimentReleasedVersion: const Version(3, 9),
@@ -254,9 +263,9 @@ class ExperimentalFlag {
   static const ExperimentalFlag nativeAssets = const ExperimentalFlag(
     name: 'native-assets',
     isEnabledByDefault: true,
-    isExpired: false,
-    enabledVersion: const Version(3, 9),
-    experimentEnabledVersion: const Version(3, 9),
+    isExpired: true,
+    enabledVersion: const Version(3, 10),
+    experimentEnabledVersion: const Version(3, 10),
     experimentReleasedVersion: const Version(3, 9),
   );
 
@@ -281,7 +290,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag nullAwareElements = const ExperimentalFlag(
     name: 'null-aware-elements',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     enabledVersion: const Version(3, 8),
     experimentEnabledVersion: const Version(3, 8),
     experimentReleasedVersion: const Version(3, 8),
@@ -335,7 +344,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag soundFlowAnalysis = const ExperimentalFlag(
     name: 'sound-flow-analysis',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     enabledVersion: const Version(3, 9),
     experimentEnabledVersion: const Version(3, 9),
     experimentReleasedVersion: const Version(3, 9),
@@ -348,6 +357,15 @@ class ExperimentalFlag {
     enabledVersion: const Version(2, 0),
     experimentEnabledVersion: const Version(2, 0),
     experimentReleasedVersion: const Version(2, 0),
+  );
+
+  static const ExperimentalFlag staticExtensions = const ExperimentalFlag(
+    name: 'static-extensions',
+    isEnabledByDefault: false,
+    isExpired: false,
+    enabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
   );
 
   static const ExperimentalFlag superParameters = const ExperimentalFlag(
@@ -508,6 +526,10 @@ class GlobalFeatures {
   GlobalFeature get controlFlowCollections => _controlFlowCollections ??=
       _computeGlobalFeature(ExperimentalFlag.controlFlowCollections);
 
+  GlobalFeature? _dataAssets;
+  GlobalFeature get dataAssets =>
+      _dataAssets ??= _computeGlobalFeature(ExperimentalFlag.dataAssets);
+
   GlobalFeature? _digitSeparators;
   GlobalFeature get digitSeparators => _digitSeparators ??=
       _computeGlobalFeature(ExperimentalFlag.digitSeparators);
@@ -612,6 +634,10 @@ class GlobalFeatures {
   GlobalFeature get spreadCollections => _spreadCollections ??=
       _computeGlobalFeature(ExperimentalFlag.spreadCollections);
 
+  GlobalFeature? _staticExtensions;
+  GlobalFeature get staticExtensions => _staticExtensions ??=
+      _computeGlobalFeature(ExperimentalFlag.staticExtensions);
+
   GlobalFeature? _superParameters;
   GlobalFeature get superParameters => _superParameters ??=
       _computeGlobalFeature(ExperimentalFlag.superParameters);
@@ -704,6 +730,14 @@ class LibraryFeatures {
   LibraryFeature get controlFlowCollections =>
       _controlFlowCollections ??= globalFeatures._computeLibraryFeature(
         ExperimentalFlag.controlFlowCollections,
+        canonicalUri,
+        libraryVersion,
+      );
+
+  LibraryFeature? _dataAssets;
+  LibraryFeature get dataAssets =>
+      _dataAssets ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.dataAssets,
         canonicalUri,
         libraryVersion,
       );
@@ -916,6 +950,14 @@ class LibraryFeatures {
         libraryVersion,
       );
 
+  LibraryFeature? _staticExtensions;
+  LibraryFeature get staticExtensions =>
+      _staticExtensions ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.staticExtensions,
+        canonicalUri,
+        libraryVersion,
+      );
+
   LibraryFeature? _superParameters;
   LibraryFeature get superParameters =>
       _superParameters ??= globalFeatures._computeLibraryFeature(
@@ -989,6 +1031,8 @@ class LibraryFeatures {
         return constructorTearoffs;
       case shared.ExperimentalFlag.controlFlowCollections:
         return controlFlowCollections;
+      case shared.ExperimentalFlag.dataAssets:
+        return dataAssets;
       case shared.ExperimentalFlag.digitSeparators:
         return digitSeparators;
       case shared.ExperimentalFlag.dotShorthands:
@@ -1041,6 +1085,8 @@ class LibraryFeatures {
         return soundFlowAnalysis;
       case shared.ExperimentalFlag.spreadCollections:
         return spreadCollections;
+      case shared.ExperimentalFlag.staticExtensions:
+        return staticExtensions;
       case shared.ExperimentalFlag.superParameters:
         return superParameters;
       case shared.ExperimentalFlag.testExperiment:
@@ -1075,6 +1121,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.constructorTearoffs;
     case "control-flow-collections":
       return ExperimentalFlag.controlFlowCollections;
+    case "data-assets":
+      return ExperimentalFlag.dataAssets;
     case "digit-separators":
       return ExperimentalFlag.digitSeparators;
     case "dot-shorthands":
@@ -1127,6 +1175,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.soundFlowAnalysis;
     case "spread-collections":
       return ExperimentalFlag.spreadCollections;
+    case "static-extensions":
+      return ExperimentalFlag.staticExtensions;
     case "super-parameters":
       return ExperimentalFlag.superParameters;
     case "test-experiment":
@@ -1160,6 +1210,7 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.constructorTearoffs.isEnabledByDefault,
   ExperimentalFlag.controlFlowCollections:
       ExperimentalFlag.controlFlowCollections.isEnabledByDefault,
+  ExperimentalFlag.dataAssets: ExperimentalFlag.dataAssets.isEnabledByDefault,
   ExperimentalFlag.digitSeparators:
       ExperimentalFlag.digitSeparators.isEnabledByDefault,
   ExperimentalFlag.dotShorthands:
@@ -1204,6 +1255,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.soundFlowAnalysis.isEnabledByDefault,
   ExperimentalFlag.spreadCollections:
       ExperimentalFlag.spreadCollections.isEnabledByDefault,
+  ExperimentalFlag.staticExtensions:
+      ExperimentalFlag.staticExtensions.isEnabledByDefault,
   ExperimentalFlag.superParameters:
       ExperimentalFlag.superParameters.isEnabledByDefault,
   ExperimentalFlag.testExperiment:
@@ -1235,6 +1288,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
       ExperimentalFlag.constructorTearoffs,
   shared.ExperimentalFlag.controlFlowCollections:
       ExperimentalFlag.controlFlowCollections,
+  shared.ExperimentalFlag.dataAssets: ExperimentalFlag.dataAssets,
   shared.ExperimentalFlag.digitSeparators: ExperimentalFlag.digitSeparators,
   shared.ExperimentalFlag.dotShorthands: ExperimentalFlag.dotShorthands,
   shared.ExperimentalFlag.enhancedEnums: ExperimentalFlag.enhancedEnums,
@@ -1264,6 +1318,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals,
   shared.ExperimentalFlag.soundFlowAnalysis: ExperimentalFlag.soundFlowAnalysis,
   shared.ExperimentalFlag.spreadCollections: ExperimentalFlag.spreadCollections,
+  shared.ExperimentalFlag.staticExtensions: ExperimentalFlag.staticExtensions,
   shared.ExperimentalFlag.superParameters: ExperimentalFlag.superParameters,
   shared.ExperimentalFlag.testExperiment: ExperimentalFlag.testExperiment,
   shared.ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift,

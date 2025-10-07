@@ -8,20 +8,16 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         ConstructorReferenceContext,
         DeclarationKind,
         IdentifierContext,
-        MemberKind,
-        Parser;
+        MemberKind;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../api_prototype/experimental_flags.dart';
-import '../base/constant_context.dart' show ConstantContext;
-import '../base/crash.dart' show Crash;
+import '../base/extension_scope.dart';
 import '../base/identifiers.dart'
     show
         Identifier,
@@ -29,20 +25,13 @@ import '../base/identifiers.dart'
         QualifiedNameIdentifier,
         SimpleIdentifier;
 import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
-import '../base/local_scope.dart';
-import '../base/problems.dart' show DebugAbort;
 import '../base/scope.dart';
 import '../codes/cfe_codes.dart'
     show Code, LocatedMessage, Message, codeExpectedBlockToSkip;
 import '../fragment/fragment.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
-import '../kernel/body_builder.dart' show BodyBuilder, FormalParameters;
 import '../kernel/body_builder_context.dart';
 import '../source/value_kinds.dart';
-import '../type_inference/type_inference_engine.dart'
-    show InferenceDataForTesting, TypeInferenceEngine;
-import '../type_inference/type_inferrer.dart' show TypeInferrer;
-import 'diet_parser.dart';
 import 'offset_map.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'stack_listener_impl.dart';
@@ -57,13 +46,9 @@ class DietListener extends StackListenerImpl {
   /// declaration in which the expression should be evaluated.
   final LookupScope outermostScope;
 
-  final ClassHierarchy hierarchy;
-
-  final CoreTypes coreTypes;
+  final ExtensionScope extensionScope;
 
   final bool enableNative;
-
-  final TypeInferenceEngine typeInferenceEngine;
 
   bool _inRedirectingFactory = false;
 
@@ -80,20 +65,18 @@ class DietListener extends StackListenerImpl {
 
   final OffsetMap _offsetMap;
 
-  DietListener(
-    SourceLibraryBuilder library,
-    this.outermostScope,
-    this.hierarchy,
-    this.coreTypes,
-    this.typeInferenceEngine,
-    this._offsetMap,
-  ) : libraryBuilder = library,
-      uri = _offsetMap.uri,
-      _memberScope = outermostScope,
-      enableNative = library.loader.target.backendTarget.enableNative(
-        library.importUri,
-      ),
-      _benchmarker = library.loader.target.benchmarker;
+  DietListener({
+    required this.libraryBuilder,
+    required this.outermostScope,
+    required this.extensionScope,
+    required OffsetMap offsetMap,
+  }) : _offsetMap = offsetMap,
+       uri = offsetMap.uri,
+       _memberScope = outermostScope,
+       enableNative = libraryBuilder.loader.target.backendTarget.enableNative(
+         libraryBuilder.importUri,
+       ),
+       _benchmarker = libraryBuilder.loader.target.benchmarker;
 
   @override
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
@@ -415,15 +398,7 @@ class DietListener extends StackListenerImpl {
     FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
     if (functionBodyBuildingContext.shouldBuild) {
-      final BodyBuilder listener = createFunctionListener(
-        functionBodyBuildingContext,
-      );
-      buildFunctionBody(
-        listener,
-        bodyToken,
-        metadata,
-        MemberKind.TopLevelMethod,
-      );
+      buildFunctionBody(functionBodyBuildingContext, bodyToken, metadata);
     }
   }
 
@@ -636,9 +611,9 @@ class DietListener extends StackListenerImpl {
     );
     if (importUri.startsWith("dart-ext:")) return;
 
-    LibraryDependency? dependency = _offsetMap
+    LibraryDependency dependency = _offsetMap
         .lookupImport(importKeyword)
-        .libraryDependency;
+        .libraryDependency!;
     parseMetadata(
       libraryBuilder.createBodyBuilderContext(),
       metadata,
@@ -736,19 +711,15 @@ class DietListener extends StackListenerImpl {
         .createFunctionBodyBuildingContext();
     if (functionBodyBuildingContext.shouldBuild) {
       if (_inRedirectingFactory) {
-        buildRedirectingFactoryMethod(
-          bodyToken,
-          functionBodyBuildingContext,
-          MemberKind.Factory,
-          metadata,
+        libraryBuilder.loader.createResolver().buildRedirectingFactoryMethod(
+          libraryBuilder: libraryBuilder,
+          functionBodyBuildingContext: functionBodyBuildingContext,
+          fileUri: uri,
+          token: bodyToken,
+          metadata: metadata,
         );
       } else {
-        buildFunctionBody(
-          createFunctionListener(functionBodyBuildingContext),
-          bodyToken,
-          metadata,
-          MemberKind.Factory,
-        );
+        buildFunctionBody(functionBodyBuildingContext, bodyToken, metadata);
       }
     }
   }
@@ -955,138 +926,8 @@ class DietListener extends StackListenerImpl {
     FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
     if (functionBodyBuildingContext.shouldBuild) {
-      MemberKind memberKind = functionBodyBuildingContext.memberKind;
-      buildFunctionBody(
-        createFunctionListener(functionBodyBuildingContext),
-        beginParam,
-        metadata,
-        memberKind,
-      );
+      buildFunctionBody(functionBodyBuildingContext, beginParam, metadata);
     }
-  }
-
-  BodyBuilder createListener(
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope memberScope, {
-    VariableDeclaration? thisVariable,
-    List<TypeParameter>? thisTypeParameters,
-    LocalScope? formalParameterScope,
-    InferenceDataForTesting? inferenceDataForTesting,
-  }) {
-    _benchmarker
-    // Coverage-ignore(suite): Not run.
-    ?.beginSubdivide(BenchmarkSubdivides.diet_listener_createListener);
-    // Note: we set thisType regardless of whether we are building a static
-    // member, since that provides better error recovery.
-    // TODO(johnniwinther): Provide a dummy this on static extension methods
-    // for better error recovery?
-    TypeInferrer typeInferrer = typeInferenceEngine.createLocalTypeInferrer(
-      uri,
-      bodyBuilderContext.thisType,
-      libraryBuilder,
-      memberScope,
-      inferenceDataForTesting,
-    );
-    ConstantContext constantContext = bodyBuilderContext.constantContext;
-    BodyBuilder result = createListenerInternal(
-      bodyBuilderContext,
-      memberScope,
-      formalParameterScope,
-      thisVariable,
-      thisTypeParameters,
-      typeInferrer,
-      constantContext,
-    );
-    _benchmarker
-        // Coverage-ignore(suite): Not run.
-        ?.endSubdivide();
-    return result;
-  }
-
-  BodyBuilder createListenerInternal(
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope memberScope,
-    LocalScope? formalParameterScope,
-    VariableDeclaration? thisVariable,
-    List<TypeParameter>? thisTypeParameters,
-    TypeInferrer typeInferrer,
-    ConstantContext constantContext,
-  ) {
-    return new BodyBuilder(
-      libraryBuilder: libraryBuilder,
-      context: bodyBuilderContext,
-      enclosingScope: new EnclosingLocalScope(memberScope),
-      formalParameterScope: formalParameterScope,
-      hierarchy: hierarchy,
-      coreTypes: coreTypes,
-      thisVariable: thisVariable,
-      thisTypeParameters: thisTypeParameters,
-      uri: uri,
-      typeInferrer: typeInferrer,
-    )..constantContext = constantContext;
-  }
-
-  BodyBuilder createFunctionListener(
-    FunctionBodyBuildingContext functionBodyBuildingContext,
-  ) {
-    final LookupScope typeParameterScope =
-        functionBodyBuildingContext.typeParameterScope;
-    final LocalScope formalParameterScope = functionBodyBuildingContext
-        .computeFormalParameterScope(typeParameterScope);
-    return createListener(
-      functionBodyBuildingContext.createBodyBuilderContext(),
-      typeParameterScope,
-      thisVariable: functionBodyBuildingContext.thisVariable,
-      thisTypeParameters: functionBodyBuildingContext.thisTypeParameters,
-      formalParameterScope: formalParameterScope,
-      inferenceDataForTesting:
-          functionBodyBuildingContext.inferenceDataForTesting,
-    );
-  }
-
-  void buildRedirectingFactoryMethod(
-    Token token,
-    FunctionBodyBuildingContext functionBodyBuildingContext,
-    MemberKind kind,
-    Token? metadata,
-  ) {
-    _benchmarker
-    // Coverage-ignore(suite): Not run.
-    ?.beginSubdivide(
-      BenchmarkSubdivides.diet_listener_buildRedirectingFactoryMethod,
-    );
-    final BodyBuilder listener = createFunctionListener(
-      functionBodyBuildingContext,
-    );
-    try {
-      Parser parser = new Parser(
-        listener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled,
-        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
-      );
-      if (metadata != null) {
-        parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
-        listener.pop(); // Pops metadata constants.
-      }
-
-      token = parser.parseFormalParametersOpt(
-        parser.syntheticPreviousToken(token),
-        MemberKind.Factory,
-      );
-      listener.pop(); // Pops formal parameters.
-      listener.finishRedirectingFactoryBody();
-      listener.checkEmpty(token.next!.charOffset);
-    }
-    // Coverage-ignore(suite): Not run.
-    on DebugAbort {
-      rethrow;
-    } catch (e, s) {
-      throw new Crash(uri, token.charOffset, e, s);
-    }
-    _benchmarker
-        // Coverage-ignore(suite): Not run.
-        ?.endSubdivide();
   }
 
   void buildFields(int count, Token token, bool isTopLevel) {
@@ -1110,22 +951,21 @@ class DietListener extends StackListenerImpl {
 
     Identifier first = names.first!;
     FieldFragment fragment = _offsetMap.lookupField(first);
-    // TODO(paulberry): don't re-parse the field if we've already parsed it
-    // for type inference.
-    _parseFields(
-      _offsetMap,
-      createListener(
-        fragment.declaration.createBodyBuilderContext(),
-        _memberScope,
-        inferenceDataForTesting: fragment
-            .builder
-            .dataForTesting
-            // Coverage-ignore(suite): Not run.
-            ?.inferenceData,
-      ),
-      token,
-      metadata,
-      isTopLevel,
+    libraryBuilder.loader.createResolver().buildFields(
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: fragment.declaration.createBodyBuilderContext(),
+      fileUri: uri,
+      offsetMap: _offsetMap,
+      extensionScope: extensionScope,
+      scope: _memberScope,
+      inferenceDataForTesting: fragment
+          .builder
+          .dataForTesting
+          // Coverage-ignore(suite): Not run.
+          ?.inferenceData,
+      startToken: token,
+      metadata: metadata,
+      isTopLevel: isTopLevel,
     );
     checkEmpty(token.charOffset);
     _benchmarker
@@ -1314,9 +1154,11 @@ class DietListener extends StackListenerImpl {
     FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
     if (functionBodyBuildingContext.shouldBuild) {
-      buildPrimaryConstructor(
-        createFunctionListener(functionBodyBuildingContext),
-        formalsToken,
+      libraryBuilder.loader.createResolver().buildPrimaryConstructor(
+        libraryBuilder: libraryBuilder,
+        functionBodyBuildingContext: functionBodyBuildingContext,
+        fileUri: uri,
+        startToken: formalsToken,
       );
     }
 
@@ -1468,128 +1310,24 @@ class DietListener extends StackListenerImpl {
     checkEmpty(beginToken.charOffset);
   }
 
-  AsyncMarker? getAsyncMarker(StackListenerImpl listener) =>
-      listener.pop() as AsyncMarker?;
-
-  void buildPrimaryConstructor(BodyBuilder bodyBuilder, Token startToken) {
-    _benchmarker
-    // Coverage-ignore(suite): Not run.
-    ?.beginSubdivide(BenchmarkSubdivides.diet_listener_buildPrimaryConstructor);
-    Token token = startToken;
-    try {
-      Parser parser = new Parser(
-        bodyBuilder,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled,
-        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
-      );
-      token = parser.parseFormalParametersOpt(
-        parser.syntheticPreviousToken(token),
-        MemberKind.PrimaryConstructor,
-      );
-      FormalParameters? formals = bodyBuilder.pop() as FormalParameters?;
-      bodyBuilder.checkEmpty(token.next!.charOffset);
-      bodyBuilder.handleNoInitializers();
-      bodyBuilder.checkEmpty(token.charOffset);
-      bodyBuilder.finishFunction(formals, AsyncMarker.Sync, null);
-      _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.endSubdivide();
-    }
-    // Coverage-ignore(suite): Not run.
-    on DebugAbort {
-      rethrow;
-    } catch (e, s) {
-      throw new Crash(uri, token.charOffset, e, s);
-    }
-  }
-
   void buildFunctionBody(
-    BodyBuilder bodyBuilder,
+    FunctionBodyBuildingContext functionBodyBuildingContext,
     Token startToken,
     Token? metadata,
-    MemberKind kind,
   ) {
     _benchmarker
     // Coverage-ignore(suite): Not run.
-    ?.beginSubdivide(BenchmarkSubdivides.diet_listener_buildFunctionBody);
-    Token token = startToken;
-    try {
-      Parser parser = new Parser(
-        bodyBuilder,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled,
-        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
-      );
-      if (metadata != null) {
-        parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
-        bodyBuilder.pop(); // Annotations.
-      }
-      token = parser.parseFormalParametersOpt(
-        parser.syntheticPreviousToken(token),
-        kind,
-      );
-      FormalParameters? formals = bodyBuilder.pop() as FormalParameters?;
-      bodyBuilder.checkEmpty(token.next!.charOffset);
-      token = parser.parseInitializersOpt(token);
-      token = parser.parseAsyncModifierOpt(token);
-      AsyncMarker asyncModifier =
-          getAsyncMarker(bodyBuilder) ?? AsyncMarker.Sync;
-      if (kind == MemberKind.Factory && asyncModifier != AsyncMarker.Sync) {
-        // Factories has to be sync. The parser issued an error.
-        // Recover to sync.
-        asyncModifier = AsyncMarker.Sync;
-      }
-      bool isExpression = false;
-      bool allowAbstract = asyncModifier == AsyncMarker.Sync;
-
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.beginSubdivide(
-        BenchmarkSubdivides.diet_listener_buildFunctionBody_parseFunctionBody,
-      );
-      parser.parseFunctionBody(token, isExpression, allowAbstract);
-      Statement? body = bodyBuilder.pop() as Statement?;
-      _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.endSubdivide();
-      bodyBuilder.checkEmpty(token.charOffset);
-      bodyBuilder.finishFunction(formals, asyncModifier, body);
-      _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.endSubdivide();
-    }
-    // Coverage-ignore(suite): Not run.
-    on DebugAbort {
-      rethrow;
-    } catch (e, s) {
-      throw new Crash(uri, token.charOffset, e, s);
-    }
-  }
-
-  void _parseFields(
-    OffsetMap offsetMap,
-    BodyBuilder bodyBuilder,
-    Token startToken,
-    Token? metadata,
-    bool isTopLevel,
-  ) {
-    Token token = startToken;
-    Parser parser = new Parser(
-      bodyBuilder,
-      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+    ?.beginSubdivide(BenchmarkSubdivides.resolver_buildFunctionBody);
+    libraryBuilder.loader.createResolver().buildFunctionBody(
+      libraryBuilder: libraryBuilder,
+      functionBodyBuildingContext: functionBodyBuildingContext,
+      fileUri: uri,
+      startToken: startToken,
+      metadata: metadata,
     );
-    if (isTopLevel) {
-      token = parser.parseTopLevelMember(metadata ?? token);
-    } else {
-      // TODO(danrubel): disambiguate between class/mixin/extension members
-      token = parser.parseClassMember(metadata ?? token, null).next!;
-    }
-    bodyBuilder.finishFields(_offsetMap);
-
-    bodyBuilder.checkEmpty(token.charOffset);
+    _benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.endSubdivide();
   }
 
   @override
@@ -1620,18 +1358,18 @@ class DietListener extends StackListenerImpl {
   List<Expression>? parseMetadata(
     BodyBuilderContext bodyBuilderContext,
     Token? metadata,
-    Annotatable? parent,
+    Annotatable parent,
   ) {
     if (metadata != null) {
-      BodyBuilder listener = createListener(bodyBuilderContext, _memberScope);
-      Parser parser = new Parser(
-        listener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled,
-        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      return libraryBuilder.loader.createResolver().buildMetadata(
+        libraryBuilder: libraryBuilder,
+        bodyBuilderContext: bodyBuilderContext,
+        fileUri: uri,
+        extensionScope: extensionScope,
+        scope: _memberScope,
+        metadata: metadata,
+        annotatable: parent,
       );
-      parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
-      return listener.finishMetadata(parent);
     }
     return null;
   }

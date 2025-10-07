@@ -96,6 +96,10 @@ Future<void> main(List<String> args) async {
       scriptArguments.add('--config=${repoDir}/pkg/front_end/testing.json');
       break;
     case 'generate-messages':
+      print(
+        'Hint: running `generate_messages.dart` directly is faster and avoids '
+        'bootstrapping problems.',
+      );
       mainFunction = generate_messages.main;
       script = '${toolDir}/generate_messages.dart';
       break;

@@ -4,10 +4,11 @@
 
 import 'package:kernel/ast.dart';
 
-import '../codes/cfe_codes.dart';
+import '../base/compiler_context.dart';
+import '../base/messages.dart';
 import '../kernel/internal_ast.dart';
+import '../source/check_helper.dart';
 import 'external_ast_helper.dart';
-import 'inference_helper.dart';
 import 'inference_visitor_base.dart';
 import 'type_schema.dart';
 
@@ -138,6 +139,10 @@ abstract class InvocationInferenceResult {
     }
     return expression;
   }
+
+  /// Creates the [InitializerResult] corresponding to this
+  /// [InvocationInferenceResult] for the given [initializer].
+  InitializerInferenceResult toInitializerResult(Initializer initializer);
 }
 
 class SuccessfulInferenceResult implements InvocationInferenceResult {
@@ -170,24 +175,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
       assert(
         expression is InvocationExpression || expression is InvalidExpression,
       );
-      if (expression is FactoryConstructorInvocation) {
-        return InvocationInferenceResult._insertHoistedExpressions(
-          expression,
-          hoistedArguments,
-        );
-      } else if (expression is TypeAliasedConstructorInvocation) {
-        // Coverage-ignore-block(suite): Not run.
-        return InvocationInferenceResult._insertHoistedExpressions(
-          expression,
-          hoistedArguments,
-        );
-      } else if (expression is TypeAliasedFactoryInvocation) {
-        // Coverage-ignore-block(suite): Not run.
-        return InvocationInferenceResult._insertHoistedExpressions(
-          expression,
-          hoistedArguments,
-        );
-      } else if (expression is ConstructorInvocation) {
+      if (expression is ConstructorInvocation) {
         return InvocationInferenceResult._insertHoistedExpressions(
           expression,
           hoistedArguments,
@@ -275,6 +263,13 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
 
   @override
   bool get isInapplicable => false;
+
+  @override
+  InitializerInferenceResult toInitializerResult(Initializer initializer) {
+    return new // force line break
+    SuccessfulInitializerInvocationInferenceResult // force line break
+    .fromSuccessfulInferenceResult(initializer, this);
+  }
 }
 
 class WrapInProblemInferenceResult implements InvocationInferenceResult {
@@ -284,13 +279,11 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   @override
   final DartType functionType;
 
-  final Message message;
+  final LocatedMessage message;
 
-  final int fileOffset;
+  final ProblemReporting problemReporting;
 
-  final int length;
-
-  final InferenceHelper helper;
+  final CompilerContext compilerContext;
 
   @override
   final bool isInapplicable;
@@ -301,9 +294,8 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
     this.inferredType,
     this.functionType,
     this.message,
-    this.fileOffset,
-    this.length,
-    this.helper, {
+    this.problemReporting,
+    this.compilerContext, {
     required this.isInapplicable,
     required this.hoistedArguments,
   });
@@ -313,7 +305,11 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
     Expression expression, {
     DartType? extensionReceiverType,
   }) {
-    expression = helper.wrapInProblem(expression, message, fileOffset, length);
+    expression = problemReporting.wrapInLocatedProblem(
+      compilerContext: compilerContext,
+      expression: expression,
+      message: message,
+    );
     List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
@@ -324,31 +320,38 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
       );
     }
   }
+
+  @override
+  InitializerInferenceResult toInitializerResult(Initializer initializer) {
+    return new // force line break
+    WrapInProblemInitializerInferenceResult.fromWrapInProblemInferenceResult(
+      initializer,
+      this,
+    );
+  }
 }
 
 abstract class InitializerInferenceResult {
+  /// The inferred initializer.
+  Initializer get initializer;
+
   /// Modifies list of initializers in-place to apply the inference result.
   void applyResult(List<Initializer> initializers, TreeNode? parent);
 
   factory InitializerInferenceResult.fromInvocationInferenceResult(
+    Initializer initializer,
     InvocationInferenceResult invocationInferenceResult,
   ) {
-    if (invocationInferenceResult is SuccessfulInferenceResult) {
-      return new // force line break
-      SuccessfulInitializerInvocationInferenceResult // force line break
-      .fromSuccessfulInferenceResult(invocationInferenceResult);
-    } else {
-      return new WrapInProblemInitializerInferenceResult // force line break
-      .fromWrapInProblemInferenceResult(
-        invocationInferenceResult as WrapInProblemInferenceResult,
-      );
-    }
+    return invocationInferenceResult.toInitializerResult(initializer);
   }
 }
 
 class SuccessfulInitializerInferenceResult
     implements InitializerInferenceResult {
-  const SuccessfulInitializerInferenceResult();
+  @override
+  final Initializer initializer;
+
+  SuccessfulInitializerInferenceResult(this.initializer);
 
   @override
   void applyResult(List<Initializer> initializers, TreeNode? parent) {}
@@ -356,6 +359,9 @@ class SuccessfulInitializerInferenceResult
 
 class SuccessfulInitializerInvocationInferenceResult
     implements InitializerInferenceResult {
+  @override
+  final Initializer initializer;
+
   final DartType inferredType;
 
   final FunctionType functionType;
@@ -365,6 +371,7 @@ class SuccessfulInitializerInvocationInferenceResult
   final DartType? inferredReceiverType;
 
   SuccessfulInitializerInvocationInferenceResult({
+    required this.initializer,
     required this.inferredType,
     required this.functionType,
     required this.hoistedArguments,
@@ -372,8 +379,10 @@ class SuccessfulInitializerInvocationInferenceResult
   });
 
   SuccessfulInitializerInvocationInferenceResult.fromSuccessfulInferenceResult(
+    Initializer initializer,
     SuccessfulInferenceResult successfulInferenceResult,
   ) : this(
+        initializer: initializer,
         inferredType: successfulInferenceResult.inferredType,
         functionType: successfulInferenceResult.functionType,
         hoistedArguments: successfulInferenceResult.hoistedArguments,
@@ -397,8 +406,13 @@ class SuccessfulInitializerInvocationInferenceResult
 
 class WrapInProblemInitializerInferenceResult
     implements InitializerInferenceResult {
+  @override
+  final Initializer initializer;
+  final WrapInProblemInferenceResult wrapInProblemInferenceResult;
+
   WrapInProblemInitializerInferenceResult.fromWrapInProblemInferenceResult(
-    WrapInProblemInferenceResult wrapInProblemInferenceResult,
+    this.initializer,
+    this.wrapInProblemInferenceResult,
   );
 
   @override

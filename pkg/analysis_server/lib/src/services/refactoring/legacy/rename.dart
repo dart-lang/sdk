@@ -154,10 +154,11 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   /// Adds individual edits to [change].
   Future<void> fillChange();
 
-  CodeStyleOptions getCodeStyleOptions(File file) =>
-      sessionHelper.session.analysisContext
-          .getAnalysisOptionsForFile(file)
-          .codeStyleOptions;
+  CodeStyleOptions getCodeStyleOptions(File file) => sessionHelper
+      .session
+      .analysisContext
+      .getAnalysisOptionsForFile(file)
+      .codeStyleOptions;
 
   static String _getOldName(Element element) {
     if (element is ConstructorElement) {

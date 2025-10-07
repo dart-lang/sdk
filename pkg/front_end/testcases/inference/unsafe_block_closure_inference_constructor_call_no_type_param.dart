@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class C {
   C(x());
 }
 
-var v = new C(/*@returnType=int*/ () {
+var v = new C(() {
   return 1;
 });
 

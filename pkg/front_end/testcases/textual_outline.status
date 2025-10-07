@@ -63,8 +63,3 @@ regress/issue_34850: UnknownChunk # Test has parser errors
 coverage/external_test: FormatterCrash
 coverage/operator_unsupported_test: EmptyOutput
 coverage/syntax_get_set_syntax_test: UnknownChunk
-
-null_aware_elements/constant_collections: FormatterCrash
-null_aware_elements/constant_null_aware_map_entry_shorting: FormatterCrash
-null_aware_elements/constant_null_aware_map_entry_shorting_erroneous: FormatterCrash
-null_aware_elements/simple_positive: FormatterCrash

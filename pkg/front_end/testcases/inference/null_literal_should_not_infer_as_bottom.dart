@@ -2,27 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 var h = null;
 void foo(int f(Object _)) {}
 
 test() {
-  var /*@type=(Object) -> Null*/ f = /*@ returnType=Null */ (Object x) => null;
+  var f = (Object x) => null;
   String? y = f(42);
 
-  f = /*@ returnType=Null */ (/*@type=Object*/ x) => 'hello';
+  f = (x) => 'hello';
 
-  var /*@ type=dynamic */ g = null;
+  var g = null;
   g = 'hello';
-  (/*info:DYNAMIC_INVOKE*/ g.foo());
+  ( /*info:DYNAMIC_INVOKE*/ g.foo());
 
   h = 'hello';
-  (/*info:DYNAMIC_INVOKE*/ h.foo());
+  ( /*info:DYNAMIC_INVOKE*/ h.foo());
 
-  foo(/*@returnType=int*/ (/*@type=Object*/ x) => 0);
-  foo(/*@returnType=Never*/ (/*@type=Object*/ x) => throw "not implemented");
+  foo((x) => 0);
+  foo((x) => throw "not implemented");
 }
 
 main() {}

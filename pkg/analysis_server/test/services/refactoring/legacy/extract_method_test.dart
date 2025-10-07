@@ -242,10 +242,9 @@ class A {}
     newFile('$workspaceRootPath/bbb/lib/bbb.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
-            ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'),
     );
 
     await resolveTestCode('''
@@ -270,10 +269,9 @@ import 'package:bbb/bbb.dart';
     newFile('$workspaceRootPath/bbb/lib/bbb.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
-            ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'),
     );
 
     await resolveTestCode('''
@@ -300,12 +298,11 @@ import 'package:bbb/bbb.dart';
     newFile('$workspaceRootPath/ddd/lib/ddd.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
-            ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb')
-            ..add(name: 'ccc', rootPath: '$workspaceRootPath/ccc')
-            ..add(name: 'ddd', rootPath: '$workspaceRootPath/ddd'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb')
+        ..add(name: 'ccc', rootPath: '$workspaceRootPath/ccc')
+        ..add(name: 'ddd', rootPath: '$workspaceRootPath/ddd'),
     );
 
     await resolveTestCode('''

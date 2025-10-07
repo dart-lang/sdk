@@ -266,12 +266,13 @@ enum BenchmarkSubdivides {
   body_buildBody_benchmark_specific_diet_parser,
   body_buildBody_benchmark_specific_parser,
 
-  diet_listener_createListener,
   diet_listener_buildFields,
-  diet_listener_buildFunctionBody,
   diet_listener_buildFunctionBody_parseFunctionBody,
   diet_listener_buildPrimaryConstructor,
   diet_listener_buildRedirectingFactoryMethod,
+
+  resolver_createBodyBuilder,
+  resolver_buildFunctionBody,
 
   inferImplicitFieldType,
   inferFieldInitializer,
@@ -282,8 +283,4 @@ enum BenchmarkSubdivides {
   inferRedirectingFactoryTypeArguments,
 
   buildOutlineExpressions,
-
-  computeMacroApplications_macroExecutorProvider,
-  macroApplications_macroExecutorLoadMacro,
-  macroApplications_macroExecutorInstantiateMacro,
 }

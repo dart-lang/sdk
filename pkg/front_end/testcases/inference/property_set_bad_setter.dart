@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {
@@ -10,7 +9,7 @@ class A {
 }
 
 void f(A a) {
-  var /*@type=int*/ x = a. /*@target=A.x*/ x = 0;
+  var x = a.x = 0;
 }
 
 main() {}

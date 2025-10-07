@@ -23,6 +23,18 @@ class Map<K, V> {
     return map;
   }
 
+  // Factory constructing a Map for Dart_NewMap C API
+  // from list of keys and values.
+  @pragma("vm:entry-point", "call")
+  factory Map._fromKeyValues(List keys, List values) {
+    var map = LinkedHashMap<K, V>();
+    var len = keys.length;
+    for (int i = 0; i < len; i++) {
+      map[keys[i]] = values[i];
+    }
+    return map;
+  }
+
   @patch
   factory Map.unmodifiable(Map other) {
     return UnmodifiableMapView<K, V>(Map<K, V>.from(other));

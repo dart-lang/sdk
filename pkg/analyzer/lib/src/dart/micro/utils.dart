@@ -76,8 +76,8 @@ ConstructorElement? _getActualConstructorElement(
   return constructor;
 }
 
-/// Returns the [LibraryImportElement] that is referenced by [prefixNode] with a
-/// [PrefixElement], maybe `null`.
+/// Returns the [MockLibraryImportElement] that is referenced by [prefixNode]
+/// with a [PrefixElement], maybe `null`.
 MockLibraryImportElement? _getImportElementInfo2(SimpleIdentifier prefixNode) {
   // prepare environment
   var parent = prefixNode.parent;
@@ -114,8 +114,8 @@ MockLibraryImportElement? _getImportElementInfo2(SimpleIdentifier prefixNode) {
   );
 }
 
-/// Returns the [LibraryImportElement] that is referenced by [prefixNode] with a
-/// [PrefixElement], maybe `null`.
+/// Returns the [MockLibraryImportElement] that is referenced by [prefixNode]
+/// with a [PrefixElement], maybe `null`.
 MockLibraryImportElement? _getImportElementInfoFromReference(
   ImportPrefixReference prefixNode,
 ) {
@@ -149,12 +149,13 @@ MockLibraryImportElement? _getImportElementInfoFromReference(
   );
 }
 
-/// Returns the [LibraryImportElement] that declared [prefix] and imports [element].
+/// Returns the [MockLibraryImportElement] that declared [prefix] and imports
+/// [element].
 ///
 /// [libraryFragment] - the [LibraryFragmentImpl] where reference is.
 /// [prefix] - the import prefix, maybe `null`.
 /// [element] - the referenced element.
-/// [importElementsMap] - the cache of [Element]s imported by [LibraryImportElement]s.
+/// [importElementsMap] - the cache of [Element]s imported by [LibraryImport]s.
 MockLibraryImportElement? _getMockImportElement(
   LibraryFragmentImpl libraryFragment,
   String prefix,

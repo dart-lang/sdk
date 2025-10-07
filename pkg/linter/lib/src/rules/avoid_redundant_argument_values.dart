@@ -35,6 +35,7 @@ class AvoidRedundantArgumentValues extends LintRule {
     registry.addInstanceCreationExpression(this, visitor);
     registry.addFunctionExpressionInvocation(this, visitor);
     registry.addMethodInvocation(this, visitor);
+    registry.addAnnotation(this, visitor);
   }
 }
 
@@ -83,6 +84,13 @@ class _Visitor extends SimpleAstVisitor<void> {
           expressionValue == value) {
         rule.reportAtNode(arg);
       }
+    }
+  }
+
+  @override
+  void visitAnnotation(Annotation node) {
+    if (node.arguments case var arguments?) {
+      check(arguments);
     }
   }
 

@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'dart:async';
 
 foo(Future<List<A>> f1, Future<List<A>> f2) async {
-  List<List<A>> merged = await Future. /*@typeArgs=List<A>*/ wait(
-      /*@typeArgs=Future<List<A>>*/ [f1, f2]);
+  List<List<A>> merged = await Future.wait([f1, f2]);
 }
 
 class A {}

@@ -992,6 +992,8 @@ Random v2;
   20 2:1 |Random| REFERENCE
 <testLibraryFragment> v2@38
   31 3:1 |Random| REFERENCE
+dart:math new@null
+  402 16:20 |Random| REFERENCE
 ''');
   }
 

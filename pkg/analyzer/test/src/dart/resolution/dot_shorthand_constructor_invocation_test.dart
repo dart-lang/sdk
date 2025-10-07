@@ -56,7 +56,7 @@ DotShorthandConstructorInvocation
       SimpleIdentifier
         token: iter
         correspondingParameter: ParameterMember
-          baseElement: dart:async::@class::Stream::@constructor::fromIterable::@formalParameter::data
+          baseElement: dart:async::@class::Stream::@constructor::fromIterable::@formalParameter::elements
           substitution: {T: int}
         element: iter@26
         staticType: List<int>

@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ChangeToTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CHANGE_TO;
+  FixKind get kind => DartFixKind.changeTo;
 
   Future<void> test_annotation_constructor() async {
     await resolveTestCode('''
@@ -493,8 +493,8 @@ void f(A a) {
   a.foo += 2;
 }
 ''',
-      errorFilter:
-          (e) => e.diagnosticCode == CompileTimeErrorCode.undefinedGetter,
+      errorFilter: (e) =>
+          e.diagnosticCode == CompileTimeErrorCode.undefinedGetter,
     );
   }
 
@@ -520,8 +520,8 @@ void f() {
   A.foo += 2;
 }
 ''',
-      errorFilter:
-          (e) => e.diagnosticCode == CompileTimeErrorCode.undefinedGetter,
+      errorFilter: (e) =>
+          e.diagnosticCode == CompileTimeErrorCode.undefinedGetter,
     );
   }
 

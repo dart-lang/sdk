@@ -6,9 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 
 import '../base/problems.dart' show unsupported;
-
 import '../type_inference/type_schema.dart';
-
 import 'collections.dart'
     show
         ForElement,
@@ -24,7 +22,6 @@ import 'collections.dart'
         PatternForElement,
         PatternForMapEntry,
         SpreadElement;
-
 import 'internal_ast.dart';
 
 /// A shadow tree factory.
@@ -34,51 +31,18 @@ class Forest {
   ArgumentsImpl createArguments(
     int fileOffset,
     List<Expression> positional, {
-    List<DartType>? types,
     List<NamedExpression>? named,
-    bool hasExplicitTypeArguments = true,
     List<Object?>? argumentsOriginalOrder,
   }) {
-    if (!hasExplicitTypeArguments) {
-      ArgumentsImpl arguments = new ArgumentsImpl(
-        positional,
-        types: <DartType>[],
-        named: named,
-        argumentsOriginalOrder: argumentsOriginalOrder,
-      );
-      arguments.types.addAll(types!);
-      return arguments;
-    } else {
-      return new ArgumentsImpl(
-        positional,
-        types: types,
-        named: named,
-        argumentsOriginalOrder: argumentsOriginalOrder,
-      )..fileOffset = fileOffset;
-    }
+    return new ArgumentsImpl(
+      positional,
+      named: named,
+      argumentsOriginalOrder: argumentsOriginalOrder,
+    )..fileOffset = fileOffset;
   }
 
   ArgumentsImpl createArgumentsEmpty(int fileOffset) {
-    return createArguments(fileOffset, <Expression>[]);
-  }
-
-  List<NamedExpression> argumentsNamed(Arguments arguments) {
-    return arguments.named;
-  }
-
-  List<Expression> argumentsPositional(Arguments arguments) {
-    return arguments.positional;
-  }
-
-  List<DartType> argumentsTypeArguments(Arguments arguments) {
-    return arguments.types;
-  }
-
-  void argumentsSetTypeArguments(Arguments arguments, List<DartType> types) {
-    ArgumentsImpl.setNonInferrableArgumentTypes(
-      arguments as ArgumentsImpl,
-      types,
-    );
+    return createArguments(fileOffset, []);
   }
 
   /// Return a representation of a boolean literal at the given [fileOffset].
@@ -228,7 +192,7 @@ class Forest {
   LoadLibrary createLoadLibrary(
     int fileOffset,
     LibraryDependency dependency,
-    Arguments? arguments,
+    ArgumentsImpl? arguments,
   ) {
     return new LoadLibraryImpl(dependency, arguments)..fileOffset = fileOffset;
   }
@@ -789,7 +753,7 @@ class Forest {
   Expression createExpressionInvocation(
     int fileOffset,
     Expression expression,
-    Arguments arguments,
+    ArgumentsImpl arguments,
   ) {
     return new ExpressionInvocation(expression, arguments)
       ..fileOffset = fileOffset;
@@ -799,7 +763,7 @@ class Forest {
     int fileOffset,
     Expression expression,
     Name name,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required bool isNullAware,
   }) {
     return new MethodInvocation(
@@ -810,13 +774,13 @@ class Forest {
     )..fileOffset = fileOffset;
   }
 
-  SuperMethodInvocation createSuperMethodInvocation(
+  Expression createSuperMethodInvocation(
     int fileOffset,
     Name name,
     Procedure procedure,
-    Arguments arguments,
+    ArgumentsImpl arguments,
   ) {
-    return new SuperMethodInvocation(name, arguments, procedure)
+    return new InternalSuperMethodInvocation(name, arguments, procedure)
       ..fileOffset = fileOffset;
   }
 
@@ -1185,7 +1149,7 @@ class Forest {
   DotShorthandInvocation createDotShorthandInvocation(
     int fileOffset,
     Name name,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int nameOffset,
     required bool isConst,
   }) {

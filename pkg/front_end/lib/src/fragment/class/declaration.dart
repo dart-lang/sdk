@@ -6,6 +6,7 @@ part of '../fragment.dart';
 
 abstract class ClassDeclaration {
   String get name;
+  ExtensionScope get extensionScope;
   LookupScope get compilationUnitScope;
   LookupScope get bodyScope;
   Uri get fileUri;
@@ -34,6 +35,10 @@ class RegularClassDeclaration implements ClassDeclaration {
   final ClassFragment _fragment;
 
   RegularClassDeclaration(this._fragment);
+
+  @override
+  ExtensionScope get extensionScope =>
+      _fragment.enclosingCompilationUnit.extensionScope;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
@@ -81,8 +86,10 @@ class RegularClassDeclaration implements ClassDeclaration {
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
     );
   }
@@ -103,6 +110,10 @@ class EnumDeclaration implements ClassDeclaration {
   final TypeBuilder supertype;
 
   EnumDeclaration(this._fragment, this.supertype);
+
+  @override
+  ExtensionScope get extensionScope =>
+      _fragment.enclosingCompilationUnit.extensionScope;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
@@ -147,8 +158,10 @@ class EnumDeclaration implements ClassDeclaration {
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
     );
   }
@@ -169,6 +182,10 @@ class NamedMixinApplication implements ClassDeclaration {
   final List<TypeBuilder> mixedInTypes;
 
   NamedMixinApplication(this._fragment, this.mixedInTypes);
+
+  @override
+  ExtensionScope get extensionScope =>
+      _fragment.enclosingCompilationUnit.extensionScope;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
@@ -214,8 +231,10 @@ class NamedMixinApplication implements ClassDeclaration {
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
     );
   }
@@ -229,6 +248,9 @@ class NamedMixinApplication implements ClassDeclaration {
 class AnonymousMixinApplication implements ClassDeclaration {
   @override
   final String name;
+
+  @override
+  final ExtensionScope extensionScope;
 
   @override
   final LookupScope compilationUnitScope;
@@ -259,6 +281,7 @@ class AnonymousMixinApplication implements ClassDeclaration {
 
   AnonymousMixinApplication({
     required this.name,
+    required this.extensionScope,
     required this.compilationUnitScope,
     required this.fileUri,
     required this.nameOffset,
@@ -292,6 +315,10 @@ class MixinDeclaration implements ClassDeclaration {
   final MixinFragment _fragment;
 
   MixinDeclaration(this._fragment);
+
+  @override
+  ExtensionScope get extensionScope =>
+      _fragment.enclosingCompilationUnit.extensionScope;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
@@ -340,8 +367,10 @@ class MixinDeclaration implements ClassDeclaration {
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
     );
   }

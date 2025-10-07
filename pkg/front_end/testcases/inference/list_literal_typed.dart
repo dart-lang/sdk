@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 var a = <int>[];
@@ -11,8 +10,8 @@ var c = <List<int>>[];
 var d = <dynamic>[1, 2.0, false];
 
 main() {
-  var /*@type=List<int>*/ a = <int>[];
-  var /*@type=List<double>*/ b = <double>[1.0, 2.0, 3.0];
-  var /*@type=List<List<int>>*/ c = <List<int>>[];
-  var /*@type=List<dynamic>*/ d = <dynamic>[1, 2.0, false];
+  var a = <int>[];
+  var b = <double>[1.0, 2.0, 3.0];
+  var c = <List<int>>[];
+  var d = <dynamic>[1, 2.0, false];
 }

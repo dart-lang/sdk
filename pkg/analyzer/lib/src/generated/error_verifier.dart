@@ -16,6 +16,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -317,7 +318,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
          diagnosticReporter,
          libraryContext.duplicationDefinitionContext,
        ) {
-    _isInSystemLibrary = _currentLibrary.source.uri.isScheme('dart');
+    _isInSystemLibrary = _currentLibrary.uri.isScheme('dart');
     _isInStaticVariableDeclaration = false;
     _isInConstructorInitializer = false;
     _intType = _typeProvider.intType;
@@ -2221,7 +2222,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    Uri libraryUri = _currentLibrary.source.uri;
+    Uri libraryUri = _currentLibrary.uri;
     var conflictingDeclaredNames = <String>{};
 
     // method declared in the enclosing class vs. inherited getter/setter
@@ -3147,14 +3148,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // should be private
-    var sdk = _currentLibrary.context.sourceFactory.dartSdk!;
-    var uri = exportedLibrary.uri.toString();
-
-    var sdkLibrary = sdk.getSdkLibrary(uri);
-    if (sdkLibrary == null) {
-      return;
-    }
-    if (!sdkLibrary.isInternal) {
+    if (!(exportedLibrary as LibraryElementImpl).isInternalSdkLibrary) {
       return;
     }
 
@@ -3235,7 +3229,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     // The SDK implementation may implement disallowed types. For example,
     // JSNumber in dart2js and _Smi in Dart VM both implement int.
-    if (_currentLibrary.source.uri.isScheme('dart')) {
+    if (_currentLibrary.uri.isScheme('dart')) {
       return false;
     }
     var type = namedType.type;
@@ -3704,10 +3698,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // should be private
-    var sdk = _currentLibrary.context.sourceFactory.dartSdk!;
-    var uri = importedLibrary.uri.toString();
-    var sdkLibrary = sdk.getSdkLibrary(uri);
-    if (sdkLibrary == null || !sdkLibrary.isInternal) {
+    if (!(importedLibrary as LibraryElementImpl).isInternalSdkLibrary) {
       return;
     }
     // The only way an import URI's `stringValue` can be `null` is if the string
@@ -3869,10 +3860,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         constructorElement.isGenerative &&
         constructorElement.enclosingElement is EnumElement) {
       if (_currentLibrary.featureSet.isEnabled(Feature.enhanced_enums)) {
-        diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
-        );
+        if (node.parent case ConstructorReference(
+          :var parent,
+        ) when parent is! InstanceCreationExpression) {
+          diagnosticReporter.atNode(
+            node,
+            CompileTimeErrorCode
+                .invalidReferenceToGenerativeEnumConstructorTearoff,
+          );
+        } else {
+          diagnosticReporter.atNode(
+            node,
+            CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
+          );
+        }
       } else {
         diagnosticReporter.atNode(node, CompileTimeErrorCode.instantiateEnum);
       }
@@ -5405,25 +5406,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         .map((parameter) => parameter.name)
         .toSet();
 
-    void reportError(DiagnosticCode code, List<Object> arguments) {
-      Identifier returnType = constructor.returnType;
-      var name = constructor.name;
-      int offset = returnType.offset;
-      int length = (name != null ? name.end : returnType.end) - offset;
-      diagnosticReporter.atOffset(
-        offset: offset,
-        length: length,
-        diagnosticCode: code,
-        arguments: arguments,
-      );
-    }
-
     if (!_currentLibrary.featureSet.isEnabled(Feature.super_parameters)) {
       if (requiredPositionalParameterCount != 0 ||
           requiredNamedParameters.isNotEmpty) {
-        reportError(CompileTimeErrorCode.noDefaultSuperConstructorExplicit, [
-          superType,
-        ]);
+        var SourceRange(:offset, :length) = constructor.errorRange;
+        diagnosticReporter.atOffset(
+          offset: offset,
+          length: length,
+          diagnosticCode:
+              CompileTimeErrorCode.noDefaultSuperConstructorExplicit,
+          arguments: [superType],
+        );
       }
       return;
     }
@@ -5437,9 +5430,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (requiredPositionalParameterCount >
             superParametersResult.positionalArgumentCount ||
         requiredNamedParameters.isNotEmpty) {
-      reportError(
-        CompileTimeErrorCode.implicitSuperInitializerMissingArguments,
-        [superType],
+      var SourceRange(:offset, :length) = constructor.errorRange;
+      diagnosticReporter.atOffset(
+        offset: offset,
+        length: length,
+        diagnosticCode:
+            CompileTimeErrorCode.implicitSuperInitializerMissingArguments,
+        arguments: [superType],
       );
     }
   }
@@ -6167,9 +6164,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null) {
         if (import.namespace.get2(name) == element) {
-          indirectSources.add(
-            importedLibrary.definingCompilationUnit.source.uri.toString(),
-          );
+          indirectSources.add(importedLibrary.uri.toString());
         }
       }
     }
@@ -6248,7 +6243,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (importedUri != 'dart:_wasm') {
       return false;
     }
-    var importingUri = _currentLibrary.source.uri.toString();
+    var importingUri = _currentLibrary.uri.toString();
     if (importingUri == 'package:js/js.dart') {
       return true;
     } else if (importingUri.startsWith('package:ui/')) {

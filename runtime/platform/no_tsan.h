@@ -9,34 +9,39 @@
 
 #include <atomic>
 
+#include "platform/thread_sanitizer.h"
+
 namespace dart {
 
-#if defined(__clang__)
-// Clang does not honor no_sanitize(thread) for std::atomic, so we place
-// the implementation in a separate compilation unit with TSAN disabled.
-uintptr_t FetchAndRelaxedIgnoreRace(std::atomic<uintptr_t>* ptr,
-                                    uintptr_t value);
-uintptr_t FetchOrRelaxedIgnoreRace(std::atomic<uintptr_t>* ptr,
-                                   uintptr_t value);
-uintptr_t LoadRelaxedIgnoreRace(const std::atomic<uintptr_t>* ptr);
-#else
 #if defined(__GNUC__)
-__attribute__((no_sanitize("thread")))
-#endif
+// GCC will do what we want with no_sanitize("thread") and std::atomic, but for
+// Clang will need to use disable_sanitizer_instrumentation and the atomic
+// builtins.
+NO_SANITIZE_THREAD DISABLE_SANITIZER_INSTRUMENTATION inline uintptr_t
+FetchAndRelaxedIgnoreRace(std::atomic<uintptr_t>* ptr, uintptr_t value) {
+  return __atomic_fetch_and(reinterpret_cast<uintptr_t*>(ptr), value,
+                            __ATOMIC_RELAXED);
+}
+NO_SANITIZE_THREAD DISABLE_SANITIZER_INSTRUMENTATION inline uintptr_t
+FetchOrRelaxedIgnoreRace(std::atomic<uintptr_t>* ptr, uintptr_t value) {
+  return __atomic_fetch_or(reinterpret_cast<uintptr_t*>(ptr), value,
+                           __ATOMIC_RELAXED);
+}
+NO_SANITIZE_THREAD DISABLE_SANITIZER_INSTRUMENTATION inline uintptr_t
+LoadRelaxedIgnoreRace(const std::atomic<uintptr_t>* ptr) {
+  return __atomic_load_n(reinterpret_cast<const uintptr_t*>(ptr),
+                         __ATOMIC_RELAXED);
+}
+#else
+// MSVC doesn't support TSAN.
 inline uintptr_t FetchAndRelaxedIgnoreRace(std::atomic<uintptr_t>* ptr,
                                            uintptr_t value) {
   return ptr->fetch_and(value, std::memory_order_relaxed);
 }
-#if defined(__GNUC__)
-__attribute__((no_sanitize("thread")))
-#endif
 inline uintptr_t FetchOrRelaxedIgnoreRace(std::atomic<uintptr_t>* ptr,
                                           uintptr_t value) {
   return ptr->fetch_or(value, std::memory_order_relaxed);
 }
-#if defined(__GNUC__)
-__attribute__((no_sanitize("thread")))
-#endif
 inline uintptr_t LoadRelaxedIgnoreRace(const std::atomic<uintptr_t>* ptr) {
   return ptr->load(std::memory_order_relaxed);
 }

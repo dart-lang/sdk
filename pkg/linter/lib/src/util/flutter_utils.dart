@@ -116,7 +116,7 @@ class _Flutter {
 
   /// Whether [element] is exactly the element named [type], from Flutter.
   bool isExactly(InterfaceElement element, String type, Uri uri) =>
-      element.name == type && element.library.firstFragment.source.uri == uri;
+      element.name == type && element.library.uri == uri;
 
   bool isExactWidget(ClassElement element) =>
       isExactly(element, _nameWidget, _uriFramework);
@@ -183,9 +183,7 @@ extension InterfaceElementExtension2 on InterfaceElement? {
   /// Whether this is the exact [type] defined in the file with the given [uri].
   bool _isExactly(String type, Uri uri) {
     var self = this;
-    return self is ClassElement &&
-        self.name == type &&
-        self.firstFragment.libraryFragment.source.uri == uri;
+    return self is ClassElement && self.name == type && self.library.uri == uri;
   }
 
   static bool _hasWidgetAsAscendant(

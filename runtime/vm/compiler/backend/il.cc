@@ -4684,6 +4684,30 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
   auto const rep = slot().representation();
 
+  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer &&
+      !slot().is_no_sanitize_thread() &&
+      memory_order() == compiler::Assembler::kRelaxedNonAtomic) {
+    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+      intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
+      __ AddImmediate(CallingConventions::ArgumentRegisters[0], instance_reg,
+                      slot().offset_in_bytes() - tag);
+      switch (RepresentationUtils::ValueSize(rep)) {
+        case 1:
+          return kTsanRead1RuntimeEntry;
+        case 2:
+          return kTsanRead2RuntimeEntry;
+        case 4:
+          return kTsanRead4RuntimeEntry;
+        case 8:
+          return kTsanRead8RuntimeEntry;
+        case 16:
+          return kTsanRead16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    });
+  }
+
   if (calls_initializer()) {
     __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot(), memory_order_);
     EmitNativeCodeForInitializerCall(compiler);
@@ -5649,8 +5673,10 @@ Definition* PolymorphicInstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 bool PolymorphicInstanceCallInstr::IsSureToCallSingleRecognizedTarget() const {
-  if (CompilerState::Current().is_aot() && !complete()) return false;
-  return targets_.HasSingleRecognizedTarget();
+  if (complete() || FLAG_polymorphic_with_deopt) {
+    return targets_.HasSingleRecognizedTarget();
+  }
+  return false;
 }
 
 bool StaticCallInstr::InitResultType(Zone* zone) {
@@ -7283,149 +7309,241 @@ Definition* InvokeMathCFunctionInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
-LocationSummary* TsanFuncEntryExitInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
+static LocationSummary* MakeTsanLocationSummary(Zone* zone,
+                                                intptr_t num_inputs) {
   const intptr_t kNumTemps = 1;
   LocationSummary* result = new (zone) LocationSummary(
-      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
+      zone, num_inputs, kNumTemps, LocationSummary::kNativeLeafCall);
+  for (intptr_t i = 0; i < num_inputs; i++) {
+    result->set_in(i, Location::RequiresRegister());
+  }
   result->set_temp(0, Location::RegisterLocation(CALLEE_SAVED_TEMP));
   return result;
 }
 
-const RuntimeEntry& TsanFuncEntryExitInstr::TargetFunction() const {
-  if (kind_ == kEntry) {
-    return kTsanFuncEntryRuntimeEntry;
-  } else {
-    return kTsanFuncExitRuntimeEntry;
+static void EmitTsanCall(FlowGraphCompiler* compiler,
+                         Instruction* instr,
+                         RegisterSet spill_set,
+                         Register saved_sp,
+                         std::function<const RuntimeEntry&()> move_parameters) {
+  ASSERT(IsCalleeSavedRegister(saved_sp));
+  ASSERT(IsCalleeSavedRegister(THR));
+  ASSERT(IsCalleeSavedRegister(PP));
+  ASSERT(IsCalleeSavedRegister(CODE_REG));
+#if defined(TARGET_ARCH_ARM64)
+  ASSERT(IsCalleeSavedRegister(NULL_REG));
+  ASSERT(IsCalleeSavedRegister(HEAP_BITS));
+  ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
+#elif defined(TARGET_ARCH_RISCV64)
+  ASSERT(IsCalleeSavedRegister(NULL_REG));
+  ASSERT(IsCalleeSavedRegister(WRITE_BARRIER_STATE));
+  ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
+#endif
+
+  __ PushRegisters(spill_set);
+  __ MoveRegister(saved_sp, SPREG);
+#if defined(TARGET_ARCH_ARM64)
+  __ AndImmediate(CSP, SP, ~(OS::ActivationFrameAlignment() - 1));
+#else
+  __ ReserveAlignedFrameSpace(0);
+#endif
+  auto& entry = move_parameters();
+  __ Load(TMP, compiler::Address(THR, entry.OffsetFromThread()));
+  __ Store(TMP,
+           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+  __ CallCFunction(TMP);
+  compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone,
+                                 instr->source());
+  __ LoadImmediate(TMP, VMTag::kDartTagId);
+  __ Store(TMP,
+           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+  __ MoveRegister(SPREG, saved_sp);
+#if defined(TARGET_ARCH_ARM64)
+  __ SetupCSPFromThread(THR);
+#endif
+  __ PopRegisters(spill_set);
+}
+
+static void EmitTsanCall(FlowGraphCompiler* compiler,
+                         Instruction* instr,
+                         std::function<const RuntimeEntry&()> move_parameters) {
+  EmitTsanCall(compiler, instr, RegisterSet(), instr->locs()->temp(0).reg(),
+               move_parameters);
+}
+
+void EmitTsanCallUnopt(FlowGraphCompiler* compiler,
+                       Instruction* instr,
+                       std::function<const RuntimeEntry&()> move_parameters) {
+  intptr_t cpu_reg_mask = 0;
+  intptr_t fpu_reg_mask = 0;
+  LocationSummary* locs = instr->locs();
+  for (intptr_t i = 0, n = locs->input_count(); i < n; i++) {
+    if (locs->in(i).IsRegister()) {
+      cpu_reg_mask |= 1 << locs->in(i).reg();
+    } else if (locs->in(i).IsFpuRegister()) {
+      fpu_reg_mask |= 1 << locs->in(i).fpu_reg();
+    }
   }
+  EmitTsanCall(compiler, instr, RegisterSet(cpu_reg_mask, fpu_reg_mask),
+               CALLEE_SAVED_TEMP, move_parameters);
+}
+
+LocationSummary* TsanFuncEntryExitInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  return MakeTsanLocationSummary(zone, /*num_inputs=*/0);
 }
 
 void TsanFuncEntryExitInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->flow_graph().graph_entry()->NeedsFrame()) return;
 
-  const Register saved_sp = locs()->temp(0).reg();
-  ASSERT(IsCalleeSavedRegister(saved_sp));
-  ASSERT(IsCalleeSavedRegister(THR));
-  ASSERT(IsCalleeSavedRegister(PP));
-  ASSERT(IsCalleeSavedRegister(CODE_REG));
-#if defined(TARGET_ARCH_ARM64)
-  ASSERT(IsCalleeSavedRegister(NULL_REG));
-  ASSERT(IsCalleeSavedRegister(HEAP_BITS));
-  ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
-#elif defined(TARGET_ARCH_RISCV64)
-  ASSERT(IsCalleeSavedRegister(NULL_REG));
-  ASSERT(IsCalleeSavedRegister(WRITE_BARRIER_STATE));
-  ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
-#endif
-
-  __ MoveRegister(saved_sp, SPREG);
-#if defined(TARGET_ARCH_ARM64)
-  __ AndImmediate(CSP, SP, ~(OS::ActivationFrameAlignment() - 1));
-#else
-  __ ReserveAlignedFrameSpace(0);
-#endif
-  if (kind_ == kEntry) {
-    __ Load(CallingConventions::ArgumentRegisters[0],
-            compiler::Address(
-                FPREG, compiler::target::frame_layout.saved_caller_pc_from_fp *
-                           compiler::target::kWordSize));
-  }
-  __ Load(TMP, compiler::Address(THR, TargetFunction().OffsetFromThread()));
-  __ Store(TMP,
-           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
-  __ CallCFunction(TMP);
-  __ LoadImmediate(TMP, VMTag::kDartTagId);
-  __ Store(TMP,
-           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
-  __ MoveRegister(SPREG, saved_sp);
-#if defined(TARGET_ARCH_ARM64)
-  __ SetupCSPFromThread(THR);
-#endif
+  EmitTsanCall(compiler, this, [&]() -> const RuntimeEntry& {
+    if (kind_ == kEntry) {
+      __ Load(
+          CallingConventions::ArgumentRegisters[0],
+          compiler::Address(
+              FPREG, compiler::target::frame_layout.saved_caller_pc_from_fp *
+                         compiler::target::kWordSize));
+      return kTsanFuncEntryRuntimeEntry;
+    } else {
+      return kTsanFuncExitRuntimeEntry;
+    }
+  });
 }
 
 LocationSummary* TsanReadWriteInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
-  const intptr_t kNumTemps = 1;
-  LocationSummary* result = new (zone) LocationSummary(
-      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
-  result->set_temp(0, Location::RegisterLocation(CALLEE_SAVED_TEMP));
-  result->set_in(0, Location::RequiresRegister());
-  return result;
-}
-
-const RuntimeEntry& TsanReadWriteInstr::TargetFunction() const {
-  intptr_t size = RepresentationUtils::ValueSize(slot().representation());
-  if (kind_ == Kind::kRead) {
-    switch (size) {
-      case 1:
-        return kTsanRead1RuntimeEntry;
-      case 2:
-        return kTsanRead2RuntimeEntry;
-      case 4:
-        return kTsanRead4RuntimeEntry;
-      case 8:
-        return kTsanRead8RuntimeEntry;
-      case 16:
-        return kTsanRead16RuntimeEntry;
-      default:
-        UNREACHABLE();
-    }
-  } else if (kind_ == kWrite) {
-    switch (size) {
-      case 1:
-        return kTsanWrite1RuntimeEntry;
-      case 2:
-        return kTsanWrite2RuntimeEntry;
-      case 4:
-        return kTsanWrite4RuntimeEntry;
-      case 8:
-        return kTsanWrite8RuntimeEntry;
-      case 16:
-        return kTsanWrite16RuntimeEntry;
-      default:
-        UNREACHABLE();
-    }
-  }
-  UNREACHABLE();
+  return MakeTsanLocationSummary(zone, /*num_inputs=*/1);
 }
 
 void TsanReadWriteInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register saved_sp = locs()->temp(0).reg();
-  ASSERT(IsCalleeSavedRegister(saved_sp));
-  ASSERT(IsCalleeSavedRegister(THR));
-  ASSERT(IsCalleeSavedRegister(PP));
-  ASSERT(IsCalleeSavedRegister(CODE_REG));
-#if defined(TARGET_ARCH_ARM64)
-  ASSERT(IsCalleeSavedRegister(NULL_REG));
-  ASSERT(IsCalleeSavedRegister(HEAP_BITS));
-  ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
+  EmitTsanCall(compiler, this, [&]() -> const RuntimeEntry& {
+    const Register instance_reg = locs()->in(0).reg();
+    intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
+    __ AddImmediate(CallingConventions::ArgumentRegisters[0], instance_reg,
+                    slot().offset_in_bytes() - tag);
+
+    intptr_t size = RepresentationUtils::ValueSize(slot().representation());
+    if (kind_ == Kind::kRead) {
+      switch (size) {
+        case 1:
+          return kTsanRead1RuntimeEntry;
+        case 2:
+          return kTsanRead2RuntimeEntry;
+        case 4:
+          return kTsanRead4RuntimeEntry;
+        case 8:
+          return kTsanRead8RuntimeEntry;
+        case 16:
+          return kTsanRead16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    } else if (kind_ == kWrite) {
+      switch (size) {
+        case 1:
+          return kTsanWrite1RuntimeEntry;
+        case 2:
+          return kTsanWrite2RuntimeEntry;
+        case 4:
+          return kTsanWrite4RuntimeEntry;
+        case 8:
+          return kTsanWrite8RuntimeEntry;
+        case 16:
+          return kTsanWrite16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    }
+    UNREACHABLE();
+  });
+}
+
+LocationSummary* TsanReadWriteIndexedInstr::MakeLocationSummary(
+    Zone* zone,
+    bool opt) const {
+  return MakeTsanLocationSummary(zone, /*num_inputs=*/2);
+}
+
+void TsanReadWriteIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  EmitTsanCall(compiler, this, [&]() -> const RuntimeEntry& {
+    const Register array_reg = locs()->in(kArrayPos).reg();
+    Register index_reg = locs()->in(kIndexPos).reg();
+
+    bool is_untagged = array()->definition()->representation() == kUntagged;
+
+#if defined(TARGET_ARCH_X64)
+    bool index_unboxed = index_unboxed_;
+    if (index_scale_ == 1 && !index_unboxed) {
+      __ movq(TMP, index_reg);
+      __ SmiUntag(TMP);
+      index_unboxed = true;
+      index_reg = TMP;
+    } else if (index_scale_ == 16 && index_unboxed) {
+      // X64 does not support addressing mode using TIMES_16.
+      __ movq(TMP, index_reg);
+      __ SmiUntag(TMP);
+      index_unboxed = false;
+      index_reg = TMP;
+    } else if (!index_unboxed) {
+      // Note: we don't bother to ensure index is a writable input because any
+      // other instructions using it must also not rely on the upper bits
+      // when compressed.
+      __ ExtendNonNegativeSmi(index_reg);
+    }
+    __ leaq(CallingConventions::ArgumentRegisters[0],
+            compiler::Assembler::ElementAddressForRegIndex(
+                is_untagged, class_id(), index_scale_, index_unboxed, array_reg,
+                index_reg));
+#elif defined(TARGET_ARCH_ARM64)
+    __ ComputeElementAddressForRegIndex(R0, is_untagged, class_id(),
+                                        index_scale(), index_unboxed_,
+                                        array_reg, index_reg);
 #elif defined(TARGET_ARCH_RISCV64)
-  ASSERT(IsCalleeSavedRegister(NULL_REG));
-  ASSERT(IsCalleeSavedRegister(WRITE_BARRIER_STATE));
-  ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
+    __ ComputeElementAddressForRegIndex(A0, is_untagged, class_id(),
+                                        index_scale(), index_unboxed_,
+                                        array_reg, index_reg);
+#else
+    UNIMPLEMENTED();
+    USE(array_reg);
+    USE(index_reg);
+    USE(is_untagged);
 #endif
 
-  __ MoveRegister(saved_sp, SPREG);
-#if defined(TARGET_ARCH_ARM64)
-  __ AndImmediate(CSP, SP, ~(OS::ActivationFrameAlignment() - 1));
-#else
-  __ ReserveAlignedFrameSpace(0);
-#endif
-  const Register instance_reg = locs()->in(0).reg();
-  intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
-  __ AddImmediate(CallingConventions::ArgumentRegisters[0], instance_reg,
-                  slot().offset_in_bytes() - tag);
-  __ Load(TMP, compiler::Address(THR, TargetFunction().OffsetFromThread()));
-  __ Store(TMP,
-           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
-  __ CallCFunction(TMP);
-  __ LoadImmediate(TMP, VMTag::kDartTagId);
-  __ Store(TMP,
-           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
-  __ MoveRegister(SPREG, saved_sp);
-#if defined(TARGET_ARCH_ARM64)
-  __ SetupCSPFromThread(THR);
-#endif
+    intptr_t size = RepresentationUtils::ValueSize(
+        RepresentationUtils::RepresentationOfArrayElement(class_id()));
+    if (kind_ == Kind::kRead) {
+      switch (size) {
+        case 1:
+          return kTsanRead1RuntimeEntry;
+        case 2:
+          return kTsanRead2RuntimeEntry;
+        case 4:
+          return kTsanRead4RuntimeEntry;
+        case 8:
+          return kTsanRead8RuntimeEntry;
+        case 16:
+          return kTsanRead16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    } else if (kind_ == kWrite) {
+      switch (size) {
+        case 1:
+          return kTsanWrite1RuntimeEntry;
+        case 2:
+          return kTsanWrite2RuntimeEntry;
+        case 4:
+          return kTsanWrite4RuntimeEntry;
+        case 8:
+          return kTsanWrite8RuntimeEntry;
+        case 16:
+          return kTsanWrite16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    }
+    UNREACHABLE();
+  });
 }
 
 bool DoubleToIntegerInstr::SupportsFloorAndCeil() {
@@ -7955,6 +8073,30 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For fields on Dart objects, the offset must point after the header.
   ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
   const Representation rep = slot().representation();
+
+  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer &&
+      !slot().is_no_sanitize_thread() &&
+      memory_order() == compiler::Assembler::kRelaxedNonAtomic) {
+    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+      intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
+      __ AddImmediate(CallingConventions::ArgumentRegisters[0], instance_reg,
+                      slot().offset_in_bytes() - tag);
+      switch (RepresentationUtils::ValueSize(rep)) {
+        case 1:
+          return kTsanWrite1RuntimeEntry;
+        case 2:
+          return kTsanWrite2RuntimeEntry;
+        case 4:
+          return kTsanWrite4RuntimeEntry;
+        case 8:
+          return kTsanWrite8RuntimeEntry;
+        case 16:
+          return kTsanWrite16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    });
+  }
 
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
     defined(TARGET_ARCH_RISCV64)

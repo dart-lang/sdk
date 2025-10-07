@@ -514,6 +514,7 @@ struct InstrAttrs {
   M(InvokeMathCFunction, kNoGC)                                                \
   M(TsanFuncEntryExit, kNoGC)                                                  \
   M(TsanReadWrite, kNoGC)                                                      \
+  M(TsanReadWriteIndexed, kNoGC)                                               \
   M(TruncDivMod, kNoGC)                                                        \
   /*We could be more precise about when these 2 instructions can trigger GC.*/ \
   M(GuardFieldClass, _)                                                        \
@@ -6839,6 +6840,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
 
   Value* array() const { return inputs_[kArrayPos]; }
   Value* index() const { return inputs_[kIndexPos]; }
+  bool index_unboxed() const { return index_unboxed_; }
   intptr_t index_scale() const { return index_scale_; }
   intptr_t class_id() const { return class_id_; }
   bool aligned() const { return alignment_ == kAlignedAccess; }
@@ -7117,6 +7119,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   Value* index() const { return inputs_[kIndexPos]; }
   Value* value() const { return inputs_[kValuePos]; }
 
+  bool index_unboxed() const { return index_unboxed_; }
   intptr_t index_scale() const { return index_scale_; }
   intptr_t class_id() const { return class_id_; }
   bool aligned() const { return alignment_ == kAlignedAccess; }
@@ -10080,8 +10083,6 @@ class TsanFuncEntryExitInstr : public TemplateInstruction<0, NoThrow> {
                                           FIELD_LIST)
 #undef FIELD_LIST
 
-  const RuntimeEntry& TargetFunction() const;
-
  private:
   DISALLOW_COPY_AND_ASSIGN(TsanFuncEntryExitInstr);
 };
@@ -10138,10 +10139,77 @@ class TsanReadWriteInstr : public TemplateInstruction<1, NoThrow> {
                                           FIELD_LIST)
 #undef FIELD_LIST
 
-  const RuntimeEntry& TargetFunction() const;
-
  private:
   DISALLOW_COPY_AND_ASSIGN(TsanReadWriteInstr);
+};
+
+class TsanReadWriteIndexedInstr : public TemplateInstruction<2, NoThrow> {
+ public:
+  enum Kind { kRead, kWrite };
+  enum { kArrayPos = 0, kIndexPos = 1 };
+
+  TsanReadWriteIndexedInstr(Kind kind,
+                            Value* array,
+                            Value* index,
+                            bool index_unboxed,
+                            intptr_t index_scale,
+                            intptr_t class_id,
+                            const InstructionSource& source)
+      : TemplateInstruction(source, DeoptId::kNone),
+        kind_(kind),
+        index_unboxed_(index_unboxed),
+        index_scale_(index_scale),
+        class_id_(class_id),
+        token_pos_(source.token_pos) {
+    SetInputAt(kArrayPos, array);
+    SetInputAt(kIndexPos, index);
+  }
+
+  Value* array() const { return inputs_[kArrayPos]; }
+  Value* index() const { return inputs_[kIndexPos]; }
+  intptr_t index_scale() const { return index_scale_; }
+  intptr_t class_id() const { return class_id_; }
+
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
+  DECLARE_INSTRUCTION(TsanReadWriteIndexed)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    // The array may be tagged or untagged (for external arrays).
+    if (idx == kArrayPos) return kNoRepresentation;
+    ASSERT_EQUAL(idx, kIndexPos);
+    return index_unboxed_ ? kUnboxedIntPtr : kTagged;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
+
+  virtual bool AllowsCSE() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return &other == this;
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+#define FIELD_LIST(F)                                                          \
+  F(const TsanReadWriteIndexedInstr::Kind, kind_)                              \
+  F(const bool, index_unboxed_)                                                \
+  F(const intptr_t, index_scale_)                                              \
+  F(const intptr_t, class_id_)                                                 \
+  F(const TokenPosition, token_pos_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TsanReadWriteIndexedInstr,
+                                          TemplateInstruction,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(TsanReadWriteIndexedInstr);
 };
 
 class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
@@ -11730,6 +11798,10 @@ inline bool Value::CanBe(const Object& value) {
 #undef DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS
 #undef DECLARE_CUSTOM_SERIALIZATION
 #undef DECLARE_EMPTY_SERIALIZATION
+
+void EmitTsanCallUnopt(FlowGraphCompiler* compiler,
+                       Instruction* instr,
+                       std::function<const RuntimeEntry&()> move_parameters);
 
 }  // namespace dart
 

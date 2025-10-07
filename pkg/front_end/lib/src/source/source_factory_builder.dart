@@ -8,6 +8,8 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../api_prototype/experimental_flags.dart';
+import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -15,7 +17,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/factory_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../codes/cfe_codes.dart';
 import '../fragment/factory/declaration.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/kernel_helper.dart';
@@ -195,13 +196,14 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   @override
   void checkTypes(
-    SourceLibraryBuilder library,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {
-    _introductory.checkTypes(library, nameSpace, typeEnvironment);
+    _introductory.checkTypes(problemReporting, nameSpace, typeEnvironment);
     for (FactoryDeclaration augmentation in _augmentations) {
-      augmentation.checkTypes(library, nameSpace, typeEnvironment);
+      augmentation.checkTypes(problemReporting, nameSpace, typeEnvironment);
     }
   }
 
@@ -363,7 +365,7 @@ class InferableRedirectingFactory implements InferableMember {
       name += ".${_builder.name}";
     }
     _builder.libraryBuilder.addProblem(
-      codeCantInferTypeDueToCircularity.withArguments(name),
+      codeCantInferTypeDueToCircularity.withArgumentsOld(name),
       _builder.fileOffset,
       name.length,
       _builder.fileUri,

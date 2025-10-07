@@ -34,9 +34,6 @@ class VoidTypeBuilder extends FixedTypeBuilder {
   String get debugName => 'VoidTypeBuilder';
 
   @override
-  bool get isVoidType => true;
-
-  @override
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write('void');
     return buffer;
@@ -63,7 +60,7 @@ class VoidTypeBuilder extends FixedTypeBuilder {
   @override
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     library.addProblem(
-      codeSupertypeIsIllegal.withArguments('void'),
+      codeSupertypeIsIllegal.withArgumentsOld('void'),
       charOffset!,
       noLength,
       fileUri,
@@ -74,7 +71,7 @@ class VoidTypeBuilder extends FixedTypeBuilder {
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
     library.addProblem(
-      codeSupertypeIsIllegal.withArguments('void'),
+      codeSupertypeIsIllegal.withArgumentsOld('void'),
       charOffset!,
       noLength,
       fileUri,

@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/base/messages.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/transformations/flags.dart';
 
+import '../base/compiler_context.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/identifiers.dart' show Identifier;
 import '../base/local_scope.dart';
@@ -18,7 +20,6 @@ import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_class_builder.dart';
-import '../source/diet_listener.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
@@ -31,7 +32,6 @@ import '../source/source_type_alias_builder.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
-import 'expression_generator_helper.dart';
 import 'internal_ast.dart';
 
 /// Interface that defines the interface between the [BodyBuilder] and the
@@ -104,7 +104,7 @@ abstract class BodyBuilderContext {
   /// in the same class.
   Initializer buildRedirectingInitializer(
     Builder constructorBuilder,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int fileOffset,
   }) {
     return declarationContext.buildRedirectingInitializer(
@@ -351,20 +351,32 @@ abstract class BodyBuilderContext {
   }
 
   /// Adds [initializer] to generative constructor currently being built.
-  void addInitializer(
+  bool addInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
     Initializer initializer,
-    ExpressionGeneratorHelper helper, {
-    required InitializerInferenceResult? inferenceResult,
-  }) {
+    Uri fileUri,
+  ) {
     throw new UnsupportedError('${runtimeType}.addInitializer');
   }
 
-  /// Infers the [initializer].
-  InitializerInferenceResult inferInitializer(
-    Initializer initializer,
-    ExpressionGeneratorHelper helper,
-    TypeInferrer typeInferrer,
+  /// Adds the inferred [Initializer] from the [inferenceResult] to generative
+  /// constructor currently being built.
+  bool addInferredInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
+    InitializerInferenceResult inferenceResult,
+    Uri fileUri,
   ) {
+    throw new UnsupportedError('${runtimeType}.addInferredInitializer');
+  }
+
+  /// Infers the [initializer].
+  InitializerInferenceResult inferInitializer({
+    required TypeInferrer typeInferrer,
+    required Uri fileUri,
+    required Initializer initializer,
+  }) {
     throw new UnsupportedError('${runtimeType}.inferInitializer');
   }
 
@@ -452,7 +464,7 @@ abstract class BodyBuilderDeclarationContext {
 
   Initializer buildRedirectingInitializer(
     Builder constructorBuilder,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int fileOffset,
   }) {
     throw new UnsupportedError('${runtimeType}.buildRedirectingInitializer');
@@ -562,7 +574,7 @@ class _SourceClassBodyBuilderDeclarationContext
   @override
   Initializer buildRedirectingInitializer(
     covariant SourceConstructorBuilder constructorBuilder,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int fileOffset,
   }) {
     return new RedirectingInitializer(
@@ -667,7 +679,7 @@ class _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext
   @override
   Initializer buildRedirectingInitializer(
     covariant SourceConstructorBuilder constructorBuilder,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int fileOffset,
   }) {
     return new ExtensionTypeRedirectingInitializer(
@@ -802,7 +814,6 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
   final Procedure _procedure;
 
   ExpressionCompilerProcedureBodyBuildContext(
-    DietListener listener,
     this._procedure,
     SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder, {

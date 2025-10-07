@@ -8,9 +8,9 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/utilities/string_extensions.dart';
-import 'package:analyzer/dart/analysis/context_root.dart';
-import 'package:path/path.dart' as path;
 
+/// The page that displays information about _new_ (not legacy) analyzer
+/// plugins.
 class PluginsPage extends DiagnosticPageWithNav {
   @override
   AnalysisServer server;
@@ -20,76 +20,110 @@ class PluginsPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
-    h3('Analysis plugins');
-    var analysisPlugins = server.pluginManager.pluginIsolates;
+    var pluginIsolates = server.pluginManager.newPluginIsolates;
 
-    if (analysisPlugins.isEmpty) {
+    if (pluginIsolates.isEmpty) {
       blankslate('No known analysis plugins.');
-    } else {
-      analysisPlugins.sort(
-        (first, second) => first.pluginId.compareTo(second.pluginId),
+      return;
+    }
+
+    pluginIsolates.sort(
+      (first, second) => first.pluginId.compareTo(second.pluginId),
+    );
+    for (var isolate in pluginIsolates) {
+      var id = isolate.pluginId;
+      var data = isolate.data;
+
+      p(
+        'The following plugins are running from a single bootstrapped '
+        'location:',
       );
-      for (var plugin in analysisPlugins) {
-        var id = plugin.pluginId;
-        var data = plugin.data;
-        var responseTimes = PluginManager.pluginResponseTimes[plugin] ?? {};
 
-        var components = path.split(id);
-        var length = components.length;
-        var name = switch (length) {
-          0 => 'unknown plugin',
-          > 2 => components[length - 3],
-          _ => components[length - 1],
-        };
-        h4(name);
+      _emitTable([
+        ['Bootstrap package path:', id],
+        if (isolate.executionPath case var executionPath?)
+          ['Execution path:', executionPath.wordBreakOnSlashes],
+        if (isolate.packagesPath case var packagesPath?)
+          ['Packages file path', packagesPath.wordBreakOnSlashes],
+      ]);
 
-        _emitTable([
-          ['Bootstrap package path:', id],
-          if (plugin.executionPath case var executionPath?)
-            ['Execution path:', executionPath.wordBreakOnSlashes],
-          if (plugin.packagesPath case var packagesPath?)
-            ['Packages file path', packagesPath.wordBreakOnSlashes],
-        ]);
-
-        if (data.name == null) {
-          if (plugin.exception != null) {
-            p('Not running due to:');
-            pre(() {
-              buf.write(plugin.exception);
-            });
-          } else {
-            p(
-              'Not running for unknown reason (no exception was caught while '
-              'starting).',
-            );
-          }
+      if (data.name == null) {
+        if (isolate.exception != null) {
+          p('Not running due to:');
+          pre(() {
+            buf.write(isolate.exception);
+          });
         } else {
-          p('Name: ${data.name}');
-          p('Version: ${data.version}');
-          p('Associated contexts:');
-          var contexts = plugin.contextRoots;
-          if (contexts.isEmpty) {
-            blankslate('none');
-          } else {
-            ul(contexts.toList(), (ContextRoot root) {
-              buf.writeln(root.root);
+          p(
+            'Not running for unknown reason (no exception was caught while '
+            'starting).',
+          );
+        }
+        continue;
+      }
+
+      p('Associated contexts:');
+      var contexts = isolate.contextRoots;
+      if (contexts.isEmpty) {
+        blankslate('none');
+      } else {
+        ul(contexts.toList(), (root) {
+          buf.writeln(root.root);
+        });
+      }
+
+      var details = await isolate.requestDetails();
+      if (details == null) {
+        // Either the plugin is not alive, or the plugin did not respond in
+        // time.
+        // TODO(srawlins): Distinguish between the two.
+        p('Plugin isolate did not respond with plugin details.');
+      } else {
+        for (var plugin in details.plugins) {
+          h3(plugin.name);
+
+          if (plugin.lintRules.isNotEmpty) {
+            p('Lint rules:');
+            ul(plugin.lintRules, (rule) {
+              buf.writeln(rule);
             });
           }
-          p('Performance:');
-          var entries = responseTimes.entries.toList();
-          entries.sort((first, second) => first.key.compareTo(second.key));
-          for (var entry in entries) {
-            var requestName = entry.key;
-            var data = entry.value;
-            // TODO(brianwilkerson): Consider displaying these times as a graph,
-            //  similar to the one in CompletionPage.generateContent.
-            var buffer = StringBuffer();
-            buffer.write(requestName);
-            buffer.write(' ');
-            buffer.write(data.toAnalyticsString());
-            p(buffer.toString());
+          if (plugin.warningRules.isNotEmpty) {
+            p('Warning rules:');
+            ul(plugin.warningRules, (rule) {
+              buf.writeln(rule);
+            });
+          }
+          if (plugin.fixes.isNotEmpty) {
+            p('Quick fixes:');
+            ul(plugin.fixes, (fix) {
+              var codes = fix.codes.join(', ');
+              buf.writeln('${fix.id}: "${fix.message}" to fix $codes');
+            });
+          }
+          if (plugin.assists.isNotEmpty) {
+            p('Assists:');
+            ul(plugin.assists, (assist) {
+              buf.writeln('${assist.id}: "${assist.message}"');
+            });
           }
         }
+      }
+
+      p('Performance:');
+      var responseTimes = PluginManager.pluginResponseTimes[isolate] ?? {};
+      var entries = responseTimes.entries.toList();
+      entries.sort((first, second) => first.key.compareTo(second.key));
+      for (var entry in entries) {
+        var requestName = entry.key;
+        var data = entry.value;
+        // TODO(brianwilkerson): Consider displaying these times as a graph,
+        //  similar to the one in CompletionPage.generateContent.
+        var buffer = StringBuffer();
+        buffer.write(requestName);
+        buffer.write(' ');
+        buffer.write(data.toAnalyticsString());
+        p(buffer.toString());
       }
     }
   }

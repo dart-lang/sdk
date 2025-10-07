@@ -2,9 +2,9 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/dynamic_methods.dart:16:46: Error: 'hashCode' isn't a function or method and can't be invoked.
-//       d. /*@target=Object.hashCode*/ hashCode();
-//                                              ^^^^...
+// pkg/front_end/testcases/inference/dynamic_methods.dart:14:33: Error: 'hashCode' isn't a function or method and can't be invoked.
+//   var call_hashCode = d.hashCode();
+//                                 ^^^^...
 //
 import self as self;
 import "dart:core" as core;
@@ -19,9 +19,9 @@ class Foo extends core::Object {
 static method test() → dynamic {
   dynamic d = new self::Foo::•();
   core::int get_hashCode = d.{core::Object::hashCode}{<object>}.{core::int};
-  dynamic call_hashCode = invalid-expression "pkg/front_end/testcases/inference/dynamic_methods.dart:16:46: Error: 'hashCode' isn't a function or method and can't be invoked.
-      d. /*@target=Object.hashCode*/ hashCode();
-                                             ^^^^..." in d.{core::Object::hashCode}{<object>}.{core::int}{<unresolved>}.call();
+  dynamic call_hashCode = invalid-expression "pkg/front_end/testcases/inference/dynamic_methods.dart:14:33: Error: 'hashCode' isn't a function or method and can't be invoked.
+  var call_hashCode = d.hashCode();
+                                ^^^^..." in d.{core::Object::hashCode}{<object>}.{core::int}{<unresolved>}.call();
   core::String call_toString = d.{core::Object::toString}{<object>}.(){() → core::String};
   dynamic call_toStringArg = d{dynamic}.toString(color: "pink");
   dynamic call_foo0 = d{dynamic}.foo();

@@ -362,6 +362,204 @@ library;
 // class H<X extends (Class<X>, int)> {}
 //         ^
 //
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument 'ConcreteClass' doesn't conform to the bound 'int' of the type variable 'T8' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:283:5: Context: This is the type variable whose bound isn't conformed to.
+//     T8 extends F<int>, // Error
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument 'G<ConcreteClass>' doesn't conform to the bound 'G<int>' of the type variable 'S8' on 'Enum1'.
+//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:291:5: Context: This is the type variable whose bound isn't conformed to.
+//     S8 extends G<int>, // Error
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound '(int, int)' of the type variable 'U8' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:299:5: Context: This is the type variable whose bound isn't conformed to.
+//     U8 extends (F<int>, int), // Error
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<Class<dynamic>> a, int b})' of the type variable 'V1' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:300:5: Context: This is the type variable whose bound isn't conformed to.
+//     V1 extends ({G a, int b}), // Error
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<dynamic> a, int b})' of the type variable 'V2' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:301:5: Context: This is the type variable whose bound isn't conformed to.
+//     V2 extends ({G<dynamic> a, int b}), // Ok
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<Class<dynamic>> a, int b})' of the type variable 'V3' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:302:5: Context: This is the type variable whose bound isn't conformed to.
+//     V3 extends ({G<Class> a, int b}), // Ok
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<Class<dynamic>> a, int b})' of the type variable 'V4' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:303:5: Context: This is the type variable whose bound isn't conformed to.
+//     V4 extends ({G<Class<dynamic>> a, int b}), // Ok
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<ConcreteClass> a, int b})' of the type variable 'V5' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:304:5: Context: This is the type variable whose bound isn't conformed to.
+//     V5 extends ({G<ConcreteClass> a, int b}), // Ok
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<Class<ConcreteClass>> a, int b})' of the type variable 'V6' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:305:5: Context: This is the type variable whose bound isn't conformed to.
+//     V6 extends ({G<Class<ConcreteClass>> a, int b}), // Ok
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<Object> a, int b})' of the type variable 'V7' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:306:5: Context: This is the type variable whose bound isn't conformed to.
+//     V7 extends ({G<Object> a, int b}), // Error
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<int> a, int b})' of the type variable 'V8' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:307:5: Context: This is the type variable whose bound isn't conformed to.
+//     V8 extends ({G<int> a, int b}), // Error
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(Class<dynamic>, int)>' of the type variable 'W1' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:308:5: Context: This is the type variable whose bound isn't conformed to.
+//     W1 extends H, // Error
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<dynamic>' of the type variable 'W2' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:309:5: Context: This is the type variable whose bound isn't conformed to.
+//     W2 extends H<dynamic>, // Ok
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(Class<dynamic>, int)>' of the type variable 'W3' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:310:5: Context: This is the type variable whose bound isn't conformed to.
+//     W3 extends H<(Class, int)>, // Ok
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(Class<dynamic>, int)>' of the type variable 'W4' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:311:5: Context: This is the type variable whose bound isn't conformed to.
+//     W4 extends H<(Class<dynamic>, int)>, // Ok
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(ConcreteClass, int)>' of the type variable 'W5' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:312:5: Context: This is the type variable whose bound isn't conformed to.
+//     W5 extends H<(ConcreteClass, int)>, // Ok
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(Class<ConcreteClass>, int)>' of the type variable 'W6' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:313:5: Context: This is the type variable whose bound isn't conformed to.
+//     W6 extends H<(Class<ConcreteClass>, int)>, // Ok
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(Object, int)>' of the type variable 'W7' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:314:5: Context: This is the type variable whose bound isn't conformed to.
+//     W7 extends H<(Object, int)>, // Error
+//     ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(int, int)>' of the type variable 'W8' on 'Enum1'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   a<
+//   ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:315:5: Context: This is the type variable whose bound isn't conformed to.
+//     W8 extends H<(int, int)> // Error
+//     ^
+//
 // pkg/front_end/testcases/general/bounds_type_parameters.dart:66:16: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
@@ -1396,204 +1594,6 @@ library;
 // pkg/front_end/testcases/general/bounds_type_parameters.dart:13:9: Context: This is the type variable whose bound isn't conformed to.
 // class H<X extends (Class<X>, int)> {}
 //         ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument 'ConcreteClass' doesn't conform to the bound 'int' of the type variable 'T8' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:283:5: Context: This is the type variable whose bound isn't conformed to.
-//     T8 extends F<int>, // Error
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument 'G<ConcreteClass>' doesn't conform to the bound 'G<int>' of the type variable 'S8' on 'Enum1'.
-//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:291:5: Context: This is the type variable whose bound isn't conformed to.
-//     S8 extends G<int>, // Error
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound '(int, int)' of the type variable 'U8' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:299:5: Context: This is the type variable whose bound isn't conformed to.
-//     U8 extends (F<int>, int), // Error
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<Class<dynamic>> a, int b})' of the type variable 'V1' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:300:5: Context: This is the type variable whose bound isn't conformed to.
-//     V1 extends ({G a, int b}), // Error
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<dynamic> a, int b})' of the type variable 'V2' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:301:5: Context: This is the type variable whose bound isn't conformed to.
-//     V2 extends ({G<dynamic> a, int b}), // Ok
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<Class<dynamic>> a, int b})' of the type variable 'V3' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:302:5: Context: This is the type variable whose bound isn't conformed to.
-//     V3 extends ({G<Class> a, int b}), // Ok
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<Class<dynamic>> a, int b})' of the type variable 'V4' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:303:5: Context: This is the type variable whose bound isn't conformed to.
-//     V4 extends ({G<Class<dynamic>> a, int b}), // Ok
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<ConcreteClass> a, int b})' of the type variable 'V5' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:304:5: Context: This is the type variable whose bound isn't conformed to.
-//     V5 extends ({G<ConcreteClass> a, int b}), // Ok
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<Class<ConcreteClass>> a, int b})' of the type variable 'V6' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:305:5: Context: This is the type variable whose bound isn't conformed to.
-//     V6 extends ({G<Class<ConcreteClass>> a, int b}), // Ok
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<Object> a, int b})' of the type variable 'V7' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'Object' is from 'dart:core'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:306:5: Context: This is the type variable whose bound isn't conformed to.
-//     V7 extends ({G<Object> a, int b}), // Error
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '({ConcreteClass a, int b})' doesn't conform to the bound '({G<int> a, int b})' of the type variable 'V8' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'G' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:307:5: Context: This is the type variable whose bound isn't conformed to.
-//     V8 extends ({G<int> a, int b}), // Error
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(Class<dynamic>, int)>' of the type variable 'W1' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:308:5: Context: This is the type variable whose bound isn't conformed to.
-//     W1 extends H, // Error
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<dynamic>' of the type variable 'W2' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:309:5: Context: This is the type variable whose bound isn't conformed to.
-//     W2 extends H<dynamic>, // Ok
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(Class<dynamic>, int)>' of the type variable 'W3' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:310:5: Context: This is the type variable whose bound isn't conformed to.
-//     W3 extends H<(Class, int)>, // Ok
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(Class<dynamic>, int)>' of the type variable 'W4' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:311:5: Context: This is the type variable whose bound isn't conformed to.
-//     W4 extends H<(Class<dynamic>, int)>, // Ok
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(ConcreteClass, int)>' of the type variable 'W5' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:312:5: Context: This is the type variable whose bound isn't conformed to.
-//     W5 extends H<(ConcreteClass, int)>, // Ok
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(Class<ConcreteClass>, int)>' of the type variable 'W6' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:313:5: Context: This is the type variable whose bound isn't conformed to.
-//     W6 extends H<(Class<ConcreteClass>, int)>, // Ok
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(Object, int)>' of the type variable 'W7' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'Object' is from 'dart:core'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:314:5: Context: This is the type variable whose bound isn't conformed to.
-//     W7 extends H<(Object, int)>, // Error
-//     ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:317:3: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound 'H<(int, int)>' of the type variable 'W8' on 'Enum1'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'H' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   a<
-//   ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:315:5: Context: This is the type variable whose bound isn't conformed to.
-//     W8 extends H<(int, int)> // Error
-//     ^
 //
 // pkg/front_end/testcases/general/bounds_type_parameters.dart:454:18: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
 //  - 'Object' is from 'dart:core'.

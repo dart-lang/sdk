@@ -175,8 +175,9 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
 }) {
   var unformatted = result.content;
   var lineInfo = result.lineInfo;
-  var rangeStart =
-      range != null ? toOffset(lineInfo, range.start) : success(null);
+  var rangeStart = range != null
+      ? toOffset(lineInfo, range.start)
+      : success(null);
   var rangeEnd = range != null ? toOffset(lineInfo, range.end) : success(null);
 
   return (rangeStart, rangeEnd).mapResultsSync((rangeStart, rangeEnd) {
@@ -328,8 +329,8 @@ class _MinimalEditComputer {
 
     // Walk through the token streams computing edits for the differences.
     bool unformattedHasMore, formattedHasMore;
-    while ((unformattedHasMore =
-            unformattedTokens.moveNext()) & // Don't short-circuit.
+    while ((unformattedHasMore = unformattedTokens
+            .moveNext()) & // Don't short-circuit.
         (formattedHasMore = formattedTokens.moveNext())) {
       var unformattedToken = unformattedTokens.current;
       var formattedToken = formattedTokens.current;
@@ -675,14 +676,15 @@ class _MinimalEditComputer {
   /// be parsed.
   static Token? _parse(String s, FeatureSet featureSet) {
     try {
-      var scanner = Scanner(
-        _SourceMock.instance,
-        CharSequenceReader(s),
-        DiagnosticListener.nullListener,
-      )..configureFeatures(
-        featureSetForOverriding: featureSet,
-        featureSet: featureSet,
-      );
+      var scanner =
+          Scanner(
+            _SourceMock.instance,
+            CharSequenceReader(s),
+            DiagnosticListener.nullListener,
+          )..configureFeatures(
+            featureSetForOverriding: featureSet,
+            featureSet: featureSet,
+          );
       return scanner.tokenize();
     } catch (e) {
       return null;

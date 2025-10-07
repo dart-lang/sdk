@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertToWildcardPatternPatternTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_WILDCARD_PATTERN;
+  FixKind get kind => DartFixKind.convertToWildcardPattern;
 
   @override
   String get lintCode => LintNames.type_literal_in_constant_pattern;

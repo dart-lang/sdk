@@ -105,7 +105,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -141,7 +141,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList

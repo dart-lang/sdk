@@ -7,11 +7,11 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -22,6 +22,7 @@ enum ManifestAstElementKind {
   dynamic_,
   formalParameter,
   importPrefix,
+  never_,
   typeParameter,
   regular,
   multiplyDefined;
@@ -114,13 +115,13 @@ class ManifestNode {
     }
   }
 
-  factory ManifestNode.read(SummaryDataReader reader) {
+  factory ManifestNode.read(BinaryReader reader) {
     return ManifestNode._(
       isValid: reader.readBool(),
-      tokenBuffer: reader.readStringUtf8(),
-      tokenLengthList: reader.readUInt30List(),
+      tokenBuffer: reader.readStringReference(),
+      tokenLengthList: reader.readUint30List(),
       elements: ManifestElement.readList(reader),
-      elementIndexList: reader.readUInt30List(),
+      elementIndexList: reader.readUint30List(),
     );
   }
 
@@ -192,19 +193,19 @@ class ManifestNode {
     return true;
   }
 
-  void write(BufferedSink sink) {
-    sink.writeBool(isValid);
-    sink.writeStringUtf8(tokenBuffer);
-    sink.writeUint30List(tokenLengthList);
-    sink.writeList(elements, (e) => e.write(sink));
-    sink.writeUint30List(elementIndexList);
+  void write(BinaryWriter writer) {
+    writer.writeBool(isValid);
+    writer.writeStringReference(tokenBuffer);
+    writer.writeUint30List(tokenLengthList);
+    writer.writeList(elements, (e) => e.write(writer));
+    writer.writeUint30List(elementIndexList);
   }
 
-  static List<ManifestNode> readList(SummaryDataReader reader) {
+  static List<ManifestNode> readList(BinaryReader reader) {
     return reader.readTypedList(() => ManifestNode.read(reader));
   }
 
-  static ManifestNode? readOptional(SummaryDataReader reader) {
+  static ManifestNode? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => ManifestNode.read(reader));
   }
 }
@@ -441,6 +442,9 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
       case DynamicElementImpl():
         kind = ManifestAstElementKind.dynamic_;
         rawIndex = 0;
+      case NeverElementImpl():
+        kind = ManifestAstElementKind.never_;
+        rawIndex = 0;
       case MultiplyDefinedElementImpl():
         kind = ManifestAstElementKind.multiplyDefined;
         rawIndex = 0;
@@ -483,8 +487,8 @@ extension ListOfManifestNodeExtension on List<ManifestNode> {
     return true;
   }
 
-  void writeList(BufferedSink sink) {
-    sink.writeList(this, (x) => x.write(sink));
+  void writeList(BinaryWriter writer) {
+    writer.writeList(this, (x) => x.write(writer));
   }
 }
 
@@ -498,7 +502,7 @@ extension ManifestNodeOrNullExtension on ManifestNode? {
     }
   }
 
-  void writeOptional(BufferedSink sink) {
-    sink.writeOptionalObject(this, (it) => it.write(sink));
+  void writeOptional(BinaryWriter writer) {
+    writer.writeOptionalObject(this, (it) => it.write(writer));
   }
 }

@@ -24,11 +24,10 @@ void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
     // what is in the source.
     var length =
         serverElement.location?.length ?? engineElement.name?.length ?? 0;
-    var offsets =
-        nodes
-            .where((node) => node.length == length)
-            .map((node) => node.offset)
-            .toList();
+    var offsets = nodes
+        .where((node) => node.length == length)
+        .map((node) => node.offset)
+        .toList();
 
     var occurrences = protocol.Occurrences(serverElement, offsets, length);
     collector.addOccurrences(occurrences);
@@ -285,10 +284,9 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     var element = node.element;
     var pattern = node.pattern;
     // If no explicit field name, use the variables name.
-    var name =
-        node.name?.name == null && pattern is VariablePattern
-            ? pattern.name
-            : node.name?.name;
+    var name = node.name?.name == null && pattern is VariablePattern
+        ? pattern.name
+        : node.name?.name;
     if (element != null && name != null) {
       _addOccurrence(element, name);
     }

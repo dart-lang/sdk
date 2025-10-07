@@ -20,14 +20,26 @@ Future<void> main() async {
 /// Get a list of all generated targets.
 List<GeneratedContent> get allTargets {
   var targets = <GeneratedContent>[];
-  targets.add(codegen_dart_protocol.target(
-      true, codegen_dart_protocol.CodegenUriConverterKind.optionalParameter));
+  targets.add(
+    codegen_dart_protocol.target(
+      true,
+      codegen_dart_protocol.CodegenUriConverterKind.optionalParameter,
+    ),
+  );
   targets.add(codegen_inttest_methods.target);
   targets.add(codegen_matchers.target);
-  targets.add(codegen_protocol_common.pluginTarget(
-      true, codegen_dart_protocol.CodegenUriConverterKind.optionalParameter));
-  targets.add(codegen_protocol_common.clientTarget(
-      true, codegen_dart_protocol.CodegenUriConverterKind.none));
+  targets.add(
+    codegen_protocol_common.pluginTarget(
+      true,
+      codegen_dart_protocol.CodegenUriConverterKind.optionalParameter,
+    ),
+  );
+  targets.add(
+    codegen_protocol_common.clientTarget(
+      true,
+      codegen_dart_protocol.CodegenUriConverterKind.none,
+    ),
+  );
   targets.add(codegen_protocol_constants.target);
   targets.add(to_html.target);
   return targets;

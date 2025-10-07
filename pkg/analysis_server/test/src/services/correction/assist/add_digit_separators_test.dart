@@ -65,6 +65,11 @@ class AddDigitSeparatorsTest extends AssistProcessorTest {
     await assertHasAssist('var i = 1.234_56e7;');
   }
 
+  Future<void> test_doubleScientific_manyDigitsInNegativeWhole() async {
+    await resolveTestCode('var i = ^-12345e6;');
+    await assertHasAssist('var i = -12_345e6;');
+  }
+
   Future<void> test_doubleScientific_manyDigitsInWhole() async {
     await resolveTestCode('var i = ^12345e6;');
     await assertHasAssist('var i = 12_345e6;');
@@ -78,6 +83,21 @@ class AddDigitSeparatorsTest extends AssistProcessorTest {
   Future<void> test_doubleScientific_manyDigitsInWhole_withFractional() async {
     await resolveTestCode('var i = ^12345.6e7;');
     await assertHasAssist('var i = 12_345.6e7;');
+  }
+
+  Future<void> test_existing_noThreeGroup() async {
+    await resolveTestCode('var i = ^123.4_5;');
+    await assertNoAssist();
+  }
+
+  Future<void> test_exponential_noThreeGroup() async {
+    await resolveTestCode('var i = 1e23^;');
+    await assertNoAssist();
+  }
+
+  Future<void> test_exponentialNegative_noThreeGroup() async {
+    await resolveTestCode('var i = 1e-23^;');
+    await assertNoAssist();
   }
 
   Future<void> test_intDecimal_existingSeparators() async {
@@ -138,5 +158,15 @@ class AddDigitSeparatorsTest extends AssistProcessorTest {
   Future<void> test_intHex_upperCase() async {
     await resolveTestCode('var i = ^0X123456;');
     await assertHasAssist('var i = 0X12_34_56;');
+  }
+
+  Future<void> test_noWhole() async {
+    await resolveTestCode('var i = ^.12345;');
+    await assertHasAssist('var i = .123_45;');
+  }
+
+  Future<void> test_wholeNegative_exponential_noThreeGroup() async {
+    await resolveTestCode('var i = -123e45^;');
+    await assertNoAssist();
   }
 }

@@ -9,6 +9,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../../base/identifiers.dart';
 import '../../base/lookup_result.dart';
+import '../../base/messages.dart';
 import '../../base/problems.dart' show unexpected, unhandled;
 import '../../builder/builder.dart';
 import '../../builder/constructor_builder.dart';
@@ -21,7 +22,6 @@ import '../../builder/named_type_builder.dart';
 import '../../builder/nullability_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../codes/cfe_codes.dart';
 import '../../dill/dill_extension_type_member_builder.dart';
 import '../../dill/dill_member_builder.dart';
 import '../../fragment/fragment.dart';
@@ -33,12 +33,10 @@ import '../../source/redirecting_factory_body.dart';
 import '../../source/source_factory_builder.dart';
 import '../../source/source_function_builder.dart';
 import '../../source/source_library_builder.dart' show SourceLibraryBuilder;
-import '../../source/source_loader.dart'
-    show CompilationPhaseForProblemReporting, SourceLoader;
+import '../../source/source_loader.dart' show SourceLoader;
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../source/type_parameter_factory.dart';
-import '../../type_inference/inference_helper.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../../type_inference/type_schema.dart';
 
@@ -240,19 +238,10 @@ class FactoryEncoding implements InferredTypeListener {
     Member? target = redirectingFactoryTarget.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
       TypeInferrer inferrer = libraryBuilder.loader.typeInferenceEngine
-          .createLocalTypeInferrer(
-            _fragment.fileUri,
-            declarationBuilder.thisType,
-            libraryBuilder,
-            _fragment.typeParameterScope,
-            null,
-          );
-      InferenceHelper helper = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(
-            libraryBuilder,
-            bodyBuilderContext,
-            _fragment.enclosingScope,
-            _fragment.fileUri,
+          .createTypeInferrer(
+            thisType: declarationBuilder.thisType,
+            libraryBuilder: libraryBuilder,
+            extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
           );
       MemberLookupResult? result = _redirectionTarget.target;
       MemberBuilder? targetBuilder;
@@ -282,12 +271,14 @@ class FactoryEncoding implements InferredTypeListener {
       }
 
       typeArguments = inferrer.inferRedirectingFactoryTypeArguments(
-        helper,
-        _procedure.function.returnType,
-        _procedure.function,
-        _fragment.fullNameOffset,
-        target,
-        target.function!.computeFunctionType(Nullability.nonNullable),
+        typeContext: _procedure.function.returnType,
+        redirectingFactoryFunction: _procedure.function,
+        fileUri: _fragment.fileUri,
+        fileOffset: _fragment.fullNameOffset,
+        target: target,
+        targetType: target.function!.computeFunctionType(
+          Nullability.nonNullable,
+        ),
       );
       if (typeArguments == null) {
         assert(
@@ -413,7 +404,7 @@ class FactoryEncoding implements InferredTypeListener {
       if (result != null && result.isInvalidLookup) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: codeDuplicatedDeclarationUse.withArguments(
+          message: codeDuplicatedDeclarationUse.withArgumentsOld(
             redirectionTarget.fullNameForErrors,
           ),
           fileOffset: redirectionTarget.charOffset,
@@ -428,7 +419,7 @@ class FactoryEncoding implements InferredTypeListener {
       } else {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: codeRedirectionTargetNotFound.withArguments(
+          message: codeRedirectionTargetNotFound.withArgumentsOld(
             redirectionTarget.fullNameForErrors,
           ),
           fileOffset: redirectionTarget.charOffset,
@@ -441,7 +432,7 @@ class FactoryEncoding implements InferredTypeListener {
           targetNode.enclosingClass.isAbstract) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: codeAbstractRedirectedClassInstantiation.withArguments(
+          message: codeAbstractRedirectedClassInstantiation.withArgumentsOld(
             redirectionTarget.fullNameForErrors,
           ),
           fileOffset: redirectionTarget.charOffset,
@@ -565,7 +556,7 @@ class FactoryEncoding implements InferredTypeListener {
     if (_isCyclicRedirectingFactory(factoryBuilder)) {
       _addProblemForRedirectingFactory(
         libraryBuilder: libraryBuilder,
-        message: codeCyclicRedirectingFactoryConstructors.withArguments(
+        message: codeCyclicRedirectingFactoryConstructors.withArgumentsOld(
           "${factoryBuilder.declarationBuilder.name}"
           "${_fragment.name == '' ? '' : '.${_fragment.name}'}",
         ),
@@ -640,7 +631,7 @@ class FactoryEncoding implements InferredTypeListener {
       )) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: codeIncompatibleRedirecteeFunctionType.withArguments(
+          message: codeIncompatibleRedirecteeFunctionType.withArgumentsOld(
             redirecteeType,
             factoryTypeWithoutTypeParameters,
           ),
@@ -705,7 +696,7 @@ class FactoryEncoding implements InferredTypeListener {
         targetFunctionType.typeParameters.length != typeArguments.length) {
       _addProblemForRedirectingFactory(
         libraryBuilder: libraryBuilder,
-        message: codeTypeArgumentMismatch.withArguments(
+        message: codeTypeArgumentMismatch.withArgumentsOld(
           targetFunctionType.typeParameters.length,
         ),
         fileOffset: redirectionTarget.charOffset,
@@ -737,7 +728,7 @@ class FactoryEncoding implements InferredTypeListener {
           _addProblemForRedirectingFactory(
             libraryBuilder: libraryBuilder,
             message: codeRedirectingFactoryIncompatibleTypeArgument
-                .withArguments(typeArgument, typeParameterBound),
+                .withArgumentsOld(typeArgument, typeParameterBound),
             fileOffset: redirectionTarget.charOffset,
             length: noLength,
             fileUri: redirectionTarget.fileUri,
@@ -749,7 +740,7 @@ class FactoryEncoding implements InferredTypeListener {
             _addProblemForRedirectingFactory(
               libraryBuilder: libraryBuilder,
               message: codeRedirectingFactoryIncompatibleTypeArgument
-                  .withArguments(typeArgument, typeParameterBound),
+                  .withArgumentsOld(typeArgument, typeParameterBound),
               fileOffset: redirectionTarget.charOffset,
               length: noLength,
               fileUri: redirectionTarget.fileUri,

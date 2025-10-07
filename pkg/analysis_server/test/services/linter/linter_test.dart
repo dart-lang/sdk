@@ -8,6 +8,8 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:linter/src/rules.dart';
@@ -23,7 +25,7 @@ void main() {
 @reflectiveTest
 class LinterRuleOptionsValidatorTest with ResourceProviderMixin {
   late RecordingDiagnosticListener recorder;
-
+  late SourceFactory sourceFactory;
   late DiagnosticReporter reporter;
 
   List<Diagnostic> get diagnostics => recorder.diagnostics;
@@ -31,10 +33,12 @@ class LinterRuleOptionsValidatorTest with ResourceProviderMixin {
   LinterRuleOptionsValidator get validator => LinterRuleOptionsValidator(
     optionsProvider: AnalysisOptionsProvider(),
     resourceProvider: resourceProvider,
+    sourceFactory: sourceFactory,
   );
 
   void setUp() {
     registerLintRules();
+    sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     recorder = RecordingDiagnosticListener();
     reporter = DiagnosticReporter(recorder, _TestSource());
   }

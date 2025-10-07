@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart'
 import 'package:kernel/ast.dart' show Library, Version;
 
 import '../base/export.dart' show Export;
+import '../base/extension_scope.dart';
 import '../base/loader.dart' show Loader;
 import '../base/lookup_result.dart';
 import '../base/messages.dart'
@@ -31,6 +32,9 @@ import 'type_builder.dart';
 
 abstract class LibraryBuilder implements Builder, ProblemReporting {
   NameSpace get libraryNameSpace;
+
+  /// Extensions declared in this library.
+  Extensions get libraryExtensions;
 
   ComputedNameSpace get exportNameSpace;
 
@@ -196,7 +200,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     constructorName ??= "";
     if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
       return internalProblem(
-        codeInternalProblemPrivateConstructorAccess.withArguments(
+        codeInternalProblemPrivateConstructorAccess.withArgumentsOld(
           constructorName,
         ),
         -1,
@@ -238,7 +242,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     }
     // Coverage-ignore-block(suite): Not run.
     throw internalProblem(
-      codeInternalProblemConstructorNotFound.withArguments(
+      codeInternalProblemConstructorNotFound.withArgumentsOld(
         "$className.$constructorName",
         importUri,
       ),
@@ -257,7 +261,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     NamedBuilder? builder = libraryNameSpace.lookup(name)?.getable;
     if (builder == null) {
       internalProblem(
-        codeInternalProblemNotFoundIn.withArguments(name, fullNameForErrors),
+        codeInternalProblemNotFoundIn.withArgumentsOld(name, fullNameForErrors),
         -1,
         null,
       );

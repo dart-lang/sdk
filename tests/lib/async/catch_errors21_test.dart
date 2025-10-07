@@ -9,12 +9,12 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
-  var controller = new StreamController();
+  var controller = StreamController();
   // Test that stream errors, as a result of bad user-code (`map`) are correctly
   // caught by `catchErrors`. Note that the values are added outside both
   // `catchErrors`, but since the `listen` happens in the most nested

@@ -29,6 +29,7 @@ import 'package:analysis_server/src/status/pages/exceptions_page.dart';
 import 'package:analysis_server/src/status/pages/feedback_page.dart';
 import 'package:analysis_server/src/status/pages/file_byte_store_timing_page.dart';
 import 'package:analysis_server/src/status/pages/fixes_page.dart';
+import 'package:analysis_server/src/status/pages/legacy_plugins_page.dart';
 import 'package:analysis_server/src/status/pages/lsp_capabilities_page.dart';
 import 'package:analysis_server/src/status/pages/lsp_client_page.dart';
 import 'package:analysis_server/src/status/pages/lsp_registrations_page.dart';
@@ -440,6 +441,7 @@ td.pre {
     var server = socketServer.analysisServer;
     if (server != null) {
       pages.add(PluginsPage(this, server));
+      pages.add(LegacyPluginsPage(this, server));
     }
     if (server is LegacyAnalysisServer) {
       pages.add(ClientPage(this));

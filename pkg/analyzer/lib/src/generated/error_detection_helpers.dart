@@ -69,14 +69,34 @@ mixin ErrorDetectionHelpers {
     bool promoteParameterToNullable = false,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
-    _checkForArgumentTypeNotAssignableForArgument(
-      argument: argument is NamedExpressionImpl
-          ? argument.expression
-          : argument,
-      parameter: argument.correspondingParameter,
-      promoteParameterToNullable: promoteParameterToNullable,
-      whyNotPromoted: whyNotPromoted,
-    );
+    var parameter = argument.correspondingParameter;
+    TypeImpl? correspondingParameterType;
+    if (parameter != null) {
+      correspondingParameterType = parameter.type;
+    } else if (argument.parent
+        case ArgumentListImpl(
+          parent: FunctionExpressionInvocationImpl(
+            function: Expression(:var staticType),
+          ),
+        )
+        when identical(staticType, DynamicTypeImpl.instance) ||
+            identical(staticType, NeverTypeImpl.instance) ||
+            staticType is InterfaceTypeImpl && staticType.isDartCoreFunction) {
+      // Treat dynamic invocations as having function types where all formal
+      // parameter types are 'dynamic'.
+      correspondingParameterType = DynamicTypeImpl.instance;
+    }
+
+    if (correspondingParameterType != null) {
+      _checkForArgumentTypeNotAssignableForArgument(
+        argument: argument is NamedExpressionImpl
+            ? argument.expression
+            : argument,
+        staticParameterType: correspondingParameterType,
+        promoteParameterToNullable: promoteParameterToNullable,
+        whyNotPromoted: whyNotPromoted,
+      );
+    }
   }
 
   void checkForAssignableExpressionAtType(
@@ -297,7 +317,7 @@ mixin ErrorDetectionHelpers {
       if (parameters.isNotEmpty) {
         _checkForArgumentTypeNotAssignableForArgument(
           argument: index,
-          parameter: parameters[0],
+          staticParameterType: parameters[0].type,
           promoteParameterToNullable: false,
           whyNotPromoted: whyNotPromoted,
         );
@@ -309,7 +329,7 @@ mixin ErrorDetectionHelpers {
       if (parameters.isNotEmpty) {
         _checkForArgumentTypeNotAssignableForArgument(
           argument: index,
-          parameter: parameters[0],
+          staticParameterType: parameters[0].type,
           promoteParameterToNullable: false,
           whyNotPromoted: whyNotPromoted,
         );
@@ -389,22 +409,19 @@ mixin ErrorDetectionHelpers {
 
   void _checkForArgumentTypeNotAssignableForArgument({
     required Expression argument,
-    required InternalFormalParameterElement? parameter,
+    required TypeImpl staticParameterType,
     required bool promoteParameterToNullable,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
-    var staticParameterType = parameter?.type;
-    if (staticParameterType != null) {
-      if (promoteParameterToNullable) {
-        staticParameterType = typeSystem.makeNullable(staticParameterType);
-      }
-      checkForArgumentTypeNotAssignable(
-        argument,
-        staticParameterType,
-        argument.typeOrThrow,
-        CompileTimeErrorCode.argumentTypeNotAssignable,
-        whyNotPromoted: whyNotPromoted,
-      );
+    if (promoteParameterToNullable) {
+      staticParameterType = typeSystem.makeNullable(staticParameterType);
     }
+    checkForArgumentTypeNotAssignable(
+      argument,
+      staticParameterType,
+      argument.typeOrThrow,
+      CompileTimeErrorCode.argumentTypeNotAssignable,
+      whyNotPromoted: whyNotPromoted,
+    );
   }
 }

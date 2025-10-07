@@ -237,6 +237,10 @@ abstract class MyInterface {
     await _testMarkedContent(content, otherContent: mixinsContent);
   }
 
+  Future<void> test_never_issue61420() => _testMarkedContent('''
+      Ne^ver value = throw '';
+    ''', expectResults: false);
+
   Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize();

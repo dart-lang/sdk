@@ -11,6 +11,7 @@ import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/transformations/flags.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../api_prototype/experimental_flags.dart';
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
@@ -246,7 +247,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           customIndexDeclaration = customIndexDeclaration?.next;
         }
         libraryBuilder.addProblem(
-          codeEnumContainsRestrictedInstanceDeclaration.withArguments(
+          codeEnumContainsRestrictedInstanceDeclaration.withArgumentsOld(
             restrictedInstanceMemberName,
           ),
           customIndexDeclaration!.fileOffset,
@@ -300,6 +301,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             formals: [indexFormalParameterBuilder, nameFormalParameterBuilder],
             fileUri: fileUri,
             fileOffset: fileOffset,
+            extensionScope: _introductory.extensionScope,
             lookupScope: _introductory.compilationUnitScope,
           );
 
@@ -542,8 +544,9 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     } else {
       ClassBuilder enumClass =
           _underscoreEnumTypeBuilder.declaration as ClassBuilder;
-      MemberBuilder? nameFieldBuilder =
-          enumClass.lookupLocalMember("_name")?.getable as MemberBuilder?;
+      MemberBuilder? nameFieldBuilder = enumClass
+          .lookupLocalMember("_name")
+          ?.getable;
       assert(nameFieldBuilder != null);
       Field nameField = nameFieldBuilder!.readTarget as Field;
 
@@ -565,6 +568,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
   @override
   void buildOutlineNode(
     SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameScheme nameScheme,
     BuildNodesCallback f, {
     required Reference reference,
@@ -597,7 +601,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   ) {}
 
@@ -767,7 +771,7 @@ class _EnumValuesFieldDeclaration
 
   @override
   void checkFieldTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder,
   ) {}
@@ -882,7 +886,8 @@ class _EnumValuesFieldDeclaration
 
   @override
   void checkGetterTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder,
   ) {}

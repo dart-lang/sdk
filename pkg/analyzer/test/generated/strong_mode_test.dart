@@ -2107,7 +2107,7 @@ MethodInvocation
         asOperator: as
         type: NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
         correspondingParameter: ParameterMember
           baseElement: s@null
@@ -3460,7 +3460,7 @@ void main() {
 FunctionDeclaration
   returnType: NamedType
     name: T
-    element2: #E0 T
+    element: #E0 T
     type: T
   name: f
   functionExpression: FunctionExpression
@@ -3477,7 +3477,7 @@ FunctionDeclaration
       parameter: SimpleFormalParameter
         type: NamedType
           name: T
-          element2: #E0 T
+          element: #E0 T
           type: T
         name: x
         declaredElement: <testLibraryFragment> x@9
@@ -3510,7 +3510,7 @@ FunctionDeclaration
 FunctionDeclaration
   returnType: NamedType
     name: T
-    element2: #E0 T
+    element: #E0 T
     type: T
   name: f
   functionExpression: FunctionExpression
@@ -3522,7 +3522,7 @@ FunctionDeclaration
           extendsKeyword: extends
           bound: NamedType
             name: num
-            element2: dart:core::@class::num
+            element: dart:core::@class::num
             type: num
           declaredElement: <testLibraryFragment> T@4
             defaultType: num
@@ -3532,7 +3532,7 @@ FunctionDeclaration
       parameter: SimpleFormalParameter
         type: NamedType
           name: T
-          element2: #E0 T
+          element: #E0 T
           type: T
         name: x
         declaredElement: <testLibraryFragment> x@21
@@ -3581,7 +3581,7 @@ MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
     name: T
-    element2: #E0 T
+    element: #E0 T
     type: T
   name: f
   typeParameters: TypeParameterList
@@ -3597,7 +3597,7 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element2: #E0 T
+        element: #E0 T
         type: T
       name: x
       declaredElement: <testLibraryFragment> x@31
@@ -4272,10 +4272,10 @@ MethodInvocation
           arguments
             NamedType
               name: S
-              element2: #E0 S
+              element: #E0 S
               type: S
           rightBracket: >
-        element2: <testLibrary>::@class::C
+        element: <testLibrary>::@class::C
         type: C<S>
       element: ConstructorMember
         baseElement: <testLibrary>::@class::C::@constructor::new
@@ -4296,7 +4296,7 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -4346,10 +4346,10 @@ MethodInvocation
           arguments
             NamedType
               name: S
-              element2: #E0 S
+              element: #E0 S
               type: S
           rightBracket: >
-        element2: <testLibrary>::@class::C
+        element: <testLibrary>::@class::C
         type: C<S>
       element: ConstructorMember
         baseElement: <testLibrary>::@class::C::@constructor::new
@@ -4370,7 +4370,7 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -4441,7 +4441,7 @@ class D extends C {
 MethodDeclaration
   returnType: NamedType
     name: T
-    element2: #E0 T
+    element: #E0 T
     type: T
   name: f
   typeParameters: TypeParameterList
@@ -4457,7 +4457,7 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element2: #E0 T
+        element: #E0 T
         type: T
       name: y
       declaredElement: <testLibraryFragment> y@66
@@ -5690,9 +5690,9 @@ AssignmentExpression
     literal: 3
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: v@15
+  writeElement: v@15
   writeType: dynamic
   element: <null>
   staticType: int

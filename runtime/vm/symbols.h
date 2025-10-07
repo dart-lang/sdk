@@ -47,7 +47,7 @@ class ObjectPointerVisitor;
   V(ConditionVariable, "ConditionVariable")                                    \
   V(_AsyncCompleter, "_AsyncCompleter")                                        \
   V(_SyncCompleter, "_SyncCompleter")                                          \
-  V(Compound, "_Compound")                                                     \
+  V(_Compound, "_Compound")                                                    \
   V(CompressedStackMaps, "CompressedStackMaps")                                \
   V(Context, "Context")                                                        \
   V(ContextScope, "ContextScope")                                              \
@@ -63,6 +63,7 @@ class ObjectPointerVisitor;
   V(DartFfi, "dart:ffi")                                                       \
   V(DartInternal, "dart:_internal")                                            \
   V(DartIsVM, "dart.isVM")                                                     \
+  V(DartIo, "dart:io")                                                         \
   V(DartIsolate, "dart:isolate")                                               \
   V(DartLibrary, "dart.library.")                                              \
   V(DartLibraryFfi, "dart.library.ffi")                                        \
@@ -207,6 +208,7 @@ class ObjectPointerVisitor;
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
+  V(MapKeyValuesFactory, "Map._fromKeyValues")                                 \
   V(MegamorphicCache, "MegamorphicCache")                                      \
   V(MonomorphicSmiableCall, "MonomorphicSmiableCall")                          \
   V(MoveNext, "moveNext")                                                      \

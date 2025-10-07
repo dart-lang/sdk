@@ -7,20 +7,26 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart'
     as graph
     show DependencyWalker, Node;
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 
 /// Ensure that the `FileState._libraryCycle` for the [file] and anything it
 /// depends on is computed.
-void computeLibraryCycle(
-  bool withFineDependencies,
-  Uint32List salt,
-  LibraryFileKind file,
-) {
-  var libraryWalker = _LibraryWalker(withFineDependencies, salt);
+void computeLibraryCycle({
+  required bool withFineDependencies,
+  required Uint32List saltForElements,
+  required SourceFactory sourceFactory,
+  required LibraryFileKind file,
+}) {
+  var libraryWalker = _LibraryWalker(
+    withFineDependencies: withFineDependencies,
+    saltForElements: saltForElements,
+    sourceFactory: sourceFactory,
+  );
   libraryWalker.walk(libraryWalker.getNode(file));
 }
 
@@ -36,6 +42,9 @@ class LibraryCycle {
 
   /// The URIs of [libraries].
   final Set<Uri> libraryUris;
+
+  /// The transitive set of package names that this cycle references.
+  final Set<String> transitivePackages;
 
   /// The library cycles that this cycle references directly.
   final Set<LibraryCycle> directDependencies;
@@ -73,6 +82,7 @@ class LibraryCycle {
     required this.withFineDependencies,
     required this.libraries,
     required this.libraryUris,
+    required this.transitivePackages,
     required this.directDependencies,
     required this.apiSignature,
     required this.manifestSignature,
@@ -154,10 +164,15 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 /// sorted [LibraryCycle]s.
 class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   final bool withFineDependencies;
-  final Uint32List _salt;
+  final Uint32List saltForElements;
+  final SourceFactory sourceFactory;
   final Map<LibraryFileKind, _LibraryNode> nodesOfFiles = {};
 
-  _LibraryWalker(this.withFineDependencies, this._salt);
+  _LibraryWalker({
+    required this.withFineDependencies,
+    required this.saltForElements,
+    required this.sourceFactory,
+  });
 
   @override
   void evaluate(_LibraryNode v) {
@@ -167,7 +182,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   @override
   void evaluateScc(List<_LibraryNode> scc) {
     var apiSignature = ApiSignature();
-    apiSignature.addUint32List(_salt);
+    apiSignature.addUint32List(saltForElements);
 
     // Sort libraries to produce stable signatures.
     scc.sort((first, second) {
@@ -206,12 +221,23 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       }
     }
 
+    var transitivePackages = {
+      ...directDependencies.expand(
+        (dependency) => dependency.transitivePackages,
+      ),
+      ...libraries
+          .map((library) => library.file.uriProperties.packageName)
+          .nonNulls,
+    };
+
     String manifestSignature;
     String nonTransitiveApiSignature;
     {
       var manifestBuilder = ApiSignature();
       var apiSignatureBuilder = ApiSignature();
-      manifestBuilder.addInt(AnalysisDriver.DATA_VERSION);
+      manifestBuilder.addBytes(saltForElements);
+      _addUriResolutionToSignature(manifestBuilder, transitivePackages);
+
       var sortedFiles = libraries
           .expand((library) => library.files)
           .sortedBy((file) => file.path);
@@ -229,6 +255,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       withFineDependencies: withFineDependencies,
       libraries: libraries.toFixedList(),
       libraryUris: libraryUris,
+      transitivePackages: transitivePackages,
       directDependencies: directDependencies,
       apiSignature: apiSignature.toHex(),
       manifestSignature: manifestSignature,
@@ -243,6 +270,55 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
   _LibraryNode getNode(LibraryFileKind file) {
     return nodesOfFiles.putIfAbsent(file, () => _LibraryNode(this, file));
+  }
+
+  /// Add URI resolution environment to [signature].
+  ///
+  /// Library manifests are reused across analysis contexts. If two contexts
+  /// resolve the same `package:` URI to different file system locations, the
+  /// manifests **must not** be considered interchangeable - otherwise we can
+  /// end up reusing a manifest built for a different package layout and get
+  /// mismatched element IDs.
+  ///
+  /// To make the manifest key sensitive to the resolution environment (without
+  /// over-invalidating), we:
+  ///
+  /// * include the SDK root path (when using a folder-based SDK), and
+  /// * include the file system paths of the **transitively referenced**
+  ///   packages only - i.e. the packages in [packageNames], not every package
+  ///   visible in the analysis context.
+  ///
+  /// This design strikes a balance:
+  /// * Different package configurations that map a dependency to different
+  ///   locations produce different keys, forcing a rebuild where reuse would
+  ///   be detrimental to element ID stability.
+  /// * Contexts whose *overall* resolution differs but that map the relevant
+  ///   packages identically can still reuse manifests.
+  ///
+  /// Trade-off: a dependency package (or the SDK) moving on disk changes the
+  /// key for all cycles that depend on it, even if the package's *API* hasn't
+  /// changed. This is intentional - package dependencies change rarely, but
+  /// different package of the same (not well configured) workspace would
+  /// constantly churn new element IDs for unfortunate shared library manifest.
+  void _addUriResolutionToSignature(
+    ApiSignature signature,
+    Set<String> packageNames,
+  ) {
+    var sdk = sourceFactory.dartSdk;
+    if (sdk is FolderBasedDartSdk) {
+      signature.addString(sdk.directory.path);
+    }
+
+    var packageMap = sourceFactory.packageMap;
+    if (packageMap != null) {
+      var packagePaths = packageNames
+          .map((packageName) => packageMap[packageName])
+          .nonNulls
+          .expand((folders) => folders)
+          .map((folder) => folder.path)
+          .sorted();
+      signature.addStringList(packagePaths);
+    }
   }
 
   void _appendDirectlyReferenced(

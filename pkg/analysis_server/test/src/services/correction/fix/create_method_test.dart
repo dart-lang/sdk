@@ -23,7 +23,7 @@ void main() {
 @reflectiveTest
 class AddMissingHashOrEqualsTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_METHOD;
+  FixKind get kind => DartFixKind.createMethod;
 
   @override
   String get lintCode => LintNames.hash_and_equals;
@@ -95,7 +95,7 @@ class C {
 @reflectiveTest
 class CreateMethodMixinTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_METHOD;
+  FixKind get kind => DartFixKind.createMethod;
 
   Future<void> test_createQualified_instance() async {
     await resolveTestCode('''
@@ -234,7 +234,7 @@ mixin M {
 @reflectiveTest
 class CreateMethodTearoffMixinTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_METHOD_TEAROFF;
+  FixKind get kind => DartFixKind.createMethodTearoff;
   Future<void> test_functionType_method_enclosingMixin_static() async {
     await resolveTestCode('''
 mixin M {
@@ -288,7 +288,7 @@ useFunction(int g(double a, String b)) {}
 @reflectiveTest
 class CreateMethodTearoffTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_METHOD_TEAROFF;
+  FixKind get kind => DartFixKind.createMethodTearoff;
 
   Future<void> test_enum_tearoff() async {
     await resolveTestCode('''
@@ -809,7 +809,7 @@ class C<S> {
 @reflectiveTest
 class CreateMethodTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_METHOD;
+  FixKind get kind => DartFixKind.createMethod;
 
   Future<void> test_assignment_invocation() async {
     await resolveTestCode('''

@@ -9,7 +9,7 @@ import '../constants/values.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../tracer.dart';
 import 'nodes.dart';
-import 'optimize.dart' show OptimizationPhase, SsaOptimizerTask;
+import 'optimize.dart' show OptimizationPhase, SsaOptimizerWorkItem;
 
 bool _debug = false;
 
@@ -746,12 +746,12 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
 
   final JClosedWorld closedWorld;
   final ValueRangeInfo info = ValueRangeInfo();
-  final SsaOptimizerTask optimizer;
+  final SsaOptimizerWorkItem workItem;
   final Tracer tracer;
 
   late HGraph graph;
 
-  SsaValueRangeAnalyzer(this.closedWorld, this.optimizer, this.tracer);
+  SsaValueRangeAnalyzer(this.closedWorld, this.workItem, this.tracer);
 
   @override
   void visitGraph(HGraph graph) {
@@ -772,7 +772,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
     removeRangeConversion();
 
     // TODO(herhut): Find a cleaner way to pass around ranges.
-    optimizer.ranges = ranges;
+    workItem.ranges = ranges;
   }
 
   @override

@@ -28,7 +28,7 @@ WithClause
   mixinTypes
     NamedType
       name: M
-      element2: <testLibrary>::@mixin::M
+      element: <testLibrary>::@mixin::M
       type: M
 ''');
   }
@@ -46,7 +46,7 @@ WithClause
   mixinTypes
     NamedType
       name: M
-      element2: <testLibrary>::@mixin::M
+      element: <testLibrary>::@mixin::M
       type: M
 ''');
   }
@@ -83,7 +83,7 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: T
-      element2: #E0 T
+      element: #E0 T
       type: T
     variables
       VariableDeclaration
@@ -106,7 +106,7 @@ mixin M {
 MethodDeclaration
   returnType: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   propertyKeyword: get
   name: foo
@@ -137,11 +137,11 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     NamedType
       name: B
-      element2: <testLibrary>::@class::B
+      element: <testLibrary>::@class::B
       type: B
 ''');
   }
@@ -199,7 +199,7 @@ Annotation
     token: a
     element: <testLibrary>::@getter::a
     staticType: null
-  element2: <testLibrary>::@getter::a
+  element: <testLibrary>::@getter::a
 ''');
   }
 
@@ -215,7 +215,7 @@ mixin M {
 MethodDeclaration
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   name: foo
   parameters: FormalParameterList
@@ -278,11 +278,11 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     NamedType
       name: B
-      element2: <testLibrary>::@class::B
+      element: <testLibrary>::@class::B
       type: B
 ''');
   }
@@ -299,7 +299,7 @@ mixin M {
 MethodDeclaration
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   propertyKeyword: set
   name: foo
@@ -308,7 +308,7 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: _
       declaredElement: <testLibraryFragment> _@29
@@ -427,9 +427,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int

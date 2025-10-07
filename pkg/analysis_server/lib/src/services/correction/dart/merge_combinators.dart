@@ -100,7 +100,7 @@ class _MergeCombinators extends ResolvedCorrectionProducer {
         if (element is! LibraryElementImpl) {
           return;
         }
-        originalNamespace = _originalNamespace(element);
+        originalNamespace = element.exportNamespace;
         namespace = _currentNamespace(libraryExport).definedNames2;
       case ImportDirective(:var libraryImport?):
         namespace = getImportNamespace(libraryImport);
@@ -118,18 +118,17 @@ class _MergeCombinators extends ResolvedCorrectionProducer {
       return;
     }
 
-    originalNamespace ??= _originalNamespace(element);
+    originalNamespace ??= element.exportNamespace;
 
     var explicitlyHiddenNames = directive.hideCombinators.hiddenNames;
 
-    var hiddenNames =
-        {
-          ...explicitlyHiddenNames,
-          ...originalNamespace.hiddenNames({
-            ...explicitlyHiddenNames,
-            ...namespace.keys,
-          }),
-        }.toList();
+    var hiddenNames = {
+      ...explicitlyHiddenNames,
+      ...originalNamespace.hiddenNames({
+        ...explicitlyHiddenNames,
+        ...namespace.keys,
+      }),
+    }.toList();
     await _buildNewCombinator(builder, Keyword.HIDE, hiddenNames);
   }
 
@@ -156,10 +155,6 @@ class _MergeCombinators extends ResolvedCorrectionProducer {
 
   Namespace _currentNamespace(LibraryExportImpl libraryExport) {
     return namespaceBuilder.createExportNamespaceForDirective2(libraryExport);
-  }
-
-  Namespace _originalNamespace(LibraryElementImpl element) {
-    return namespaceBuilder.createExportNamespaceForLibrary(element);
   }
 }
 

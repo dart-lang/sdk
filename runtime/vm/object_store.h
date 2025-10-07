@@ -55,7 +55,13 @@ class ObjectPointerVisitor;
   LAZY_CORE(Function, _object_to_string_function)                              \
   LAZY_INTERNAL(Class, symbol_class)                                           \
   LAZY_INTERNAL(Field, symbol_name_field)                                      \
-  LAZY_FFI(Class, varargs_class)                                               \
+  LAZY_FFI(Class, ffi_array_class)                                             \
+  LAZY_FFI(Class, ffi_compound_class)                                          \
+  LAZY_FFI(Class, ffi_struct_class)                                            \
+  LAZY_FFI(Class, ffi_union_class)                                             \
+  LAZY_FFI(Class, ffi_varargs_class)                                           \
+  LAZY_FFI(Field, compound_offset_in_bytes_field)                              \
+  LAZY_FFI(Field, compound_typed_data_base_field)                              \
   LAZY_FFI(Function, ffi_resolver_function)                                    \
   LAZY_FFI(Function, handle_finalizer_message_function)                        \
   LAZY_FFI(Function, handle_native_finalizer_message_function)                 \

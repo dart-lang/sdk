@@ -14,7 +14,6 @@ class A {
   //                         ^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   // [cfe] Can't access 'this' in a field initializer to read 'B'.
-  // [cfe] Not a constant expression.
 }
 
 class B {

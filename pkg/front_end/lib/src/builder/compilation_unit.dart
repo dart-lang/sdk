@@ -10,7 +10,9 @@ import 'package:kernel/reference_from_index.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
+import '../base/directives.dart';
 import '../base/export.dart' show Export;
+import '../base/extension_scope.dart';
 import '../base/loader.dart' show Loader;
 import '../base/messages.dart'
     show LocatedMessage, Message, ProblemReporting, noLength;
@@ -162,13 +164,11 @@ abstract class SourceCompilationUnit
 
   LanguageVersion get languageVersion;
 
-  String? get name;
+  LibraryDirective? get libraryDirective;
 
   int finishNativeMethods(SourceLoader loader);
 
-  String? get partOfName;
-
-  Uri? get partOfUri;
+  PartOf? get partOfDirective;
 
   List<MetadataBuilder>? get metadata;
 
@@ -183,7 +183,17 @@ abstract class SourceCompilationUnit
   /// This contains all imports with prefixes declared in this compilation unit.
   LookupScope get prefixScope;
 
+  ExtensionScope get prefixExtensionScope;
+
+  /// The name space containing the prefixes declared in this compilation unit.
   NameSpace get prefixNameSpace;
+
+  /// Returns the [PrefixBuilder] of the given [name] available in this
+  /// compilation unit, if any.
+  ///
+  /// A prefix builder is available if it is declared in this compilation unit
+  /// or if it is available in the parent compilation unit.
+  PrefixBuilder? lookupPrefixBuilder(String name);
 
   bool get mayImplementRestrictedTypes;
 

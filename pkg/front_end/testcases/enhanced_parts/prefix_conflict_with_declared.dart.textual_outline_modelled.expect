@@ -1,0 +1,16 @@
+import 'prefix_conflict_with_declared_lib.dart' as declaredInMain;
+import 'prefix_conflict_with_declared_lib.dart' as declaredInPart1;
+import 'prefix_conflict_with_declared_lib.dart' as declaredInPart2;
+import 'prefix_conflict_with_declared_lib.dart' as declaredInPart3;
+import 'prefix_conflict_with_declared_lib.dart' as setterInMain;
+import 'prefix_conflict_with_declared_lib.dart' as setterInPart1;
+import 'prefix_conflict_with_declared_lib.dart' as setterInPart2;
+import 'prefix_conflict_with_declared_lib.dart' as setterInPart3;
+
+part 'prefix_conflict_with_declared_part1.dart';
+
+part 'prefix_conflict_with_declared_part3.dart';
+
+void declaredInMain() {}
+
+void set setterInMain(_) {}

@@ -4,10 +4,12 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/local_scope.dart';
+import '../../base/messages.dart';
 import '../../base/scope.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
@@ -16,6 +18,7 @@ import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/type_algorithms.dart';
+import '../../source/check_helper.dart';
 import '../../source/fragment_factory.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
@@ -54,6 +57,7 @@ sealed class MethodEncoding implements InferredTypeListener {
 
   void buildOutlineNode(
     SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameScheme nameScheme,
     BuildNodesCallback f, {
     required Reference reference,
@@ -63,7 +67,7 @@ sealed class MethodEncoding implements InferredTypeListener {
   });
 
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   );
 
@@ -169,11 +173,13 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
       bodyBuilderContext: bodyBuilderContext,
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
     );
     buildTypeParametersForOutlineExpressions(
       classHierarchy,
@@ -185,6 +191,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       libraryBuilder,
       declarationBuilder,
       _fragment.declaredFormals,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );
@@ -193,6 +200,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   @override
   void buildOutlineNode(
     SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameScheme nameScheme,
     BuildNodesCallback f, {
     required Reference reference,
@@ -216,10 +224,22 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       supportsTypeParameters: true,
     );
     if (_fragment.returnType is! InferableTypeBuilder) {
-      function.returnType = _fragment.returnType.build(
+      DartType returnType = _fragment.returnType.build(
         libraryBuilder,
         TypeUse.returnType,
       );
+      if (_fragment.name == indexSetName.text) {
+        if (returnType is! VoidType) {
+          problemReporting.addProblem(
+            codeNonVoidReturnOperator,
+            _fragment.returnType.charOffset!,
+            noLength,
+            _fragment.fileUri,
+          );
+          returnType = const VoidType();
+        }
+      }
+      function.returnType = returnType;
     }
 
     MemberName memberName = nameScheme.getProcedureMemberName(
@@ -250,17 +270,17 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   ) {
     List<SourceNominalParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters?.builders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(libraryBuilder, typeParameters);
+      checkTypeParameterDependencies(problemReporting, typeParameters);
     }
-    libraryBuilder.checkInitializersInFormals(
-      _fragment.declaredFormals,
-      typeEnvironment,
+    problemReporting.checkInitializersInFormals(
+      formals: _fragment.declaredFormals,
+      typeEnvironment: typeEnvironment,
       isAbstract: _fragment.modifiers.isAbstract,
       isExternal: _fragment.modifiers.isExternal,
     );
@@ -472,11 +492,13 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
       bodyBuilderContext: bodyBuilderContext,
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
     );
 
     buildTypeParametersForOutlineExpressions(
@@ -489,6 +511,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       libraryBuilder,
       declarationBuilder,
       _fragment.declaredFormals,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );
@@ -503,6 +526,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       libraryBuilder,
       declarationBuilder,
       _thisFormal,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );
@@ -511,6 +535,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   @override
   void buildOutlineNode(
     SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameScheme nameScheme,
     BuildNodesCallback f, {
     required Reference reference,
@@ -546,10 +571,22 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       supportsTypeParameters: true,
     );
     if (_fragment.returnType is! InferableTypeBuilder) {
-      function.returnType = _fragment.returnType.build(
+      DartType returnType = _fragment.returnType.build(
         libraryBuilder,
         TypeUse.returnType,
       );
+      if (_fragment.name == indexSetName.text) {
+        if (returnType is! VoidType) {
+          problemReporting.addProblem(
+            codeNonVoidReturnOperator,
+            _fragment.returnType.charOffset!,
+            noLength,
+            _fragment.fileUri,
+          );
+          returnType = const VoidType();
+        }
+      }
+      function.returnType = returnType;
     }
 
     MemberName memberName = nameScheme.getProcedureMemberName(
@@ -588,17 +625,17 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   ) {
     List<SourceNominalParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters?.builders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(libraryBuilder, typeParameters);
+      checkTypeParameterDependencies(problemReporting, typeParameters);
     }
-    libraryBuilder.checkInitializersInFormals(
-      _fragment.declaredFormals,
-      typeEnvironment,
+    problemReporting.checkInitializersInFormals(
+      formals: _fragment.declaredFormals,
+      typeEnvironment: typeEnvironment,
       isAbstract: _fragment.modifiers.isAbstract,
       isExternal: _fragment.modifiers.isExternal,
     );

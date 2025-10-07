@@ -49,7 +49,7 @@ class B {
     assertResolvedNodeText(node1, r'''
 NamedType
   name: a
-  element2: <testLibrary>::@class::a
+  element: <testLibrary>::@class::a
   type: a
 ''');
 

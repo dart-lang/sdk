@@ -345,11 +345,10 @@ class _SurroundWithSetState extends _SurroundWith {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var classElement =
-        node.parent
-            ?.thisOrAncestorOfType<ClassDeclaration>()
-            ?.declaredFragment
-            ?.element;
+    var classElement = node.parent
+        ?.thisOrAncestorOfType<ClassDeclaration>()
+        ?.declaredFragment
+        ?.element;
     if (classElement != null && classElement.isState) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(statementsRange, (builder) {

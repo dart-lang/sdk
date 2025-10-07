@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class AddEolAtEndOfFileTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_EOL_AT_END_OF_FILE;
+  FixKind get kind => DartFixKind.addEolAtEndOfFile;
 
   @override
   String get lintCode => LintNames.eol_at_end_of_file;

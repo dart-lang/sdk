@@ -320,6 +320,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       thread_pool_(),
       isolates_lock_(new SafepointRwLock()),
       isolates_(),
+      mutators_(),
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       is_system_isolate_group_(source->flags.is_system_isolate),
       random_(),
@@ -473,14 +474,22 @@ bool IsolateGroup::UnregisterIsolateDecrementCount() {
   return isolate_count_ == 0;
 }
 
-void IsolateGroup::RegisterIsolateGroupMutator() {
+void IsolateGroup::IncrementIsolateGroupMutatorCount() {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
   group_mutator_count_++;
 }
 
-void IsolateGroup::UnregisterIsolateGroupMutator() {
+void IsolateGroup::DecrementIsolateGroupMutatorCount() {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
   group_mutator_count_--;
+}
+
+void IsolateGroup::RegisterIsolateGroupMutator(Thread* mutator) {
+  mutators_.Append(mutator);
+}
+
+void IsolateGroup::UnregisterIsolateGroupMutator(Thread* mutator) {
+  mutators_.Remove(mutator);
 }
 
 void IsolateGroup::CreateHeap(bool is_vm_isolate,
@@ -1990,11 +1999,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   return result;
 }
 
-Thread* Isolate::mutator_thread() const {
-  ASSERT(thread_registry() != nullptr);
-  return mutator_thread_;
-}
-
 ObjectPtr IsolateGroup::CallTagHandler(Dart_LibraryTag tag,
                                        const Object& arg1,
                                        const Object& arg2) {
@@ -2912,6 +2916,27 @@ Isolate* IsolateGroup::FirstIsolate() const {
 
 Isolate* IsolateGroup::FirstIsolateLocked() const {
   return isolates_.IsEmpty() ? nullptr : isolates_.First();
+}
+
+void IsolateGroup::ForEachMutatorAtASafepoint(
+    std::function<void(Thread* thread)> function) {
+  auto thread = Thread::Current();
+  ASSERT(thread->OwnsSafepoint() ||
+         (thread->task_kind() == Thread::kMutatorTask) ||
+         (thread->task_kind() == Thread::kMarkerTask) ||
+         (thread->task_kind() == Thread::kCompactorTask) ||
+         (thread->task_kind() == Thread::kScavengerTask) ||
+         (thread->task_kind() == Thread::kIncrementalCompactorTask));
+  for (Isolate* isolate : isolates_) {
+    auto thread = isolate->mutator_thread();
+    if (thread != nullptr) {
+      function(thread);
+    }
+  }
+  for (Thread* mutator : mutators_) {
+    ASSERT(mutator != nullptr);
+    function(mutator);
+  }
 }
 
 void IsolateGroup::RunWithStoppedMutatorsCallable(Callable* callable) {

@@ -59,7 +59,7 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
   });
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL;
+  FixKind get fixKind => DartFixKind.addMissingParameterPositional;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -132,7 +132,7 @@ class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
   });
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_MISSING_PARAMETER_REQUIRED;
+  FixKind get fixKind => DartFixKind.addMissingParameterRequired;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -145,10 +145,9 @@ class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
     } else {
       var parameterList = await _executableParameters.getParameterList();
       var offset = parameterList?.leftParenthesis.end;
-      var suffix =
-          _executableParameters.executable.formalParameters.isNotEmpty
-              ? ', '
-              : '';
+      var suffix = _executableParameters.executable.formalParameters.isNotEmpty
+          ? ', '
+          : '';
       await _addParameter(builder, offset, '', suffix);
     }
   }

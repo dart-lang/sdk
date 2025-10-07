@@ -58,6 +58,7 @@ abstract class MethodDeclaration {
 
   void buildOutlineNode(
     SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameScheme nameScheme,
     BuildNodesCallback f, {
     required Reference reference,
@@ -66,7 +67,7 @@ abstract class MethodDeclaration {
   });
 
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   );
 
@@ -164,6 +165,7 @@ class MethodDeclarationImpl
   @override
   void buildOutlineNode(
     SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameScheme nameScheme,
     BuildNodesCallback f, {
     required Reference reference,
@@ -172,6 +174,7 @@ class MethodDeclarationImpl
   }) {
     _encoding.buildOutlineNode(
       libraryBuilder,
+      problemReporting,
       nameScheme,
       f,
       reference: reference,
@@ -184,10 +187,10 @@ class MethodDeclarationImpl
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   ) {
-    _encoding.checkTypes(libraryBuilder, typeEnvironment);
+    _encoding.checkTypes(problemReporting, typeEnvironment);
   }
 
   @override

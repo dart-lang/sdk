@@ -58,6 +58,14 @@ enum ExperimentalFlag {
     experimentReleasedVersion: const Version(2, 0),
   ),
 
+  dataAssets(
+    name: 'data-assets',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
   digitSeparators(
     name: 'digit-separators',
     isEnabledByDefault: true,
@@ -109,7 +117,7 @@ enum ExperimentalFlag {
   getterSetterError(
     name: 'getter-setter-error',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     experimentEnabledVersion: const Version(3, 9),
     experimentReleasedVersion: const Version(3, 9),
   ),
@@ -181,8 +189,8 @@ enum ExperimentalFlag {
   nativeAssets(
     name: 'native-assets',
     isEnabledByDefault: true,
-    isExpired: false,
-    experimentEnabledVersion: const Version(3, 9),
+    isExpired: true,
+    experimentEnabledVersion: const Version(3, 10),
     experimentReleasedVersion: const Version(3, 9),
   ),
 
@@ -205,7 +213,7 @@ enum ExperimentalFlag {
   nullAwareElements(
     name: 'null-aware-elements',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     experimentEnabledVersion: const Version(3, 8),
     experimentReleasedVersion: const Version(3, 8),
   ),
@@ -253,7 +261,7 @@ enum ExperimentalFlag {
   soundFlowAnalysis(
     name: 'sound-flow-analysis',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     experimentEnabledVersion: const Version(3, 9),
     experimentReleasedVersion: const Version(3, 9),
   ),
@@ -264,6 +272,14 @@ enum ExperimentalFlag {
     isExpired: true,
     experimentEnabledVersion: const Version(2, 0),
     experimentReleasedVersion: const Version(2, 0),
+  ),
+
+  staticExtensions(
+    name: 'static-extensions',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
   ),
 
   superParameters(

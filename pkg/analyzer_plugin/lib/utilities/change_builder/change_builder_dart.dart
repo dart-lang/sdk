@@ -11,7 +11,8 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
-const _deprecationMessageMethodBeingCopied = 'Use `typeParametersInScope` '
+const _deprecationMessageMethodBeingCopied =
+    'Use `typeParametersInScope` '
     'instead. You can use `methodBeingCopied.typeParameters`.';
 
 /// The optional generator for prefix that should be used for new imports.
@@ -22,8 +23,10 @@ typedef ImportPrefixGenerator = String Function(Uri);
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartEditBuilder implements EditBuilder {
   @override
-  void addLinkedEdit(String groupName,
-      void Function(DartLinkedEditBuilder builder) buildLinkedEdit);
+  void addLinkedEdit(
+    String groupName,
+    void Function(DartLinkedEditBuilder builder) buildLinkedEdit,
+  );
 
   /// Checks whether the code for a type annotation for the given [type] can be
   /// written.
@@ -61,14 +64,16 @@ abstract class DartEditBuilder implements EditBuilder {
   /// [superclass] is given then it will be the superclass of the class. (If a
   /// list of [mixins] is provided but no [superclass] is given then the class
   /// will extend `Object`.)
-  void writeClassDeclaration(String name,
-      {Iterable<DartType>? interfaces,
-      bool isAbstract = false,
-      void Function()? membersWriter,
-      Iterable<DartType>? mixins,
-      String? nameGroupName,
-      DartType? superclass,
-      String? superclassGroupName});
+  void writeClassDeclaration(
+    String name, {
+    Iterable<DartType>? interfaces,
+    bool isAbstract = false,
+    void Function()? membersWriter,
+    Iterable<DartType>? mixins,
+    String? nameGroupName,
+    DartType? superclass,
+    String? superclassGroupName,
+  });
 
   /// Writes the code for a constructor declaration in the class with the given
   /// [className].
@@ -87,16 +92,18 @@ abstract class DartEditBuilder implements EditBuilder {
   /// then it is used to write the constructor initializers (the ` : ` prefix is
   /// written for you). If a [bodyWriter] is provided then it is used to write
   /// the constructor body, otherwise an empty body is written.
-  void writeConstructorDeclaration(String className,
-      {ArgumentList? argumentList,
-      void Function()? bodyWriter,
-      String? classNameGroupName,
-      String? constructorName,
-      String? constructorNameGroupName,
-      List<String>? fieldNames,
-      void Function()? initializerWriter,
-      bool isConst = false,
-      void Function()? parameterWriter});
+  void writeConstructorDeclaration(
+    String className, {
+    ArgumentList? argumentList,
+    void Function()? bodyWriter,
+    String? classNameGroupName,
+    String? constructorName,
+    String? constructorNameGroupName,
+    List<String>? fieldNames,
+    void Function()? initializerWriter,
+    bool isConst = false,
+    void Function()? parameterWriter,
+  });
 
   /// Writes the code for a declaration of a field with the given [name].
   ///
@@ -113,14 +120,16 @@ abstract class DartEditBuilder implements EditBuilder {
   /// type of the field. (The keyword `var` will be provided automatically when
   /// required.) If a [typeGroupName] is provided, then if a type was written
   /// it will be in the linked edit group with that name.
-  void writeFieldDeclaration(String name,
-      {void Function()? initializerWriter,
-      bool isConst = false,
-      bool isFinal = false,
-      bool isStatic = false,
-      String? nameGroupName,
-      DartType? type,
-      String? typeGroupName});
+  void writeFieldDeclaration(
+    String name, {
+    void Function()? initializerWriter,
+    bool isConst = false,
+    bool isFinal = false,
+    bool isStatic = false,
+    String? nameGroupName,
+    DartType? type,
+    String? typeGroupName,
+  });
 
   /// Writes the code for a single parameter with the given [name].
   ///
@@ -176,6 +185,7 @@ abstract class DartEditBuilder implements EditBuilder {
     ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
     String? groupNamePrefix,
+    bool fillParameterNames = true,
     bool includeDefaultValues = true,
     bool requiredTypes,
   });
@@ -193,13 +203,15 @@ abstract class DartEditBuilder implements EditBuilder {
   /// [parameterWriter] is provided, then it will be invoked to write the
   /// declarations of the parameters to the function. (The parentheses around
   /// the parameters will automatically be written.)
-  void writeFunctionDeclaration(String name,
-      {void Function()? bodyWriter,
-      bool isStatic = false,
-      String? nameGroupName,
-      void Function()? parameterWriter,
-      DartType? returnType,
-      String? returnTypeGroupName});
+  void writeFunctionDeclaration(
+    String name, {
+    void Function()? bodyWriter,
+    bool isStatic = false,
+    String? nameGroupName,
+    void Function()? parameterWriter,
+    DartType? returnType,
+    String? returnTypeGroupName,
+  });
 
   /// Writes the code for a declaration of a getter with the given [name].
   ///
@@ -211,12 +223,14 @@ abstract class DartEditBuilder implements EditBuilder {
   /// [returnType] is provided, then it will be used as the return type of the
   /// getter. If a [returnTypeGroupName] is provided, then if a return type was
   /// written it will be in the linked edit group with that name.
-  void writeGetterDeclaration(String name,
-      {void Function() bodyWriter,
-      bool isStatic = false,
-      String nameGroupName,
-      DartType returnType,
-      String returnTypeGroupName});
+  void writeGetterDeclaration(
+    String name, {
+    void Function() bodyWriter,
+    bool isStatic = false,
+    String nameGroupName,
+    DartType returnType,
+    String returnTypeGroupName,
+  });
 
   /// Writes the given [name], possibly with a prefix, assuming that the name
   /// can be imported from any of the given [uris].
@@ -240,13 +254,15 @@ abstract class DartEditBuilder implements EditBuilder {
   /// type of the variable. (The keyword `var` will be provided automatically
   /// when required.) If a [typeGroupName] is provided, then if a type was
   /// written it will be in the linked edit group with that name.
-  void writeLocalVariableDeclaration(String name,
-      {void Function()? initializerWriter,
-      bool isConst = false,
-      bool isFinal = false,
-      String? nameGroupName,
-      DartType? type,
-      String? typeGroupName});
+  void writeLocalVariableDeclaration(
+    String name, {
+    void Function()? initializerWriter,
+    bool isConst = false,
+    bool isFinal = false,
+    String? nameGroupName,
+    DartType? type,
+    String? typeGroupName,
+  });
 
   /// Writes the code for a declaration of a mixin with the given [name].
   ///
@@ -255,11 +271,13 @@ abstract class DartEditBuilder implements EditBuilder {
   /// allow members to be generated. If a [nameGroupName] is provided, then the
   /// name of the class will be included in the linked edit group with that
   /// name.
-  void writeMixinDeclaration(String name,
-      {Iterable<DartType>? interfaces,
-      void Function()? membersWriter,
-      String? nameGroupName,
-      Iterable<DartType>? superclassConstraints});
+  void writeMixinDeclaration(
+    String name, {
+    Iterable<DartType>? interfaces,
+    void Function()? membersWriter,
+    String? nameGroupName,
+    Iterable<DartType>? superclassConstraints,
+  });
 
   /// Appends a placeholder for an override of the specified inherited
   /// [element].
@@ -463,12 +481,16 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   @override
   // TODO(srawlins): Rename to `insert`.
   void addInsertion(
-      int offset, void Function(DartEditBuilder builder) buildEdit);
+    int offset,
+    void Function(DartEditBuilder builder) buildEdit,
+  );
 
   @override
   // TODO(srawlins): Rename to `replace`.
   void addReplacement(
-      SourceRange range, void Function(DartEditBuilder builder) buildEdit);
+    SourceRange range,
+    void Function(DartEditBuilder builder) buildEdit,
+  );
 
   /// Checks whether the code for a type annotation for the given [type] can be
   /// written.

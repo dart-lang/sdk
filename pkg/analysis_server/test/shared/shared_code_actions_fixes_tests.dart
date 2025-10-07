@@ -516,12 +516,11 @@ Future foo;
       testFileUri,
       range: code.range.range,
     );
-    var fixAction =
-        findCodeActionLiteral(
-          codeActions,
-          title: 'Remove unused import',
-          kind: CodeActionKind('quickfix.remove.unusedImport'),
-        )!;
+    var fixAction = findCodeActionLiteral(
+      codeActions,
+      title: 'Remove unused import',
+      kind: CodeActionKind('quickfix.remove.unusedImport'),
+    )!;
 
     await executeCommand(fixAction.command!);
     expectCommandLogged('dart.fix.remove.unusedImport');
@@ -580,12 +579,11 @@ void f() {
       testFileUri,
       position: code.position.position,
     );
-    var removeNnaAction =
-        findCodeActionLiteral(
-          codeActions,
-          title: "Remove the '!'",
-          kind: CodeActionKind('quickfix.remove.nonNullAssertion'),
-        )!;
+    var removeNnaAction = findCodeActionLiteral(
+      codeActions,
+      title: "Remove the '!'",
+      kind: CodeActionKind('quickfix.remove.nonNullAssertion'),
+    )!;
 
     // Ensure the action is for the diagnostic on the second bang which was
     // closest to the range requested.
@@ -608,12 +606,11 @@ var a = [Test, Test, Te[!!]st];
       testFileUri,
       range: code.range.range,
     );
-    var createClassAction =
-        findCodeActionLiteral(
-          codeActions,
-          title: "Create class 'Test'",
-          kind: CodeActionKind('quickfix.create.class.uppercase'),
-        )!;
+    var createClassAction = findCodeActionLiteral(
+      codeActions,
+      title: "Create class 'Test'",
+      kind: CodeActionKind('quickfix.create.class.uppercase'),
+    )!;
 
     expect(createClassAction.diagnostics, hasLength(3));
   }
@@ -630,12 +627,11 @@ var a = [Test, Test, Te[!!]st];
       testFileUri,
       range: code.range.range,
     );
-    var createClassActions =
-        findCodeActionLiteral(
-          codeActions,
-          title: "Create class 'Test'",
-          kind: CodeActionKind('quickfix.create.class.uppercase'),
-        )!;
+    var createClassActions = findCodeActionLiteral(
+      codeActions,
+      title: "Create class 'Test'",
+      kind: CodeActionKind('quickfix.create.class.uppercase'),
+    )!;
 
     expect(createClassActions.diagnostics, hasLength(3));
   }
@@ -691,7 +687,8 @@ ProcessInfo b;
   Future<void> test_pubspec() async {
     const content = '^';
 
-    var expectedContent = '''
+    var expectedContent =
+        '''
 name: $testPackageName
 ''';
 

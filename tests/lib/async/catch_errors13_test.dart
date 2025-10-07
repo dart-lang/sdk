@@ -9,9 +9,9 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
   // Work around bug that makes scheduleMicrotask use Timers. By invoking
@@ -40,7 +40,7 @@ main() {
       // This way we could reduce the timeout (to 10ms now), while still
       // allowing for more time, in case the machine is slow.
       void runDelayed() {
-        new Timer(const Duration(milliseconds: 10), () {
+        Timer(const Duration(milliseconds: 10), () {
           if (outerTimerRan) {
             scheduleMicrotask(() {
               throw "scheduleMicrotask";

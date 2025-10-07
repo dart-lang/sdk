@@ -16,7 +16,7 @@ extension StringExtension on String {
       return null;
     }
 
-    if (indexOfNewline > 0 && codeUnitAt(indexOfNewline - 1) == 13 /* \r */) {
+    if (indexOfNewline > 0 && codeUnitAt(indexOfNewline - 1) == 13 /* \r */ ) {
       return '\r\n';
     }
     return '\n';

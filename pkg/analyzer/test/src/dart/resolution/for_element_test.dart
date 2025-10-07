@@ -199,7 +199,7 @@ ForElement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@28
@@ -329,7 +329,7 @@ ForElement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredFragment: isPublic a@39
@@ -560,7 +560,7 @@ ForElement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@40
@@ -693,7 +693,7 @@ ForElement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredFragment: isPublic a@53
@@ -796,7 +796,7 @@ ForElement
                 element: hasImplicitType isPublic
                   type: int
               matchedValueType: int
-            element2: <null>
+            element: <null>
           PatternField
             pattern: DeclaredVariablePattern
               name: b
@@ -804,7 +804,7 @@ ForElement
                 element: hasImplicitType isPublic
                   type: bool
               matchedValueType: bool
-            element2: <null>
+            element: <null>
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
@@ -826,9 +826,9 @@ ForElement
           element: a@37
           staticType: null
         operator: --
-        readElement2: a@37
+        readElement: a@37
         readType: int
-        writeElement2: a@37
+        writeElement: a@37
         writeType: int
         element: dart:core::@class::num::@method::-
         staticType: int

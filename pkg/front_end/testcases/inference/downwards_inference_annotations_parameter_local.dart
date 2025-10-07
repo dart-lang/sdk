@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class Foo {
@@ -10,9 +9,8 @@ class Foo {
 }
 
 void test() {
-  void f(@Foo(/*@typeArgs=String*/ const []) /*@ type=dynamic */ x) {}
-  var /*@type=(dynamic) -> Null*/ x = /*@ returnType=Null */ (@Foo(/*@typeArgs=String*/ const []) /*@ type=dynamic */
-      x) {};
+  void f(@Foo(const []) x) {}
+  var x = (@Foo(const []) x) {};
 }
 
 main() {}

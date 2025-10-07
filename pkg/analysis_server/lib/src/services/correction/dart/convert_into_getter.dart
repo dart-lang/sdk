@@ -36,7 +36,7 @@ class ConvertIntoGetter extends ResolvedCorrectionProducer {
   List<String>? get fixArguments => assistArguments;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_INTO_GETTER;
+  FixKind get fixKind => DartFixKind.convertIntoGetter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

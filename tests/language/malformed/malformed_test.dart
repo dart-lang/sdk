@@ -105,11 +105,11 @@ void main() {
 
   new undeclared_prefix.Unresolved();
   //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] Couldn't find constructor 'undeclared_prefix.Unresolved'.
   new undeclared_prefix.Unresolved<int>();
   //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] Couldn't find constructor 'undeclared_prefix.Unresolved'.
 
   try {

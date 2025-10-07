@@ -11,6 +11,7 @@ import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/analysis_options/options_validator.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -47,15 +48,21 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   ];
 
   final VersionConstraint? sdkVersionConstraint;
-  final bool sourceIsOptionsForContextRoot;
+
+  /// Whether the linter section being validated as a "primary source;" that is,
+  /// whether it is not being analyzed as part of a chain of 'include's.
+  final bool isPrimarySource;
+
   final AnalysisOptionsProvider optionsProvider;
   final ResourceProvider resourceProvider;
+  final SourceFactory sourceFactory;
 
   LinterRuleOptionsValidator({
     required this.resourceProvider,
     required this.optionsProvider,
+    required this.sourceFactory,
     this.sdkVersionConstraint,
-    this.sourceIsOptionsForContextRoot = true,
+    this.isPrimarySource = true,
   });
 
   bool currentSdkAllows(Version? since) {
@@ -100,6 +107,14 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     }
 
     if (includePath.isEmpty) return null;
+
+    if (sourceUri != null) {
+      var source = FileSource(resourceProvider.getFile(sourceUri.toFilePath()));
+      var resolved = sourceFactory.resolveUri(source, includePath);
+      if (resolved is FileSource) {
+        return resolved.file.toUri();
+      }
+    }
 
     var uri = Uri.parse(includePath);
     if (uri == sourceUri) {
@@ -347,6 +362,10 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   ) {
     if (rules is! YamlList &&
         rules is! YamlMap &&
+        // This handles empty keys like
+        // linter:
+        //   rules:
+        (rules is! YamlScalar || rules.value != null) &&
         // We accept 'null' for triggering `INCOMPATIBLE_LINT_INCLUDED`
         rules != null) {
       return;
@@ -400,7 +419,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
 
       // Report removed or deprecated lint warnings defined directly (and not in
       // includes).
-      if (sourceIsOptionsForContextRoot) {
+      if (isPrimarySource) {
         var state = rule.state;
         if (state.isDeprecated && isDeprecatedInCurrentSdk(state)) {
           var replacedBy = state.replacedBy;

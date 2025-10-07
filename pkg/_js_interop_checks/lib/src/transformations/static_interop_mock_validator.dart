@@ -44,7 +44,7 @@ class StaticInteropMockValidator {
     if (staticInteropType is! InterfaceType ||
         !js_interop.hasStaticInteropAnnotation(staticInteropType.classNode)) {
       _diagnosticReporter.report(
-        codeJsInteropStaticInteropMockNotStaticInteropType.withArguments(
+        codeJsInteropStaticInteropMockNotStaticInteropType.withArgumentsOld(
           staticInteropType,
         ),
         node.fileOffset,
@@ -89,7 +89,7 @@ class StaticInteropMockValidator {
         if (arg is! DynamicType && arg != typeParams[i].bound) {
           _diagnosticReporter.report(
             codeJsInteropStaticInteropMockTypeParametersNotAllowed
-                .withArguments(type),
+                .withArgumentsOld(type),
             node.fileOffset,
             node.name.text.length,
             node.location?.file,
@@ -177,13 +177,14 @@ class StaticInteropMockValidator {
               setters.isNotEmpty &&
               (implementsGetter ^ implementsSetter)) {
             _diagnosticReporter.report(
-              codeJsInteropStaticInteropMockMissingGetterOrSetter.withArguments(
-                dartClass.name,
-                implementsGetter ? 'getter' : 'setter',
-                implementsGetter ? 'setter' : 'getter',
-                exportName,
-                getAsErrorString(implementsGetter ? setters : getters),
-              ),
+              codeJsInteropStaticInteropMockMissingGetterOrSetter
+                  .withArgumentsOld(
+                    dartClass.name,
+                    implementsGetter ? 'getter' : 'setter',
+                    implementsGetter ? 'setter' : 'getter',
+                    exportName,
+                    getAsErrorString(implementsGetter ? setters : getters),
+                  ),
               node.fileOffset,
               node.name.text.length,
               node.location?.file,
@@ -196,7 +197,7 @@ class StaticInteropMockValidator {
 
       if (!hasImplementation) {
         _diagnosticReporter.report(
-          codeJsInteropStaticInteropMockMissingImplements.withArguments(
+          codeJsInteropStaticInteropMockMissingImplements.withArgumentsOld(
             dartClass.name,
             exportName,
             getAsErrorString(descriptors),

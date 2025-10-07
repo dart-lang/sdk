@@ -43,8 +43,9 @@ class DartUnitSignatureComputer {
     if (parent is MethodInvocation) {
       name = parent.methodName.name;
       element = ElementLocator.locate(parent);
-      parameters =
-          element is FunctionTypedElement ? element.formalParameters : null;
+      parameters = element is FunctionTypedElement
+          ? element.formalParameters
+          : null;
     } else if (parent is InstanceCreationExpression) {
       name = parent.constructorName.type.qualifiedName;
       var constructorName = parent.constructorName.name;
@@ -52,8 +53,9 @@ class DartUnitSignatureComputer {
         name += '.${constructorName.name}';
       }
       element = ElementLocator.locate(parent);
-      parameters =
-          element is FunctionTypedElement ? element.formalParameters : null;
+      parameters = element is FunctionTypedElement
+          ? element.formalParameters
+          : null;
     } else if (parent case FunctionExpressionInvocation(
       function: Identifier function,
     )) {
@@ -83,11 +85,10 @@ class DartUnitSignatureComputer {
       // If we're not a named expression, then we can count how many positional
       // parameters there are before us, and then find the index of the same
       // index positional parameter.
-      var positionalArgsToSkip =
-          argumentList.arguments
-              .where((argument) => argument is! NamedExpression)
-              .takeWhile((argument) => argument.end < _offset)
-              .length;
+      var positionalArgsToSkip = argumentList.arguments
+          .where((argument) => argument is! NamedExpression)
+          .takeWhile((argument) => argument.end < _offset)
+          .length;
       for (var i = 0; i < parameters.length; i++) {
         if (parameters[i].isPositional) {
           // This is the first positional parameter after our skips, so this is

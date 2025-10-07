@@ -1,0 +1,5 @@
+part 'nested_part_declarations_part1.dart';
+
+part 'nested_part_declarations_part3.dart';
+
+void declaredInMain() {}

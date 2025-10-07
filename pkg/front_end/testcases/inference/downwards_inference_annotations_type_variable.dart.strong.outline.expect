@@ -25,8 +25,8 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_type_variable.dart:14:17 -> InstanceConstant(const Foo{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_type_variable.dart:12:10 -> InstanceConstant(const Foo{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_type_variable.dart:19:11 -> InstanceConstant(const Foo{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_type_variable.dart:16:9 -> InstanceConstant(const Foo{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_type_variable.dart:13:17 -> InstanceConstant(const Foo{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_type_variable.dart:11:10 -> InstanceConstant(const Foo{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_type_variable.dart:18:11 -> InstanceConstant(const Foo{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_type_variable.dart:15:9 -> InstanceConstant(const Foo{})
 Extra constant evaluation: evaluated: 4, effectively constant: 4

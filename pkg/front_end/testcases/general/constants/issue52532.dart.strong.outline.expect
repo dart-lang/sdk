@@ -15,5 +15,5 @@ static method expect(dynamic expected, dynamic actual) → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue52532.dart:10:24 -> StringConstant("bar")
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue52532.dart:10:24 -> StringConstant("bar")
 Extra constant evaluation: evaluated: 1, effectively constant: 1

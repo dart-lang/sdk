@@ -96,16 +96,15 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
         if (statement is ExpressionStatement) {
           var invocation = statement.expression;
           if (invocation is MethodInvocation) {
-            var deletion =
-                !hasComment
-                    ? range.startOffsetEndOffset(
-                      lastColon.end,
-                      invocation.argumentList.leftParenthesis.end,
-                    )
-                    : range.startOffsetEndOffset(
-                      invocation.offset,
-                      invocation.argumentList.leftParenthesis.end,
-                    );
+            var deletion = !hasComment
+                ? range.startOffsetEndOffset(
+                    lastColon.end,
+                    invocation.argumentList.leftParenthesis.end,
+                  )
+                : range.startOffsetEndOffset(
+                    invocation.offset,
+                    invocation.argumentList.leftParenthesis.end,
+                  );
             if (hasComment) {
               builder.addDeletion(deletion);
             } else {
@@ -195,16 +194,15 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
           var expression = statement.expression;
           if (expression is AssignmentExpression) {
             var hasComment = statement.beginToken.precedingComments != null;
-            var deletion =
-                !hasComment
-                    ? range.startOffsetEndOffset(
-                      lastColon.end,
-                      expression.operator.end,
-                    )
-                    : range.startOffsetEndOffset(
-                      expression.beginToken.offset,
-                      expression.rightHandSide.offset,
-                    );
+            var deletion = !hasComment
+                ? range.startOffsetEndOffset(
+                    lastColon.end,
+                    expression.operator.end,
+                  )
+                : range.startOffsetEndOffset(
+                    expression.beginToken.offset,
+                    expression.rightHandSide.offset,
+                  );
             builder.addDeletion(deletion);
           } else if (expression is ThrowExpression) {
             var deletionRange = range.startOffsetEndOffset(
@@ -595,7 +593,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
   static SourceRange _getBreakRange(BreakStatement statement) {
     var previous =
         (statement.beginToken.precedingComments ??
-            statement.beginToken.previous)!;
+        statement.beginToken.previous)!;
     var deletion = range.startOffsetEndOffset(
       previous.end,
       statement.endToken.end,

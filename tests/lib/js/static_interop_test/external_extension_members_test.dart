@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests behavior of external extension members, which are routed to js_util
-// calls by a CFE transformation.
+// Tests behavior of external extension members.
 
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:expect/expect.dart';
 // To test non-JS types for @staticInterop.
 import 'package:js/js.dart' as pkgJs;
-import 'package:js/js_util.dart' as js_util;
 
 @JS()
 external void eval(String code);
@@ -26,6 +25,8 @@ extension FooExt<T extends JSAny?, U extends Nested> on Foo<T, U> {
   external final finalField;
   @JS('fieldAnnotation')
   external var annotatedField;
+  @JS('nested-field.foo.field')
+  external var nestedField;
 
   external get getter;
   @JS('getterAnnotation')
@@ -35,6 +36,11 @@ extension FooExt<T extends JSAny?, U extends Nested> on Foo<T, U> {
   @JS('setterAnnotation')
   external set annotatedSetter(_);
 
+  @JS('nestedGetSet.1.getSet')
+  external get nestedGetSet;
+  @JS('nestedGetSet.1.getSet')
+  external set nestedGetSet(_);
+
   external num getField();
   external void setField10([optionalArgument]);
   @JS('toString')
@@ -43,6 +49,8 @@ extension FooExt<T extends JSAny?, U extends Nested> on Foo<T, U> {
   external num sumFn(a, b);
   @JS('sumFn')
   external num otherSumFn(a, b);
+  @JS('nested^method.method')
+  external String nestedMethod();
 
   @JS('field')
   external T fieldT;
@@ -89,9 +97,19 @@ void main() {
       this.field = a;
       this.fieldAnnotation = a;
       this.finalField = a;
+      this['nested-field'] = {
+        foo: {
+          field: a
+        }
+      };
 
       this.getter = a;
       this.getterAnnotation = a;
+      this.nestedGetSet = {
+        '1': {
+          getSet: a
+        }
+      };
     }
 
     Foo.prototype.toString = function() {
@@ -114,6 +132,12 @@ void main() {
       return a + b;
     }
 
+    Foo.prototype['nested^method'] = {
+      method: function() {
+        return 'nestedMethod';
+      }
+    }
+
     Foo.prototype.combineNested = function(a, b) {
       return new Nested(a.value + b.value);
     }
@@ -133,15 +157,17 @@ void main() {
     Expect.equals(42, foo.field);
     Expect.equals(42, foo.finalField);
     Expect.equals(42, foo.annotatedField);
+    Expect.equals(42, foo.nestedField);
 
     // field setters
     foo.field = 'squid';
     Expect.equals('squid', foo.field);
-
     foo.annotatedField = 'octopus';
     Expect.equals('octopus', foo.annotatedField);
-    js_util.setProperty(foo, 'fieldAnnotation', 'clownfish');
+    (foo as JSObject)['fieldAnnotation'] = 'clownfish'.toJS;
     Expect.equals('clownfish', foo.annotatedField);
+    foo.nestedField = 'shark';
+    Expect.equals('shark', foo.nestedField);
   }
 
   {
@@ -150,8 +176,9 @@ void main() {
     var foo = Foo(42);
     Expect.equals(42, foo.getter);
     Expect.equals(42, foo.annotatedGetter);
+    Expect.equals(42, foo.nestedGetSet);
 
-    js_util.setProperty(foo, 'getterAnnotation', 'eel');
+    (foo as JSObject)['getterAnnotation'] = 'eel'.toJS;
     Expect.equals('eel', foo.annotatedGetter);
   }
 
@@ -160,10 +187,13 @@ void main() {
 
     var foo = Foo(42);
     foo.setter = 'starfish';
-    Expect.equals('starfish', js_util.getProperty(foo, 'setter'));
+    Expect.equals('starfish'.toJS, (foo as JSObject)['setter']);
 
     foo.annotatedSetter = 'whale';
-    Expect.equals('whale', js_util.getProperty(foo, 'setterAnnotation'));
+    Expect.equals('whale'.toJS, (foo as JSObject)['setterAnnotation']);
+
+    foo.nestedGetSet = 'dolphin';
+    Expect.equals('dolphin', foo.nestedGetSet);
   }
 
   {
@@ -176,19 +206,20 @@ void main() {
     Expect.equals(1, foo.getFirstEl([1, 2, 3]));
     Expect.equals(5, foo.sumFn(2, 3));
     Expect.equals(15, foo.otherSumFn(10, 5));
+    Expect.equals('nestedMethod', foo.nestedMethod());
   }
 
   {
     // module class.
 
     var bar = Bar(5);
-    Expect.equals(5, js_util.getProperty(bar, 'fieldAnnotation'));
+    Expect.equals(5.toJS, (bar as JSObject)['fieldAnnotation']);
     Expect.equals(5, bar.barField);
-    Expect.equals(5, js_util.getProperty(bar, 'field'));
+    Expect.equals(5.toJS, (bar as JSObject)['field']);
 
     bar.barField = 10;
-    Expect.equals(5, js_util.getProperty(bar, 'fieldAnnotation'));
-    Expect.equals(10, js_util.getProperty(bar, 'field'));
+    Expect.equals(5.toJS, (bar as JSObject)['fieldAnnotation']);
+    Expect.equals(10.toJS, (bar as JSObject)['field']);
   }
 
   {

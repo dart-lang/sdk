@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart';
+
 /// Wrapper around a [StringSink] for writing tree structures.
 class TreeStringSink {
   final StringSink _sink;
@@ -41,7 +43,7 @@ class TreeStringSink {
     if (flags.values.any((flag) => flag)) {
       writeIndentedLine(() {
         write('flags:');
-        for (var entry in flags.entries) {
+        for (var entry in flags.entries.sortedBy((e) => e.key)) {
           if (entry.value) {
             write(' ${entry.key}');
           }

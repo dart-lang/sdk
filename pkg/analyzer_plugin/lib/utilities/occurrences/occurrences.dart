@@ -35,7 +35,9 @@ abstract class OccurrencesCollector {
 abstract class OccurrencesContributor {
   /// Contribute occurrences information into the given [collector].
   void computeOccurrences(
-      OccurrencesRequest request, OccurrencesCollector collector);
+    OccurrencesRequest request,
+    OccurrencesCollector collector,
+  );
 }
 
 /// A generator that will generate an 'analysis.occurrences' notification.
@@ -58,14 +60,21 @@ class OccurrencesGenerator {
       try {
         contributor.computeOccurrences(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(PluginErrorParams(
-                false, exception.toString(), stackTrace.toString())
-            .toNotification());
+        notifications.add(
+          PluginErrorParams(
+            false,
+            exception.toString(),
+            stackTrace.toString(),
+          ).toNotification(),
+        );
       }
     }
     notifications.add(
-        AnalysisOccurrencesParams(request.path, collector.occurrences)
-            .toNotification());
+      AnalysisOccurrencesParams(
+        request.path,
+        collector.occurrences,
+      ).toNotification(),
+    );
     return GeneratorResult(null, notifications);
   }
 }

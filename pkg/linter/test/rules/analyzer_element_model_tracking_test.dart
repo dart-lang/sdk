@@ -161,6 +161,30 @@ class A {
     );
   }
 
+  test_public_instancePublic_field_trackedIndirectly() async {
+    await assertNoDiagnostics(r'''
+import 'package:analyzer/src/fine/annotations.dart';
+
+@elementClass
+class A {
+  @trackedIndirectly
+  final int foo = 0;
+}
+''');
+  }
+
+  test_public_instancePublic_field_trackedInternal() async {
+    await assertNoDiagnostics(r'''
+import 'package:analyzer/src/fine/annotations.dart';
+
+@elementClass
+class A {
+  @trackedInternal
+  final int foo = 0;
+}
+''');
+  }
+
   test_public_instancePublic_getter_noAnnotation() async {
     await assertDiagnostics(
       r'''
@@ -262,6 +286,18 @@ class A {
 ''');
   }
 
+  test_public_instancePublic_getter_trackedInternal() async {
+    await assertNoDiagnostics(r'''
+import 'package:analyzer/src/fine/annotations.dart';
+
+@elementClass
+class A {
+  @trackedInternal
+  int get foo => 0;
+}
+''');
+  }
+
   test_public_instancePublic_method_noAnnotation() async {
     await assertDiagnostics(
       r'''
@@ -288,14 +324,17 @@ abstract class A {
   }
 
   test_public_instancePublic_method_noAnnotation_void() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:analyzer/src/fine/annotations.dart';
 
 @elementClass
 class A {
   void foo() {}
 }
-''');
+''',
+      [lint(85, 3, name: 'analyzer_element_model_tracking_zero')],
+    );
   }
 
   test_public_instancePublic_method_trackedDirectly() async {
@@ -369,6 +408,18 @@ import 'package:analyzer/src/fine/annotations.dart';
 @elementClass
 class A {
   @trackedIndirectly
+  int foo() => 0;
+}
+''');
+  }
+
+  test_public_instancePublic_method_trackedInternal() async {
+    await assertNoDiagnostics(r'''
+import 'package:analyzer/src/fine/annotations.dart';
+
+@elementClass
+class A {
+  @trackedInternal
   int foo() => 0;
 }
 ''');

@@ -98,8 +98,9 @@ Widget build(BuildContext context) => Icon(Icons.alarm);
 
     // Find the path to our mock 'package:flutter/widgets.dart'.
     var driver = server.getAnalysisDriver(mainFilePath)!;
-    var widgetsFilePath =
-        driver.currentSession.uriConverter.uriToPath(Uri.parse(widgetsUri))!;
+    var widgetsFilePath = driver.currentSession.uriConverter.uriToPath(
+      Uri.parse(widgetsUri),
+    )!;
     var widgetsFileUri = Uri.file(widgetsFilePath);
 
     // We have to provide content to open a file so just read it.

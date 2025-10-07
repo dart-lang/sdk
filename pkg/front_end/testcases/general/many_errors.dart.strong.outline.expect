@@ -7,7 +7,7 @@ library;
 //   const A.named1() sync* {}
 //   ^^^^^
 //
-// pkg/front_end/testcases/general/many_errors.dart:13:1: Error: An external or native method can't have a body.
+// pkg/front_end/testcases/general/many_errors.dart:15:1: Error: An external or native method can't have a body.
 // external foo(String x) {
 // ^^^^^^^^
 //
@@ -22,10 +22,12 @@ library;
 //   final x = null;
 //         ^
 //
-// pkg/front_end/testcases/general/many_errors.dart:10:24: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   const A.named2() : x = new Object();
+// pkg/front_end/testcases/general/many_errors.dart:12:24: Error: 'x' is a final instance variable that was initialized at the declaration.
+//   const A.named3() : x = const Object();
 //                        ^
+// pkg/front_end/testcases/general/many_errors.dart:6:9: Context: 'x' was initialized here.
+//   final x = null;
+//         ^
 //
 import self as self;
 import "dart:core" as core;
@@ -35,10 +37,10 @@ class A extends core::Object /*hasConstConstructor*/  {
   constructor named1() → self::A
     ;
   const constructor named2() → self::A
-    : final dynamic #t1 = throw invalid-expression "pkg/front_end/testcases/general/many_errors.dart:10:24: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  const A.named2() : x = new Object();
-                       ^", super core::Object::•()
+    : final dynamic #t1 = throw new core::_DuplicatedFieldInitializerError::•("x"), super core::Object::•()
+    ;
+  const constructor named3() → self::A
+    : final dynamic #t2 = throw new core::_DuplicatedFieldInitializerError::•("x"), super core::Object::•()
     ;
 }
 class B extends core::Object {

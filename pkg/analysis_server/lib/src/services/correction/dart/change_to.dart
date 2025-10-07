@@ -62,7 +62,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_proposedName];
 
   @override
-  FixKind get fixKind => DartFixKind.CHANGE_TO;
+  FixKind get fixKind => DartFixKind.changeTo;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -203,8 +203,8 @@ class ChangeTo extends ResolvedCorrectionProducer {
     if (node is! FieldFormalParameter) return;
 
     var exclusions = <String>{};
-    var constructorDeclaration =
-        node.thisOrAncestorOfType<ConstructorDeclaration>();
+    var constructorDeclaration = node
+        .thisOrAncestorOfType<ConstructorDeclaration>();
     var initializers = constructorDeclaration?.initializers;
     if (initializers != null) {
       for (var initializer in initializers) {
@@ -339,13 +339,12 @@ class ChangeTo extends ResolvedCorrectionProducer {
     var superParameter = node;
     if (superParameter is! SuperFormalParameter) return;
 
-    var constructorDeclaration =
-        superParameter.thisOrAncestorOfType<ConstructorDeclaration>();
+    var constructorDeclaration = superParameter
+        .thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructorDeclaration == null) return;
 
-    var formalParameters =
-        constructorDeclaration.parameters.parameters
-            .whereType<DefaultFormalParameter>();
+    var formalParameters = constructorDeclaration.parameters.parameters
+        .whereType<DefaultFormalParameter>();
 
     var finder = _ClosestElementFinder(superParameter.name.lexeme, (e) => true);
 
@@ -358,8 +357,8 @@ class ChangeTo extends ResolvedCorrectionProducer {
       var list = _formalParameterSuggestions(element, formalParameters);
       finder._updateList(list);
     } else {
-      var targetClassNode =
-          superParameter.thisOrAncestorOfType<ClassDeclaration>();
+      var targetClassNode = superParameter
+          .thisOrAncestorOfType<ClassDeclaration>();
       if (targetClassNode == null) return;
 
       var targetClassElement = targetClassNode.declaredFragment!.element;

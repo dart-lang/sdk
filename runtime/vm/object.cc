@@ -6,7 +6,6 @@
 
 #include <memory>
 
-#include "compiler/method_recognizer.h"
 #include "include/dart_api.h"
 #include "lib/integers.h"
 #include "lib/stacktrace.h"
@@ -27,6 +26,7 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/compiler/method_recognizer.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/cpu.h"
 #include "vm/dart.h"
@@ -71,6 +71,7 @@
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
+#include "vm/tsan_symbolize.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/zone_text_buffer.h"
 
@@ -2845,6 +2846,10 @@ void Object::InitializeObject(uword address,
 
   reinterpret_cast<UntaggedObject*>(address)->tags_ = tags;
 #if defined(HOST_HAS_FAST_WRITE_WRITE_FENCE)
+  // GCC warns that TSAN doesn't understand thread fences.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wtsan"
+#endif
   std::atomic_thread_fence(std::memory_order_release);
 #endif
 }
@@ -8396,8 +8401,6 @@ void Function::SetInstructionsSafe(const Code& value) const {
 
 void Function::AttachCode(const Code& value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  // Finish setting up code before activating it.
-  value.set_owner(*this);
   SetInstructions(value);
   ASSERT(Function::Handle(value.function()).IsNull() ||
          (value.function() == this->ptr()));
@@ -11659,6 +11662,43 @@ void Function::PrintName(const NameFormattingParams& params,
   FunctionPrintNameHelper(fun, params, printer);
 }
 
+bool Function::NamePassesFilter(const char* name_filter) const {
+  if (name_filter == nullptr) return true;
+
+  char* save_ptr;  // Needed for strtok_r.
+  const char* scrubbed_name = QualifiedScrubbedNameCString();
+  const char* function_name = ToFullyQualifiedCString();
+  intptr_t function_name_len = strlen(function_name);
+
+  intptr_t len = strlen(name_filter) + 1;  // Length with \0.
+  char* filter_buffer = new char[len];
+  strncpy(filter_buffer, name_filter, len);  // strtok modifies arg 1.
+  char* token = strtok_r(filter_buffer, ",", &save_ptr);
+  bool found = false;
+  while (token != nullptr) {
+    if ((strstr(function_name, token) != nullptr) ||
+        (strstr(scrubbed_name, token) != nullptr)) {
+      found = true;
+      break;
+    }
+    const intptr_t token_len = strlen(token);
+    if (token[token_len - 1] == '%') {
+      if (function_name_len > token_len) {
+        const char* suffix =
+            function_name + (function_name_len - token_len + 1);
+        if (strncmp(suffix, token, token_len - 1) == 0) {
+          found = true;
+          break;
+        }
+      }
+    }
+    token = strtok_r(nullptr, ",", &save_ptr);
+  }
+  delete[] filter_buffer;
+
+  return found;
+}
+
 StringPtr Function::GetSource() const {
   if (IsImplicitConstructor() || is_synthetic()) {
     // We may need to handle more cases when the restrictions on mixins are
@@ -12275,7 +12315,7 @@ const char* FunctionType::ToCString() const {
 }
 
 void ClosureData::set_context_scope(const ContextScope& value) const {
-  untag()->set_context_scope(value.ptr());
+  untag()->set_context_scope<std::memory_order_release>(value.ptr());
 }
 
 void ClosureData::set_implicit_static_closure(const Closure& closure) const {
@@ -12824,7 +12864,8 @@ void Field::set_dependent_code(const WeakArray& array) const {
   ASSERT(IsOriginal());
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  untag()->set_dependent_code(array.ptr());
+  // relaxed: races with Field::Clone.
+  untag()->set_dependent_code<std::memory_order_relaxed>(array.ptr());
 }
 
 class FieldDependentArray : public WeakCodeReferences {
@@ -13888,9 +13929,27 @@ void Script::set_source(const String& value) const {
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-TypedDataViewPtr Script::constant_coverage() const {
-  return untag()->constant_coverage();
+TypedDataViewPtr Script::kernel_constant_coverage() const {
+  return TypedDataView::RawCast(untag()->constant_coverage());
 }
+#if defined(DART_DYNAMIC_MODULES)
+ArrayPtr Script::collected_constant_coverage() const {
+  return Array::RawCast(untag()->constant_coverage());
+}
+void Script::set_collected_constant_coverage(const Array& value) const {
+  ASSERT(!value.IsNull());
+  // Collected constant coverage should only be initialized once,
+  // whether empty or non-empty.
+  ASSERT(untag()->constant_coverage() == Object::null());
+  untag()->set_constant_coverage(value.ptr());
+}
+bool Script::HasCollectedConstantCoverage() const {
+  // Constant coverage should always be initialized to a non-null value.
+  ASSERT(untag()->constant_coverage() != Object::null());
+  return untag()->constant_coverage()->IsArray() ||
+         untag()->constant_coverage()->IsImmutableArray();
+}
+#endif  // defined(DART_DYNAMIC_MODULES)
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 TypedDataPtr Script::line_starts() const {
@@ -13949,6 +14008,19 @@ void Script::CollectDebugTokenPositions() const {
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+ArrayPtr Script::CollectConstConstructorCoverageFrom() const {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_DYNAMIC_MODULES)
+  if (HasCollectedConstantCoverage()) {
+    return Array::RawCast(untag()->constant_coverage());
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
+  return CollectConstConstructorCoverageFromKernel();
+#else
+  return Object::empty_array().ptr();
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+}
 
 ArrayPtr Script::debug_positions() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -18889,6 +18961,7 @@ void Code::NotifyCodeObservers(const Function& function,
     NotifyCodeObservers(name, code, optimized);
   }
 #endif
+  RegisterTsanSymbolize(code);
 }
 
 void Code::NotifyCodeObservers(const char* name,
@@ -19313,40 +19386,25 @@ intptr_t Bytecode::GetTryIndexAtPc(uword return_address) const {
 #endif
 }
 
-uword Bytecode::GetFirstDebugCheckOpcodePc() const {
+uword Bytecode::GetInstructionBefore(uword return_address) const {
 #if defined(DART_DYNAMIC_MODULES)
-  uword pc = PayloadStart();
-  const uword end_pc = pc + Size();
-  while (pc < end_pc) {
-    if (KernelBytecode::IsDebugCheckOpcode(
-            reinterpret_cast<const KBCInstr*>(pc))) {
-      return pc;
-    }
-    pc = KernelBytecode::Next(pc);
+  const uword start = PayloadStart();
+  // return_address could be the end of the bytecode instructions
+  // if the last instruction is Throw.
+  if (return_address <= start || return_address > start + Size()) {
+    return 0;
   }
-  return 0;
+  uword prev = start;
+  uword current = KernelBytecode::Next(start);
+  while (current < return_address) {
+    prev = current;
+    current = KernelBytecode::Next(prev);
+  }
+  // Any valid return address should be on an instruction boundary.
+  return current == return_address ? prev : 0;
 #else
   UNREACHABLE();
-#endif
-}
-
-uword Bytecode::GetDebugCheckedOpcodeReturnAddress(uword from_offset,
-                                                   uword to_offset) const {
-#if defined(DART_DYNAMIC_MODULES)
-  uword pc = PayloadStart() + from_offset;
-  const uword end_pc = pc + (to_offset - from_offset);
-  while (pc < end_pc) {
-    uword next_pc = KernelBytecode::Next(pc);
-    if (KernelBytecode::IsDebugCheckedOpcode(
-            reinterpret_cast<const KBCInstr*>(pc))) {
-      // Return the pc after the opcode, i.e. its 'return address'.
-      return next_pc;
-    }
-    pc = next_pc;
-  }
   return 0;
-#else
-  UNREACHABLE();
 #endif
 }
 
@@ -19364,6 +19422,86 @@ LocalVarDescriptorsPtr Bytecode::GetLocalVarDescriptors() const {
     set_var_descriptors(var_descs);
   }
   return var_descs.ptr();
+#else
+  UNREACHABLE();
+#endif
+}
+
+#if defined(DART_DYNAMIC_MODULES)
+static const int kLocalVariableKindMaxWidth = strlen(
+    bytecode::BytecodeLocalVariablesIterator::kKindNames
+        [bytecode::BytecodeLocalVariablesIterator::kVariableDeclaration]);
+
+static const int kLocalVariableColumnWidths[] = {
+    kLocalVariableKindMaxWidth,  // kind
+    14,                          // start pc
+    14,                          // end pc
+    7,                           // context level
+    7,                           // index
+    7,                           // start token pos
+    7,                           // end token pos
+    7,                           // decl token pos
+};
+#endif
+
+void Bytecode::WriteLocalVariablesInfo(Zone* zone,
+                                       BaseTextBuffer* buffer) const {
+#if defined(DART_DYNAMIC_MODULES)
+  if (!HasLocalVariablesInfo()) return;
+
+  // "*" in a printf format specifier tells it to read the field width from
+  // the printf argument list.
+  buffer->Printf(
+      " %*s %*s %*s %*s %*s %*s %*s %*s name\n", kLocalVariableColumnWidths[0],
+      "kind", kLocalVariableColumnWidths[1], "start pc",
+      kLocalVariableColumnWidths[2], "end pc", kLocalVariableColumnWidths[3],
+      "ctx", kLocalVariableColumnWidths[4], "index",
+      kLocalVariableColumnWidths[5], "start", kLocalVariableColumnWidths[6],
+      "end", kLocalVariableColumnWidths[7], "decl");
+  auto& name = String::Handle(zone);
+  auto& type = AbstractType::Handle(zone);
+  const uword base = PayloadStart();
+  bytecode::BytecodeLocalVariablesIterator iter(zone, *this);
+  while (iter.MoveNext()) {
+    buffer->Printf(" %*s %-#*" Px "", kLocalVariableColumnWidths[0],
+                   iter.KindName(), kLocalVariableColumnWidths[1],
+                   base + iter.StartPC());
+    if (iter.IsVariableDeclaration() || iter.IsScope()) {
+      buffer->Printf(" %-#*" Px "", kLocalVariableColumnWidths[2],
+                     base + iter.EndPC());
+    } else {
+      buffer->Printf(" %*s", kLocalVariableColumnWidths[2], "");
+    }
+    if (iter.IsScope()) {
+      buffer->Printf(" %*" Pd "", kLocalVariableColumnWidths[3],
+                     iter.ContextLevel());
+    } else {
+      buffer->Printf(" %*s", kLocalVariableColumnWidths[3], "");
+    }
+    if (iter.IsContextVariable() || iter.IsVariableDeclaration()) {
+      buffer->Printf(" %*" Pd "", kLocalVariableColumnWidths[4], iter.Index());
+    } else {
+      buffer->Printf(" %*s", kLocalVariableColumnWidths[4], "");
+    }
+    if (iter.IsVariableDeclaration() || iter.IsScope()) {
+      buffer->Printf(" %*s %*s", kLocalVariableColumnWidths[5],
+                     iter.StartTokenPos().ToCString(),
+                     kLocalVariableColumnWidths[6],
+                     iter.EndTokenPos().ToCString());
+
+    } else {
+      buffer->Printf(" %*s %*s", kLocalVariableColumnWidths[5], "",
+                     kLocalVariableColumnWidths[6], "");
+    }
+    if (iter.IsVariableDeclaration()) {
+      name = iter.Name();
+      type = iter.Type();
+      buffer->Printf(" %*s %s: %s%s", kLocalVariableColumnWidths[7],
+                     iter.DeclarationTokenPos().ToCString(), name.ToCString(),
+                     type.ToCString(), iter.IsCaptured() ? " (captured)" : "");
+    }
+    buffer->AddString("\n");
+  }
 #else
   UNREACHABLE();
 #endif
@@ -19426,6 +19564,39 @@ const char* Bytecode::FullyQualifiedName() const {
   }
   const char* function_name = fun.ToFullyQualifiedCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
+}
+
+BytecodePtr Bytecode::FindBytecode(uword pc) {
+#if defined(DART_DYNAMIC_MODULES)
+  class SlowFindBytecodeVisitor : public ObjectVisitor {
+   public:
+    explicit SlowFindBytecodeVisitor(uword pc)
+        : pc_(pc), result_(Bytecode::null()) {}
+
+    void VisitObject(ObjectPtr obj) {
+      if (!obj->IsBytecode()) return;
+      BytecodePtr bytecode = static_cast<BytecodePtr>(obj);
+      if (PayloadStartOf(bytecode) != pc_) return;
+      ASSERT(result_ == Bytecode::null());
+      result_ = bytecode;
+    }
+
+    BytecodePtr result() const { return result_; }
+
+   private:
+    uword pc_;
+    BytecodePtr result_;
+  };
+
+  HeapIterationScope iteration(Thread::Current());
+  SlowFindBytecodeVisitor visitor(pc);
+  iteration.IterateVMIsolateObjects(&visitor);
+  iteration.IterateOldObjectsNoImagePages(&visitor);
+  return visitor.result();
+#else
+  UNREACHABLE();
+  return Bytecode::null();
+#endif
 }
 
 void Bytecode::set_binary(const TypedDataBase& binary) const {

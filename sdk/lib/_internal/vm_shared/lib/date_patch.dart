@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show checkNotNullable, patch, unsafeCast;
+import "dart:_internal" show patch, unsafeCast;
 
 // VM implementation of DateTime.
 @patch
@@ -61,12 +61,6 @@ class DateTime {
     bool isUtc = false,
   }) : this._withValue(microsecondsSinceEpoch, isUtc: isUtc);
 
-  static const _sentinel = -_maxMicrosecondsSinceEpoch - 1;
-  static const _sentinelConstraint =
-      _sentinel < -_maxMicrosecondsSinceEpoch ||
-      _sentinel > _maxMicrosecondsSinceEpoch;
-  static const _sentinelAssertion = 1 ~/ (_sentinelConstraint ? 1 : 0);
-
   @patch
   DateTime._internal(
     int year,
@@ -77,9 +71,8 @@ class DateTime {
     int second,
     int millisecond,
     int microsecond,
-    bool isUtc,
-  ) : this.isUtc = checkNotNullable(isUtc, "isUtc"),
-      this._value =
+    this.isUtc,
+  ) : _value =
           _brokenDownDateToValue(
             year,
             month,
@@ -91,14 +84,10 @@ class DateTime {
             microsecond,
             isUtc,
           ) ??
-          _sentinel {
-    if (_value == _sentinel) {
-      throw ArgumentError(
-        '($year, $month, $day,'
-        ' $hour, $minute, $second, $millisecond, $microsecond)',
-      );
-    }
-  }
+          (() => throw ArgumentError(
+            '($year, $month, $day,'
+            ' $hour, $minute, $second, $millisecond, $microsecond)',
+          ))();
 
   static int _validateMilliseconds(int millisecondsSinceEpoch) =>
       RangeError.checkValueInInterval(

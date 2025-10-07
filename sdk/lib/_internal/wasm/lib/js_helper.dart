@@ -11,6 +11,7 @@ import 'dart:_js_annotations' as js;
 import 'dart:_js_types' as js_types;
 import 'dart:_string';
 import 'dart:_wasm';
+import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
@@ -31,7 +32,6 @@ class JSValue {
 
   JSValue(this._ref);
 
-  // This is currently only used in js_util.
   // TODO(joshualitt): Remove [box] and [unbox] once `JSNull` is boxed and users
   // have been migrated over to the helpers in `dart:js_interop`.
   static JSValue? box(WasmExternRef? ref) =>
@@ -283,6 +283,33 @@ void promiseThenWithIsUndefined(
   failureFunc,
 );
 
+Future<T> externPromiseToFuture<T>(WasmExternRef? jsPromise) {
+  final completer = Completer<T>();
+  final success = (JSAny? r) {
+    // Note that we explicitly type the parameter as `JSAny?` instead of `T`.
+    // This is because if there's a `TypeError` with the cast, we want to
+    // bubble that up through the completer, so we end up doing a try-catch
+    // here to do so.
+    try {
+      final value = r as T;
+      completer.complete(value);
+    } catch (e) {
+      completer.completeError(e);
+    }
+  }.toJS;
+  final error = (JSAny? e, bool isUndefined) {
+    // `e` is null when the original error is either JS `null` or JS
+    // `undefined`.
+    if (e == null) {
+      completer.completeError(NullRejectionException(isUndefined));
+      return;
+    }
+    completer.completeError(e);
+  }.toJS;
+  promiseThenWithIsUndefined(jsPromise, success.toExternRef, error.toExternRef);
+  return completer.future;
+}
+
 // Currently, `allowInterop` returns a Function type. This is unfortunate for
 // Dart2wasm because it means arbitrary Dart functions can flow to JS util
 // calls. Our only solutions is to cache every function called with
@@ -456,7 +483,8 @@ abstract final class ExternRefType {
   static const int dataView = 15;
   static const int arrayBuffer = 16;
   static const int sharedArrayBuffer = 17;
-  static const int unknown = 18;
+  static const int promise = 18;
+  static const int unknown = 19;
 }
 
 /// Returns an integer representing the type of [ref] that corresponds to one of
@@ -492,7 +520,8 @@ int externRefType(WasmExternRef? ref) {
         o instanceof SharedArrayBuffer) {
         return 17;
     }
-    return 18;
+    if (o instanceof Promise) return 18;
+    return 19;
   }
   ''', ref).toIntUnsigned();
   return val;
@@ -512,27 +541,32 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
     ExternRefType.number => toDartNumber(ref),
     ExternRefType.string => JSStringImpl.fromRefUnchecked(ref),
     ExternRefType.array => toDartList(ref),
-    ExternRefType.int8Array => js_types.JSInt8ArrayImpl.fromRefUnchecked(ref),
-    ExternRefType.uint8Array => js_types.JSUint8ArrayImpl.fromRefUnchecked(ref),
+    ExternRefType.int8Array => js_types.JSInt8ArrayImpl.fromArrayRefUnchecked(
+      ref,
+    ),
+    ExternRefType.uint8Array => js_types.JSUint8ArrayImpl.fromArrayRefUnchecked(
+      ref,
+    ),
     ExternRefType.uint8ClampedArray =>
-      js_types.JSUint8ClampedArrayImpl.fromRefUnchecked(ref),
-    ExternRefType.int16Array => js_types.JSInt16ArrayImpl.fromRefUnchecked(ref),
-    ExternRefType.uint16Array => js_types.JSUint16ArrayImpl.fromRefUnchecked(
+      js_types.JSUint8ClampedArrayImpl.fromArrayRefUnchecked(ref),
+    ExternRefType.int16Array => js_types.JSInt16ArrayImpl.fromArrayRefUnchecked(
       ref,
     ),
-    ExternRefType.int32Array => js_types.JSInt32ArrayImpl.fromRefUnchecked(ref),
-    ExternRefType.uint32Array => js_types.JSUint32ArrayImpl.fromRefUnchecked(
+    ExternRefType.uint16Array =>
+      js_types.JSUint16ArrayImpl.fromArrayRefUnchecked(ref),
+    ExternRefType.int32Array => js_types.JSInt32ArrayImpl.fromArrayRefUnchecked(
       ref,
     ),
-    ExternRefType.float32Array => js_types.JSFloat32ArrayImpl.fromRefUnchecked(
-      ref,
-    ),
-    ExternRefType.float64Array => js_types.JSFloat64ArrayImpl.fromRefUnchecked(
-      ref,
-    ),
+    ExternRefType.uint32Array =>
+      js_types.JSUint32ArrayImpl.fromArrayRefUnchecked(ref),
+    ExternRefType.float32Array =>
+      js_types.JSFloat32ArrayImpl.fromArrayRefUnchecked(ref),
+    ExternRefType.float64Array =>
+      js_types.JSFloat64ArrayImpl.fromArrayRefUnchecked(ref),
     ExternRefType.arrayBuffer || ExternRefType.sharedArrayBuffer =>
       js_types.JSArrayBufferImpl.fromRefUnchecked(ref),
     ExternRefType.dataView => js_types.JSDataViewImpl.fromRefUnchecked(ref),
+    ExternRefType.promise => externPromiseToFuture<JSValue?>(ref),
     ExternRefType.unknown =>
       isJSWrappedDartFunction(ref)
           ? unwrapJSWrappedDartFunction(ref)
@@ -547,7 +581,7 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
   };
 }
 
-@pragma('wasm:entry-pint')
+@pragma('wasm:entry-point')
 int dartifyInt(WasmExternRef? ref) {
   final dartDouble = toDartNumber(ref);
   if (dartDouble.isFinite) {

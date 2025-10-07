@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class Foo {
@@ -10,11 +9,8 @@ class Foo {
 }
 
 void test() {
-  for (@Foo(/*@typeArgs=String*/ const [])
-  int i = 0;
-      i /*@target=num.<*/ < 1;
-      i /*@target=num.+*/ ++) {}
-  for (@Foo(/*@typeArgs=String*/ const []) int i in /*@typeArgs=int*/ [0]) {}
+  for (@Foo(const []) int i = 0; i < 1; i++) {}
+  for (@Foo(const []) int i in [0]) {}
 }
 
 main() {}

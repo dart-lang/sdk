@@ -2117,6 +2117,10 @@ class HInvokeClosure extends HInvokeDynamic {
   }
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitInvokeClosure(this);
+
+  @override
+  String toString() =>
+      'invoke closure: selector=$selector, mask=$receiverType, element=$element';
 }
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
@@ -2208,8 +2212,7 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
     MemberEntity? element,
     List<HInstruction> inputs,
     bool isIntercepted,
-    // TODO(johnniwinther): The result type for a setter should be the empty
-    // type.
+    // TODO(johnniwinther): The result type for a setter should be 'void'.
     AbstractValue resultType,
     SourceInformation? sourceInformation,
   ) : super(

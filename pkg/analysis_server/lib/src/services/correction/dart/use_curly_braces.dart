@@ -34,10 +34,10 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.useCurlyBraces;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_CURLY_BRACES;
+  FixKind get fixKind => DartFixKind.addCurlyBraces;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_CURLY_BRACES_MULTI;
+  FixKind get multiFixKind => DartFixKind.addCurlyBracesMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

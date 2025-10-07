@@ -44,7 +44,7 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   AnalysisResultImpl({required this.session});
 }
 
-/// A visitor which locates the [AstNode] which declares [element].
+/// A visitor which locates the [AstNode] which declares an [Element].
 class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
   // TODO(srawlins): This visitor could be further optimized by special casing each static
   // type of [element]. For example, for library-level elements (classes etc),
@@ -427,7 +427,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   final LibraryElementImpl element;
 
   @override
-  final List<ResolvedUnitResult> units;
+  final List<ResolvedUnitResultImpl> units;
 
   ResolvedLibraryResultImpl({
     required super.session,

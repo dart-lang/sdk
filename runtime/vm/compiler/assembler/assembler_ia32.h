@@ -24,6 +24,10 @@
 
 namespace dart {
 
+// Forward declarations.
+class RegisterSet;
+class RuntimeEntry;
+
 namespace compiler {
 
 class Immediate : public ValueObject {
@@ -702,6 +706,8 @@ class Assembler : public AssemblerBase {
   void ExtendValue(Register to, Register from, OperandSize sz) override;
   void PushRegister(Register r);
   void PopRegister(Register r);
+  void PushRegisters(const RegisterSet& registers);
+  void PopRegisters(const RegisterSet& registers);
 
   void PushRegisterPair(Register r0, Register r1) {
     PushRegister(r1);

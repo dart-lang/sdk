@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -74,11 +75,11 @@ abstract class AbstractCompletionDriverTest
 
   @override
   @protected
-  Future<List<CompletionSuggestion>> addTestFile(
-    String content, {
-    int? offset,
-  }) async {
-    driver.addTestFile(content, offset: offset);
+  Future<List<CompletionSuggestion>> addTestFile(String content) async {
+    if (useLineEndingsForPlatform) {
+      content = normalizeNewlinesForPlatform(content);
+    }
+    driver.addTestFile(content);
 
     // Wait after adding the test file, this might affect diagnostics.
     await pumpEventQueue(times: 1000);
@@ -191,6 +192,8 @@ To accept the current state change the expectation to
 
   @override
   Future<void> setUp() async {
+    useLineEndingsForPlatform = false;
+
     super.setUp();
 
     writeTestPackagePubspecYamlFile(r'''

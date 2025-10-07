@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+ffi/http/test/http_test: Pass, Slow # https://dartbug.com/61583
+
 [ $sanitizer == asan ]
 ffi/samples_test: SkipByDesign # FFI skips, see ffi.status
 

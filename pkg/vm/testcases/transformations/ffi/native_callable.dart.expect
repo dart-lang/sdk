@@ -72,7 +72,7 @@ static method testNativeCallableIsolateLocalPointerClosure() → void {
 static method negateInt(core::int i) → core::int
   return i.{core::int::unary-}(){() → core::int};
 static method testNativeCallableIsolateLocalInt() → void {
-  final ffi::NativeCallable<(ffi::Int32) → ffi::Int> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Int>(ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>(ffi::_nativeCallbackFunction<(ffi::Int32) → ffi::Int>(#C3, 123), null, true));
+  final ffi::NativeCallable<(ffi::Int32) → ffi::Int> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Int>(ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>(ffi::_nativeCallbackFunction<(ffi::Int32) → ffi::Int>(#C3, #C4), null, true));
   core::print(callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>});
   callback.{ffi::NativeCallable::close}(){() → void};
 }
@@ -80,7 +80,7 @@ static method testNativeCallableIsolateLocalIntClosure() → void {
   core::int j = 123;
   function closure(core::int i) → core::int
     return i.{core::num::+}(j){(core::num) → core::int};
-  final ffi::NativeCallable<(ffi::Int32) → ffi::Int> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Int>(ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>(ffi::_nativeIsolateLocalCallbackFunction<(ffi::Int32) → ffi::Int>(123), closure, true));
+  final ffi::NativeCallable<(ffi::Int32) → ffi::Int> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Int>(ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>(ffi::_nativeIsolateLocalCallbackFunction<(ffi::Int32) → ffi::Int>(#C4), closure, true));
   core::print(callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>});
   callback.{ffi::NativeCallable::close}(){() → void};
 }
@@ -88,4 +88,5 @@ constants  {
   #C1 = static-tearoff self::printInt
   #C2 = static-tearoff self::intToPointer
   #C3 = static-tearoff self::negateInt
+  #C4 = 123
 }

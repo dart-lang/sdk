@@ -43,6 +43,7 @@ import 'package:front_end/src/source/diet_parser.dart'
 import 'package:front_end/src/source/source_compilation_unit.dart';
 import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:front_end/src/source/source_loader.dart';
+import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart'
     as kernel
     show Combinator, Component, LibraryDependency, Location, Source;
@@ -53,12 +54,12 @@ import 'package:vm/modular/target/vm.dart';
 import '../test/incremental_suite.dart' show getOptions;
 import 'utils.dart';
 
-const _portMessageTest = "test";
-const _portMessageGood = "good";
-const _portMessageBad = "bad";
-const _portMessageCrash = "crash";
-const _portMessageParseError = "parseError";
-const _portMessageDone = "done";
+const String _portMessageTest = "test";
+const String _portMessageGood = "good";
+const String _portMessageBad = "bad";
+const String _portMessageCrash = "crash";
+const String _portMessageParseError = "parseError";
+const String _portMessageDone = "done";
 
 // TODO: This doesn't work on parts... (Well, it might, depending on how
 // the part declares what file it's part of and if we've compiled other stuff
@@ -236,7 +237,10 @@ class DartDocTest {
       _print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
 
       // Map back to the offending test.
-      List<List<String>?> testsWithErrors = List.filled(tests.length + 1, null);
+      List<List<String>?> testsWithErrors = new List.filled(
+        tests.length + 1,
+        null,
+      );
       for (CfeDiagnosticMessage message in errorMessages) {
         int testIndex = tests.length; // indicating no test.
         if (message is FormattedMessage) {
@@ -759,7 +763,6 @@ List<Test> extractTestsFromComment(
       final Token expressionFirstToken = parseFrom.next!;
       final Token beforeNextSeparator = parser.parseExpression(parseFrom);
       final Token nextSeparator = parseFrom = beforeNextSeparator.next!;
-      final String expectedSeparator = i == expressionCount ? ")" : ",";
 
       if (listener.hasErrors) {
         StringBuffer sb = new StringBuffer();
@@ -775,11 +778,16 @@ List<Test> extractTestsFromComment(
           firstPosition,
           getLocation(firstPosition),
         );
-      } else if (!identical(expectedSeparator, nextSeparator.stringValue)) {
+      } else if ((i < expressionCount &&
+              !identical(",", nextSeparator.stringValue)) ||
+          (i == expressionCount &&
+              !identical(")", nextSeparator.stringValue) &&
+              !(identical(",", nextSeparator.stringValue) &&
+                  identical(")", nextSeparator.next!.stringValue)))) {
         int position =
             commentsData.charOffset + scanOffset + nextSeparator.charOffset;
-        Message message = codes.codeExpectedButGot.withArguments(
-          expectedSeparator,
+        Message message = codes.codeExpectedButGot.withArgumentsOld(
+          i < expressionCount ? "," : ")",
         );
         return new TestParseError(
           _createParseErrorMessage(
@@ -1039,13 +1047,36 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
 
   Future<kernel.Component> compileDartDocTestLibrary(
     String dartDocTestCode,
-    Uri libraryUri,
+    Uri libraryOrPartUri,
   ) async {
     assert(dillTargetForTesting != null && kernelTargetForTesting != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder libraryBuilder = kernelTargetForTesting!.loader
-          .lookupLoadedLibraryBuilder(libraryUri)!;
+      LibraryBuilder? libraryBuilder = kernelTargetForTesting!.loader
+          .lookupLoadedLibraryBuilder(libraryOrPartUri);
+      if (libraryBuilder == null) {
+        // This might be a part file, in which case we need to find the main
+        // library.
+        String lastUriPart = libraryOrPartUri.pathSegments.last;
+        for (LibraryBuilder builder
+            in kernelTargetForTesting!.loader.loadedLibraryBuilders) {
+          List<LibraryPart> parts = builder.library.parts;
+          if (parts.isEmpty) continue;
+          for (LibraryPart part in parts) {
+            if (!part.partUri.endsWith(lastUriPart)) continue;
+            // The part string is either a relative file uri or an import uri,
+            // in both cases we'll end up with an import uri which is what we're
+            // after.
+            Uri partUri = builder.importUri.resolve(part.partUri);
+            if (partUri == libraryOrPartUri) {
+              libraryBuilder = kernelTargetForTesting!.loader
+                  .lookupLoadedLibraryBuilder(builder.importUri);
+              break;
+            }
+          }
+        }
+        if (libraryBuilder == null) throw "Couldn't find '$libraryOrPartUri'.";
+      }
 
       kernelTargetForTesting!.loader.resetSeenMessages();
 

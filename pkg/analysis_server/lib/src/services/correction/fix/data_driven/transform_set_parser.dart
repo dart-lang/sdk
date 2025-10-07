@@ -373,10 +373,9 @@ class TransformSetParser {
       Object? valueNode = entry.value;
       if (keyNode is YamlScalar && valueNode is YamlNode) {
         if (keyNode.value case String key) {
-          var translator =
-              translators.entries
-                  .firstWhereOrNull((entry) => entry.key.contains(key))
-                  ?.value;
+          var translator = translators.entries
+              .firstWhereOrNull((entry) => entry.key.contains(key))
+              ?.value;
           if (translator != null) {
             entries.add(
               _SingleKeyEntry(
@@ -1185,14 +1184,13 @@ class TransformSetParser {
             ) ??
             false);
     var argumentsNode = node.valueAt(_arguments);
-    var argumentList =
-        argumentsNode == null
-            ? null
-            : _translateList(
-              argumentsNode,
-              ErrorContext(key: _arguments, parentNode: node),
-              _translateCodeTemplate,
-            );
+    var argumentList = argumentsNode == null
+        ? null
+        : _translateList(
+            argumentsNode,
+            ErrorContext(key: _arguments, parentNode: node),
+            _translateCodeTemplate,
+          );
     return ReplacedBy(
       newElement: newElement,
       replaceTarget: replaceTarget,

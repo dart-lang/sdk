@@ -88,7 +88,7 @@ class DataDrivenFix extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_transform.title];
 
   @override
-  FixKind get fixKind => DartFixKind.DATA_DRIVEN;
+  FixKind get fixKind => DartFixKind.dataDriven;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -53,13 +53,16 @@ class PluginIsolate {
 
   CaughtException? _exception;
 
+  bool isLegacy;
+
   PluginIsolate(
     this._path,
     this.executionPath,
     this.packagesPath,
     this._notificationManager,
-    this._instrumentationService,
-  );
+    this._instrumentationService, {
+    required this.isLegacy,
+  });
 
   /// The data known about this plugin, for instrumentation and exception
   /// purposes.
@@ -139,6 +142,25 @@ class PluginIsolate {
         '${exception.message ?? exception.exception}\n'
         '${exception.stackTrace}';
     _notificationManager.handlePluginError(message);
+  }
+
+  /// Requests plugin details from the plugin isolate.
+  Future<PluginDetailsResult?> requestDetails() async {
+    if (currentSession case PluginSession currentSession) {
+      Response response;
+      try {
+        response = await currentSession
+            .sendRequest(PluginDetailsParams())
+            .timeout(const Duration(seconds: 5));
+      } on TimeoutException {
+        // TODO(srawlins): Return a `PluginDetailsResult` with a specific error?
+        return null;
+      }
+      if (response.error != null) throw response.error!;
+      return PluginDetailsResult.fromResponse(response);
+    } else {
+      return null;
+    }
   }
 
   /// If the plugin is currently running, sends a request based on the given

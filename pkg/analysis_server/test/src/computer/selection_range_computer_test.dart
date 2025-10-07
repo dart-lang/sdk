@@ -639,15 +639,12 @@ void f() {
 
   /// Checks the text of [regions] against [expected].
   void _expectRegions(List<SelectionRange>? regions, List<String> expected) {
-    var actual =
-        regions!
-            .map(
-              (region) => code.code.substring(
-                region.offset,
-                region.offset + region.length,
-              ),
-            )
-            .toList();
+    var actual = regions!
+        .map(
+          (region) =>
+              code.code.substring(region.offset, region.offset + region.length),
+        )
+        .toList();
 
     expect(actual, equals(expected.map(normalizeSource)));
   }

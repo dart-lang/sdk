@@ -61,7 +61,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: dynamic
         matchedValueType: dynamic
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -92,7 +92,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: dynamic
         matchedValueType: dynamic
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -139,7 +139,7 @@ RecordPattern
           literal: 0
           staticType: int
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -169,14 +169,14 @@ RecordPattern
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: y
         declaredFragment: isPublic y@54
           element: isPublic
             type: int
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -210,7 +210,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -236,7 +236,7 @@ RecordPattern
           literal: 0
           staticType: int
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -263,14 +263,14 @@ RecordPattern
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: y
         declaredFragment: isPublic y@49
           element: isPublic
             type: int
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -301,7 +301,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -339,7 +339,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: ()
 ''');
@@ -376,7 +376,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: ()
 ''');
@@ -412,7 +412,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int b})
 ''');
@@ -448,7 +448,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int a, int b})
 ''');
@@ -483,7 +483,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: ()
 ''');
@@ -517,7 +517,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: (int, String)
 ''');
@@ -577,7 +577,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
-      element2: <null>
+      element: <null>
     PatternField
       name: PatternFieldName
         name: foo
@@ -589,7 +589,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: String
         matchedValueType: String
-      element2: <null>
+      element: <null>
     PatternField
       pattern: DeclaredVariablePattern
         keyword: var
@@ -598,7 +598,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: double
         matchedValueType: double
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: (int, double, {String foo})
 ''');
@@ -635,7 +635,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
 ''');
@@ -669,7 +669,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
 ''');
@@ -703,7 +703,7 @@ RecordPattern
           literal: 0
           staticType: int
         matchedValueType: Object?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
 ''');
@@ -736,7 +736,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
 ''');
@@ -773,10 +773,10 @@ RecordPattern
         asToken: as
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         matchedValueType: int?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
 ''');
@@ -812,7 +812,7 @@ RecordPattern
           matchedValueType: int
         operator: !
         matchedValueType: int?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
 ''');
@@ -848,7 +848,7 @@ RecordPattern
           matchedValueType: int
         operator: ?
         matchedValueType: int?
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
 ''');
@@ -879,7 +879,7 @@ RecordPattern
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
-      element2: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: (int,)
 ''');
@@ -911,7 +911,7 @@ PatternVariableDeclaration
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
-        element2: <null>
+        element: <null>
       PatternField
         pattern: DeclaredVariablePattern
           name: b
@@ -919,7 +919,7 @@ PatternVariableDeclaration
             element: hasImplicitType isPublic
               type: String
           matchedValueType: String
-        element2: <null>
+        element: <null>
     rightParenthesis: )
     matchedValueType: (int, String)
   equals: =
@@ -956,26 +956,26 @@ PatternVariableDeclaration
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@22
             element: isPublic
               type: int
           matchedValueType: int
-        element2: <null>
+        element: <null>
       PatternField
         pattern: DeclaredVariablePattern
           type: NamedType
             name: String
-            element2: dart:core::@class::String
+            element: dart:core::@class::String
             type: String
           name: b
           declaredFragment: isPublic b@32
             element: isPublic
               type: String
           matchedValueType: String
-        element2: <null>
+        element: <null>
     rightParenthesis: )
     matchedValueType: (int, String)
   equals: =

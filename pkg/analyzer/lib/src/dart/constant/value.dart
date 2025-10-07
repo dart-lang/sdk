@@ -1401,14 +1401,14 @@ class FunctionState extends InstanceState {
   /// aliased class.
   ///
   /// Otherwise null.
-  final TypeDefiningElement? _viaTypeAlias;
+  final TypeAliasElementImpl? _viaTypeAlias;
 
   /// Initialize a newly created state to represent the function with the given
   /// [element].
   FunctionState(
     this.element, {
     this.typeArguments,
-    TypeDefiningElement? viaTypeAlias,
+    TypeAliasElementImpl? viaTypeAlias,
   }) : _viaTypeAlias = viaTypeAlias;
 
   @override

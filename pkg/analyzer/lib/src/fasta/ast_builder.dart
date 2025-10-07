@@ -30,7 +30,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         codeExpectedIdentifier,
         codeExperimentNotEnabled,
         codeExtraneousModifier,
-        codeInternalProblemUnhandled;
+        codeInternalProblemUnhandled,
+        PseudoSharedCode;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -222,10 +223,8 @@ class AstBuilder extends StackListener {
     List<LocatedMessage>? context,
   }) {
     if (directives.isEmpty &&
-        (message.code.analyzerCodes?.contains(
-              'NON_PART_OF_DIRECTIVE_IN_PART',
-            ) ??
-            false)) {
+        message.code.pseudoSharedCode ==
+            PseudoSharedCode.nonPartOfDirectiveInPart) {
       message = codeDirectiveAfterDeclaration;
     }
     diagnosticReporter.reportMessage(message, charOffset, length);
@@ -902,7 +901,7 @@ class AstBuilder extends StackListener {
       // TODO(danrubel): Consider specializing the error message based
       // upon the type of expression. e.g. "x.this" -> codeThisAsIdentifier
       handleRecoverableError(
-        codeExpectedIdentifier.withArguments(token),
+        codeExpectedIdentifier.withArgumentsOld(token),
         token,
         token,
       );
@@ -1408,7 +1407,7 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        codeInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArgumentsOld(
           "${bodyObject.runtimeType}",
           "bodyObject",
         ),
@@ -1569,16 +1568,28 @@ class AstBuilder extends StackListener {
       );
     }
 
-    var dotShorthand = pop() as DotShorthandInvocationImpl;
-    push(
-      DotShorthandConstructorInvocationImpl(
-        constKeyword: token,
-        period: dotShorthand.period,
-        constructorName: dotShorthand.memberName,
-        typeArguments: dotShorthand.typeArguments,
-        argumentList: dotShorthand.argumentList,
-      )..isDotShorthand = dotShorthand.isDotShorthand,
-    );
+    var dotShorthand = pop() as Expression;
+    if (dotShorthand is DotShorthandInvocationImpl) {
+      push(
+        DotShorthandConstructorInvocationImpl(
+          constKeyword: token,
+          period: dotShorthand.period,
+          constructorName: dotShorthand.memberName,
+          typeArguments: dotShorthand.typeArguments,
+          argumentList: dotShorthand.argumentList,
+        )..isDotShorthand = dotShorthand.isDotShorthand,
+      );
+    } else if (dotShorthand is DotShorthandPropertyAccessImpl) {
+      push(
+        DotShorthandConstructorInvocationImpl(
+          constKeyword: token,
+          period: dotShorthand.period,
+          constructorName: dotShorthand.propertyName,
+          typeArguments: null,
+          argumentList: _syntheticArgumentList(dotShorthand.propertyName.token),
+        )..isDotShorthand = dotShorthand.isDotShorthand,
+      );
+    }
   }
 
   @override
@@ -2083,7 +2094,7 @@ class AstBuilder extends StackListener {
         );
         if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
           handleRecoverableError(
-            codeExtraneousModifier.withArguments(keyword),
+            codeExtraneousModifier.withArgumentsOld(keyword),
             keyword,
             keyword,
           );
@@ -2436,7 +2447,7 @@ class AstBuilder extends StackListener {
       );
     } else {
       internalProblem(
-        codeInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArgumentsOld(
           "${node.runtimeType}",
           "identifier",
         ),
@@ -2546,7 +2557,7 @@ class AstBuilder extends StackListener {
         comment: comment,
         metadata: metadata,
         libraryKeyword: libraryKeyword,
-        name2: name,
+        name: name,
         semicolon: semicolon,
       ),
     );
@@ -2585,7 +2596,7 @@ class AstBuilder extends StackListener {
           elements.add(part);
         } else {
           internalProblem(
-            codeInternalProblemUnhandled.withArguments(
+            codeInternalProblemUnhandled.withArgumentsOld(
               "${part.runtimeType}",
               "string interpolation",
             ),
@@ -3330,7 +3341,9 @@ class AstBuilder extends StackListener {
       for (var label in member.labels) {
         if (!labels.add(label.label.name)) {
           handleRecoverableError(
-            codeDuplicateLabelInSwitchStatement.withArguments(label.label.name),
+            codeDuplicateLabelInSwitchStatement.withArgumentsOld(
+              label.label.name,
+            ),
             label.beginToken,
             label.beginToken,
           );
@@ -5617,7 +5630,7 @@ class AstBuilder extends StackListener {
       if (isDartLibrary) return;
     }
     debugEvent("Error: ${message.problemMessage}");
-    if (message.code.analyzerCodes == null && startToken is ErrorToken) {
+    if (message.code.pseudoSharedCode == null && startToken is ErrorToken) {
       translateErrorToken(startToken, diagnosticReporter.reportScannerError);
     } else {
       int offset = startToken.offset;
@@ -6087,7 +6100,7 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        codeInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArgumentsOld(
           "${bodyObject.runtimeType}",
           "bodyObject",
         ),
@@ -6181,7 +6194,7 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        codeInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArgumentsOld(
           "${bodyObject.runtimeType}",
           "bodyObject",
         ),
@@ -6365,7 +6378,7 @@ class AstBuilder extends StackListener {
     var requiredVersion =
         feature.releaseVersion ?? ExperimentStatus.currentVersion;
     handleRecoverableError(
-      codeExperimentNotEnabled.withArguments(
+      codeExperimentNotEnabled.withArgumentsOld(
         feature.enableString,
         _versionAsString(requiredVersion),
       ),

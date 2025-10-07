@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'dart:async';
@@ -12,17 +11,17 @@ abstract class MyStream<T> extends Stream<T> {
 }
 
 Stream<List<int>> foo() async* {
-  yield /*@typeArgs=int*/ [];
-  yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ MyStream();
-  yield* /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ [];
-  yield* new /*@typeArgs=List<int>*/ MyStream();
+  yield [];
+  yield /*error:YIELD_OF_INVALID_TYPE*/ new MyStream();
+  yield* /*error:YIELD_OF_INVALID_TYPE*/ [];
+  yield* new MyStream();
 }
 
 Iterable<Map<int, int>> bar() sync* {
-  yield new /*@typeArgs=int, int*/ Map();
-  yield /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ [];
-  yield* /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic, dynamic */ Map();
-  yield* /*@typeArgs=Map<int, int>*/ [];
+  yield new Map();
+  yield /*error:YIELD_OF_INVALID_TYPE*/ [];
+  yield* /*error:YIELD_OF_INVALID_TYPE*/ new Map();
+  yield* [];
 }
 
 main() {}

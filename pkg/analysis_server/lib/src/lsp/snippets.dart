@@ -28,8 +28,9 @@ String buildSnippetStringForEditGroups(
   filePath: filePath,
   editGroups: editGroups,
   editGroupsOffset: editOffset,
-  selectionOffset:
-      selectionOffset != null ? selectionOffset - editOffset : null,
+  selectionOffset: selectionOffset != null
+      ? selectionOffset - editOffset
+      : null,
   selectionLength: selectionLength,
 );
 
@@ -80,10 +81,9 @@ String _buildSnippetString(
         // Make the position relative to the supplied text.
         position.offset - editGroupsOffset,
         editGroup.length,
-        suggestions:
-            editGroup.suggestions
-                .map((suggestion) => suggestion.value)
-                .toList(),
+        suggestions: editGroup.suggestions
+            .map((suggestion) => suggestion.value)
+            .toList(),
         // Use the index as an ID to keep all related positions together (so
         // the remain "linked").
         linkedGroupId: index,
@@ -135,9 +135,8 @@ String _buildSnippetString(
   /// If there are no edit groups, then placeholders are all simple and
   /// guaranteed to be in the correct order.
   var isPreSorted = editGroups.isEmpty;
-  var builder =
-      SnippetBuilder()
-        ..appendPlaceholders(text, placeholders, isPreSorted: isPreSorted);
+  var builder = SnippetBuilder()
+    ..appendPlaceholders(text, placeholders, isPreSorted: isPreSorted);
   return builder.value;
 }
 

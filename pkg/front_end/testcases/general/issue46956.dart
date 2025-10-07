@@ -18,11 +18,11 @@ test(A<String> a) async {
 }
 
 test2(A<String> a) async {
-  return /*@typeArgs=String*/ foo(a);
+  return foo(a);
 }
 
 test3(A<String> a) {
-  return /*@typeArgs=String*/ foo(a);
+  return foo(a);
 }
 
 main() {}

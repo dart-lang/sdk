@@ -51,10 +51,9 @@ class ReplaceEmptyMapPattern extends ResolvedCorrectionProducer {
   }
 
   /// Return the replacement for the map pattern.
-  String replacement(String typeArguments) =>
-      _style == _Style.any
-          ? 'Map$typeArguments()'
-          : 'Map$typeArguments(isEmpty: true)';
+  String replacement(String typeArguments) => _style == _Style.any
+      ? 'Map$typeArguments()'
+      : 'Map$typeArguments(isEmpty: true)';
 }
 
 /// An indication of the style of replacement being offered.

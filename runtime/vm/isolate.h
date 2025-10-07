@@ -17,6 +17,7 @@
 #include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/growable_array.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/class_table.h"
 #include "vm/dispatch_table.h"
 #include "vm/exceptions.h"
@@ -374,10 +375,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // Returns `true` if this was the last isolate and the caller is responsible
   // for deleting the isolate group.
   bool UnregisterIsolateDecrementCount();
-  void RegisterIsolateGroupMutator();
-  void UnregisterIsolateGroupMutator();
-
+  void IncrementIsolateGroupMutatorCount();
+  void DecrementIsolateGroupMutatorCount();
   bool ContainsOnlyOneIsolate();
+  void RegisterIsolateGroupMutator(Thread* mutator);
+  void UnregisterIsolateGroupMutator(Thread* mutator);
 
   Dart_Port interrupt_port() { return interrupt_port_; }
 
@@ -650,6 +652,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Isolate* FirstIsolate() const;
   Isolate* FirstIsolateLocked() const;
 
+  void ForEachMutatorAtASafepoint(std::function<void(Thread* thread)> function);
+
   // Ensures mutators are stopped during execution of the provided function.
   //
   // If the current thread is the only mutator in the isolate group,
@@ -907,6 +911,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   IntrusiveDList<Isolate> isolates_;
   RelaxedAtomic<Dart_Port> interrupt_port_ = ILLEGAL_PORT;
   intptr_t isolate_count_ = 0;
+  IntrusiveDList<Thread> mutators_;
   intptr_t group_mutator_count_ = 0;
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
@@ -1119,7 +1124,9 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
   bool HasPendingMessages();
 
-  Thread* mutator_thread() const;
+  Thread* mutator_thread() const { return mutator_thread_; }
+  NO_SANITIZE_THREAD
+  Thread* mutator_thread_ignore_race() const { return mutator_thread_; }
 
   const char* name() const { return name_; }
   void set_name(const char* name);
@@ -1189,6 +1196,9 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void set_current_sample_block(SampleBlock* block) {
     current_sample_block_ = block;
   }
+  SampleBlock* exchange_current_sample_block(SampleBlock* block) {
+    return current_sample_block_.exchange(block, std::memory_order_acq_rel);
+  }
   void ProcessFreeSampleBlocks(Thread* thread);
 
   // Returns the current SampleBlock used to track Dart allocation samples.
@@ -1197,6 +1207,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   }
   void set_current_allocation_sample_block(SampleBlock* block) {
     current_allocation_sample_block_ = block;
+  }
+  SampleBlock* exchange_current_allocation_sample_block(SampleBlock* block) {
+    return current_allocation_sample_block_.exchange(block,
+                                                     std::memory_order_acq_rel);
   }
 
   bool TakeHasCompletedBlocks() {

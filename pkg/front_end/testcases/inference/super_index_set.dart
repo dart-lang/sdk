@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'dart:async';
@@ -16,7 +15,7 @@ class B {
 class C extends B {
   void operator []=(Object x, Object y) {}
   void h() {
-    super /*@target=B.[]=*/ [/*@typeArgs=int*/ f()] = /*@typeArgs=String*/ f();
+    super[f()] = f();
   }
 }
 

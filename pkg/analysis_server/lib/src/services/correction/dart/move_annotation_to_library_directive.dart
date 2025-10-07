@@ -33,10 +33,9 @@ class MoveAnnotationToLibraryDirective extends ResolvedCorrectionProducer {
       return;
     }
 
-    var firstDirective =
-        compilationUnit.directives.isEmpty
-            ? null
-            : compilationUnit.directives.first;
+    var firstDirective = compilationUnit.directives.isEmpty
+        ? null
+        : compilationUnit.directives.first;
     if (firstDirective is LibraryDirective) {
       await _moveToExistingLibraryDirective(
         builder,

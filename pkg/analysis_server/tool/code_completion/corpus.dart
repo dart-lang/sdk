@@ -66,10 +66,9 @@ final _appDir = path.join(
   'apps',
 );
 
-final _homeDir =
-    Platform.isWindows
-        ? Platform.environment['LOCALAPPDATA']!
-        : Platform.environment['HOME']!;
+final _homeDir = Platform.isWindows
+    ? Platform.environment['LOCALAPPDATA']!
+    : Platform.environment['HOME']!;
 
 final _packageConfig = path.join('.dart_tool', 'package_config.json');
 

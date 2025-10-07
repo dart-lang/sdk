@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../ir/ir.dart' as ir;
+import 'deserializer.dart';
 import 'serializer.dart';
 
 abstract class Section implements Serializable {
@@ -12,11 +13,12 @@ abstract class Section implements Serializable {
 
   @override
   void serialize(Serializer s) {
-    if (isNotEmpty) {
-      final contents = Serializer();
-      serializeContents(contents);
+    final contents = Serializer();
+    serializeContents(contents);
+    final data = contents.data;
+    if (data.isNotEmpty) {
       s.writeByte(id);
-      s.writeUnsigned(contents.data.length);
+      s.writeUnsigned(data.length);
       s.sourceMapSerializer
           .copyMappings(contents.sourceMapSerializer, s.offset);
       s.writeData(contents, watchPoints);
@@ -25,12 +27,12 @@ abstract class Section implements Serializable {
 
   int get id;
 
-  bool get isNotEmpty;
-
   void serializeContents(Serializer s);
 }
 
 class TypeSection extends Section {
+  static const sectionId = 1;
+
   final ir.Types types;
 
   TypeSection(this.types, super.watchPoints);
@@ -38,13 +40,12 @@ class TypeSection extends Section {
   List<List<ir.DefType>> get recursionGroups => types.recursionGroups;
 
   @override
-  int get id => 1;
-
-  @override
-  bool get isNotEmpty => recursionGroups.isNotEmpty;
+  int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
+    if (types.recursionGroups.isEmpty) return;
+
     s.writeUnsigned(types.recursionGroups.length);
     int typeIndex = 0;
 
@@ -58,8 +59,10 @@ class TypeSection extends Section {
       }
     }
     for (final group in recursionGroups) {
-      s.writeByte(0x4E); // -0x32
-      s.writeUnsigned(group.length);
+      if (group.length > 1) {
+        s.writeByte(0x4E); // -0x32
+        s.writeUnsigned(group.length);
+      }
       for (final type in group) {
         assert(
             type.superType == null || type.superType!.index <= group.last.index,
@@ -75,144 +78,420 @@ class TypeSection extends Section {
       }
     }
   }
+
+  static ir.Types deserialize(Deserializer? d) {
+    if (d == null) {
+      return ir.Types([]);
+    }
+
+    final List<ir.DefType> definedTypes = [];
+    final List<List<ir.DefType>> recursionGroups = [];
+
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      late int recursionGroupMemberCount;
+      if (d.peekByte() == 0x4E) {
+        d.readByte();
+        // We may have more than one type in the recursion group.
+        recursionGroupMemberCount = d.readUnsigned();
+      } else {
+        // Old type encoding. The type becomes it's own recursion group.
+        recursionGroupMemberCount = 1;
+      }
+
+      // As types can form cycles within a recursion group, we construct them in
+      // two phases:
+      //
+      //   1) allocate the type objects and fixed parts of them
+      //   2) fill in the composite type references
+      //
+      // So for example we'd create a [ir.StructType] in phase 1) and then in
+      // phase 2) we'd populate the struct field types.
+      final typesInGroup = <ir.DefType>[];
+      final startOffset = d.offset;
+      for (int j = 0; j < recursionGroupMemberCount; j++) {
+        final type = ir.DefType.deserializeAllocate(d, definedTypes);
+        typesInGroup.add(type);
+        definedTypes.add(type);
+      }
+      d.offset = startOffset;
+      for (int j = 0; j < recursionGroupMemberCount; j++) {
+        typesInGroup[j].deserializeFill(d, definedTypes);
+      }
+      recursionGroups.add(typesInGroup);
+    }
+    return ir.Types(recursionGroups);
+  }
 }
 
 class ImportSection extends Section {
-  final List<ir.Import> imports;
+  static const int sectionId = 2;
+
+  final ir.Imports imports;
 
   ImportSection(this.imports, super.watchPoints);
 
   @override
-  int get id => 2;
-
-  @override
-  bool get isNotEmpty => imports.isNotEmpty;
+  int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
-    s.writeList(imports);
+    if (imports.all.isNotEmpty) {
+      s.writeList(imports.all);
+    }
+  }
+
+  static ir.Imports deserialize(
+      Deserializer? d, ir.Module module, ir.Types types) {
+    final imports = <ir.Import>[];
+    final importedMemories = <ir.ImportedMemory>[];
+    final importedGlobals = <ir.ImportedGlobal>[];
+    final importedTags = <ir.ImportedTag>[];
+    final importedTables = <ir.ImportedTable>[];
+    final importedFunctions = <ir.ImportedFunction>[];
+
+    if (d != null) {
+      final count = d.readUnsigned();
+      for (int i = 0; i < count; i++) {
+        final moduleName = d.readName();
+        final name = d.readName();
+        final kind = d.readByte();
+        switch (kind) {
+          case 0x00: // Function
+            final typeIndex = d.readUnsigned();
+            final type = types[typeIndex] as ir.FunctionType;
+            final import = ir.ImportedFunction(
+                module, moduleName, name, ir.FinalizableIndex(), type);
+            import.finalizableIndex.value = importedFunctions.length;
+            importedFunctions.add(import);
+            imports.add(import);
+            break;
+          case 0x01: // Table
+            final type = ir.RefType.deserialize(d, types.defined);
+            final limits = d.readByte();
+            final minSize = d.readUnsigned();
+            final maxSize = limits == 0x01 ? d.readUnsigned() : null;
+            final import = ir.ImportedTable(module, moduleName, name,
+                ir.FinalizableIndex(), type, minSize, maxSize);
+            import.finalizableIndex.value = importedTables.length;
+            importedTables.add(import);
+            imports.add(import);
+            break;
+          case 0x02: // Memory
+            final limits = d.readByte();
+            final shared = limits == 0x03;
+            final minSize = d.readUnsigned();
+            final maxSize =
+                limits == 0x01 || limits == 0x03 ? d.readUnsigned() : null;
+            final import = ir.ImportedMemory(module, moduleName, name,
+                ir.FinalizableIndex(), shared, minSize, maxSize);
+            import.finalizableIndex.value = importedMemories.length;
+            importedMemories.add(import);
+            imports.add(import);
+            break;
+          case 0x03: // Global
+            final type = ir.GlobalType.deserialize(d, types.defined);
+            final import = ir.ImportedGlobal(
+                module, moduleName, name, ir.FinalizableIndex(), type);
+            import.finalizableIndex.value = importedGlobals.length;
+            importedGlobals.add(import);
+            imports.add(import);
+            break;
+          case 0x04: // Tag
+            final exceptionByte = d.readByte();
+            if (exceptionByte != 0x00) throw 'unexpected';
+            d.readUnsigned(); // typeIndex
+            throw 'runtimeType';
+          default:
+            throw "Invalid import kind: $kind";
+        }
+      }
+    }
+    return ir.Imports.deserialized(imports, importedFunctions, importedTags,
+        importedGlobals, importedTables, importedMemories);
   }
 }
 
 class FunctionSection extends Section {
+  static const int sectionId = 3;
+
   final List<ir.DefinedFunction> functions;
 
   FunctionSection(this.functions, super.watchPoints);
 
   @override
-  int get id => 3;
-
-  @override
-  bool get isNotEmpty => functions.isNotEmpty;
+  int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
-    s.writeUnsigned(functions.length);
-    for (final function in functions) {
-      s.writeUnsigned(function.type.index);
+    if (functions.isNotEmpty) {
+      s.writeUnsigned(functions.length);
+      for (final function in functions) {
+        s.writeUnsigned(function.type.index);
+      }
     }
+  }
+
+  static ir.Functions deserialize(Deserializer? d, ir.Module module,
+      ir.Types types, List<ir.ImportedFunction> imported) {
+    if (d == null) {
+      return ir.Functions.withoutDeclared(imported, []);
+    }
+
+    final List<ir.DefinedFunction> defined = [];
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      final typeIndex = d.readUnsigned();
+      final type = types[typeIndex] as ir.FunctionType;
+      final function = ir.DefinedFunction.withoutBody(
+          module, ir.FinalizableIndex()..value = imported.length + i, type);
+      defined.add(function);
+    }
+    return ir.Functions.withoutDeclared(imported, defined);
   }
 }
 
 class TableSection extends Section {
+  static const int sectionId = 4;
+
   final List<ir.DefinedTable> tables;
 
   TableSection(this.tables, super.watchPOints);
 
   @override
-  int get id => 4;
-
-  @override
-  bool get isNotEmpty => tables.isNotEmpty;
+  int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
-    s.writeList(tables);
+    if (tables.isNotEmpty) {
+      s.writeList(tables);
+    }
+  }
+
+  static ir.Tables deserialize(Deserializer? d, ir.Module module,
+      ir.Types types, List<ir.ImportedTable> imported) {
+    if (d == null) return ir.Tables(imported, []);
+
+    final defined = <ir.DefinedTable>[];
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      final type = ir.RefType.deserialize(d, types.defined);
+      final limits = d.readByte();
+      final minSize = d.readUnsigned();
+      final maxSize = limits == 0x01 ? d.readUnsigned() : null;
+      final table = ir.DefinedTable(
+          module,
+          [],
+          ir.FinalizableIndex()..value = imported.length + i,
+          type,
+          minSize,
+          maxSize);
+      defined.add(table);
+    }
+    return ir.Tables(imported, defined);
   }
 }
 
 class MemorySection extends Section {
+  static const int sectionId = 5;
+
   final List<ir.DefinedMemory> memories;
 
   MemorySection(this.memories, super.watchPoints);
 
   @override
-  int get id => 5;
-
-  @override
-  bool get isNotEmpty => memories.isNotEmpty;
+  int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
-    s.writeList(memories);
+    if (memories.isNotEmpty) {
+      s.writeList(memories);
+    }
+  }
+
+  static ir.Memories deserialize(
+      Deserializer? d, ir.Module module, List<ir.ImportedMemory> imported) {
+    if (d == null) return ir.Memories(imported, []);
+
+    final defined = <ir.DefinedMemory>[];
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      final limits = d.readByte();
+      final shared = limits == 0x03;
+      final minSize = d.readUnsigned();
+      final maxSize =
+          limits == 0x01 || limits == 0x03 ? d.readUnsigned() : null;
+      final memory = ir.DefinedMemory(
+          module,
+          ir.FinalizableIndex()..value = imported.length + i,
+          shared,
+          minSize,
+          maxSize);
+      defined.add(memory);
+    }
+    return ir.Memories(imported, defined);
   }
 }
 
 class TagSection extends Section {
+  static const int sectionId = 13;
+
   final List<ir.DefinedTag> tags;
 
   TagSection(this.tags, super.watchPoints);
 
   @override
-  int get id => 13;
-
-  @override
-  bool get isNotEmpty => tags.isNotEmpty;
+  int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
-    s.writeList(tags);
+    if (tags.isNotEmpty) {
+      s.writeList(tags);
+    }
+  }
+
+  static ir.Tags deserialize(Deserializer? d, ir.Module module, ir.Types types,
+      List<ir.ImportedTag> imported) {
+    if (d == null) return ir.Tags([], imported);
+
+    final defined = <ir.DefinedTag>[];
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      final attribute = d.readByte();
+      if (attribute != 0) {
+        throw "Invalid tag attribute: $attribute";
+      }
+      final type = types[d.readUnsigned()] as ir.FunctionType;
+      final tag = ir.DefinedTag(
+          module, ir.FinalizableIndex()..value = imported.length + i, type);
+      defined.add(tag);
+    }
+    return ir.Tags(defined, []);
   }
 }
 
 class GlobalSection extends Section {
+  static const int sectionId = 6;
+
   final List<ir.DefinedGlobal> globals;
 
   GlobalSection(this.globals, super.watchPoints);
 
   @override
-  int get id => 6;
-
-  @override
-  bool get isNotEmpty => globals.isNotEmpty;
+  int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
-    s.writeList(globals);
+    if (globals.isNotEmpty) {
+      s.writeList(globals);
+    }
+  }
+
+  static ir.Globals deserialize(
+      Deserializer? d,
+      ir.Module module,
+      ir.Types types,
+      ir.Functions functions,
+      List<ir.ImportedGlobal> imported) {
+    if (d == null) {
+      return ir.Globals(imported, []);
+    }
+
+    final globals = ir.Globals(imported, []);
+
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      final type = ir.GlobalType.deserialize(d, types.defined);
+      final initializer =
+          ir.Instructions.deserializeConst(d, types, functions, globals);
+      final global = ir.DefinedGlobal(module, initializer,
+          ir.FinalizableIndex()..value = globals.length, type);
+      globals.defined.add(global);
+    }
+    return globals;
   }
 }
 
 class ExportSection extends Section {
+  static const int sectionId = 7;
+
   final List<ir.Export> exports;
 
   ExportSection(this.exports, super.watchPoints);
 
   @override
-  int get id => 7;
-
-  @override
-  bool get isNotEmpty => exports.isNotEmpty;
+  int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
-    s.writeList(exports);
+    if (exports.isNotEmpty) {
+      s.writeList(exports);
+    }
+  }
+
+  static ir.Exports deserialize(
+      Deserializer? d,
+      ir.Functions functions,
+      ir.Tables tables,
+      ir.Memories memories,
+      ir.Globals globals,
+      ir.Tags tags) {
+    if (d == null) {
+      return ir.Exports([]);
+    }
+
+    final exports = <ir.Export>[];
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      final name = d.readName();
+      final kind = d.readByte();
+      final index = d.readUnsigned();
+      switch (kind) {
+        case 0x00:
+          exports.add(ir.FunctionExport(name, functions[index]));
+          break;
+        case 0x01:
+          exports.add(ir.TableExport(name, tables[index]));
+          break;
+        case 0x02:
+          exports.add(ir.MemoryExport(name, memories[index]));
+          break;
+        case 0x03:
+          exports.add(ir.GlobalExport(name, globals[index]));
+          break;
+        case 0x04:
+          exports.add(ir.TagExport(name, tags[index]));
+          break;
+        default:
+          throw "Invalid export kind: $kind";
+      }
+    }
+    return ir.Exports(exports);
   }
 }
 
 class StartSection extends Section {
+  static const int sectionId = 8;
+
   final ir.BaseFunction? startFunction;
 
   StartSection(this.startFunction, super.watchPoints);
 
   @override
-  int get id => 8;
-
-  @override
-  bool get isNotEmpty => startFunction != null;
+  int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
-    s.writeUnsigned(startFunction!.index);
+    if (startFunction != null) {
+      s.writeUnsigned(startFunction!.index);
+    }
+  }
+
+  static ir.BaseFunction? deserialize(Deserializer? d, ir.Functions functions) {
+    if (d == null) {
+      return null;
+    }
+    return functions[d.readUnsigned()];
   }
 }
 
@@ -271,6 +550,8 @@ class _DeclaredElement implements _Element {
 }
 
 class ElementSection extends Section {
+  static const int sectionId = 9;
+
   final List<ir.DefinedTable> definedTables;
   final List<ir.ImportedTable> importedTables;
   final List<ir.BaseFunction> declaredFunctions;
@@ -279,13 +560,7 @@ class ElementSection extends Section {
       this.declaredFunctions, super.watchPoints);
 
   @override
-  int get id => 9;
-
-  @override
-  bool get isNotEmpty =>
-      definedTables.any((table) => table.elements.any((e) => e != null)) ||
-      importedTables.any((table) => table.setElements.isNotEmpty) ||
-      declaredFunctions.isNotEmpty;
+  int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
@@ -324,212 +599,514 @@ class ElementSection extends Section {
         lastIndex = index;
       }
     }
-    for (final func in declaredFunctions) {
-      elements.add(_DeclaredElement([func]));
+    if (declaredFunctions.isNotEmpty) {
+      elements.add(_DeclaredElement(declaredFunctions));
     }
-    s.writeList(elements);
+    if (elements.isNotEmpty) {
+      s.writeList(elements);
+    }
+  }
+
+  static void deserialize(
+    Deserializer? d,
+    ir.Module module,
+    ir.Types types,
+    ir.Functions functions,
+    ir.Tables tables,
+    ir.Globals globals,
+  ) {
+    if (d == null) {
+      functions.declared = [];
+      return;
+    }
+    final declaredFunctions = <ir.BaseFunction>[];
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      final kind = d.readByte();
+      int tableIndex;
+      switch (kind) {
+        case 0x00:
+          tableIndex = 0;
+          break;
+        case 0x06:
+          tableIndex = d.readUnsigned();
+          break;
+        case 0x03:
+          final elemkind = d.readByte();
+          if (elemkind != 0x00) throw "unsupported elemkind";
+          final funcs = d.readList((d) => functions[d.readUnsigned()]);
+          declaredFunctions.addAll(funcs);
+          continue;
+        default:
+          throw "unsupported element segment kind $kind";
+      }
+
+      final offsetInitializer =
+          ir.Instructions.deserializeConst(d, types, functions, globals);
+      final instructions = offsetInitializer.instructions;
+      assert(instructions.length == 2 &&
+          instructions[0] is ir.I32Const &&
+          instructions[1] is ir.End);
+      final offset = (instructions[0] as ir.I32Const).value;
+
+      if (kind == 0x06) {
+        ir.RefType.deserialize(d, types.defined);
+      }
+
+      final table = tables[tableIndex];
+      if (table is ir.DefinedTable) {
+        final count = d.readUnsigned();
+        for (int j = 0; j < count; j++) {
+          late ir.BaseFunction func;
+          if (tableIndex == 0) {
+            final funcIndex = d.readUnsigned();
+            func = functions[funcIndex];
+          } else {
+            final funcInitializer =
+                ir.Instructions.deserializeConst(d, types, functions, globals);
+            final refFunc = funcInitializer.instructions.single as ir.RefFunc;
+            func = refFunc.function;
+          }
+          if (table.elements.length <= offset + j) {
+            table.elements.length = offset + j + 1;
+          }
+          table.elements[offset + j] = func;
+        }
+      } else {
+        throw "unsupported table type";
+      }
+    }
+
+    functions.declared = declaredFunctions;
   }
 }
 
 class DataCountSection extends Section {
+  static const int sectionId = 12;
+
   final List<ir.DataSegment> dataSegments;
 
   DataCountSection(this.dataSegments, super.watchPoints);
 
   @override
-  int get id => 12;
-
-  @override
-  bool get isNotEmpty => dataSegments.isNotEmpty;
+  int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
-    s.writeUnsigned(dataSegments.length);
+    if (dataSegments.isNotEmpty) {
+      s.writeUnsigned(dataSegments.length);
+    }
+  }
+
+  static ir.DataSegments deserialize(Deserializer? d) {
+    if (d == null) {
+      return ir.DataSegments([]);
+    }
+    final count = d.readUnsigned();
+    final uninitializedSegments = [
+      for (int i = 0; i < count; ++i) ir.DataSegment.uninitialized()
+    ];
+    return ir.DataSegments(uninitializedSegments);
   }
 }
 
 class CodeSection extends Section {
+  static const int sectionId = 10;
+
   final List<ir.DefinedFunction> functions;
 
   CodeSection(this.functions, super.watchPoints);
 
   @override
-  int get id => 10;
-
-  @override
-  bool get isNotEmpty => functions.isNotEmpty;
+  int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
-    s.writeList(functions);
+    if (functions.isNotEmpty) {
+      s.writeList(functions);
+    }
+  }
+
+  static void deserialize(
+    Deserializer? d,
+    List<ir.DefinedFunction> definedFunctions,
+    ir.Module module,
+    ir.Types types,
+    ir.Functions functions,
+    ir.Tables tables,
+    ir.Memories memories,
+    ir.Tags tags,
+    ir.Globals globals,
+    ir.DataSegments dataSegments,
+  ) {
+    if (d == null) {
+      return;
+    }
+
+    final count = d.readUnsigned();
+    if (count != functions.defined.length) {
+      throw "Code count mismatch";
+    }
+    for (int i = 0; i < count; i++) {
+      final function = definedFunctions[i];
+      final type = function.type;
+
+      final locals = <ir.Local>[
+        // Parameters
+        for (int i = 0; i < type.inputs.length; ++i)
+          ir.Local(i, type.inputs[i]),
+      ];
+      final instructions = <ir.Instruction>[];
+
+      final bodySize = d.readUnsigned();
+      final bodyDeserializer = Deserializer(d.readBytes(bodySize));
+
+      final localDeclCount = bodyDeserializer.readUnsigned();
+      for (int j = 0; j < localDeclCount; j++) {
+        final localCount = bodyDeserializer.readUnsigned();
+        final type = ir.ValueType.deserialize(bodyDeserializer, types.defined);
+        for (int k = 0; k < localCount; k++) {
+          locals.add(ir.Local(locals.length, type));
+        }
+      }
+      while (!bodyDeserializer.isAtEnd) {
+        final instruction = ir.Instruction.deserialize(bodyDeserializer, types,
+            tables, tags, globals, dataSegments, memories, functions);
+        instructions.add(instruction);
+      }
+
+      function.body = ir.Instructions(locals, {}, instructions, null, [], []);
+    }
   }
 }
 
 class DataSection extends Section {
+  static const int sectionId = 11;
+
   final List<ir.DataSegment> dataSegments;
 
   DataSection(this.dataSegments, super.watchPoints);
 
   @override
-  int get id => 11;
-
-  @override
-  bool get isNotEmpty => dataSegments.isNotEmpty;
+  int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
-    s.writeList(dataSegments);
+    if (dataSegments.isNotEmpty) {
+      s.writeList(dataSegments);
+    }
+  }
+
+  static void deserialize(
+      Deserializer? d, ir.DataSegments dataSegments, ir.Memories memories) {
+    final defined = dataSegments.defined;
+    if (d == null) {
+      assert(defined.isEmpty);
+      return;
+    }
+
+    final count = d.readUnsigned();
+    if (defined.length != count) {
+      throw "Mismatch number of data segments";
+    }
+    for (int i = 0; i < count; i++) {
+      final mode = d.readByte();
+      if (mode == 0x1) {
+        // Passive segment.
+        final length = d.readUnsigned();
+        final content = d.readBytes(length);
+        defined[i]
+          ..index = i
+          ..memory = null
+          ..offset = null
+          ..content = content;
+        continue;
+      }
+
+      ir.Memory? memory;
+      int? offset;
+      if (mode == 0x00 || mode == 0x02) {
+        if (mode == 0x00) {
+          memory = memories[0];
+        } else if (mode == 0x02) {
+          // Active segment
+          final memoryIndex = d.readUnsigned();
+          memory = memories[memoryIndex];
+        }
+
+        final i32ConstByte = d.readByte();
+        if (i32ConstByte != 0x41) throw 'bad encoding';
+        offset = d.readSigned();
+        final endByte = d.readByte();
+        if (endByte != 0x0B) throw 'bad encoding';
+
+        // final offsetInitializer = ir.Instructions.deserialize(d, module);
+        // offset = (offsetInitializer.instructions.single as ir.I32Const).value;
+      }
+      final content = d.readBytes(d.readUnsigned());
+      defined[i]
+        ..index = i
+        ..memory = memory
+        ..offset = offset
+        ..content = content;
+    }
   }
 }
 
 abstract class CustomSection extends Section {
+  static const int sectionId = 0;
+
   CustomSection(super.watchPoints);
 
   @override
-  int get id => 0;
+  int get id => sectionId;
 }
 
 class NameSection extends CustomSection {
-  final String moduleName;
+  static const String customSectionName = 'name';
+
+  final String? moduleName;
   final List<ir.BaseFunction> functions;
   final List<List<ir.DefType>> types;
   final List<ir.Global> globals;
-  final int functionNameCount;
-  final int typeNameCount;
-  final int globalNameCount;
-  final int typesWithNamedFieldsCount;
 
-  NameSection(this.moduleName, this.functions, this.types, this.globals,
-      super.watchPoints,
-      {required this.functionNameCount,
-      required this.typeNameCount,
-      required this.globalNameCount,
-      required this.typesWithNamedFieldsCount});
-
-  @override
-  bool get isNotEmpty => functionNameCount > 0 || typeNameCount > 0;
+  NameSection(
+    this.moduleName,
+    this.functions,
+    this.types,
+    this.globals,
+    super.watchPoints,
+  );
 
   @override
   void serializeContents(Serializer s) {
-    s.writeName("name");
-
     final moduleNameSubsection = Serializer();
-    moduleNameSubsection.writeName(moduleName);
+    if (moduleName != null) {
+      moduleNameSubsection.writeName(moduleName!);
+    }
 
-    final functionNameSubsection = Serializer();
-    functionNameSubsection.writeUnsigned(functionNameCount);
+    int functionNameCount = 0;
+    final functionNames = Serializer();
     for (int i = 0; i < functions.length; i++) {
-      String? functionName = functions[i].functionName;
+      final String? functionName = functions[i].functionName;
       if (functionName != null) {
-        functionNameSubsection.writeUnsigned(i);
-        functionNameSubsection.writeName(functionName);
+        functionNames.writeUnsigned(i);
+        functionNames.writeName(functionName);
+        functionNameCount++;
       }
     }
 
-    final typeNameSubsection = Serializer();
-    typeNameSubsection.writeUnsigned(typeNameCount);
-    {
-      int typeIndex = 0;
-      for (final recursionGroup in types) {
-        for (final defType in recursionGroup) {
-          if (defType is ir.DataType) {
-            typeNameSubsection.writeUnsigned(typeIndex);
-            typeNameSubsection.writeName(defType.name);
+    int typeIndex = 0;
+    int typeNameCount = 0;
+    final typeNames = Serializer();
+    int typesWithNamedFieldsCount = 0;
+    final fieldNames = Serializer();
+    for (final recursionGroup in types) {
+      for (final defType in recursionGroup) {
+        if (defType is ir.DataType) {
+          final name = defType.name;
+          if (name != null) {
+            typeNames.writeUnsigned(typeIndex);
+            typeNames.writeName(name);
+            typeNameCount++;
+            if (defType is ir.StructType && defType.fieldNames.isNotEmpty) {
+              fieldNames.writeUnsigned(typeIndex);
+              fieldNames.writeUnsigned(defType.fieldNames.length);
+              for (final entry in defType.fieldNames.entries) {
+                fieldNames.writeUnsigned(entry.key);
+                fieldNames.writeName(entry.value);
+              }
+              typesWithNamedFieldsCount++;
+            }
           }
-          typeIndex += 1;
         }
+        typeIndex++;
       }
     }
 
-    final globalNameSubsection = Serializer();
-    globalNameSubsection.writeUnsigned(globalNameCount);
+    int globalNameCount = 0;
+    final globalNames = Serializer();
     for (int i = 0; i < globals.length; i++) {
       final globalName = globals[i].globalName;
       if (globalName != null) {
-        globalNameSubsection.writeUnsigned(i);
-        globalNameSubsection.writeName(globalName);
+        globalNames.writeUnsigned(i);
+        globalNames.writeName(globalName);
+        globalNameCount++;
       }
     }
 
-    final fieldNameSubsection = Serializer();
-    fieldNameSubsection.writeUnsigned(typesWithNamedFieldsCount);
-
-    if (typesWithNamedFieldsCount != 0) {
-      int typeIndex = 0;
-      for (final recursionGroup in types) {
-        for (final defType in recursionGroup) {
-          if (defType is ir.StructType && defType.fieldNames.isNotEmpty) {
-            fieldNameSubsection.writeUnsigned(typeIndex);
-            fieldNameSubsection.writeUnsigned(defType.fieldNames.length);
-            for (final entry in defType.fieldNames.entries) {
-              fieldNameSubsection.writeUnsigned(entry.key);
-              fieldNameSubsection.writeName(entry.value);
-            }
-          }
-          typeIndex += 1;
-        }
-      }
-    }
-
-    final localNameSubsection = Serializer();
-    List<ir.DefinedFunction> functionsWithLocalNames = [];
+    int functionsWithLocalNamesCount = 0;
+    final localNames = Serializer();
     for (final function in functions) {
       if (function is ir.DefinedFunction) {
         if (function.localNames.isNotEmpty) {
-          functionsWithLocalNames.add(function);
+          localNames.writeUnsigned(function.finalizableIndex.value);
+          localNames.writeUnsigned(function.localNames.length);
+          for (final entry in function.localNames.entries) {
+            localNames.writeUnsigned(entry.key);
+            localNames.writeName(entry.value);
+          }
+          functionsWithLocalNamesCount++;
         }
       }
     }
-    localNameSubsection.writeUnsigned(functionsWithLocalNames.length);
 
-    if (functionsWithLocalNames.isNotEmpty) {
-      for (final function in functionsWithLocalNames) {
-        localNameSubsection.writeUnsigned(function.finalizableIndex.value);
-        localNameSubsection.writeUnsigned(function.localNames.length);
-        for (final entry in function.localNames.entries) {
-          localNameSubsection.writeUnsigned(entry.key);
-          localNameSubsection.writeName(entry.value);
-        }
-      }
-    }
+    s.writeName(customSectionName);
 
     s.writeByte(0); // Module name subsection
-    s.writeUnsigned(moduleNameSubsection.data.length);
-    s.writeData(moduleNameSubsection);
+    if (moduleNameSubsection.offset > 0) {
+      s.writeUnsigned(moduleNameSubsection.data.length);
+      s.writeData(moduleNameSubsection);
+    }
 
-    s.writeByte(1); // Function names subsection
-    s.writeUnsigned(functionNameSubsection.data.length);
-    s.writeData(functionNameSubsection);
+    if (functionNameCount > 0) {
+      s.writeByte(1); // Function names subsection
+      s.writeUnsigned(functionNames.data.length +
+          Serializer.writeUnsignedByteCount(functionNameCount));
+      s.writeUnsigned(functionNameCount);
+      s.writeData(functionNames);
+    }
 
-    s.writeByte(2); // Local names substion
-    s.writeUnsigned(localNameSubsection.data.length);
-    s.writeData(localNameSubsection);
+    if (functionsWithLocalNamesCount > 0) {
+      s.writeByte(2); // Local names substion
+      s.writeUnsigned(localNames.data.length +
+          Serializer.writeUnsignedByteCount(functionsWithLocalNamesCount));
+      s.writeUnsigned(functionsWithLocalNamesCount);
+      s.writeData(localNames);
+    }
 
-    s.writeByte(4); // Type names subsection
-    s.writeUnsigned(typeNameSubsection.data.length);
-    s.writeData(typeNameSubsection);
+    if (typeNameCount > 0) {
+      s.writeByte(4); // Type names subsection
+      s.writeUnsigned(typeNames.data.length +
+          Serializer.writeUnsignedByteCount(typeNameCount));
+      s.writeUnsigned(typeNameCount);
+      s.writeData(typeNames);
+    }
 
-    s.writeByte(7); // Global names subsection
-    s.writeUnsigned(globalNameSubsection.data.length);
-    s.writeData(globalNameSubsection);
+    if (globalNameCount > 0) {
+      s.writeByte(7); // Global names subsection
+      s.writeUnsigned(globalNames.data.length +
+          Serializer.writeUnsignedByteCount(globalNameCount));
+      s.writeUnsigned(globalNameCount);
+      s.writeData(globalNames);
+    }
 
-    s.writeByte(10); // Field names subsection
-    s.writeUnsigned(fieldNameSubsection.data.length);
-    s.writeData(fieldNameSubsection);
+    if (typesWithNamedFieldsCount > 0) {
+      s.writeByte(10); // Field names subsection
+      s.writeUnsigned(fieldNames.data.length +
+          Serializer.writeUnsignedByteCount(typesWithNamedFieldsCount));
+      s.writeUnsigned(typesWithNamedFieldsCount);
+      s.writeData(fieldNames);
+    }
+  }
+
+  static String? deserialize(Deserializer? d, ir.Functions functions,
+      ir.Types types, ir.Globals globals) {
+    String? moduleName;
+
+    if (d == null) {
+      return moduleName;
+    }
+
+    while (!d.isAtEnd) {
+      final subsectionId = d.readByte();
+      final subsectionSize = d.readUnsigned();
+      final subsectionDeserializer = Deserializer(d.readBytes(subsectionSize));
+      switch (subsectionId) {
+        case 0: // Module name
+          moduleName = subsectionDeserializer.readName();
+          break;
+        case 1: // Function names
+          final count = subsectionDeserializer.readUnsigned();
+          for (int i = 0; i < count; i++) {
+            final funcIndex = subsectionDeserializer.readUnsigned();
+            final funcName = subsectionDeserializer.readName();
+            final func = functions[funcIndex];
+            func.functionName = funcName;
+          }
+          break;
+        case 2: // Local names
+          final funcCount = subsectionDeserializer.readUnsigned();
+          for (int i = 0; i < funcCount; i++) {
+            final funcIndex = subsectionDeserializer.readUnsigned();
+            final localCount = subsectionDeserializer.readUnsigned();
+            final func = functions[funcIndex];
+            if (func is ir.DefinedFunction) {
+              for (int j = 0; j < localCount; j++) {
+                final localIndex = subsectionDeserializer.readUnsigned();
+                final localName = subsectionDeserializer.readName();
+                func.body.localNames[localIndex] = localName;
+              }
+            } else {
+              // Skip local names for imported functions
+              for (int j = 0; j < localCount; j++) {
+                subsectionDeserializer.readUnsigned();
+                subsectionDeserializer.readName();
+              }
+            }
+          }
+          break;
+        case 4: // Type names
+          final count = subsectionDeserializer.readUnsigned();
+          for (int i = 0; i < count; i++) {
+            final typeIndex = subsectionDeserializer.readUnsigned();
+            final typeName = subsectionDeserializer.readName();
+            final type = types[typeIndex];
+            if (type is ir.DataType) {
+              type.name = typeName;
+            }
+          }
+          break;
+        case 7: // Global names
+          final count = subsectionDeserializer.readUnsigned();
+          for (int i = 0; i < count; i++) {
+            final globalIndex = subsectionDeserializer.readUnsigned();
+            final globalName = subsectionDeserializer.readName();
+            globals[globalIndex].globalName = globalName;
+          }
+          break;
+        case 10: // Field names
+          final typeCount = subsectionDeserializer.readUnsigned();
+          for (int i = 0; i < typeCount; i++) {
+            final typeIndex = subsectionDeserializer.readUnsigned();
+            final fieldCount = subsectionDeserializer.readUnsigned();
+            final type = types[typeIndex];
+            if (type is ir.StructType) {
+              for (int j = 0; j < fieldCount; j++) {
+                final fieldIndex = subsectionDeserializer.readUnsigned();
+                final fieldName = subsectionDeserializer.readName();
+                type.fieldNames[fieldIndex] = fieldName;
+              }
+            } else {
+              throw 'unexpected field name of non struct';
+            }
+          }
+          break;
+      }
+    }
+    return moduleName;
   }
 }
 
 class SourceMapSection extends CustomSection {
-  final String url;
+  static const String customSectionName = 'sourceMappingURL';
+
+  final Uri? url;
 
   SourceMapSection(this.url) : super([]);
 
   @override
-  bool get isNotEmpty => true;
-
-  @override
   void serializeContents(Serializer s) {
-    s.writeName("sourceMappingURL");
-    s.writeName(url);
+    if (url != null) {
+      s.writeName(customSectionName);
+      s.writeName(url!.toString());
+    }
+  }
+
+  static Uri? deserialize(Deserializer? d) {
+    if (d == null) {
+      return null;
+    }
+    return Uri.parse(d.readName());
   }
 }

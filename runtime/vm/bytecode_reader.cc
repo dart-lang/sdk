@@ -35,8 +35,16 @@
 namespace dart {
 
 DEFINE_FLAG(bool, dump_kernel_bytecode, false, "Dump kernel bytecode");
+DEFINE_FLAG(charp,
+            dump_kernel_bytecode_filter,
+            nullptr,
+            "Dump only kernel bytecode of functions with matching names");
 
 namespace bytecode {
+
+static bool ShouldPrint(const Function& function) {
+  return function.NamePassesFilter(FLAG_dump_kernel_bytecode_filter);
+}
 
 class BytecodeOffsetsMapTraits {
  public:
@@ -54,6 +62,8 @@ class BytecodeOffsetsMapTraits {
       return Function::Cast(key).Hash();
     } else if (key.IsField()) {
       return Field::Cast(key).Hash();
+    } else if (key.IsScript()) {
+      return String::Hash(Script::Cast(key).url());
     } else {
       UNREACHABLE();
     }
@@ -65,7 +75,7 @@ BytecodeLoader::BytecodeLoader(Thread* thread, const TypedDataBase& binary)
     : thread_(thread),
       binary_(binary),
       bytecode_component_array_(Array::Handle(thread->zone())),
-      pending_classes_(GrowableObjectArray::Handle(thread->zone(),
+      pending_objects_(GrowableObjectArray::Handle(thread->zone(),
                                                    GrowableObjectArray::New())),
       bytecode_offsets_map_(
           Array::Handle(thread->zone(),
@@ -96,7 +106,7 @@ FunctionPtr BytecodeLoader::LoadBytecode(bool load_code) {
   AlternativeReadingScope alt(&bytecode_reader.reader(),
                               bytecode_component.GetLibraryIndexOffset());
   bytecode_reader.ReadLibraryDeclarations(bytecode_component.GetNumLibraries(),
-                                          pending_classes_, load_code);
+                                          pending_objects_, load_code);
 
   if (bytecode_component.GetMainOffset() == 0) {
     return Function::null();
@@ -113,7 +123,7 @@ void BytecodeLoader::LoadPendingCode() {
 
   BytecodeComponentData bytecode_component(bytecode_component_array_);
   BytecodeReaderHelper bytecode_reader(thread_, &bytecode_component);
-  bytecode_reader.ReadPendingCode(pending_classes_);
+  bytecode_reader.ReadPendingCode(pending_objects_);
 }
 
 void BytecodeLoader::SetOffset(const Object& obj, intptr_t offset) {
@@ -256,7 +266,9 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
   ReadLocalVariables(bytecode, has_local_variables);
 
   if (FLAG_dump_kernel_bytecode) {
-    KernelBytecodeDisassembler::Disassemble(function);
+    if (ShouldPrint(function)) {
+      KernelBytecodeDisassembler::Disassemble(function);
+    }
   }
 
   // Initialization of fields with null literal is elided from bytecode.
@@ -303,10 +315,32 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
       ReadLocalVariables(closure_bytecode, has_local_variables);
 
       if (FLAG_dump_kernel_bytecode) {
-        KernelBytecodeDisassembler::Disassemble(closure);
+        if (ShouldPrint(closure)) {
+          KernelBytecodeDisassembler::Disassemble(closure);
+        }
       }
+
+      ClosureFunctionsCache::AddClosureFunctionLocked(closure);
     }
   }
+}
+
+void BytecodeReaderHelper::ReadCoveredConstConstructors(const Script& script,
+                                                        intptr_t offset) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  AlternativeReadingScope alt(&reader_, offset);
+  const intptr_t len = reader_.ReadListLength();
+  const auto& constant_coverage = Array::Handle(Z, Array::New(len, Heap::kOld));
+  auto& function = Function::Handle(Z);
+  for (intptr_t i = 0; i < len; i++) {
+    function ^= ReadObject();
+    ASSERT(function.IsConstructor() && function.is_const());
+    constant_coverage.SetAt(i, function);
+  }
+  script.set_collected_constant_coverage(constant_coverage);
+#else
+  UNREACHABLE();
+#endif
 }
 
 void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
@@ -523,6 +557,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
     kDynamicCall,
     kExternalCall,
     kFfiCall,
+    kDeferredLibraryPrefix,
   };
 
   Object& obj = Object::Handle(Z);
@@ -700,6 +735,21 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         pool.SetRawValueAt(i, 0);
         continue;
       }
+      case ConstantPoolTag::kDeferredLibraryPrefix: {
+        name ^= ReadObject();
+        ASSERT(name.IsSymbol());
+        const auto& enclosing_library = Library::CheckedHandle(Z, ReadObject());
+        const auto& target_library = Library::CheckedHandle(Z, ReadObject());
+        obj = enclosing_library.LookupLocalLibraryPrefix(name);
+        if (obj.IsNull()) {
+          obj = Namespace::New(target_library, Object::null_array(),
+                               Object::null_array(), enclosing_library);
+          obj = LibraryPrefix::New(name, Namespace::Cast(obj),
+                                   /*deferred_load=*/true, enclosing_library);
+          enclosing_library.AddObject(LibraryPrefix::Cast(obj), name);
+        }
+        ASSERT(LibraryPrefix::Cast(obj).GetLibrary(0) == target_library.ptr());
+      } break;
       default:
         UNREACHABLE();
     }
@@ -1142,12 +1192,26 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       }
     }
     case kScript: {
+      auto& script = Script::Handle(Z);
       const String& uri = String::CheckedHandle(Z, ReadObject());
       if ((flags & kFlagHasSourceFile) != 0) {
-        return ReadSourceFile(uri, bytecode_component_->GetSourceFilesOffset() +
-                                       reader_.ReadUInt());
+        script =
+            ReadSourceFile(uri, bytecode_component_->GetSourceFilesOffset() +
+                                    reader_.ReadUInt());
+      } else {
+        script = Script::New(uri, Object::null_string());
       }
-      return Script::New(uri, Object::null_string());
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+      // Covered const constructor information for scripts is loaded
+      // during ReadPendingCode. For any script that is not pending,
+      // set the collected constant coverage to the empty array.
+      BytecodeLoader* const loader = thread_->bytecode_loader();
+      ASSERT(loader != nullptr);
+      if (!loader->HasOffset(script)) {
+        script.set_collected_constant_coverage(Object::empty_array());
+      }
+#endif
+      return script.ptr();
     }
     case kType: {
       const intptr_t tag = (flags & kTagMask) / kFlagBit0;
@@ -1613,6 +1677,7 @@ ScriptPtr BytecodeReaderHelper::ReadSourceFile(const String& uri,
   // pkg/dart2bytecode/lib/declarations.dart.
   const int kHasLineStartsFlag = 1 << 0;
   const int kHasSourceFlag = 1 << 1;
+  const int kHasCoveredConstConstructorsFlag = 1 << 2;
 
   AlternativeReadingScope alt(&reader_, offset);
 
@@ -1634,6 +1699,17 @@ ScriptPtr BytecodeReaderHelper::ReadSourceFile(const String& uri,
   const Script& script =
       Script::Handle(Z, Script::New(import_uri, uri, source));
   script.set_line_starts(line_starts);
+
+  if ((flags & kHasCoveredConstConstructorsFlag) != 0) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    // Any covered const constructors are read later during
+    // ReadPendingCode, which then sets the collected constant
+    // coverage for these scripts.
+    BytecodeLoader* const loader = thread_->bytecode_loader();
+    ASSERT(loader != nullptr);
+    loader->AddPendingObject(script, reader_.offset());
+#endif
+  }
 
   return script.ptr();
 }
@@ -2302,10 +2378,8 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   }
 }
 
-void BytecodeReaderHelper::ReadLibraryDeclaration(
-    const Library& library,
-    const GrowableObjectArray& pending_classes,
-    bool register_classes) {
+void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
+                                                  bool register_classes) {
   // Library flags, must be in sync with LibraryDeclaration constants in
   // pkg/dart2bytecode/lib/declarations.dart.
   // const int kUsesDartMirrorsFlag = 1 << 0;
@@ -2353,8 +2427,7 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(
 
     BytecodeLoader* loader = thread_->bytecode_loader();
     ASSERT(loader != nullptr);
-    loader->SetOffset(cls, class_offset);
-    pending_classes.Add(cls);
+    loader->AddPendingObject(cls, class_offset);
   }
 
   ASSERT(!library.Loaded());
@@ -2363,7 +2436,7 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(
 
 void BytecodeReaderHelper::ReadLibraryDeclarations(
     intptr_t num_libraries,
-    const GrowableObjectArray& pending_classes,
+    const GrowableObjectArray& pending_objects,
     bool load_code) {
   auto& library = Library::Handle(Z);
   auto& uri = String::Handle(Z);
@@ -2401,47 +2474,63 @@ void BytecodeReaderHelper::ReadLibraryDeclarations(
     ASSERT(!library.Loaded());
 
     AlternativeReadingScope alt(&reader_, library_offset);
-    ReadLibraryDeclaration(library, pending_classes, register_classes);
+    ReadLibraryDeclaration(library, register_classes);
   }
 
   if (load_code) {
-    ReadPendingCode(pending_classes);
+    ReadPendingCode(pending_objects);
   }
 }
 
 void BytecodeReaderHelper::ReadPendingCode(
-    const GrowableObjectArray& pending_classes) {
-  auto& cls = Class::Handle(Z);
+    const GrowableObjectArray& pending_objects) {
+  auto& obj = Object::Handle(Z);
   auto& error = Error::Handle(Z);
   auto& members = Array::Handle(Z);
   auto& function = Function::Handle(Z);
   auto& field = Field::Handle(Z);
-  for (intptr_t i = 0, n = pending_classes.Length(); i < n; ++i) {
-    cls ^= pending_classes.At(i);
-    error = cls.EnsureIsFinalized(thread_);
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-      UNREACHABLE();
-    }
-    members = cls.functions();
-    for (intptr_t j = 0, m = members.Length(); j < m; ++j) {
-      function ^= members.At(j);
-      if (!function.is_abstract() && !function.HasBytecode()) {
-        ReadCode(function, thread_->bytecode_loader()->GetOffset(function));
+  // Handling pending objects can end up adding new pending objects
+  // to the array, so re-retrieve the length for each iteration.
+  for (intptr_t i = 0; i < pending_objects.Length(); ++i) {
+    obj = pending_objects.At(i);
+    ASSERT(!obj.IsNull());
+    if (obj.IsClass()) {
+      const auto& cls = Class::Cast(obj);
+      error = cls.EnsureIsFinalized(thread_);
+      if (!error.IsNull()) {
+        Exceptions::PropagateError(error);
+        UNREACHABLE();
       }
-    }
-    members = cls.fields();
-    for (intptr_t j = 0, m = members.Length(); j < m; ++j) {
-      field ^= members.At(j);
-      if (field.has_nontrivial_initializer()) {
-        if (field.is_static() || field.is_late() ||
-            thread_->bytecode_loader()->HasOffset(field)) {
-          function = field.EnsureInitializerFunction();
-          if (!function.HasBytecode()) {
-            ReadCode(function, thread_->bytecode_loader()->GetOffset(field));
+      members = cls.functions();
+      for (intptr_t j = 0, m = members.Length(); j < m; ++j) {
+        function ^= members.At(j);
+        if (!function.is_abstract() && !function.HasBytecode()) {
+          ReadCode(function, thread_->bytecode_loader()->GetOffset(function));
+        }
+      }
+      members = cls.fields();
+      for (intptr_t j = 0, m = members.Length(); j < m; ++j) {
+        field ^= members.At(j);
+        if (field.has_nontrivial_initializer()) {
+          if (field.is_static() || field.is_late() ||
+              thread_->bytecode_loader()->HasOffset(field)) {
+            function = field.EnsureInitializerFunction();
+            if (!function.HasBytecode()) {
+              ReadCode(function, thread_->bytecode_loader()->GetOffset(field));
+            }
           }
         }
       }
+    } else if (obj.IsScript()) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+      const auto& script = Script::Cast(obj);
+      ReadCoveredConstConstructors(
+          script, thread_->bytecode_loader()->GetOffset(script));
+#else
+      UNREACHABLE();
+#endif
+    } else {
+      FATAL("Unexpected object %s in pending objects list", obj.ToCString());
     }
   }
 }
@@ -2873,6 +2962,13 @@ void BytecodeReader::CollectScriptTokenPositionsFromBytecode(
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+const char* BytecodeLocalVariablesIterator::kKindNames[] = {
+    "Invalid",
+    "Scope",
+    "VariableDeclaration",
+    "ContextVariable",
+};
 
 LocalVarDescriptorsPtr BytecodeReader::ComputeLocalVarDescriptors(
     Zone* zone,

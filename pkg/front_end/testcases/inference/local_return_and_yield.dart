@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'dart:async';
@@ -11,32 +10,27 @@ typedef int IntToInt(int i);
 
 main() {
   IntToInt a() {
-    return /*@returnType=int*/ (/*@type=int*/ x) => x;
+    return (x) => x;
   }
 
   Future<IntToInt> b() async {
     // TODO(paulberry): this is broken due to bug 29689.
-    return /*@ returnType=dynamic */ (/*@ type=dynamic */ x) => x;
+    return (x) => x;
   }
 
   Iterable<IntToInt> c() sync* {
-    yield /*@returnType=int*/ (/*@type=int*/ x) => x;
+    yield (x) => x;
   }
 
   Iterable<IntToInt> d() sync* {
-    yield* /*@typeArgs=(int) -> int*/ [
-      /*@returnType=int*/ (/*@type=int*/ x) => x
-    ];
+    yield* [(x) => x];
   }
 
   Stream<IntToInt> e() async* {
-    yield /*@returnType=int*/ (/*@type=int*/ x) => x;
+    yield (x) => x;
   }
 
   Stream<IntToInt> f() async* {
-    yield* new /*@typeArgs=(int) -> int*/ Stream
-        .fromIterable(/*@typeArgs=(int) -> int*/ [
-      /*@returnType=int*/ (/*@type=int*/ x) => x
-    ]);
+    yield* new Stream.fromIterable([(x) => x]);
   }
 }

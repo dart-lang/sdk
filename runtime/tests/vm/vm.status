@@ -40,6 +40,7 @@ dart/spawn_uri_aot_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart/split_aot_kernel_generation_test: Pass, Slow # Spawns several subprocesses
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/timeline_recorder_file_test: Pass, Slow
+dart/use_dwarf_stack_traces_flag_deferred_test: Pass, Slow # Spawns several subprocesses
 dart/use_dwarf_stack_traces_flag_test: Pass, Slow # Spawns several subprocesses
 
 [ $arch == ia32 ]
@@ -97,6 +98,8 @@ cc/TryCatchOptimizer_DeadParameterElimination_*: SkipByDesign # Building flow gr
 cc/TwoWayInduction: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/TypePropagator_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/WrapAroundAndDerived: SkipByDesign # Building flow graph is not supported from bytecode.
+dart/await_type_check_with_dynamic_loading_test: SkipByDesign # dart:mirrors is not supported.
+dart/redirection_type_shuffling_test: SkipByDesign # dart:mirrors is not supported.
 dart/regress_52703_test: Pass, Slow
 
 [ $compiler == dartk ]
@@ -165,6 +168,7 @@ dart/gc/fragmentation*: Skip # Uses too much memory with TSAN overhead and kills
 dart/gc/out_of_memory*: Skip # Uses too much memory with TSAN overhead and kills bot
 dart/gc/scavenger_abort_test: Skip # Uses too much memory with TSAN overhead and kills bot
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
+dart/regress47472_test: Pass, Slow # Slow due to throwing 1 million exceptions.
 dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
 dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
 dart/unobfuscated_static_symbols_test: Pass, Slow # Test includes creating several snapshots in both ELF and assembly modes.
@@ -187,6 +191,9 @@ dart/transferable_throws_oom_test: SkipByDesign # Allocating too much memory to 
 [ $system == windows ]
 cc/CorelibCompilerStats: Skip
 dart/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
+
+[ $system != windows ]
+dart/ctrlc_handling_test: SkipByDesign
 
 [ $qemu ]
 cc/ManyClasses: Slow, Pass # Generates 100k classes, slow on emulated architectures.
@@ -321,6 +328,8 @@ dart/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself
 dart/kernel_determinism_test: SkipSlow
 dart/regress_48196_test: SkipSlow
 dart/regress_52703_test: SkipSlow
+dart/use_dwarf_stack_traces_flag_deferred_test: SkipSlow
+dart/use_dwarf_stack_traces_flag_test: SkipSlow
 
 [ $compiler == dartkp && $simulator ]
 dart/awaiter_stacks/stream_methods_test/1: Pass, Slow

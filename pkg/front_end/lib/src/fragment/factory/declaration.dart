@@ -18,6 +18,7 @@ import '../../fragment/fragment.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
+import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_factory_builder.dart';
 import '../../source/source_function_builder.dart';
@@ -78,7 +79,7 @@ abstract class FactoryDeclaration {
   });
 
   void checkTypes(
-    SourceLibraryBuilder library,
+    ProblemReporting problemReporting,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   );
@@ -213,8 +214,10 @@ class FactoryDeclarationImpl
         annotatable: annotatable,
         annotatableFileUri: annotatablesFileUri,
         metadata: _fragment.metadata,
+        annotationsFileUri: _fragment.fileUri,
         bodyBuilderContext: bodyBuilderContext,
         libraryBuilder: libraryBuilder,
+        extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
         scope: _fragment.enclosingScope,
       );
     }
@@ -237,6 +240,7 @@ class FactoryDeclarationImpl
         formal.buildOutlineExpressions(
           libraryBuilder,
           factoryBuilder.declarationBuilder,
+          extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
           scope: _fragment.typeParameterScope,
           buildDefaultValue:
               FormalParameterBuilder // force line break
@@ -285,7 +289,7 @@ class FactoryDeclarationImpl
 
   @override
   void checkTypes(
-    SourceLibraryBuilder library,
+    ProblemReporting problemReporting,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {
@@ -293,9 +297,9 @@ class FactoryDeclarationImpl
       // Default values are not required on redirecting factory constructors so
       // we don't call [checkInitializersInFormals].
     } else {
-      library.checkInitializersInFormals(
-        _fragment.formals,
-        typeEnvironment,
+      problemReporting.checkInitializersInFormals(
+        formals: _fragment.formals,
+        typeEnvironment: typeEnvironment,
         isAbstract: _fragment.modifiers.isAbstract,
         isExternal: _fragment.modifiers.isExternal,
       );

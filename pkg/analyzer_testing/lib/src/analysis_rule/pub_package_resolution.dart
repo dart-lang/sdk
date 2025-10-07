@@ -25,15 +25,66 @@ import 'package:test/test.dart';
 
 typedef DiagnosticMatcher = bool Function(Diagnostic diagnostic);
 
+/// A description of a message that is expected to be reported with an error.
+class ExpectedContextMessage {
+  /// The path of the file with which the message is associated.
+  final File file;
+
+  /// The offset of the beginning of the error's region.
+  final int offset;
+
+  /// The offset of the beginning of the error's region.
+  final int length;
+
+  /// The message text for the error.
+  final String? text;
+
+  /// A list of patterns that should be contained in the message test; empty if
+  /// the message contents should not be checked.
+  final List<Pattern> textContains;
+
+  ExpectedContextMessage(
+    this.file,
+    this.offset,
+    this.length, {
+    this.text,
+    this.textContains = const [],
+  });
+
+  /// Return `true` if the [message] matches this description of what it's
+  /// expected to be.
+  bool matches(DiagnosticMessage message) {
+    if (message.filePath != file.path) {
+      return false;
+    }
+    if (message.offset != offset) {
+      return false;
+    }
+    if (message.length != length) {
+      return false;
+    }
+    var messageText = message.messageText(includeUrl: true);
+    if (text != null && messageText != text) {
+      return false;
+    }
+    for (var pattern in textContains) {
+      if (!messageText.contains(pattern)) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
 /// A description of a diagnostic that is expected to be reported.
 class ExpectedDiagnostic {
-  final DiagnosticMatcher _diagnosticMatcher;
+  final DiagnosticMatcher diagnosticMatcher;
 
   /// The offset of the beginning of the diagnostic's region.
-  final int _offset;
+  final int offset;
 
   /// The length of the diagnostic's region.
-  final int _length;
+  final int length;
 
   /// A pattern that should be contained in the diagnostic message or `null` if
   /// the message contents should not be checked.
@@ -43,20 +94,26 @@ class ExpectedDiagnostic {
   /// `null` if the correction message contents should not be checked.
   final Pattern? _correctionContains;
 
+  /// The list of context messages that are expected to be associated with the
+  /// error, or `null` if the context messages should not be checked.
+  final List<ExpectedContextMessage>? _contextMessages;
+
   ExpectedDiagnostic(
-    this._diagnosticMatcher,
-    this._offset,
-    this._length, {
+    this.diagnosticMatcher,
+    this.offset,
+    this.length, {
     Pattern? messageContains,
     Pattern? correctionContains,
-  }) : _messageContains = messageContains,
+    List<ExpectedContextMessage>? contextMessages,
+  }) : _contextMessages = contextMessages,
+       _messageContains = messageContains,
        _correctionContains = correctionContains;
 
   /// Whether the [diagnostic] matches this description of what it's expected to be.
   bool matches(Diagnostic diagnostic) {
-    if (!_diagnosticMatcher(diagnostic)) return false;
-    if (diagnostic.offset != _offset) return false;
-    if (diagnostic.length != _length) return false;
+    if (!diagnosticMatcher(diagnostic)) return false;
+    if (diagnostic.offset != offset) return false;
+    if (diagnostic.length != length) return false;
     if (_messageContains != null &&
         !diagnostic.message.contains(_messageContains)) {
       return false;
@@ -68,6 +125,17 @@ class ExpectedDiagnostic {
         return false;
       }
     }
+    if (_contextMessages != null) {
+      var actualContextMessages = diagnostic.contextMessages.toList();
+      if (actualContextMessages.length != _contextMessages.length) {
+        return false;
+      }
+      for (int i = 0; i < _contextMessages.length; i++) {
+        if (!_contextMessages[i].matches(actualContextMessages[i])) {
+          return false;
+        }
+      }
+    }
 
     return true;
   }
@@ -77,13 +145,18 @@ class ExpectedDiagnostic {
 final class ExpectedError extends ExpectedDiagnostic {
   final DiagnosticCode _code;
 
-  ExpectedError(this._code, int offset, int length, {Pattern? messageContains})
-    : super(
-        (error) => error.diagnosticCode == _code,
-        offset,
-        length,
-        messageContains: messageContains,
-      );
+  ExpectedError(
+    this._code,
+    int offset,
+    int length, {
+    super.messageContains,
+    super.correctionContains,
+    super.contextMessages,
+  }) : super(
+         (diagnostic) => diagnostic.diagnosticCode == _code,
+         offset,
+         length,
+       );
 }
 
 /// A description of an expected lint rule violation.
@@ -96,7 +169,12 @@ final class ExpectedLint extends ExpectedDiagnostic {
     int length, {
     super.messageContains,
     super.correctionContains,
-  }) : super((error) => error.diagnosticCode.name == _lintName, offset, length);
+    super.contextMessages,
+  }) : super(
+         (diagnostic) => diagnostic.diagnosticCode.name == _lintName,
+         offset,
+         length,
+       );
 }
 
 class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
@@ -110,6 +188,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   final MemoryByteStore _byteStore = _sharedByteStore;
 
   AnalysisContextCollectionImpl? _analysisContextCollection;
+
+  /// The test file being analyzed.
+  late File testFile = newFile(_testFilePath, '');
 
   /// The analysis result that is used in various `assertDiagnostics` methods.
   late ResolvedUnitResult result;
@@ -195,6 +276,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// descriptions and locations.
   ///
   /// The order in which the diagnostics were gathered is ignored.
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertDiagnostics(
     String content,
     List<ExpectedDiagnostic> expectedDiagnostics,
@@ -205,6 +289,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   /// Asserts that the diagnostics in [diagnostics] match [expectedDiagnostics].
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   void assertDiagnosticsIn(
     List<Diagnostic> diagnostics,
     List<ExpectedDiagnostic> expectedDiagnostics,
@@ -269,6 +356,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// expected error descriptions and locations.
   ///
   /// The order in which the diagnostics were gathered is ignored.
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertDiagnosticsInFile(
     String path,
     List<ExpectedDiagnostic> expectedDiagnostics,
@@ -282,6 +372,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   ///
   /// The unit at each path needs to have already been written to the file
   /// system before calling this method.
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertDiagnosticsInUnits(
     List<(String path, List<ExpectedDiagnostic> expectedDiagnostics)>
     unitsAndDiagnostics,
@@ -293,10 +386,16 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   /// Asserts that there are no diagnostics in the given [content].
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertNoDiagnostics(String content) async =>
       assertDiagnostics(content, const []);
 
   /// Asserts that there are no diagnostics in the file at the given [path].
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertNoDiagnosticsInFile(String path) async =>
       assertDiagnosticsInFile(path, const []);
 
@@ -313,7 +412,18 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
       } else {
         buffer.write('  error(${actual.diagnosticCode}, ');
       }
-      buffer.write('${actual.offset}, ${actual.length}),');
+      buffer.write('${actual.offset}, ${actual.length},');
+      if (actual.contextMessages.isNotEmpty) {
+        buffer.write(' contextMessages: [');
+        for (var contextMessage in actual.contextMessages) {
+          buffer.write('contextMessage(');
+          buffer.write("newFile('${contextMessage.filePath}'), ");
+          buffer.write('${contextMessage.offset}, ${contextMessage.length},');
+          buffer.write('), ');
+        }
+        buffer.write('],');
+      }
+      buffer.write('),');
     }
 
     return buffer.toString();
@@ -333,8 +443,8 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
       if (expected is ExpectedLint) {
         buffer.write(expected._lintName);
       }
-      buffer.write(' [${expected._offset}, ');
-      buffer.write(expected._length);
+      buffer.write(' [${expected.offset}, ');
+      buffer.write(expected.length);
       if (expected._messageContains case Pattern messageContains) {
         buffer.write(', messageContains: ');
         buffer.write(json.encode(messageContains.toString()));
@@ -466,7 +576,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   void _addTestFile(String content) {
-    newFile(_testFilePath, content);
+    testFile.writeAsStringSync(content);
   }
 
   DriverBasedAnalysisContext _contextFor(String path) {

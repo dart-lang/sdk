@@ -11,8 +11,11 @@ class Globals {
   /// Defined globals.
   final List<DefinedGlobal> defined;
 
-  /// Number of named globals.
-  final int namedCount;
+  Globals(this.imported, this.defined);
 
-  Globals(this.imported, this.defined, this.namedCount);
+  Global operator [](int index) => index < imported.length
+      ? imported[index]
+      : defined[index - imported.length];
+
+  int get length => imported.length + defined.length;
 }

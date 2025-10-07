@@ -40,8 +40,9 @@ class SelectionRangeHandler
       var unit = await requireUnresolvedUnit(path);
       return unit.mapResultSync((unit) {
         var positions = params.positions;
-        var offsets =
-            positions.map((pos) => toOffset(unit.lineInfo, pos)).errorOrResults;
+        var offsets = positions
+            .map((pos) => toOffset(unit.lineInfo, pos))
+            .errorOrResults;
         var allRanges = offsets.mapResultSync(
           (offsets) => success(_getSelectionRangesForOffsets(offsets, unit)),
         );

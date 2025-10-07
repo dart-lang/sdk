@@ -73,12 +73,13 @@ class _ErrorProducer extends KeyValueProducer {
 
   @override
   Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
-    return [
+    // There may be overlaps in these names, so use a set.
+    var names = {
       for (var diagnostic in diagnosticCodeValues)
-        identifier('${diagnostic.name.toLowerCase()}: '),
-      for (var rule in Registry.ruleRegistry.rules)
-        identifier('${rule.name}: '),
-    ];
+        diagnostic.name.toLowerCase(),
+      for (var rule in Registry.ruleRegistry.rules) rule.name,
+    };
+    return {for (var name in names) identifier('$name: ')};
   }
 }
 

@@ -37,10 +37,9 @@ class LibraryElementSuggestionBuilder
     String? prefix,
   ]) {
     var opType = request.opType;
-    var kind =
-        request.target.isFunctionalArgument()
-            ? CompletionSuggestionKind.IDENTIFIER
-            : opType.suggestKind;
+    var kind = request.target.isFunctionalArgument()
+        ? CompletionSuggestionKind.IDENTIFIER
+        : opType.suggestKind;
     return LibraryElementSuggestionBuilder._(
       request,
       builder,

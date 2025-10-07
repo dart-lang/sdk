@@ -47,6 +47,7 @@ class PluginIsolateTest with ResourceProviderMixin, _ContextRoot {
       packagesPath,
       notificationManager,
       InstrumentationService.NULL_SERVICE,
+      isLegacy: true,
     );
   }
 
@@ -133,6 +134,7 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
           packagesPath,
           notificationManager,
           InstrumentationService.NULL_SERVICE,
+          isLegacy: true,
         );
         var session = PluginSession(pluginIsolate);
         pluginIsolate.currentSession = session;
@@ -165,13 +167,16 @@ class PluginSessionTest with ResourceProviderMixin {
       packagesPath,
       notificationManager,
       InstrumentationService.NULL_SERVICE,
+      isLegacy: true,
     );
     session = PluginSession(pluginIsolate);
   }
 
   void test_handleNotification() {
-    var notification =
-        AnalysisErrorsParams('/test.dart', <AnalysisError>[]).toNotification();
+    var notification = AnalysisErrorsParams(
+      '/test.dart',
+      <AnalysisError>[],
+    ).toNotification();
     expect(notificationManager.notifications, hasLength(0));
     session.handleNotification(notification);
     expect(notificationManager.notifications, hasLength(1));

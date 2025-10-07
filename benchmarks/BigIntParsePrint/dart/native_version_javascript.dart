@@ -5,6 +5,7 @@
 @JS()
 library native_version_javascript;
 
+// ignore: deprecated_member_use
 import 'package:js/js.dart';
 import 'native_version.dart';
 

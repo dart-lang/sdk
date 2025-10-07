@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:convert" show utf8;
+import "dart:convert" show utf8, json;
 import 'dart:io' show File, Platform;
 import "dart:typed_data" show Uint8List;
 
@@ -152,520 +152,596 @@ class MessageTestSuite extends ChainContext {
   @override
   Future<List<MessageTestDescription>> list(Chain suite) {
     List<MessageTestDescription> result = [];
-    Uri uri = suite.root.resolve("messages.yaml");
+    var rootString = suite.root.toString();
+    for (var subRoot in suite.subRoots) {
+      var subRootString = subRoot.toString();
+      if (!subRootString.startsWith(rootString)) {
+        throw StateError(
+          'Expected sub-root ${json.encode(subRootString)} to start with '
+          '${json.encode(rootString)}',
+        );
+      }
+      if (!subRootString.endsWith('/')) {
+        throw StateError(
+          'Expected sub-root ${json.encode(subRootString)} to end with "/"',
+        );
+      }
+      var prefix = subRootString.substring(rootString.length);
+      result.addAll(_ListSubRoot(subRoot, prefix: prefix));
+    }
+    return Future.value(result);
+  }
+
+  List<MessageTestDescription> _ListSubRoot(
+    Uri root, {
+    required String prefix,
+  }) {
+    List<MessageTestDescription> result = [];
+    var package = root.pathSegments.lastWhere((s) => s.isNotEmpty);
+    bool analyzerCodeRequired = switch (package) {
+      '_fe_analyzer_shared' => true,
+      'front_end' => false,
+      _ => throw StateError('Unexpected package: ${json.encode(package)}'),
+    };
+    Uri uri = root.resolve("messages.yaml");
     File file = new File.fromUri(uri);
     String fileContent = file.readAsStringSync();
     YamlMap messages = loadYamlNode(fileContent, sourceUrl: uri) as YamlMap;
     for (String name in messages.keys) {
-      YamlMap messageNode = messages.nodes[name] as YamlMap;
-      dynamic message = messageNode.value;
-      if (message is String) continue;
+      try {
+        YamlMap messageNode = messages.nodes[name] as YamlMap;
+        dynamic message = messageNode.value;
+        if (message is String) continue;
 
-      List<String> unknownKeys = <String>[];
-      bool exampleAllowOtherCodes = false;
-      bool exampleAllowMultipleReports = false;
-      bool includeErrorContext = false;
-      List<Example> examples = <Example>[];
-      String? externalTest;
-      bool frontendInternal = false;
-      List<String>? analyzerCodes;
-      CfeSeverity? severity;
-      YamlNode? badSeverity;
-      YamlNode? unnecessarySeverity;
-      List<String> badHasPublishedDocsValue = <String>[];
-      List<String>? spellingMessages;
-      const String spellingPostMessage =
-          "\nIf the word(s) look okay, update "
-          "'spell_checking_list_messages.txt' or "
-          "'spell_checking_list_common.txt'.";
-      Map<ExperimentalFlag, bool>? experimentalFlags;
+        List<String> unknownKeys = <String>[];
+        bool exampleAllowOtherCodes = false;
+        bool exampleAllowMultipleReports = false;
+        bool includeErrorContext = false;
+        List<Example> examples = <Example>[];
+        String? externalTest;
+        String? analyzerCode;
+        CfeSeverity? severity;
+        YamlNode? badSeverity;
+        YamlNode? unnecessarySeverity;
+        List<String> badHasPublishedDocsValue = <String>[];
+        List<String>? spellingMessages;
+        const String spellingPostMessage =
+            "\nIf the word(s) look okay, update "
+            "'spell_checking_list_messages.txt' or "
+            "'spell_checking_list_common.txt'.";
+        Map<ExperimentalFlag, bool>? experimentalFlags;
 
-      Source? source;
-      List<String> formatSpellingMistakes(
-        spell.SpellingResult spellResult,
-        int offset,
-        String message,
-        String messageForDenyListed,
-      ) {
-        if (source == null) {
-          Uint8List bytes = file.readAsBytesSync();
-          List<int> lineStarts = <int>[];
-          int indexOf = 0;
-          while (indexOf >= 0) {
-            lineStarts.add(indexOf);
-            indexOf = bytes.indexOf(10, indexOf + 1);
+        Source? source;
+        List<String> formatSpellingMistakes(
+          spell.SpellingResult spellResult,
+          int offset,
+          String message,
+          String messageForDenyListed,
+        ) {
+          if (source == null) {
+            Uint8List bytes = file.readAsBytesSync();
+            List<int> lineStarts = <int>[];
+            int indexOf = 0;
+            while (indexOf >= 0) {
+              lineStarts.add(indexOf);
+              indexOf = bytes.indexOf(10, indexOf + 1);
+            }
+            lineStarts.add(bytes.length);
+            source = new Source(lineStarts, bytes, uri, uri);
           }
-          lineStarts.add(bytes.length);
-          source = new Source(lineStarts, bytes, uri, uri);
-        }
-        List<String> result = <String>[];
-        for (int i = 0; i < spellResult.misspelledWords!.length; i++) {
-          Location location = source!.getLocation(
-            uri,
-            offset + spellResult.misspelledWordsOffset![i],
-          );
-          bool denylisted = spellResult.misspelledWordsDenylisted![i];
-          String messageToUse = message;
-          if (denylisted) {
-            messageToUse = messageForDenyListed;
-            reportedWordsDenylisted.add(spellResult.misspelledWords![i]);
-          } else {
-            reportedWordsAndAlternatives[spellResult.misspelledWords![i]] =
-                spellResult.misspelledWordsAlternatives![i];
-          }
-          result.add(
-            command_line_reporting.formatErrorMessage(
-              source!.getTextLine(location.line),
-              location,
-              spellResult.misspelledWords![i].length,
-              relativize(uri),
-              "$messageToUse: '${spellResult.misspelledWords![i]}'.",
-            ),
-          );
-        }
-        return result;
-      }
-
-      for (String key in message.keys) {
-        YamlNode node = message.nodes[key];
-        var value = node.value;
-        // When positions matter, use node.span.text.
-        // When using node.span.text, replace r"\n" with "\n\n" to replace two
-        // characters with two characters without actually having the string
-        // "backslash n".
-        switch (key) {
-          case "problemMessage":
-            if (skipSpellCheck) continue;
-            spell.SpellingResult spellingResult = spell.spellcheckString(
-              node.span.text.replaceAll(r"\n", "\n\n"),
-              dictionaries: const [
-                spell.Dictionaries.common,
-                spell.Dictionaries.cfeMessages,
-              ],
+          List<String> result = <String>[];
+          for (int i = 0; i < spellResult.misspelledWords!.length; i++) {
+            Location location = source!.getLocation(
+              uri,
+              offset + spellResult.misspelledWordsOffset![i],
             );
-            if (spellingResult.misspelledWords != null) {
-              spellingMessages ??= <String>[];
-              spellingMessages.addAll(
-                formatSpellingMistakes(
-                  spellingResult,
-                  node.span.start.offset,
-                  "problemMessage has the following word that is "
-                      "not in our dictionary",
-                  "problemMessage has the following word that is "
-                      "on our deny-list",
-                ),
-              );
-            }
-            break;
-
-          case "correctionMessage":
-            if (skipSpellCheck) continue;
-            spell.SpellingResult spellingResult = spell.spellcheckString(
-              node.span.text.replaceAll(r"\n", "\n\n"),
-              dictionaries: const [
-                spell.Dictionaries.common,
-                spell.Dictionaries.cfeMessages,
-              ],
-            );
-            if (spellingResult.misspelledWords != null) {
-              spellingMessages ??= <String>[];
-              spellingMessages.addAll(
-                formatSpellingMistakes(
-                  spellingResult,
-                  node.span.start.offset,
-                  "correctionMessage has the following word that is "
-                      "not in our dictionary",
-                  "correctionMessage has the following word that is "
-                      "on our deny-list",
-                ),
-              );
-            }
-            break;
-
-          case "severity":
-            severity = severityEnumValues[value];
-            if (severity == null) {
-              badSeverity = node;
-            } else if (severity == CfeSeverity.error) {
-              unnecessarySeverity = node;
-            }
-            break;
-
-          case "frontendInternal":
-            frontendInternal = value;
-            break;
-
-          case "analyzerCode":
-            analyzerCodes = value is String
-                ? <String>[value]
-                : new List<String>.from(value);
-            break;
-
-          case "sharedName":
-            if (value is! String) {
-              throw new ArgumentError('sharedName should be a string: $value.');
-            }
-            break;
-
-          case "exampleAllowOtherCodes":
-            if (value is! bool) {
-              throw new ArgumentError(
-                'exampleAllowOtherCodes should be a bool: '
-                '"$value" (${node.span.start.toolString}).',
-              );
-            }
-            exampleAllowOtherCodes = value;
-            break;
-
-          case "exampleAllowMultipleReports":
-            if (value is! bool) {
-              throw new ArgumentError(
-                'exampleAllowMultipleReports should be a bool: '
-                '"$value" (${node.span.start.toolString}).',
-              );
-            }
-            exampleAllowMultipleReports = value;
-            break;
-
-          case "includeErrorContext":
-            if (value is! bool) {
-              throw new ArgumentError(
-                'includeErrorContext should be a bool: '
-                '"$value" (${node.span.start.toolString}).',
-              );
-            }
-            includeErrorContext = value;
-            break;
-
-          case "bytes":
-            YamlList list = node as YamlList;
-            if (list.first is List) {
-              for (YamlNode bytes in list.nodes) {
-                int i = 0;
-                examples.add(
-                  new BytesExample("bytes${++i}", name, bytes as YamlList),
-                );
-              }
+            bool denylisted = spellResult.misspelledWordsDenylisted![i];
+            String messageToUse = message;
+            if (denylisted) {
+              messageToUse = messageForDenyListed;
+              reportedWordsDenylisted.add(spellResult.misspelledWords![i]);
             } else {
-              examples.add(new BytesExample("bytes", name, list));
+              reportedWordsAndAlternatives[spellResult.misspelledWords![i]] =
+                  spellResult.misspelledWordsAlternatives![i];
             }
-            break;
+            result.add(
+              command_line_reporting.formatErrorMessage(
+                source!.getTextLine(location.line),
+                location,
+                spellResult.misspelledWords![i].length,
+                relativize(uri),
+                "$messageToUse: '${spellResult.misspelledWords![i]}'.",
+              ),
+            );
+          }
+          return result;
+        }
 
-          case "declaration":
-            if (node is YamlList) {
-              int i = 0;
-              for (YamlNode declaration in node.nodes) {
-                examples.add(
-                  new DeclarationExample(
-                    "declaration${++i}",
-                    name,
-                    declaration,
+        for (String key in message.keys) {
+          YamlNode node = message.nodes[key];
+          var value = node.value;
+          // When positions matter, use node.span.text.
+          // When using node.span.text, replace r"\n" with "\n\n" to replace two
+          // characters with two characters without actually having the string
+          // "backslash n".
+          switch (key) {
+            case "problemMessage":
+              if (skipSpellCheck) continue;
+              spell.SpellingResult spellingResult = spell.spellcheckString(
+                node.span.text.replaceAll(r"\n", "\n\n"),
+                dictionaries: const [
+                  spell.Dictionaries.common,
+                  spell.Dictionaries.cfeMessages,
+                ],
+              );
+              if (spellingResult.misspelledWords != null) {
+                spellingMessages ??= <String>[];
+                spellingMessages.addAll(
+                  formatSpellingMistakes(
+                    spellingResult,
+                    node.span.start.offset,
+                    "problemMessage has the following word that is "
+                        "not in our dictionary",
+                    "problemMessage has the following word that is "
+                        "on our deny-list",
                   ),
                 );
               }
-            } else {
-              examples.add(new DeclarationExample("declaration", name, node));
-            }
-            break;
+              break;
 
-          case "expression":
-            if (node is YamlList) {
-              int i = 0;
-              for (YamlNode expression in node.nodes) {
-                examples.add(
-                  new ExpressionExample("expression${++i}", name, expression),
-                );
-              }
-            } else {
-              examples.add(new ExpressionExample("expression", name, node));
-            }
-            break;
-
-          case "script":
-            if (node is YamlList) {
-              int i = 0;
-              for (YamlNode script in node.nodes) {
-                examples.add(
-                  new ScriptExample("script${++i}", name, script, this),
-                );
-              }
-            } else {
-              examples.add(new ScriptExample("script", name, node, this));
-            }
-            break;
-
-          case "statement":
-            if (node is YamlList) {
-              int i = 0;
-              for (YamlNode statement in node.nodes) {
-                examples.add(
-                  new StatementExample("statement${++i}", name, statement),
-                );
-              }
-            } else {
-              examples.add(new StatementExample("statement", name, node));
-            }
-            break;
-
-          case "external":
-            externalTest = node.value;
-            break;
-
-          case "index":
-            // index is validated during generation
-            break;
-
-          case "hasPublishedDocs":
-            if (value != true) {
-              badHasPublishedDocsValue.add(name);
-            }
-            break;
-
-          case "experiments":
-            if (value is String) {
-              experimentalFlags = parseExperimentalFlags(
-                parseExperimentalArguments(value.split(',')),
-                onError: (message) => throw new ArgumentError(message),
+            case "correctionMessage":
+              if (skipSpellCheck) continue;
+              spell.SpellingResult spellingResult = spell.spellcheckString(
+                node.span.text.replaceAll(r"\n", "\n\n"),
+                dictionaries: const [
+                  spell.Dictionaries.common,
+                  spell.Dictionaries.cfeMessages,
+                ],
               );
-            } else {
-              throw new ArgumentError("Unknown experiments value: $value.");
-            }
-            break;
+              if (spellingResult.misspelledWords != null) {
+                spellingMessages ??= <String>[];
+                spellingMessages.addAll(
+                  formatSpellingMistakes(
+                    spellingResult,
+                    node.span.start.offset,
+                    "correctionMessage has the following word that is "
+                        "not in our dictionary",
+                    "correctionMessage has the following word that is "
+                        "on our deny-list",
+                  ),
+                );
+              }
+              break;
 
-          case "documentation":
-            if (value is! String) {
-              throw new ArgumentError(
-                'documentation should be a string: $value.',
-              );
-            }
-            break;
+            case "severity":
+              severity = severityEnumValues[value];
+              if (severity == null) {
+                badSeverity = node;
+              } else if (severity == CfeSeverity.error) {
+                unnecessarySeverity = node;
+              }
+              break;
 
-          case "comment":
-            if (value is! String) {
-              throw new ArgumentError('comment should be a string: $value.');
-            }
-            break;
+            case "frontendInternal":
+              break;
 
-          default:
-            unknownKeys.add(key);
-        }
-      }
+            case "analyzerCode":
+              if (value is! String) {
+                throw new ArgumentError(
+                  'analyzerCode should be a string: $value',
+                );
+              }
+              if (value.split('.') case [
+                _,
+                var diagnosticName,
+              ] when diagnosticName == diagnosticName.toUpperCase()) {
+                // ok
+              } else {
+                throw new ArgumentError(
+                  'analyzerCode should take the form ClassName.DIAGNOSTIC_NAME',
+                );
+              }
+              analyzerCode = value;
+              if (!analyzerCodeRequired) {
+                throw new ArgumentError(
+                  'analyzerCode not allowed in package ${json.encode(package)}',
+                );
+              }
+              break;
 
-      if (exampleAllowOtherCodes) {
-        // Update all examples.
-        for (Example example in examples) {
-          example.allowOtherCodes = exampleAllowOtherCodes;
-        }
-      }
-      if (exampleAllowMultipleReports) {
-        // Update all examples.
-        for (Example example in examples) {
-          example.allowMultipleReports = exampleAllowMultipleReports;
-        }
-      }
-      if (includeErrorContext) {
-        // Update all examples.
-        for (Example example in examples) {
-          example.includeErrorContext = includeErrorContext;
-        }
-      }
+            case "sharedName":
+              if (value is! String) {
+                throw new ArgumentError(
+                  'sharedName should be a string: $value.',
+                );
+              }
+              break;
 
-      for (Example example in examples) {
-        example.experimentalFlags =
-            experimentalFlags ?? defaultExperimentalFlags;
-      }
+            case "exampleAllowOtherCodes":
+              if (value is! bool) {
+                throw new ArgumentError(
+                  'exampleAllowOtherCodes should be a bool: '
+                  '"$value" (${node.span.start.toolString}).',
+                );
+              }
+              exampleAllowOtherCodes = value;
+              break;
 
-      MessageTestDescription createDescription(
-        String subName,
-        Example? example,
-        ({String message, KnownExpectation expectation})? problem, {
-        location,
-      }) {
-        String shortName = "$name/$subName";
-        if (problem != null) {
-          String filename = relativize(uri);
-          location ??= message.span.start;
-          int line = location.line + 1;
-          int column = location.column;
-          problem = (
-            message: "$filename:$line:$column: error:\n${problem.message}",
-            expectation: problem.expectation,
-          );
-        }
-        return new MessageTestDescription(
-          uri.resolve("#$shortName"),
-          shortName,
-          name,
-          messageNode,
-          example,
-          problem,
-        );
-      }
+            case "exampleAllowMultipleReports":
+              if (value is! bool) {
+                throw new ArgumentError(
+                  'exampleAllowMultipleReports should be a bool: '
+                  '"$value" (${node.span.start.toolString}).',
+                );
+              }
+              exampleAllowMultipleReports = value;
+              break;
 
-      if (!fastOnly) {
-        for (Example example in examples) {
-          result.add(createDescription(example.name, example, null));
-        }
-        // "Wrap" example as a part.
-        for (Example example in examples) {
-          Script originalMainScript = example.scripts[example.mainFilename]!;
-          String? originalSource = originalMainScript.sourceWithoutPreamble;
-          if (originalSource != null &&
-              (originalSource.contains("import ") ||
-                  originalSource.contains("part ") ||
-                  originalSource.contains("export ") ||
-                  originalSource.contains("library "))) {
-            continue;
+            case "includeErrorContext":
+              if (value is! bool) {
+                throw new ArgumentError(
+                  'includeErrorContext should be a bool: '
+                  '"$value" (${node.span.start.toolString}).',
+                );
+              }
+              includeErrorContext = value;
+              break;
+
+            case "bytes":
+              YamlList list = node as YamlList;
+              if (list.first is List) {
+                for (YamlNode bytes in list.nodes) {
+                  int i = 0;
+                  examples.add(
+                    new BytesExample("bytes${++i}", name, bytes as YamlList),
+                  );
+                }
+              } else {
+                examples.add(new BytesExample("bytes", name, list));
+              }
+              break;
+
+            case "declaration":
+              if (node is YamlList) {
+                int i = 0;
+                for (YamlNode declaration in node.nodes) {
+                  examples.add(
+                    new DeclarationExample(
+                      "declaration${++i}",
+                      name,
+                      declaration,
+                    ),
+                  );
+                }
+              } else {
+                examples.add(new DeclarationExample("declaration", name, node));
+              }
+              break;
+
+            case "expression":
+              if (node is YamlList) {
+                int i = 0;
+                for (YamlNode expression in node.nodes) {
+                  examples.add(
+                    new ExpressionExample("expression${++i}", name, expression),
+                  );
+                }
+              } else {
+                examples.add(new ExpressionExample("expression", name, node));
+              }
+              break;
+
+            case "script":
+              if (node is YamlList) {
+                int i = 0;
+                for (YamlNode script in node.nodes) {
+                  examples.add(
+                    new ScriptExample("script${++i}", name, script, this),
+                  );
+                }
+              } else {
+                examples.add(new ScriptExample("script", name, node, this));
+              }
+              break;
+
+            case "statement":
+              if (node is YamlList) {
+                int i = 0;
+                for (YamlNode statement in node.nodes) {
+                  examples.add(
+                    new StatementExample("statement${++i}", name, statement),
+                  );
+                }
+              } else {
+                examples.add(new StatementExample("statement", name, node));
+              }
+              break;
+
+            case "external":
+              externalTest = node.value;
+              break;
+
+            case "index":
+              // index is validated during generation
+              break;
+
+            case "hasPublishedDocs":
+              if (value != true) {
+                badHasPublishedDocsValue.add(name);
+              }
+              break;
+
+            case "experiments":
+              if (value is String) {
+                experimentalFlags = parseExperimentalFlags(
+                  parseExperimentalArguments(value.split(',')),
+                  onError: (message) => throw new ArgumentError(message),
+                );
+              } else {
+                throw new ArgumentError("Unknown experiments value: $value.");
+              }
+              break;
+
+            case "documentation":
+              if (value is! String) {
+                throw new ArgumentError(
+                  'documentation should be a string: $value.',
+                );
+              }
+              break;
+
+            case "comment":
+              if (value is! String) {
+                throw new ArgumentError('comment should be a string: $value.');
+              }
+              break;
+
+            case 'parameters':
+              switch (value) {
+                case 'none':
+                  break;
+                case YamlMap():
+                  for (var parameterDoc in value.values) {
+                    if (parameterDoc is! String) {
+                      throw new ArgumentError(
+                        'parameter documentation should be a string: '
+                        '$parameterDoc',
+                      );
+                    }
+                  }
+                default:
+                  throw new ArgumentError(
+                    'parameters should be a map or `none`: $value.',
+                  );
+              }
+
+            case 'pseudoSharedCode':
+              if (value is! String) {
+                throw new ArgumentError(
+                  'pseudoSharedCode should be a String: $value.',
+                );
+              }
+              break;
+
+            default:
+              unknownKeys.add(key);
           }
-          result.add(
-            createDescription(
-              "part_wrapped_${example.name}",
-              new PartWrapExample(
-                "part_wrapped_${example.name}",
-                name,
-                exampleAllowOtherCodes,
-                exampleAllowMultipleReports,
-                includeErrorContext,
-                example,
-              ),
-              null,
-            ),
+        }
+
+        if (exampleAllowOtherCodes) {
+          // Update all examples.
+          for (Example example in examples) {
+            example.allowOtherCodes = exampleAllowOtherCodes;
+          }
+        }
+        if (exampleAllowMultipleReports) {
+          // Update all examples.
+          for (Example example in examples) {
+            example.allowMultipleReports = exampleAllowMultipleReports;
+          }
+        }
+        if (includeErrorContext) {
+          // Update all examples.
+          for (Example example in examples) {
+            example.includeErrorContext = includeErrorContext;
+          }
+        }
+
+        for (Example example in examples) {
+          example.experimentalFlags =
+              experimentalFlags ?? defaultExperimentalFlags;
+        }
+
+        MessageTestDescription createDescription(
+          String subName,
+          Example? example,
+          ({String message, KnownExpectation expectation})? problem, {
+          location,
+        }) {
+          String shortName = "$prefix$name/$subName";
+          if (problem != null) {
+            String filename = relativize(uri);
+            location ??= message.span.start;
+            int line = location.line + 1;
+            int column = location.column;
+            problem = (
+              message: "$filename:$line:$column: error:\n${problem.message}",
+              expectation: problem.expectation,
+            );
+          }
+          return new MessageTestDescription(
+            uri.resolve("#$shortName"),
+            shortName,
+            name,
+            messageNode,
+            example,
+            problem,
           );
         }
+
+        if (!fastOnly) {
+          for (Example example in examples) {
+            result.add(createDescription(example.name, example, null));
+          }
+          // "Wrap" example as a part.
+          for (Example example in examples) {
+            Script originalMainScript = example.scripts[example.mainFilename]!;
+            String? originalSource = originalMainScript.sourceWithoutPreamble;
+            if (originalSource != null &&
+                (originalSource.contains("import ") ||
+                    originalSource.contains("part ") ||
+                    originalSource.contains("export ") ||
+                    originalSource.contains("library "))) {
+              continue;
+            }
+            result.add(
+              createDescription(
+                "part_wrapped_${example.name}",
+                new PartWrapExample(
+                  "part_wrapped_${example.name}",
+                  name,
+                  exampleAllowOtherCodes,
+                  exampleAllowMultipleReports,
+                  includeErrorContext,
+                  example,
+                ),
+                null,
+              ),
+            );
+          }
+        }
+
+        result.add(
+          createDescription(
+            "knownKeys",
+            null,
+            unknownKeys.isNotEmpty
+                ? (
+                    expectation: KnownExpectation.unknownKey,
+                    message: "Unknown keys: ${unknownKeys.join(' ')}.",
+                  )
+                : null,
+          ),
+        );
+
+        result.add(
+          createDescription(
+            'hasPublishedDocs',
+            null,
+            badHasPublishedDocsValue.isNotEmpty
+                ? (
+                    expectation: KnownExpectation.badValue,
+                    message:
+                        "Bad hasPublishedDocs value (only 'true' supported) in:"
+                        " ${badHasPublishedDocsValue.join(', ')}",
+                  )
+                : null,
+          ),
+        );
+
+        result.add(
+          createDescription(
+            "severity",
+            null,
+            badSeverity != null
+                ? (
+                    expectation: KnownExpectation.unknownSeverity,
+                    message: "Unknown severity: '${badSeverity.value}'.",
+                  )
+                : null,
+            location: badSeverity?.span.start,
+          ),
+        );
+
+        result.add(
+          createDescription(
+            "unnecessarySeverity",
+            null,
+            unnecessarySeverity != null
+                ? (
+                    expectation: KnownExpectation.unnecessarySeverity,
+                    message:
+                        "The 'ERROR' severity is the default and not "
+                        "necessary.",
+                  )
+                : null,
+            location: unnecessarySeverity?.span.start,
+          ),
+        );
+
+        result.add(
+          createDescription(
+            "spelling",
+            null,
+            spellingMessages != null
+                ? (
+                    expectation: KnownExpectation.spellingError,
+                    message: spellingMessages.join("\n") + spellingPostMessage,
+                  )
+                : null,
+          ),
+        );
+
+        bool exampleRequired =
+            severity != CfeSeverity.context &&
+            severity != CfeSeverity.internalProblem &&
+            severity != CfeSeverity.ignored;
+
+        result.add(
+          createDescription(
+            "externalExample",
+            null,
+            exampleRequired &&
+                    externalTest != null &&
+                    !(new File.fromUri(root.resolve(externalTest)).existsSync())
+                ? (
+                    expectation: KnownExpectation.missingExternalFile,
+                    message:
+                        "Given external example for $name points to a "
+                        "nonexisting file  "
+                        "(${root.resolve(externalTest)}).",
+                  )
+                : null,
+          ),
+        );
+
+        result.add(
+          createDescription(
+            "example",
+            null,
+            exampleRequired && examples.isEmpty && externalTest == null
+                ? (
+                    expectation: KnownExpectation.missingExample,
+                    message:
+                        "No example for $name, please add at least one "
+                        "example.",
+                  )
+                : null,
+          ),
+        );
+
+        result.add(
+          createDescription(
+            "analyzerCode",
+            null,
+            analyzerCodeRequired && analyzerCode == null
+                ? (
+                    expectation: KnownExpectation.missingAnalyzerCode,
+                    message:
+                        "No analyzer code for $name."
+                        "\nTry running"
+                        " <BUILDDIR>/dart-sdk/bin/dart analyzer --format=machine"
+                        " on an example to find the code."
+                        " The code is printed just before the file name.",
+                  )
+                : null,
+          ),
+        );
+      } catch (e, st) {
+        Error.throwWithStackTrace('While processing $name: $e', st);
       }
-
-      result.add(
-        createDescription(
-          "knownKeys",
-          null,
-          unknownKeys.isNotEmpty
-              ? (
-                  expectation: KnownExpectation.unknownKey,
-                  message: "Unknown keys: ${unknownKeys.join(' ')}.",
-                )
-              : null,
-        ),
-      );
-
-      result.add(
-        createDescription(
-          'hasPublishedDocs',
-          null,
-          badHasPublishedDocsValue.isNotEmpty
-              ? (
-                  expectation: KnownExpectation.badValue,
-                  message:
-                      "Bad hasPublishedDocs value (only 'true' supported) in:"
-                      " ${badHasPublishedDocsValue.join(', ')}",
-                )
-              : null,
-        ),
-      );
-
-      result.add(
-        createDescription(
-          "severity",
-          null,
-          badSeverity != null
-              ? (
-                  expectation: KnownExpectation.unknownSeverity,
-                  message: "Unknown severity: '${badSeverity.value}'.",
-                )
-              : null,
-          location: badSeverity?.span.start,
-        ),
-      );
-
-      result.add(
-        createDescription(
-          "unnecessarySeverity",
-          null,
-          unnecessarySeverity != null
-              ? (
-                  expectation: KnownExpectation.unnecessarySeverity,
-                  message:
-                      "The 'ERROR' severity is the default and not necessary.",
-                )
-              : null,
-          location: unnecessarySeverity?.span.start,
-        ),
-      );
-
-      result.add(
-        createDescription(
-          "spelling",
-          null,
-          spellingMessages != null
-              ? (
-                  expectation: KnownExpectation.spellingError,
-                  message: spellingMessages.join("\n") + spellingPostMessage,
-                )
-              : null,
-        ),
-      );
-
-      bool exampleAndAnalyzerCodeRequired =
-          severity != CfeSeverity.context &&
-          severity != CfeSeverity.internalProblem &&
-          severity != CfeSeverity.ignored;
-
-      result.add(
-        createDescription(
-          "externalExample",
-          null,
-          exampleAndAnalyzerCodeRequired &&
-                  externalTest != null &&
-                  !(new File.fromUri(
-                    suite.root.resolve(externalTest),
-                  ).existsSync())
-              ? (
-                  expectation: KnownExpectation.missingExternalFile,
-                  message:
-                      "Given external example for $name points to a "
-                      "nonexisting file  "
-                      "(${suite.root.resolve(externalTest)}).",
-                )
-              : null,
-        ),
-      );
-
-      result.add(
-        createDescription(
-          "example",
-          null,
-          exampleAndAnalyzerCodeRequired &&
-                  examples.isEmpty &&
-                  externalTest == null
-              ? (
-                  expectation: KnownExpectation.missingExample,
-                  message:
-                      "No example for $name, please add at least one example.",
-                )
-              : null,
-        ),
-      );
-
-      result.add(
-        createDescription(
-          "analyzerCode",
-          null,
-          exampleAndAnalyzerCodeRequired &&
-                  !frontendInternal &&
-                  analyzerCodes == null
-              ? (
-                  expectation: KnownExpectation.missingAnalyzerCode,
-                  message:
-                      "No analyzer code for $name."
-                      "\nTry running"
-                      " <BUILDDIR>/dart-sdk/bin/dart analyzer --format=machine"
-                      " on an example to find the code."
-                      " The code is printed just before the file name.",
-                )
-              : null,
-        ),
-      );
     }
-    return Future.value(result);
+    return result;
   }
 
   String formatProblems(

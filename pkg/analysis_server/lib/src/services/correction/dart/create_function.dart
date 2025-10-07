@@ -24,7 +24,7 @@ class CreateFunction extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_functionName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_FUNCTION;
+  FixKind get fixKind => DartFixKind.createFunction;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -273,13 +273,12 @@ class JsUtilOptimizer extends Transformer {
     } else {
       // Do the lowerings for top-levels, static class members, and
       // constructors/factories.
-      var dottedPrefix = _getDottedPrefixForStaticallyResolvableMember(node);
+      var prefixSelectors = _getPrefixSelectorsForStaticallyResolvableMember(
+        node,
+      );
 
-      if (dottedPrefix != null) {
-        var receiver = _getObjectOffGlobalContext(
-          node,
-          dottedPrefix.isEmpty ? [] : dottedPrefix.split('.'),
-        );
+      if (prefixSelectors != null) {
+        var receiver = _getNestedValueInGlobalContext(prefixSelectors);
         var shouldTrustType =
             node.enclosingClass != null &&
             hasTrustTypesAnnotation(node.enclosingClass!);
@@ -291,18 +290,15 @@ class JsUtilOptimizer extends Transformer {
           return _getExternalMethodTreatment(node, shouldTrustType, receiver);
         } else if (_extensionIndex.isNonLiteralConstructor(node)) {
           // Get the constructor object using the class name.
-          return _getExternalConstructorTreatment(
-            node,
-            _getObjectOffGlobalContext(node, dottedPrefix.split('.')),
-          );
+          return _getExternalConstructorTreatment(node, receiver);
         }
       }
     }
     return _Treatment.none;
   }
 
-  /// Returns the prefixed JS name for the given [node] using the enclosing
-  /// library's, enclosing class' (if any), and member's `@JS` values.
+  /// Returns the prefixed selectors for the given [node] using the enclosing
+  /// library's and enclosing type's (if any) `@JS` values.
   ///
   /// Returns null if [node] is not external and one of:
   /// 1. A top-level member
@@ -310,57 +306,52 @@ class JsUtilOptimizer extends Transformer {
   /// 3. A `@staticInterop` static member
   /// 4. A `@JS` extension type constructor
   /// 5. A `@JS` extension type static member
-  String? _getDottedPrefixForStaticallyResolvableMember(Procedure node) {
+  List<String>? _getPrefixSelectorsForStaticallyResolvableMember(
+    Procedure node,
+  ) {
     if (!node.isExternal || node.isExtensionMember) return null;
 
-    var dottedPrefix = getJSName(node.enclosingLibrary);
+    final libraryName = getJSName(node.enclosingLibrary);
+    final librarySelectors = libraryName.isEmpty
+        ? <String>[]
+        : libraryName.split('.');
 
-    if (!node.isExtensionTypeMember &&
-        node.enclosingClass == null &&
-        (hasDartJSInteropAnnotation(node) ||
-            hasDartJSInteropAnnotation(node.enclosingLibrary))) {
-      // If the `@JS` value of the node has any '.'s, we take the entries
-      // before the last '.' to determine the dotted prefix name.
-      var jsName = getJSName(node);
-      if (jsName.isNotEmpty) {
-        var lastDotIndex = jsName.lastIndexOf('.');
-        if (lastDotIndex != -1) {
-          dottedPrefix = concatenateJSNames(
-            dottedPrefix,
-            jsName.substring(0, lastDotIndex),
-          );
-        }
+    if (!node.isExtensionTypeMember && node.enclosingClass == null) {
+      // Top-level.
+      if (hasDartJSInteropAnnotation(node) ||
+          hasDartJSInteropAnnotation(node.enclosingLibrary)) {
+        return librarySelectors;
       }
+      return null;
     } else {
-      Annotatable enclosingClass;
+      // Type member.
+      Annotatable enclosingType;
       if (node.isExtensionTypeMember) {
-        var descriptor = _extensionIndex.getExtensionTypeDescriptor(node);
+        final descriptor = _extensionIndex.getExtensionTypeDescriptor(node);
         if (descriptor == null ||
             (!descriptor.isStatic &&
                 descriptor.kind != ExtensionTypeMemberKind.Constructor &&
                 descriptor.kind != ExtensionTypeMemberKind.Factory)) {
           return null;
         }
-        enclosingClass = _extensionIndex.getExtensionType(node)!;
+        enclosingType = _extensionIndex.getExtensionType(node)!;
       } else if (node.enclosingClass != null &&
           hasStaticInteropAnnotation(node.enclosingClass!)) {
         if (!node.isFactory && !node.isStatic) return null;
-        enclosingClass = node.enclosingClass!;
+        enclosingType = node.enclosingClass!;
       } else {
         return null;
       }
-      // `@staticInterop` or `@JS` extension type
-      // factory/constructor/static member, use the class name as part of the
-      // dotted prefix.
-      var className = getJSName(enclosingClass);
-      if (className.isEmpty) {
-        className = enclosingClass is Class
-            ? enclosingClass.name
-            : (enclosingClass as ExtensionTypeDeclaration).name;
+      // If `@staticInterop` or `@JS` extension type factory/constructor/static
+      // member, add the type name to the dotted prefix.
+      var typeName = getJSName(enclosingType);
+      if (typeName.isEmpty) {
+        typeName = enclosingType is Class
+            ? enclosingType.name
+            : (enclosingType as ExtensionTypeDeclaration).name;
       }
-      dottedPrefix = concatenateJSNames(dottedPrefix, className);
+      return [...librarySelectors, ...typeName.split('.')];
     }
-    return dottedPrefix;
   }
 
   // TODO(srujzs): It feels weird to have this be public, but it's weirder to
@@ -374,26 +365,29 @@ class JsUtilOptimizer extends Transformer {
     return '$prefix.$suffix';
   }
 
-  /// Given a list of strings, [selectors], recursively fetches the property
-  /// that corresponds to each string off of the global context.
+  /// Given an initial JS value, [jsValue], for each property in [selectors],
+  /// creates an expression that fetches the property value from the previously
+  /// fetched JS value.
   ///
-  /// Returns an expression that contains the nested property gets.
-  Expression _getObjectOffGlobalContext(
-    Procedure node,
+  /// The property accesses are unchecked.
+  ///
+  /// If [selectors] is empty, returns [jsValue]. Otherwise, returns the nested
+  /// expression.
+  Expression _getNestedValueInJSValue(
     List<String> selectors,
+    Expression jsValue,
   ) {
-    Expression currentTarget = StaticGet(_globalContextTarget);
     for (String selector in selectors) {
-      currentTarget = StaticInvocation(
+      jsValue = StaticInvocation(
         _getPropertyTrustTypeTarget,
-        Arguments(
-          [currentTarget, StringLiteral(selector)],
-          types: [_objectType],
-        ),
+        Arguments([jsValue, StringLiteral(selector)], types: [_objectType]),
       );
     }
-    return currentTarget;
+    return jsValue;
   }
+
+  Expression _getNestedValueInGlobalContext(List<String> selectors) =>
+      _getNestedValueInJSValue(selectors, StaticGet(_globalContextTarget));
 
   /// Convert a procedure from an external method to a stub method with [value]
   /// as the expression body.
@@ -412,7 +406,10 @@ class JsUtilOptimizer extends Transformer {
   /// [shouldTrustType] is true, the builder creates a variant that does not
   /// check the return type. If [staticReceiver] is non-null, the builder uses
   /// that instead of the first positional argument as the receiver for
-  /// `js_util.getProperty`.
+  /// `js_util.getProperty`. If the member has an `@JS` rename that contains
+  /// multiple selectors, fetches the value right before the last selector using
+  /// `js_util.getPropertyTrustType` and treats that as the receiver, similar to
+  /// library or type renames.
   _Treatment _getExternalGetterTreatment(
     Procedure node,
     bool shouldTrustType, [
@@ -421,10 +418,15 @@ class JsUtilOptimizer extends Transformer {
     final target = shouldTrustType
         ? _getPropertyTrustTypeTarget
         : _getPropertyTarget;
-    assert(
-      _extensionIndex.isInstanceInteropMember(node) == (staticReceiver == null),
-    );
-    final name = _getMemberJSName(node);
+    final isInstanceMember = _extensionIndex.isInstanceInteropMember(node);
+    assert(isInstanceMember == (staticReceiver == null));
+    final selectors = _getMemberJSNameSelectors(node);
+    final name = selectors.removeLast();
+    if (!isInstanceMember) {
+      // Receiver is known ahead of time, so pre-compute.
+      staticReceiver = _getNestedValueInJSValue(selectors, staticReceiver!);
+      selectors.clear();
+    }
 
     if (_preferStub(node)) {
       // Update procedure to be a stub with a synthesized body
@@ -434,9 +436,11 @@ class JsUtilOptimizer extends Transformer {
       return _Treatment.update((Procedure procedure) {
         assert(node == procedure);
         final function = node.function;
-        final receiver = staticReceiver == null
-            ? VariableGet(function.positionalParameters.single)
-            : _cloner.clone(staticReceiver);
+        final (receiver, positional) = _splitOutReceiver(staticReceiver, [
+          if (staticReceiver == null)
+            VariableGet(function.positionalParameters.single),
+        ], selectors);
+        assert(positional.isEmpty);
         final property = StringLiteral(name);
         final expression = StaticInvocation(
           target,
@@ -451,6 +455,7 @@ class JsUtilOptimizer extends Transformer {
       final (receiver, positional) = _splitOutReceiver(
         staticReceiver,
         arguments.positional,
+        selectors,
       );
       assert(positional.isEmpty);
       final property = StringLiteral(name);
@@ -471,16 +476,24 @@ class JsUtilOptimizer extends Transformer {
   /// The builder will return an [Expression] that will call the optimized
   /// version of `js_util.setProperty` for the given external setter. If
   /// [staticReceiver] is non-null, the builder uses that instead of the first
-  /// positional argument as the receiver for `js_util.setProperty`.
+  /// positional argument as the receiver for `js_util.setProperty`. If the
+  /// member has an `@JS` rename that contains multiple selectors, fetches the
+  /// value right before the last selector using `js_util.getPropertyTrustType`
+  /// and treats that as the receiver, similar to library or type renames.
   _Treatment _getExternalSetterTreatment(
     Procedure node, [
     Expression? staticReceiver,
   ]) {
     final target = _setPropertyTarget;
-    assert(
-      _extensionIndex.isInstanceInteropMember(node) == (staticReceiver == null),
-    );
-    final name = _getMemberJSName(node);
+    final isInstanceMember = _extensionIndex.isInstanceInteropMember(node);
+    assert(isInstanceMember == (staticReceiver == null));
+    final selectors = _getMemberJSNameSelectors(node);
+    final name = selectors.removeLast();
+    if (!isInstanceMember) {
+      // Receiver is known ahead of time, so pre-compute.
+      staticReceiver = _getNestedValueInJSValue(selectors, staticReceiver!);
+      selectors.clear();
+    }
 
     if (_preferStub(node)) {
       // Update procedure to be a stub with a synthesized body
@@ -492,7 +505,8 @@ class JsUtilOptimizer extends Transformer {
         final function = node.function;
         final (receiver, positional) = _splitOutReceiver(staticReceiver, [
           ...function.positionalParameters.map(VariableGet.new),
-        ]);
+        ], selectors);
+        assert(positional.length == 1);
         final property = StringLiteral(name);
         final value = positional.single;
         final setterMethodInvocation = StaticInvocation(
@@ -511,7 +525,9 @@ class JsUtilOptimizer extends Transformer {
       final (receiver, positional) = _splitOutReceiver(
         staticReceiver,
         arguments.positional,
+        selectors,
       );
+      assert(positional.length == 1);
       final property = StringLiteral(name);
       final value = positional.single;
       return _lowerSetProperty(
@@ -535,7 +551,10 @@ class JsUtilOptimizer extends Transformer {
   /// [shouldTrustType] is true, the builder creates a variant that does not
   /// check the return type. If [staticReceiver] is non-null, the builder uses
   /// that instead of the first positional argument as the receiver for
-  /// `js_util.callMethod`.
+  /// `js_util.callMethod`.  If the member has an `@JS` rename that contains
+  /// multiple selectors, fetches the value right before the last selector using
+  /// `js_util.getPropertyTrustType` and treats that as the receiver, similar to
+  /// library or type renames.
   _Treatment _getExternalMethodTreatment(
     Procedure node,
     bool shouldTrustType, [
@@ -544,10 +563,15 @@ class JsUtilOptimizer extends Transformer {
     final target = shouldTrustType
         ? _callMethodTrustTypeTarget
         : _callMethodTarget;
-    assert(
-      _extensionIndex.isInstanceInteropMember(node) == (staticReceiver == null),
-    );
-    final name = _getMemberJSName(node);
+    final isInstanceMember = _extensionIndex.isInstanceInteropMember(node);
+    assert(isInstanceMember == (staticReceiver == null));
+    final selectors = _getMemberJSNameSelectors(node);
+    final name = selectors.removeLast();
+    if (!isInstanceMember) {
+      // Receiver is known ahead of time, so pre-compute.
+      staticReceiver = _getNestedValueInJSValue(selectors, staticReceiver!);
+      selectors.clear();
+    }
 
     if (_preferStub(node) &&
         // Can only convert to a stub for fixed number of positional arguments.
@@ -563,7 +587,7 @@ class JsUtilOptimizer extends Transformer {
         final function = node.function;
         final (receiver, positional) = _splitOutReceiver(staticReceiver, [
           ...function.positionalParameters.map(VariableGet.new),
-        ]);
+        ], selectors);
         final callMethodInvocation = StaticInvocation(
           target,
           Arguments(
@@ -580,6 +604,7 @@ class JsUtilOptimizer extends Transformer {
       final (receiver, positional) = _splitOutReceiver(
         staticReceiver,
         arguments.positional,
+        selectors,
       );
       final callMethodInvocation =
           StaticInvocation(
@@ -618,17 +643,26 @@ class JsUtilOptimizer extends Transformer {
 
   static final _dartCore = Uri.parse('dart:core');
 
-  // The receiver for the call is either the provided static receiver ('class'
-  // holding a static method or global context), or the first argument provided
-  // to a static extension method.
+  /// Given a potentially null static receiver and the [positional] arguments to
+  /// a JS interop call, returns the actual receiver and arguments.
+  ///
+  /// The receiver for the call is either the provided static receiver (a
+  /// statically resolvable namespace/type), or the first argument provided to a
+  /// static extension or extension type method.
+  ///
+  /// If [selectors] is not empty, fetches the value off of the receiver using
+  /// those selectors and returns the result as the new receiver.
   (Expression, List<Expression>) _splitOutReceiver(
     Expression? staticReceiver,
     List<Expression> positional,
+    List<String> selectors,
   ) {
-    // We clone the receiver as each invocation needs a fresh node.
-    return staticReceiver == null
+    var (receiver, arguments) = staticReceiver == null
         ? (positional.first, positional.sublist(1))
+        // We clone the static receiver as each invocation needs a fresh node.
         : (_cloner.clone(staticReceiver), positional);
+    receiver = _getNestedValueInJSValue(selectors, receiver);
+    return (receiver, arguments);
   }
 
   /// Returns a new [_Treatment] for the [node] external operator.
@@ -707,26 +741,26 @@ class JsUtilOptimizer extends Transformer {
     });
   }
 
-  /// Returns the underlying JS name.
+  /// Returns a new list containing the underlying JS name, split by '.'.
   ///
-  /// Returns either the name from the `@JS` annotation if non-empty, or the
-  /// declared name of the member. In the case of an extension or extension type
-  /// member, this does not return the CFE generated name for the top level
-  /// member, but rather the name of the original member.
-  String _getMemberJSName(Procedure node) {
-    var jsAnnotationName = getJSName(node);
-    if (jsAnnotationName.isNotEmpty) {
-      // In the case of top-level external members, this may contain '.'. The
-      // namespacing before the last '.' should be resolved when we provide a
-      // receiver to the lowerings. Here, we just take the final identifier.
-      return jsAnnotationName.split('.').last;
-    } else if (node.isExtensionMember) {
-      return _extensionIndex.getExtensionDescriptor(node)!.name.text;
-    } else if (node.isExtensionTypeMember) {
-      return _extensionIndex.getExtensionTypeDescriptor(node)!.name.text;
-    } else {
-      return node.name.text;
+  /// Uses the name from the `@JS` annotation if non-empty and the declared name
+  /// of the member otherwise.
+  ///
+  /// In the case of an extension or extension type member, this does not return
+  /// the CFE generated name for the top level member, but rather the name of
+  /// the original member.
+  List<String> _getMemberJSNameSelectors(Procedure node) {
+    var name = getJSName(node);
+    if (name.isEmpty) {
+      if (node.isExtensionMember) {
+        name = _extensionIndex.getExtensionDescriptor(node)!.name.text;
+      } else if (node.isExtensionTypeMember) {
+        name = _extensionIndex.getExtensionTypeDescriptor(node)!.name.text;
+      } else {
+        name = node.name.text;
+      }
     }
+    return name.split('.');
   }
 
   /// Replaces js_util method and static interop member calls with optimization

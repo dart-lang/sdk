@@ -24,10 +24,10 @@ class ConvertToSetLiteral extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertToSetLiteral;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_SET_LITERAL;
+  FixKind get fixKind => DartFixKind.convertToSetLiteral;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_SET_LITERAL_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToSetLiteralMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

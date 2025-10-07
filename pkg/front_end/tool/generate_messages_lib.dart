@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show File, exitCode;
+/// @docImport 'package:front_end/src/codes/type_labeler.dart';
+library;
 
-import "package:_fe_analyzer_shared/src/messages/severity.dart"
-    show severityEnumNames;
-import 'package:pub_semver/pub_semver.dart' show Version;
-import 'package:yaml/yaml.dart' show loadYaml;
+import 'dart:convert';
+import 'dart:io' show exitCode;
 
-import '../test/utils/io_utils.dart';
+import 'package:analyzer_utilities/extensions/string.dart';
+import 'package:analyzer_utilities/messages.dart';
 
 Uri computeSharedGeneratedFile(Uri repoDir) {
   return repoDir.resolve(
@@ -30,14 +30,7 @@ class Messages {
   Messages(this.sharedMessages, this.cfeMessages);
 }
 
-Messages generateMessagesFilesRaw(
-  Uri repoDir,
-  String Function(String, Version) formatter,
-) {
-  Uri messagesFile = repoDir.resolve("pkg/front_end/messages.yaml");
-  Map<dynamic, dynamic> yaml = loadYaml(
-    new File.fromUri(messagesFile).readAsStringSync(),
-  );
+Messages generateMessagesFilesRaw(Uri repoDir) {
   StringBuffer sharedMessages = new StringBuffer();
   StringBuffer cfeMessages = new StringBuffer();
 
@@ -77,57 +70,60 @@ part of 'cfe_codes.dart';
   int largestIndex = 0;
   final indexNameMap = new Map<int, String>();
 
-  List<String> keys = yaml.keys.cast<String>().toList()..sort();
+  List<String> keys = frontEndAndSharedMessages.keys.toList()..sort();
+  var pseudoSharedCodeValues = <String>{};
   for (String name in keys) {
-    var description = yaml[name];
-    while (description is String) {
-      description = yaml[description];
-    }
-    Map<dynamic, dynamic>? map = description;
-    if (map == null) {
-      throw "No 'problemMessage:' in key $name.";
-    }
-    var index = map['index'];
+    var errorCodeInfo = frontEndAndSharedMessages[name]!;
+    var index = errorCodeInfo.index;
     if (index != null) {
-      if (index is! int || index < 1) {
+      String? otherName = indexNameMap[index];
+      if (otherName != null) {
         print(
-          'Error: Expected positive int for "index:" field in $name,'
-          ' but found $index',
+          'Error: The "index:" field must be unique, '
+          'but is the same for $otherName and $name',
         );
         hasError = true;
-        index = -1;
         // Continue looking for other problems.
       } else {
-        String? otherName = indexNameMap[index];
-        if (otherName != null) {
-          print(
-            'Error: The "index:" field must be unique, '
-            'but is the same for $otherName and $name',
-          );
-          hasError = true;
-          // Continue looking for other problems.
-        } else {
-          indexNameMap[index] = name;
-          if (largestIndex < index) {
-            largestIndex = index;
-          }
+        indexNameMap[index] = name;
+        if (largestIndex < index) {
+          largestIndex = index;
         }
       }
     }
-    Template template = compileTemplate(
-      name,
-      index,
-      map['problemMessage'],
-      map['correctionMessage'],
-      map['analyzerCode'],
-      map['severity'],
-    );
-    if (template.isShared) {
-      sharedMessages.writeln(template.text);
+    var forFeAnalyzerShared =
+        errorCodeInfo is SharedErrorCodeInfo ||
+        errorCodeInfo is FrontEndErrorCodeInfo &&
+            errorCodeInfo.pseudoSharedCode != null;
+    String template;
+    try {
+      template = _TemplateCompiler(
+        name: name,
+        index: index,
+        errorCodeInfo: errorCodeInfo,
+        pseudoSharedCodeValues: forFeAnalyzerShared
+            ? pseudoSharedCodeValues
+            : null,
+      ).compile();
+    } catch (e, st) {
+      Error.throwWithStackTrace('Error while compiling $name: $e', st);
+    }
+    if (forFeAnalyzerShared) {
+      sharedMessages.writeln(template);
     } else {
-      cfeMessages.writeln(template.text);
+      cfeMessages.writeln(template);
     }
   }
+  sharedMessages.writeln();
+  sharedMessages.writeln(
+    '/// Enum containing analyzer error codes referenced by '
+    '[Code.pseudoSharedCode].',
+  );
+  sharedMessages.writeln('enum PseudoSharedCode {');
+  for (var code in pseudoSharedCodeValues.toList()..sort()) {
+    sharedMessages.writeln('  $code,');
+  }
+  sharedMessages.writeln('}');
   if (largestIndex > indexNameMap.length) {
     print(
       'Error: The "index:" field values should be unique, consecutive'
@@ -151,349 +147,192 @@ part of 'cfe_codes.dart';
     return new Messages('', '');
   }
 
-  return new Messages(
-    formatter("$sharedMessages", getPackageVersionFor("_fe_analyzer_shared")),
-    formatter("$cfeMessages", getPackageVersionFor("front_end")),
-  );
+  return new Messages("$sharedMessages", "$cfeMessages");
 }
 
-final RegExp placeholderPattern = new RegExp(
-  "#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?",
-);
-
-class Template {
-  final String text;
-  final isShared;
-
-  Template(this.text, {this.isShared}) : assert(isShared != null);
-}
-
-Template compileTemplate(
-  String name,
-  int? index,
-  String? problemMessage,
-  String? correctionMessage,
-  Object? analyzerCode,
-  String? severity,
-) {
-  if (problemMessage == null) {
-    print('Error: missing problemMessage for message: $name');
-    exitCode = 1;
-    return new Template('', isShared: true);
+/// Returns a fresh identifier that is not yet present in [usedNames], and adds
+/// it to [usedNames].
+///
+/// The name [nameHint] is used if it is available. Otherwise a new name is
+/// chosen by appending characters to it.
+String _newName({required Set<String> usedNames, required String nameHint}) {
+  if (usedNames.add(nameHint)) return nameHint;
+  for (var i = 0; ; i++) {
+    var name = "${nameHint}_$i";
+    if (usedNames.add(name)) return name;
   }
-  // Remove trailing whitespace. This is necessary for templates defined with
-  // `|` (verbatim) as they always contain a trailing newline that we don't
-  // want.
-  problemMessage = problemMessage.trimRight();
-  var parameters = new Set<String>();
-  var conversions = new Set<String>();
-  var conversions2 = new Set<String>();
-  var arguments = new Set<String>();
+}
+
+class _TemplateCompiler {
+  final String name;
+  final int? index;
+  final String problemMessage;
+  final String? correctionMessage;
+  final String? severity;
+  final Map<String, ErrorCodeParameter> parameters;
+  final String? pseudoSharedCode;
+
+  /// If the template will be generated into `pkg/_fe_analyzer_shared`, a set of
+  /// strings representing the values that will be generated for the
+  /// `PseudoSharedCode` enum; otherwise `null`.
+  ///
+  /// The template compiler will add to this set as needed.
+  final Set<String>? pseudoSharedCodeValues;
+
+  late final Set<String> usedNames = {
+    'conversions',
+    'labeler',
+    ...parameters.keys,
+  };
+  late final List<String> arguments = parameters.keys
+      .map((name) => "'$name': $name")
+      .toList();
+  final Map<ParsedPlaceholder, String> interpolators = {};
+  final List<String> withArgumentsStatements = [];
   bool hasLabeler = false;
-  bool canBeShared = true;
-  void ensureLabeler() {
-    if (hasLabeler) return;
-    conversions.add("TypeLabeler labeler = new TypeLabeler();");
-    hasLabeler = true;
-    canBeShared = false;
-  }
 
-  for (Match match in placeholderPattern.allMatches(
-    "$problemMessage\n${correctionMessage ?? ''}",
-  )) {
-    String name = match[1]!;
-    String? padding = match[2];
-    String? fractionDigits = match[3];
+  _TemplateCompiler({
+    required this.name,
+    required this.index,
+    required CfeStyleErrorCodeInfo errorCodeInfo,
+    required this.pseudoSharedCodeValues,
+  }) : problemMessage = errorCodeInfo.problemMessage,
+       correctionMessage = errorCodeInfo.correctionMessage,
+       severity = errorCodeInfo.cfeSeverity,
+       parameters = errorCodeInfo.parameters,
+       pseudoSharedCode = errorCodeInfo is FrontEndErrorCodeInfo
+           ? errorCodeInfo.pseudoSharedCode
+           : null;
 
-    String format(String name) {
-      String conversion;
-      if (fractionDigits == null) {
-        conversion = "'\$$name'";
-      } else {
-        conversion = "$name.toStringAsFixed($fractionDigits)";
+  String compile() {
+    var codeArguments = <String>[
+      if (index != null)
+        'index: $index'
+      else if (pseudoSharedCodeValues != null && pseudoSharedCode != null)
+        // If "index:" is defined, then "analyzerCode:" should not be generated
+        // in the front end. See comment in messages.yaml
+        'pseudoSharedCode: ${_encodePseudoSharedCode(pseudoSharedCode!)}',
+      if (severity != null) 'severity: CfeSeverity.$severity',
+    ];
+
+    if (parameters.isEmpty) {
+      codeArguments.add('problemMessage: r"""$problemMessage"""');
+      if (correctionMessage != null) {
+        codeArguments.add('correctionMessage: r"""$correctionMessage"""');
       }
-      if (padding!.isNotEmpty) {
-        if (padding.startsWith("0")) {
-          conversion += ".padLeft(${int.parse(padding)}, '0')";
-        } else {
-          conversion += ".padLeft(${int.parse(padding)})";
-        }
-      }
-      return conversion;
-    }
 
-    switch (name) {
-      case "character":
-        parameters.add("String character");
-        conversions.add(
-          "if (character.runes.length != 1)"
-          "throw \"Not a character '\${character}'\";",
-        );
-        arguments.add("'$name': character");
-        break;
-
-      case "unicode":
-        // Write unicode value using at least four (but otherwise no more than
-        // necessary) hex digits, using uppercase letters.
-        // http://www.unicode.org/versions/Unicode10.0.0/appA.pdf
-        parameters.add("int codePoint");
-        conversions.add(
-          "String unicode = \"U+\${codePoint.toRadixString(16)"
-          ".toUpperCase().padLeft(4, '0')}\";",
-        );
-        arguments.add("'$name': codePoint");
-        break;
-
-      case "name":
-        parameters.add("String name");
-        conversions.add("if (name.isEmpty) throw 'No name provided';");
-        arguments.add("'$name': name");
-        conversions.add("name = demangleMixinApplicationName(name);");
-        break;
-
-      case "name2":
-        parameters.add("String name2");
-        conversions.add("if (name2.isEmpty) throw 'No name provided';");
-        arguments.add("'$name': name2");
-        conversions.add("name2 = demangleMixinApplicationName(name2);");
-        break;
-
-      case "name3":
-        parameters.add("String name3");
-        conversions.add("if (name3.isEmpty) throw 'No name provided';");
-        arguments.add("'$name': name3");
-        conversions.add("name3 = demangleMixinApplicationName(name3);");
-        break;
-
-      case "name4":
-        parameters.add("String name4");
-        conversions.add("if (name4.isEmpty) throw 'No name provided';");
-        arguments.add("'$name': name4");
-        conversions.add("name4 = demangleMixinApplicationName(name4);");
-        break;
-
-      case "nameOKEmpty":
-        parameters.add("String nameOKEmpty");
-        conversions.add(
-          "if (nameOKEmpty.isEmpty) "
-          "nameOKEmpty = '(unnamed)';",
-        );
-        arguments.add("'nameOKEmpty': nameOKEmpty");
-        break;
-
-      case "names":
-        parameters.add("List<String> _names");
-        conversions.add("if (_names.isEmpty) throw 'No names provided';");
-        arguments.add("'$name': _names");
-        conversions.add("String names = itemizeNames(_names);");
-        break;
-
-      case "lexeme":
-        parameters.add("Token token");
-        conversions.add("String lexeme = token.lexeme;");
-        arguments.add("'$name': token");
-        break;
-
-      case "lexeme2":
-        parameters.add("Token token2");
-        conversions.add("String lexeme2 = token2.lexeme;");
-        arguments.add("'$name': token2");
-        break;
-
-      case "string":
-        parameters.add("String string");
-        conversions.add("if (string.isEmpty) throw 'No string provided';");
-        arguments.add("'$name': string");
-        break;
-
-      case "string2":
-        parameters.add("String string2");
-        conversions.add("if (string2.isEmpty) throw 'No string provided';");
-        arguments.add("'$name': string2");
-        break;
-
-      case "string3":
-        parameters.add("String string3");
-        conversions.add("if (string3.isEmpty) throw 'No string provided';");
-        arguments.add("'$name': string3");
-        break;
-
-      case "stringOKEmpty":
-        parameters.add("String stringOKEmpty");
-        conversions.add(
-          "if (stringOKEmpty.isEmpty) "
-          "stringOKEmpty = '(empty)';",
-        );
-        arguments.add("'$name': stringOKEmpty");
-        break;
-
-      case "type":
-      case "type2":
-      case "type3":
-      case "type4":
-        parameters.add("DartType _${name}");
-        ensureLabeler();
-        conversions.add(
-          "List<Object> ${name}Parts = labeler.labelType(_${name});",
-        );
-        conversions2.add("String ${name} = ${name}Parts.join();");
-        arguments.add("'${name}': _${name}");
-        break;
-
-      case "uri":
-        parameters.add("Uri uri_");
-        conversions.add("String? uri = relativizeUri(uri_);");
-        arguments.add("'$name': uri_");
-        break;
-
-      case "uri2":
-        parameters.add("Uri uri2_");
-        conversions.add("String? uri2 = relativizeUri(uri2_);");
-        arguments.add("'$name': uri2_");
-        break;
-
-      case "uri3":
-        parameters.add("Uri uri3_");
-        conversions.add("String? uri3 = relativizeUri(uri3_);");
-        arguments.add("'$name': uri3_");
-        break;
-
-      case "count":
-        parameters.add("int count");
-        arguments.add("'$name': count");
-        break;
-
-      case "count2":
-        parameters.add("int count2");
-        arguments.add("'$name': count2");
-        break;
-
-      case "count3":
-        parameters.add("int count3");
-        arguments.add("'$name': count3");
-        break;
-
-      case "count4":
-        parameters.add("int count4");
-        arguments.add("'$name': count4");
-        break;
-
-      case "constant":
-        parameters.add("Constant _constant");
-        ensureLabeler();
-        conversions.add(
-          "List<Object> ${name}Parts = labeler.labelConstant(_${name});",
-        );
-        conversions2.add("String ${name} = ${name}Parts.join();");
-        arguments.add("'$name': _constant");
-        break;
-
-      case "num1":
-        parameters.add("num _num1");
-        conversions.add("String num1 = ${format('_num1')};");
-        arguments.add("'$name': _num1");
-        break;
-
-      case "num2":
-        parameters.add("num _num2");
-        conversions.add("String num2 = ${format('_num2')};");
-        arguments.add("'$name': _num2");
-        break;
-
-      case "num3":
-        parameters.add("num _num3");
-        conversions.add("String num3 = ${format('_num3')};");
-        arguments.add("'$name': _num3");
-        break;
-
-      default:
-        throw "Unhandled placeholder in template: '$name'";
-    }
-  }
-
-  conversions.addAll(conversions2);
-
-  String interpolate(String text) {
-    text = text
-        .replaceAll(r"$", r"\$")
-        .replaceAllMapped(placeholderPattern, (Match m) => "\${${m[1]}}");
-    return "\"\"\"$text\"\"\"";
-  }
-
-  List<String> codeArguments = <String>[];
-  if (index != null) {
-    codeArguments.add('index: $index');
-  } else if (analyzerCode != null) {
-    if (analyzerCode is String) {
-      analyzerCode = <String>[analyzerCode];
-    }
-    List<Object?> codes = analyzerCode as List<Object?>;
-    // If "index:" is defined, then "analyzerCode:" should not be generated
-    // in the front end. See comment in messages.yaml
-    codeArguments.add('analyzerCodes: <String>["${codes.join('", "')}"]');
-  }
-  if (severity != null) {
-    String? severityEnumName = severityEnumNames[severity];
-    if (severityEnumName == null) {
-      throw "Unknown severity '$severity'";
-    }
-    codeArguments.add('severity: CfeSeverity.$severityEnumName');
-  }
-
-  if (parameters.isEmpty && conversions.isEmpty && arguments.isEmpty) {
-    codeArguments.add('problemMessage: r"""$problemMessage"""');
-    if (correctionMessage != null) {
-      codeArguments.add('correctionMessage: r"""$correctionMessage"""');
-    }
-
-    return new Template("""
+      return """
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode code$name =
     const MessageCode(\"$name\", ${codeArguments.join(', ')},);
-""", isShared: canBeShared);
-  }
+""";
+    }
 
-  List<String> templateArguments = <String>[];
-  templateArguments.add('\"$name\"');
-  templateArguments.add('problemMessageTemplate: r"""$problemMessage"""');
-  if (correctionMessage != null) {
-    templateArguments.add(
-      'correctionMessageTemplate: r"""$correctionMessage"""',
-    );
-  }
+    List<String> templateArguments = <String>[];
+    templateArguments.add('\"$name\"');
+    templateArguments.add('problemMessageTemplate: r"""$problemMessage"""');
+    if (correctionMessage != null) {
+      templateArguments.add(
+        'correctionMessageTemplate: r"""$correctionMessage"""',
+      );
+    }
 
-  templateArguments.add("withArguments: _withArguments$name");
-  templateArguments.addAll(codeArguments);
+    templateArguments.add("withArgumentsOld: _withArgumentsOld$name");
+    templateArguments.add("withArguments: _withArguments$name");
+    templateArguments.addAll(codeArguments);
 
-  List<String> messageArguments = <String>[];
-  String message = interpolate(problemMessage);
-  if (hasLabeler) {
-    message += " + labeler.originMessages";
-  }
-  messageArguments.add("problemMessage: ${message}");
-  if (correctionMessage != null) {
-    messageArguments.add(
-      "correctionMessage: ${interpolate(correctionMessage)}",
-    );
-  }
-  messageArguments.add("arguments: { ${arguments.join(', ')}, }");
+    String interpolatedProblemMessage = interpolate(problemMessage)!;
+    String? interpolatedCorrectionMessage = interpolate(correctionMessage);
+    if (hasLabeler) {
+      interpolatedProblemMessage += " + labeler.originMessages";
+    }
 
-  if (codeArguments.isNotEmpty) {
-    codeArguments.add("");
-  }
+    List<String> messageArguments = <String>[
+      "problemMessage: $interpolatedProblemMessage",
+      if (interpolatedCorrectionMessage case var m?) "correctionMessage: $m",
+      "arguments: { ${arguments.join(', ')}, }",
+    ];
+    List<String> positionalParameters = parameters.entries
+        .map((entry) => '${entry.value.type.cfeName!} ${entry.key}')
+        .toList();
+    List<String> namedParameters = parameters.entries
+        .map((entry) => 'required ${entry.value.type.cfeName!} ${entry.key}')
+        .toList();
+    List<String> oldToNewArguments = parameters.keys
+        .map((name) => '$name: $name')
+        .toList();
 
-  return new Template("""
+    return """
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(${parameters.join(', ')})> code$name =
-    const Template<Message Function(${parameters.join(', ')})>(
-        ${templateArguments.join(', ')},);
+const Template<
+  Message Function(${positionalParameters.join(', ')}),
+  Message Function({${namedParameters.join(', ')}})
+> code$name = const Template(${templateArguments.join(', ')},);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArguments$name(${parameters.join(', ')}) {
-  ${conversions.join('\n  ')}
+Message _withArguments$name({${namedParameters.join(', ')}}) {
+  ${withArgumentsStatements.join('\n  ')}
   return new Message(
      code$name,
      ${messageArguments.join(', ')},);
 }
-""", isShared: canBeShared);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOld$name(${positionalParameters.join(', ')}) =>
+    _withArguments$name(${oldToNewArguments.join(', ')});
+""";
+  }
+
+  String computeInterpolator(ParsedPlaceholder placeholder) {
+    var name = placeholder.name;
+    var parameter = parameters[name];
+    if (parameter == null) {
+      throw StateError(
+        'Placeholder ${json.encode(name)} not declared as a parameter',
+      );
+    }
+    var conversion =
+        placeholder.conversionOverride ?? parameter.type.cfeConversion;
+    if (conversion is LabelerConversion && !hasLabeler) {
+      withArgumentsStatements.add("TypeLabeler labeler = new TypeLabeler();");
+      hasLabeler = true;
+    }
+
+    if (conversion?.toCode(
+          name: placeholder.name,
+          type: parameters[placeholder.name]!.type,
+        )
+        case var conversion?) {
+      var interpolator = _newName(
+        usedNames: usedNames,
+        nameHint: placeholder.name,
+      );
+      withArgumentsStatements.add("var $interpolator = $conversion;");
+      return interpolator;
+    } else {
+      return placeholder.name;
+    }
+  }
+
+  String? interpolate(String? text) {
+    if (text == null) return null;
+    text = text.replaceAll(r"$", r"\$").replaceAllMapped(placeholderPattern, (
+      Match m,
+    ) {
+      var placeholder = ParsedPlaceholder.fromMatch(m);
+      var interpolator = interpolators[placeholder] ??= computeInterpolator(
+        placeholder,
+      );
+      return "\${$interpolator}";
+    });
+    return "\"\"\"$text\"\"\"";
+  }
+
+  /// Creates the list literal that should populate the error code's
+  /// `pseudoSharedCode` value.
+  String _encodePseudoSharedCode(String code) {
+    var camelCaseCode = code.toCamelCase();
+    pseudoSharedCodeValues!.add(camelCaseCode);
+    return 'PseudoSharedCode.$camelCaseCode';
+  }
 }

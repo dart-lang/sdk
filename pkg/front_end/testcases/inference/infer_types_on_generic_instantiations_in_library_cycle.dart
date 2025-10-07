@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'infer_types_on_generic_instantiations_in_library_cycle_a.dart';
@@ -23,12 +22,10 @@ class B<E> extends A<E> implements M {
 
 foo() {
   int y = new B<String>()
-      . /*@target=B.m*/ m(throw '', throw '')
+      .m(throw '', throw '')
       // Error:INVALID_ASSIGNMENT
-      . /*@target=A.value*/ value;
-  String z = new B<String>()
-      . /*@target=B.m*/ m(throw '', throw '')
-      . /*@target=A.value*/ value;
+      .value;
+  String z = new B<String>().m(throw '', throw '').value;
 }
 
 main() {}

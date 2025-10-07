@@ -2,19 +2,19 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:15:5: Error: Can't infer the type of 'a': circularity found during type inference.
+// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:14:5: Error: Can't infer the type of 'a': circularity found during type inference.
 // Specify the type explicitly.
-// var a = /*@returnType=num*/ () => intValue /*@target=num.+*/ + b;
+// var a = () => intValue + b;
 //     ^
 //
-// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:21:5: Error: Can't infer the type of 'c': circularity found during type inference.
+// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:20:5: Error: Can't infer the type of 'c': circularity found during type inference.
 // Specify the type explicitly.
-// var c = /*@returnType=num*/ () => numValue /*@target=num.+*/ + d;
+// var c = () => numValue + d;
 //     ^
 //
-// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:26:5: Error: Can't infer the type of 'e': circularity found during type inference.
+// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:25:5: Error: Can't infer the type of 'e': circularity found during type inference.
 // Specify the type explicitly.
-// var e = /*@returnType=double*/ () => doubleValue /*@target=double.+*/ + f;
+// var e = () => doubleValue + f;
 //     ^
 //
 import self as self;

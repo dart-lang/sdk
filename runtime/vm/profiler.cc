@@ -7,6 +7,7 @@
 #include "platform/address_sanitizer.h"
 #include "platform/atomic.h"
 #include "platform/memory_sanitizer.h"
+#include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/code_patcher.h"
@@ -196,6 +197,28 @@ class ProfilerStackWalker : public ValueObject {
   intptr_t total_frames_;
 };
 
+// MSAN/ASAN are unaware of frames initialized by generated code.
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_MEMORY
+#if defined(DART_HOST_OS_MACOS)
+// Mac profiling is cross-thread and TSAN doesn't know that thread_suspend
+// establishes synchronization.
+NO_SANITIZE_THREAD
+#endif
+static uword* LoadStackSlot(uword* ptr) {
+  return reinterpret_cast<uword*>(*ptr);
+}
+
+#if defined(DART_HOST_OS_MACOS)
+// Mac profiling is cross-thread and TSAN doesn't know that thread_suspend
+// establishes synchronization.
+#define IGNORE_RACE(x) x##_ignore_race
+#define IGNORE_RACE2(x) x##IgnoreRace
+#else
+#define IGNORE_RACE(x) x
+#define IGNORE_RACE2(x) x
+#endif
+
 // The layout of C stack frames.
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64) ||                       \
     defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
@@ -300,20 +323,12 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
  private:
   uword* CallerPC(uword* fp) const {
     ASSERT(fp != nullptr);
-    uword* caller_pc_ptr = fp + kHostSavedCallerPcSlotFromFp;
-    // This may actually be uninitialized, by design (see class comment above).
-    MSAN_UNPOISON(caller_pc_ptr, kWordSize);
-    ASAN_UNPOISON(caller_pc_ptr, kWordSize);
-    return reinterpret_cast<uword*>(*caller_pc_ptr);
+    return LoadStackSlot(fp + kHostSavedCallerPcSlotFromFp);
   }
 
   uword* CallerFP(uword* fp) const {
     ASSERT(fp != nullptr);
-    uword* caller_fp_ptr = fp + kHostSavedCallerFpSlotFromFp;
-    // This may actually be uninitialized, by design (see class comment above).
-    MSAN_UNPOISON(caller_fp_ptr, kWordSize);
-    ASAN_UNPOISON(caller_fp_ptr, kWordSize);
-    return reinterpret_cast<uword*>(*caller_fp_ptr);
+    return LoadStackSlot(fp + kHostSavedCallerFpSlotFromFp);
   }
 
   bool ValidFramePointer(uword* fp) const {
@@ -374,7 +389,8 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
 
 #if defined(DART_INCLUDE_SIMULATOR)
   const bool use_simulator_stack_bounds =
-      FLAG_use_simulator && thread != nullptr && thread->IsExecutingDartCode();
+      FLAG_use_simulator && thread != nullptr &&
+      thread->IGNORE_RACE2(IsExecutingDartCode)();
   if (use_simulator_stack_bounds) {
     Isolate* isolate = thread->isolate();
     ASSERT(isolate != nullptr);
@@ -778,15 +794,14 @@ void SampleBlockBuffer::FreeCompletedBlocks() {
 static void FlushSampleBlocks(Isolate* isolate) {
   ASSERT(isolate != nullptr);
 
-  SampleBlock* block = isolate->current_sample_block();
+  SampleBlock* block = isolate->exchange_current_sample_block(nullptr);
   if (block != nullptr) {
-    isolate->set_current_sample_block(nullptr);
     block->MarkCompleted();
   }
 
-  block = isolate->current_allocation_sample_block();
+  block = isolate->exchange_current_allocation_sample_block(nullptr);
   if (block != nullptr) {
-    isolate->set_current_allocation_sample_block(nullptr);
+    // Allocation samples are collected synchronously.
     block->MarkCompleted();
   }
 }
@@ -883,7 +898,7 @@ Sample* SampleBlockBuffer::ReserveSampleImpl(Isolate* isolate,
   if (block != nullptr) {
     block->MarkCompleted();
     if (!Isolate::IsSystemIsolate(isolate)) {
-      Thread* mutator = isolate->mutator_thread();
+      Thread* mutator = isolate->IGNORE_RACE(mutator_thread)();
       // The mutator thread might be NULL if we sample in the middle of
       // Thread::Enter/ExitIsolate.
       if ((mutator != nullptr) && isolate->TrySetHasCompletedBlocks()) {
@@ -1042,8 +1057,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
                           uword lr,
                           bool allocation_sample,
                           intptr_t skip_count = 0)
-      : ProfilerStackWalker((thread->isolate() != nullptr)
-                                ? thread->isolate()->main_port()
+      : ProfilerStackWalker((thread->IGNORE_RACE(isolate)() != nullptr)
+                                ? thread->IGNORE_RACE(isolate)()->main_port()
                                 : ILLEGAL_PORT,
                             sample,
                             sample_buffer,
@@ -1056,12 +1071,13 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
   void walk() {
     RELEASE_ASSERT(StubCode::HasBeenInitialized());
-    if (thread_->IsDeoptimizing()) {
+    if (thread_->IGNORE_RACE2(IsDeoptimizing)()) {
       sample_->set_ignore_sample(true);
       return;
     }
 
-    uword* exit_fp = reinterpret_cast<uword*>(thread_->top_exit_frame_info());
+    uword* exit_fp =
+        reinterpret_cast<uword*>(thread_->IGNORE_RACE(top_exit_frame_info)());
     bool has_exit_frame = exit_fp != nullptr;
     if (has_exit_frame) {
       // Exited from compiled code or interpreter.
@@ -1072,13 +1088,14 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
       pc_ = CallerPC();
       fp_ = CallerFP();
     } else {
-      if (thread_->vm_tag() == VMTag::kDartTagId) {
+      if (thread_->IGNORE_RACE(vm_tag)() == VMTag::kDartTagId) {
         // Running compiled code.
         // Use the FP and PC from the thread interrupt or simulator; already set
         // in the constructor.
 
 #if defined(DART_DYNAMIC_MODULES)
-      } else if (thread_->vm_tag() == VMTag::kDartInterpretedTagId) {
+      } else if (thread_->IGNORE_RACE(vm_tag)() ==
+                 VMTag::kDartInterpretedTagId) {
         // Running interpreter.
         pc_ = reinterpret_cast<uword*>(thread_->interpreter()->get_pc());
         fp_ = reinterpret_cast<uword*>(thread_->interpreter()->get_fp());
@@ -1156,10 +1173,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     uword* caller_pc_ptr =
         fp_ + (IsInterpretedFrame() ? kKBCSavedCallerPcSlotFromFp
                                     : kSavedCallerPcSlotFromFp);
-    // MSan/ASan are unaware of frames initialized by generated code.
-    MSAN_UNPOISON(caller_pc_ptr, kWordSize);
-    ASAN_UNPOISON(caller_pc_ptr, kWordSize);
-    return reinterpret_cast<uword*>(*caller_pc_ptr);
+    return LoadStackSlot(caller_pc_ptr);
   }
 
   uword* CallerFP() const {
@@ -1167,10 +1181,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     uword* caller_fp_ptr =
         fp_ + (IsInterpretedFrame() ? kKBCSavedCallerFpSlotFromFp
                                     : kSavedCallerFpSlotFromFp);
-    // MSan/ASan are unaware of frames initialized by generated code.
-    MSAN_UNPOISON(caller_fp_ptr, kWordSize);
-    ASAN_UNPOISON(caller_fp_ptr, kWordSize);
-    return reinterpret_cast<uword*>(*caller_fp_ptr);
+    return LoadStackSlot(caller_fp_ptr);
   }
 
   uword* ExitLink() const {
@@ -1178,19 +1189,12 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     uword* exit_link_ptr =
         fp_ + (IsInterpretedFrame() ? kKBCExitLinkSlotFromEntryFp
                                     : kExitLinkSlotFromEntryFp);
-    // MSan/ASan are unaware of frames initialized by generated code.
-    MSAN_UNPOISON(exit_link_ptr, kWordSize);
-    ASAN_UNPOISON(exit_link_ptr, kWordSize);
-    return reinterpret_cast<uword*>(*exit_link_ptr);
+    return LoadStackSlot(exit_link_ptr);
   }
 
   uword Stack(intptr_t index) const {
     ASSERT(sp_ != nullptr);
-    uword* stack_ptr = sp_ + index;
-    // MSan/ASan are unaware of frames initialized by generated code.
-    MSAN_UNPOISON(stack_ptr, kWordSize);
-    ASAN_UNPOISON(stack_ptr, kWordSize);
-    return *stack_ptr;
+    return reinterpret_cast<uword>(LoadStackSlot(sp_ + index));
   }
 
   Thread* const thread_;
@@ -1206,9 +1210,7 @@ static void CopyStackBuffer(Sample* sample, uword sp_addr) {
   uword* buffer = sample->GetStackBuffer();
   if (sp != nullptr) {
     for (intptr_t i = 0; i < Sample::kStackBufferSizeInWords; i++) {
-      MSAN_UNPOISON(sp, kWordSize);
-      ASAN_UNPOISON(sp, kWordSize);
-      buffer[i] = *sp;
+      buffer[i] = reinterpret_cast<uword>(LoadStackSlot(sp));
       sp++;
     }
   }
@@ -1296,7 +1298,7 @@ static Sample* SetupSample(Thread* thread,
                            bool allocation_sample,
                            ThreadId tid) {
   ASSERT(thread != nullptr);
-  Isolate* isolate = thread->isolate();
+  Isolate* isolate = thread->IGNORE_RACE(isolate)();
   SampleBlockBuffer* buffer = Profiler::sample_block_buffer();
   Sample* sample = allocation_sample ? buffer->ReserveAllocationSample(isolate)
                                      : buffer->ReserveCPUSample(isolate);
@@ -1304,7 +1306,7 @@ static Sample* SetupSample(Thread* thread,
     return nullptr;
   }
   sample->Init(isolate->main_port(), OS::GetCurrentMonotonicMicros(), tid);
-  uword vm_tag = thread->vm_tag();
+  uword vm_tag = thread->IGNORE_RACE(vm_tag)();
 #if defined(DART_INCLUDE_SIMULATOR)
   // When running in the simulator, the runtime entry function address
   // (stored as the vm tag) is the address of a redirect function.
@@ -1317,7 +1319,7 @@ static Sample* SetupSample(Thread* thread,
   }
 #endif
   sample->set_vm_tag(vm_tag);
-  sample->set_user_tag(thread->user_tag());
+  sample->set_user_tag(thread->IGNORE_RACE(user_tag)());
   sample->set_thread_task(thread->task_kind());
   return sample;
 }
@@ -1398,7 +1400,7 @@ void Profiler::SampleThreadSingleFrame(Thread* thread,
   ASSERT(thread != nullptr);
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != nullptr);
-  Isolate* isolate = thread->isolate();
+  Isolate* isolate = thread->IGNORE_RACE(isolate)();
 
   ASSERT(Profiler::sample_block_buffer() != nullptr);
 
@@ -1413,12 +1415,31 @@ void Profiler::SampleThreadSingleFrame(Thread* thread,
   sample->SetAt(0, pc);
 }
 
+void ReleaseToCurrentBlock(Isolate* isolate) {
+#if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_WINDOWS) ||            \
+    defined(DART_HOST_OS_FUCHSIA)
+  // The sample is collected by a different thread. The sample appears all at
+  // once from the profiled thread's point of view. Establish the isolate
+  // flushing its own current block happens-after the most recent sample
+  // written in that block by dumping a dependency through the current block.
+  // TSAN doesn't otherwise know this is already true because it doesn't have
+  // special treatment for thread_suspend/resume.
+  SampleBlock* block = isolate->current_sample_block();
+  isolate->exchange_current_sample_block(block);
+#elif defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+  // The sample is collected by a signal handler on the same thread being
+  // sampled.
+#else
+#error What kind of sampler?
+#endif
+}
+
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
   ASSERT(thread != nullptr);
-  OSThread* os_thread = thread->os_thread();
+  OSThread* os_thread = thread->IGNORE_RACE(os_thread)();
   ASSERT(os_thread != nullptr);
-  Isolate* isolate = thread->isolate();
+  Isolate* isolate = thread->IGNORE_RACE(isolate)();
 
   // Double check if interrupts are disabled
   // after the thread interrupter decided to send a signal.
@@ -1440,7 +1461,7 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  const bool in_dart_code = thread->IsExecutingDartCode();
+  const bool in_dart_code = thread->IGNORE_RACE2(IsExecutingDartCode)();
 
   uintptr_t sp = 0;
   uintptr_t fp = state.fp;
@@ -1488,9 +1509,10 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   if (thread->IsDartMutatorThread()) {
-    if (thread->IsDeoptimizing()) {
+    if (thread->IGNORE_RACE2(IsDeoptimizing)()) {
       counters_.single_frame_sample_deoptimizing.fetch_add(1);
       SampleThreadSingleFrame(thread, sample, pc);
+      ReleaseToCurrentBlock(isolate);
       return;
     }
   }
@@ -1502,6 +1524,7 @@ void Profiler::SampleThread(Thread* thread,
     counters_.single_frame_sample_get_and_validate_stack_bounds.fetch_add(1);
     // Could not get stack boundary.
     SampleThreadSingleFrame(thread, sample, pc);
+    ReleaseToCurrentBlock(isolate);
     return;
   }
 
@@ -1519,7 +1542,7 @@ void Profiler::SampleThread(Thread* thread,
       &counters_, (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT,
       sample, isolate->current_sample_block(), stack_lower, stack_upper, pc, fp,
       sp);
-  const bool exited_dart_code = thread->HasExitedDartCode();
+  const bool exited_dart_code = thread->IGNORE_RACE2(HasExitedDartCode)();
   ProfilerDartStackWalker dart_stack_walker(
       thread, sample, isolate->current_sample_block(), pc, fp, sp, lr,
       /* allocation_sample*/ false);
@@ -1528,6 +1551,7 @@ void Profiler::SampleThread(Thread* thread,
   CollectSample(isolate, exited_dart_code, in_dart_code, sample,
                 &native_stack_walker, &dart_stack_walker, pc, fp, sp,
                 &counters_);
+  ReleaseToCurrentBlock(isolate);
 }
 
 CodeDescriptor::CodeDescriptor(const AbstractCode code) : code_(code) {}

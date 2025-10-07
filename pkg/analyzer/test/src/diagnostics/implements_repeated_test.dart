@@ -31,11 +31,11 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
 ''');
   }
@@ -79,11 +79,11 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A
         alias: <testLibrary>::@typeAlias::B
 ''');
@@ -121,11 +121,11 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
 ''');
   }
@@ -171,11 +171,11 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A
         alias: <testLibrary>::@typeAlias::B
 ''');
@@ -212,11 +212,11 @@ ImplementsClause
   interfaces
     NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
 ''');
   }
@@ -258,11 +258,11 @@ ImplementsClause
   interfaces
     NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     NamedType
       name: A
-      element2: <testLibrary>::@typeAlias::A
+      element: <testLibrary>::@typeAlias::A
       type: int
         alias: <testLibrary>::@typeAlias::A
 ''');

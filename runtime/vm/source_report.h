@@ -90,7 +90,6 @@ class SourceReport {
   void PrintCoverageData(JSONObject* jsobj,
                          intptr_t script_index,
                          const Function& func,
-                         const Code& code,
                          bool report_branch_coverage);
   void PrintPossibleBreakpointsData(JSONObject* jsobj,
                                     const Function& func,

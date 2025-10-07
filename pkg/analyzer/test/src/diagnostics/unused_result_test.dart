@@ -1444,8 +1444,24 @@ class C {
 ''');
   }
 
-  /// https://github.com/dart-lang/sdk/issues/52314
   test_switchExpression() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+void main() {
+  print(switch (methodWithAnnotation()) {
+    true => true,
+    _ => false,
+  });
+}
+
+@useResult
+bool methodWithAnnotation() => true;
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/52314
+  test_switchExpressionCase() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 

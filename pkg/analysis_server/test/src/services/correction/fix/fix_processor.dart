@@ -336,12 +336,11 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   /// Returns the [LintCode] for the [lintCode] (which is actually a name).
   Future<LintCode> lintCodeByName(String name) async {
     var diagnostics = testAnalysisResult.diagnostics;
-    var lintCodeSet =
-        diagnostics
-            .map((d) => d.diagnosticCode)
-            .whereType<LintCode>()
-            .where((lintCode) => lintCode.name == name)
-            .toSet();
+    var lintCodeSet = diagnostics
+        .map((d) => d.diagnosticCode)
+        .whereType<LintCode>()
+        .where((lintCode) => lintCode.name == name)
+        .toSet();
     if (lintCodeSet.length != 1) {
       fail('Expected exactly one LintCode, actually: $lintCodeSet');
     }
@@ -628,8 +627,9 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     List<Fix> fixes,
     int expectedNumberOfFixesForKind,
   ) {
-    var actualNumberOfFixesForKind =
-        fixes.where((fix) => fix.kind == kind).length;
+    var actualNumberOfFixesForKind = fixes
+        .where((fix) => fix.kind == kind)
+        .length;
     if (actualNumberOfFixesForKind != expectedNumberOfFixesForKind) {
       fail(
         'Expected $expectedNumberOfFixesForKind fixes of kind $kind,'

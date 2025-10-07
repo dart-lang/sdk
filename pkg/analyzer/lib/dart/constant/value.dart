@@ -14,7 +14,6 @@ library;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:meta/meta.dart';
 
 /// Information about a const constructor invocation.
 abstract class ConstructorInvocation {
@@ -125,7 +124,6 @@ abstract class DartObject {
   /// * this object is not of a function type,
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
-  @experimental
   ExecutableElement? toFunctionValue();
 
   /// Return an element corresponding to the value of the object being
@@ -135,7 +133,6 @@ abstract class DartObject {
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
   @Deprecated('Use toFunctionValue instead')
-  @experimental
   ExecutableElement? toFunctionValue2();
 
   /// Return an integer corresponding to the value of the object being

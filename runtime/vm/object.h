@@ -828,18 +828,28 @@ class Object {
   // methods below or their counterparts in UntaggedObject, to ensure that the
   // write barrier is correctly applied.
 
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  template <typename type>
+  type LoadPointer(type const* addr) const {
+    return ptr()->untag()->LoadPointer<type>(addr);
+  }
+  template <typename type, std::memory_order order>
   type LoadPointer(type const* addr) const {
     return ptr()->untag()->LoadPointer<type, order>(addr);
   }
 
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  template <typename type>
+  void StorePointer(type const* addr, type value) const {
+    ptr()->untag()->StorePointer<type>(addr, value);
+  }
+  template <typename type, std::memory_order order>
   void StorePointer(type const* addr, type value) const {
     ptr()->untag()->StorePointer<type, order>(addr, value);
   }
-  template <typename type,
-            typename compressed_type,
-            std::memory_order order = std::memory_order_relaxed>
+  template <typename type, typename compressed_type>
+  void StoreCompressedPointer(compressed_type const* addr, type value) const {
+    ptr()->untag()->StoreCompressedPointer<type, compressed_type>(addr, value);
+  }
+  template <typename type, typename compressed_type, std::memory_order order>
   void StoreCompressedPointer(compressed_type const* addr, type value) const {
     ptr()->untag()->StoreCompressedPointer<type, compressed_type, order>(addr,
                                                                          value);
@@ -3039,6 +3049,10 @@ class Function : public Object {
 
   virtual StringPtr DictionaryName() const { return name(); }
 
+  // Returns whether either the fully qualified name or qualified scrubbed name
+  // matches the given name filter, or true if the filter is nullptr.
+  bool NamePassesFilter(const char* name_filter) const;
+
   StringPtr GetSource() const;
 
   // Set the "C signature" for an FFI trampoline.
@@ -4386,7 +4400,9 @@ class ClosureData : public Object {
       UntaggedClosureData::kNoAwaiterLinkDepth;
 
  private:
-  ContextScopePtr context_scope() const { return untag()->context_scope(); }
+  ContextScopePtr context_scope() const {
+    return untag()->context_scope<std::memory_order_acquire>();
+  }
   void set_context_scope(const ContextScope& value) const;
 
   void set_packed_fields(uint32_t value) const {
@@ -5042,10 +5058,6 @@ class Script : public Object {
   TypedDataPtr line_starts() const;
   void set_line_starts(const TypedData& value) const;
 
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  TypedDataViewPtr constant_coverage() const;
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
   LibraryPtr FindLibrary() const;
   StringPtr GetLine(intptr_t line_number, Heap::Space space = Heap::kNew) const;
   StringPtr GetSnippet(intptr_t from_line,
@@ -5093,8 +5105,22 @@ class Script : public Object {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   ArrayPtr CollectConstConstructorCoverageFrom() const;
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_DYNAMIC_MODULES)
+  void set_collected_constant_coverage(const Array& value) const;
+#endif  // defined(DART_DYNAMIC_MODULES)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
  private:
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  TypedDataViewPtr kernel_constant_coverage() const;
+  ArrayPtr CollectConstConstructorCoverageFromKernel() const;
+#if defined(DART_DYNAMIC_MODULES)
+  ArrayPtr collected_constant_coverage() const;
+  bool HasCollectedConstantCoverage() const;
+#endif  // defined(DART_DYNAMIC_MODULES)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
   void set_debug_positions(const Array& value) const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5695,13 +5721,22 @@ class ObjectPool : public Object {
     StoreNonPointer(&untag()->entry_bits()[index], bits);
   }
 
-  template <std::memory_order order = std::memory_order_relaxed>
+  ObjectPtr ObjectAt(intptr_t index) const {
+    ASSERT(TypeAt(index) == EntryType::kTaggedObject);
+    return LoadPointer<ObjectPtr>(&(EntryAddr(index)->raw_obj_));
+  }
+  template <std::memory_order order>
   ObjectPtr ObjectAt(intptr_t index) const {
     ASSERT(TypeAt(index) == EntryType::kTaggedObject);
     return LoadPointer<ObjectPtr, order>(&(EntryAddr(index)->raw_obj_));
   }
 
-  template <std::memory_order order = std::memory_order_relaxed>
+  void SetObjectAt(intptr_t index, const Object& obj) const {
+    ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
+           (TypeAt(index) == EntryType::kImmediate && obj.IsSmi()));
+    StorePointer<ObjectPtr>(&EntryAddr(index)->raw_obj_, obj.ptr());
+  }
+  template <std::memory_order order>
   void SetObjectAt(intptr_t index, const Object& obj) const {
     ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
            (TypeAt(index) == EntryType::kImmediate && obj.IsSmi()));
@@ -5715,6 +5750,12 @@ class ObjectPool : public Object {
   void SetRawValueAt(intptr_t index, uword raw_value) const {
     ASSERT(TypeAt(index) != EntryType::kTaggedObject);
     StoreNonPointer(&EntryAddr(index)->raw_value_, raw_value);
+  }
+  template <std::memory_order order>
+  void SetRawValueAt(intptr_t index, uword raw_value) const {
+    ASSERT(TypeAt(index) != EntryType::kTaggedObject);
+    StoreNonPointer<uword, uword, order>(&EntryAddr(index)->raw_value_,
+                                         raw_value);
   }
 
   static intptr_t InstanceSize() {
@@ -7491,7 +7532,10 @@ class Bytecode : public Object {
  public:
   uword instructions() const { return untag()->instructions_; }
 
-  uword PayloadStart() const { return instructions(); }
+  static uword PayloadStartOf(BytecodePtr ptr) {
+    return ptr->untag()->instructions_;
+  }
+  uword PayloadStart() const { return PayloadStartOf(ptr()); }
   intptr_t Size() const { return untag()->instructions_size_; }
 
   ObjectPoolPtr object_pool() const { return untag()->object_pool(); }
@@ -7537,14 +7581,9 @@ class Bytecode : public Object {
   TokenPosition GetTokenIndexOfPC(uword return_address) const;
   intptr_t GetTryIndexAtPc(uword return_address) const;
 
-  // Return the pc of the first 'DebugCheck' opcode of the bytecode.
-  // Return 0 if none is found.
-  uword GetFirstDebugCheckOpcodePc() const;
-
-  // Return the pc after the first 'debug checked' opcode in the range.
-  // Return 0 if none is found.
-  uword GetDebugCheckedOpcodeReturnAddress(uword from_offset,
-                                           uword to_offset) const;
+  // Returns the address of the previous instruction when given
+  // a valid return address for the given bytecode or 0 otherwise.
+  uword GetInstructionBefore(uword return_address) const;
 
   intptr_t instructions_binary_offset() const {
     return untag()->instructions_binary_offset_;
@@ -7575,9 +7614,6 @@ class Bytecode : public Object {
   void set_local_variables_binary_offset(intptr_t value) const {
     StoreNonPointer(&untag()->local_variables_binary_offset_, value);
   }
-  bool HasLocalVariablesInfo() const {
-    return (local_variables_binary_offset() != 0);
-  }
 
   LocalVarDescriptorsPtr var_descriptors() const {
     return untag()->var_descriptors<std::memory_order_acquire>();
@@ -7587,13 +7623,25 @@ class Bytecode : public Object {
     untag()->set_var_descriptors<std::memory_order_release>(value.ptr());
   }
 
+  void WriteLocalVariablesInfo(Zone* zone, BaseTextBuffer* buffer) const;
+
   // Will compute local var descriptors if necessary.
   LocalVarDescriptorsPtr GetLocalVarDescriptors() const;
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
+  bool HasLocalVariablesInfo() const {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    return (local_variables_binary_offset() != 0);
+#else
+    return false;
+#endif
+  }
+
   const char* Name() const;
   const char* QualifiedName() const;
   const char* FullyQualifiedName() const;
+
+  static BytecodePtr FindBytecode(uword pc);
 
  private:
   void set_instructions(uword instructions) const {
@@ -9540,7 +9588,9 @@ class AbstractType : public Instance {
   uword type_test_stub_entry_point() const {
     return untag()->type_test_stub_entry_point_;
   }
-  CodePtr type_test_stub() const { return untag()->type_test_stub(); }
+  CodePtr type_test_stub() const {
+    return untag()->type_test_stub<std::memory_order_acquire>();
+  }
 
   // Sets the TTS to [stub].
   //
@@ -11079,22 +11129,35 @@ class Array : public Instance {
     return array->untag()->data();
   }
 
-  template <std::memory_order order = std::memory_order_relaxed>
+  static ObjectPtr ElementAt(ArrayPtr array, intptr_t index) {
+    ASSERT((0 <= index) && (index < LengthOf(array)));
+    return array->untag()->element(index);
+  }
+  template <std::memory_order order>
   static ObjectPtr ElementAt(ArrayPtr array, intptr_t index) {
     ASSERT((0 <= index) && (index < LengthOf(array)));
     return array->untag()->element<order>(index);
   }
 
-  template <std::memory_order order = std::memory_order_relaxed>
+  ObjectPtr At(intptr_t index) const { return ElementAt(ptr(), index); }
+  template <std::memory_order order>
   ObjectPtr At(intptr_t index) const {
     return ElementAt<order>(ptr(), index);
   }
-  template <std::memory_order order = std::memory_order_relaxed>
+  void SetAt(intptr_t index, const Object& value) const {
+    ASSERT((0 <= index) && (index < Length()));
+    untag()->set_element(index, value.ptr());
+  }
+  template <std::memory_order order>
   void SetAt(intptr_t index, const Object& value) const {
     ASSERT((0 <= index) && (index < Length()));
     untag()->set_element<order>(index, value.ptr());
   }
-  template <std::memory_order order = std::memory_order_relaxed>
+  void SetAt(intptr_t index, const Object& value, Thread* thread) const {
+    ASSERT((0 <= index) && (index < Length()));
+    untag()->set_element(index, value.ptr(), thread);
+  }
+  template <std::memory_order order>
   void SetAt(intptr_t index, const Object& value, Thread* thread) const {
     ASSERT((0 <= index) && (index < Length()));
     untag()->set_element<order>(index, value.ptr(), thread);
@@ -11232,9 +11295,11 @@ class Array : public Instance {
     untag()->set_length<std::memory_order_release>(Smi::New(value));
   }
 
-  template <typename type,
-            std::memory_order order = std::memory_order_relaxed,
-            typename value_type>
+  template <typename type, typename value_type>
+  void StoreArrayPointer(type const* addr, value_type value) const {
+    ptr()->untag()->StoreArrayPointer<type, value_type>(addr, value);
+  }
+  template <typename type, std::memory_order order, typename value_type>
   void StoreArrayPointer(type const* addr, value_type value) const {
     ptr()->untag()->StoreArrayPointer<type, order, value_type>(addr, value);
   }

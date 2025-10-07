@@ -2,11 +2,11 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:14:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 //   A.x = /*error:INVALID_ASSIGNMENT*/ "hi";
 //                                      ^
 //
-// pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:16:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 //   B.y = /*error:INVALID_ASSIGNMENT*/ "hi";
 //                                      ^
 //
@@ -23,10 +23,10 @@ class B extends core::Object {
     ;
 }
 static method test1() → dynamic {
-  inf::A::x = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  inf::A::x = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:14:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   A.x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
                                      ^" in "hi" as{TypeError} core::int;
-  self::B::y = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:16:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  self::B::y = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   B.y = /*error:INVALID_ASSIGNMENT*/ \"hi\";
                                      ^" in "hi" as{TypeError} core::int;
 }

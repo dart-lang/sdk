@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class C {
@@ -15,8 +14,7 @@ class D extends C {
 
 test() {
   int y = /*info:DYNAMIC_CAST*/ new D()
-      . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D.m*/ m<int>(
-          42);
+      . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ m<int>(42);
   print(y);
 }
 

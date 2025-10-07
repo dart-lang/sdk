@@ -4,33 +4,28 @@
 
 // Test library uri for a library read as a file.
 
-library MirrorsTest;
-
 import 'dart:io';
 import 'dart:mirrors';
 
-import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
+import 'package:expect/expect.dart';
 
 class Class {}
 
-testLibraryUri(var value, Uri expectedUri) {
+void testLibraryUri(var value, Uri expectedUri) {
   var valueMirror = reflect(value);
   ClassMirror valueClass = valueMirror.type;
   LibraryMirror valueLibrary = valueClass.owner as LibraryMirror;
-  expect(valueLibrary.uri, equals(expectedUri));
+  Expect.equals(expectedUri, valueLibrary.uri);
 }
 
-main() {
-  var mirrors = currentMirrorSystem();
-  test("Test current library uri", () {
-    if (!Platform.script.toString().endsWith('.dart')) {
-      print(
-        "Skipping library uri test as not running from source "
-        "(Platform.script = ${Platform.script})",
-      );
-      return;
-    }
-    Uri uri = Uri.base.resolveUri(Platform.script);
-    testLibraryUri(new Class(), uri);
-  });
+void main() {
+  if (!Platform.script.toString().endsWith('.dart')) {
+    print(
+      "Skipping library uri test as not running from source "
+      "(Platform.script = ${Platform.script})",
+    );
+    return;
+  }
+  Uri uri = Uri.base.resolveUri(Platform.script);
+  testLibraryUri(new Class(), uri);
 }

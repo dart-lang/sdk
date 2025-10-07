@@ -90,7 +90,8 @@ CodePtr NativeCallPattern::target() const {
 }
 
 void NativeCallPattern::set_target(const Code& target) const {
-  object_pool_.SetObjectAt(target_code_pool_index_, target);
+  object_pool_.SetObjectAt<std::memory_order_release>(target_code_pool_index_,
+                                                      target);
   // No need to flush the instruction cache, since the code is not modified.
 }
 
@@ -100,8 +101,8 @@ NativeFunction NativeCallPattern::native_function() const {
 }
 
 void NativeCallPattern::set_native_function(NativeFunction func) const {
-  object_pool_.SetRawValueAt(native_function_pool_index_,
-                             reinterpret_cast<uword>(func));
+  object_pool_.SetRawValueAt<std::memory_order_relaxed>(
+      native_function_pool_index_, reinterpret_cast<uword>(func));
 }
 
 // Decodes a load sequence ending at 'end' (the last instruction of the load
@@ -297,7 +298,8 @@ CodePtr CallPattern::TargetCode() const {
 }
 
 void CallPattern::SetTargetCode(const Code& target) const {
-  object_pool_.SetObjectAt(target_code_pool_index_, target);
+  object_pool_.SetObjectAt<std::memory_order_release>(target_code_pool_index_,
+                                                      target);
   // No need to flush the instruction cache, since the code is not modified.
 }
 
@@ -307,7 +309,7 @@ ObjectPtr ICCallPattern::Data() const {
 
 void ICCallPattern::SetData(const Object& data) const {
   ASSERT(data.IsArray() || data.IsICData() || data.IsMegamorphicCache());
-  object_pool_.SetObjectAt(data_pool_index_, data);
+  object_pool_.SetObjectAt<std::memory_order_release>(data_pool_index_, data);
 }
 
 CodePtr ICCallPattern::TargetCode() const {
@@ -315,7 +317,8 @@ CodePtr ICCallPattern::TargetCode() const {
 }
 
 void ICCallPattern::SetTargetCode(const Code& target) const {
-  object_pool_.SetObjectAt(target_pool_index_, target);
+  object_pool_.SetObjectAt<std::memory_order_release>(target_pool_index_,
+                                                      target);
   // No need to flush the instruction cache, since the code is not modified.
 }
 
@@ -327,7 +330,7 @@ ObjectPtr SwitchableCallPatternBase::data() const {
   return object_pool_.ObjectAt(data_pool_index_);
 }
 
-void SwitchableCallPatternBase::SetData(const Object& data) const {
+void SwitchableCallPatternBase::SetDataRelease(const Object& data) const {
   ASSERT(!Object::Handle(object_pool_.ObjectAt(data_pool_index_)).IsCode());
   object_pool_.SetObjectAt<std::memory_order_release>(data_pool_index_, data);
 }
@@ -357,9 +360,10 @@ ObjectPtr SwitchableCallPattern::target() const {
   return object_pool_.ObjectAt(target_pool_index_);
 }
 
-void SwitchableCallPattern::SetTarget(const Code& target) const {
+void SwitchableCallPattern::SetTargetRelease(const Code& target) const {
   ASSERT(Object::Handle(object_pool_.ObjectAt(target_pool_index_)).IsCode());
-  object_pool_.SetObjectAt(target_pool_index_, target);
+  object_pool_.SetObjectAt<std::memory_order_release>(target_pool_index_,
+                                                      target);
 }
 
 BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc)
@@ -386,11 +390,11 @@ uword BareSwitchableCallPattern::target_entry() const {
   return object_pool_.RawValueAt(target_pool_index_);
 }
 
-void BareSwitchableCallPattern::SetTarget(const Code& target) const {
+void BareSwitchableCallPattern::SetTargetRelease(const Code& target) const {
   ASSERT(object_pool_.TypeAt(target_pool_index_) ==
          ObjectPool::EntryType::kImmediate);
-  object_pool_.SetRawValueAt(target_pool_index_,
-                             target.MonomorphicEntryPoint());
+  object_pool_.SetRawValueAt<std::memory_order_release>(
+      target_pool_index_, target.MonomorphicEntryPoint());
 }
 
 ReturnPattern::ReturnPattern(uword pc) : pc_(pc) {}

@@ -5,7 +5,7 @@
 part of 'fragment.dart';
 
 class PrimaryConstructorFieldDeclaration
-    with FieldDeclarationMixin
+    with FieldDeclarationMixin, FieldFragmentDeclarationMixin
     implements
         FieldDeclaration,
         FieldFragmentDeclaration,
@@ -16,10 +16,7 @@ class PrimaryConstructorFieldDeclaration
 
   late final FieldEncoding _encoding;
 
-  /// Whether the body of this field has been built.
-  ///
-  /// Constant fields have their initializer built in the outline so we avoid
-  /// building them twice as part of the non-outline build.
+  @override
   bool hasBodyBeenBuilt = false;
 
   PrimaryConstructorFieldDeclaration(this._fragment) {
@@ -86,6 +83,7 @@ class PrimaryConstructorFieldDeclaration
   List<ClassMember> get localMembers => _encoding.localMembers;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
@@ -101,9 +99,8 @@ class PrimaryConstructorFieldDeclaration
   // Coverage-ignore(suite): Not run.
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
+  @override
   // Coverage-ignore(suite): Not run.
-  /// Builds the body of this field using [initializer] as the initializer
-  /// expression.
   void buildBody(CoreTypes coreTypes, Expression? initializer) {
     assert(!hasBodyBeenBuilt, "Body has already been built for $this.");
     hasBodyBeenBuilt = true;
@@ -125,16 +122,20 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  void buildFieldInitializer(
-    InferenceHelper helper,
-    TypeInferrer typeInferrer,
-    CoreTypes coreTypes,
+  void buildFieldInitializer({
+    required TypeInferrer typeInferrer,
+    required CoreTypes coreTypes,
+    required Uri fileUri,
     Expression? initializer,
-  ) {
+  }) {
     if (initializer != null) {
       if (!hasBodyBeenBuilt) {
         initializer = typeInferrer
-            .inferFieldInitializer(helper, fieldType, initializer)
+            .inferFieldInitializer(
+              fileUri: fileUri,
+              declaredType: fieldType,
+              initializer: initializer,
+            )
             .expression;
         buildBody(coreTypes, initializer);
       }
@@ -156,11 +157,13 @@ class PrimaryConstructorFieldDeclaration
     for (Annotatable annotatable in annotatables) {
       buildMetadataForOutlineExpressions(
         libraryBuilder: libraryBuilder,
+        extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
         scope: _fragment.enclosingScope,
         bodyBuilderContext: bodyBuilderContext,
         annotatable: annotatable,
         annotatableFileUri: annotatablesFileUri,
-        metadata: metadata,
+        metadata: _fragment.metadata,
+        annotationsFileUri: _fragment.fileUri,
       );
     }
   }
@@ -232,12 +235,12 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   void checkFieldTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder,
   ) {
-    libraryBuilder.checkTypesInField(
-      typeEnvironment,
+    problemReporting.checkTypesInField(
+      typeEnvironment: typeEnvironment,
       isInstanceMember: builder.isDeclarationInstanceMember,
       isLate: isLate,
       isExternal: false,
@@ -269,7 +272,8 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   void checkGetterTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder,
   ) {}
@@ -409,52 +413,33 @@ class PrimaryConstructorFieldDeclaration
   }
 
   // Coverage-ignore(suite): Not run.
-  DartType _computeInferredType(
+  (DartType, Expression?) _computeInferredType(
     ClassHierarchyBase classHierarchy,
     Token? token,
   ) {
-    DartType? inferredType;
     SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
-    DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
     if (token != null) {
-      InterfaceType? enclosingClassThisType =
-          declarationBuilder is SourceClassBuilder
-          ? libraryBuilder.loader.typeInferenceEngine.coreTypes
-                .thisInterfaceType(
-                  declarationBuilder.cls,
-                  libraryBuilder.library.nonNullable,
-                )
-          : null;
       LookupScope scope = _fragment.enclosingScope;
-      TypeInferrer typeInferrer = libraryBuilder.loader.typeInferenceEngine
-          .createTopLevelTypeInferrer(
-            fileUri,
-            enclosingClassThisType,
-            libraryBuilder,
-            scope,
-            builder.dataForTesting?.inferenceData,
+      ExpressionInferenceResult expressionInferenceResult = libraryBuilder
+          .loader
+          .createResolver()
+          .buildFieldInitializer(
+            libraryBuilder: libraryBuilder,
+            fileUri: fileUri,
+            extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
+            scope: scope,
+            inferenceDataForTesting: builder.dataForTesting?.inferenceData,
+            bodyBuilderContext: createBodyBuilderContext(),
+            startToken: token,
+            isLate: false,
           );
-      BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
-      BodyBuilder bodyBuilder = libraryBuilder.loader.createBodyBuilderForField(
-        libraryBuilder,
-        bodyBuilderContext,
-        scope,
-        typeInferrer,
-        fileUri,
-      );
-      bodyBuilder.constantContext = ConstantContext.none;
-      bodyBuilder.inFieldInitializer = true;
-      bodyBuilder.inLateFieldInitializer = false;
-      Expression initializer = bodyBuilder.parseFieldInitializer(token);
-
-      inferredType = typeInferrer.inferImplicitFieldType(
-        bodyBuilder,
-        initializer,
+      return (
+        expressionInferenceResult.inferredType,
+        expressionInferenceResult.expression,
       );
     } else {
-      inferredType = const DynamicType();
+      return (const DynamicType(), null);
     }
-    return inferredType;
   }
 }
 

@@ -793,7 +793,7 @@ class AstBinaryReader {
 
   IntegerLiteral _readIntegerLiteralNegative() {
     var lexeme = _readStringReference();
-    var value = (_readUInt32() << 32) | _readUInt32();
+    var value = (_readUint32() << 32) | _readUint32();
     return _createIntegerLiteral(lexeme, -value);
   }
 
@@ -816,7 +816,7 @@ class AstBinaryReader {
 
   IntegerLiteral _readIntegerLiteralPositive() {
     var lexeme = _readStringReference();
-    var value = (_readUInt32() << 32) | _readUInt32();
+    var value = (_readUint32() << 32) | _readUint32();
     return _createIntegerLiteral(lexeme, value);
   }
 
@@ -963,7 +963,7 @@ class AstBinaryReader {
   }
 
   List<T> _readNodeList<T>() {
-    var length = _reader.readUInt30();
+    var length = _reader.readUint30();
     return List.generate(length, (_) => readNode() as T);
   }
 
@@ -1366,8 +1366,8 @@ class AstBinaryReader {
     );
   }
 
-  int _readUInt32() {
-    return _reader.readUInt32();
+  int _readUint32() {
+    return _reader.readUint32();
   }
 
   VariableDeclaration _readVariableDeclaration() {

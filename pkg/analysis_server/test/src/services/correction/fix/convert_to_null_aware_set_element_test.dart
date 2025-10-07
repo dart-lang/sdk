@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToNullAwareSetElementTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_NULL_AWARE_SET_ELEMENT;
+  FixKind get kind => DartFixKind.convertToNullAwareSetElement;
 
   Future<void> test_const_set_withGeneralUnassignable() async {
     // Check that the fix isn't suggested when the assignability issue can't be

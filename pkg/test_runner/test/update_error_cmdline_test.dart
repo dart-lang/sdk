@@ -6,55 +6,75 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:test_runner/src/utils.dart';
 
-const commonArguments = [
-  'run',
-  'pkg/test_runner/tool/update_static_error_tests.dart',
-  '--update=cfe',
-];
-
-const testNameParts = [
-  'language',
-  'compile_time_constant',
-  'compile_time_constant_test'
-];
-
-final fileNameParts = [
-  'tests',
-  ...testNameParts.take(testNameParts.length - 1),
-  '${testNameParts.last}.dart',
-];
-
-const expectedLine = 'Running CFE on 1 file...';
-final expectedUpdateText = '${testNameParts.last}.dart (3 errors)';
-
 void main() async {
-  var testFile = File(p.joinAll(fileNameParts));
+  const testNamePartsCfe = [
+    'language',
+    'compile_time_constant',
+    'compile_time_constant_test'
+  ];
+  const testNamePartsWeb = ['web', 'extension_type_assert_error_test'];
+  const expectedLineCfe = 'Running CFE on 1 file...';
+  final expectedUpdateTextCfe = '${testNamePartsCfe.last}.dart (2 errors)';
+  final expectedLineCfeWeb =
+      'Running dart2js on ${toFileNameParts(testNamePartsCfe).join('/')}...';
+
+  final expectedLineWeb =
+      'Running dart2js on ${toFileNameParts(testNamePartsWeb).join('/')}...';
+  final expectedUpdateTextWeb = '${testNamePartsWeb.last}.dart (1 error)';
+
+  await doTest(toFileNameParts(testNamePartsCfe), testNamePartsCfe,
+      '--update=cfe', [expectedLineCfe], expectedUpdateTextCfe);
+  await doTest(
+      toFileNameParts(testNamePartsCfe),
+      testNamePartsCfe,
+      '--update=cfe,web',
+      [expectedLineCfe, expectedLineCfeWeb],
+      expectedUpdateTextCfe,
+      runAll: false);
+  await doTest(toFileNameParts(testNamePartsWeb), testNamePartsWeb,
+      '--update=web', [expectedLineWeb], expectedUpdateTextWeb,
+      runAll: false);
+  await doTest(
+      toFileNameParts(testNamePartsWeb),
+      testNamePartsWeb,
+      '--update=web,cfe',
+      [expectedLineCfe, expectedLineWeb],
+      expectedUpdateTextWeb,
+      runAll: false);
+}
+
+List<String> toFileNameParts(List<String> testNameParts) => [
+      'tests',
+      ...testNameParts.take(testNameParts.length - 1),
+      '${testNameParts.last}.dart',
+    ];
+
+String toFileName(List<String> fileNameParts) => p.joinAll(fileNameParts);
+
+Future<void> doTest(List<String> fileNameParts, List<String> testNameParts,
+    String target, List<String> expectedLines, String expectedUpdateText,
+    {bool runAll = true}) async {
+  var testFile = File(toFileName(fileNameParts));
   var testContent = testFile.readAsStringSync();
   try {
     var errorFound = false;
 
     var testName = testNameParts.join('/');
-    errorFound |= await run(testName);
+    errorFound |=
+        await run(testName, target, expectedLines, expectedUpdateText);
 
-    var relativeNativePath = p.joinAll(fileNameParts);
-    errorFound |= await run(relativeNativePath);
+    if (runAll) {
+      var relativeNativePath = p.joinAll(fileNameParts);
+      errorFound |= await run(
+          relativeNativePath, target, expectedLines, expectedUpdateText);
 
-    var relativeUriPath = fileNameParts.join('/');
-    errorFound |= await run(relativeUriPath);
+      var relativeUriPath = fileNameParts.join('/');
+      errorFound |=
+          await run(relativeUriPath, target, expectedLines, expectedUpdateText);
 
-    var absoluteNativePath = File(relativeNativePath).absolute.path;
-    var result = await run(absoluteNativePath);
-    if (Platform.isWindows) {
-      // TODO(johnniwinther,rnystrom): Support absolute paths on Windows.
-      if (!result) {
-        print('Error: Expected failure on Windows. '
-            'Update test to expect success on all platforms.');
-        errorFound = true;
-      } else {
-        print('Error on Windows is expected.');
-      }
-    } else {
-      errorFound |= result;
+      var absoluteNativePath = File(relativeNativePath).absolute.path;
+      errorFound |= await run(
+          absoluteNativePath, target, expectedLines, expectedUpdateText);
     }
 
     if (errorFound) {
@@ -67,9 +87,15 @@ void main() async {
   }
 }
 
-Future<bool> run(String input) async {
+Future<bool> run(String input, String target, List<String> expectedLines,
+    String expectedUpdateText) async {
+  const commonArguments = [
+    'run',
+    'pkg/test_runner/tool/update_static_error_tests.dart',
+  ];
+
   var executable = Platform.resolvedExecutable;
-  var arguments = [...commonArguments, input];
+  var arguments = [...commonArguments, target, input];
   print('--------------------------------------------------------------------');
   print('Running: $executable ${arguments.join(' ')}');
   var process = await Process.start(executable, runInShell: true, arguments);
@@ -82,9 +108,11 @@ Future<bool> run(String input) async {
   print('Exit code: $exitCode');
 
   var hasError = false;
-  if (!output.contains(expectedLine)) {
-    print('Error: Expected output: $expectedLine');
-    hasError = true;
+  for (var expectedLine in expectedLines) {
+    if (!output.contains(expectedLine)) {
+      print('Error: Expected output: $expectedLine');
+      hasError = true;
+    }
   }
   if (!output.contains(expectedUpdateText)) {
     print('Error: Expected update: $expectedUpdateText');

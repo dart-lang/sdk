@@ -70,11 +70,6 @@ String? getMessageHeaderText(CfeDiagnosticMessage message) {
 }
 
 /// This method is subject to change.
-int getMessageCode(CfeDiagnosticMessage message) {
-  return message is FormattedMessage ? message.code.index : -1;
-}
-
-/// This method is subject to change.
 Map<String, dynamic>? getMessageArguments(CfeDiagnosticMessage message) {
   return message is FormattedMessage ? message.arguments : null;
 }

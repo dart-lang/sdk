@@ -13,11 +13,12 @@ import 'implied_types.dart';
 import 'to_html.dart';
 
 final GeneratedFile target = GeneratedFile(
-    'analyzer_plugin/test/integration/support/protocol_matchers.dart',
-    (pkgRoot) async {
-  var visitor = CodegenMatchersVisitor(readApi(pkgRoot));
-  return visitor.collectCode(visitor.visitApi);
-});
+  'analyzer_plugin/test/integration/support/protocol_matchers.dart',
+  (pkgRoot) async {
+    var visitor = CodegenMatchersVisitor(readApi(pkgRoot));
+    return visitor.collectCode(visitor.visitApi);
+  },
+);
 
 class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /// Visitor used to produce doc comments.
@@ -40,15 +41,17 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /// matches the given [type].
   void makeMatcher(ImpliedType impliedType) {
     context = impliedType.humanReadableName;
-    docComment(toHtmlVisitor.collectHtml(() {
-      toHtmlVisitor.p(() {
-        toHtmlVisitor.write(context!);
-      });
-      var type = impliedType.type;
-      if (type != null) {
-        toHtmlVisitor.showType(null, type);
-      }
-    }));
+    docComment(
+      toHtmlVisitor.collectHtml(() {
+        toHtmlVisitor.p(() {
+          toHtmlVisitor.write(context!);
+        });
+        var type = impliedType.type;
+        if (type != null) {
+          toHtmlVisitor.showType(null, type);
+        }
+      }),
+    );
     write('final Matcher ${camelJoin(['is', impliedType.camelName])} = ');
     var type = impliedType.type;
     if (type == null) {
@@ -102,8 +105,10 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     writeln('// ignore_for_file: flutter_style_todos');
     writeln();
     var impliedTypes = computeImpliedTypes(api).values.toList();
-    impliedTypes.sort((ImpliedType first, ImpliedType second) =>
-        first.camelName.compareTo(second.camelName));
+    impliedTypes.sort(
+      (ImpliedType first, ImpliedType second) =>
+          first.camelName.compareTo(second.camelName),
+    );
     for (var impliedType in impliedTypes) {
       makeMatcher(impliedType);
     }
@@ -147,8 +152,9 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     writeln('LazyMatcher(() => MatchesJsonObject(');
     indent(() {
       write("'$context', ");
-      var requiredFields =
-          typeObject.fields.where((TypeObjectField field) => !field.optional);
+      var requiredFields = typeObject.fields.where(
+        (TypeObjectField field) => !field.optional,
+      );
       outputObjectFields(requiredFields);
       var optionalFields = typeObject.fields
           .where((TypeObjectField field) => field.optional)

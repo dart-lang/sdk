@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
+import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 
 final class ExportCountMismatch extends ExportFailure {
@@ -81,6 +84,30 @@ final class ExportLibraryMissing extends ExportFailure {
   @override
   String toString() {
     return 'ExportLibraryMissing(uri: $uri)';
+  }
+}
+
+class ImplementedMethodIdMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName interfaceName;
+  final LookupName methodName;
+  final ManifestItemId? expectedId;
+  final ManifestItemId? actualId;
+
+  ImplementedMethodIdMismatch({
+    required this.libraryUri,
+    required this.interfaceName,
+    required this.methodName,
+    required this.expectedId,
+    required this.actualId,
+  });
+
+  @override
+  String toString() {
+    return 'ImplementedMethodIdMismatch(libraryUri: $libraryUri, '
+        'interfaceName: ${interfaceName.asString}, '
+        'methodName: ${methodName.asString}, '
+        'expectedId: $expectedId, actualId: $actualId)';
   }
 }
 
@@ -206,6 +233,28 @@ class InterfaceConstructorIdMismatch extends RequirementFailure {
   }
 }
 
+class InterfaceHasNonFinalFieldMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName interfaceName;
+  final bool expected;
+  final bool actual;
+
+  InterfaceHasNonFinalFieldMismatch({
+    required this.libraryUri,
+    required this.interfaceName,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'InterfaceHasNonFinalFieldMismatch(libraryUri: $libraryUri, '
+        'interfaceName: ${interfaceName.asString}, '
+        'expected: $expected, '
+        'actual: $actual)';
+  }
+}
+
 class InterfaceIdMismatch extends RequirementFailure {
   final Uri libraryUri;
   final LookupName interfaceName;
@@ -228,6 +277,108 @@ class InterfaceIdMismatch extends RequirementFailure {
   }
 }
 
+class LibraryChildrenIdsMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final String childrenPropertyName;
+  final ManifestItemIdList expectedIds;
+  final ManifestItemIdList actualIds;
+
+  LibraryChildrenIdsMismatch({
+    required this.libraryUri,
+    required this.childrenPropertyName,
+    required this.expectedIds,
+    required this.actualIds,
+  });
+
+  @override
+  String toString() {
+    return 'LibraryChildrenIdsMismatch(libraryUri: $libraryUri, '
+        'childrenPropertyName: $childrenPropertyName, '
+        'expectedIds: $expectedIds, actualIds: $actualIds)';
+  }
+}
+
+class LibraryExportedUrisMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final List<Uri> expected;
+  final List<Uri> actual;
+
+  LibraryExportedUrisMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'LibraryExportedUrisMismatch(libraryUri: $libraryUri, '
+        'expected: $expected, actual: $actual)';
+  }
+}
+
+class LibraryFeatureSetMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final Uint8List? expected;
+  final Uint8List? actual;
+
+  LibraryFeatureSetMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'LibraryFeatureSetMismatch(libraryUri: $libraryUri, '
+        'expected: $expected, actual: $actual)';
+  }
+}
+
+class LibraryIsSyntheticMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final bool expected;
+  final bool actual;
+
+  LibraryIsSyntheticMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'LibraryIsSyntheticMismatch(libraryUri: $libraryUri, '
+        'expected: $expected, actual: $actual)';
+  }
+}
+
+class LibraryLanguageVersionMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final ManifestLibraryLanguageVersion expected;
+  final ManifestLibraryLanguageVersion actual;
+
+  LibraryLanguageVersionMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'LibraryLanguageVersionMismatch(libraryUri: $libraryUri, '
+        'expected: $expected, actual: $actual)';
+  }
+}
+
+class LibraryMetadataMismatch extends RequirementFailure {
+  final Uri libraryUri;
+
+  LibraryMetadataMismatch({required this.libraryUri});
+
+  @override
+  String toString() => 'LibraryMetadataMismatch(libraryUri: $libraryUri)';
+}
+
 class LibraryMissing extends RequirementFailure {
   final Uri uri;
 
@@ -236,6 +387,24 @@ class LibraryMissing extends RequirementFailure {
   @override
   String toString() {
     return 'LibraryMissing(uri: $uri)';
+  }
+}
+
+class LibraryNameMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final String? expected;
+  final String? actual;
+
+  LibraryNameMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'LibraryNameMismatch(libraryUri: $libraryUri, '
+        'expected: $expected, actual: $actual)';
   }
 }
 
@@ -250,7 +419,54 @@ final class OpaqueApiUseFailure extends RequirementFailure {
   }
 }
 
+class ReExportDeprecatedOnlyMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName name;
+  final bool expected;
+  final bool actual;
+
+  ReExportDeprecatedOnlyMismatch({
+    required this.libraryUri,
+    required this.name,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'ReExportDeprecatedOnlyMismatch(libraryUri: $libraryUri, '
+        'name: ${name.asString}, expected: $expected, actual: $actual)';
+  }
+}
+
 sealed class RequirementFailure {}
+
+class SuperImplementedMethodIdMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName interfaceName;
+  final int superIndex;
+  final LookupName methodName;
+  final ManifestItemId? expectedId;
+  final ManifestItemId? actualId;
+
+  SuperImplementedMethodIdMismatch({
+    required this.libraryUri,
+    required this.interfaceName,
+    required this.superIndex,
+    required this.methodName,
+    required this.expectedId,
+    required this.actualId,
+  });
+
+  @override
+  String toString() {
+    return 'SuperImplementedMethodIdMismatch(libraryUri: $libraryUri, '
+        'interfaceName: ${interfaceName.asString}, '
+        'superIndex: $superIndex, '
+        'methodName: ${methodName.asString}, '
+        'expectedId: $expectedId, actualId: $actualId)';
+  }
+}
 
 sealed class TopLevelFailure extends RequirementFailure {
   final Uri libraryUri;

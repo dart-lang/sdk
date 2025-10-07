@@ -11,9 +11,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionElementTest_keepLinking);
     defineReflectiveTests(ExtensionElementTest_fromBytes);
-    // TODO(scheglov): implement augmentation
-    // defineReflectiveTests(ExtensionElementTest_augmentation_keepLinking);
-    // defineReflectiveTests(ExtensionElementTest_augmentation_fromBytes);
+    defineReflectiveTests(ExtensionElementTest_augmentation_keepLinking);
+    defineReflectiveTests(ExtensionElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -294,7 +293,7 @@ library
                     token: foo @34
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
           fields
             #F3 hasInitializer foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: <testLibrary>::@extension::E::@field::foo
@@ -315,7 +314,7 @@ library
                     token: foo @77
                     element: <testLibrary>::@extension::E::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@extension::E::@getter::foo
+                  element: <testLibrary>::@extension::E::@getter::foo
       topLevelVariables
         #F6 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -340,7 +339,7 @@ library
                 token: foo @34
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
       extendedType: int
       fields
         static const hasInitializer foo
@@ -368,7 +367,7 @@ library
                 token: foo @77
                 element: <testLibrary>::@extension::E::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@extension::E::@getter::foo
+              element: <testLibrary>::@extension::E::@getter::foo
           returnType: void
   topLevelVariables
     const hasInitializer foo
@@ -682,3706 +681,1925 @@ library
 
 abstract class ExtensionElementTest_augmentation extends ElementsBaseTest {
   test_augmentationTarget() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-part 'b.dart';
-augment extension A {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-augment extension A {}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 extension A on int {}
+
+augment extension A {}
+
+augment extension A {}
 ''');
 
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          augmented
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      parts
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        augment A @54
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        augment A @36
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-  exportedReferences
-    declared <testLibraryFragment>::@extension::A
-  exportNamespace
-    A: <testLibraryFragment>::@extension::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        extension A @54
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
+        #F2 extension A (nameOffset:41) (firstTokenOffset:23) (offset:41)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        extension A @36
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: #F1
+          nextFragment: #F3
+        #F3 extension A (nameOffset:65) (firstTokenOffset:47) (offset:65)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: #F2
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
   exportedReferences
-    declared <testLibraryFragment>::@extension::A
+    declared <testLibrary>::@extension::A
   exportNamespace
-    A: <testLibraryFragment>::@extension::A
+    A: <testLibrary>::@extension::A
 ''');
   }
 
   test_augmentationTarget_no2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-part 'b.dart';
+    var library = await buildLibrary(r'''
 augment extension A {
   void foo1() {}
 }
-''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
 augment extension A {
   void foo2() {}
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      parts
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        augment A @54
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          extendedType: InvalidType
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          methods
-            foo1 @65
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::foo1
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: void
-          augmented
-            methods
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::foo1
-              <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        augment A @36
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          methods
-            foo2 @47
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
       extensions
-        extension A @54
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+        #F1 extension A (nameOffset:18) (firstTokenOffset:0) (offset:18)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          nextFragment: #F2
           methods
-            foo1 @65
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::foo1
-              element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::foo1#element
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        extension A @36
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+            #F3 foo1 (nameOffset:29) (firstTokenOffset:24) (offset:29)
+              element: <testLibrary>::@extension::A::@method::foo1
+        #F2 extension A (nameOffset:60) (firstTokenOffset:42) (offset:60)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: #F1
           methods
-            foo2 @47
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2
-              element: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2#element
+            #F4 foo2 (nameOffset:71) (firstTokenOffset:66) (offset:71)
+              element: <testLibrary>::@extension::A::@method::foo2
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+      firstFragment: #F1
+      extendedType: InvalidType
       methods
         foo1
           reference: <testLibrary>::@extension::A::@method::foo1
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::foo1
+          firstFragment: #F3
+          returnType: void
         foo2
           reference: <testLibrary>::@extension::A::@method::foo2
-          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2
+          firstFragment: #F4
+          returnType: void
 ''');
   }
 
   test_augmented_field_augment_field() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment extension A {
-  augment static int foo = 1;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 extension A on int {
   static int foo = 0;
+}
+
+augment extension A {
+  augment static int foo = 1;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            static foo @49
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-            synthetic static set foo= @-1
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-            accessors
-              <testLibraryFragment>::@extension::A::@getter::foo
-              <testLibraryFragment>::@extension::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          fields
-            augment static foo @64
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              augmentationTarget: <testLibraryFragment>::@extension::A::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @49
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo
-              setter2: <testLibraryFragment>::@extension::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
+              element: <testLibrary>::@extension::A::@field::foo
+              nextFragment: #F4
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@getter::foo
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              element: <testLibraryFragment>::@extension::A::@setter::foo#element
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+        #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           fields
-            augment hasInitializer foo @64
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              previousFragment: <testLibraryFragment>::@extension::A::@field::foo
+            #F4 augment hasInitializer foo (nameOffset:89) (firstTokenOffset:89) (offset:89)
+              element: <testLibrary>::@extension::A::@field::foo
+              previousFragment: #F3
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         static hasInitializer foo
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo
+          reference: <testLibrary>::@extension::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo#element
-          setter: <testLibraryFragment>::@extension::A::@setter::foo#element
+          getter: <testLibrary>::@extension::A::@getter::foo
+          setter: <testLibrary>::@extension::A::@setter::foo
       getters
-        synthetic static get foo
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo
       setters
-        synthetic static set foo
-          firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@setter::foo
+          firstFragment: #F6
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional value
+              firstFragment: #F7
               type: int
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo
 ''');
   }
 
   test_augmented_field_augment_field2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  static int foo = 0;
+}
+
 augment extension A {
   augment static int foo = 1;
 }
-''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
 augment extension A {
   augment static int foo = 2;
-}
-''');
-
-    var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
-extension A on int {
-  static int foo = 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        A @40
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            static foo @64
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-            synthetic static set foo= @-1
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-            accessors
-              <testLibraryFragment>::@extension::A::@getter::foo
-              <testLibraryFragment>::@extension::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          fields
-            augment static foo @64
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              augmentationTarget: <testLibraryFragment>::@extension::A::@field::foo
-              augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            augment static foo @64
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_2
-              augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @40
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @64
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo
-              setter2: <testLibraryFragment>::@extension::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
+              element: <testLibrary>::@extension::A::@field::foo
+              nextFragment: #F4
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@getter::foo
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              element: <testLibraryFragment>::@extension::A::@setter::foo#element
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+        #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: #F1
+          nextFragment: #F8
           fields
-            augment hasInitializer foo @64
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              previousFragment: <testLibraryFragment>::@extension::A::@field::foo
-              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+            #F4 augment hasInitializer foo (nameOffset:89) (firstTokenOffset:89) (offset:89)
+              element: <testLibrary>::@extension::A::@field::foo
+              previousFragment: #F3
+              nextFragment: #F9
+        #F8 extension A (nameOffset:119) (firstTokenOffset:101) (offset:119)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: #F2
           fields
-            augment hasInitializer foo @64
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+            #F9 augment hasInitializer foo (nameOffset:144) (firstTokenOffset:144) (offset:144)
+              element: <testLibrary>::@extension::A::@field::foo
+              previousFragment: #F4
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         static hasInitializer foo
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo
+          reference: <testLibrary>::@extension::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo#element
-          setter: <testLibraryFragment>::@extension::A::@setter::foo#element
+          getter: <testLibrary>::@extension::A::@getter::foo
+          setter: <testLibrary>::@extension::A::@setter::foo
       getters
-        synthetic static get foo
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo
       setters
-        synthetic static set foo
-          firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@setter::foo
+          firstFragment: #F6
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional value
+              firstFragment: #F7
               type: int
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo
 ''');
   }
 
   test_augmented_field_augment_field_afterGetter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  static int foo = 0;
+}
+
 augment extension A {
   augment static int get foo => 1;
 }
-''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
 augment extension A {
   augment static int foo = 2;
-}
-''');
-
-    var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
-extension A on int {
-  static int foo = 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        A @40
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            static foo @64
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-              augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-            synthetic static set foo= @-1
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              <testLibraryFragment>::@extension::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          accessors
-            augment static get foo @68
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: int
-              id: getter_1
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            augment static foo @64
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              augmentationTarget: <testLibraryFragment>::@extension::A::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @40
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @64
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo
-              setter2: <testLibraryFragment>::@extension::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
+              element: <testLibrary>::@extension::A::@field::foo
+              nextFragment: #F4
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@getter::foo
+              nextFragment: #F6
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              element: <testLibraryFragment>::@extension::A::@setter::foo#element
+            #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+        #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: #F1
+          nextFragment: #F9
           getters
-            augment get foo @68
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
-              previousFragment: <testLibraryFragment>::@extension::A::@getter::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+            #F6 augment foo (nameOffset:93) (firstTokenOffset:70) (offset:93)
+              element: <testLibrary>::@extension::A::@getter::foo
+              previousFragment: #F5
+        #F9 extension A (nameOffset:124) (firstTokenOffset:106) (offset:124)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: #F2
           fields
-            augment hasInitializer foo @64
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              previousFragment: <testLibraryFragment>::@extension::A::@field::foo
+            #F4 augment hasInitializer foo (nameOffset:149) (firstTokenOffset:149) (offset:149)
+              element: <testLibrary>::@extension::A::@field::foo
+              previousFragment: #F3
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         static hasInitializer foo
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo
+          reference: <testLibrary>::@extension::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo#element
-          setter: <testLibraryFragment>::@extension::A::@setter::foo#element
+          getter: <testLibrary>::@extension::A::@getter::foo
+          setter: <testLibrary>::@extension::A::@setter::foo
       getters
-        synthetic static get foo
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo
       setters
-        synthetic static set foo
-          firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@setter::foo
+          firstFragment: #F7
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional value
+              firstFragment: #F8
               type: int
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo
 ''');
   }
 
   test_augmented_field_augment_field_afterSetter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  static int foo = 0;
+}
+
 augment extension A {
   augment static set foo(int _) {}
 }
-''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
 augment extension A {
   augment static int foo = 2;
-}
-''');
-
-    var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
-extension A on int {
-  static int foo = 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        A @40
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            static foo @64
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-              augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-            synthetic static set foo= @-1
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-            accessors
-              <testLibraryFragment>::@extension::A::@getter::foo
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          accessors
-            augment static set foo= @64
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              parameters
-                requiredPositional _ @72
-                  type: int
-              returnType: void
-              id: setter_1
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@extension::A::@setter::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            augment static foo @64
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              augmentationTarget: <testLibraryFragment>::@extension::A::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @40
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @64
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo
-              setter2: <testLibraryFragment>::@extension::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
+              element: <testLibrary>::@extension::A::@field::foo
+              nextFragment: #F4
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@getter::foo
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              element: <testLibraryFragment>::@extension::A::@setter::foo#element
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+              nextFragment: #F8
+        #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: #F1
+          nextFragment: #F9
           setters
-            augment set foo @64
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@setter::foo#element
+            #F8 augment foo (nameOffset:89) (firstTokenOffset:70) (offset:89)
+              element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                _ @72
-                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo::@parameter::_#element
-              previousFragment: <testLibraryFragment>::@extension::A::@setter::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+                #F10 _ (nameOffset:97) (firstTokenOffset:93) (offset:97)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::_
+              previousFragment: #F6
+        #F9 extension A (nameOffset:124) (firstTokenOffset:106) (offset:124)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: #F2
           fields
-            augment hasInitializer foo @64
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              previousFragment: <testLibraryFragment>::@extension::A::@field::foo
+            #F4 augment hasInitializer foo (nameOffset:149) (firstTokenOffset:149) (offset:149)
+              element: <testLibrary>::@extension::A::@field::foo
+              previousFragment: #F3
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         static hasInitializer foo
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo
+          reference: <testLibrary>::@extension::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo#element
-          setter: <testLibraryFragment>::@extension::A::@setter::foo#element
+          getter: <testLibrary>::@extension::A::@getter::foo
+          setter: <testLibrary>::@extension::A::@setter::foo
       getters
-        synthetic static get foo
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo
       setters
-        synthetic static set foo
-          firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@setter::foo
+          firstFragment: #F6
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional value
+              firstFragment: #F7
               type: int
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo
 ''');
   }
 
   test_augmented_field_augment_field_differentTypes() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  static int foo = 0;
+}
+
 augment extension A {
   augment static double foo = 1.2;
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-extension A on int {
-  static int foo = 0;
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            static foo @49
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-            synthetic static set foo= @-1
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-            accessors
-              <testLibraryFragment>::@extension::A::@getter::foo
-              <testLibraryFragment>::@extension::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          fields
-            augment static foo @67
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              type: double
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              augmentationTarget: <testLibraryFragment>::@extension::A::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @49
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo
-              setter2: <testLibraryFragment>::@extension::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
+              element: <testLibrary>::@extension::A::@field::foo
+              nextFragment: #F4
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@getter::foo
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              element: <testLibraryFragment>::@extension::A::@setter::foo#element
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+        #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           fields
-            augment hasInitializer foo @67
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              previousFragment: <testLibraryFragment>::@extension::A::@field::foo
+            #F4 augment hasInitializer foo (nameOffset:92) (firstTokenOffset:92) (offset:92)
+              element: <testLibrary>::@extension::A::@field::foo
+              previousFragment: #F3
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         static hasInitializer foo
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo
+          reference: <testLibrary>::@extension::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo#element
-          setter: <testLibraryFragment>::@extension::A::@setter::foo#element
+          getter: <testLibrary>::@extension::A::@getter::foo
+          setter: <testLibrary>::@extension::A::@setter::foo
       getters
-        synthetic static get foo
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo
       setters
-        synthetic static set foo
-          firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@setter::foo
+          firstFragment: #F6
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional value
+              firstFragment: #F7
               type: int
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo
 ''');
   }
 
-  /// This is not allowed by the specification, but allowed syntactically,
-  /// so we need a way to handle it.
   test_augmented_field_augment_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  static int get foo => 0;
+}
+
 augment extension A {
   augment static int foo = 1;
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-extension A on int {
-  static int get foo => 0;
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            synthetic static foo @-1
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              id: field_0
-              getter: getter_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-          accessors
-            static get foo @53
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-            accessors
-              <testLibraryFragment>::@extension::A::@getter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          fields
-            augment static foo @64
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              augmentationTarget: <testLibraryFragment>::@extension::A::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: <testLibrary>::@extension::A::@field::foo
+              nextFragment: #F4
           getters
-            get foo @53
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+            #F5 foo (nameOffset:38) (firstTokenOffset:23) (offset:38)
+              element: <testLibrary>::@extension::A::@getter::foo
+        #F2 extension A (nameOffset:69) (firstTokenOffset:51) (offset:69)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           fields
-            augment hasInitializer foo @64
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              previousFragment: <testLibraryFragment>::@extension::A::@field::foo
+            #F4 augment hasInitializer foo (nameOffset:94) (firstTokenOffset:94) (offset:94)
+              element: <testLibrary>::@extension::A::@field::foo
+              previousFragment: #F3
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         synthetic static hasInitializer foo
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo
+          reference: <testLibrary>::@extension::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo#element
+          getter: <testLibrary>::@extension::A::@getter::foo
       getters
-        static get foo
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
+        static foo
+          reference: <testLibrary>::@extension::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo
 ''');
   }
 
   test_augmented_fields_add() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  static int foo1 = 0;
+}
+
 augment extension A {
   static int foo2 = 0;
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-extension A on int {
-  static int foo1 = 0;
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            static foo1 @49
-              reference: <testLibraryFragment>::@extension::A::@field::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-          accessors
-            synthetic static get foo1 @-1
-              reference: <testLibraryFragment>::@extension::A::@getter::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-            synthetic static set foo1= @-1
-              reference: <testLibraryFragment>::@extension::A::@setter::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              parameters
-                requiredPositional _foo1 @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibraryFragment>::@extension::A::@field::foo1
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-            accessors
-              <testLibraryFragment>::@extension::A::@getter::foo1
-              <testLibraryFragment>::@extension::A::@setter::foo1
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          fields
-            static foo2 @56
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              getter: getter_1
-              setter: setter_1
-          accessors
-            synthetic static get foo2 @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: int
-              id: getter_1
-              variable: field_1
-            synthetic static set foo2= @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              parameters
-                requiredPositional _foo2 @-1
-                  type: int
-              returnType: void
-              id: setter_1
-              variable: field_1
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo1 @49
-              reference: <testLibraryFragment>::@extension::A::@field::foo1
-              element: <testLibraryFragment>::@extension::A::@field::foo1#element
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo1
-              setter2: <testLibraryFragment>::@extension::A::@setter::foo1
+            #F3 hasInitializer foo1 (nameOffset:34) (firstTokenOffset:34) (offset:34)
+              element: <testLibrary>::@extension::A::@field::foo1
           getters
-            synthetic get foo1
-              reference: <testLibraryFragment>::@extension::A::@getter::foo1
-              element: <testLibraryFragment>::@extension::A::@getter::foo1#element
+            #F4 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@getter::foo1
           setters
-            synthetic set foo1
-              reference: <testLibraryFragment>::@extension::A::@setter::foo1
-              element: <testLibraryFragment>::@extension::A::@setter::foo1#element
+            #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@setter::foo1
               formalParameters
-                _foo1
-                  element: <testLibraryFragment>::@extension::A::@setter::foo1::@parameter::_foo1#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                  element: <testLibrary>::@extension::A::@setter::foo1::@formalParameter::value
+        #F2 extension A (nameOffset:65) (firstTokenOffset:47) (offset:65)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           fields
-            hasInitializer foo2 @56
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2#element
-              getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-              setter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
+            #F7 hasInitializer foo2 (nameOffset:82) (firstTokenOffset:82) (offset:82)
+              element: <testLibrary>::@extension::A::@field::foo2
           getters
-            synthetic get foo2
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2#element
+            #F8 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:82)
+              element: <testLibrary>::@extension::A::@getter::foo2
           setters
-            synthetic set foo2
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2#element
+            #F9 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:82)
+              element: <testLibrary>::@extension::A::@setter::foo2
               formalParameters
-                _foo2
-                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2::@parameter::_foo2#element
+                #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:82)
+                  element: <testLibrary>::@extension::A::@setter::foo2::@formalParameter::value
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         static hasInitializer foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo1
+          reference: <testLibrary>::@extension::A::@field::foo1
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo1#element
-          setter: <testLibraryFragment>::@extension::A::@setter::foo1#element
+          getter: <testLibrary>::@extension::A::@getter::foo1
+          setter: <testLibrary>::@extension::A::@setter::foo1
         static hasInitializer foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+          reference: <testLibrary>::@extension::A::@field::foo2
+          firstFragment: #F7
           type: int
-          getter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2#element
-          setter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2#element
+          getter: <testLibrary>::@extension::A::@getter::foo2
+          setter: <testLibrary>::@extension::A::@setter::foo2
       getters
-        synthetic static get foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo1
-        synthetic static get foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+        synthetic static foo1
+          reference: <testLibrary>::@extension::A::@getter::foo1
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo1
+        synthetic static foo2
+          reference: <testLibrary>::@extension::A::@getter::foo2
+          firstFragment: #F8
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo2
       setters
-        synthetic static set foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@setter::foo1
+        synthetic static foo1
+          reference: <testLibrary>::@extension::A::@setter::foo1
+          firstFragment: #F5
           formalParameters
-            requiredPositional _foo1
+            #E0 requiredPositional value
+              firstFragment: #F6
               type: int
-        synthetic static set foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo1
+        synthetic static foo2
+          reference: <testLibrary>::@extension::A::@setter::foo2
+          firstFragment: #F9
           formalParameters
-            requiredPositional _foo2
+            #E1 requiredPositional value
+              firstFragment: #F10
               type: int
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo2
 ''');
   }
 
   test_augmented_getters_add() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  int get foo1 => 0;
+}
+
 augment extension A {
   int get foo2 => 0;
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-extension A on int {
-  int get foo1 => 0;
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            synthetic foo1 @-1
-              reference: <testLibraryFragment>::@extension::A::@field::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              id: field_0
-              getter: getter_0
-          accessors
-            get foo1 @46
-              reference: <testLibraryFragment>::@extension::A::@getter::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibraryFragment>::@extension::A::@field::foo1
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-            accessors
-              <testLibraryFragment>::@extension::A::@getter::foo1
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          fields
-            synthetic foo2 @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              type: int
-              id: field_1
-              getter: getter_1
-          accessors
-            get foo2 @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: int
-              id: getter_1
-              variable: field_1
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo1
-              reference: <testLibraryFragment>::@extension::A::@field::foo1
-              element: <testLibraryFragment>::@extension::A::@field::foo1#element
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo1
+            #F3 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: <testLibrary>::@extension::A::@field::foo1
           getters
-            get foo1 @46
-              reference: <testLibraryFragment>::@extension::A::@getter::foo1
-              element: <testLibraryFragment>::@extension::A::@getter::foo1#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+            #F4 foo1 (nameOffset:31) (firstTokenOffset:23) (offset:31)
+              element: <testLibrary>::@extension::A::@getter::foo1
+        #F2 extension A (nameOffset:63) (firstTokenOffset:45) (offset:63)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           fields
-            synthetic foo2
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2#element
-              getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+            #F5 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+              element: <testLibrary>::@extension::A::@field::foo2
           getters
-            get foo2 @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2#element
+            #F6 foo2 (nameOffset:77) (firstTokenOffset:69) (offset:77)
+              element: <testLibrary>::@extension::A::@getter::foo2
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         synthetic foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo1
+          reference: <testLibrary>::@extension::A::@field::foo1
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo1#element
+          getter: <testLibrary>::@extension::A::@getter::foo1
         synthetic foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+          reference: <testLibrary>::@extension::A::@field::foo2
+          firstFragment: #F5
           type: int
-          getter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2#element
+          getter: <testLibrary>::@extension::A::@getter::foo2
       getters
-        get foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo1
-        get foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+        foo1
+          reference: <testLibrary>::@extension::A::@getter::foo1
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo1
+        foo2
+          reference: <testLibrary>::@extension::A::@getter::foo2
+          firstFragment: #F6
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo2
 ''');
   }
 
   test_augmented_getters_add_generic() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment extension A<T2> {
-  T2 get foo2;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
-extension A<T1> on int {
-  T1 get foo1;
+extension A<T> on int {
+  T get foo1;
+}
+
+augment extension A<T> {
+  T get foo2;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T1 @27
-              defaultType: dynamic
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            synthetic foo1 @-1
-              reference: <testLibraryFragment>::@extension::A::@field::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: T1
-              id: field_0
-              getter: getter_0
-          accessors
-            abstract get foo1 @49
-              reference: <testLibraryFragment>::@extension::A::@getter::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: T1
-              id: getter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibraryFragment>::@extension::A::@field::foo1
-              FieldMember
-                base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-                augmentationSubstitution: {T2: T1}
-            accessors
-              <testLibraryFragment>::@extension::A::@getter::foo1
-              GetterMember
-                base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-                augmentationSubstitution: {T2: T1}
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          typeParameters
-            covariant T2 @41
-              defaultType: dynamic
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          fields
-            synthetic foo2 @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              type: T2
-              id: field_1
-              getter: getter_1
-          accessors
-            abstract get foo2 @56
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: T2
-              id: getter_1
-              variable: field_1
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           typeParameters
-            T1 @27
-              element: <not-implemented>
+            #F3 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: #E0 T
+              nextFragment: #F4
           fields
-            synthetic foo1
-              reference: <testLibraryFragment>::@extension::A::@field::foo1
-              element: <testLibraryFragment>::@extension::A::@field::foo1#element
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo1
+            #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: <testLibrary>::@extension::A::@field::foo1
           getters
-            get foo1 @49
-              reference: <testLibraryFragment>::@extension::A::@getter::foo1
-              element: <testLibraryFragment>::@extension::A::@getter::foo1#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+            #F6 foo1 (nameOffset:32) (firstTokenOffset:26) (offset:32)
+              element: <testLibrary>::@extension::A::@getter::foo1
+        #F2 extension A (nameOffset:59) (firstTokenOffset:41) (offset:59)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           typeParameters
-            T2 @41
-              element: <not-implemented>
+            #F4 T (nameOffset:61) (firstTokenOffset:61) (offset:61)
+              element: #E0 T
+              previousFragment: #F3
           fields
-            synthetic foo2
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2#element
-              getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+            #F7 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+              element: <testLibrary>::@extension::A::@field::foo2
           getters
-            get foo2 @56
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2#element
+            #F8 foo2 (nameOffset:74) (firstTokenOffset:68) (offset:74)
+              element: <testLibrary>::@extension::A::@getter::foo2
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
       typeParameters
-        T1
+        #E0 T
+          firstFragment: #F3
+      extendedType: int
       fields
         synthetic foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo1
-          type: T1
-          getter: <testLibraryFragment>::@extension::A::@getter::foo1#element
+          reference: <testLibrary>::@extension::A::@field::foo1
+          firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
+          type: T
+          getter: <testLibrary>::@extension::A::@getter::foo1
         synthetic foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-          type: T1
-          getter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2#element
+          reference: <testLibrary>::@extension::A::@field::foo2
+          firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
+          type: T
+          getter: <testLibrary>::@extension::A::@getter::foo2
       getters
-        abstract get foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo1
-        abstract get foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+        abstract foo1
+          reference: <testLibrary>::@extension::A::@getter::foo1
+          firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
+          returnType: T
+          variable: <testLibrary>::@extension::A::@field::foo1
+        abstract foo2
+          reference: <testLibrary>::@extension::A::@getter::foo2
+          firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
+          returnType: T
+          variable: <testLibrary>::@extension::A::@field::foo2
 ''');
   }
 
   test_augmented_getters_augment_field() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment extension A {
-  augment static int get foo => 0;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 extension A on int {
   static int foo = 0;
+}
+
+augment extension A {
+  augment static int get foo => 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            static foo @49
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-            synthetic static set foo= @-1
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibraryFragment>::@extension::A::@field::foo
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              <testLibraryFragment>::@extension::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          accessors
-            augment static get foo @68
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: int
-              id: getter_1
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @49
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo
-              setter2: <testLibraryFragment>::@extension::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
+              element: <testLibrary>::@extension::A::@field::foo
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@getter::foo
+              nextFragment: #F5
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              element: <testLibraryFragment>::@extension::A::@setter::foo#element
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+        #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           getters
-            augment get foo @68
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
-              previousFragment: <testLibraryFragment>::@extension::A::@getter::foo
+            #F5 augment foo (nameOffset:93) (firstTokenOffset:70) (offset:93)
+              element: <testLibrary>::@extension::A::@getter::foo
+              previousFragment: #F4
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         static hasInitializer foo
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo
+          reference: <testLibrary>::@extension::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo#element
-          setter: <testLibraryFragment>::@extension::A::@setter::foo#element
+          getter: <testLibrary>::@extension::A::@getter::foo
+          setter: <testLibrary>::@extension::A::@setter::foo
       getters
-        synthetic static get foo
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo
       setters
-        synthetic static set foo
-          firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@setter::foo
+          firstFragment: #F6
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional value
+              firstFragment: #F7
               type: int
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo
 ''');
   }
 
   test_augmented_getters_augment_field2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment extension A {
-  augment static int get foo => 0;
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
-augment extension A {
-  augment static int get foo => 0;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
 extension A on int {
   static int foo = 0;
+}
+
+augment extension A {
+  augment static int get foo => 0;
+}
+
+augment extension A {
+  augment static int get foo => 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        A @40
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            static foo @64
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-            synthetic static set foo= @-1
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibraryFragment>::@extension::A::@field::foo
-            accessors
-              <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              <testLibraryFragment>::@extension::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          accessors
-            augment static get foo @68
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: int
-              id: getter_1
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
-              augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          accessors
-            augment static get foo @68
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-              returnType: int
-              id: getter_2
-              variable: <null>
-              augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @40
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @64
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo
-              setter2: <testLibraryFragment>::@extension::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
+              element: <testLibrary>::@extension::A::@field::foo
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@getter::foo
+              nextFragment: #F5
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              element: <testLibraryFragment>::@extension::A::@setter::foo#element
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+        #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: #F1
+          nextFragment: #F8
           getters
-            augment get foo @68
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
-              previousFragment: <testLibraryFragment>::@extension::A::@getter::foo
-              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+            #F5 augment foo (nameOffset:93) (firstTokenOffset:70) (offset:93)
+              element: <testLibrary>::@extension::A::@getter::foo
+              previousFragment: #F4
+              nextFragment: #F9
+        #F8 extension A (nameOffset:124) (firstTokenOffset:106) (offset:124)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: #F2
           getters
-            augment get foo @68
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
-              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            #F9 augment foo (nameOffset:153) (firstTokenOffset:130) (offset:153)
+              element: <testLibrary>::@extension::A::@getter::foo
+              previousFragment: #F5
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         static hasInitializer foo
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo
+          reference: <testLibrary>::@extension::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo#element
-          setter: <testLibraryFragment>::@extension::A::@setter::foo#element
+          getter: <testLibrary>::@extension::A::@getter::foo
+          setter: <testLibrary>::@extension::A::@setter::foo
       getters
-        synthetic static get foo
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo
       setters
-        synthetic static set foo
-          firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@setter::foo
+          firstFragment: #F6
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional value
+              firstFragment: #F7
               type: int
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo
 ''');
   }
 
   test_augmented_getters_augment_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  int get foo1 => 0;
+  int get foo2 => 0;
+}
+
 augment extension A {
   augment int get foo1 => 0;
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-extension A on int {
-  int get foo1 => 0;
-  int get foo2 => 0;
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            synthetic foo1 @-1
-              reference: <testLibraryFragment>::@extension::A::@field::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              id: field_0
-              getter: getter_0
-            synthetic foo2 @-1
-              reference: <testLibraryFragment>::@extension::A::@field::foo2
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              id: field_1
-              getter: getter_1
-          accessors
-            get foo1 @46
-              reference: <testLibraryFragment>::@extension::A::@getter::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
-            get foo2 @67
-              reference: <testLibraryFragment>::@extension::A::@getter::foo2
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_1
-              variable: field_1
-          augmented
-            fields
-              <testLibraryFragment>::@extension::A::@field::foo1
-              <testLibraryFragment>::@extension::A::@field::foo2
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
-              <testLibraryFragment>::@extension::A::@getter::foo2
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          accessors
-            augment get foo1 @61
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: int
-              id: getter_2
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo1
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo1
-              reference: <testLibraryFragment>::@extension::A::@field::foo1
-              element: <testLibraryFragment>::@extension::A::@field::foo1#element
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo1
-            synthetic foo2
-              reference: <testLibraryFragment>::@extension::A::@field::foo2
-              element: <testLibraryFragment>::@extension::A::@field::foo2#element
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo2
+            #F3 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: <testLibrary>::@extension::A::@field::foo1
+            #F4 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: <testLibrary>::@extension::A::@field::foo2
           getters
-            get foo1 @46
-              reference: <testLibraryFragment>::@extension::A::@getter::foo1
-              element: <testLibraryFragment>::@extension::A::@getter::foo1#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
-            get foo2 @67
-              reference: <testLibraryFragment>::@extension::A::@getter::foo2
-              element: <testLibraryFragment>::@extension::A::@getter::foo2#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+            #F5 foo1 (nameOffset:31) (firstTokenOffset:23) (offset:31)
+              element: <testLibrary>::@extension::A::@getter::foo1
+              nextFragment: #F6
+            #F7 foo2 (nameOffset:52) (firstTokenOffset:44) (offset:52)
+              element: <testLibrary>::@extension::A::@getter::foo2
+        #F2 extension A (nameOffset:84) (firstTokenOffset:66) (offset:84)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           getters
-            augment get foo1 @61
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
-              element: <testLibraryFragment>::@extension::A::@getter::foo1#element
-              previousFragment: <testLibraryFragment>::@extension::A::@getter::foo1
+            #F6 augment foo1 (nameOffset:106) (firstTokenOffset:90) (offset:106)
+              element: <testLibrary>::@extension::A::@getter::foo1
+              previousFragment: #F5
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         synthetic foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo1
+          reference: <testLibrary>::@extension::A::@field::foo1
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo1#element
+          getter: <testLibrary>::@extension::A::@getter::foo1
         synthetic foo2
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo2
+          reference: <testLibrary>::@extension::A::@field::foo2
+          firstFragment: #F4
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo2#element
+          getter: <testLibrary>::@extension::A::@getter::foo2
       getters
-        get foo2
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo2
-        get foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo1
+        foo1
+          reference: <testLibrary>::@extension::A::@getter::foo1
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo1
+        foo2
+          reference: <testLibrary>::@extension::A::@getter::foo2
+          firstFragment: #F7
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo2
 ''');
   }
 
   test_augmented_getters_augment_getter2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment extension A {
-  augment int get foo => 0;
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
-augment extension A {
-  augment int get foo => 0;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
 extension A on int {
   int get foo => 0;
+}
+
+augment extension A {
+  augment int get foo => 0;
+}
+
+augment extension A {
+  augment int get foo => 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        A @40
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              id: field_0
-              getter: getter_0
-          accessors
-            get foo @61
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-          augmented
-            fields
-              <testLibraryFragment>::@extension::A::@field::foo
-            accessors
-              <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          accessors
-            augment get foo @61
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: int
-              id: getter_1
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
-              augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          accessors
-            augment get foo @61
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-              returnType: int
-              id: getter_2
-              variable: <null>
-              augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @40
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: <testLibrary>::@extension::A::@field::foo
           getters
-            get foo @61
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+            #F4 foo (nameOffset:31) (firstTokenOffset:23) (offset:31)
+              element: <testLibrary>::@extension::A::@getter::foo
+              nextFragment: #F5
+        #F2 extension A (nameOffset:62) (firstTokenOffset:44) (offset:62)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: #F1
+          nextFragment: #F6
           getters
-            augment get foo @61
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
-              previousFragment: <testLibraryFragment>::@extension::A::@getter::foo
-              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+            #F5 augment foo (nameOffset:84) (firstTokenOffset:68) (offset:84)
+              element: <testLibrary>::@extension::A::@getter::foo
+              previousFragment: #F4
+              nextFragment: #F7
+        #F6 extension A (nameOffset:115) (firstTokenOffset:97) (offset:115)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: #F2
           getters
-            augment get foo @61
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
-              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            #F7 augment foo (nameOffset:137) (firstTokenOffset:121) (offset:137)
+              element: <testLibrary>::@extension::A::@getter::foo
+              previousFragment: #F5
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo
+          reference: <testLibrary>::@extension::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo#element
+          getter: <testLibrary>::@extension::A::@getter::foo
       getters
-        get foo
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
+        foo
+          reference: <testLibrary>::@extension::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo
 ''');
   }
 
   test_augmented_methods() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  void foo() {}
+}
+
 augment extension A {
   void bar() {}
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-extension A on int {
-  void foo() {}
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          methods
-            foo @43
-              reference: <testLibraryFragment>::@extension::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: void
-          augmented
-            methods
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
-              <testLibraryFragment>::@extension::A::@method::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          methods
-            bar @50
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           methods
-            foo @43
-              reference: <testLibraryFragment>::@extension::A::@method::foo
-              element: <testLibraryFragment>::@extension::A::@method::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+            #F3 foo (nameOffset:28) (firstTokenOffset:23) (offset:28)
+              element: <testLibrary>::@extension::A::@method::foo
+        #F2 extension A (nameOffset:58) (firstTokenOffset:40) (offset:58)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           methods
-            bar @50
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
-              element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar#element
+            #F4 bar (nameOffset:69) (firstTokenOffset:64) (offset:69)
+              element: <testLibrary>::@extension::A::@method::bar
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       methods
         foo
           reference: <testLibrary>::@extension::A::@method::foo
-          firstFragment: <testLibraryFragment>::@extension::A::@method::foo
+          firstFragment: #F3
+          returnType: void
         bar
           reference: <testLibrary>::@extension::A::@method::bar
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
+          firstFragment: #F4
+          returnType: void
 ''');
   }
 
   test_augmented_methods_augment() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  void foo1() {}
+  void foo2() {}
+}
+
 augment extension A {
   augment void foo1() {}
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-extension A on int {
-  void foo1() {}
-  void foo2() {}
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          methods
-            foo1 @43
-              reference: <testLibraryFragment>::@extension::A::@method::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: void
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
-            foo2 @60
-              reference: <testLibraryFragment>::@extension::A::@method::foo2
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: void
-          augmented
-            methods
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
-              <testLibraryFragment>::@extension::A::@method::foo2
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          methods
-            augment foo1 @58
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: void
-              augmentationTarget: <testLibraryFragment>::@extension::A::@method::foo1
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           methods
-            foo1 @43
-              reference: <testLibraryFragment>::@extension::A::@method::foo1
-              element: <testLibraryFragment>::@extension::A::@method::foo1#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
-            foo2 @60
-              reference: <testLibraryFragment>::@extension::A::@method::foo2
-              element: <testLibraryFragment>::@extension::A::@method::foo2#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+            #F3 foo1 (nameOffset:28) (firstTokenOffset:23) (offset:28)
+              element: <testLibrary>::@extension::A::@method::foo1
+              nextFragment: #F4
+            #F5 foo2 (nameOffset:45) (firstTokenOffset:40) (offset:45)
+              element: <testLibrary>::@extension::A::@method::foo2
+        #F2 extension A (nameOffset:76) (firstTokenOffset:58) (offset:76)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           methods
-            augment foo1 @58
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
-              element: <testLibraryFragment>::@extension::A::@method::foo1#element
-              previousFragment: <testLibraryFragment>::@extension::A::@method::foo1
+            #F4 augment foo1 (nameOffset:95) (firstTokenOffset:82) (offset:95)
+              element: <testLibrary>::@extension::A::@method::foo1
+              previousFragment: #F3
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       methods
         foo1
           reference: <testLibrary>::@extension::A::@method::foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@method::foo1
+          firstFragment: #F3
+          returnType: void
         foo2
           reference: <testLibrary>::@extension::A::@method::foo2
-          firstFragment: <testLibraryFragment>::@extension::A::@method::foo2
+          firstFragment: #F5
+          returnType: void
 ''');
   }
 
   test_augmented_methods_augment2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-part 'b.dart';
-augment extension A {
-  augment void foo() {}
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-augment extension A {
-  augment void foo() {}
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 extension A on int {
   void foo() {}
+}
+
+augment extension A {
+  augment void foo() {}
+}
+
+augment extension A {
+  augment void foo() {}
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          methods
-            foo @43
-              reference: <testLibraryFragment>::@extension::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: void
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-          augmented
-            methods
-              <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      parts
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        augment A @54
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          methods
-            augment foo @73
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: void
-              augmentationTarget: <testLibraryFragment>::@extension::A::@method::foo
-              augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        augment A @36
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          methods
-            augment foo @55
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-              returnType: void
-              augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           methods
-            foo @43
-              reference: <testLibraryFragment>::@extension::A::@method::foo
-              element: <testLibraryFragment>::@extension::A::@method::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        extension A @54
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+            #F3 foo (nameOffset:28) (firstTokenOffset:23) (offset:28)
+              element: <testLibrary>::@extension::A::@method::foo
+              nextFragment: #F4
+        #F2 extension A (nameOffset:58) (firstTokenOffset:40) (offset:58)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: #F1
+          nextFragment: #F5
           methods
-            augment foo @73
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@method::foo#element
-              previousFragment: <testLibraryFragment>::@extension::A::@method::foo
-              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        extension A @36
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+            #F4 augment foo (nameOffset:77) (firstTokenOffset:64) (offset:77)
+              element: <testLibrary>::@extension::A::@method::foo
+              previousFragment: #F3
+              nextFragment: #F6
+        #F5 extension A (nameOffset:107) (firstTokenOffset:89) (offset:107)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: #F2
           methods
-            augment foo @55
-              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@method::foo#element
-              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+            #F6 augment foo (nameOffset:126) (firstTokenOffset:113) (offset:126)
+              element: <testLibrary>::@extension::A::@method::foo
+              previousFragment: #F4
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       methods
         foo
           reference: <testLibrary>::@extension::A::@method::foo
-          firstFragment: <testLibraryFragment>::@extension::A::@method::foo
+          firstFragment: #F3
+          returnType: void
 ''');
   }
 
   test_augmented_methods_generic() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment extension A<T2> {
-  T2 bar() => throw 0;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 extension A<T> on int {
   T foo() => throw 0;
+}
+
+augment extension A<T> {
+  T bar() => throw 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @27
-              defaultType: dynamic
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          methods
-            foo @43
-              reference: <testLibraryFragment>::@extension::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: T
-          augmented
-            methods
-              MethodMember
-                base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
-                augmentationSubstitution: {T2: T}
-              <testLibraryFragment>::@extension::A::@method::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          typeParameters
-            covariant T2 @41
-              defaultType: dynamic
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          methods
-            bar @52
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: T2
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           typeParameters
-            T @27
-              element: <not-implemented>
+            #F3 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: #E0 T
+              nextFragment: #F4
           methods
-            foo @43
-              reference: <testLibraryFragment>::@extension::A::@method::foo
-              element: <testLibraryFragment>::@extension::A::@method::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+            #F5 foo (nameOffset:28) (firstTokenOffset:26) (offset:28)
+              element: <testLibrary>::@extension::A::@method::foo
+        #F2 extension A (nameOffset:67) (firstTokenOffset:49) (offset:67)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           typeParameters
-            T2 @41
-              element: <not-implemented>
+            #F4 T (nameOffset:69) (firstTokenOffset:69) (offset:69)
+              element: #E0 T
+              previousFragment: #F3
           methods
-            bar @52
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
-              element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar#element
+            #F6 bar (nameOffset:78) (firstTokenOffset:76) (offset:78)
+              element: <testLibrary>::@extension::A::@method::bar
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F3
+      extendedType: int
       methods
         foo
           reference: <testLibrary>::@extension::A::@method::foo
-          firstFragment: <testLibraryFragment>::@extension::A::@method::foo
+          firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
+          returnType: T
         bar
           reference: <testLibrary>::@extension::A::@method::bar
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
+          firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
+          returnType: T
 ''');
   }
 
   test_augmented_methods_generic_augment() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment extension A<T2> {
-  augment T2 foo() => throw 0;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 extension A<T> on int {
   T foo() => throw 0;
+}
+
+augment extension A<T> {
+  augment T foo() => throw 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @27
-              defaultType: dynamic
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          methods
-            foo @43
-              reference: <testLibraryFragment>::@extension::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: T
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-          augmented
-            methods
-              MethodMember
-                base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-                augmentationSubstitution: {T2: T}
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          typeParameters
-            covariant T2 @41
-              defaultType: dynamic
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          methods
-            augment foo @60
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: T2
-              augmentationTarget: <testLibraryFragment>::@extension::A::@method::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           typeParameters
-            T @27
-              element: <not-implemented>
+            #F3 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: #E0 T
+              nextFragment: #F4
           methods
-            foo @43
-              reference: <testLibraryFragment>::@extension::A::@method::foo
-              element: <testLibraryFragment>::@extension::A::@method::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+            #F5 foo (nameOffset:28) (firstTokenOffset:26) (offset:28)
+              element: <testLibrary>::@extension::A::@method::foo
+              nextFragment: #F6
+        #F2 extension A (nameOffset:67) (firstTokenOffset:49) (offset:67)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           typeParameters
-            T2 @41
-              element: <not-implemented>
+            #F4 T (nameOffset:69) (firstTokenOffset:69) (offset:69)
+              element: #E0 T
+              previousFragment: #F3
           methods
-            augment foo @60
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@method::foo#element
-              previousFragment: <testLibraryFragment>::@extension::A::@method::foo
+            #F6 augment foo (nameOffset:86) (firstTokenOffset:76) (offset:86)
+              element: <testLibrary>::@extension::A::@method::foo
+              previousFragment: #F5
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F3
+      extendedType: int
       methods
         foo
           reference: <testLibrary>::@extension::A::@method::foo
-          firstFragment: <testLibraryFragment>::@extension::A::@method::foo
+          firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
+          returnType: T
 ''');
   }
 
   test_augmented_methods_typeParameterCountMismatch() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  void foo() {}
+  void bar() {}
+}
+
 augment extension A<T> {
   augment void foo() {}
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-extension A on int {
-  void foo() {}
-  void bar() {}
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          methods
-            foo @43
-              reference: <testLibraryFragment>::@extension::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: void
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-            bar @59
-              reference: <testLibraryFragment>::@extension::A::@method::bar
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: void
-          augmented
-            methods
-              <testLibraryFragment>::@extension::A::@method::bar
-              MethodMember
-                base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-                augmentationSubstitution: {T: InvalidType}
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          typeParameters
-            covariant T @41
-              defaultType: dynamic
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          methods
-            augment foo @61
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              returnType: void
-              augmentationTarget: <testLibraryFragment>::@extension::A::@method::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           methods
-            foo @43
-              reference: <testLibraryFragment>::@extension::A::@method::foo
-              element: <testLibraryFragment>::@extension::A::@method::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-            bar @59
-              reference: <testLibraryFragment>::@extension::A::@method::bar
-              element: <testLibraryFragment>::@extension::A::@method::bar#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+            #F3 foo (nameOffset:28) (firstTokenOffset:23) (offset:28)
+              element: <testLibrary>::@extension::A::@method::foo
+              nextFragment: #F4
+            #F5 bar (nameOffset:44) (firstTokenOffset:39) (offset:44)
+              element: <testLibrary>::@extension::A::@method::bar
+        #F2 extension A (nameOffset:74) (firstTokenOffset:56) (offset:74)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
-          typeParameters
-            T @41
-              element: <not-implemented>
+          previousFragment: #F1
           methods
-            augment foo @61
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@method::foo#element
-              previousFragment: <testLibraryFragment>::@extension::A::@method::foo
+            #F4 augment foo (nameOffset:96) (firstTokenOffset:83) (offset:96)
+              element: <testLibrary>::@extension::A::@method::foo
+              previousFragment: #F3
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       methods
         foo
           reference: <testLibrary>::@extension::A::@method::foo
-          firstFragment: <testLibraryFragment>::@extension::A::@method::foo
+          firstFragment: #F3
+          returnType: void
         bar
           reference: <testLibrary>::@extension::A::@method::bar
-          firstFragment: <testLibraryFragment>::@extension::A::@method::bar
+          firstFragment: #F5
+          returnType: void
 ''');
   }
 
   test_augmented_setters_add() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  set foo1(int _) {}
+}
+
 augment extension A {
   set foo2(int _) {}
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-extension A on int {
-  set foo1(int _) {}
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            synthetic foo1 @-1
-              reference: <testLibraryFragment>::@extension::A::@field::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              id: field_0
-              setter: setter_0
-          accessors
-            set foo1= @42
-              reference: <testLibraryFragment>::@extension::A::@setter::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              parameters
-                requiredPositional _ @51
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibraryFragment>::@extension::A::@field::foo1
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-            accessors
-              <testLibraryFragment>::@extension::A::@setter::foo1
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          fields
-            synthetic foo2 @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              type: int
-              id: field_1
-              setter: setter_1
-          accessors
-            set foo2= @49
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              parameters
-                requiredPositional _ @58
-                  type: int
-              returnType: void
-              id: setter_1
-              variable: field_1
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo1
-              reference: <testLibraryFragment>::@extension::A::@field::foo1
-              element: <testLibraryFragment>::@extension::A::@field::foo1#element
-              setter2: <testLibraryFragment>::@extension::A::@setter::foo1
+            #F3 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: <testLibrary>::@extension::A::@field::foo1
           setters
-            set foo1 @42
-              reference: <testLibraryFragment>::@extension::A::@setter::foo1
-              element: <testLibraryFragment>::@extension::A::@setter::foo1#element
+            #F4 foo1 (nameOffset:27) (firstTokenOffset:23) (offset:27)
+              element: <testLibrary>::@extension::A::@setter::foo1
               formalParameters
-                _ @51
-                  element: <testLibraryFragment>::@extension::A::@setter::foo1::@parameter::_#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+                #F5 _ (nameOffset:36) (firstTokenOffset:32) (offset:36)
+                  element: <testLibrary>::@extension::A::@setter::foo1::@formalParameter::_
+        #F2 extension A (nameOffset:63) (firstTokenOffset:45) (offset:63)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           fields
-            synthetic foo2
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2#element
-              setter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
+            #F6 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+              element: <testLibrary>::@extension::A::@field::foo2
           setters
-            set foo2 @49
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2#element
+            #F7 foo2 (nameOffset:73) (firstTokenOffset:69) (offset:73)
+              element: <testLibrary>::@extension::A::@setter::foo2
               formalParameters
-                _ @58
-                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2::@parameter::_#element
+                #F8 _ (nameOffset:82) (firstTokenOffset:78) (offset:82)
+                  element: <testLibrary>::@extension::A::@setter::foo2::@formalParameter::_
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         synthetic foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo1
+          reference: <testLibrary>::@extension::A::@field::foo1
+          firstFragment: #F3
           type: int
-          setter: <testLibraryFragment>::@extension::A::@setter::foo1#element
+          setter: <testLibrary>::@extension::A::@setter::foo1
         synthetic foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+          reference: <testLibrary>::@extension::A::@field::foo2
+          firstFragment: #F6
           type: int
-          setter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2#element
+          setter: <testLibrary>::@extension::A::@setter::foo2
       setters
-        set foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@setter::foo1
+        foo1
+          reference: <testLibrary>::@extension::A::@setter::foo1
+          firstFragment: #F4
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
+              firstFragment: #F5
               type: int
-        set foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo1
+        foo2
+          reference: <testLibrary>::@extension::A::@setter::foo2
+          firstFragment: #F7
           formalParameters
-            requiredPositional _
+            #E1 requiredPositional _
+              firstFragment: #F8
               type: int
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo2
 ''');
   }
 
   test_augmented_setters_augment_field() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  static int foo = 0;
+}
+
 augment extension A {
   augment static set foo(int _) {}
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-extension A on int {
-  static int foo = 0;
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            static foo @49
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-            synthetic static set foo= @-1
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-          augmented
-            fields
-              <testLibraryFragment>::@extension::A::@field::foo
-            accessors
-              <testLibraryFragment>::@extension::A::@getter::foo
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          accessors
-            augment static set foo= @64
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              parameters
-                requiredPositional _ @72
-                  type: int
-              returnType: void
-              id: setter_1
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@extension::A::@setter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @49
-              reference: <testLibraryFragment>::@extension::A::@field::foo
-              element: <testLibraryFragment>::@extension::A::@field::foo#element
-              getter2: <testLibraryFragment>::@extension::A::@getter::foo
-              setter2: <testLibraryFragment>::@extension::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
+              element: <testLibrary>::@extension::A::@field::foo
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@extension::A::@getter::foo
-              element: <testLibraryFragment>::@extension::A::@getter::foo#element
+            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@getter::foo
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@extension::A::@setter::foo
-              element: <testLibraryFragment>::@extension::A::@setter::foo#element
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+              nextFragment: #F7
+        #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           setters
-            augment set foo @64
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-              element: <testLibraryFragment>::@extension::A::@setter::foo#element
+            #F7 augment foo (nameOffset:89) (firstTokenOffset:70) (offset:89)
+              element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                _ @72
-                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo::@parameter::_#element
-              previousFragment: <testLibraryFragment>::@extension::A::@setter::foo
+                #F8 _ (nameOffset:97) (firstTokenOffset:93) (offset:97)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::_
+              previousFragment: #F5
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         static hasInitializer foo
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo
+          reference: <testLibrary>::@extension::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@extension::A::@getter::foo#element
-          setter: <testLibraryFragment>::@extension::A::@setter::foo#element
+          getter: <testLibrary>::@extension::A::@getter::foo
+          setter: <testLibrary>::@extension::A::@setter::foo
       getters
-        synthetic static get foo
-          firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo
       setters
-        synthetic static set foo
-          firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::A::@setter::foo
+          firstFragment: #F5
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional value
+              firstFragment: #F6
               type: int
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo
 ''');
   }
 
   test_augmented_setters_augment_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {
+  set foo1(int _) {}
+  set foo2(int _) {}
+}
+
 augment extension A {
   augment set foo1(int _) {}
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-extension A on int {
-  set foo1(int _) {}
-  set foo2(int _) {}
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        A @25
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          fields
-            synthetic foo1 @-1
-              reference: <testLibraryFragment>::@extension::A::@field::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              id: field_0
-              setter: setter_0
-            synthetic foo2 @-1
-              reference: <testLibraryFragment>::@extension::A::@field::foo2
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              type: int
-              id: field_1
-              setter: setter_1
-          accessors
-            set foo1= @42
-              reference: <testLibraryFragment>::@extension::A::@setter::foo1
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              parameters
-                requiredPositional _ @51
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
-            set foo2= @63
-              reference: <testLibraryFragment>::@extension::A::@setter::foo2
-              enclosingElement3: <testLibraryFragment>::@extension::A
-              parameters
-                requiredPositional _ @72
-                  type: int
-              returnType: void
-              id: setter_1
-              variable: field_1
-          augmented
-            fields
-              <testLibraryFragment>::@extension::A::@field::foo1
-              <testLibraryFragment>::@extension::A::@field::foo2
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
-              <testLibraryFragment>::@extension::A::@setter::foo2
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@extension::A
-          accessors
-            augment set foo1= @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-              parameters
-                requiredPositional _ @66
-                  type: int
-              returnType: void
-              id: setter_2
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@extension::A::@setter::foo1
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @25
-          reference: <testLibraryFragment>::@extension::A
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo1
-              reference: <testLibraryFragment>::@extension::A::@field::foo1
-              element: <testLibraryFragment>::@extension::A::@field::foo1#element
-              setter2: <testLibraryFragment>::@extension::A::@setter::foo1
-            synthetic foo2
-              reference: <testLibraryFragment>::@extension::A::@field::foo2
-              element: <testLibraryFragment>::@extension::A::@field::foo2#element
-              setter2: <testLibraryFragment>::@extension::A::@setter::foo2
+            #F3 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: <testLibrary>::@extension::A::@field::foo1
+            #F4 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: <testLibrary>::@extension::A::@field::foo2
           setters
-            set foo1 @42
-              reference: <testLibraryFragment>::@extension::A::@setter::foo1
-              element: <testLibraryFragment>::@extension::A::@setter::foo1#element
+            #F5 foo1 (nameOffset:27) (firstTokenOffset:23) (offset:27)
+              element: <testLibrary>::@extension::A::@setter::foo1
               formalParameters
-                _ @51
-                  element: <testLibraryFragment>::@extension::A::@setter::foo1::@parameter::_#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
-            set foo2 @63
-              reference: <testLibraryFragment>::@extension::A::@setter::foo2
-              element: <testLibraryFragment>::@extension::A::@setter::foo2#element
+                #F6 _ (nameOffset:36) (firstTokenOffset:32) (offset:36)
+                  element: <testLibrary>::@extension::A::@setter::foo1::@formalParameter::_
+              nextFragment: #F7
+            #F8 foo2 (nameOffset:48) (firstTokenOffset:44) (offset:48)
+              element: <testLibrary>::@extension::A::@setter::foo2
               formalParameters
-                _ @72
-                  element: <testLibraryFragment>::@extension::A::@setter::foo2::@parameter::_#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      extensions
-        extension A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+                #F9 _ (nameOffset:57) (firstTokenOffset:53) (offset:57)
+                  element: <testLibrary>::@extension::A::@setter::foo2::@formalParameter::_
+        #F2 extension A (nameOffset:84) (firstTokenOffset:66) (offset:84)
           element: <testLibrary>::@extension::A
-          previousFragment: <testLibraryFragment>::@extension::A
+          previousFragment: #F1
           setters
-            augment set foo1 @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
-              element: <testLibraryFragment>::@extension::A::@setter::foo1#element
+            #F7 augment foo1 (nameOffset:102) (firstTokenOffset:90) (offset:102)
+              element: <testLibrary>::@extension::A::@setter::foo1
               formalParameters
-                _ @66
-                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1::@parameter::_#element
-              previousFragment: <testLibraryFragment>::@extension::A::@setter::foo1
+                #F10 _ (nameOffset:111) (firstTokenOffset:107) (offset:111)
+                  element: <testLibrary>::@extension::A::@setter::foo1::@formalParameter::_
+              previousFragment: #F5
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F1
+      extendedType: int
       fields
         synthetic foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo1
+          reference: <testLibrary>::@extension::A::@field::foo1
+          firstFragment: #F3
           type: int
-          setter: <testLibraryFragment>::@extension::A::@setter::foo1#element
+          setter: <testLibrary>::@extension::A::@setter::foo1
         synthetic foo2
-          firstFragment: <testLibraryFragment>::@extension::A::@field::foo2
+          reference: <testLibrary>::@extension::A::@field::foo2
+          firstFragment: #F4
           type: int
-          setter: <testLibraryFragment>::@extension::A::@setter::foo2#element
+          setter: <testLibrary>::@extension::A::@setter::foo2
       setters
-        set foo2
-          firstFragment: <testLibraryFragment>::@extension::A::@setter::foo2
+        foo1
+          reference: <testLibrary>::@extension::A::@setter::foo1
+          firstFragment: #F5
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
+              firstFragment: #F6
               type: int
-        set foo1
-          firstFragment: <testLibraryFragment>::@extension::A::@setter::foo1
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo1
+        foo2
+          reference: <testLibrary>::@extension::A::@setter::foo2
+          firstFragment: #F8
           formalParameters
-            requiredPositional _
+            #E1 requiredPositional _
+              firstFragment: #F9
               type: int
+          returnType: void
+          variable: <testLibrary>::@extension::A::@field::foo2
 ''');
   }
 
   test_augmentedBy_class2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment class A {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
-
-augment class A {}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
-
 extension A on int {}
+
+augment class A {}
+
+augment class A {}
+
 ''');
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        A @41
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @36
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTargetAny: <testLibraryFragment>::@extension::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          augmented
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @36
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        #F1 class A (nameOffset:37) (firstTokenOffset:23) (offset:37)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+        #F2 class A (nameOffset:57) (firstTokenOffset:43) (offset:57)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
       extensions
-        extension A @41
-          reference: <testLibraryFragment>::@extension::A
+        #F3 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @36
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @36
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+      firstFragment: #F1
   extensions
     extension A
       reference: <testLibrary>::@extension::A
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F3
+      extendedType: int
 ''');
   }
 
   test_augmentedBy_class_extension() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+extension A on int {}
 
 augment class A {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
 
 augment extension A {}
-''');
-
-    var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
-
-extension A on int {}
 ''');
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      extensions
-        A @41
-          reference: <testLibraryFragment>::@extension::A
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @36
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTargetAny: <testLibraryFragment>::@extension::A
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      extensions
-        augment A @40
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          extendedType: InvalidType
-          augmentationTargetAny: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      extensions
-        extension A @41
-          reference: <testLibraryFragment>::@extension::A
-          element: <testLibrary>::@extension::A::@def::0
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class A @36
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F1 class A (nameOffset:37) (firstTokenOffset:23) (offset:37)
           element: <testLibrary>::@class::A
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        extension A @40
-          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+        #F2 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::A::@def::0
+        #F3 extension A (nameOffset:61) (firstTokenOffset:43) (offset:61)
           element: <testLibrary>::@extension::A::@def::1
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+      firstFragment: #F1
   extensions
     extension A
       reference: <testLibrary>::@extension::A::@def::0
-      firstFragment: <testLibraryFragment>::@extension::A
+      firstFragment: #F2
+      extendedType: int
     extension A
       reference: <testLibrary>::@extension::A::@def::1
-      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+      firstFragment: #F3
+      extendedType: InvalidType
+''');
+  }
+
+  test_onClause_augmentation() async {
+    var library = await buildLibrary(r'''
+extension A on int {}
+
+augment extension A on double {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::A
+          nextFragment: #F2
+        #F2 extension A (nameOffset:41) (firstTokenOffset:23) (offset:41)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F1
+  extensions
+    extension A
+      reference: <testLibrary>::@extension::A
+      firstFragment: #F1
+      extendedType: int
+  exportedReferences
+    declared <testLibrary>::@extension::A
+  exportNamespace
+    A: <testLibrary>::@extension::A
+''');
+  }
+
+  test_typeParameters_111() async {
+    var library = await buildLibrary(r'''
+extension A<T> on int {}
+augment extension A<T> {}
+augment extension A<T> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: #E0 T
+              nextFragment: #F4
+        #F2 extension A (nameOffset:43) (firstTokenOffset:25) (offset:43)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F1
+          nextFragment: #F5
+          typeParameters
+            #F4 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F6
+        #F5 extension A (nameOffset:69) (firstTokenOffset:51) (offset:69)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F2
+          typeParameters
+            #F6 T (nameOffset:71) (firstTokenOffset:71) (offset:71)
+              element: #E0 T
+              previousFragment: #F4
+  extensions
+    extension A
+      reference: <testLibrary>::@extension::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+      extendedType: int
+''');
+  }
+
+  test_typeParameters_121() async {
+    var library = await buildLibrary(r'''
+extension A<T> on int {}
+augment extension A<T, U> {}
+augment extension A<T> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: #E0 T
+              nextFragment: #F4
+        #F2 extension A (nameOffset:43) (firstTokenOffset:25) (offset:43)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F1
+          nextFragment: #F5
+          typeParameters
+            #F4 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F6
+        #F5 extension A (nameOffset:72) (firstTokenOffset:54) (offset:72)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F2
+          typeParameters
+            #F6 T (nameOffset:74) (firstTokenOffset:74) (offset:74)
+              element: #E0 T
+              previousFragment: #F4
+  extensions
+    extension A
+      reference: <testLibrary>::@extension::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+      extendedType: int
+''');
+  }
+
+  test_typeParameters_212() async {
+    var library = await buildLibrary(r'''
+extension A<T, U> on int {}
+augment extension A<T> {}
+augment extension A<T, U> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: #E0 T
+              nextFragment: #F4
+            #F5 U (nameOffset:15) (firstTokenOffset:15) (offset:15)
+              element: #E1 U
+              nextFragment: #F6
+        #F2 extension A (nameOffset:46) (firstTokenOffset:28) (offset:46)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F1
+          nextFragment: #F7
+          typeParameters
+            #F4 T (nameOffset:48) (firstTokenOffset:48) (offset:48)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F8
+            #F6 U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F9
+        #F7 extension A (nameOffset:72) (firstTokenOffset:54) (offset:72)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F2
+          typeParameters
+            #F8 T (nameOffset:74) (firstTokenOffset:74) (offset:74)
+              element: #E0 T
+              previousFragment: #F4
+            #F9 U (nameOffset:77) (firstTokenOffset:77) (offset:77)
+              element: #E1 U
+              previousFragment: #F6
+  extensions
+    extension A
+      reference: <testLibrary>::@extension::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
+      extendedType: int
 ''');
   }
 }

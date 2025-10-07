@@ -9,7 +9,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../../base/constant_context.dart';
+import '../../base/extension_scope.dart';
 import '../../base/identifiers.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
@@ -23,10 +23,11 @@ import '../../builder/metadata_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
-import '../../kernel/body_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/kernel_helper.dart';
+import '../../kernel/resolver.dart';
 import '../../kernel/type_algorithms.dart';
+import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
@@ -85,7 +86,7 @@ abstract class ConstructorDeclaration {
   });
 
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   );
@@ -134,6 +135,8 @@ abstract class ConstructorDeclaration {
 mixin _ConstructorDeclarationMixin
     implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   bool get _hasSuperInitializingFormals;
+
+  ExtensionScope get _extensionScope;
 
   LookupScope get _typeParameterScope;
 
@@ -194,8 +197,7 @@ mixin _ConstructorDeclarationMixin
       local[formal.name] = formal.forFormalParameterInitializerScope();
     }
     return parent.createNestedFixedScope(
-      debugName: "formal parameter initializer",
-      kind: ScopeKind.initializers,
+      kind: LocalScopeKind.initializers,
       local: local,
     );
   }
@@ -243,19 +245,15 @@ mixin _ConstructorDeclarationMixin
       List<Initializer>? initializers;
       Token? beginInitializers = this._beginInitializers;
       if (beginInitializers != null) {
-        BodyBuilder bodyBuilder = libraryBuilder.loader
-            .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              createBodyBuilderContext(constructorBuilder),
-              _typeParameterScope,
-              fileUri,
-            );
-        if (isConst) {
-          bodyBuilder.constantContext = ConstantContext.required;
-        }
-        initializers = bodyBuilder.parseInitializers(
-          beginInitializers,
-          doFinishConstructor: false,
+        Resolver resolver = libraryBuilder.loader.createResolver();
+        initializers = resolver.buildInitializersUnfinished(
+          libraryBuilder: libraryBuilder,
+          bodyBuilderContext: createBodyBuilderContext(constructorBuilder),
+          extensionScope: _extensionScope,
+          typeParameterScope: _typeParameterScope,
+          fileUri: fileUri,
+          beginInitializers: beginInitializers,
+          isConst: isConst,
         );
       }
       _finalizeSuperInitializingFormals(
@@ -574,23 +572,18 @@ mixin _ConstructorDeclarationMixin
       } else {
         formalParameterScope = null;
       }
-      BodyBuilder bodyBuilder = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(
-            libraryBuilder,
-            createBodyBuilderContext(constructorBuilder),
-            _typeParameterScope,
-            fileUri,
-            formalParameterScope: formalParameterScope,
-          );
-      if (isConst) {
-        bodyBuilder.constantContext = ConstantContext.required;
-      }
-      constructorBuilder.inferFormalTypes(bodyBuilder.hierarchy);
-      bodyBuilder.parseInitializers(
-        _beginInitializers!,
-        doFinishConstructor: isConst,
+      Resolver resolver = libraryBuilder.loader.createResolver();
+      resolver.buildInitializers(
+        libraryBuilder: libraryBuilder,
+        constructorBuilder: constructorBuilder,
+        extensionScope: _extensionScope,
+        typeParameterScope: _typeParameterScope,
+        formalParameterScope: formalParameterScope,
+        bodyBuilderContext: createBodyBuilderContext(constructorBuilder),
+        fileUri: fileUri,
+        beginInitializers: _beginInitializers!,
+        isConst: isConst,
       );
-      bodyBuilder.performBacklogComputations();
     }
   }
 
@@ -666,13 +659,13 @@ mixin _ConstructorDeclarationMixin
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {
-    libraryBuilder.checkInitializersInFormals(
-      formals,
-      typeEnvironment,
+    problemReporting.checkInitializersInFormals(
+      formals: formals,
+      typeEnvironment: typeEnvironment,
       isAbstract: false,
       isExternal: isExternal,
     );
@@ -805,6 +798,7 @@ mixin _RegularConstructorDeclarationMixin
     required DeclarationBuilder declarationBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
+    required ExtensionScope extensionScope,
     required LookupScope typeParameterScope,
   }) {
     if (_typeParameters != null) {
@@ -826,6 +820,7 @@ mixin _RegularConstructorDeclarationMixin
         formal.buildOutlineExpressions(
           libraryBuilder,
           declarationBuilder,
+          extensionScope: extensionScope,
           scope: typeParameterScope,
           buildDefaultValue: true,
         );
@@ -887,6 +882,10 @@ class RegularConstructorDeclaration
   @override
   // Coverage-ignore(suite): Not run.
   bool get isNative => _fragment.nativeMethodName != null;
+
+  @override
+  ExtensionScope get _extensionScope =>
+      _fragment.enclosingCompilationUnit.extensionScope;
 
   @override
   LookupScope get _typeParameterScope => _fragment.typeParameterScope;
@@ -997,8 +996,10 @@ class RegularConstructorDeclaration
         annotatable: annotatable,
         annotatableFileUri: annotatablesFileUri,
         metadata: _fragment.metadata,
+        annotationsFileUri: _fragment.fileUri,
         bodyBuilderContext: bodyBuilderContext,
         libraryBuilder: libraryBuilder,
+        extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
         scope: _fragment.enclosingScope,
       );
     }
@@ -1016,6 +1017,7 @@ class RegularConstructorDeclaration
       declarationBuilder: declarationBuilder,
       bodyBuilderContext: bodyBuilderContext,
       classHierarchy: classHierarchy,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       typeParameterScope: _fragment.typeParameterScope,
     );
   }
@@ -1042,6 +1044,9 @@ class DefaultEnumConstructorDeclaration
   @override
   late final ConstructorEncoding _encoding;
 
+  @override
+  final ExtensionScope _extensionScope;
+
   /// The scope in which to build the formal parameters.
   final LookupScope _lookupScope;
 
@@ -1053,9 +1058,11 @@ class DefaultEnumConstructorDeclaration
     required this.formals,
     required Uri fileUri,
     required int fileOffset,
+    required ExtensionScope extensionScope,
     required LookupScope lookupScope,
   }) : fileUri = fileUri,
        fileOffset = fileOffset,
+       _extensionScope = extensionScope,
        _lookupScope = lookupScope,
        // Trick the constructor to be built during the outline phase.
        // TODO(johnniwinther): Avoid relying on [beginInitializers] to
@@ -1157,6 +1164,7 @@ class DefaultEnumConstructorDeclaration
       declarationBuilder: declarationBuilder,
       bodyBuilderContext: bodyBuilderContext,
       classHierarchy: classHierarchy,
+      extensionScope: _extensionScope,
       typeParameterScope: _lookupScope,
     );
   }
@@ -1238,6 +1246,7 @@ class PrimaryConstructorDeclaration
     required DeclarationBuilder declarationBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
+    required ExtensionScope extensionScope,
     required LookupScope typeParameterScope,
   }) {
     if (_typeParameters != null) {
@@ -1259,6 +1268,7 @@ class PrimaryConstructorDeclaration
         formal.buildOutlineExpressions(
           libraryBuilder,
           declarationBuilder,
+          extensionScope: extensionScope,
           scope: typeParameterScope,
           buildDefaultValue: true,
         );
@@ -1290,6 +1300,10 @@ class PrimaryConstructorDeclaration
       }
     }
   }
+
+  @override
+  ExtensionScope get _extensionScope =>
+      _fragment.enclosingCompilationUnit.extensionScope;
 
   @override
   LookupScope get _typeParameterScope => _fragment.typeParameterScope;
@@ -1370,6 +1384,7 @@ class PrimaryConstructorDeclaration
       declarationBuilder: declarationBuilder,
       bodyBuilderContext: bodyBuilderContext,
       classHierarchy: classHierarchy,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       typeParameterScope: _fragment.typeParameterScope,
     );
   }
@@ -1473,7 +1488,7 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {}

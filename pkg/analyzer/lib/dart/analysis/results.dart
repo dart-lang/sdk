@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:meta/meta.dart';
 
 @Deprecated('Use AnalysisResultWithDiagnostics instead')
 typedef AnalysisResultWithErrors = AnalysisResultWithDiagnostics;
@@ -67,7 +66,7 @@ abstract class ElementDeclarationResult {
   /// The [Fragment] that this object describes.
   Fragment get fragment;
 
-  /// The node that declares the [element]. Depending on whether it is returned
+  /// The node that declares the [Element]. Depending on whether it is returned
   /// from [ResolvedLibraryResult] or [ParsedLibraryResult] it might be resolved
   /// or just parsed.
   AstNode get node;
@@ -169,12 +168,10 @@ abstract class InvalidResult {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryElementResult implements SomeLibraryElementResult {
   /// The element representing the library.
-  @experimental
   LibraryElement get element;
 
   /// The element representing the library.
   @Deprecated('Use element instead')
-  @experimental
   LibraryElement get element2;
 }
 
@@ -246,7 +243,6 @@ abstract class ParsedLibraryResult
   ///
   /// Throws [ArgumentError] if the [fragment] is not defined in this library.
   @Deprecated('Use getFragmentDeclaration() instead')
-  @experimental
   ElementDeclarationResult? getElementDeclaration2(Fragment fragment);
 
   /// Returns the declaration of the [fragment].
@@ -254,7 +250,6 @@ abstract class ParsedLibraryResult
   /// Returns `null` if the [fragment] is synthetic.
   ///
   /// Throws [ArgumentError] if the [fragment] is not defined in this library.
-  @experimental
   FragmentDeclarationResult? getFragmentDeclaration(Fragment fragment);
 }
 
@@ -295,12 +290,10 @@ abstract class ParseStringResult {
 abstract class ResolvedLibraryResult
     implements ParsedLibraryResult, SomeResolvedLibraryResult {
   /// The element representing this library.
-  @experimental
   LibraryElement get element;
 
   /// The element representing this library.
   @Deprecated('Use element instead')
-  @experimental
   LibraryElement get element2;
 
   /// The type provider used when resolving the library.
@@ -325,16 +318,13 @@ abstract class ResolvedUnitResult
   bool get exists;
 
   /// The element representing the library containing the compilation [unit].
-  @experimental
   LibraryElement get libraryElement;
 
   /// The element representing the library containing the compilation [unit].
   @Deprecated('Use libraryElement instead')
-  @experimental
   LibraryElement get libraryElement2;
 
   /// The fragment corresponding to the [unit].
-  @experimental
   LibraryFragment get libraryFragment;
 
   /// The type provider used when resolving the compilation [unit].
@@ -419,7 +409,6 @@ abstract class SomeUnitElementResult {}
 // TODO(scheglov): Stop implementing [FileResult].
 abstract class UnitElementResult implements SomeUnitElementResult, FileResult {
   /// The fragment representing the content of the file.
-  @experimental
   LibraryFragment get fragment;
 }
 

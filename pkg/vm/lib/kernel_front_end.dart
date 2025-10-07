@@ -960,6 +960,7 @@ Target? createFrontEndTarget(
   bool trackWidgetCreation = false,
   bool supportMirrors = true,
   bool? constKeepLocalsIndicator,
+  bool isClosureContextLoweringEnabled = false,
 }) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
@@ -968,6 +969,7 @@ Target? createFrontEndTarget(
     trackWidgetCreation: trackWidgetCreation,
     supportMirrors: supportMirrors,
     constKeepLocalsIndicator: constKeepLocalsIndicator,
+    isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
   );
   return getTarget(targetName, targetFlags);
 }

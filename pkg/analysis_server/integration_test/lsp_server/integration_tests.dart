@@ -139,10 +139,9 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   @mustCallSuper
   Future<void> setUp() async {
     // Set up temporary folder for the test.
-    projectFolderPath =
-        Directory.systemTemp
-            .createTempSync('analysisServer_test_integration_lspProject')
-            .resolveSymbolicLinksSync();
+    projectFolderPath = Directory.systemTemp
+        .createTempSync('analysisServer_test_integration_lspProject')
+        .resolveSymbolicLinksSync();
     _temporaryFolders.add(projectFolderPath);
     newFolder(projectFolderPath);
     newFolder(path.join(projectFolderPath, 'lib'));

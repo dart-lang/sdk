@@ -538,6 +538,65 @@ void f() {
 ''');
   }
 
+  Future<void> test_function_async_awaitExpression_closure() async {
+    await indexTestUnit(r'''
+f() async {
+  if (await x^('')) {}
+}
+
+Future<bool> x(String s) async {
+  print(s);
+  return true;
+}
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f() async {
+  if (await (String s) async {
+    print(s);
+    return true;
+  }('')) {}
+}
+
+Future<bool> x(String s) async {
+  print(s);
+  return true;
+}
+''');
+  }
+
+  Future<void> test_function_async_awaitStatement() async {
+    await indexTestUnit(r'''
+f() async {
+  await x^('');
+}
+
+Future<void> x(String s) async {
+  print(s);
+  await y(s);
+}
+
+Future<void> y(String s) async {}
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f() async {
+  var s = '';
+  print(s);
+  await y(s);
+}
+
+Future<void> x(String s) async {
+  print(s);
+  await y(s);
+}
+
+Future<void> y(String s) async {}
+''');
+  }
+
   Future<void> test_function_expressionFunctionBody() async {
     await indexTestUnit(r'''
 ^test(a, b) => a + b;
@@ -949,6 +1008,285 @@ void f() {
   var v = (int p) {
   }(0);
 }
+''');
+  }
+
+  Future<void> test_function_parameter_functionInvocation() async {
+    await indexTestUnit(r'''
+^test(String a) {
+  print(a);
+  print(a);
+}
+f() {
+  test(expensiveFunction());
+}
+String expensiveFunction() => '';
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f() {
+  var a = expensiveFunction();
+  print(a);
+  print(a);
+}
+String expensiveFunction() => '';
+''');
+  }
+
+  Future<void>
+  test_function_parameter_functionInvocation_conflictingName() async {
+    await indexTestUnit(r'''
+^test(String a) {
+  print(a);
+  print(a);
+}
+f(int a) {
+  test(a.toString());
+}
+String expensiveFunction() => '';
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f(int a) {
+  var a2 = a.toString();
+  print(a2);
+  print(a2);
+}
+String expensiveFunction() => '';
+''');
+  }
+
+  Future<void> test_function_parameter_functionInvocation_inExpression() async {
+    await indexTestUnit(r'''
+^test(String a) {
+  return a + a;
+}
+f() {
+  print(test(expensiveFunction()));
+}
+String expensiveFunction() => '';
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f() {
+  var a = expensiveFunction();
+  print(a + a);
+}
+String expensiveFunction() => '';
+''');
+  }
+
+  Future<void> test_function_parameter_functionInvocation_multiple() async {
+    await indexTestUnit(r'''
+^test(String a, String b) {
+  print(a + b);
+  print(a + b);
+}
+f() {
+  test(expensiveFunction(), expensiveFunction());
+}
+String expensiveFunction() => '';
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f() {
+  var a = expensiveFunction();
+  var b = expensiveFunction();
+  print(a + b);
+  print(a + b);
+}
+String expensiveFunction() => '';
+''');
+  }
+
+  Future<void> test_function_parameter_functionInvocation_multiple2() async {
+    await indexTestUnit(r'''
+^test(String a) {
+  print(a + a);
+  return (a + a).isEmpty;
+}
+f() {
+  if (test(expensiveFunction())) {}
+}
+String expensiveFunction() => '';
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f() {
+  var a = expensiveFunction();
+  print(a + a);
+  if ((a + a).isEmpty) {}
+}
+String expensiveFunction() => '';
+''');
+  }
+
+  Future<void>
+  test_function_parameter_functionInvocation_multiple_closure() async {
+    await indexTestUnit(r'''
+^test(String a) {
+  print(a + a);
+  return (a + a).isEmpty;
+}
+f() {
+  if (test(expensiveFunction()) && test(expensiveFunction())) {}
+}
+String expensiveFunction() => '';
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f() {
+  if ((String a) {
+    print(a + a);
+    return (a + a).isEmpty;
+  }(expensiveFunction()) && (String a) {
+    print(a + a);
+    return (a + a).isEmpty;
+  }(expensiveFunction())) {}
+}
+String expensiveFunction() => '';
+''');
+  }
+
+  /// When inserting variables we shouldn't reuse variables names within the
+  /// same block but can reuse them in different blocks.
+  Future<void>
+  test_function_parameter_functionInvocation_multipleVariablesIntroduced_multipleBlocks() async {
+    await indexTestUnit(r'''
+int three() => 3;
+^test(a, b) {
+  return a * b;
+}
+void f1() {
+  var res1 = test(1, 2 + three());
+  var res2 = test(1, (2 + three()));
+  {
+    var res3 = test(1, 2 + three());
+    var res4 = test(1, (2 + three()));
+  }
+}
+void f2() {
+  var res1 = test(1, 2 + three());
+  var res2 = test(1, (2 + three()));
+}
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+int three() => 3;
+void f1() {
+  var b = 2 + three();
+  var res1 = 1 * b;
+  var b2 = (2 + three());
+  var res2 = 1 * b2;
+  {
+    var b = 2 + three();
+    var res3 = 1 * b;
+    var b2 = (2 + three());
+    var res4 = 1 * b2;
+  }
+}
+void f2() {
+  var b = 2 + three();
+  var res1 = 1 * b;
+  var b2 = (2 + three());
+  var res2 = 1 * b2;
+}
+''');
+  }
+
+  Future<void> test_function_parameter_getterInvocation() async {
+    await indexTestUnit(r'''
+^test(String a) {
+  print(a);
+  print(a);
+}
+f() {
+  test(expensiveGetter);
+}
+String get expensiveGetter => '';
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f() {
+  var a = expensiveGetter;
+  print(a);
+  print(a);
+}
+String get expensiveGetter => '';
+''');
+  }
+
+  Future<void> test_function_parameter_literal() async {
+    await indexTestUnit(r'''
+^test(String a) {
+  print(a);
+  print(a);
+}
+f() {
+  test('lit');
+}
+String expensiveFunction() => '';
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f() {
+  var a = 'lit';
+  print(a);
+  print(a);
+}
+String expensiveFunction() => '';
+''');
+  }
+
+  Future<void> test_function_parameter_methodInvocation() async {
+    await indexTestUnit(r'''
+^test(String a) {
+  print(a);
+  print(a);
+}
+f(int i) {
+  test(i.toString());
+}
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f(int i) {
+  var a = i.toString();
+  print(a);
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_function_parameter_variable() async {
+    await indexTestUnit(r'''
+^test(String a) {
+  print(a);
+  print(a);
+}
+f(String x) {
+  test(x);
+}
+String expensiveFunction() => '';
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f(String x) {
+  print(x);
+  print(x);
+}
+String expensiveFunction() => '';
 ''');
   }
 
@@ -1479,6 +1817,9 @@ void f() {
   }
 
   Future<void> test_intoStringInterpolation_propertyAccess() async {
+    // Since writing this test we started introducing variables for non-trivial
+    // values, so the property access is no longer written into the string but
+    // instead becomes a variable.
     await indexTestUnit(r'''
 void f(int v) {
   test(v.isEven);
@@ -1492,7 +1833,8 @@ void ^test(bool a) {
     // validate change
     return _assertSuccessfulRefactoring(r'''
 void f(int v) {
-  'a: ${v.isEven}';
+  var a = v.isEven;
+  'a: $a';
 }
 ''');
   }
@@ -1600,6 +1942,41 @@ class A {
   Future bar() async {
     return new Future.value([(await foo()), (await foo())]);
   }
+}
+''');
+  }
+
+  Future<void> test_method_async_awaitStatement() async {
+    await indexTestUnit(r'''
+f(A a) async {
+  await a.x^('');
+}
+
+class A {
+  Future<void> x(String s) async {
+    print(s);
+    await y(s);
+  }
+
+  Future<void> y(String s) async {}
+}
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f(A a) async {
+  var s = '';
+  print(s);
+  await a.y(s);
+}
+
+class A {
+  Future<void> x(String s) async {
+    print(s);
+    await y(s);
+  }
+
+  Future<void> y(String s) async {}
 }
 ''');
   }

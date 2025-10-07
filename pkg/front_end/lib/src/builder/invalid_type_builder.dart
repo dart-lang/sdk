@@ -63,10 +63,6 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isVoidType => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   TypeName? get typeName => null;
 
   @override

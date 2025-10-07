@@ -59,9 +59,7 @@ namespace dart {
    public:                                                                     \
     explicit Reusable##name##HandleScope(Thread* thread = Thread::Current())   \
         : handle_(thread->name##_handle_) {}                                   \
-    ~Reusable##name##HandleScope() {                                           \
-      handle_->ptr_ = name::null();                                            \
-    }                                                                          \
+    ~Reusable##name##HandleScope() { handle_->ptr_ = name::null(); }           \
     name& Handle() const {                                                     \
       ASSERT(handle_ != nullptr);                                              \
       return *handle_;                                                         \

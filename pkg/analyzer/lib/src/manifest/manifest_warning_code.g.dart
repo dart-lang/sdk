@@ -57,7 +57,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   noTouchscreenFeature = ManifestWarningWithoutArguments(
     'NO_TOUCHSCREEN_FEATURE',
     "The default \"android.hardware.touchscreen\" needs to be optional for "
-        "Chrome OS. ",
+        "Chrome OS.",
     correctionMessage:
         "Consider adding <uses-feature "
         "android:name=\"android.hardware.touchscreen\" android:required=\"false\" "
@@ -76,7 +76,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   permissionImpliesUnsupportedHardware = ManifestWarningTemplate(
     'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
     "Permission makes app incompatible for Chrome OS, consider adding optional "
-        "{0} feature tag, ",
+        "{0} feature tag,",
     correctionMessage:
         " Try adding `<uses-feature android:name=\"{0}\"  "
         "android:required=\"false\">`.",

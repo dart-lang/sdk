@@ -30,10 +30,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibrary>::@typeAlias::G
+  element: <testLibrary>::@typeAlias::G
   type: int Function()
     alias: <testLibrary>::@typeAlias::G
       typeArguments

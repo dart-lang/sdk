@@ -208,8 +208,11 @@ void f  ()
     await initialize();
     await openFile(mainFileUri, code.code);
 
-    var formatEdits =
-        (await formatOnType(mainFileUri, code.position.position, '}'))!;
+    var formatEdits = (await formatOnType(
+      mainFileUri,
+      code.position.position,
+      '}',
+    ))!;
     var formattedContents = applyTextEdits(code.code, formatEdits);
     expect(formattedContents, equals(expected));
   }

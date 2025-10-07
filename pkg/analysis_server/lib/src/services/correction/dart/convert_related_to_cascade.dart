@@ -21,7 +21,7 @@ class ConvertRelatedToCascade extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_RELATED_TO_CASCADE;
+  FixKind get fixKind => DartFixKind.convertRelatedToCascade;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -72,16 +72,14 @@ class ConvertRelatedToCascade extends ResolvedCorrectionProducer {
     for (var (index, statement) in relatedStatements.indexed) {
       Token? previousOperator;
       Token? semicolon;
-      var previous =
-          index > 0
-              ? relatedStatements[index - 1]
-              : _getPrevious(block, statement);
+      var previous = index > 0
+          ? relatedStatements[index - 1]
+          : _getPrevious(block, statement);
       if (previous is ExpressionStatement) {
         semicolon = previous.semicolon;
-        previousOperator =
-            (index == 0)
-                ? _getTargetAndOperator(previous.expression)?.operator
-                : null;
+        previousOperator = (index == 0)
+            ? _getTargetAndOperator(previous.expression)?.operator
+            : null;
       } else if (previous is VariableDeclarationStatement) {
         // Single variable declaration.
         if (previous.variables.variables.length != 1) {

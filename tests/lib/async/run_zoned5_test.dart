@@ -4,11 +4,10 @@
 
 import 'dart:async';
 
-import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
-main() {
-  asyncStart();
+void main() {
+  bool handlerReached = false;
   // Ensure that `runZoned`'s onError handles synchronous errors.
   runZonedGuarded(
     () {
@@ -16,7 +15,8 @@ main() {
     },
     (e, s) {
       Expect.equals(0, e);
-      asyncEnd();
+      handlerReached = true;
     },
   );
+  Expect.isTrue(handlerReached);
 }

@@ -1690,16 +1690,15 @@ class _Context {
     this.isMixin = false,
   });
 
-  String get where =>
-      isClass
-          ? ' in class'
-          : isEnum
-          ? ' in enum'
-          : isExtension
-          ? ' in extension'
-          : isExtensionType
-          ? ' in extension type'
-          : ' in mixin';
+  String get where => isClass
+      ? ' in class'
+      : isEnum
+      ? ' in enum'
+      : isExtension
+      ? ' in extension'
+      : isExtensionType
+      ? ' in extension type'
+      : ' in mixin';
 }
 
 extension on Iterable<Keyword> {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class C {}
@@ -13,18 +12,18 @@ class E {}
 
 void test(void f()) {
   try {
-    var /*@type=int*/ x = 0;
+    var x = 0;
     f();
   } on C {
-    var /*@type=int*/ x = 0;
+    var x = 0;
   } on D catch (x) {
-    var /*@type=D*/ x2 = x;
+    var x2 = x;
   } on E catch (x, y) {
-    var /*@type=E*/ x2 = x;
-    var /*@type=StackTrace*/ y2 = y;
+    var x2 = x;
+    var y2 = y;
   } catch (x, y) {
-    var /*@type=Object*/ x2 = x;
-    var /*@type=StackTrace*/ y2 = y;
+    var x2 = x;
+    var y2 = y;
   }
 }
 

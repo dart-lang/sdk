@@ -67,11 +67,8 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     super.visitConditionalExpression(node, removalSentinel);
     Constant? condition = _evaluate(node.condition);
     if (condition is! BoolConstant) return node;
-    return condition.value
-        ? node.then
-        :
-          // Coverage-ignore(suite): Not run.
-          node.otherwise;
+    // Coverage-ignore(suite): Not run.
+    return condition.value ? node.then : node.otherwise;
   }
 
   @override
@@ -189,15 +186,16 @@ class _ConstantEvaluator extends TryConstantEvaluator {
   Constant visitVariableGet(VariableGet node) =>
       _lookupVariableGet(node.variable) ?? super.visitVariableGet(node);
 
+  // Coverage-ignore(suite): Not run.
   Constant? _evaluateStaticFieldGet(Field field) {
     if (_shouldNotInline(field)) return null;
     if (!field.isFinal) return null;
-    // Coverage-ignore-block(suite): Not run.
     Expression? initializer = field.initializer;
     if (initializer == null) return null;
     return _evaluate(initializer);
   }
 
+  // Coverage-ignore(suite): Not run.
   Constant? _lookupStaticFieldGet(Field field) => _staticFieldCache.putIfAbsent(
     field,
     () => _evaluateStaticFieldGet(field),
@@ -215,13 +213,14 @@ class _ConstantEvaluator extends TryConstantEvaluator {
     () => _evaluateStaticGetter(getter),
   );
 
+  // Coverage-ignore(suite): Not run.
   Constant? _lookupStaticGet(Member target) {
     if (target is Field) return _lookupStaticFieldGet(target);
-    // Coverage-ignore(suite): Not run.
     return _lookupStaticGetter(target as Procedure);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Constant visitStaticGet(StaticGet node) =>
       _lookupStaticGet(node.target) ?? super.visitStaticGet(node);
 

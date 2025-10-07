@@ -48,7 +48,7 @@ library
               asOperator: as @29
               type: NamedType
                 name: int @32
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
               staticType: int
       getters
@@ -119,9 +119,9 @@ library
                 rightHandSide: IntegerLiteral
                   literal: 1 @29
                   staticType: int
-                readElement2: <testLibrary>::@getter::a
+                readElement: <testLibrary>::@getter::a
                 readType: int
-                writeElement2: <testLibrary>::@getter::a
+                writeElement: <testLibrary>::@getter::a
                 writeType: InvalidType
                 element: dart:core::@class::num::@method::+
                 staticType: int
@@ -391,7 +391,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @95
-                  element2: <testLibrary>::@class::C
+                  element: <testLibrary>::@class::C
                   type: C<int>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::C::@constructor::new
@@ -412,7 +412,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @124
-                  element2: <testLibrary>::@class::C
+                  element: <testLibrary>::@class::C
                   type: C<int>
                 period: . @125
                 name: SimpleIdentifier
@@ -502,11 +502,11 @@ library
       returnType: Object
       variable: <testLibrary>::@topLevelVariable::y
 ''');
-    var x = library.definingCompilationUnit.topLevelVariables[0];
+    var x = library.firstFragment.topLevelVariables[0];
     var xExpr = x.constantInitializer as InstanceCreationExpression;
     var xType = xExpr.constructorName.element!.returnType;
     _assertTypeStr(xType, 'C<int>');
-    var y = library.definingCompilationUnit.topLevelVariables[0];
+    var y = library.firstFragment.topLevelVariables[0];
     var yExpr = y.constantInitializer as InstanceCreationExpression;
     var yType = yExpr.constructorName.element!.returnType;
     _assertTypeStr(yType, 'C<int>');
@@ -542,7 +542,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: A @35
-                  element2: <testLibrary>::@class::A
+                  element: <testLibrary>::@class::A
                   type: null
                 period: . @36
                 name: SimpleIdentifier
@@ -813,7 +813,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @31
-                      element2: <testLibrary>::@class::A
+                      element: <testLibrary>::@class::A
                       type: A
                     element: <testLibrary>::@class::A::@constructor::new
                   argumentList: ArgumentList
@@ -1032,7 +1032,7 @@ library
                 arguments
                   NamedType
                     name: int @30
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @33
               staticType: void Function(int)
@@ -1246,7 +1246,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: P1 @144
-                      element2: <testLibrary>::@class::P1
+                      element: <testLibrary>::@class::P1
                       type: P1<dynamic>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@class::P1::@constructor::new
@@ -1264,10 +1264,10 @@ library
                         arguments
                           NamedType
                             name: int @155
-                            element2: dart:core::@class::int
+                            element: dart:core::@class::int
                             type: int
                         rightBracket: > @158
-                      element2: <testLibrary>::@class::P2
+                      element: <testLibrary>::@class::P2
                       type: P2<int>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@class::P2::@constructor::new
@@ -2160,14 +2160,14 @@ library
                     arguments
                       NamedType
                         name: int @63
-                        element2: dart:core::@class::int
+                        element: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @68
-                        element2: dart:core::@class::String
+                        element: dart:core::@class::String
                         type: String
                     rightBracket: > @74
-                  element2: <testLibrary>::@class::C
+                  element: <testLibrary>::@class::C
                   type: C<int, String>
                 period: . @75
                 name: SimpleIdentifier
@@ -2262,14 +2262,14 @@ library
                     arguments
                       NamedType
                         name: int @35
-                        element2: dart:core::@class::int
+                        element: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @40
-                        element2: dart:core::@class::String
+                        element: dart:core::@class::String
                         type: String
                     rightBracket: > @46
-                  element2: package:test/a.dart::@class::C
+                  element: package:test/a.dart::@class::C
                   type: C<int, String>
                 period: . @47
                 name: SimpleIdentifier
@@ -2344,21 +2344,21 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element2: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix2::p
                   name: C @40
                   typeArguments: TypeArgumentList
                     leftBracket: < @41
                     arguments
                       NamedType
                         name: int @42
-                        element2: dart:core::@class::int
+                        element: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @47
-                        element2: dart:core::@class::String
+                        element: dart:core::@class::String
                         type: String
                     rightBracket: > @53
-                  element2: package:test/a.dart::@class::C
+                  element: package:test/a.dart::@class::C
                   type: C<int, String>
                 period: . @54
                 name: SimpleIdentifier
@@ -2436,7 +2436,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @47
-                  element2: <testLibrary>::@class::C
+                  element: <testLibrary>::@class::C
                   type: C<dynamic, dynamic>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::C::@constructor::new
@@ -2522,7 +2522,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: A @70
-                  element2: <testLibrary>::@class::A
+                  element: <testLibrary>::@class::A
                   type: A<int>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::A::@constructor::new
@@ -2625,14 +2625,14 @@ library
                     arguments
                       NamedType
                         name: int @49
-                        element2: dart:core::@class::int
+                        element: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @54
-                        element2: dart:core::@class::String
+                        element: dart:core::@class::String
                         type: String
                     rightBracket: > @60
-                  element2: <testLibrary>::@class::C
+                  element: <testLibrary>::@class::C
                   type: C<int, String>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::C::@constructor::new
@@ -2707,14 +2707,14 @@ library
                     arguments
                       NamedType
                         name: int @35
-                        element2: dart:core::@class::int
+                        element: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @40
-                        element2: dart:core::@class::String
+                        element: dart:core::@class::String
                         type: String
                     rightBracket: > @46
-                  element2: package:test/a.dart::@class::C
+                  element: package:test/a.dart::@class::C
                   type: C<int, String>
                 element: ConstructorMember
                   baseElement: package:test/a.dart::@class::C::@constructor::new
@@ -2776,21 +2776,21 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element2: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix2::p
                   name: C @40
                   typeArguments: TypeArgumentList
                     leftBracket: < @41
                     arguments
                       NamedType
                         name: int @42
-                        element2: dart:core::@class::int
+                        element: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @47
-                        element2: dart:core::@class::String
+                        element: dart:core::@class::String
                         type: String
                     rightBracket: > @53
-                  element2: package:test/a.dart::@class::C
+                  element: package:test/a.dart::@class::C
                   type: C<int, String>
                 element: ConstructorMember
                   baseElement: package:test/a.dart::@class::C::@constructor::new
@@ -2862,7 +2862,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @89
-                  element2: <testLibrary>::@class::C
+                  element: <testLibrary>::@class::C
                   type: C
                 period: . @90
                 name: SimpleIdentifier
@@ -2975,7 +2975,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @33
-                  element2: package:test/a.dart::@class::C
+                  element: package:test/a.dart::@class::C
                   type: C
                 period: . @34
                 name: SimpleIdentifier
@@ -3040,9 +3040,9 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element2: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix2::p
                   name: C @40
-                  element2: package:test/a.dart::@class::C
+                  element: package:test/a.dart::@class::C
                   type: C
                 period: . @41
                 name: SimpleIdentifier
@@ -3102,7 +3102,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @27
-                  element2: <testLibrary>::@class::C
+                  element: <testLibrary>::@class::C
                   type: C
                 period: . @28
                 name: SimpleIdentifier
@@ -3164,9 +3164,9 @@ library
                   importPrefix: ImportPrefixReference
                     name: C @16
                     period: . @17
-                    element2: <null>
+                    element: <null>
                   name: named @18
-                  element2: <null>
+                  element: <null>
                   type: InvalidType
                 element: <null>
               argumentList: ArgumentList
@@ -3225,9 +3225,9 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element2: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix2::p
                   name: C @40
-                  element2: package:test/a.dart::@class::C
+                  element: package:test/a.dart::@class::C
                   type: C
                 period: . @41
                 name: SimpleIdentifier
@@ -3288,9 +3288,9 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element2: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix2::p
                   name: C @40
-                  element2: <null>
+                  element: <null>
                   type: InvalidType
                 period: . @41
                 name: SimpleIdentifier
@@ -3344,9 +3344,9 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @16
                     period: . @17
-                    element2: <null>
+                    element: <null>
                   name: C @18
-                  element2: <null>
+                  element: <null>
                   type: InvalidType
                 period: . @19
                 name: SimpleIdentifier
@@ -3409,7 +3409,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @30
-                  element2: <testLibrary>::@class::C
+                  element: <testLibrary>::@class::C
                   type: C<dynamic>
                 period: . @31
                 name: SimpleIdentifier
@@ -3483,7 +3483,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @41
-                  element2: <testLibrary>::@class::C
+                  element: <testLibrary>::@class::C
                   type: C
                 element: <testLibrary>::@class::C::@constructor::new
               argumentList: ArgumentList
@@ -3546,7 +3546,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @33
-                  element2: package:test/a.dart::@class::C
+                  element: package:test/a.dart::@class::C
                   type: C
                 element: package:test/a.dart::@class::C::@constructor::new
               argumentList: ArgumentList
@@ -3606,9 +3606,9 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element2: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix2::p
                   name: C @40
-                  element2: package:test/a.dart::@class::C
+                  element: package:test/a.dart::@class::C
                   type: C
                 element: package:test/a.dart::@class::C::@constructor::new
               argumentList: ArgumentList
@@ -3655,7 +3655,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @16
-                  element2: <null>
+                  element: <null>
                   type: InvalidType
                 element: <null>
               argumentList: ArgumentList
@@ -3711,9 +3711,9 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element2: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix2::p
                   name: C @40
-                  element2: <null>
+                  element: <null>
                   type: InvalidType
                 element: <null>
               argumentList: ArgumentList
@@ -3762,9 +3762,9 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @16
                     period: . @17
-                    element2: <null>
+                    element: <null>
                   name: C @18
-                  element2: <null>
+                  element: <null>
                   type: InvalidType
                 element: <null>
               argumentList: ArgumentList
@@ -3821,7 +3821,7 @@ library
               isOperator: is @25
               type: NamedType
                 name: int @28
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
               staticType: bool
       getters
@@ -4412,7 +4412,7 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
@@ -4471,7 +4471,7 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
@@ -4581,7 +4581,7 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
@@ -4594,7 +4594,7 @@ library
                       arguments
                         NamedType
                           name: int @33
-                          element2: dart:core::@class::int
+                          element: dart:core::@class::int
                           type: int
                       rightBracket: > @36
                     leftBracket: [ @37
@@ -4648,7 +4648,7 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
@@ -4661,7 +4661,7 @@ library
                       arguments
                         NamedType
                           name: int @34
-                          element2: dart:core::@class::int
+                          element: dart:core::@class::int
                           type: int
                       rightBracket: > @37
                     leftBracket: [ @38
@@ -4715,11 +4715,11 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                   NamedType
                     name: int @29
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @32
               leftBracket: { @33
@@ -4837,11 +4837,11 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                   NamedType
                     name: int @29
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @32
               leftBracket: { @33
@@ -4854,11 +4854,11 @@ library
                       arguments
                         NamedType
                           name: int @38
-                          element2: dart:core::@class::int
+                          element: dart:core::@class::int
                           type: int
                         NamedType
                           name: int @43
-                          element2: dart:core::@class::int
+                          element: dart:core::@class::int
                           type: int
                       rightBracket: > @46
                     leftBracket: { @47
@@ -4919,11 +4919,11 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                   NamedType
                     name: int @29
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @32
               leftBracket: { @33
@@ -4936,11 +4936,11 @@ library
                       arguments
                         NamedType
                           name: int @39
-                          element2: dart:core::@class::int
+                          element: dart:core::@class::int
                           type: int
                         NamedType
                           name: int @44
-                          element2: dart:core::@class::int
+                          element: dart:core::@class::int
                           type: int
                       rightBracket: > @47
                     leftBracket: { @48
@@ -5005,7 +5005,7 @@ library
                 arguments
                   NamedType
                     name: int @30
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @33
               argumentList: ArgumentList
@@ -5479,9 +5479,9 @@ library
                 element: <null>
                 staticType: null
               operator: ++ @24
-              readElement2: <testLibrary>::@getter::a
+              readElement: <testLibrary>::@getter::a
               readType: int
-              writeElement2: <testLibrary>::@getter::a
+              writeElement: <testLibrary>::@getter::a
               writeType: InvalidType
               element: dart:core::@class::num::@method::+
               staticType: int
@@ -5730,9 +5730,9 @@ library
                 token: a @25
                 element: <null>
                 staticType: null
-              readElement2: <testLibrary>::@getter::a
+              readElement: <testLibrary>::@getter::a
               readType: int
-              writeElement2: <testLibrary>::@getter::a
+              writeElement: <testLibrary>::@getter::a
               writeType: InvalidType
               element: dart:core::@class::num::@method::+
               staticType: int
@@ -6871,7 +6871,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -6885,7 +6885,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -6899,7 +6899,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -7701,7 +7701,7 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: { @28
@@ -7809,7 +7809,7 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: { @28
@@ -7822,7 +7822,7 @@ library
                       arguments
                         NamedType
                           name: int @33
-                          element2: dart:core::@class::int
+                          element: dart:core::@class::int
                           type: int
                       rightBracket: > @36
                     leftBracket: { @37
@@ -7878,7 +7878,7 @@ library
                 arguments
                   NamedType
                     name: int @24
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: { @28
@@ -7891,7 +7891,7 @@ library
                       arguments
                         NamedType
                           name: int @34
-                          element2: dart:core::@class::int
+                          element: dart:core::@class::int
                           type: int
                       rightBracket: > @37
                     leftBracket: { @38
@@ -9607,7 +9607,7 @@ library
                 arguments
                   NamedType
                     name: Null @21
-                    element2: dart:core::@class::Null
+                    element: dart:core::@class::Null
                     type: Null
                 rightBracket: > @25
               leftBracket: [ @26
@@ -9623,7 +9623,7 @@ library
                 arguments
                   NamedType
                     name: dynamic @54
-                    element2: dynamic
+                    element: dynamic
                     type: dynamic
                 rightBracket: > @61
               leftBracket: [ @62
@@ -9649,7 +9649,7 @@ library
                 arguments
                   NamedType
                     name: int @115
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @118
               leftBracket: [ @119
@@ -9675,7 +9675,7 @@ library
                 arguments
                   NamedType
                     name: List @171
-                    element2: dart:core::@class::List
+                    element: dart:core::@class::List
                     type: List<dynamic>
                 rightBracket: > @175
               leftBracket: [ @176
@@ -9696,10 +9696,10 @@ library
                       arguments
                         NamedType
                           name: String @228
-                          element2: dart:core::@class::String
+                          element: dart:core::@class::String
                           type: String
                       rightBracket: > @234
-                    element2: dart:core::@class::List
+                    element: dart:core::@class::List
                     type: List<String>
                 rightBracket: > @235
               leftBracket: [ @236
@@ -9720,7 +9720,7 @@ library
                       arguments
                         NamedType
                           name: int @288
-                          element2: dart:core::@class::int
+                          element: dart:core::@class::int
                           type: int
                         NamedType
                           name: List @293
@@ -9729,13 +9729,13 @@ library
                             arguments
                               NamedType
                                 name: String @298
-                                element2: dart:core::@class::String
+                                element: dart:core::@class::String
                                 type: String
                             rightBracket: > @304
-                          element2: dart:core::@class::List
+                          element: dart:core::@class::List
                           type: List<String>
                       rightBracket: > @305
-                    element2: dart:core::@class::Map
+                    element: dart:core::@class::Map
                     type: Map<int, List<String>>
                 rightBracket: > @306
               leftBracket: [ @307
@@ -9862,7 +9862,7 @@ library
                 arguments
                   NamedType
                     name: C @34
-                    element2: package:test/a.dart::@class::C
+                    element: package:test/a.dart::@class::C
                     type: C
                 rightBracket: > @35
               leftBracket: [ @36
@@ -9919,9 +9919,9 @@ library
                     importPrefix: ImportPrefixReference
                       name: p @39
                       period: . @40
-                      element2: <testLibraryFragment>::@prefix2::p
+                      element: <testLibraryFragment>::@prefix2::p
                     name: C @41
-                    element2: package:test/a.dart::@class::C
+                    element: package:test/a.dart::@class::C
                     type: C
                 rightBracket: > @42
               leftBracket: [ @43
@@ -9973,7 +9973,7 @@ library
                 arguments
                   NamedType
                     name: F @43
-                    element2: <testLibrary>::@typeAlias::F
+                    element: <testLibrary>::@typeAlias::F
                     type: int Function(String)
                       alias: <testLibrary>::@typeAlias::F
                 rightBracket: > @44
@@ -10030,11 +10030,11 @@ library
                 arguments
                   NamedType
                     name: dynamic @25
-                    element2: dynamic
+                    element: dynamic
                     type: dynamic
                   NamedType
                     name: int @34
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @37
               leftBracket: { @38
@@ -10051,11 +10051,11 @@ library
                 arguments
                   NamedType
                     name: int @67
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                   NamedType
                     name: dynamic @72
-                    element2: dynamic
+                    element: dynamic
                     type: dynamic
                 rightBracket: > @79
               leftBracket: { @80
@@ -10072,11 +10072,11 @@ library
                 arguments
                   NamedType
                     name: int @110
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                   NamedType
                     name: String @115
-                    element2: dart:core::@class::String
+                    element: dart:core::@class::String
                     type: String
                 rightBracket: > @121
               leftBracket: { @122
@@ -10093,7 +10093,7 @@ library
                 arguments
                   NamedType
                     name: int @169
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                   NamedType
                     name: List @174
@@ -10102,10 +10102,10 @@ library
                       arguments
                         NamedType
                           name: String @179
-                          element2: dart:core::@class::String
+                          element: dart:core::@class::String
                           type: String
                       rightBracket: > @185
-                    element2: dart:core::@class::List
+                    element: dart:core::@class::List
                     type: List<String>
                 rightBracket: > @186
               leftBracket: { @187
@@ -10201,7 +10201,7 @@ library
                 arguments
                   NamedType
                     name: dynamic @25
-                    element2: dynamic
+                    element: dynamic
                     type: dynamic
                 rightBracket: > @32
               leftBracket: { @33
@@ -10218,7 +10218,7 @@ library
                 arguments
                   NamedType
                     name: int @63
-                    element2: dart:core::@class::int
+                    element: dart:core::@class::int
                     type: int
                 rightBracket: > @66
               leftBracket: { @67
@@ -10240,10 +10240,10 @@ library
                       arguments
                         NamedType
                           name: String @119
-                          element2: dart:core::@class::String
+                          element: dart:core::@class::String
                           type: String
                       rightBracket: > @125
-                    element2: dart:core::@class::List
+                    element: dart:core::@class::List
                     type: List<String>
                 rightBracket: > @126
               leftBracket: { @127
@@ -10487,10 +10487,10 @@ library
                   arguments
                     NamedType
                       name: int @15
-                      element2: dart:core::@class::int
+                      element: dart:core::@class::int
                       type: int
                   rightBracket: > @18
-                element2: dart:core::@class::List
+                element: dart:core::@class::List
                 type: List<int>
               staticType: Type
       getters
@@ -10538,7 +10538,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -10552,7 +10552,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -10566,7 +10566,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -10740,7 +10740,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList

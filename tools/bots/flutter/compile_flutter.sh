@@ -57,6 +57,7 @@ git clone --single-branch -vv \
     https://dart.googlesource.com/external/github.com/flutter/flutter
 
 pushd flutter
+git fetch --tags
 bin/flutter config --no-analytics
 bin/flutter update-packages
 pushd engine

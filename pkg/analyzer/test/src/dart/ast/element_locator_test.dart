@@ -453,6 +453,51 @@ class A {
 ''');
   }
 
+  test_locate_MethodInvocation_class_callMethod_argument() async {
+    await resolveTestCode(r'''
+class A {
+  void call(int i) {}
+}
+void f(A a) {
+  a.call(1);
+}
+''');
+    var node = findNode.methodInvocation('call(1)').methodName;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@method::call
+''');
+  }
+
+  test_locate_MethodInvocation_class_callMethod_constructor() async {
+    await resolveTestCode(r'''
+class A {
+  void call(int i) {}
+}
+void f() {
+  A().call(1);
+}
+''');
+    var node = findNode.methodInvocation('call(1)').methodName;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@method::call
+''');
+  }
+
+  test_locate_MethodInvocation_function_callMethod() async {
+    await resolveTestCode(r'''
+void f(int i) {
+  f.call(1);
+}
+''');
+    var node = findNode.methodInvocation('call').methodName;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@function::f
+''');
+  }
+
   test_locate_MethodInvocation_method() async {
     await resolveTestCode(r'''
 class A {

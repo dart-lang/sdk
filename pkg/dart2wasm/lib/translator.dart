@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
@@ -429,6 +431,7 @@ class Translator with KernelNodes {
   w.TypesBuilder get typesBuilder => mainModule.types;
   final Map<ModuleOutput, w.ModuleBuilder> _outputToBuilder = {};
   final Map<w.ModuleBuilder, ModuleOutput> _builderToOutput = {};
+  final Map<w.Module, w.ModuleBuilder> moduleToBuilder = {};
   bool get hasMultipleModules => _moduleOutputData.hasMultipleModules;
 
   DynamicModuleInfo? dynamicModuleInfo;
@@ -529,6 +532,7 @@ class Translator with KernelNodes {
           watchPoints: options.watchPoints);
       _outputToBuilder[outputModule] = builder;
       _builderToOutput[builder] = outputModule;
+      moduleToBuilder[builder.module] = builder;
     }
   }
 
@@ -545,7 +549,7 @@ class Translator with KernelNodes {
     _initModules(sourceMapUrlGenerator);
     initFunction = mainModule.functions
         .define(typesBuilder.defineFunction(const [], const []), "#init");
-    mainModule.functions.start = initFunction;
+    mainModule.startFunction = initFunction;
 
     closureLayouter.collect();
     classInfoCollector.collect();
@@ -610,7 +614,7 @@ class Translator with KernelNodes {
   List<w.ValueType> callReference(
       Reference reference, w.InstructionsBuilder b) {
     final targetModule = moduleForReference(reference);
-    final isLocalModuleCall = targetModule == b.module;
+    final isLocalModuleCall = targetModule == b.moduleBuilder;
     if (isLocalModuleCall) {
       return b.invoke(directCallTarget(reference));
     }
@@ -626,16 +630,17 @@ class Translator with KernelNodes {
   /// module. Otherwise does an indirect call through the static dispatch table.
   List<w.ValueType> callFunction(
       w.BaseFunction function, w.InstructionsBuilder b) {
-    final targetModule = function.enclosingModule;
-    if (targetModule == b.module) {
+    final targetModuleBuilder = moduleToBuilder[function.enclosingModule]!;
+    if (targetModuleBuilder == b.moduleBuilder) {
       b.call(function);
-    } else if (isMainModule(targetModule)) {
-      final importedFunction = _importedFunctions.get(function, b.module);
+    } else if (isMainModule(targetModuleBuilder)) {
+      final importedFunction =
+          _importedFunctions.get(function, b.moduleBuilder);
       b.call(importedFunction);
     } else {
       final staticTable = staticTablesPerType.getTableForType(function.type);
       b.i32_const(staticTable.indexForFunction(function));
-      b.table_get(staticTable.getWasmTable(b.module));
+      b.table_get(staticTable.getWasmTable(b.moduleBuilder));
       b.ref_as_non_null();
       b.call_ref(function.type);
     }
@@ -666,7 +671,7 @@ class Translator with KernelNodes {
         b.i32_add();
       }
       final signature = selector.signature;
-      b.call_indirect(signature, table.getWasmTable(b.module));
+      b.call_indirect(signature, table.getWasmTable(b.moduleBuilder));
       b.emitUnreachableIfNoResult(signature.outputs);
     }
   }
@@ -708,7 +713,7 @@ class Translator with KernelNodes {
   }
 
   void pushModuleId(w.InstructionsBuilder b) {
-    if (!isDynamicSubmodule || b.module != dynamicSubmodule) {
+    if (!isDynamicSubmodule || b.moduleBuilder != dynamicSubmodule) {
       b.i64_const(0);
     } else {
       b.global_get(dynamicModuleInfo!.moduleIdGlobal);
@@ -995,8 +1000,9 @@ class Translator with KernelNodes {
 
   /// Creates a global reference to [f] in its [w.BaseFunction.enclosingModule].
   w.Global makeFunctionRef(w.BaseFunction f) {
+    final fModuleBuilder = moduleToBuilder[f.enclosingModule]!;
     return functionRefCache.putIfAbsent(f, () {
-      final global = f.enclosingModule.globals.define(
+      final global = fModuleBuilder.globals.define(
           w.GlobalType(w.RefType.def(f.type, nullable: false), mutable: false));
       global.initializer.ref_func(f);
       global.initializer.end();
@@ -1140,7 +1146,7 @@ class Translator with KernelNodes {
       w.FunctionType signature = representation.getVtableFieldType(fieldIndex);
       w.BaseFunction function = canBeCalledWith(posArgCount, argNames)
           ? makeTrampoline(signature, posArgCount, argNames)
-          : getDummyValuesCollectorForModule(ib.module)
+          : getDummyValuesCollectorForModule(ib.moduleBuilder)
               .getDummyFunction(signature);
       functions.add(function);
       ib.ref_func(function);
@@ -1154,10 +1160,11 @@ class Translator with KernelNodes {
     ib.ref_func(dynamicCallEntry);
     if (representation.isGeneric) {
       ib.ref_func(representation
-          .instantiationTypeComparisonFunctionForModule(ib.module));
+          .instantiationTypeComparisonFunctionForModule(ib.moduleBuilder));
+      ib.ref_func(representation
+          .instantiationTypeHashFunctionForModule(ib.moduleBuilder));
       ib.ref_func(
-          representation.instantiationTypeHashFunctionForModule(ib.module));
-      ib.ref_func(representation.instantiationFunctionForModule(ib.module));
+          representation.instantiationFunctionForModule(ib.moduleBuilder));
     }
     if (!dynamicModuleSupportEnabled) {
       for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
@@ -1196,7 +1203,8 @@ class Translator with KernelNodes {
         // This can happen e.g. when a `return;` is guaranteed to be never taken
         // but TFA didn't remove the dead code. In that case we synthesize a
         // dummy value.
-        getDummyValuesCollectorForModule(b.module).instantiateDummyValue(b, to);
+        getDummyValuesCollectorForModule(b.moduleBuilder)
+            .instantiateDummyValue(b, to);
         return;
       }
     }
@@ -1866,7 +1874,14 @@ class Translator with KernelNodes {
       return false;
     }
 
-    if (hasUnpairedSurrogate(s)) {
+    // Maximum length in bytes of an import name (JSC & JSShell will issue a
+    // wasm validation error if we import names larger than this).
+    const maxStringBytes = 100_000;
+    // A code unit of Dart string can take up max 3 bytes, we use it as first
+    // condition to avoid `utf8.encode()` in most situations.
+    final stringInBytesIsToLarge = (s.length * 3) > maxStringBytes &&
+        utf8.encode(s).length > maxStringBytes;
+    if (hasUnpairedSurrogate(s) || stringInBytesIsToLarge) {
       // Unpaired surrogates can't be encoded as UTF-8, import them from JS
       // runtime.
       final i = internalizedStringsForJSRuntime.length;
@@ -1894,7 +1909,7 @@ class CompilationQueue {
   bool get isEmpty => _pending.isEmpty;
   void add(CompilationTask entry) {
     assert(!translator.isDynamicSubmodule ||
-        entry.function.enclosingModule == translator.dynamicSubmodule);
+        entry.function.enclosingModule == translator.dynamicSubmodule.module);
     _pending.add(entry);
   }
 
@@ -2617,7 +2632,7 @@ class DummyValuesCollector {
             b.ref_null(heapType.bottomType);
           } else {
             translator.globals
-                .readGlobal(b, prepareDummyValue(b.module, type)!);
+                .readGlobal(b, prepareDummyValue(b.moduleBuilder, type)!);
           }
         } else {
           throw "Unsupported global type $type ($type)";
@@ -2657,16 +2672,17 @@ abstract class _WasmImporter<T extends w.Exportable> {
   Iterable<T> get imports => _map.values.expand((v) => v.values);
 
   T get(T key, w.ModuleBuilder module) {
-    if (key.enclosingModule == module) return key;
+    final keyModuleBuilder = _translator.moduleToBuilder[key.enclosingModule]!;
+    if (keyModuleBuilder == module) return key;
 
     final innerMap = _map.putIfAbsent(key, () {
       _translator.exporter
-          .export(key.enclosingModule, '$_exportPrefix${_map.length}', key);
+          .export(keyModuleBuilder, '$_exportPrefix${_map.length}', key);
       return {};
     });
     return innerMap.putIfAbsent(module, () {
-      return _import(module, key,
-          _translator.nameForModule(key.enclosingModule), key.exportedName);
+      return _import(module, key, _translator.nameForModule(keyModuleBuilder),
+          key.exportedName);
     });
   }
 

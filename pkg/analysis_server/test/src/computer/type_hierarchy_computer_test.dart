@@ -364,10 +364,9 @@ class ^E extends D {}
     while (target != null) {
       names.add(target.displayName);
       var supertypes = await findSupertypes(target);
-      target =
-          (supertypes != null && supertypes.isNotEmpty)
-              ? supertypes.single
-              : null;
+      target = (supertypes != null && supertypes.isNotEmpty)
+          ? supertypes.single
+          : null;
     }
 
     expect(names, ['E', 'D', 'C<T1>', 'B<T1, T2>', 'A<T1, T2>', 'Object']);

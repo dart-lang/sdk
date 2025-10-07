@@ -50,6 +50,11 @@ class DeprecatedSince3Lint extends TestLintRule {
 @reflectiveTest
 class OptionsRuleValidatorIncludedFileTest extends AbstractAnalysisOptionsTest
     with OptionsRuleValidatorTestMixin {
+  static const otherLib = '/other/lib';
+
+  @override
+  get dependencies => {'other': otherLib};
+
   void test_compatible_multiple_include() {
     newFile('/included1.yaml', '''
 linter:
@@ -180,6 +185,30 @@ include:
     ]);
   }
 
+  Future<void> test_incompatible_multiple_include_noLintMainFile() async {
+    newFile('/included1.yaml', '''
+linter:
+  rules:
+    - rule_neg
+''');
+    newFile('/included2.yaml', '''
+linter:
+  rules:
+    - rule_pos
+''');
+    assertErrors(
+      '''
+include:
+  - included1.yaml
+  - included2.yaml
+
+linter:
+  rules:
+''',
+      [AnalysisOptionsWarningCode.incompatibleLintIncluded],
+    );
+  }
+
   void test_incompatible_noTrigger_invalidMap() {
     newFile('/included.yaml', '''
 linter:
@@ -242,6 +271,25 @@ linter:
 ''');
   }
 
+  void test_incompatible_trigger_invalidMap() {
+    newFile('/included.yaml', '''
+linter:
+  rules:
+    rule_neg: true
+''');
+    assertErrors(
+      '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_neg:
+    rule_pos: true
+''',
+      [AnalysisOptionsWarningCode.incompatibleLintFiles],
+    );
+  }
+
   void test_incompatible_unsuportedValue_invalidMap() {
     newFile('/included.yaml', '''
 linter:
@@ -257,6 +305,26 @@ linter:
     rule_pos: invalid_value
 ''',
       [AnalysisOptionsWarningCode.unsupportedValue],
+    );
+  }
+
+  void test_package_import() {
+    newFile('$otherLib/analysis_options.yaml', '''
+linter:
+  rules:
+    rule_pos: true
+''');
+    testProjectPath = '/test';
+    assertErrors(
+      '''
+include:
+  - package:other/analysis_options.yaml
+
+linter:
+  rules:
+    rule_neg: true
+''',
+      [AnalysisOptionsWarningCode.incompatibleLintFiles],
     );
   }
 
@@ -490,6 +558,8 @@ linter:
 }
 
 mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
+  String? testProjectPath;
+
   /// Assert that when the validator is used on the given [content] the
   /// [expectedCodes] are produced.
   void assertErrors(
@@ -498,15 +568,17 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
     VersionConstraint? sdk,
   }) {
     GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    var reporter = DiagnosticReporter(
-      listener,
-      StringSource(content, 'analysis_options.yaml'),
-    );
-    var source = StringSource(content, 'analysis_options.yaml');
+    String filePath = 'analysis_options.yaml';
+    if (testProjectPath != null) {
+      filePath = resourceProvider.pathContext.join(testProjectPath!, filePath);
+    }
+    var source = StringSource(content, filePath);
+    var reporter = DiagnosticReporter(listener, source);
     var validator = LinterRuleOptionsValidator(
       optionsProvider: AnalysisOptionsProvider(sourceFactory),
-      sdkVersionConstraint: sdk,
       resourceProvider: resourceProvider,
+      sourceFactory: sourceFactory,
+      sdkVersionConstraint: sdk,
     );
     validator.validate(
       reporter,

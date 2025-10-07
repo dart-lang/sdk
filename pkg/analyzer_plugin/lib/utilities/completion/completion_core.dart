@@ -54,7 +54,9 @@ abstract class CompletionContributor {
   /// Contribute completion suggestions for the completion location specified by
   /// the given [request] into the given [collector].
   Future<void> computeSuggestions(
-      covariant CompletionRequest request, CompletionCollector collector);
+    covariant CompletionRequest request,
+    CompletionCollector collector,
+  );
 }
 
 /// A generator that will generate a 'completion.getSuggestions' response.
@@ -71,7 +73,7 @@ class CompletionGenerator {
   /// [path]. If any of the contributors throws an exception, also create a
   /// non-fatal 'plugin.error' notification.
   Future<GeneratorResult<CompletionGetSuggestionsResult?>>
-      generateCompletionResponse(CompletionRequest request) async {
+  generateCompletionResponse(CompletionRequest request) async {
     var notifications = <Notification>[];
     var collector = CompletionCollectorImpl();
     try {
@@ -80,9 +82,13 @@ class CompletionGenerator {
         try {
           await contributor.computeSuggestions(request, collector);
         } catch (exception, stackTrace) {
-          notifications.add(PluginErrorParams(
-                  false, exception.toString(), stackTrace.toString())
-              .toNotification());
+          notifications.add(
+            PluginErrorParams(
+              false,
+              exception.toString(),
+              stackTrace.toString(),
+            ).toNotification(),
+          );
         }
       }
     } on AbortCompletion {
@@ -92,7 +98,10 @@ class CompletionGenerator {
     collector.length ??= 0;
 
     var result = CompletionGetSuggestionsResult(
-        collector.offset!, collector.length!, collector.suggestions);
+      collector.offset!,
+      collector.length!,
+      collector.suggestions,
+    );
     return GeneratorResult(result, notifications);
   }
 }

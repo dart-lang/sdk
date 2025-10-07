@@ -160,9 +160,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::foo
+  readElement: <testLibrary>::@class::A::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -200,9 +200,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -296,9 +296,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@enum::E::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@enum::E::@setter::foo
+  writeElement: <testLibrary>::@enum::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -969,9 +969,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extensionType::A::@setter::foo
+  writeElement: <testLibrary>::@extensionType::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int

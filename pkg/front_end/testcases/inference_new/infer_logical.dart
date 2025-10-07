@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 T f<T>() => throw '';
 
-var x = /*@typeArgs=bool*/ f() || /*@typeArgs=bool*/ f();
-var y = /*@typeArgs=bool*/ f() && /*@typeArgs=bool*/ f();
+var x = f() || f();
+var y = f() && f();
 
 void test() {
-  var /*@type=bool*/ x = /*@typeArgs=bool*/ f() || /*@typeArgs=bool*/ f();
-  var /*@type=bool*/ y = /*@typeArgs=bool*/ f() && /*@typeArgs=bool*/ f();
+  var x = f() || f();
+  var y = f() && f();
 }
 
 main() {}

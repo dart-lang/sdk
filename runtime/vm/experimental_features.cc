@@ -26,8 +26,8 @@ bool GetExperimentalFeatureDefault(ExperimentalFeature feature) {
 
 const char* GetExperimentalFeatureName(ExperimentalFeature feature) {
   constexpr const char* kFeatureNames[] = {
-      "native-assets",
       "dot-shorthands",
+      "native-assets",
       "getter-setter-error",
       "sound-flow-analysis",
       "null-aware-elements",

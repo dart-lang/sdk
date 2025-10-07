@@ -52,7 +52,7 @@ class B extends A {
 @reflectiveTest
 class AddOverrideTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_OVERRIDE;
+  FixKind get kind => DartFixKind.addOverride;
 
   @override
   String get lintCode => LintNames.annotate_overrides;

@@ -97,7 +97,7 @@ Annotation
     token: ann
     element: <testLibrary>::@getter::ann
     staticType: null
-  element2: <testLibrary>::@getter::ann
+  element: <testLibrary>::@getter::ann
 ''');
   }
 
@@ -429,10 +429,10 @@ NamedType
     arguments
       NamedType
         name: S
-        element2: #E0 S
+        element: #E0 S
         type: S
     rightBracket: >
-  element2: <testLibrary>::@class::C
+  element: <testLibrary>::@class::C
   type: C<S>
 ''');
   }
@@ -445,7 +445,7 @@ extension E on dynamic {}
     assertResolvedNodeText(extendedType, r'''
 NamedType
   name: dynamic
-  element2: dynamic
+  element: dynamic
   type: dynamic
 ''');
   }
@@ -459,7 +459,7 @@ extension E on A {}
     assertResolvedNodeText(extendedType, r'''
 NamedType
   name: A
-  element2: <testLibrary>::@enum::A
+  element: <testLibrary>::@enum::A
   type: A
 ''');
   }
@@ -473,7 +473,7 @@ extension E on int Function(int) {}
 GenericFunctionType
   returnType: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   functionKeyword: Function
   parameters: FormalParameterList
@@ -481,7 +481,7 @@ GenericFunctionType
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       declaredElement: <testLibraryFragment> null@null
         element: isPrivate
@@ -508,7 +508,7 @@ extension E on C {}
     assertResolvedNodeText(extendedType, r'''
 NamedType
   name: C
-  element2: <testLibrary>::@class::C
+  element: <testLibrary>::@class::C
   type: C
 ''');
   }
@@ -523,7 +523,7 @@ extension E on M {}
     assertResolvedNodeText(extendedType, r'''
 NamedType
   name: M
-  element2: <testLibrary>::@mixin::M
+  element: <testLibrary>::@mixin::M
   type: M
 ''');
   }
@@ -542,10 +542,10 @@ NamedType
     arguments
       NamedType
         name: S
-        element2: #E0 S
+        element: #E0 S
         type: S
     rightBracket: >
-  element2: <testLibrary>::@class::C
+  element: <testLibrary>::@class::C
   type: C<S>
 ''');
   }
@@ -558,7 +558,7 @@ extension on dynamic {}
     assertResolvedNodeText(extendedType, r'''
 NamedType
   name: dynamic
-  element2: dynamic
+  element: dynamic
   type: dynamic
 ''');
   }
@@ -572,7 +572,7 @@ extension on A {}
     assertResolvedNodeText(extendedType, r'''
 NamedType
   name: A
-  element2: <testLibrary>::@enum::A
+  element: <testLibrary>::@enum::A
   type: A
 ''');
   }
@@ -586,7 +586,7 @@ extension on int Function(String) {}
 GenericFunctionType
   returnType: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   functionKeyword: Function
   parameters: FormalParameterList
@@ -594,7 +594,7 @@ GenericFunctionType
     parameter: SimpleFormalParameter
       type: NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
       declaredElement: <testLibraryFragment> null@null
         element: isPrivate
@@ -621,7 +621,7 @@ extension on C {}
     assertResolvedNodeText(extendedType, r'''
 NamedType
   name: C
-  element2: <testLibrary>::@class::C
+  element: <testLibrary>::@class::C
   type: C
 ''');
   }
@@ -636,7 +636,7 @@ extension on M {}
     assertResolvedNodeText(extendedType, r'''
 NamedType
   name: M
-  element2: <testLibrary>::@mixin::M
+  element: <testLibrary>::@mixin::M
   type: M
 ''');
   }
@@ -786,9 +786,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
     staticType: int
-  readElement2: <testLibrary>::@function::f::@formalParameter::c
+  readElement: <testLibrary>::@function::f::@formalParameter::c
   readType: C
-  writeElement2: <testLibrary>::@function::f::@formalParameter::c
+  writeElement: <testLibrary>::@function::f::@formalParameter::c
   writeType: C
   element: <testLibrary>::@class::C::@method::+
   staticType: C
@@ -817,9 +817,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
     staticType: int
-  readElement2: <testLibrary>::@function::f::@formalParameter::c
+  readElement: <testLibrary>::@function::f::@formalParameter::c
   readType: C
-  writeElement2: <testLibrary>::@function::f::@formalParameter::c
+  writeElement: <testLibrary>::@function::f::@formalParameter::c
   writeType: C
   element: <testLibrary>::@extension::E::@method::+
   staticType: C
@@ -2031,9 +2031,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::C::@method::[]=
+  writeElement: <testLibrary>::@class::C::@method::[]=
   writeType: int
   element: <null>
   staticType: int
@@ -2070,9 +2070,9 @@ AssignmentExpression
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@method::[]=
+  writeElement: <testLibrary>::@extension::E::@method::[]=
   writeType: int
   element: <null>
   staticType: int
@@ -2110,9 +2110,9 @@ AssignmentExpression
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@method::[]=
+  writeElement: <testLibrary>::@extension::E::@method::[]=
   writeType: int
   element: <null>
   staticType: int
@@ -2139,9 +2139,9 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@function::f::@formalParameter::c
+  readElement: <testLibrary>::@function::f::@formalParameter::c
   readType: C
-  writeElement2: <testLibrary>::@function::f::@formalParameter::c
+  writeElement: <testLibrary>::@function::f::@formalParameter::c
   writeType: C
   element: <testLibrary>::@class::C::@method::+
   staticType: C
@@ -2165,9 +2165,9 @@ PostfixExpression
     element: <testLibrary>::@function::g::@formalParameter::f
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@function::g::@formalParameter::f
+  readElement: <testLibrary>::@function::g::@formalParameter::f
   readType: int Function(int)
-  writeElement2: <testLibrary>::@function::g::@formalParameter::f
+  writeElement: <testLibrary>::@function::g::@formalParameter::f
   writeType: int Function(int)
   element: <testLibrary>::@extension::E::@method::+
   staticType: int Function(int)
@@ -2192,9 +2192,9 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@function::f::@formalParameter::c
+  readElement: <testLibrary>::@function::f::@formalParameter::c
   readType: C
-  writeElement2: <testLibrary>::@function::f::@formalParameter::c
+  writeElement: <testLibrary>::@function::f::@formalParameter::c
   writeType: C
   element: <testLibrary>::@extension::E::@method::+
   staticType: C
@@ -2221,9 +2221,9 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@function::f::@formalParameter::a
+  readElement: <testLibrary>::@function::f::@formalParameter::a
   readType: A?
-  writeElement2: <testLibrary>::@function::f::@formalParameter::a
+  writeElement: <testLibrary>::@function::f::@formalParameter::a
   writeType: A?
   element: <testLibrary>::@extension::E::@method::+
   staticType: A?
@@ -2250,9 +2250,9 @@ PrefixExpression
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::c
+  readElement: <testLibrary>::@function::f::@formalParameter::c
   readType: C
-  writeElement2: <testLibrary>::@function::f::@formalParameter::c
+  writeElement: <testLibrary>::@function::f::@formalParameter::c
   writeType: C
   element: <testLibrary>::@class::C::@method::+
   staticType: C
@@ -2276,9 +2276,9 @@ PrefixExpression
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
     staticType: null
-  readElement2: <testLibrary>::@function::g::@formalParameter::f
+  readElement: <testLibrary>::@function::g::@formalParameter::f
   readType: int Function(int)
-  writeElement2: <testLibrary>::@function::g::@formalParameter::f
+  writeElement: <testLibrary>::@function::g::@formalParameter::f
   writeType: int Function(int)
   element: <testLibrary>::@extension::E::@method::+
   staticType: int Function(int)
@@ -2303,9 +2303,9 @@ PrefixExpression
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::c
+  readElement: <testLibrary>::@function::f::@formalParameter::c
   readType: C
-  writeElement2: <testLibrary>::@function::f::@formalParameter::c
+  writeElement: <testLibrary>::@function::f::@formalParameter::c
   writeType: C
   element: <testLibrary>::@extension::E::@method::+
   staticType: C
@@ -2332,9 +2332,9 @@ PrefixExpression
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::a
+  readElement: <testLibrary>::@function::f::@formalParameter::a
   readType: A?
-  writeElement2: <testLibrary>::@function::f::@formalParameter::a
+  writeElement: <testLibrary>::@function::f::@formalParameter::a
   writeType: A?
   element: <testLibrary>::@extension::E::@method::+
   staticType: A?
@@ -2465,9 +2465,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::a
+  writeElement: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -2507,9 +2507,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -2545,9 +2545,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -2582,9 +2582,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int?
@@ -2623,9 +2623,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::a
+  writeElement: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -2936,9 +2936,9 @@ AssignmentExpression
     literal: 3
     correspondingParameter: package:test/lib.dart::@extension::E::@setter::a::@formalParameter::x
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: package:test/lib.dart::@extension::E::@setter::a
+  writeElement: package:test/lib.dart::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -2977,9 +2977,9 @@ AssignmentExpression
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::a
+  writeElement: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -3102,9 +3102,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E2::@getter::foo
+  writeElement: <testLibrary>::@extension::E2::@getter::foo
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -3397,9 +3397,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::C::@method::[]=
+  writeElement: <testLibrary>::@class::C::@method::[]=
   writeType: int
   element: <null>
   staticType: int
@@ -3434,9 +3434,9 @@ AssignmentExpression
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@method::[]=
+  writeElement: <testLibrary>::@extension::E::@method::[]=
   writeType: int
   element: <null>
   staticType: int
@@ -3535,9 +3535,9 @@ AssignmentExpression
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::a
+  writeElement: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -3575,9 +3575,9 @@ AssignmentExpression
     literal: 3
     correspondingParameter: <testLibrary>::@class::C::@setter::a::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::C::@setter::a
+  writeElement: <testLibrary>::@class::C::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -3613,9 +3613,9 @@ AssignmentExpression
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::a
+  writeElement: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -3805,9 +3805,9 @@ AssignmentExpression
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::a
+  writeElement: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -3837,9 +3837,9 @@ AssignmentExpression
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::a
+  writeElement: <testLibrary>::@extension::E::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -4012,9 +4012,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@setter::a::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@setter::a
+  writeElement: <testLibrary>::@setter::a
   writeType: int
   element: <null>
   staticType: int
@@ -4047,9 +4047,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@setter::a::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@setter::a
+  writeElement: <testLibrary>::@setter::a
   writeType: int
   element: <null>
   staticType: int

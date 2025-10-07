@@ -105,20 +105,20 @@ class CollectReportPage extends DiagnosticPage {
     Map<String, Object?> collectedData,
     AnalysisServer server,
   ) {
-    for (var data
-        in {
-          'startup': server.performanceDuringStartup,
-          if (server.performanceAfterStartup != null)
-            'afterStartup': server.performanceAfterStartup!,
-        }.entries) {
+    for (var data in {
+      'startup': server.performanceDuringStartup,
+      if (server.performanceAfterStartup != null)
+        'afterStartup': server.performanceAfterStartup!,
+    }.entries) {
       var perf = data.value;
       var perfData = {};
       collectedData[data.key] = perfData;
 
       var requestCount = perf.requestCount;
       var latencyCount = perf.latencyCount;
-      var averageLatency =
-          latencyCount > 0 ? (perf.requestLatency ~/ latencyCount) : null;
+      var averageLatency = latencyCount > 0
+          ? (perf.requestLatency ~/ latencyCount)
+          : null;
       var maximumLatency = perf.maxLatency;
       var slowRequestCount = perf.slowRequestCount;
 
@@ -198,13 +198,11 @@ class CollectReportPage extends DiagnosticPage {
     Map<String, Object?> collectedData,
     AnalysisServer server,
   ) {
-    var byteStoreTimings =
-        server.byteStoreTimings
-            ?.where(
-              (timing) =>
-                  timing.readCount != 0 || timing.readTime != Duration.zero,
-            )
-            .toList();
+    var byteStoreTimings = server.byteStoreTimings
+        ?.where(
+          (timing) => timing.readCount != 0 || timing.readTime != Duration.zero,
+        )
+        .toList();
     if (byteStoreTimings != null && byteStoreTimings.isNotEmpty) {
       var performance = [];
       collectedData['byteStoreTimings'] = performance;
@@ -214,8 +212,9 @@ class CollectReportPage extends DiagnosticPage {
           continue;
         }
 
-        var nextTiming =
-            i + 1 < byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
+        var nextTiming = i + 1 < byteStoreTimings.length
+            ? byteStoreTimings[i + 1]
+            : null;
         var duration = (nextTiming?.time ?? DateTime.now()).difference(
           timing.time,
         );
@@ -245,8 +244,9 @@ class CollectReportPage extends DiagnosticPage {
     collectedData['serverType'] = server.runtimeType.toString();
     collectedData['uptime'] = server.uptime.toString();
     if (server is LegacyAnalysisServer) {
-      collectedData['serverServices'] =
-          server.serverServices.map((e) => e.toString()).toList();
+      collectedData['serverServices'] = server.serverServices
+          .map((e) => e.toString())
+          .toList();
     } else if (server is LspAnalysisServer) {
       collectedData['clientDiagnosticInformation'] =
           server.clientDiagnosticInformation;

@@ -46,7 +46,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -85,7 +85,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -250,7 +250,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -298,10 +298,10 @@ InstanceCreationExpression
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -337,7 +337,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<int>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -376,10 +376,10 @@ InstanceCreationExpression
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<int>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -577,7 +577,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -615,7 +615,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -650,7 +650,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -690,7 +690,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<S>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -729,10 +729,10 @@ InstanceCreationExpression
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: dart:core::@class::Map
+      element: dart:core::@class::Map
       type: Map<dynamic, dynamic>
     element: ConstructorMember
       baseElement: dart:core::@class::Map::@constructor::new
@@ -772,7 +772,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: Foo
-      element2: <testLibrary>::@class::Foo
+      element: <testLibrary>::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -789,7 +789,7 @@ InstanceCreationExpression
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -827,7 +827,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: Foo
-      element2: <testLibrary>::@class::Foo
+      element: <testLibrary>::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -844,7 +844,7 @@ InstanceCreationExpression
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -882,9 +882,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix2::p
       name: Foo
-      element2: package:test/a.dart::@class::Foo
+      element: package:test/a.dart::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -901,7 +901,7 @@ InstanceCreationExpression
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -937,7 +937,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: Foo
-      element2: <testLibrary>::@class::Foo
+      element: <testLibrary>::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -954,7 +954,7 @@ InstanceCreationExpression
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -995,17 +995,17 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix2::p
       name: Foo
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: package:test/a.dart::@class::Foo
+      element: package:test/a.dart::@class::Foo
       type: Foo<int>
     period: .
     name: SimpleIdentifier
@@ -1039,7 +1039,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A<int>
     element: ConstructorMember
       baseElement: <testLibrary>::@extensionType::A::@constructor::new
@@ -1075,7 +1075,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A<int>
     element: ConstructorMember
       baseElement: <testLibrary>::@extensionType::A::@constructor::new
@@ -1109,7 +1109,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1144,7 +1144,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A
     element: <testLibrary>::@extensionType::A::@constructor::new
   argumentList: ArgumentList
@@ -1176,7 +1176,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1213,7 +1213,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A
     element: <testLibrary>::@extensionType::A::@constructor::new
   argumentList: ArgumentList
@@ -1247,7 +1247,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1287,7 +1287,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: prefix
-      element2: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix2::prefix
       type: InvalidType
     element: <null>
   argumentList: ArgumentList
@@ -1454,9 +1454,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1602,17 +1602,17 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1662,17 +1662,17 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A<int>
     element: ConstructorMember
       baseElement: package:test/a.dart::@class::A::@constructor::new
@@ -1715,9 +1715,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A
     element: package:test/a.dart::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -1758,9 +1758,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1802,9 +1802,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: Foo
-      element2: <null>
+      element: <null>
       type: InvalidType
     period: .
     name: SimpleIdentifier
@@ -1851,7 +1851,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: X
-      element2: <testLibrary>::@class::X
+      element: <testLibrary>::@class::X
       type: X
     element: <testLibrary>::@class::X::@constructor::new
   argumentList: ArgumentList
@@ -2061,7 +2061,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -2106,7 +2106,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A<int, String>
     period: .
     name: SimpleIdentifier
@@ -2153,7 +2153,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A<int>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -2191,7 +2191,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A<int, String>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -2234,7 +2234,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A<String>
     period: .
     name: SimpleIdentifier
@@ -2282,7 +2282,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A<String>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -2408,7 +2408,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -2441,7 +2441,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -2479,7 +2479,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -2517,7 +2517,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: Unresolved
-      element2: <null>
+      element: <null>
       type: InvalidType
     element: <null>
   argumentList: ArgumentList
@@ -2540,7 +2540,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.newWithNonType, 17, 16)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 17, 16)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2552,9 +2552,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: Unresolved
         period: .
-        element2: <null>
+        element: <null>
       name: named
-      element2: <null>
+      element: <null>
       type: InvalidType
     element: <null>
   argumentList: ArgumentList
@@ -2577,7 +2577,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.newWithNonType, 17, 14)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 17, 14)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2589,9 +2589,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: unresolved
         period: .
-        element2: <null>
+        element: <null>
       name: Foo
-      element2: <null>
+      element: <null>
       type: InvalidType
     period: .
     name: SimpleIdentifier

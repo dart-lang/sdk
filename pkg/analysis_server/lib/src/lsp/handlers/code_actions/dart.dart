@@ -208,8 +208,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     try {
       // If deduplicating the result only do the expensive "fix all in file"
       // calculation when we haven't before.
-      Set<String>? skipAlreadyCalculatedIfNonNull =
-          willBeDeduplicated ? {} : null;
+      Set<String>? skipAlreadyCalculatedIfNonNull = willBeDeduplicated
+          ? {}
+          : null;
       var workspace = DartChangeWorkspace(await server.currentSessions);
       CorrectionUtils? correctionUtils;
       for (var error in unitResult.diagnostics) {
@@ -546,8 +547,12 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   ) {
     return allowCodeActionLiterals
         ? CodeAction.t1(
-          CodeActionLiteral(title: command.title, kind: kind, command: command),
-        )
+            CodeActionLiteral(
+              title: command.title,
+              kind: kind,
+              command: command,
+            ),
+          )
         : CodeAction.t2(command);
   }
 }

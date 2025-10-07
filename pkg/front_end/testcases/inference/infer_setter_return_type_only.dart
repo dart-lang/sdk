@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {
@@ -17,5 +16,5 @@ class B extends A {
 
 main() {
   // Ok because the setter accepts `Object`.
-  new B(). /*@target=B.x*/ x = "hello";
+  new B().x = "hello";
 }

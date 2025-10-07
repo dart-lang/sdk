@@ -133,8 +133,9 @@ Future<void> main(List<String> args) async {
 
   if (result.wasParsed('mapFile')) {
     var mapFile = provider.getFile(result['mapFile'] as String);
-    var map =
-        computer.targetMetrics.map((metrics) => metrics.toJson()).toList();
+    var map = computer.targetMetrics
+        .map((metrics) => metrics.toJson())
+        .toList();
     mapFile.writeAsStringSync(json.encode(map));
   } else {
     computer.printResults();
@@ -477,12 +478,9 @@ class CompletionMetrics {
     ]);
     for (var entry in (map['worstResults'] as Map<String, dynamic>).entries) {
       var group = CompletionGroup.values[int.parse(entry.key)];
-      var results =
-          (entry.value as List<dynamic>)
-              .map(
-                (map) => CompletionResult.fromJson(map as Map<String, dynamic>),
-              )
-              .toList();
+      var results = (entry.value as List<dynamic>)
+          .map((map) => CompletionResult.fromJson(map as Map<String, dynamic>))
+          .toList();
       metrics.worstResults[group] = results;
     }
     return metrics;
@@ -605,10 +603,11 @@ class CompletionMetrics {
       'charsBeforeTopFive': charsBeforeTopFive.toJson(),
       'insertionLengthTheoretical': insertionLengthTheoretical.toJson(),
       'missingCompletionLocations': missingCompletionLocations.toList(),
-      'missingCompletionLocationTables':
-          missingCompletionLocationTables.toList(),
-      'slowestResults':
-          slowestResults.map((result) => result.toJson()).toList(),
+      'missingCompletionLocationTables': missingCompletionLocationTables
+          .toList(),
+      'slowestResults': slowestResults
+          .map((result) => result.toJson())
+          .toList(),
       'worstResults': worstResults.map(
         (key, value) => MapEntry(
           key.index.toString(),
@@ -957,11 +956,10 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
         var features =
             listener.featureMap[suggestion] ??
             MetricsSuggestionListener.noFeatures;
-        topSuggestions =
-            suggestions
-                .sublist(0, math.min(10, suggestions.length))
-                .map((suggestion) => SuggestionData(suggestion, features))
-                .toList();
+        topSuggestions = suggestions
+            .sublist(0, math.min(10, suggestions.length))
+            .map((suggestion) => SuggestionData(suggestion, features))
+            .toList();
         precedingRelevanceCounts = <int, int>{};
         for (var i = 0; i < rank - 1; i++) {
           var relevance = suggestions[i].relevanceScore;
@@ -1218,9 +1216,8 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     if (options.printMissedCompletionDetails) {
       printHeading(2, 'Missed Completions');
       var needsBlankLine = false;
-      var entries =
-          metrics.missedCompletions.entries.toList()
-            ..sort((first, second) => first.key.compareTo(second.key));
+      var entries = metrics.missedCompletions.entries.toList()
+        ..sort((first, second) => first.key.compareTo(second.key));
       for (var entry in entries) {
         if (needsBlankLine) {
           print('');
@@ -1285,11 +1282,10 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       toRow(targetMetrics.map((metrics) => metrics.successfulMrrComputer)),
       blankRow,
     ];
-    var elementKinds =
-        targetMetrics
-            .expand((metrics) => metrics.groupMrrComputers.keys)
-            .toSet()
-            .toList();
+    var elementKinds = targetMetrics
+        .expand((metrics) => metrics.groupMrrComputers.keys)
+        .toSet()
+        .toList();
     elementKinds.sort((first, second) => first.name.compareTo(second.name));
     for (var kind in elementKinds) {
       table.add(
@@ -1304,11 +1300,10 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     }
     if (options.printMrrByLocation) {
       table.add(blankRow);
-      var locations =
-          targetMetrics
-              .expand((metrics) => metrics.locationMrrComputers.keys)
-              .toSet()
-              .toList();
+      var locations = targetMetrics
+          .expand((metrics) => metrics.locationMrrComputers.keys)
+          .toSet()
+          .toList();
       locations.sort();
       for (var location in locations) {
         table.add(
@@ -1404,9 +1399,8 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     if (options.printShadowedCompletionDetails) {
       printHeading(2, 'Shadowed Completions');
       var needsBlankLine = false;
-      var entries =
-          metrics.shadowedCompletions.entries.toList()
-            ..sort((first, second) => first.key.compareTo(second.key));
+      var entries = metrics.shadowedCompletions.entries.toList()
+        ..sort((first, second) => first.key.compareTo(second.key));
       for (var entry in entries) {
         if (needsBlankLine) {
           print('');
@@ -1429,10 +1423,9 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   /// are in the top [maxSlowestResults] slowest results, are included.
   void printSlowestResults(CompletionMetrics metrics) {
     var p90ElapsedMs = metrics.percentileCompletionMS.p90;
-    var slowestResults =
-        metrics.slowestResults
-            .where((element) => element.elapsedMS >= p90ElapsedMs)
-            .toList();
+    var slowestResults = metrics.slowestResults
+        .where((element) => element.elapsedMS >= p90ElapsedMs)
+        .toList();
     print('');
     printHeading(2, 'The slowest completion results to compute');
     for (var result in slowestResults) {
@@ -1515,15 +1508,16 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     NotImportedSuggestions notImportedSuggestions,
   ) async {
     var budget = CompletionBudget(Duration(seconds: 30));
-    var collector = await DartCompletionManager(
-      budget: budget,
-      listener: listener,
-      notImportedSuggestions: notImportedSuggestions,
-    ).computeFinalizedCandidateSuggestions(
-      request: dartRequest,
-      performance: performance,
-      maxSuggestions: -1,
-    );
+    var collector =
+        await DartCompletionManager(
+          budget: budget,
+          listener: listener,
+          notImportedSuggestions: notImportedSuggestions,
+        ).computeFinalizedCandidateSuggestions(
+          request: dartRequest,
+          performance: performance,
+          maxSuggestions: -1,
+        );
     return collector.suggestions;
   }
 
@@ -1675,13 +1669,13 @@ class CompletionResult {
     var actualSuggestion = SuggestionData.fromJson(
       map['actualSuggestion'] as Map<String, dynamic>,
     );
-    var topSuggestions =
-        (map['topSuggestions'] as List<dynamic>)
-            .map((map) => SuggestionData.fromJson(map as Map<String, dynamic>))
-            .toList();
-    var precedingRelevanceCounts = (map['precedingRelevanceCounts']
-            as Map<String, dynamic>)
-        .map((key, value) => MapEntry(int.parse(key), value as int));
+    var topSuggestions = (map['topSuggestions'] as List<dynamic>)
+        .map((map) => SuggestionData.fromJson(map as Map<String, dynamic>))
+        .toList();
+    var precedingRelevanceCounts =
+        (map['precedingRelevanceCounts'] as Map<String, dynamic>).map(
+          (key, value) => MapEntry(int.parse(key), value as int),
+        );
     var expectedCompletion = ExpectedCompletion.fromJson(
       map['expectedCompletion'] as Map<String, dynamic>,
     );
@@ -1761,8 +1755,9 @@ class CompletionResult {
       'place': place.toJson(),
       'actualSuggestion': actualSuggestion.toJson(),
       if (topSuggestions != null)
-        'topSuggestions':
-            topSuggestions!.map((suggestion) => suggestion.toJson()).toList(),
+        'topSuggestions': topSuggestions!
+            .map((suggestion) => suggestion.toJson())
+            .toList(),
       if (precedingRelevanceCounts != null)
         'precedingRelevanceCounts': precedingRelevanceCounts!.map(
           (key, value) => MapEntry(key.toString(), value),

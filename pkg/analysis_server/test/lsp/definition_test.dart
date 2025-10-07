@@ -23,12 +23,11 @@ void main() {
 @reflectiveTest
 class DefinitionTest extends AbstractLspAnalysisServerTest {
   @override
-  AnalysisServerOptions get serverOptions =>
-      AnalysisServerOptions()
-        ..enabledExperiments = [
-          ...super.serverOptions.enabledExperiments,
-          ...experimentsForTests,
-        ];
+  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
+    ..enabledExperiments = [
+      ...super.serverOptions.enabledExperiments,
+      ...experimentsForTests,
+    ];
 
   Future<void> test_acrossFiles() async {
     var mainContents = '''

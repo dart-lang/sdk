@@ -127,7 +127,15 @@ class PluginManager {
     this.instrumentationService,
   );
 
-  /// Return a list of all of the plugins that are currently known.
+  /// All of the legacy plugins that are currently known.
+  List<PluginIsolate> get legacyPluginIsolates =>
+      pluginIsolates.where((p) => p.isLegacy).toList();
+
+  /// All of the "new" plugins that are currently known.
+  List<PluginIsolate> get newPluginIsolates =>
+      pluginIsolates.where((p) => !p.isLegacy).toList();
+
+  /// All of the plugins that are currently known.
   List<PluginIsolate> get pluginIsolates => _pluginMap.values.toList();
 
   /// Stream emitting an event when known [pluginIsolates] change.
@@ -159,6 +167,7 @@ class PluginManager {
           null,
           _notificationManager,
           instrumentationService,
+          isLegacy: isLegacyPlugin,
         );
         pluginIsolate.reportException(CaughtException(exception, stackTrace));
         _pluginMap[path] = pluginIsolate;
@@ -170,6 +179,7 @@ class PluginManager {
         pluginFiles.packageConfig.path,
         _notificationManager,
         instrumentationService,
+        isLegacy: isLegacyPlugin,
       );
       _pluginMap[path] = pluginIsolate;
       try {
@@ -541,9 +551,7 @@ class PluginManager {
         buffer.writeln('  exitCode = ${pubResult.exitCode}');
         buffer.writeln('  stdout = ${pubResult.stdout}');
         buffer.writeln('  stderr = ${pubResult.stderr}');
-        exceptionReason = buffer.toString();
-        instrumentationService.logError(exceptionReason);
-        _notificationManager.handlePluginError(exceptionReason);
+        throw PluginException(buffer.toString());
       }
       if (!packageConfigFile.exists) {
         exceptionReason ??= 'File "${packageConfigFile.path}" does not exist.';
@@ -636,11 +644,10 @@ class PluginManager {
               var uri = Uri.parse('package:$packageName/$packageName.dart');
               var packageSource = packageUriResolver.resolveAbsolute(uri);
               if (packageSource != null) {
-                var packageRoot =
-                    _resourceProvider
-                        .getFile(packageSource.fullName)
-                        .parent
-                        .parent;
+                var packageRoot = _resourceProvider
+                    .getFile(packageSource.fullName)
+                    .parent
+                    .parent;
                 packages.add(_Package(packageName, packageRoot));
                 pubspecFiles.add(
                   packageRoot.getChildAssumingFile(file_paths.pubspecYaml),
