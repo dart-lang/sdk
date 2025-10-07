@@ -205,7 +205,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           watcher.ChangeType.MODIFY,
           path.join(pkgPath, 'lib', 'lib.dart'),
         );
-        var responses = await manager.broadcastWatchEvent(watchEvent);
+        var responses = manager.broadcastWatchEvent(watchEvent);
         expect(responses, hasLength(1));
         var response = await responses[0];
         expect(response, isNotNull);

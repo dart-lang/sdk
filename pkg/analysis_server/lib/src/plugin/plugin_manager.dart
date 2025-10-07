@@ -238,39 +238,36 @@ class PluginManager {
     return responseMap;
   }
 
-  /// Broadcast the given [watchEvent] to all of the plugins that are analyzing
-  /// in contexts containing the file associated with the event. Return a list
-  /// containing futures that will complete when each of the plugins have sent a
-  /// response.
-  Future<List<Future<Response>>> broadcastWatchEvent(
-    watcher.WatchEvent watchEvent,
-  ) async {
+  /// Broadcasts the given [watchEvent] to all of the plugins that are analyzing
+  /// in contexts containing the file associated with the event.
+  ///
+  /// Returns a list containing futures that will complete when each of the
+  /// plugins have sent a response.
+  List<Future<Response>> broadcastWatchEvent(watcher.WatchEvent watchEvent) {
     var filePath = watchEvent.path;
-
-    /// Return `true` if the given glob [pattern] matches the file being
-    /// watched.
-    bool matches(String pattern) => Glob(
-      _resourceProvider.pathContext.separator,
-      pattern,
-    ).matches(filePath);
 
     WatchEvent? event;
     var responses = <Future<Response>>[];
+    var separator = _resourceProvider.pathContext.separator;
     for (var pluginIsolate in _pluginMap.values) {
       var session = pluginIsolate.currentSession;
-      var interestingFiles = session?.interestingFiles;
-      if (session != null &&
-          pluginIsolate.isAnalyzing(filePath) &&
-          interestingFiles != null &&
-          interestingFiles.any(matches)) {
-        // The list of interesting file globs is `null` if the plugin has not
-        // yet responded to the plugin.versionCheck request. If that happens
-        // then the plugin hasn't had a chance to analyze anything yet, and
-        // hence it does not needed to get watch events.
-        event ??= _convertWatchEvent(watchEvent);
-        var params = AnalysisHandleWatchEventsParams([event]);
-        responses.add(session.sendRequest(params));
+      if (session == null) continue;
+      if (!pluginIsolate.isAnalyzing(filePath)) continue;
+      var interestingGlobs = session.interestingFileGlobs;
+
+      // The list of interesting file globs is `null` if the isolate has not yet
+      // responded to the 'plugin.versionCheck' request. If that happens, then
+      // the isolate hasn't had a chance to analyze anything yet; hence, it
+      // it does not need to get watch events, yet.
+      if (interestingGlobs == null) continue;
+
+      if (!interestingGlobs.any((g) => Glob(separator, g).matches(filePath))) {
+        continue;
       }
+
+      event ??= _convertWatchEvent(watchEvent);
+      var params = AnalysisHandleWatchEventsParams([event]);
+      responses.add(session.sendRequest(params));
     }
     return responses;
   }

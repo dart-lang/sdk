@@ -262,7 +262,7 @@ class PluginSession {
   bool isCompatible = true;
 
   /// The glob patterns of files that the plugin is interested in knowing about.
-  List<String>? interestingFiles;
+  List<String>? interestingFileGlobs;
 
   /// The name to be used when reporting problems related to the plugin.
   String? _name;
@@ -448,7 +448,7 @@ class PluginSession {
     );
     var result = PluginVersionCheckResult.fromResponse(response);
     isCompatible = result.isCompatible;
-    interestingFiles = result.interestingFiles;
+    interestingFileGlobs = result.interestingFiles;
     _name = result.name;
     _version = result.version;
     if (!isCompatible) {
