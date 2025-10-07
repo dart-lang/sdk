@@ -272,11 +272,6 @@ class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
 
   String get aliasForClass => aliasFor.split('.').first;
 
-  String get aliasForFilePath => errorClasses
-      .firstWhere((element) => element.name == aliasForClass)
-      .file
-      .path;
-
   @override
   void toAnalyzerCode(
     ErrorClassInfo errorClassInfo,

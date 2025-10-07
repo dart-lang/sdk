@@ -3,11 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/target/targets.dart' show Target;
 import 'package:kernel/type_algebra.dart';
 
+import 'pragma.dart';
+
 /// De-duplication of identical mixin applications.
-void transformLibraries(List<Library> libraries) {
-  final deduplicateMixins = new DeduplicateMixinsTransformer();
+void transformLibraries(
+  List<Library> libraries,
+  CoreTypes coreTypes,
+  Target target,
+) {
+  final deduplicateMixins = new DeduplicateMixinsTransformer(coreTypes, target);
   final referenceUpdater = ReferenceUpdater(deduplicateMixins);
 
   // Deduplicate mixins and re-resolve super initializers.
@@ -35,8 +43,12 @@ void transformLibraries(List<Library> libraries) {
 }
 
 /// De-duplication of identical mixin applications.
-void transformComponent(Component component) {
-  transformLibraries(component.libraries);
+void transformComponent(
+  Component component,
+  CoreTypes coreTypes,
+  Target target,
+) {
+  transformLibraries(component.libraries, coreTypes, target);
 }
 
 class _DeduplicateMixinKey {
@@ -120,8 +132,12 @@ class _DeduplicateMixinKey {
 }
 
 class DeduplicateMixinsTransformer extends RemovingTransformer {
+  final ConstantPragmaAnnotationParser pragmaParser;
   final _canonicalMixins = new Map<_DeduplicateMixinKey, Class>();
   final _duplicatedMixins = new Map<Class, Class>();
+
+  DeduplicateMixinsTransformer(CoreTypes coreTypes, Target target)
+    : pragmaParser = ConstantPragmaAnnotationParser(coreTypes, target);
 
   @override
   TreeNode visitLibrary(Library node, TreeNode? removalSentinel) {
@@ -148,6 +164,10 @@ class DeduplicateMixinsTransformer extends RemovingTransformer {
       return c;
     }
 
+    if (!_canBeEliminated(c)) {
+      return c;
+    }
+
     Class canonical = _canonicalMixins.putIfAbsent(
       new _DeduplicateMixinKey(c),
       () => c,
@@ -163,6 +183,19 @@ class DeduplicateMixinsTransformer extends RemovingTransformer {
     }
 
     return c;
+  }
+
+  bool _canBeEliminated(Class c) {
+    bool isEntryPoint(Annotatable node) =>
+        pragmaParser
+            .parsedPragmas<ParsedEntryPointPragma>(node.annotations)
+            .isNotEmpty;
+    // Cannot eliminate mixin applications which is exported
+    // through a dynamic interface (or one of its members is exported).
+    if (isEntryPoint(c) || c.members.any(isEntryPoint)) {
+      return false;
+    }
+    return true;
   }
 
   @override

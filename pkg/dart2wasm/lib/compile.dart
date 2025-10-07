@@ -280,8 +280,6 @@ Future<CompilationResult> compileToModule(
     writeFile(options.dumpKernelBeforeTfa!, writeComponentToString(component));
   }
 
-  mixin_deduplication.transformLibraries(librariesToTransform);
-
   ModuleStrategy moduleStrategy;
   if (options.translatorOptions.enableDeferredLoading) {
     moduleStrategy =
@@ -302,7 +300,14 @@ Future<CompilationResult> compileToModule(
     moduleStrategy = DefaultModuleStrategy(component);
   }
 
+  // DynamicMainModuleStrategy.prepareComponent() includes
+  // dynamic_interface_annotator transformation which annotates AST nodes with
+  // pragmas and should precede other transformations looking at pragmas
+  // (such as mixin_deduplication and TFA).
   moduleStrategy.prepareComponent();
+
+  mixin_deduplication.transformLibraries(
+      librariesToTransform, coreTypes, target);
 
   MainModuleMetadata mainModuleMetadata =
       MainModuleMetadata.empty(options.translatorOptions, options.environment);

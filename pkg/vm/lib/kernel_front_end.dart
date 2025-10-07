@@ -753,6 +753,9 @@ Future runGlobalTransformations(
 
   final coreTypes = new CoreTypes(component);
 
+  // dynamic_interface_annotator transformation annotates AST nodes with
+  // pragmas and should precede other transformations looking at pragmas
+  // (such as mixin_deduplication and TFA).
   final dynamicInterface = args.dynamicInterface;
   if (dynamicInterface != null) {
     final fileUri = await asFileUri(args.options!.fileSystem, dynamicInterface);
@@ -779,7 +782,7 @@ Future runGlobalTransformations(
   // can benefit from mixin de-duplication.
   // At least, in addition to VM/AOT case we should run this transformation
   // when building a platform dill file for VM/JIT case.
-  mixin_deduplication.transformComponent(component);
+  mixin_deduplication.transformComponent(component, coreTypes, target);
 
   // Perform unreachable code elimination, which should be performed before
   // type flow analysis so TFA won't take unreachable code into account.
