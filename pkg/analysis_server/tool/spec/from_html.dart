@@ -62,6 +62,7 @@ class ApiReader {
 
   /// Create an [Api] object from an HTML representation such as:
   ///
+  /// ```html
   /// <html>
   ///   ...
   ///   <body>
@@ -71,8 +72,9 @@ class ApiReader {
   ///     <refactorings>...</refactorings>
   ///   </body>
   /// </html>
+  /// ```
   ///
-  /// Child elements of <api> can occur in any order.
+  /// Child elements of API can occur in any order.
   Api apiFromHtml(dom.Element html) {
     Api api;
     var versions = <String>[];
@@ -143,10 +145,12 @@ class ApiReader {
 
   /// Create a [Domain] object from an HTML representation such as:
   ///
+  /// ```html
   /// <domain name="domainName">
   ///   <request method="...">...</request> <!-- zero or more -->
   ///   <notification event="...">...</notification> <!-- zero or more -->
   /// </domain>
+  /// ```
   ///
   /// Child elements can occur in any order.
   Domain domainFromHtml(dom.Element html) {
@@ -191,13 +195,15 @@ class ApiReader {
 
   /// Create a [Notification] object from an HTML representation such as:
   ///
+  /// ```html
   /// <notification event="methodName">
   ///   <params>...</params> <!-- optional -->
   /// </notification>
+  /// ```
   ///
   /// Note that the event name should not include the domain name.
   ///
-  /// <params> has the same form as <object>, as described in
+  /// `<params>` has the same form as `<object>`, as described in
   /// [typeObjectFromHtml].
   ///
   /// Child elements can occur in any order.
@@ -254,29 +260,32 @@ class ApiReader {
   /// given HTML element.  The following forms are supported.
   ///
   /// To refer to a type declared elsewhere (or a built-in type):
+  /// `<ref>typeName</ref>`
   ///
-  ///   <ref>typeName</ref>
+  /// For a list: `<list>ItemType</list>`
   ///
-  /// For a list: <list>ItemType</list>
-  ///
-  /// For a map: <map><key>KeyType</key><value>ValueType</value></map>
+  /// For a map: `<map><key>KeyType</key><value>ValueType</value></map>`
   ///
   /// For a JSON object:
-  ///
-  ///   <object>
-  ///     <field name="...">...</field> <!-- zero or more -->
-  ///   </object>
+  /// ```html
+  /// <object>
+  ///   <field name="...">...</field> <!-- zero or more -->
+  /// </object>
+  /// ```
   ///
   /// For an enum:
-  ///
-  ///   <enum>
-  ///     <value>...</value> <!-- zero or more -->
-  ///   </enum>
+  /// ```html
+  /// <enum>
+  ///   <value>...</value> <!-- zero or more -->
+  /// </enum>
+  /// ```
   ///
   /// For a union type:
-  ///   <union>
-  ///     TYPE <!-- zero or more -->
-  ///   </union>
+  /// ```html
+  /// <union>
+  ///   TYPE <!-- zero or more -->
+  /// </union>
+  /// ```
   List<TypeDecl> processContentsAsTypes(dom.Element html, String context) {
     var types = <TypeDecl>[];
     recurse(html, context, {
@@ -372,13 +381,15 @@ class ApiReader {
 
   /// Create a [Refactoring] object from an HTML representation such as:
   ///
+  /// ```html
   /// <refactoring kind="refactoringKind">
   ///   <feedback>...</feedback> <!-- optional -->
   ///   <options>...</options> <!-- optional -->
   /// </refactoring>
+  /// ```
   ///
-  /// <feedback> and <options> have the same form as <object>, as described in
-  /// [typeObjectFromHtml].
+  /// `<feedback>` and `<options>` have the same form as `<object>`, as
+  /// described in [typeObjectFromHtml].
   ///
   /// Child elements can occur in any order.
   Refactoring refactoringFromHtml(dom.Element html) {
@@ -405,9 +416,11 @@ class ApiReader {
 
   /// Create a [Refactorings] object from an HTML representation such as:
   ///
+  /// ```html
   /// <refactorings>
   ///   <refactoring kind="...">...</refactoring> <!-- zero or more -->
   /// </refactorings>
+  /// ```
   Refactorings refactoringsFromHtml(dom.Element html) {
     checkName(html, 'refactorings');
     var context = 'refactorings';
@@ -423,15 +436,17 @@ class ApiReader {
 
   /// Create a [Request] object from an HTML representation such as:
   ///
+  /// ```html
   /// <request method="methodName">
   ///   <params>...</params> <!-- optional -->
   ///   <result>...</result> <!-- optional -->
   /// </request>
+  /// ```
   ///
   /// Note that the method name should not include the domain name.
   ///
-  /// <params> and <result> have the same form as <object>, as described in
-  /// [typeObjectFromHtml].
+  /// `<params>` and `<result>` have the same form as `<object>`, as described
+  /// in [typeObjectFromHtml].
   ///
   /// Child elements can occur in any order.
   Request requestFromHtml(dom.Element html, String context) {
@@ -479,9 +494,11 @@ class ApiReader {
 
   /// Create a [TypeDefinition] object from an HTML representation such as:
   ///
+  /// ```html
   /// <type name="typeName">
   ///   TYPE
   /// </type>
+  /// ```
   ///
   /// Where TYPE is any HTML that can be parsed by [typeObjectFromHtml].
   ///
@@ -527,9 +544,11 @@ class ApiReader {
 
   /// Create a [TypeEnumValue] from an HTML description such as:
   ///
+  /// ```html
   /// <enum>
   ///   <code>VALUE</code>
   /// </enum>
+  /// ```
   ///
   /// Where VALUE is the text of the enumerated value.
   ///
@@ -553,15 +572,17 @@ class ApiReader {
 
   /// Create a [TypeObjectField] from an HTML description such as:
   ///
+  /// ```html
   /// <field name="fieldName">
   ///   TYPE
   /// </field>
+  /// ```
   ///
   /// Where TYPE is any HTML that can be parsed by [typeObjectFromHtml].
   ///
-  /// In addition, the attribute optional="true" may be used to specify that the
-  /// field is optional, and the attribute value="..." may be used to specify
-  /// that the field is required to have a certain value.
+  /// In addition, the attribute `optional="true"` may be used to specify that
+  /// the field is optional, and the attribute `value="..."` may be used to
+  /// specify that the field is required to have a certain value.
   ///
   /// Child elements can occur in any order.
   TypeObjectField typeObjectFieldFromHtml(dom.Element html, String context) {
@@ -623,9 +644,11 @@ class ApiReader {
 
   /// Create a [Types] object from an HTML representation such as:
   ///
+  /// ```html
   /// <types>
   ///   <type name="...">...</type> <!-- zero or more -->
   /// </types>
+  /// ```
   Types typesFromHtml(dom.Element html) {
     checkName(html, 'types');
     var context = 'types';
