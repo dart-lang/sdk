@@ -1003,7 +1003,13 @@ class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
   final AnalyzerCode analyzerCode;
 
   SharedErrorCodeInfo.fromYaml(super.yaml)
-    : analyzerCode = _decodeAnalyzerCode(yaml['analyzerCode'] as String),
+    : analyzerCode = _decodeAnalyzerCode(
+        (yaml['analyzerCode'] ??
+                (throw StateError(
+                  'Shared error codes must specify an analyzerCode.',
+                )))
+            as String,
+      ),
       super.fromYaml() {
     if (super.index == null) {
       throw StateError('Shared messages must have an index');
