@@ -85,12 +85,12 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
 
   @override
   FixKind get fixKind => _isInlineInvocation
-      ? DartFixKind.INLINE_INVOCATION
+      ? DartFixKind.inlineInvocation
       : DartFixKind.convertToSpread;
 
   @override
   FixKind get multiFixKind => _isInlineInvocation
-      ? DartFixKind.INLINE_INVOCATION_MULTI
+      ? DartFixKind.inlineInvocationMulti
       : DartFixKind.convertToSpreadMulti;
 
   @override

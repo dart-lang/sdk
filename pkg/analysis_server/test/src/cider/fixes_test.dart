@@ -44,7 +44,7 @@ var a = 0^ var b = 1
 ''');
 
     // Only the first fix is applied.
-    assertHasFix(DartFixKind.INSERT_SEMICOLON, r'''
+    assertHasFix(DartFixKind.insertSemicolon, r'''
 var a = 0; var b = 1
 ''');
 
@@ -83,7 +83,7 @@ class Test {}
 void f(Test a) {}^
 ''');
 
-    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+    assertHasFix(DartFixKind.importLibraryProject1, r'''
 import 'a.dart';
 
 void f(Test a) {}
@@ -100,7 +100,7 @@ enum Test {a, b, c}
 void f(Test a) {}^
 ''');
 
-    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+    assertHasFix(DartFixKind.importLibraryProject1, r'''
 import 'a.dart';
 
 void f(Test a) {}
@@ -121,7 +121,7 @@ void f() {
 }
 ''');
 
-    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+    assertHasFix(DartFixKind.importLibraryProject1, r'''
 import 'a.dart';
 
 void f() {
@@ -142,7 +142,7 @@ void f() {
 }
 ''');
 
-    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+    assertHasFix(DartFixKind.importLibraryProject1, r'''
 import 'a.dart';
 
 void f() {
@@ -161,7 +161,7 @@ mixin Test {}
 void f(Test a) {}^
 ''');
 
-    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+    assertHasFix(DartFixKind.importLibraryProject1, r'''
 import 'a.dart';
 
 void f(Test a) {}
@@ -180,7 +180,7 @@ void f() {
 }
 ''');
 
-    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+    assertHasFix(DartFixKind.importLibraryProject1, r'''
 import 'a.dart';
 
 void f() {
@@ -194,7 +194,7 @@ void f() {
 var v = 0^
 ''');
 
-    assertHasFix(DartFixKind.INSERT_SEMICOLON, r'''
+    assertHasFix(DartFixKind.insertSemicolon, r'''
 var v = 0;
 ''');
   }

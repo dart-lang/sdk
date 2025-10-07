@@ -20,10 +20,10 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_LEADING_UNDERSCORE;
+  FixKind get fixKind => DartFixKind.removeLeadingUnderscore;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_LEADING_UNDERSCORE_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeLeadingUnderscoreMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -25,7 +25,7 @@ void main() {
 class RemoveConstConstConstructorParamTypeMismatchTest
     extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_methodInvocation() async {
     await resolveTestCode(r'''
@@ -137,7 +137,7 @@ void f(int i) {
 @reflectiveTest
 class RemoveConstNonConstantListElementTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_expressionStatement() async {
     await resolveTestCode(r'''
@@ -307,7 +307,7 @@ final x = [const A(), A.nonConst()];
 @reflectiveTest
 class RemoveConstNonConstantMapElementTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_expressionStatement() async {
     await resolveTestCode(r'''
@@ -365,7 +365,7 @@ var v = {1: null, 2: const A(), ...notConst};
 @reflectiveTest
 class RemoveConstNonConstantMapKeyTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_fromDeferredLibrary() async {
     newFile('$testPackageLibPath/a.dart', '''
@@ -400,7 +400,7 @@ Object f(dynamic a) {
 @reflectiveTest
 class RemoveConstNonConstantMapValueTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_fromDeferredLibrary() async {
     newFile('$testPackageLibPath/a.dart', '''
@@ -483,7 +483,7 @@ final v = {1: const A(), 2: A.nonConst()};
 @reflectiveTest
 class RemoveConstNonConstantSetElementTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_fromDeferredLibrary() async {
     newFile('$testPackageLibPath/a.dart', '''
@@ -568,7 +568,7 @@ final v = {const A(), A.nonConst()};
 @reflectiveTest
 class RemoveConstTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_constClass_firstClass() async {
     await resolveTestCode('''

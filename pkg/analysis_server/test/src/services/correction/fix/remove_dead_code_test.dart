@@ -27,7 +27,7 @@ class RemoveDeadCodeClassicTest extends FixProcessorTest
 /// `sound-flow-analysis` feature
 mixin RemoveDeadCodeClassicTestCases on FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_DEAD_CODE;
+  FixKind get kind => DartFixKind.removeDeadCode;
 
   Future<void> test_and() async {
     await resolveTestCode('''

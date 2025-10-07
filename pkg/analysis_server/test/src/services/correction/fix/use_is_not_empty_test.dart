@@ -40,7 +40,7 @@ void f(List<int> l) {
 @reflectiveTest
 class UseIsNotEmptyTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.USE_IS_NOT_EMPTY;
+  FixKind get kind => DartFixKind.useIsNotEmpty;
 
   @override
   String get lintCode => LintNames.prefer_is_not_empty;

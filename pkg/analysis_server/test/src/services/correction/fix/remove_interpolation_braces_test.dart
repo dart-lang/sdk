@@ -40,7 +40,7 @@ void f() {
 @reflectiveTest
 class RemoveInterpolationBracesTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_INTERPOLATION_BRACES;
+  FixKind get kind => DartFixKind.removeInterpolationBraces;
 
   @override
   String get lintCode => LintNames.unnecessary_brace_in_string_interps;

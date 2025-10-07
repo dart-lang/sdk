@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class ReplaceBooleanWithBoolMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL_MULTI;
+  FixKind get kind => DartFixKind.replaceBooleanWithBoolMulti;
 
   Future<void> test_all() async {
     await resolveTestCode('''
@@ -40,7 +40,7 @@ void f() {
 @reflectiveTest
 class ReplaceBooleanWithBoolTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL;
+  FixKind get kind => DartFixKind.replaceBooleanWithBool;
 
   Future<void> test_single() async {
     await resolveTestCode('''

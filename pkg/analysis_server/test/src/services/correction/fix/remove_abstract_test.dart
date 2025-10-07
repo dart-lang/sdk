@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveAbstractMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ABSTRACT_MULTI;
+  FixKind get kind => DartFixKind.removeAbstractMulti;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -40,7 +40,7 @@ class MyClass {
 @reflectiveTest
 class RemoveAbstractTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ABSTRACT;
+  FixKind get kind => DartFixKind.removeAbstract;
 
   Future<void> test_abstract_field_constructor_initializer() async {
     await resolveTestCode('''

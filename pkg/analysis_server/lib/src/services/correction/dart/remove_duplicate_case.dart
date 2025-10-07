@@ -18,10 +18,10 @@ class RemoveDuplicateCase extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_DUPLICATE_CASE;
+  FixKind get fixKind => DartFixKind.removeDuplicateCase;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_DUPLICATE_CASE_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeDuplicateCaseMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

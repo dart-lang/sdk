@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class MoveAnnotationToLibraryDirectiveTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MOVE_ANNOTATION_TO_LIBRARY_DIRECTIVE;
+  FixKind get kind => DartFixKind.moveAnnotationToLibraryDirective;
 
   @override
   String get lintCode => LintNames.library_annotations;

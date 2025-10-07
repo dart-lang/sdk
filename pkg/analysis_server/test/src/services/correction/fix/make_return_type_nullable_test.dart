@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class MakeReturnTypeNullableTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_RETURN_TYPE_NULLABLE;
+  FixKind get kind => DartFixKind.makeReturnTypeNullable;
 
   Future<void> test_function_async() async {
     await resolveTestCode('''

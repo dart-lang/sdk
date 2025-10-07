@@ -24,10 +24,10 @@ class ReplaceWithNotNullAware extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_newOperator];
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_NOT_NULL_AWARE;
+  FixKind get fixKind => DartFixKind.replaceWithNotNullAware;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_NOT_NULL_AWARE_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceWithNotNullAwareMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class UseNotEqNullMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.USE_NOT_EQ_NULL_MULTI;
+  FixKind get kind => DartFixKind.useNotEqNullMulti;
 
   Future<void> test_isNotNull_all() async {
     await resolveTestCode('''
@@ -40,7 +40,7 @@ void f(p, q) {
 @reflectiveTest
 class UseNotEqNullTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.USE_NOT_EQ_NULL;
+  FixKind get kind => DartFixKind.useNotEqNull;
 
   Future<void> test_isNotNull() async {
     await resolveTestCode('''

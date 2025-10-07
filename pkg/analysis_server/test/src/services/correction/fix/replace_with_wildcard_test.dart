@@ -54,7 +54,7 @@ int f2(Object? x) {
 @reflectiveTest
 class ReplaceWithWildcardTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_WILDCARD;
+  FixKind get kind => DartFixKind.replaceWithWildcard;
 
   Future<void> test_it() async {
     await resolveTestCode('''

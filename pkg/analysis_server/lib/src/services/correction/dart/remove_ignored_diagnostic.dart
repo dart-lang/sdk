@@ -23,10 +23,10 @@ class RemoveIgnoredDiagnostic extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_diagnosticName];
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_IGNORED_DIAGNOSTIC;
+  FixKind get fixKind => DartFixKind.removeIgnoredDiagnostic;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_IGNORED_DIAGNOSTIC_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeIgnoredDiagnosticMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

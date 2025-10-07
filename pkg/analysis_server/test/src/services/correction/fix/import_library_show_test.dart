@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class ImportLibraryShowMultipleTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_COMBINATOR_MULTIPLE;
+  FixKind get kind => DartFixKind.importLibraryCombinatorMultiple;
 
   Future<void> test_classes() async {
     newFile('$testPackageLibPath/lib.dart', '''
@@ -271,7 +271,7 @@ void f(A a1) {
 @reflectiveTest
 class ImportLibraryShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_COMBINATOR;
+  FixKind get kind => DartFixKind.importLibraryCombinator;
 
   Future<void> test_extension_aliased_notShown_method() async {
     newFile('$testPackageLibPath/lib.dart', '''

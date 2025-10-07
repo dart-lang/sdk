@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class MoveTypeArgumentsToClassTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS;
+  FixKind get kind => DartFixKind.moveTypeArgumentsToClass;
 
   Future<void> test_explicitConst() async {
     await resolveTestCode('''

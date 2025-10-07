@@ -17,10 +17,10 @@ class RemoveUnawaited extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNAWAITED;
+  FixKind get fixKind => DartFixKind.removeUnawaited;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_UNAWAITED_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnawaitedMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -48,7 +48,7 @@ class Color {
 @reflectiveTest
 class ReplaceWithEightDigitHexTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_EIGHT_DIGIT_HEX;
+  FixKind get kind => DartFixKind.replaceWithEightDigitHex;
 
   @override
   String get lintCode => LintNames.use_full_hex_values_for_flutter_colors;

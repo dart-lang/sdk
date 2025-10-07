@@ -26,7 +26,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE;
+  FixKind get fixKind => DartFixKind.removeUnusedLocalVariable;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

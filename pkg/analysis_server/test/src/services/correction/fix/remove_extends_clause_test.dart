@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveExtendsClauseMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_EXTENDS_CLAUSE_MULTI;
+  FixKind get kind => DartFixKind.removeExtendsClauseMulti;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -41,7 +41,7 @@ mixin class C {}
 @reflectiveTest
 class RemoveExtendsClauseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_EXTENDS_CLAUSE;
+  FixKind get kind => DartFixKind.removeExtendsClause;
 
   Future<void> test_deprecatedExtends() async {
     newFile('$testPackageLibPath/a.dart', '''

@@ -18,10 +18,10 @@ class RemoveUnusedCatchStack extends ResolvedCorrectionProducer {
       CorrectionApplicability.acrossFiles;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNUSED_CATCH_STACK;
+  FixKind get fixKind => DartFixKind.removeUnusedCatchStack;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_UNUSED_CATCH_STACK_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnusedCatchStackMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -19,11 +19,11 @@ class MakeRequiredNamedParametersFirst extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.MAKE_REQUIRED_NAMED_PARAMETERS_FIRST;
+  FixKind get fixKind => DartFixKind.makeRequiredNamedParametersFirst;
 
   @override
   FixKind? get multiFixKind =>
-      DartFixKind.MAKE_REQUIRED_NAMED_PARAMETERS_FIRST_MULTI;
+      DartFixKind.makeRequiredNamedParametersFirstMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

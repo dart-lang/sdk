@@ -47,7 +47,7 @@ final r3= ('b', 2);
 @reflectiveTest
 class SplitMultipleDeclarationsTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.SPLIT_MULTIPLE_DECLARATIONS;
+  FixKind get kind => DartFixKind.splitMultipleDeclarations;
 
   @override
   String get lintCode => LintNames.avoid_multiple_declarations_per_line;

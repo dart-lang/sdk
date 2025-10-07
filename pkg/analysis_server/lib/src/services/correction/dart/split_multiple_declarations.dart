@@ -17,10 +17,10 @@ class SplitMultipleDeclarations extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.SPLIT_MULTIPLE_DECLARATIONS;
+  FixKind get fixKind => DartFixKind.splitMultipleDeclarations;
 
   @override
-  FixKind get multiFixKind => DartFixKind.SPLIT_MULTIPLE_DECLARATIONS_MULTI;
+  FixKind get multiFixKind => DartFixKind.splitMultipleDeclarationsMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

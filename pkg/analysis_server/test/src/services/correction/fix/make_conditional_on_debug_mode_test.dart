@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class MakeConditionalOnDebugModeTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_CONDITIONAL_ON_DEBUG_MODE;
+  FixKind get kind => DartFixKind.makeConditionalOnDebugMode;
 
   @override
   String get lintCode => LintNames.avoid_print;
@@ -59,7 +59,7 @@ void f() {
 class MakeConditionalOnDebugModeWithoutFlutterTest
     extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_CONDITIONAL_ON_DEBUG_MODE;
+  FixKind get kind => DartFixKind.makeConditionalOnDebugMode;
 
   @override
   String get lintCode => LintNames.avoid_print;

@@ -34,7 +34,7 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_operator, '$_operatorPrefix$_operator'];
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_NULL_AWARE;
+  FixKind get fixKind => DartFixKind.replaceWithNullAware;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

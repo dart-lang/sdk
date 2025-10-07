@@ -19,10 +19,10 @@ class ReplaceWithInterpolation extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_INTERPOLATION;
+  FixKind get fixKind => DartFixKind.replaceWithInterpolation;
 
   @override
-  FixKind? get multiFixKind => DartFixKind.REPLACE_WITH_INTERPOLATION_MULTI;
+  FixKind? get multiFixKind => DartFixKind.replaceWithInterpolationMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

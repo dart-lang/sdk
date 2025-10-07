@@ -18,7 +18,7 @@ class RemoveAssertion extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_ASSERTION;
+  FixKind get fixKind => DartFixKind.removeAssertion;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

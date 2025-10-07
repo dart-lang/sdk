@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ReplaceWithExtensionNameTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_EXTENSION_NAME;
+  FixKind get kind => DartFixKind.replaceWithExtensionName;
 
   Future<void> test_getter() async {
     await resolveTestCode('''

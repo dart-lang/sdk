@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class MoveDocCommentToLibraryDirectiveTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MOVE_DOC_COMMENT_TO_LIBRARY_DIRECTIVE;
+  FixKind get kind => DartFixKind.moveDocCommentToLibraryDirective;
 
   @override
   String get lintCode => LintNames.dangling_library_doc_comments;

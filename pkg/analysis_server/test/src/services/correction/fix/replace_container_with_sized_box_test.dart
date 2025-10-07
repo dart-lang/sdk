@@ -34,7 +34,7 @@ import 'package:flutter/material.dart';
 Widget buildRow() {
   return Container(
     width: 10,
-    child: 
+    child:
       Container(
         width: 10,
         child: Row(),
@@ -48,7 +48,7 @@ import 'package:flutter/material.dart';
 Widget buildRow() {
   return SizedBox(
     width: 10,
-    child: 
+    child:
       SizedBox(
         width: 10,
         child: Row(),
@@ -62,7 +62,7 @@ Widget buildRow() {
 @reflectiveTest
 class ReplaceContainedWithSizedBoxTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_CONTAINER_WITH_SIZED_BOX;
+  FixKind get kind => DartFixKind.replaceContainerWithSizedBox;
 
   @override
   String get lintCode => LintNames.sized_box_for_whitespace;

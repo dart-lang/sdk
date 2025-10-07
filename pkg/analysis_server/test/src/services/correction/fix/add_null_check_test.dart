@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class AddNullCheckReplaceWithNullAwareTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
+  FixKind get kind => DartFixKind.replaceWithNullAware;
 
   Future<void> test_cascade() async {
     await resolveTestCode('''

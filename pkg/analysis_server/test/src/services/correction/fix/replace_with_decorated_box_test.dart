@@ -249,7 +249,7 @@ void f(Color color) {
 @reflectiveTest
 class ReplaceWithDecoratedBoxTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_DECORATED_BOX;
+  FixKind get kind => DartFixKind.replaceWithDecoratedBox;
 
   @override
   String get lintCode => LintNames.use_decorated_box;

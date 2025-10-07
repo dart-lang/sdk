@@ -88,7 +88,7 @@ Future? a;
 @reflectiveTest
 class OrganizeImportsDirectivesOrderingTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ORGANIZE_IMPORTS;
+  FixKind get kind => DartFixKind.organizeImports;
 
   @override
   String get lintCode => LintNames.directives_ordering;

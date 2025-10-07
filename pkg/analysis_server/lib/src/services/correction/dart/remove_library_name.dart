@@ -17,7 +17,7 @@ class RemoveLibraryName extends ResolvedCorrectionProducer {
       CorrectionApplicability.automaticallyButOncePerFile;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_LIBRARY_NAME;
+  FixKind get fixKind => DartFixKind.removeLibraryName;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

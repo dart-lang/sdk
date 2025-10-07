@@ -20,7 +20,7 @@ class RemoveConstructor extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_CONSTRUCTOR;
+  FixKind get fixKind => DartFixKind.removeConstructor;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -36,7 +36,7 @@ void f(Object? x) {
 @reflectiveTest
 class RemoveLateTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_LATE;
+  FixKind get kind => DartFixKind.removeLate;
 
   Future<void> test_deadLateWildcardVariableInitializer() async {
     await resolveTestCode('''

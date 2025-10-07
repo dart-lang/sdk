@@ -38,13 +38,13 @@ class MergeCombinators extends MultiCorrectionProducer {
     if (combinators.whereType<ShowCombinator>().isEmpty) {
       return [
         _MergeCombinators(
-          DartFixKind.MERGE_COMBINATORS_HIDE_HIDE,
+          DartFixKind.mergeCombinatorsHideHide,
           directive,
           mergeWithShow: false,
           context: context,
         ),
         _MergeCombinators(
-          DartFixKind.MERGE_COMBINATORS_SHOW_HIDE,
+          DartFixKind.mergeCombinatorsShowHide,
           directive,
           mergeWithShow: true,
           context: context,
@@ -54,13 +54,13 @@ class MergeCombinators extends MultiCorrectionProducer {
 
     return [
       _MergeCombinators(
-        DartFixKind.MERGE_COMBINATORS_SHOW_SHOW,
+        DartFixKind.mergeCombinatorsShowShow,
         directive,
         mergeWithShow: true,
         context: context,
       ),
       _MergeCombinators(
-        DartFixKind.MERGE_COMBINATORS_HIDE_SHOW,
+        DartFixKind.mergeCombinatorsHideShow,
         directive,
         mergeWithShow: false,
         context: context,

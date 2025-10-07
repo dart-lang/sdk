@@ -102,7 +102,7 @@ void f2(List<int> list) {
 @reflectiveTest
 class OmitLocalVariableTypesLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_VAR;
+  FixKind get kind => DartFixKind.replaceWithVar;
 
   @override
   String get lintCode => LintNames.omit_local_variable_types;
@@ -646,7 +646,7 @@ void f2() {
 @reflectiveTest
 class OmitObviousLocalVariableTypesLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_VAR;
+  FixKind get kind => DartFixKind.replaceWithVar;
 
   @override
   String get lintCode => LintNames.omit_obvious_local_variable_types;
@@ -910,7 +910,7 @@ class A {
 @reflectiveTest
 class OmitObviousPropertyTypesLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_VAR;
+  FixKind get kind => DartFixKind.replaceWithVar;
 
   @override
   String get lintCode => LintNames.omit_obvious_property_types;

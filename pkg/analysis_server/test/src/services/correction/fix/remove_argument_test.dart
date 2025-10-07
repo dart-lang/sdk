@@ -85,7 +85,7 @@ void g({int a = 0, int b = 1, int c = 2}) {}
 @reflectiveTest
 class RemoveArgumentTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ARGUMENT;
+  FixKind get kind => DartFixKind.removeArgument;
 
   @override
   String get lintCode => LintNames.avoid_redundant_argument_values;

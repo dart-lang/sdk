@@ -18,10 +18,10 @@ class RemoveUnusedCatchClause extends ResolvedCorrectionProducer {
       CorrectionApplicability.acrossFiles;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNUSED_CATCH_CLAUSE;
+  FixKind get fixKind => DartFixKind.removeUnusedCatchClause;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_UNUSED_CATCH_CLAUSE_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnusedCatchClauseMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

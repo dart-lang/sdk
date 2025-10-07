@@ -17,11 +17,10 @@ class ReplaceContainerWithColoredBox extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_CONTAINER_WITH_COLORED_BOX;
+  FixKind get fixKind => DartFixKind.replaceContainerWithColoredBox;
 
   @override
-  FixKind? get multiFixKind =>
-      DartFixKind.REPLACE_CONTAINER_WITH_COLORED_BOX_MULTI;
+  FixKind? get multiFixKind => DartFixKind.replaceContainerWithColoredBoxMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

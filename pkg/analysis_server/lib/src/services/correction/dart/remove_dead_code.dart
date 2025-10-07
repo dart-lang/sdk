@@ -28,7 +28,7 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_DEAD_CODE;
+  FixKind get fixKind => DartFixKind.removeDeadCode;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

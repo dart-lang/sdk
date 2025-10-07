@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveParametersInGetterDeclarationTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_PARAMETERS_IN_GETTER_DECLARATION;
+  FixKind get kind => DartFixKind.removeParenthesesInGetterDeclaration;
 
   Future<void> test_emptyList() async {
     await resolveTestCode('''

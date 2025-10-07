@@ -18,10 +18,10 @@ class RemoveIfNullOperator extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
+  FixKind get fixKind => DartFixKind.removeIfNullOperator;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_IF_NULL_OPERATOR_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeIfNullOperatorMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

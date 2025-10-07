@@ -48,7 +48,7 @@ Function f2() {
 @reflectiveTest
 class ReplaceWithTearOffTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_TEAR_OFF;
+  FixKind get kind => DartFixKind.replaceWithTearOff;
 
   @override
   String get lintCode => LintNames.unnecessary_lambdas;

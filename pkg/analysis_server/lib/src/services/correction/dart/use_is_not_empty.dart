@@ -18,10 +18,10 @@ class UseIsNotEmpty extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.USE_IS_NOT_EMPTY;
+  FixKind get fixKind => DartFixKind.useIsNotEmpty;
 
   @override
-  FixKind get multiFixKind => DartFixKind.USE_IS_NOT_EMPTY_MULTI;
+  FixKind get multiFixKind => DartFixKind.useIsNotEmptyMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -26,7 +26,7 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_fieldName];
 
   @override
-  FixKind get fixKind => DartFixKind.MAKE_FIELD_NOT_FINAL;
+  FixKind get fixKind => DartFixKind.makeFieldNotFinal;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -18,10 +18,10 @@ class RemoveAssignment extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_ASSIGNMENT;
+  FixKind get fixKind => DartFixKind.removeAssignment;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_ASSIGNMENT_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeAssignmentMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

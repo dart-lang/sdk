@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveUnusedCatchClauseMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_CATCH_CLAUSE_MULTI;
+  FixKind get kind => DartFixKind.removeUnusedCatchClauseMulti;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -46,7 +46,7 @@ void f() {
 @reflectiveTest
 class RemoveUnusedCatchClauseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_CATCH_CLAUSE;
+  FixKind get kind => DartFixKind.removeUnusedCatchClause;
 
   Future<void> test_removeUnusedCatchClause() async {
     await resolveTestCode('''

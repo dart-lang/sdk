@@ -25,10 +25,10 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.replaceWithVar;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_VAR;
+  FixKind get fixKind => DartFixKind.replaceWithVar;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_VAR_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceWithVarMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

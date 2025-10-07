@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ReplaceReturnTypeStreamTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_STREAM;
+  FixKind get kind => DartFixKind.replaceReturnTypeStream;
 
   Future<void> test_complexTypeName_withImport() async {
     await resolveTestCode('''

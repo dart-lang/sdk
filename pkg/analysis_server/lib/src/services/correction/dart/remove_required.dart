@@ -18,7 +18,7 @@ class RemoveRequired extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_REQUIRED;
+  FixKind get fixKind => DartFixKind.removeRequired;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

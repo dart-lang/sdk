@@ -316,7 +316,7 @@ void f2(List<int> list) {
 @reflectiveTest
 class OmitLocaVariableTypesLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
+  FixKind get kind => DartFixKind.removeTypeAnnotation;
 
   @override
   String get lintCode => LintNames.omit_local_variable_types;
@@ -693,7 +693,7 @@ void f2() {
 @reflectiveTest
 class OmitObviousLocalVariableTypesLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
+  FixKind get kind => DartFixKind.removeTypeAnnotation;
 
   @override
   String get lintCode => LintNames.omit_obvious_local_variable_types;
@@ -817,7 +817,7 @@ class A {
 @reflectiveTest
 class OmitObviousPropertyTypesLintLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
+  FixKind get kind => DartFixKind.removeTypeAnnotation;
 
   @override
   String get lintCode => LintNames.omit_obvious_property_types;
@@ -893,7 +893,7 @@ final list = <String>['a'];
 @reflectiveTest
 abstract class RemoveTypeAnnotationTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
+  FixKind get kind => DartFixKind.removeTypeAnnotation;
 }
 
 @reflectiveTest
@@ -925,7 +925,7 @@ class D extends C {
 class SuperFormalParameterTypeIsNotSubtypeOfAssociatedTest
     extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
+  FixKind get kind => DartFixKind.removeTypeAnnotation;
 
   Future<void> test_functionTyped_parameterTypeIsNotSupertype() async {
     await resolveTestCode('''
@@ -1110,7 +1110,7 @@ class C {
 @reflectiveTest
 class VarAndTypeTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
+  FixKind get kind => DartFixKind.removeTypeAnnotation;
 
   Future<void> test_declaredVariablePattern() async {
     await resolveTestCode('''

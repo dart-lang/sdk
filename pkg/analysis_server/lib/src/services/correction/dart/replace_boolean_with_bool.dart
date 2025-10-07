@@ -16,10 +16,10 @@ class ReplaceBooleanWithBool extends ResolvedCorrectionProducer {
       CorrectionApplicability.acrossSingleFile;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL;
+  FixKind get fixKind => DartFixKind.replaceBooleanWithBool;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceBooleanWithBoolMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

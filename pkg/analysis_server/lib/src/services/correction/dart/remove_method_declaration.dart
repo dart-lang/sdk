@@ -17,10 +17,10 @@ class RemoveMethodDeclaration extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_METHOD_DECLARATION;
+  FixKind get fixKind => DartFixKind.removeMethoddeclaration;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_METHOD_DECLARATION_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeMethodDeclarationMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

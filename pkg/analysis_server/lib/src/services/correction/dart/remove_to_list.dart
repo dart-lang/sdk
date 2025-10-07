@@ -17,10 +17,10 @@ class RemoveToList extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_TO_LIST;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryToList;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_TO_LIST_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnnecessaryToListMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

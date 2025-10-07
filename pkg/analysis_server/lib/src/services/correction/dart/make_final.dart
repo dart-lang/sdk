@@ -18,10 +18,10 @@ class MakeFinal extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.MAKE_FINAL;
+  FixKind get fixKind => DartFixKind.makeFinal;
 
   @override
-  FixKind get multiFixKind => DartFixKind.MAKE_FINAL_MULTI;
+  FixKind get multiFixKind => DartFixKind.makeFinalMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class RemoveConstructorTest_extension extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONSTRUCTOR;
+  FixKind get kind => DartFixKind.removeConstructor;
 
   Future<void> test_betweenFields() async {
     await resolveTestCode('''
@@ -110,7 +110,7 @@ extension E on int {
 @reflectiveTest
 class RemoveConstructorTest_mixin extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONSTRUCTOR;
+  FixKind get kind => DartFixKind.removeConstructor;
 
   Future<void> test_betweenFields() async {
     await resolveTestCode('''

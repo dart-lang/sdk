@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class UpdateSdkConstraintsTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.UPDATE_SDK_CONSTRAINTS;
+  FixKind get kind => DartFixKind.updateSdkConstraints;
 
   /// Asserts that a library with [content] can be updated from the [from]
   /// constraints to the [to] constraints.

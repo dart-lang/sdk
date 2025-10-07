@@ -21,7 +21,7 @@ class MoveDocCommentToLibraryDirective extends ResolvedCorrectionProducer {
       CorrectionApplicability.automaticallyButOncePerFile;
 
   @override
-  FixKind get fixKind => DartFixKind.MOVE_DOC_COMMENT_TO_LIBRARY_DIRECTIVE;
+  FixKind get fixKind => DartFixKind.moveDocCommentToLibraryDirective;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

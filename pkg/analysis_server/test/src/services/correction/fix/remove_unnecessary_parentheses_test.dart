@@ -42,7 +42,7 @@ void f() {
 @reflectiveTest
 class RemoveUnnecessaryParenthesesTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_PARENTHESES;
+  FixKind get kind => DartFixKind.removeUnnecessaryParentheses;
 
   @override
   String get lintCode => LintNames.unnecessary_parenthesis;

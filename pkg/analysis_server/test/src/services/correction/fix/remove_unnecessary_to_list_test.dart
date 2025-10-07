@@ -40,7 +40,7 @@ var t1 = [
 @reflectiveTest
 class RemoveUnnecessaryToListTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_TO_LIST;
+  FixKind get kind => DartFixKind.removeUnnecessaryToList;
 
   @override
   String get lintCode => LintNames.unnecessary_to_list_in_spreads;

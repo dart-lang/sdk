@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class ImportAddHideTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_HIDE;
+  FixKind get kind => DartFixKind.importLibraryHide;
 
   Future<void> test_double() async {
     newFile(join(testPackageLibPath, 'lib1.dart'), '''
@@ -706,7 +706,7 @@ void f() {
 @reflectiveTest
 class ImportRemoveShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_REMOVE_SHOW;
+  FixKind get kind => DartFixKind.importLibraryRemoveShow;
 
   Future<void> test_double() async {
     newFile(join(testPackageLibPath, 'lib1.dart'), '''

@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ReplaceColonWithInTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_COLON_WITH_IN;
+  FixKind get kind => DartFixKind.replaceColonWithIn;
 
   Future<void> test_colonInPlaceOfIn() async {
     await resolveTestCode('''

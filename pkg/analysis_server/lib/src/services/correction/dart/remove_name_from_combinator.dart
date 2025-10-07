@@ -24,7 +24,7 @@ class RemoveNameFromCombinator extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_combinatorKind];
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_NAME_FROM_COMBINATOR;
+  FixKind get fixKind => DartFixKind.removeNameFromCombinator;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

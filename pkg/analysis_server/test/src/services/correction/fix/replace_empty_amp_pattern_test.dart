@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ReplaceEmptyMapPatternWithAnyTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.MATCH_ANY_MAP;
+  FixKind get kind => DartFixKind.matchAnyMap;
 
   Future<void> test_ifCase_withoutTypeArgs() async {
     await resolveTestCode('''
@@ -75,7 +75,7 @@ void f(Object x) {
 @reflectiveTest
 class ReplaceEmptyMapPatternWithEmptyTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.MATCH_EMPTY_MAP;
+  FixKind get kind => DartFixKind.matchEmptyMap;
 
   Future<void> test_ifCase() async {
     await resolveTestCode('''
