@@ -635,6 +635,10 @@ abstract interface class Pattern {
 
 abstract final class Record {}
 
+@Deprecated.implement(
+  "This class will become 'final' in a future release. "
+  "'Pattern' may be a more appropriate interface to implement.",
+)
 abstract interface class RegExp implements Pattern {
   external factory RegExp(String source, {bool unicode = false});
 }
@@ -890,6 +894,7 @@ abstract base class Union extends _Compound implements SizedNativeType {
   external static T create<T extends Union>([TypedData typedData, int offset]);
 }
 
+@Since('3.5')
 extension IntAddress on int {
   external Pointer<Never> address;
 }
@@ -1080,6 +1085,7 @@ final class AbiSpecificIntegerMapping {
   const AbiSpecificIntegerMapping(this.mapping);
 }
 
+@Since('2.17')
 @AbiSpecificIntegerMapping({})
 final class Int extends AbiSpecificInteger {
   const Int();
@@ -1101,6 +1107,7 @@ extension Int8ListAddress on Int8List {
   external Pointer<Int8> get address;
 }
 
+@Since('3.5')
 extension ArrayAddress<T extends NativeType> on Array<T> {
   external Pointer<T> get address;
 }
@@ -1337,7 +1344,6 @@ class ExternalName {
   const ExternalName(this.name);
 }
 
-@Since("2.2")
 class Since {
   final String version;
   const Since(this.version);
