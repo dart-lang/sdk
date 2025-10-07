@@ -461,8 +461,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
   const char** obfuscation_map() const { return obfuscation_map_; }
 
-  Random* random() { return &random_; }
-
   bool is_system_isolate_group() const { return is_system_isolate_group_; }
 
   // IsolateGroup-specific flag handling.
@@ -918,7 +916,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Dart_DeferredLoadHandler deferred_load_handler_ = nullptr;
   int64_t start_time_micros_;
   bool is_system_isolate_group_;
-  Random random_;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   int64_t last_reload_timestamp_;
@@ -1272,8 +1269,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void SetErrorsFatal(bool value) {
     isolate_flags_.UpdateBool<ErrorsFatalBit>(value);
   }
-
-  Random* random() { return &random_; }
 
   Simulator* simulator() const { return simulator_; }
   void set_simulator(Simulator* value) { simulator_ = value; }
@@ -1695,7 +1690,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   uint64_t terminate_capability_ = 0;
   void* init_callback_data_ = nullptr;
   Dart_EnvironmentCallback environment_callback_ = nullptr;
-  Random random_;
   Simulator* simulator_ = nullptr;
   Mutex mutex_;  // Protects compiler stats.
   IsolateMessageHandler* message_handler_ = nullptr;

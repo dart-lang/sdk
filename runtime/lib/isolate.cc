@@ -38,7 +38,7 @@ DEFINE_NATIVE_ENTRY(Capability_factory, 0, 1) {
   // protocol can process it properly.
   //
   // See https://github.com/dart-lang/sdk/issues/53081.
-  uint64_t id = isolate->random()->NextJSInt();
+  uint64_t id = thread->random()->NextJSInt();
   return Capability::New(id);
 }
 
