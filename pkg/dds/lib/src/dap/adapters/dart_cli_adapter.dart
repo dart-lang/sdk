@@ -118,7 +118,8 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     if (debug) {
       // If the user has explicitly set pause-isolates-on-exit we need to
       // not add it ourselves, and specify that we didn't set it.
-      if (containsVmFlag(toolArgs, '--pause_isolates_on_exit')) {
+      if (containsVmFlag(toolArgs, 'pause_isolates_on_exit') ||
+          containsVmFlag(vmArgs, 'pause_isolates_on_exit')) {
         pauseIsolatesOnExitSetByDap = false;
       } else {
         vmArgs.add('--pause_isolates_on_exit');
@@ -126,10 +127,17 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
       // If the user has explicitly set pause-isolates-on-start we need to
       // not add it ourselves, and specify that we didn't set it.
-      if (containsVmFlag(toolArgs, '--pause_isolates_on_start')) {
+      if (containsVmFlag(toolArgs, 'pause_isolates_on_start') ||
+          containsVmFlag(vmArgs, 'pause_isolates_on_start')) {
         pauseIsolatesOnStartSetByDap = false;
       } else {
         vmArgs.add('--pause_isolates_on_start');
+      }
+
+      // If the user has not explicitly set timeline-streams, add the default.
+      if (!containsVmFlag(toolArgs, 'timeline_streams') &&
+          !containsVmFlag(vmArgs, 'timeline_streams')) {
+        vmArgs.add('--timeline_streams=Dart,Embedder,GC,Microtask');
       }
     }
 

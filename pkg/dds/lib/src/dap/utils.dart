@@ -127,12 +127,19 @@ StackFrameLocation? _parseStackFrame(String input) {
   return (uri: uri, line: line, column: col);
 }
 
-/// Checks whether [flag] is in [args], allowing for both underscore and
-/// dash format.
-bool containsVmFlag(List<String> args, String flag) {
-  final flagUnderscores = flag.replaceAll('-', '_');
-  final flagDashes = flag.replaceAll('_', '-');
-  return args.contains(flagUnderscores) || args.contains(flagDashes);
+/// Checks whether [flagName] is in [args], allowing for both underscore and
+/// dash format, and `--$flagName` or `starting with `--$flagName=`.
+bool containsVmFlag(List<String> args, String flagName) {
+  assert(!flagName.startsWith('--'), 'flagName should not include `--` prefix');
+
+  final flagUnderscores = '--${flagName.replaceAll('-', '_')}';
+  final flagDashes = '--${flagName.replaceAll('_', '-')}';
+
+  return args.contains(flagUnderscores) ||
+      args.contains(flagDashes) ||
+      args.any(((arg) =>
+          arg.startsWith('$flagUnderscores=') ||
+          arg.startsWith('$flagDashes=')));
 }
 
 typedef StackFrameLocation = ({Uri uri, int? line, int? column});
