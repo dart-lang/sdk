@@ -389,6 +389,7 @@ package:analyzer/dart/analysis/features.dart:
     constant_update_2018 (static getter: ExperimentalFeature)
     constructor_tearoffs (static getter: ExperimentalFeature)
     control_flow_collections (static getter: ExperimentalFeature)
+    declaring_constructors (static getter: ExperimentalFeature)
     digit_separators (static getter: ExperimentalFeature)
     dot_shorthands (static getter: ExperimentalFeature)
     enhanced_enums (static getter: ExperimentalFeature)

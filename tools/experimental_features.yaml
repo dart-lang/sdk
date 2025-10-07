@@ -160,6 +160,9 @@ features:
   static-extensions:
     help: "Extensions with static capabilities."
 
+  declaring-constructors:
+    help: "Less verbose constructors."
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
