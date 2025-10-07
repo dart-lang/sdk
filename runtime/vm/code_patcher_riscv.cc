@@ -123,9 +123,12 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Code& caller_code,
                                         const Object& data,
                                         const Code& target) {
+  // We lock to block other writers but don't start a safepoint to block readers
+  // (i.e., Dart execution).
   // First update target to a stub that does not read 'data' so that concurrent
   // Dart execution cannot observe the new stub with the old data or the old
   // stub with the new data.
+  SafepointMutexLocker ml(IsolateGroup::Current()->type_feedback_mutex());
   if (FLAG_precompiled_mode) {
     BareSwitchableCallPattern call(return_address);
     call.SetTargetRelease(StubCode::SwitchableCallMiss());
@@ -136,16 +139,6 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
     call.SetTargetRelease(StubCode::SwitchableCallMiss());
     call.SetDataRelease(data);
     call.SetTargetRelease(target);
-  }
-}
-
-ObjectPtr CodePatcher::GetSwitchableCallTargetAt(uword return_address,
-                                                 const Code& caller_code) {
-  if (FLAG_precompiled_mode) {
-    UNREACHABLE();
-  } else {
-    SwitchableCallPattern call(return_address, caller_code);
-    return call.target();
   }
 }
 
