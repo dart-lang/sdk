@@ -50,6 +50,24 @@ extension E on String {}
     _check(HighlightRegionType.BUILT_IN, 'on');
   }
 
+  Future<void> test_function_callMethod_invocation() async {
+    await _computeHighlights('''
+f(void Function(int) x) {
+  x.call(2);
+}
+''');
+    _check(HighlightRegionType.INSTANCE_METHOD_REFERENCE, 'call');
+  }
+
+  Future<void> test_function_callMethod_tearOff() async {
+    await _computeHighlights('''
+f(void Function(int) x) {
+  x.call;
+}
+''');
+    _check(HighlightRegionType.INSTANCE_METHOD_TEAR_OFF, 'call');
+  }
+
   Future<void> test_methodInvocation_ofExtensionOverride_unresolved() async {
     await _computeHighlights('''
 extension E on int {}

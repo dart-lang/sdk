@@ -201,6 +201,12 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
       if (method is Identifier && method.staticType is FunctionType) {
         return method.element;
       }
+    } else if (parent is PrefixedIdentifier &&
+        parent.identifier == node &&
+        parent.identifier.name == MethodElement.CALL_METHOD_NAME &&
+        parent.prefix.staticType is FunctionType) {
+      // Handle .call tear-offs on functions.
+      return parent.prefix.element;
     }
     return node.writeOrReadElement;
   }
@@ -237,7 +243,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitMethodInvocation(MethodInvocation node) {
-    return node.methodName.element;
+    return node.methodName.element ?? visitIdentifier(node.methodName);
   }
 
   @override
@@ -277,7 +283,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitPrefixedIdentifier(PrefixedIdentifier node) {
-    return node.element;
+    return node.element ?? visitIdentifier(node.identifier);
   }
 
   @override

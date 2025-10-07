@@ -325,6 +325,32 @@ class A {
 ''');
   }
 
+  test_locate_Identifier_functionCallMethod_invocation() async {
+    await resolveTestCode(r'''
+void f(int a) {
+  f.call(a);
+}
+''');
+    var node = findNode.methodInvocation('call');
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@function::f
+''');
+  }
+
+  test_locate_Identifier_functionCallMethod_tearOff() async {
+    await resolveTestCode(r'''
+void f(int a) {
+  f.call;
+}
+''');
+    var node = findNode.prefixed('f.call').identifier;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@function::f
+''');
+  }
+
   test_locate_Identifier_libraryDirective() async {
     await resolveTestCode('library foo.bar;');
     var node = findNode.simple('foo');
@@ -485,13 +511,26 @@ void f() {
 ''');
   }
 
-  test_locate_MethodInvocation_function_callMethod() async {
+  test_locate_MethodInvocation_function_callMethod_invocation() async {
     await resolveTestCode(r'''
 void f(int i) {
   f.call(1);
 }
 ''');
     var node = findNode.methodInvocation('call').methodName;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@function::f
+''');
+  }
+
+  test_locate_MethodInvocation_function_callMethod_tearOff() async {
+    await resolveTestCode(r'''
+void f(int i) {
+  f.call;
+}
+''');
+    var node = findNode.prefixed('call').identifier;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -584,6 +623,19 @@ void f(int a) {
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core::@class::int::@getter::isEven
+''');
+  }
+
+  test_locate_PrefixedIdentifier_functionCallMethod() async {
+    await resolveTestCode(r'''
+void f(int a) {
+  f.call;
+}
+''');
+    var node = findNode.prefixed('f.call');
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@function::f
 ''');
   }
 

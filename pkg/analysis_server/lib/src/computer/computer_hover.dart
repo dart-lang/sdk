@@ -264,6 +264,11 @@ class DartUnitHoverComputer {
       if (staticType != null && staticType is DynamicType) {
         staticType = null;
       }
+    } else if (parent is PrefixedIdentifier && parent.identifier == node) {
+      staticType = parent.identifier.staticType;
+      if (staticType != null && staticType is DynamicType) {
+        staticType = null;
+      }
     } else if (parent is DotShorthandInvocation && parent.memberName == node) {
       staticType = parent.staticInvokeType;
       if (staticType != null && staticType is DynamicType) {
