@@ -17,10 +17,14 @@
 #
 # analyzer:
 #   dart pkg/analyzer/tool/experiments/generate.dart
+#   dart pkg/analyzer/tool/api/generate.dart
 #
-# Also, pkg/analyzer/lib/src/dart/analysis/driver.dart will need a bump in
-# DATA_VERSION if making changes that change the "index" of any previous flags,
-# e.g. if adding a new flag that doesn't happen to be lexicographically last.
+# Bump DATA_VERSION in`pkg/analyzer/lib/src/dart/analysis/driver.dart` if making
+# changes that change the "index" of any previous flags, e.g. if adding a new
+# flag that doesn't happen to be lexicographically last.
+#
+# Update `pkg/analyzer_testing/lib/experiments/experiments.dart` to ensure that
+# the experiment is enabled for testing in the analyzer.
 #
 # kernel:
 #   dart pkg/front_end/tool/cfe.dart generate-experimental-flags
