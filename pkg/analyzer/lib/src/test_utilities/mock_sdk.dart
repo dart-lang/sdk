@@ -1467,9 +1467,9 @@ final MockSdkLibrary _LIB_ISOLATE = MockSdkLibrary('isolate', [
   MockSdkLibraryUnit('isolate/isolate.dart', '''
 library dart.isolate;
 
-abstract class SendPort {}
+abstract interface class SendPort {}
 
-class Isolate {
+final class Isolate {
   external static Future<Isolate> spawnUri(
     Uri uri,
     List<String> args,
