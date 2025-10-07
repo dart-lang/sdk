@@ -29290,6 +29290,117 @@ extension type A(int it) {
     );
   }
 
+  test_dependency_extensionType_instanceMethod_change_lookUpMethod_inherited() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.thisType.lookUpMethod(
+        'foo',
+        A.library,
+        concrete: true,
+        inherited: true,
+      );
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          foo: #M3
+        interface: #M4
+          map
+            foo: #M3
+            it: #M2
+          implemented
+            foo: #M3
+            it: #M2
+    exportMapId: #M5
+    exportMap
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    exportMapId: #M6
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M7
+        exportMapId: #M5
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          foo: #M8
+        interface: #M9
+          map
+            foo: #M8
+            it: #M2
+          implemented
+            foo: #M8
+            it: #M2
+    exportMapId: #M5
+    exportMap
+      A: #M0
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_extensionType_instanceMethod_change_notUsed() async {
     await _runChangeScenarioTA(
       initialA: r'''
@@ -94962,6 +95073,66 @@ final y = 0;
     flags: exists isPart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
+[status] idle
+''');
+  }
+
+  test_operation_addFile_later_addPart() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part 'a.dart';
+void f(A _) {}
+''');
+    driver.addFile2(b);
+
+    // No part `a.dart` yet.
+    // Has 2 errors: (1) no part; (2) no class `A`.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isLibrary
+    errors
+      5 +8 URI_DOES_NOT_EXIST
+      22 +1 UNDEFINED_CLASS
+[operation] analyzedLibrary
+  file: /home/test/lib/b.dart
+[status] idle
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'b.dart';
+class A {}
+''');
+    driver.addFile2(a);
+
+    // No errors: (1) the part is present; (2) class `A` in the part.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/b.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/b.dart
 [status] idle
 ''');
   }

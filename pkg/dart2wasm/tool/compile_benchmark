@@ -151,9 +151,9 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
-    --extra-compiler-option=--enable-multi-module-stress-test)
+    --extra-compiler-option=--enable-multi-module-stress-test-mode)
       MULTI_MODULE=1
-      DART2WASM_ARGS+=("--enable-multi-module-stress-test")
+      DART2WASM_ARGS+=("--enable-multi-module-stress-test-mode")
       shift
       ;;
 

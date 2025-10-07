@@ -208,7 +208,7 @@ f() {
   switch (A(1)) {
     case A(a: >0 && final b): print(b);
   }
- }
+}
 ''');
     await assertHasFix('''
 class A {
@@ -219,7 +219,7 @@ f() {
   switch (A(1)) {
     case A(a: >0 && final int b): print(b);
   }
- }
+}
 ''');
   }
 

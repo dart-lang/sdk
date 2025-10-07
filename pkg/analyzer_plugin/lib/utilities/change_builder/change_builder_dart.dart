@@ -185,6 +185,7 @@ abstract class DartEditBuilder implements EditBuilder {
     ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
     String? groupNamePrefix,
+    bool fillParameterNames = true,
     bool includeDefaultValues = true,
     bool requiredTypes,
   });

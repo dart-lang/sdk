@@ -156,7 +156,7 @@ void f() {
 ''');
     await assertHasFix('''
 void f() {
-  int v1(int Function(String p1)? p) {
+  int v1(int Function(String)? p) {
     return p?.call('') ?? 0;
   }
   v1((s) => 0);

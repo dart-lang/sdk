@@ -333,6 +333,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
     String? groupNamePrefix,
+    bool fillParameterNames = true,
     bool includeDefaultValues = true,
     bool requiredTypes = false,
   }) {
@@ -364,13 +365,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
       // Parameter.
       var name = parameter.name;
-      if (name == null || name == '') {
-        name = _generateUniqueName(parameterNames, 'p');
+      if ((name == null || name == '') && fillParameterNames) {
+        name = _generateUniqueName(parameterNames);
         parameterNames.add(name);
       }
       var groupPrefix = groupNamePrefix != null ? '$groupNamePrefix:' : '';
       writeFormalParameter(
-        name,
+        name ?? '',
         isCovariant: parameter.isCovariant,
         isRequiredNamed: parameter.isRequiredNamed,
         typeParametersInScope: typeParametersInScope,
@@ -1191,7 +1192,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   /// Generates a name that does not occur in [existingNames] that begins with
   /// the given [prefix].
-  String _generateUniqueName(Set<String> existingNames, String prefix) {
+  String _generateUniqueName(Set<String> existingNames, {String prefix = 'p'}) {
     var index = 1;
     var name = '$prefix$index';
     while (existingNames.contains(name)) {
@@ -1459,7 +1460,16 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (import == null) {
       var library = element.library?.uri;
       if (library != null) {
-        import = _dartFileEditBuilder._importLibrary(library);
+        var shadowed =
+            _dartFileEditBuilder.resolvedLibrary.element.publicNamespace.get2(
+              element.displayName,
+            ) !=
+            null;
+        String? prefix;
+        if (shadowed) {
+          prefix = _dartFileEditBuilder._defaultImportPrefixFor(library);
+        }
+        import = _dartFileEditBuilder._importLibrary(library, prefix: prefix);
       }
     }
     if (import == null) {
@@ -1561,6 +1571,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         type.formalParameters,
         typeParametersInScope: typeParametersInScope,
         includeDefaultValues: false,
+        fillParameterNames: false,
       );
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         write('?');
@@ -2604,6 +2615,33 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         }
       }
     }, insertBeforeExisting: true);
+  }
+
+  String _defaultImportPrefixFor(Uri uri) {
+    if (importPrefixGenerator != null) {
+      return importPrefixGenerator!(uri);
+    }
+    // TODO(FMorschel): Think of a way to identify if the current editing range
+    // already contains a variable with the same name as the generated prefix.
+    // This only accounts for top-level names.
+    var existingNames = {
+      ...resolvedLibrary.element.exportNamespace.definedNames2.keys,
+    };
+    for (var unit in resolvedLibrary.units) {
+      existingNames.addAll(
+        unit.unit.directives
+            .whereType<ImportDirective>()
+            .map((d) => d.prefix?.name)
+            .nonNulls,
+      );
+    }
+    var suffix = 0;
+    var prefix = 'prefix$suffix';
+    while (existingNames.contains(prefix)) {
+      suffix++;
+      prefix = 'prefix$suffix';
+    }
+    return prefix;
   }
 
   /// Returns information about the library used to import the given [element]

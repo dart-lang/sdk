@@ -207,7 +207,7 @@ class InheritanceManager3 {
     InternalExecutableElement? result;
     if (forSuper) {
       if (element is ExtensionTypeElementImpl) {
-        result = null;
+        return null;
       } else {
         var superImplemented = interface.superImplemented;
         if (forMixinIndex >= 0) {
@@ -216,7 +216,7 @@ class InheritanceManager3 {
           result = superImplemented.last[name];
         } else {
           assert(element.name == 'Object');
-          result = null;
+          return null;
         }
       }
     } else if (concrete) {
@@ -224,26 +224,6 @@ class InheritanceManager3 {
     } else {
       result = interface.map[name];
     }
-
-    // if (forSuper) {
-    //   if (element is ExtensionTypeElementImpl) {
-    //     return null;
-    //   }
-    //   var superImplemented = interface.superImplemented;
-    //   if (forMixinIndex >= 0) {
-    //     return superImplemented[forMixinIndex][name];
-    //   }
-    //   if (superImplemented.isNotEmpty) {
-    //     return superImplemented.last[name];
-    //   } else {
-    //     assert(element.name == 'Object');
-    //     return null;
-    //   }
-    // }
-    // if (concrete) {
-    //   return interface.implemented[name];
-    // }
-    // var result = interface.map[name];
 
     globalResultRequirements?.record_interface_getMember(
       element: element,

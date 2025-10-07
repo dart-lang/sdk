@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/services/correction/dart/convert_null_check_to_null_aware_element_or_entry.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
@@ -47,7 +48,7 @@ SourceRange _getLocalsConflictingRange(AstNode node) {
 
 /// Returns the source which should replace given invocation with given
 /// arguments.
-Future<String> _getMethodSourceForInvocation(
+Future<_InlineMethodResult> _getMethodSourceForInvocation(
   RefactoringStatus status,
   ChangeBuilder builder,
   String file,
@@ -58,9 +59,14 @@ Future<String> _getMethodSourceForInvocation(
   AstNode contextNode,
   Expression? targetExpression,
   List<Expression> arguments,
+  Set<String> previouslyIntroducedVariableNames,
+  Map<FormalParameterElement, String> parameterToVariableName,
 ) async {
   // prepare edits to replace parameters with arguments
+  var conflictingNames = _getNamesConflictingAt(contextNode);
+  conflictingNames.addAll(previouslyIntroducedVariableNames);
   var edits = <SourceEdit>[];
+  var variableDeclarations = <_VariableDeclaration>[];
   await builder.addDartFileEdit(file, (builder) {
     part._typeParameters.forEach((
       TypeParameterElement element,
@@ -126,6 +132,42 @@ Future<String> _getMethodSourceForInvocation(
       argumentSource = parameter.defaultValueCode;
       argumentSource ??= 'null';
     }
+
+    var existingVariableName = parameterToVariableName[parameter];
+    var addVariable =
+        existingVariableName != null ||
+        _shouldIntroduceVariable(argument, occurrences.length);
+    if (addVariable) {
+      // Only add a new variable if we haven't already produced one in a
+      // previous call to this method (we may be called twice, once for
+      // statements and once for the return expression).
+      if (existingVariableName == null) {
+        var originalName = parameter.displayName;
+        if (originalName.isEmpty) {
+          originalName = 'p';
+        }
+        var uniqueName = existingVariableName = _getUniqueName(
+          originalName,
+          conflictingNames,
+        );
+        conflictingNames.add(uniqueName);
+        parameterToVariableName[parameter] = uniqueName;
+
+        // Record the variable declaration to be inserted above the inline code.
+        // We can't insert it now because this might be an expression and not a
+        // block of statements (for example `var a = inlineMe();`).
+        variableDeclarations.add(
+          _VariableDeclaration(uniqueName, argumentSource),
+        );
+      }
+
+      // Update the values used for replacing the expression in the body
+      // to this newly-created variable.
+      argumentPrecedence = Precedence.primary;
+      argumentSource = existingVariableName;
+      argument = null;
+    }
+
     // replace all occurrences of this parameter
     for (var occurrence in occurrences) {
       AstNode nodeToReplace = occurrence.identifier;
@@ -134,7 +176,7 @@ Future<String> _getMethodSourceForInvocation(
       if (occurrence.identifier.parent
           case InterpolationExpression interpolation) {
         switch (argument) {
-          case SimpleIdentifier():
+          case SimpleIdentifier() || null:
             occurrenceArgumentSource = argumentSource;
           case SingleStringLiteral(canDiscardSingleQuotes: true):
             nodeToReplace = interpolation;
@@ -150,6 +192,18 @@ Future<String> _getMethodSourceForInvocation(
       } else {
         occurrenceArgumentSource = argumentSource;
       }
+
+      // If we're replacing this occurrence with a variable and it's
+      // parenthesized (and the parenthesized expression is only this node)
+      // then we can remove the parens.
+      if (addVariable) {
+        var parent = occurrence.identifier.parent;
+        if (parent is ParenthesizedExpression &&
+            parent.expression == occurrence.identifier) {
+          nodeToReplace = parent;
+        }
+      }
+
       // do replace
       var nodeToReplaceRange = range.offsetBy(
         range.node(nodeToReplace),
@@ -181,19 +235,10 @@ Future<String> _getMethodSourceForInvocation(
     }
   }
   // prepare edits to replace conflicting variables
-  var conflictingNames = _getNamesConflictingAt(contextNode);
   part._variables.forEach((VariableElement variable, List<SourceRange> ranges) {
     var originalName = variable.displayName;
     // prepare unique name
-    String uniqueName;
-    {
-      uniqueName = originalName;
-      var uniqueIndex = 2;
-      while (conflictingNames.contains(uniqueName)) {
-        uniqueName = originalName + uniqueIndex.toString();
-        uniqueIndex++;
-      }
-    }
+    var uniqueName = _getUniqueName(originalName, conflictingNames);
     // update references, if name was change
     if (uniqueName != originalName) {
       for (var range in ranges) {
@@ -203,7 +248,8 @@ Future<String> _getMethodSourceForInvocation(
   });
   // prepare source with applied arguments
   edits.sort((SourceEdit a, SourceEdit b) => b.offset - a.offset);
-  return SourceEdit.applySequence(part._source, edits);
+  var source = SourceEdit.applySequence(part._source, edits);
+  return _InlineMethodResult(source, variableDeclarations);
 }
 
 /// Returns the names which will shadow or will be shadowed by any declaration
@@ -243,6 +289,43 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   return result;
 }
 
+/// Returns a unique name that can be used instead of [originalName] by
+/// appending a number.
+String _getUniqueName(String originalName, Set<String> conflictingNames) {
+  var uniqueName = originalName;
+  var uniqueIndex = 2;
+  while (conflictingNames.contains(uniqueName)) {
+    uniqueName = originalName + uniqueIndex.toString();
+    uniqueIndex++;
+  }
+  return uniqueName;
+}
+
+/// Returns whether the use of this expression should be assigned to a variable
+/// to avoid potential side-effects of evaluating the expression multiple times
+/// or re-ordering by inlining further down the code.
+bool _shouldIntroduceVariable(Expression? expression, int occurrenceCount) {
+  // If it's already a variable, never introduce a new one.
+  if (expression?.canonicalElement is VariableElement) {
+    return false;
+  }
+  // If it's a literal, introduce a variable if it's used more than once.
+  if (expression is Literal) {
+    return occurrenceCount > 1;
+  }
+  // If it's parenthesized, check the expression.
+  if (expression is ParenthesizedExpression) {
+    return _shouldIntroduceVariable(expression.expression, occurrenceCount);
+  }
+  // If it's a binary expression, check if either side needs a variable.
+  if (expression is BinaryExpression) {
+    return _shouldIntroduceVariable(expression.leftOperand, occurrenceCount) ||
+        _shouldIntroduceVariable(expression.rightOperand, occurrenceCount);
+  }
+  // Otherwise, introduce a variable unless there was no expression.
+  return expression != null;
+}
+
 /// [InlineMethodRefactoring] implementation.
 class InlineMethodRefactoringImpl extends RefactoringImpl
     implements InlineMethodRefactoring {
@@ -269,6 +352,13 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   _SourcePart? _methodStatementsPart;
   final List<_ReferenceProcessor> _referenceProcessors = [];
   final Set<Element> _alreadyMadeAsync = <Element>{};
+
+  /// Tracks variable names being introduced by the block they're being added
+  /// to.
+  ///
+  /// Used to prevent reusing the same new variable names when inlinine multiple
+  /// calls into the same block.
+  final Map<AstNode, Set<String>> _introducedVariablesByBlock = {};
 
   InlineMethodRefactoringImpl(this.searchEngine, this.unitResult, this.offset)
     : sessionHelper = AnalysisSessionHelper(unitResult.session),
@@ -561,6 +651,15 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   }
 }
 
+/// The result of inlining a method is a combination of new code to inline and
+/// a set of variables to be declared.
+class _InlineMethodResult {
+  final String source;
+  final List<_VariableDeclaration> variableDeclarations;
+
+  _InlineMethodResult(this.source, this.variableDeclarations);
+}
+
 class _ParameterOccurrence {
   final int baseOffset;
   final SimpleIdentifier identifier;
@@ -677,10 +776,29 @@ class _ReferenceProcessor {
     }
     // can we inline method body into "methodUsage" block?
     if (_canInlineBody(usage)) {
+      // Get any variables we're previously introduced in this scope so we don't
+      // redeclare the same name.
+      var surroundingBlock = usage.thisOrAncestorMatching(
+        (node) => node is Block || node is LibraryFragment,
+      );
+      var introducedVariableNames = surroundingBlock != null
+          ? ref._introducedVariablesByBlock.putIfAbsent(
+              surroundingBlock,
+              () => {},
+            )
+          // Types allow for no block but in practice we should never hit this
+          // so just track into an empty list.
+          : <String>{};
+
+      // Track which parameters have been assigned to which variables, so we
+      // can reuse the same variable when the same parameter appears in both
+      // the statements part and the expression part.
+      var parameterToVariableName = <FormalParameterElement, String>{};
+
       // insert non-return statements
       if (ref._methodStatementsPart != null) {
         // prepare statements source for invocation
-        var source = await _getMethodSourceForInvocation(
+        var result = await _getMethodSourceForInvocation(
           status,
           ChangeBuilder(
             session: ref.sessionHelper.session,
@@ -694,9 +812,19 @@ class _ReferenceProcessor {
           usage,
           target,
           arguments,
+          introducedVariableNames,
+          parameterToVariableName,
         );
-        source = _refUtils.replaceSourceIndent(
-          source,
+
+        // If there are variable declarations, insert them before the statement.
+        _insertVariableDeclarations(
+          result.variableDeclarations,
+          introducedVariableNames,
+          _refLineRange,
+        );
+
+        var source = _refUtils.replaceSourceIndent(
+          result.source,
           ref._methodStatementsPart!._prefix,
           _refPrefix,
           includeLeading: true,
@@ -712,7 +840,7 @@ class _ReferenceProcessor {
       // replace invocation with return expression
       if (ref._methodExpressionPart != null) {
         // prepare expression source for invocation
-        var source = await _getMethodSourceForInvocation(
+        var result = await _getMethodSourceForInvocation(
           status,
           ChangeBuilder(
             session: ref.sessionHelper.session,
@@ -726,7 +854,18 @@ class _ReferenceProcessor {
           usage,
           target,
           arguments,
+          introducedVariableNames,
+          parameterToVariableName,
         );
+
+        // If there are variable declarations, insert them before the statement.
+        _insertVariableDeclarations(
+          result.variableDeclarations,
+          introducedVariableNames,
+          _refLineRange,
+        );
+
+        var source = result.source;
 
         // If we inline the method expression into a string interpolation,
         // and the expression is not a single identifier, wrap it into `{}`.
@@ -784,6 +923,30 @@ class _ReferenceProcessor {
     // do insert
     var edit = newSourceEdit_range(range.node(_node), source);
     _addRefEdit(edit);
+  }
+
+  /// Inserts [variableDeclarations] in front of the code at [refLineRange].
+  void _insertVariableDeclarations(
+    List<_VariableDeclaration> variableDeclarations,
+    Set<String> introducedVariableNames,
+    SourceRange? refLineRange,
+  ) {
+    if (variableDeclarations.isEmpty) return;
+
+    var offset = _refLineRange?.offset ?? _node.offset;
+    var insertOffset = _refUtils.getLineThis(offset);
+
+    var buffer = StringBuffer();
+    for (var variable in variableDeclarations) {
+      // Record the name as used so we don't reuse it at other call sites in the
+      // block
+      introducedVariableNames.add(variable.name);
+
+      buffer.write(
+        '${_refPrefix}var ${variable.name} = ${variable.initializer};${_refUtils.endOfLine}',
+      );
+    }
+    _addRefEdit(SourceEdit(insertOffset, 0, buffer.toString()));
   }
 
   Future<void> _process(RefactoringStatus status) async {
@@ -1047,6 +1210,14 @@ class _SourcePart {
     identifierRange = range.offsetBy(identifierRange, -_base);
     _variables.putIfAbsent(element, () => []).add(identifierRange);
   }
+}
+
+/// Represents a variable that needs to be declared before inlining.
+class _VariableDeclaration {
+  final String name;
+  final String initializer;
+
+  _VariableDeclaration(this.name, this.initializer);
 }
 
 /// A visitor that fills [_SourcePart] with fields, parameters and variables.
