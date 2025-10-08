@@ -526,6 +526,8 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     newFile(path, config.toContent(pathContext: pathContext));
   }
 
+  /// Writes a `package_config.json` file from [config], and for packages that
+  /// have been added via [newPackage].
   void writeTestPackageConfig(PackageConfigFileBuilder config) {
     var configCopy = config.copy();
 
@@ -571,6 +573,11 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
       );
     }
 
+    for (var packageName in _packagesToAdd) {
+      var packagePath = convertPath('/package/$packageName');
+      configCopy.add(name: packageName, rootPath: packagePath);
+    }
+
     var path = '$testPackageRootPath/.dart_tool/package_config.json';
     writePackageConfig(path, configCopy);
   }
@@ -613,5 +620,38 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
   void _writeTestPackagePubspecYamlFile(String content) {
     newPubspecYamlFile(testPackageRootPath, content);
+  }
+
+  /// The names of packages which should be added to the
+  /// [PackageConfigFileBuilder].
+  final Set<String> _packagesToAdd = {};
+
+  /// Registers a package named [name].
+  ///
+  /// The returned [PackageBuilder] can be used to add Dart source files in the
+  /// package sources, via [PackageBuilder.addFile].
+  PackageBuilder newPackage(String name) {
+    var packagePath = convertPath('/package/$name');
+    _packagesToAdd.add(name);
+    return PackageBuilder._(packagePath, this);
+  }
+}
+
+/// A builder for package files (for example, mocks); generally accessed via
+/// [PubPackageResolutionTest.newPackage].
+class PackageBuilder {
+  final String _packagePath;
+  final PubPackageResolutionTest _test;
+
+  PackageBuilder._(String packagePath, PubPackageResolutionTest test)
+    : _packagePath = packagePath,
+      _test = test;
+
+  /// Adds a file to [PubPackageResolutionTest.resourceProvider].
+  ///
+  /// The file is added at [localPath] relative to the package path of this
+  /// [PackageBuilder], with [content].
+  void addFile(String localPath, String content) {
+    _test.newFile('$_packagePath/$localPath', content);
   }
 }
