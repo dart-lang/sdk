@@ -1,0 +1,5 @@
+import 'export_part_file_lib1.dart';
+
+part 'export_part_file_part1.dart';
+
+part 'export_part_file_part2.dart';
