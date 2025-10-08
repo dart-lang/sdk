@@ -197,7 +197,21 @@ abstract class SourceCompilationUnit
 
   bool get mayImplementRestrictedTypes;
 
-  void addDependencies(Library library, Set<SourceCompilationUnit> seen);
+  /// Adds [LibraryDependency] nodes for all imports and exports to [library].
+  ///
+  /// [seen] is use to track already handled compilation units in case for
+  /// erroneous cases where a compilation unit is included more than once in
+  /// the library.
+  ///
+  /// [deferredNames] maps the names of deferred imports to number of
+  /// occurrences so far. With enhanced parts, different parts can use the same
+  /// name for deferred imports. This map is used to create unique names in the
+  /// encoding.
+  void addDependencies({
+    required Library library,
+    required Set<SourceCompilationUnit> seen,
+    required Map<String, int> deferredNames,
+  });
 
   /// Runs through all part directives in this compilation unit and adds the
   /// compilation unit for the parts to the [libraryBuilder] by adding them

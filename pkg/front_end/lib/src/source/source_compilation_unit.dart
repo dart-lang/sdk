@@ -703,7 +703,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  void addDependencies(Library library, Set<SourceCompilationUnit> seen) {
+  void addDependencies({
+    required Library library,
+    required Set<SourceCompilationUnit> seen,
+    required Map<String, int> deferredNames,
+  }) {
     assert(
       checkState(required: [SourceCompilationUnitState.importsAddedToScope]),
     );
@@ -723,6 +727,14 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       if (import.deferred &&
           import.prefixFragment?.builder.dependency != null) {
         libraryDependency = import.prefixFragment!.builder.dependency!;
+        int? index = deferredNames[import.prefix!];
+        if (index != null) {
+          libraryDependency.name = '${libraryDependency.name}#$index';
+          index++;
+        } else {
+          index = 1;
+        }
+        deferredNames[import.prefix!] = index;
       } else {
         LibraryBuilder imported = import.importedLibraryBuilder!;
         Library targetLibrary = imported.library;

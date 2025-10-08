@@ -1169,9 +1169,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void addDependencies(Library library, Set<SourceCompilationUnit> seen) {
     assert(checkState(required: [SourceLibraryBuilderState.outlineNodesBuilt]));
-    compilationUnit.addDependencies(library, seen);
+    Map<String, int> deferredNames = {};
+    compilationUnit.addDependencies(
+      library: library,
+      seen: seen,
+      deferredNames: deferredNames,
+    );
     for (SourceCompilationUnit part in parts) {
-      part.addDependencies(library, seen);
+      part.addDependencies(
+        library: library,
+        seen: seen,
+        deferredNames: deferredNames,
+      );
     }
   }
 
