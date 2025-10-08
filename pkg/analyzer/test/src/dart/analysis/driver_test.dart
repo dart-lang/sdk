@@ -94951,6 +94951,9 @@ int get b => 0;
 ''');
     driver.changeFile2(a);
 
+    // `a.dart` has different API, so we check `test.dart` requirements.
+    // The requirements are satisfied, diagnostics are unchanged.
+    // So, we don't produce any result into the stream.
     await assertEventsText(collector, r'''
 [status] working
 [operation] reuseLinkedBundle
@@ -94958,6 +94961,154 @@ int get b => 0;
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   failure: null
+[status] idle
+''');
+  }
+
+  test_operation_addFile_changeImported_notAffected_useDigest_newDigestAfterAnalysis() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    newFile('$testPackageLibPath/a.dart', r'''
+int get a => 0;
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f() {
+  a;
+}
+''');
+    driver.addFile2(testFile);
+
+    // Initial analysis.
+    // We write requirements digest D1.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+''');
+
+    // Restart.
+    await disposeAnalysisContextCollection();
+    driver = driverFor(testFile);
+    collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    // Schedule for analysis.
+    driver.addFile2(testFile);
+
+    // Note, no check for requirements, we used D1.
+    // And this is a new session, so we get errors in the stream.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[status] idle
+''');
+  }
+
+  test_operation_addFile_changeImported_notAffected_useDigest_newDigestAfterValidation() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+int get a => 0;
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f() {
+  a;
+}
+''');
+    driver.addFile2(testFile);
+
+    // Initial analysis.
+    // We write requirements digest D1.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+''');
+
+    // Change `a.dart` API.
+    modifyFile2(a, r'''
+int get a => 0;
+int get b => 0;
+''');
+    driver.changeFile2(a);
+
+    // `a.dart` has different API, so we check `test.dart` requirements.
+    // The requirements are satisfied, diagnostics are unchanged.
+    // We write the new digest of the requirements: D2.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
+[status] idle
+''');
+
+    // Restart.
+    await disposeAnalysisContextCollection();
+    driver = driverFor(testFile);
+    collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    // Schedule for analysis.
+    driver.addFile2(testFile);
+
+    // Note, no check for requirements, we used D2.
+    // And this is a new session, so we get errors in the stream.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 [status] idle
 ''');
   }
@@ -95994,6 +96145,117 @@ int get b => 0;
         type: int
 ''',
     );
+  }
+
+  test_operation_getLibraryByUri_notAffected_useDigest_newDigestAfterAnalysis() async {
+    configuration
+      ..withCheckLibraryDiagnosticsRequirements = true
+      ..withGetLibraryByUriElement = false
+      ..withCheckLinkedBundleRequirements = true;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) {}
+''');
+
+    // We write requirements digest D1.
+    collector.getLibraryByUri('L1', 'package:test/test.dart');
+    await assertEventsText(collector, r'''
+[status] working
+[status] idle
+[future] getLibraryByUri L1
+''');
+
+    // Restart.
+    await disposeAnalysisContextCollection();
+    driver = driverFor(testFile);
+    collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    // Note, no check for requirements, we used D1.
+    collector.getLibraryByUri('L2', 'package:test/test.dart');
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[status] idle
+[future] getLibraryByUri L2
+''');
+  }
+
+  test_operation_getLibraryByUri_notAffected_useDigest_newDigestAfterValidation() async {
+    configuration
+      ..withCheckLibraryDiagnosticsRequirements = true
+      ..withGetLibraryByUriElement = false
+      ..withCheckLinkedBundleRequirements = true;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) {}
+''');
+
+    // We write requirements digest D1.
+    collector.getLibraryByUri('L1', 'package:test/test.dart');
+    await assertEventsText(collector, r'''
+[status] working
+[status] idle
+[future] getLibraryByUri L1
+''');
+
+    // Change `a.dart` API.
+    modifyFile2(a, r'''
+class A {}
+class B {}
+''');
+    driver.changeFile2(a);
+
+    // `a.dart` has different API, so we check `test.dart` requirements.
+    // The requirements are satisfied, we write new digest: D2.
+    collector.getLibraryByUri('L2', 'package:test/test.dart');
+    await assertEventsText(collector, r'''
+[status] working
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  failure: null
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[status] idle
+[future] getLibraryByUri L2
+''');
+
+    // Restart.
+    await disposeAnalysisContextCollection();
+    driver = driverFor(testFile);
+    collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    // Note, no check for requirements, we used D2.
+    collector.getLibraryByUri('L3', 'package:test/test.dart');
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[status] idle
+[future] getLibraryByUri L3
+''');
   }
 
   test_precision_noOpaqueApiUse() async {

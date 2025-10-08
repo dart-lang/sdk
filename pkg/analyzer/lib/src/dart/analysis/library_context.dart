@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
+import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -265,9 +266,10 @@ class LibraryContext {
           requirements.removeReqForLibs(cycle.libraryUris);
           assert(requirements.assertSerialization());
 
+          var bundleId = ManifestItemId.generate();
           var newEntry = _LinkedBundleCacheEntry(
             nonTransitiveApiSignature: cycle.nonTransitiveApiSignature,
-            requirementsDigest: requirements.toDigest(),
+            id: bundleId,
             requirementsBytes: requirements.toBytes(),
             libraryManifests: newLibraryManifests,
             linkedBytes: newLinkedBytes,
@@ -278,6 +280,13 @@ class LibraryContext {
               byteStore: byteStore,
               key: cycle.linkedKey,
               performance: performance,
+            );
+            _LinkedBundleCacheEntry.writeDigest(
+              byteStore: byteStore,
+              elementFactory: elementFactory,
+              bundleKey: cycle.linkedKey,
+              bundleId: bundleId,
+              requirements: requirements,
             );
           });
 
@@ -300,10 +309,10 @@ class LibraryContext {
           newLinkedBytes = linkResult.resolutionBytes;
 
           var requirements = RequirementsManifest();
-
+          var bundleId = ManifestItemId.generate();
           var newEntry = _LinkedBundleCacheEntry(
             nonTransitiveApiSignature: cycle.nonTransitiveApiSignature,
-            requirementsDigest: requirements.toDigest(),
+            id: bundleId,
             requirementsBytes: requirements.toBytes(),
             libraryManifests: {},
             linkedBytes: newLinkedBytes,
@@ -393,7 +402,11 @@ class LibraryContext {
 
       // Fast-path: if the stored digest matches current manifests, reuse.
       var digestSatisfied = performance.run('checkDigest', (performance) {
-        return entry.requirementsDigest.isSatisfied(elementFactory);
+        return entry.isDigestSatisfied(
+          byteStore: byteStore,
+          elementFactory: elementFactory,
+          bundleKey: cycle.linkedKey,
+        );
       });
 
       if (digestSatisfied) {
@@ -420,6 +433,15 @@ class LibraryContext {
           linkedBytes: null,
         );
       }
+
+      // Requirements satisfied; refresh the fast-path digest entry.
+      _LinkedBundleCacheEntry.writeDigest(
+        byteStore: byteStore,
+        elementFactory: elementFactory,
+        bundleKey: cycle.linkedKey,
+        bundleId: entry.id,
+        requirements: entry.requirements,
+      );
 
       return _LinkedBundleProbeResult(
         libraryManifests: entry.libraryManifests,
@@ -485,8 +507,8 @@ class _LinkedBundleCacheEntry {
   /// See [LibraryCycle.nonTransitiveApiSignature].
   final String nonTransitiveApiSignature;
 
-  /// Digest summarizing the requirements, for a fast validation check.
-  final RequirementsManifestDigest requirementsDigest;
+  /// Unique ID of this bundle to pair digests with bundles.
+  final ManifestItemId id;
 
   /// Serialized requirements; parsed lazily if needed.
   final Uint8List requirementsBytes;
@@ -504,7 +526,7 @@ class _LinkedBundleCacheEntry {
 
   _LinkedBundleCacheEntry({
     required this.nonTransitiveApiSignature,
-    required this.requirementsDigest,
+    required this.id,
     required this.requirementsBytes,
     required this.libraryManifests,
     required this.linkedBytes,
@@ -512,6 +534,20 @@ class _LinkedBundleCacheEntry {
 
   RequirementsManifest get requirements {
     return _requirements ??= RequirementsManifest.fromBytes(requirementsBytes);
+  }
+
+  bool isDigestSatisfied({
+    required ByteStore byteStore,
+    required LinkedElementFactory elementFactory,
+    required String bundleKey,
+  }) {
+    var digestKey = _getDigestKey(bundleKey);
+    var digestBytes = byteStore.get(digestKey);
+    if (digestBytes == null) {
+      return false;
+    }
+    var digest = RequirementsManifestDigest.fromBytes(digestBytes);
+    return digest.bundleId == id && digest.isSatisfied(elementFactory);
   }
 
   void write({
@@ -522,7 +558,7 @@ class _LinkedBundleCacheEntry {
     var writer = BinaryWriter();
 
     writer.writeStringUtf8(nonTransitiveApiSignature);
-    requirementsDigest.write(writer);
+    id.write(writer);
     writer.writeUint8List(requirementsBytes);
     writer.writeMap(
       libraryManifests,
@@ -554,7 +590,7 @@ class _LinkedBundleCacheEntry {
 
     var result = _LinkedBundleCacheEntry(
       nonTransitiveApiSignature: reader.readStringUtf8(),
-      requirementsDigest: RequirementsManifestDigest.read(reader),
+      id: ManifestItemId.read(reader),
       requirementsBytes: reader.readUint8List(),
       libraryManifests: reader.readMap(
         readKey: () => reader.readUri(),
@@ -567,6 +603,26 @@ class _LinkedBundleCacheEntry {
     byteStore.release([key]);
 
     return result;
+  }
+
+  /// Writes the digest of [requirements] under a separate key.
+  static void writeDigest({
+    required ByteStore byteStore,
+    required LinkedElementFactory elementFactory,
+    required String bundleKey,
+    required ManifestItemId bundleId,
+    required RequirementsManifest requirements,
+  }) {
+    byteStore.putGet(
+      _getDigestKey(bundleKey),
+      requirements
+          .toDigest(elementFactory: elementFactory, bundleId: bundleId)
+          .toBytes(),
+    );
+  }
+
+  static String _getDigestKey(String bundleKey) {
+    return '$bundleKey.digest';
   }
 }
 

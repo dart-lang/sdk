@@ -107,7 +107,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 573;
+  static const int DATA_VERSION = 574;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -1456,6 +1456,13 @@ class AnalysisDriver {
               serializedFileResults: serializedFileResults,
               performance: performance,
             );
+            LibraryDiagnosticsBundle.writeDigest(
+              byteStore: _byteStore,
+              elementFactory: libraryContext.elementFactory,
+              bundleKey: key,
+              bundleId: id,
+              requirements: requirements,
+            );
             for (var unitResult in results) {
               var unitResource = unitResult.file.resource;
               _lastProducedDiagnosticIds[unitResource] = id;
@@ -1882,9 +1889,9 @@ class AnalysisDriver {
     required OperationPerformanceImpl performance,
   }) {
     return performance.run('getLibraryDiagnosticsBundle', (performance) {
+      var bundleKey = _getLibraryDiagnosticsKey(library);
       var bundle = performance.run('readFromBytes', (performance) {
-        var key = _getLibraryDiagnosticsKey(library);
-        var bytes = _byteStore.get(key);
+        var bytes = _byteStore.get(bundleKey);
         if (bytes != null) {
           performance.getDataInt('hasBytes').increment();
           performance.getDataInt('bytes').add(bytes.length);
@@ -1900,10 +1907,13 @@ class AnalysisDriver {
       }
 
       var elementFactory = libraryContext.elementFactory;
-      var digestSatisfied = performance.run('checkDigest', (performance) {
-        return bundle.requirementsDigest.isSatisfied(elementFactory);
-      });
-      if (digestSatisfied) {
+      if (performance.run('checkDigest', (performance) {
+        return bundle.isDigestSatisfied(
+          byteStore: _byteStore,
+          elementFactory: elementFactory,
+          bundleKey: bundleKey,
+        );
+      })) {
         return bundle;
       }
 
@@ -1920,10 +1930,20 @@ class AnalysisDriver {
           failure: failure,
         ),
       );
-      if (failure == null) {
-        return bundle;
+      if (failure != null) {
+        return null;
       }
-      return null;
+
+      // Requirements satisfied; refresh the fast-path digest entry.
+      LibraryDiagnosticsBundle.writeDigest(
+        byteStore: _byteStore,
+        elementFactory: elementFactory,
+        bundleKey: bundleKey,
+        bundleId: bundle.id,
+        requirements: bundle.requirements,
+      );
+
+      return bundle;
     });
   }
 
