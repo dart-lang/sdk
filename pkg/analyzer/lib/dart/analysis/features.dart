@@ -81,6 +81,10 @@ abstract class Feature {
   /// Feature information for patterns.
   static final patterns = ExperimentalFeatures.patterns;
 
+  /// Feature information for private named parameters.
+  static final private_named_parameters =
+      ExperimentalFeatures.private_named_parameters;
+
   /// Feature information for records.
   static final records = ExperimentalFeatures.records;
 

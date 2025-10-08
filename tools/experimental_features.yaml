@@ -164,6 +164,18 @@ features:
   static-extensions:
     help: "Extensions with static capabilities."
 
+  private-named-parameters:
+    help: "Allow named parameters with private names that refer to fields."
+    # TODO(rnystrom): Enable this when the feature is implemented.
+    # validation: |
+    #   class C {
+    #     String _message;
+    #     C({this._message});
+    #   }
+    #   main() {
+    #     print(C(message: 'feature enabled')._message);
+    #   }
+
   declaring-constructors:
     help: "Less verbose constructors."
 

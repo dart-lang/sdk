@@ -49,6 +49,8 @@ final _knownFeatures = <String, ExperimentalFeature>{
       ExperimentalFeatures.nonfunction_type_aliases,
   EnableString.null_aware_elements: ExperimentalFeatures.null_aware_elements,
   EnableString.patterns: ExperimentalFeatures.patterns,
+  EnableString.private_named_parameters:
+      ExperimentalFeatures.private_named_parameters,
   EnableString.record_use: ExperimentalFeatures.record_use,
   EnableString.records: ExperimentalFeatures.records,
   EnableString.sealed_class: ExperimentalFeatures.sealed_class,
@@ -151,6 +153,9 @@ class EnableString {
 
   /// String to enable the experiment "patterns"
   static const String patterns = 'patterns';
+
+  /// String to enable the experiment "private-named-parameters"
+  static const String private_named_parameters = 'private-named-parameters';
 
   /// String to enable the experiment "record-use"
   static const String record_use = 'record-use';
@@ -511,8 +516,20 @@ class ExperimentalFeatures {
     channels: ["stable", "beta", "dev", "main"],
   );
 
-  static final record_use = ExperimentalFeature(
+  static final private_named_parameters = ExperimentalFeature(
     index: 28,
+    enableString: EnableString.private_named_parameters,
+    isEnabledByDefault: IsEnabledByDefault.private_named_parameters,
+    isExpired: IsExpired.private_named_parameters,
+    documentation:
+        'Allow named parameters with private names that refer to fields.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
+  static final record_use = ExperimentalFeature(
+    index: 29,
     enableString: EnableString.record_use,
     isEnabledByDefault: IsEnabledByDefault.record_use,
     isExpired: IsExpired.record_use,
@@ -523,7 +540,7 @@ class ExperimentalFeatures {
   );
 
   static final records = ExperimentalFeature(
-    index: 29,
+    index: 30,
     enableString: EnableString.records,
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
@@ -534,7 +551,7 @@ class ExperimentalFeatures {
   );
 
   static final sealed_class = ExperimentalFeature(
-    index: 30,
+    index: 31,
     enableString: EnableString.sealed_class,
     isEnabledByDefault: IsEnabledByDefault.sealed_class,
     isExpired: IsExpired.sealed_class,
@@ -545,7 +562,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 31,
+    index: 32,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -556,7 +573,7 @@ class ExperimentalFeatures {
   );
 
   static final sound_flow_analysis = ExperimentalFeature(
-    index: 32,
+    index: 33,
     enableString: EnableString.sound_flow_analysis,
     isEnabledByDefault: IsEnabledByDefault.sound_flow_analysis,
     isExpired: IsExpired.sound_flow_analysis,
@@ -568,7 +585,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 33,
+    index: 34,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -579,7 +596,7 @@ class ExperimentalFeatures {
   );
 
   static final static_extensions = ExperimentalFeature(
-    index: 34,
+    index: 35,
     enableString: EnableString.static_extensions,
     isEnabledByDefault: IsEnabledByDefault.static_extensions,
     isExpired: IsExpired.static_extensions,
@@ -590,7 +607,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 35,
+    index: 36,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -601,7 +618,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 36,
+    index: 37,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -613,7 +630,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 37,
+    index: 38,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -624,7 +641,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 38,
+    index: 39,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -635,7 +652,7 @@ class ExperimentalFeatures {
   );
 
   static final unquoted_imports = ExperimentalFeature(
-    index: 39,
+    index: 40,
     enableString: EnableString.unquoted_imports,
     isEnabledByDefault: IsEnabledByDefault.unquoted_imports,
     isExpired: IsExpired.unquoted_imports,
@@ -646,7 +663,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 40,
+    index: 41,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -657,7 +674,7 @@ class ExperimentalFeatures {
   );
 
   static final wildcard_variables = ExperimentalFeature(
-    index: 41,
+    index: 42,
     enableString: EnableString.wildcard_variables,
     isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
     isExpired: IsExpired.wildcard_variables,
@@ -755,6 +772,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "patterns"
   static const bool patterns = true;
+
+  /// Default state of the experiment "private-named-parameters"
+  static const bool private_named_parameters = false;
 
   /// Default state of the experiment "record-use"
   static const bool record_use = false;
@@ -886,6 +906,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "patterns"
   static const bool patterns = true;
+
+  /// Expiration status of the experiment "private-named-parameters"
+  static const bool private_named_parameters = false;
 
   /// Expiration status of the experiment "record-use"
   static const bool record_use = false;
@@ -1028,6 +1051,10 @@ mixin _CurrentState {
 
   /// Current state for the flag "patterns"
   bool get patterns => isEnabled(ExperimentalFeatures.patterns);
+
+  /// Current state for the flag "private-named-parameters"
+  bool get private_named_parameters =>
+      isEnabled(ExperimentalFeatures.private_named_parameters);
 
   /// Current state for the flag "record-use"
   bool get record_use => isEnabled(ExperimentalFeatures.record_use);

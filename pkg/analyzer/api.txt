@@ -409,6 +409,7 @@ package:analyzer/dart/analysis/features.dart:
     nonfunction_type_aliases (static getter: ExperimentalFeature)
     null_aware_elements (static getter: ExperimentalFeature)
     patterns (static getter: ExperimentalFeature)
+    private_named_parameters (static getter: ExperimentalFeature)
     records (static getter: ExperimentalFeature)
     sealed_class (static getter: ExperimentalFeature)
     set_literals (static getter: ExperimentalFeature)

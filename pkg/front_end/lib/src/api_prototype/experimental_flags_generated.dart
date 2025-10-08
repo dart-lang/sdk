@@ -314,6 +314,15 @@ class ExperimentalFlag {
     experimentReleasedVersion: const Version(3, 0),
   );
 
+  static const ExperimentalFlag privateNamedParameters = const ExperimentalFlag(
+    name: 'private-named-parameters',
+    isEnabledByDefault: false,
+    isExpired: false,
+    enabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  );
+
   static const ExperimentalFlag recordUse = const ExperimentalFlag(
     name: 'record-use',
     isEnabledByDefault: false,
@@ -623,6 +632,10 @@ class GlobalFeatures {
   GlobalFeature get patterns =>
       _patterns ??= _computeGlobalFeature(ExperimentalFlag.patterns);
 
+  GlobalFeature? _privateNamedParameters;
+  GlobalFeature get privateNamedParameters => _privateNamedParameters ??=
+      _computeGlobalFeature(ExperimentalFlag.privateNamedParameters);
+
   GlobalFeature? _recordUse;
   GlobalFeature get recordUse =>
       _recordUse ??= _computeGlobalFeature(ExperimentalFlag.recordUse);
@@ -923,6 +936,14 @@ class LibraryFeatures {
         libraryVersion,
       );
 
+  LibraryFeature? _privateNamedParameters;
+  LibraryFeature get privateNamedParameters =>
+      _privateNamedParameters ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.privateNamedParameters,
+        canonicalUri,
+        libraryVersion,
+      );
+
   LibraryFeature? _recordUse;
   LibraryFeature get recordUse =>
       _recordUse ??= globalFeatures._computeLibraryFeature(
@@ -1096,6 +1117,8 @@ class LibraryFeatures {
         return nullAwareElements;
       case shared.ExperimentalFlag.patterns:
         return patterns;
+      case shared.ExperimentalFlag.privateNamedParameters:
+        return privateNamedParameters;
       case shared.ExperimentalFlag.recordUse:
         return recordUse;
       case shared.ExperimentalFlag.records:
@@ -1188,6 +1211,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.nullAwareElements;
     case "patterns":
       return ExperimentalFlag.patterns;
+    case "private-named-parameters":
+      return ExperimentalFlag.privateNamedParameters;
     case "record-use":
       return ExperimentalFlag.recordUse;
     case "records":
@@ -1274,6 +1299,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.nullAwareElements:
       ExperimentalFlag.nullAwareElements.isEnabledByDefault,
   ExperimentalFlag.patterns: ExperimentalFlag.patterns.isEnabledByDefault,
+  ExperimentalFlag.privateNamedParameters:
+      ExperimentalFlag.privateNamedParameters.isEnabledByDefault,
   ExperimentalFlag.recordUse: ExperimentalFlag.recordUse.isEnabledByDefault,
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
   ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass.isEnabledByDefault,
@@ -1341,6 +1368,8 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
       ExperimentalFlag.nonfunctionTypeAliases,
   shared.ExperimentalFlag.nullAwareElements: ExperimentalFlag.nullAwareElements,
   shared.ExperimentalFlag.patterns: ExperimentalFlag.patterns,
+  shared.ExperimentalFlag.privateNamedParameters:
+      ExperimentalFlag.privateNamedParameters,
   shared.ExperimentalFlag.recordUse: ExperimentalFlag.recordUse,
   shared.ExperimentalFlag.records: ExperimentalFlag.records,
   shared.ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass,

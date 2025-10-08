@@ -19,5 +19,6 @@ List<String> experimentsForTests = [
   Feature.declaring_constructors.enableString,
   Feature.enhanced_parts.enableString,
   Feature.macros.enableString,
+  Feature.private_named_parameters.enableString,
   Feature.variance.enableString,
 ];
