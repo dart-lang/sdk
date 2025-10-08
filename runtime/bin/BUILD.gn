@@ -63,6 +63,9 @@ template("build_libdart_builtin") {
       deps += [ "$fuchsia_sdk/fidl/fuchsia.io" ]
       public_deps = [ "$fuchsia_sdk/pkg/fdio" ]
     }
+    if (is_mac || is_ios) {
+      frameworks = [ "Security.framework" ]
+    }
     if (is_win) {
       libs = [ "Pathcch.lib" ]
     }
