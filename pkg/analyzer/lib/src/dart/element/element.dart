@@ -2361,9 +2361,11 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @override
   @trackedIncludedInId
   List<TypeParameterElementImpl> get typeParameters {
-    return _firstFragment.typeParameters
-        .map((fragment) => fragment.element)
-        .toList();
+    var typeParameters = _firstFragment.typeParameters;
+    return List.generate(
+      typeParameters.length,
+      (index) => typeParameters[index].element,
+    );
   }
 
   @Deprecated('Use typeParameters instead')
@@ -3330,10 +3332,13 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  List<TypeParameterElementImpl> get typeParameters => _firstFragment
-      .typeParameters
-      .map((fragment) => fragment.element)
-      .toList();
+  List<TypeParameterElementImpl> get typeParameters {
+    var typeParameters = _firstFragment.typeParameters;
+    return List.generate(
+      typeParameters.length,
+      (index) => typeParameters[index].element,
+    );
+  }
 
   @Deprecated('Use typeParameters instead')
   @override
@@ -4442,9 +4447,11 @@ abstract class InstanceElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   List<TypeParameterElementImpl> get typeParameters {
-    return _firstFragment.typeParameters
-        .map((fragment) => fragment.element)
-        .toList();
+    var typeParameters = _firstFragment.typeParameters;
+    return List.generate(
+      typeParameters.length,
+      (index) => typeParameters[index].element,
+    );
   }
 
   @Deprecated('Use typeParameters instead')
@@ -5131,9 +5138,13 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     if (_thisType == null) {
       List<TypeImpl> typeArguments;
       if (typeParameters.isNotEmpty) {
-        typeArguments = typeParameters.map<TypeImpl>((t) {
-          return t.instantiate(nullabilitySuffix: NullabilitySuffix.none);
-        }).toFixedList();
+        typeArguments = List.generate(
+          typeParameters.length,
+          (index) => typeParameters[index].instantiate(
+            nullabilitySuffix: NullabilitySuffix.none,
+          ),
+          growable: false,
+        );
       } else {
         typeArguments = const [];
       }

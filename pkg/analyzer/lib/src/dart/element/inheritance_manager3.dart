@@ -981,12 +981,15 @@ class InheritanceManager3 {
       var resultFragment = MethodFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
       resultFragment.isSynthetic = true;
-      resultFragment.formalParameters = transformedParameters
-          .map((e) => e.firstFragment)
-          .toList();
-      resultFragment.typeParameters = executable.typeParameters
-          .map((e) => e.firstFragment)
-          .toList();
+      resultFragment.formalParameters = List.generate(
+        transformedParameters.length,
+        (index) => transformedParameters![index].firstFragment,
+      );
+      var typeParameters = executable.typeParameters;
+      resultFragment.typeParameters = List.generate(
+        typeParameters.length,
+        (index) => typeParameters[index].firstFragment,
+      );
 
       var elementName = executable.name!;
       var result = MethodElementImpl(

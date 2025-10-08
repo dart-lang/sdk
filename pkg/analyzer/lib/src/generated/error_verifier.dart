@@ -1978,9 +1978,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }) {
     if (element is MultiplyDefinedElementImpl) {
       var conflictingMembers = element.conflictingElements;
-      var libraryNames = conflictingMembers
-          .map((e) => _getLibraryName(e))
-          .toList();
+      var libraryNames = List.generate(
+        conflictingMembers.length,
+        (index) => _getLibraryName(conflictingMembers[index]),
+        growable: false,
+      );
       libraryNames.sort();
       diagnosticReporter.atToken(
         name,

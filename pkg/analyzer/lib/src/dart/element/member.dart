@@ -329,9 +329,9 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
 
   @override
   List<InternalFormalParameterElement> get formalParameters {
-    return baseElement.formalParameters.map<InternalFormalParameterElement>((
-      element,
-    ) {
+    var formalParameters = baseElement.formalParameters;
+    return List.generate(formalParameters.length, (index) {
+      var element = formalParameters[index];
       switch (element) {
         case FieldFormalParameterElementImpl():
           return SubstitutedFieldFormalParameterElementImpl(
@@ -349,7 +349,7 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
             substitution: substitution,
           );
       }
-    }).toList();
+    });
   }
 
   @override
@@ -707,8 +707,17 @@ class SubstitutedFormalParameterElementImpl
     required FormalParameterElementImpl baseElement,
     required MapSubstitution substitution,
   }) {
+    var typeParameters = baseElement.typeParameters;
+    if (typeParameters.isEmpty) {
+      // Happens often. Avoid doing unneeded allocation.
+      return SubstitutedFormalParameterElementImpl._(
+        baseElement: baseElement,
+        substitution: substitution,
+        typeParameters: const [],
+      );
+    }
     var freshTypeParameters = _SubstitutedTypeParameters(
-      baseElement.typeParameters,
+      typeParameters,
       substitution,
     );
     return SubstitutedFormalParameterElementImpl._(

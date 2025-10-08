@@ -1832,10 +1832,12 @@ class TypeSystemImpl implements TypeSystem {
   List<TypeImpl> _defaultTypeArguments(
     List<TypeParameterElement> typeParameters,
   ) {
-    return typeParameters.map((typeParameter) {
-      var typeParameterImpl = typeParameter as TypeParameterElementImpl;
+    var length = typeParameters.length;
+    if (length == 0) return const [];
+    return List.generate(length, (index) {
+      var typeParameterImpl = typeParameters[index] as TypeParameterElementImpl;
       return typeParameterImpl.defaultType!;
-    }).toFixedList();
+    }, growable: false);
   }
 
   /// `S` is the future type of a type `T` in the following cases, using the

@@ -2957,18 +2957,6 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("Part");
 
-    var configurations = pop() as List<ConfigurationImpl>?;
-    if (!enableEnhancedParts) {
-      var configuration = configurations?.firstOrNull;
-      if (configuration != null) {
-        _reportFeatureNotEnabled(
-          feature: Feature.enhanced_parts,
-          startToken: configuration.ifKeyword,
-        );
-        configurations = [];
-      }
-    }
-
     var uri = pop() as StringLiteralImpl;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, partKeyword);
@@ -2978,7 +2966,6 @@ class AstBuilder extends StackListener {
         metadata: metadata,
         partKeyword: partKeyword,
         uri: uri,
-        configurations: configurations ?? [],
         semicolon: semicolon,
       ),
     );

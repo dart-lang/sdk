@@ -939,7 +939,11 @@ class _InfoBuilder {
     if (node == null) {
       return [];
     }
-    return node.parameters.map(_buildFormalParameter).toList();
+    var parameters = node.parameters;
+    return List.generate(
+      parameters.length,
+      (index) => _buildFormalParameter(parameters[index]),
+    );
   }
 
   _InfoFunctionTypeAlias _buildFunctionTypeAlias(FunctionTypeAlias node) {
@@ -1251,7 +1255,11 @@ class _InfoBuilder {
     if (node == null) {
       return [];
     }
-    return node.typeParameters.map(_buildTypeParameter).toList();
+    var typeParameters = node.typeParameters;
+    return List.generate(
+      typeParameters.length,
+      (index) => _buildTypeParameter(typeParameters[index]),
+    );
   }
 
   int _codeOffsetForVariable(VariableDeclaration node) {

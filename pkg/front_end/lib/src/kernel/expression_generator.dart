@@ -3456,7 +3456,9 @@ class ExplicitExtensionAccessGenerator extends Generator {
     Name name, {
     bool isNullAware = false,
   }) {
-    MemberLookupResult? result = extensionBuilder.lookupLocalMemberByName(name);
+    MemberLookupResult? result = extensionBuilder.lookupExtensionMemberByName(
+      name,
+    );
     if (result == null) {
       return new UnresolvedNameGenerator(
         _helper,
@@ -3603,22 +3605,11 @@ class ExplicitExtensionAccessGenerator extends Generator {
     Token token, {
     required bool isNullAware,
   }) {
-    // TODO(johnniwinther): Join these.
-    MemberLookupResult? getterResult = extensionBuilder.lookupLocalMemberByName(
+    MemberLookupResult? result = extensionBuilder.lookupExtensionMemberByName(
       indexGetName,
     );
-    if (getterResult?.isInvalidLookup ?? false) {
-      getterResult = null;
-    }
-    MemberLookupResult? setterResult = extensionBuilder.lookupLocalMemberByName(
-      indexSetName,
-    );
-    if (setterResult?.isInvalidLookup ?? false) {
-      setterResult = null;
-    }
-    MemberBuilder? getter = getterResult?.getable;
-    MemberBuilder? setter = setterResult?.getable;
-    if (getter == null && setter == null) {
+
+    if (result == null) {
       // Coverage-ignore-block(suite): Not run.
       return new UnresolvedNameGenerator(
         _helper,
@@ -3626,15 +3617,23 @@ class ExplicitExtensionAccessGenerator extends Generator {
         indexGetName,
         unresolvedReadKind: UnresolvedKind.Method,
       );
+    } else if (result.isInvalidLookup) {
+      // Coverage-ignore-block(suite): Not run.
+      return new UnresolvedNameGenerator(
+        _helper,
+        token,
+        indexGetName,
+        unresolvedReadKind: UnresolvedKind.Method,
+        errorHasBeenReported: true,
+      );
     }
-
     return new ExplicitExtensionIndexedAccessGenerator.fromBuilder(
       _helper,
       token,
       extensionTypeArgumentOffset,
       extensionBuilder.extension,
-      getter,
-      setter,
+      result.getable,
+      result.setable,
       receiver,
       index,
       explicitTypeArguments,
@@ -4172,7 +4171,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     ) {
       // TODO(cstefantsova): Report an error on more than one found members.
       if (extensionBuilder.onType.declaration == declaration) {
-        memberLookupResult = extensionBuilder.lookupLocalMemberByName(name);
+        memberLookupResult = extensionBuilder.lookupExtensionMemberByName(name);
         if (memberLookupResult != null) {
           if (!memberLookupResult!.isStatic) {
             memberLookupResult = null;

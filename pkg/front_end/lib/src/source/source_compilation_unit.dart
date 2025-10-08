@@ -672,7 +672,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     if (isPart) {
       // This is a part with no enclosing library.
       addProblem(codePartOrphan, 0, 1, fileUri);
-      _clearPartsAndReportExporters();
+      _compilationUnitData.parts.clear();
+      _reportExporters();
     }
     return libraryBuilder;
   }
@@ -702,7 +703,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  void addDependencies(Library library, Set<SourceCompilationUnit> seen) {
+  void addDependencies({
+    required Library library,
+    required Set<SourceCompilationUnit> seen,
+    required Map<String, int> deferredNames,
+  }) {
     assert(
       checkState(required: [SourceCompilationUnitState.importsAddedToScope]),
     );
@@ -722,6 +727,14 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       if (import.deferred &&
           import.prefixFragment?.builder.dependency != null) {
         libraryDependency = import.prefixFragment!.builder.dependency!;
+        int? index = deferredNames[import.prefix!];
+        if (index != null) {
+          libraryDependency.name = '${libraryDependency.name}#$index';
+          index++;
+        } else {
+          index = 1;
+        }
+        deferredNames[import.prefix!] = index;
       } else {
         LibraryBuilder imported = import.importedLibraryBuilder!;
         Library targetLibrary = imported.library;
@@ -1083,9 +1096,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     return _native.finishNativeMethods(loader);
   }
 
-  void _clearPartsAndReportExporters() {
-    assert(_libraryBuilder != null, "Library has not be set.");
-    _compilationUnitData.parts.clear();
+  void _reportExporters() {
     if (exporters.isNotEmpty) {
       List<LocatedMessage> context = <LocatedMessage>[
         codePartExportContext.withLocation(fileUri, -1, 1),
@@ -1140,9 +1151,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           usedParts.add(part.compilationUnit.importUri);
         }
       }
-      _clearPartsAndReportExporters();
+      _compilationUnitData.parts.clear();
+      _reportExporters();
       _becomePart(libraryBuilder, libraryNameSpaceBuilder);
     } else {
+      _reportExporters();
       _becomePart(libraryBuilder, libraryNameSpaceBuilder);
       _includeParts(
         libraryBuilder: libraryBuilder,

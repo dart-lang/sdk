@@ -16804,9 +16804,11 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   bool get isDeferred {
     var importPrefixElement = importPrefix?.element;
     if (importPrefixElement is PrefixElement) {
-      return importPrefixElement.fragments.any(
-        (fragment) => fragment.isDeferred,
-      );
+      var fragments = importPrefixElement.fragments;
+      for (var i = 0; i < fragments.length; i++) {
+        if (fragments[i].isDeferred) return true;
+      }
+      return false;
     }
     return false;
   }
@@ -18222,10 +18224,9 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     required super.metadata,
     required this.partKeyword,
     required super.uri,
-    required List<ConfigurationImpl> configurations,
     required this.semicolon,
   }) {
-    this.configurations._initialize(this, configurations);
+    configurations._initialize(this, null);
   }
 
   @generated

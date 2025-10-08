@@ -121,6 +121,7 @@ nnbd/platform_optional_parameters/main: SemiFuzzFailure
 # UNSORTED ONES:
 coverage/static2_test: TypeCheckError
 constructor_tearoffs/explicit_instantiation: SemiFuzzFailure
+enhanced_parts/export_part_file: SemiFuzzFailure
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
 general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
 general/platform_invalid_uris/main: SemiFuzzFailure

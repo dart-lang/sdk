@@ -224,6 +224,19 @@ class GetableSetableResult with LookupResultMixin implements LookupResult {
   GetableSetableResult(this.getable, this.setable);
 }
 
+class SetableMemberResult with LookupResultMixin implements MemberLookupResult {
+  @override
+  final MemberBuilder setable;
+
+  @override
+  final bool isStatic;
+
+  SetableMemberResult(this.setable, {required this.isStatic});
+
+  @override
+  MemberBuilder? get getable => null;
+}
+
 class GetableSetableMemberResult
     with LookupResultMixin
     implements MemberLookupResult {

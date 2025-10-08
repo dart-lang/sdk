@@ -84,18 +84,25 @@ class UnknownInferredType extends TypeImpl implements SharedUnknownType {
     }
 
     if (type is InterfaceTypeImpl) {
-      return type.typeArguments.any(isUnknown);
+      var typeArguments = type.typeArguments;
+      for (int i = 0; i < typeArguments.length; i++) {
+        if (isUnknown(typeArguments[i])) return true;
+      }
+      return false;
     }
 
     if (type is FunctionType) {
-      return isUnknown(type.returnType) ||
-          type.typeParameters.any((typeParameter) {
-            var bound = typeParameter.bound;
-            return bound != null && isUnknown(bound);
-          }) ||
-          type.formalParameters.any((formalParameter) {
-            return isUnknown(formalParameter.type);
-          });
+      if (isUnknown(type.returnType)) return true;
+      var typeParameters = type.typeParameters;
+      for (int i = 0; i < typeParameters.length; i++) {
+        var bound = typeParameters[i].bound;
+        if (bound != null && isUnknown(bound)) return true;
+      }
+      var formalParameters = type.formalParameters;
+      for (int i = 0; i < formalParameters.length; i++) {
+        if (isUnknown(formalParameters[i].type)) return true;
+      }
+      return false;
     }
 
     if (type is RecordType) {
