@@ -227,47 +227,74 @@ void testWatchOnlyModifyFile() {
   file.writeAsStringSync('a');
 }
 
-void testMultipleEvents() {
+enum FileState { none, created, modified, moved, deleted }
+
+void testMultipleEvents() async {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var file = new File(join(dir.path, 'file'));
   var file2 = new File(join(dir.path, 'file2'));
 
+  final fileDeletionObserved = Completer<void>();
   var watcher = dir.watch();
 
   asyncStart();
-  int state = 0;
+  final state = <String, FileState>{};
+  var seenMove = false;
   var sub;
-  sub = watcher.listen((event) {
-    int newState = 0;
-    switch (event.type) {
-      case FileSystemEvent.create:
-        newState = 1;
-        break;
 
-      case FileSystemEvent.modify:
-        newState = 2;
-        break;
+  void updateState(FileSystemEvent event, String path, FileState newState) {
+    final currentState = state[path] ?? FileState.none;
 
-      case FileSystemEvent.move:
-        newState = 3;
-        break;
+    // We expect that states change monotonically (e.g. we don't get creation
+    // after deletion).
+    Expect.isTrue(
+      newState.index >= currentState.index,
+      'unexpected state transition $currentState -> $newState ($event)',
+    );
 
-      case FileSystemEvent.delete:
-        newState = 4;
+    if (newState == FileState.moved) {
+      // On Windows and Linux rename should generate a move event.
+      updateState(event, path, FileState.deleted);
+      updateState(
+        event,
+        (event as FileSystemMoveEvent).destination!,
+        FileState.created,
+      );
+      seenMove = true;
+      return;
+    } else if (newState == FileState.deleted) {
+      // We expect to observe creation or modification before deletion.
+      Expect.isTrue(
+        currentState.index <= FileState.modified.index,
+        'file creation not observed',
+      );
+
+      if (event.path.endsWith('file')) {
+        fileDeletionObserved.complete();
+      } else if (event.path.endsWith('file2')) {
         sub.cancel();
         asyncEnd();
         dir.deleteSync();
-        break;
+      }
     }
-    if (!Platform.isMacOS) {
-      if (newState < state) throw "Bad state";
-    }
-    state = newState;
+    state[event.path] = newState;
+  }
+
+  sub = watcher.listen((event) {
+    updateState(event, event.path, switch (event.type) {
+      FileSystemEvent.create => FileState.created,
+      FileSystemEvent.modify => FileState.modified,
+      FileSystemEvent.move => FileState.moved,
+      FileSystemEvent.delete => FileState.deleted,
+      _ => throw 'Unexpected event: ${event}',
+    });
   });
 
   file.createSync();
   file.writeAsStringSync('a');
   file.renameSync(file2.path);
+  await fileDeletionObserved.future;
+  Expect.isTrue(Platform.isMacOS || seenMove);
   file2.deleteSync();
 }
 
@@ -520,17 +547,14 @@ testWatchOverflow() async {
 }
 
 void watcher(SendPort sendPort) async {
-  runZonedGuarded(
-    () {
-      var watcher = Directory.systemTemp.watch(recursive: true);
-      watcher.listen((data) async {});
-      sendPort.send('start');
-    },
-    (error, stack) {
-      print(error);
+  var watcher = Directory.systemTemp.watch(recursive: true);
+  watcher.listen(
+    (data) async {},
+    onError: (error, stack) {
       sendPort.send('end');
     },
   );
+  sendPort.send('start');
 }
 
 void main() {
