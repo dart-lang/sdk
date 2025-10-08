@@ -1292,14 +1292,13 @@ class Parser {
 
   /// ```
   /// partDirective:
-  ///   'part' uri ('if' '(' test ')' uri)* ';'
+  ///   'part' uri ';'
   /// ;
   /// ```
   Token parsePart(Token partKeyword) {
     assert(partKeyword.isA(Keyword.PART));
     listener.beginPart(partKeyword);
     Token token = ensureLiteralString(partKeyword);
-    token = parseConditionalUriStar(token);
     token = ensureSemicolon(token);
     listener.endPart(partKeyword, token);
     return token;

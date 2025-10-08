@@ -32,59 +32,6 @@ PartDirective
 ''');
   }
 
-  test_configurableUri() {
-    var parseResult = parseStringWithErrors(r'''
-part 'foo.dart'
-  if (dart.library.html) 'foo_html.dart';
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.singlePartDirective;
-    assertParsedNodeText(node, r'''
-PartDirective
-  partKeyword: part
-  uri: SimpleStringLiteral
-    literal: 'foo.dart'
-  configurations
-    Configuration
-      ifKeyword: if
-      leftParenthesis: (
-      name: DottedName
-        components
-          SimpleIdentifier
-            token: dart
-          SimpleIdentifier
-            token: library
-          SimpleIdentifier
-            token: html
-      rightParenthesis: )
-      uri: SimpleStringLiteral
-        literal: 'foo_html.dart'
-      resolvedUri: <null>
-  semicolon: ;
-''');
-  }
-
-  test_configurableUri_language305() {
-    var parseResult = parseStringWithErrors(r'''
-// @dart = 3.5
-part 'foo.dart'
-  if (dart.library.html) 'foo_html.dart';
-''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.experimentNotEnabled, 33, 2),
-    ]);
-
-    var node = parseResult.findNode.singlePartDirective;
-    assertParsedNodeText(node, r'''
-PartDirective
-  partKeyword: part
-  uri: SimpleStringLiteral
-    literal: 'foo.dart'
-  semicolon: ;
-''');
-  }
-
   test_it() {
     var parseResult = parseStringWithErrors(r'''
 part 'a.dart';

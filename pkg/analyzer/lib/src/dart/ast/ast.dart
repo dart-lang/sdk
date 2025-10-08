@@ -18222,10 +18222,9 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     required super.metadata,
     required this.partKeyword,
     required super.uri,
-    required List<ConfigurationImpl> configurations,
     required this.semicolon,
   }) {
-    this.configurations._initialize(this, configurations);
+    configurations._initialize(this, null);
   }
 
   @generated
