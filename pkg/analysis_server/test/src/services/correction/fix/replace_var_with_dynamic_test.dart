@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ReplaceVarWithDynamicTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_VAR_WITH_DYNAMIC;
+  FixKind get kind => DartFixKind.replaceVarWithDynamic;
 
   Future<void> test_simple() async {
     await resolveTestCode('''

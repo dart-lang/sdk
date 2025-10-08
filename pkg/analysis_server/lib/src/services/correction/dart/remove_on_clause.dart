@@ -17,10 +17,10 @@ class RemoveOnClause extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_ON_CLAUSE;
+  FixKind get fixKind => DartFixKind.removeOnClause;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_ON_CLAUSE_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeOnClauseMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

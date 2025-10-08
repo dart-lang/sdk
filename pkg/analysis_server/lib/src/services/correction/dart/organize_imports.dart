@@ -18,7 +18,7 @@ class OrganizeImports extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.ORGANIZE_IMPORTS;
+  FixKind get fixKind => DartFixKind.organizeImports;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

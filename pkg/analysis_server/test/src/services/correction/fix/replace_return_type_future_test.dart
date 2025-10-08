@@ -62,7 +62,7 @@ class C {
 @reflectiveTest
 class ReplaceReturnTypeFutureLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
+  FixKind get kind => DartFixKind.replaceReturnTypeFuture;
 
   @override
   String get lintCode => LintNames.avoid_void_async;
@@ -126,7 +126,7 @@ class C {
 @reflectiveTest
 class ReplaceReturnTypeFutureTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
+  FixKind get kind => DartFixKind.replaceReturnTypeFuture;
 
   Future<void> test_complexTypeName_withImport() async {
     await resolveTestCode('''

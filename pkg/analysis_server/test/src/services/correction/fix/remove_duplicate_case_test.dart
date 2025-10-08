@@ -59,7 +59,7 @@ void switchInt() {
 @reflectiveTest
 class RemoveDuplicateCaseTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_DUPLICATE_CASE;
+  FixKind get kind => DartFixKind.removeDuplicateCase;
 
   @override
   String get lintCode => LintNames.no_duplicate_case_values;

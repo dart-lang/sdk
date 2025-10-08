@@ -18,11 +18,11 @@ class RemoveUnnecessaryStringInterpolation extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_STRING_INTERPOLATION;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryStringInterpolation;
 
   @override
   FixKind get multiFixKind =>
-      DartFixKind.REMOVE_UNNECESSARY_STRING_INTERPOLATION_MULTI;
+      DartFixKind.removeUnnecessaryStringInterpolationMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

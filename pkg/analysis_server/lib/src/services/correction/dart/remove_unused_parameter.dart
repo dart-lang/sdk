@@ -18,10 +18,10 @@ class RemoveUnusedParameter extends ResolvedCorrectionProducer {
       CorrectionApplicability.acrossFiles;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNUSED_PARAMETER;
+  FixKind get fixKind => DartFixKind.removeUnusedParameter;
 
   @override
-  FixKind? get multiFixKind => DartFixKind.REMOVE_UNUSED_PARAMETER_MULTI;
+  FixKind? get multiFixKind => DartFixKind.removeUnusedParameterMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

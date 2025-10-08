@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class InsertBodyTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.INSERT_BODY;
+  FixKind get kind => DartFixKind.insertBody;
 
   Future<void> test_expectedCatchClauseBody() async {
     await resolveTestCode('''

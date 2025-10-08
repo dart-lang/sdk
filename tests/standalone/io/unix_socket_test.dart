@@ -303,7 +303,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.contains('Operation not supported', e.toString());
     }
   }
 
@@ -316,7 +316,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.contains('Operation not supported', e.toString());
     }
   }
 
@@ -329,7 +329,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.contains('Operation not supported', e.toString());
     }
   }
 
@@ -342,7 +342,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.contains('Operation not supported', e.toString());
     }
   }
 
@@ -355,7 +355,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Protocol not available'));
+      Expect.contains('Protocol not available', e.toString());
     }
   }
 
@@ -368,7 +368,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.contains('Operation not supported', e.toString());
     }
   }
 
@@ -381,7 +381,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.contains('Operation not supported', e.toString());
     }
   }
 
@@ -389,7 +389,7 @@ Future testSetSockOpt(String name) async {
   try {
     socket.setOption(SocketOption.tcpNoDelay, true);
   } catch (e) {
-    Expect.isTrue(e.toString().contains('Operation not supported'));
+    Expect.contains('Operation not supported', e.toString());
   }
 
   for (int i = 0; i < 5; i++) {
@@ -401,7 +401,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.contains('Operation not supported', e.toString());
     }
   }
 
@@ -414,7 +414,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.contains('Operation not supported', e.toString());
     }
   }
 
@@ -427,7 +427,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.contains('Operation not supported', e.toString());
     }
   }
 
@@ -440,7 +440,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.contains('Operation not supported', e.toString());
     }
   }
 
@@ -453,7 +453,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Protocol not available'));
+      Expect.contains('Protocol not available', e.toString());
     }
   }
 
@@ -466,7 +466,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.contains('Operation not supported', e.toString());
     }
   }
 
@@ -479,7 +479,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.contains('Operation not supported', e.toString());
     }
   }
 
@@ -1230,7 +1230,7 @@ void main(List<String> args) async {
         Expect.fail("Unexpected exception $e is thrown:\n$st");
       } else {
         Expect.isTrue(e is SocketException);
-        Expect.isTrue(e.toString().contains('not available'));
+        Expect.contains('not available', e.toString());
       }
     },
   );

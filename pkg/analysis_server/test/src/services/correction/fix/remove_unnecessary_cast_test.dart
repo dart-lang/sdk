@@ -42,7 +42,7 @@ void f(Object p) {
 @reflectiveTest
 class RemoveUnnecessaryCastMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_CAST_MULTI;
+  FixKind get kind => DartFixKind.removeUnnecessaryCastMulti;
 
   Future<void> test_assignment_all() async {
     await resolveTestCode('''
@@ -75,7 +75,7 @@ void f(Object p, Object q) {
 @reflectiveTest
 class RemoveUnnecessaryCastTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_CAST;
+  FixKind get kind => DartFixKind.removeUnnecessaryCast;
 
   Future<void> test_assignment() async {
     await resolveTestCode('''

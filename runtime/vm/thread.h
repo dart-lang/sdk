@@ -1292,8 +1292,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   static intptr_t next_task_id_offset() {
     return OFFSET_OF(Thread, next_task_id_);
   }
-  Random* random() { return &thread_random_; }
-  static intptr_t random_offset() { return OFFSET_OF(Thread, thread_random_); }
+  Random* random() { return &random_; }
+  static intptr_t random_offset() { return OFFSET_OF(Thread, random_); }
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
@@ -1521,7 +1521,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   // could be passed as arguments.
   ALIGN8 simd128_value_t unboxed_runtime_arg_;
   ALIGN8 int64_t next_task_id_;
-  ALIGN8 Random thread_random_;
+  ALIGN8 Random random_;
 
   TsanUtils* tsan_utils_ = nullptr;
 

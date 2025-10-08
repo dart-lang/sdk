@@ -38,7 +38,7 @@ void g({required int a, int? b,}) {}
 @reflectiveTest
 class MakeRequiredNamedParametersFirstTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_REQUIRED_NAMED_PARAMETERS_FIRST;
+  FixKind get kind => DartFixKind.makeRequiredNamedParametersFirst;
 
   @override
   String get lintCode => LintNames.always_put_required_named_parameters_first;

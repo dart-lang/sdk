@@ -22,7 +22,7 @@ class MakeClassAbstract extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_className];
 
   @override
-  FixKind get fixKind => DartFixKind.MAKE_CLASS_ABSTRACT;
+  FixKind get fixKind => DartFixKind.makeClassAbstract;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

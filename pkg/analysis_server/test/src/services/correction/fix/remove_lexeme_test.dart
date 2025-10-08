@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveLexemeMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_LEXEME_MULTI;
+  FixKind get kind => DartFixKind.removeLexemeMulti;
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_singleFile() async {
@@ -49,7 +49,7 @@ augment class A {}
 @reflectiveTest
 class RemoveLexemeTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_LEXEME;
+  FixKind get kind => DartFixKind.removeLexeme;
 
   Future<void> test_abstract_static_field() async {
     await resolveTestCode('''
@@ -390,18 +390,18 @@ var f = <int,int>{};
   Future<void> test_localFunctionDeclarationModifier_abstract() async {
     await resolveTestCode(r'''
 class C {
-  m() { 
-    abstract f() {} 
+  m() {
+    abstract f() {}
     f();
-  } 
+  }
 }
 ''');
     await assertHasFix('''
 class C {
-  m() { 
-    f() {} 
+  m() {
+    f() {}
     f();
-  } 
+  }
 }
 ''');
   }

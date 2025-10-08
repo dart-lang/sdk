@@ -30,8 +30,8 @@ import 'other.dart' show Stream, Future hide Stream;
 ''');
     await assertFixPriorityOrder(
       [
-        DartFixKind.MERGE_COMBINATORS_SHOW_SHOW,
-        DartFixKind.MERGE_COMBINATORS_HIDE_SHOW,
+        DartFixKind.mergeCombinatorsShowShow,
+        DartFixKind.mergeCombinatorsHideShow,
       ],
       errorFilter: (error) {
         return error.diagnosticCode == WarningCode.multipleCombinators;
@@ -45,8 +45,8 @@ import 'other.dart' hide Stream hide Future;
 ''');
     await assertFixPriorityOrder(
       [
-        DartFixKind.MERGE_COMBINATORS_HIDE_HIDE,
-        DartFixKind.MERGE_COMBINATORS_SHOW_HIDE,
+        DartFixKind.mergeCombinatorsHideHide,
+        DartFixKind.mergeCombinatorsShowHide,
       ],
       errorFilter: (error) {
         return error.diagnosticCode == WarningCode.multipleCombinators;
@@ -61,7 +61,7 @@ class MergeHideUsingHideTest extends _MergeCombinatorTest {
   DiagnosticCode get diagnosticCode => WarningCode.multipleCombinators;
 
   @override
-  FixKind get kind => DartFixKind.MERGE_COMBINATORS_HIDE_HIDE;
+  FixKind get kind => DartFixKind.mergeCombinatorsHideHide;
 
   Future<void> test_export_hide_hide() async {
     await resolveTestCode('''
@@ -173,7 +173,7 @@ class MergeHideUsingShowTest extends _MergeCombinatorTest {
   DiagnosticCode get diagnosticCode => WarningCode.multipleCombinators;
 
   @override
-  FixKind get kind => DartFixKind.MERGE_COMBINATORS_SHOW_HIDE;
+  FixKind get kind => DartFixKind.mergeCombinatorsShowHide;
 
   Future<void> test_export_hide_hide() async {
     await resolveTestCode('''
@@ -285,7 +285,7 @@ class MergeShowUsingHideTest extends _MergeCombinatorTest {
   DiagnosticCode get diagnosticCode => WarningCode.multipleCombinators;
 
   @override
-  FixKind get kind => DartFixKind.MERGE_COMBINATORS_HIDE_SHOW;
+  FixKind get kind => DartFixKind.mergeCombinatorsHideShow;
 
   Future<void> test_export_hide_hide() async {
     await resolveTestCode('''
@@ -425,7 +425,7 @@ class MergeShowUsingShowTest extends _MergeCombinatorTest {
   DiagnosticCode get diagnosticCode => WarningCode.multipleCombinators;
 
   @override
-  FixKind get kind => DartFixKind.MERGE_COMBINATORS_SHOW_SHOW;
+  FixKind get kind => DartFixKind.mergeCombinatorsShowShow;
 
   Future<void> test_export_hide_hide() async {
     await resolveTestCode('''

@@ -46,7 +46,7 @@ class A {
 @reflectiveTest
 class RemoveThisExpressionTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_THIS_EXPRESSION;
+  FixKind get kind => DartFixKind.removeThisExpression;
 
   @override
   String get lintCode => LintNames.unnecessary_this;

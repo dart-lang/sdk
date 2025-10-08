@@ -295,7 +295,7 @@ void HeapProfileSampler::SampleOldSpaceAllocation(intptr_t allocation_size) {
 // Determines the next sampling interval by sampling from a poisson
 intptr_t HeapProfileSampler::GetNextSamplingIntervalLocked() {
   ASSERT(thread_->isolate_group() != nullptr);
-  double u = thread_->isolate_group()->random()->NextDouble();
+  double u = thread_->random()->NextDouble();
   ASSERT(u >= 0.0 && u <= 1.0);
   // Approximate sampling from a poisson distribution using an exponential
   // distribution. We take the sample by feeding in a random uniform value in

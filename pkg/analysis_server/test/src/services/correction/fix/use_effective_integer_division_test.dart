@@ -59,7 +59,7 @@ void f() {
 @reflectiveTest
 class UseEffectiveIntegerDivisionTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION;
+  FixKind get kind => DartFixKind.useEffectiveIntegerDivision;
 
   @override
   String get lintCode => LintNames.use_truncating_division;

@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveAnnotationTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ANNOTATION;
+  FixKind get kind => DartFixKind.removeAnnotation;
 
   @override
   void setUp() {

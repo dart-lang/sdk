@@ -17,10 +17,10 @@ class RemoveThisExpression extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_THIS_EXPRESSION;
+  FixKind get fixKind => DartFixKind.removeThisExpression;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_THIS_EXPRESSION_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeThisExpressionMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

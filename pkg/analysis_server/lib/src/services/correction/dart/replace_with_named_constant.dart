@@ -18,7 +18,7 @@ class ReplaceWithNamedConstant extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.USE_NAMED_CONSTANTS;
+  FixKind get fixKind => DartFixKind.useNamedConstants;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

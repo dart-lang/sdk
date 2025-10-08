@@ -18,10 +18,10 @@ class UseEffectiveIntegerDivision extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION;
+  FixKind get fixKind => DartFixKind.useEffectiveIntegerDivision;
 
   @override
-  FixKind get multiFixKind => DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION_MULTI;
+  FixKind get multiFixKind => DartFixKind.useEffectiveIntegerDivisionMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

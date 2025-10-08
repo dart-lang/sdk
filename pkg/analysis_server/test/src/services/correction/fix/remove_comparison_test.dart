@@ -27,7 +27,7 @@ bool _ignoreDeadCode(Diagnostic diagnostic) =>
 @reflectiveTest
 class RemoveComparisonTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_COMPARISON;
+  FixKind get kind => DartFixKind.removeComparison;
 
   Future<void> test_assertInitializer_first() async {
     await resolveTestCode('''
@@ -708,7 +708,7 @@ class Person {
 @reflectiveTest
 class RemoveNullCheckComparisonTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_COMPARISON;
+  FixKind get kind => DartFixKind.removeComparison;
 
   @override
   String get lintCode => LintNames.avoid_null_checks_in_equality_operators;
@@ -813,7 +813,7 @@ void g(int a, int b) {
 @reflectiveTest
 class RemoveTypeCheckTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_TYPE_CHECK;
+  FixKind get kind => DartFixKind.removeTypeCheck;
 
   Future<void> test_conditional_expression_alwaysFalse() async {
     await resolveTestCode('''

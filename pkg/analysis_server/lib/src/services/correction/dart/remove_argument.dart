@@ -19,10 +19,10 @@ class RemoveArgument extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_ARGUMENT;
+  FixKind get fixKind => DartFixKind.removeArgument;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_ARGUMENT_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeArgumentMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

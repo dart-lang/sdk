@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ImportLibraryPrefixTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PREFIX;
+  FixKind get kind => DartFixKind.importLibraryPrefix;
 
   Future<void> test_double_with_showCombinator() async {
     newFile('$testPackageLibPath/lib1.dart', '''

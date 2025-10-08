@@ -223,9 +223,9 @@ class A {}
 A? a;
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.IMPORT_LIBRARY_PROJECT1,
-      DartFixKind.IMPORT_LIBRARY_PROJECT2,
-      DartFixKind.IMPORT_LIBRARY_PROJECT3,
+      DartFixKind.importLibraryProject1,
+      DartFixKind.importLibraryProject2,
+      DartFixKind.importLibraryProject3,
       DartFixKind.createClassUppercase,
     ]);
   }

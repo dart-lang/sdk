@@ -40,7 +40,7 @@ int f(Object? x) {
 @reflectiveTest
 class ReplaceWithArrowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_ARROW;
+  FixKind get kind => DartFixKind.replaceWithArrow;
 
   Future<void> test_noSpace() async {
     await resolveTestCode('''

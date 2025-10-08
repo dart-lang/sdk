@@ -16,10 +16,10 @@ class RemoveUnnecessaryRawString extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_RAW_STRING;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryRawString;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_RAW_STRING_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnnecessaryRawStringMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

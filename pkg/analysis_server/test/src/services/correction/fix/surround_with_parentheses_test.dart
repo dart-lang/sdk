@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class SurroundWithParenthesesTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.SURROUND_WITH_PARENTHESES;
+  FixKind get kind => DartFixKind.surroundWithParentheses;
 
   Future<void> test_cast_cast() async {
     await resolveTestCode('''

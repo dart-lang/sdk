@@ -161,7 +161,7 @@ class A {}
 A? a;
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.IMPORT_LIBRARY_PROJECT1,
+      DartFixKind.importLibraryProject1,
       DartFixKind.createMixinUppercase,
     ]);
   }

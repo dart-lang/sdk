@@ -18,7 +18,7 @@ class ReplaceVarWithDynamic extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_VAR_WITH_DYNAMIC;
+  FixKind get fixKind => DartFixKind.replaceVarWithDynamic;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

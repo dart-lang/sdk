@@ -85,7 +85,7 @@ void f() {}
 @reflectiveTest
 class RemoveUnusedImportMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_IMPORT_MULTI;
+  FixKind get kind => DartFixKind.removeUnusedImportMulti;
 
   Future<void> test_all_diverseImports() async {
     await resolveTestCode('''
@@ -159,7 +159,7 @@ void f() {}
 @reflectiveTest
 class RemoveUnusedImportTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_IMPORT;
+  FixKind get kind => DartFixKind.removeUnusedImport;
 
   Future<void> test_anotherImportOnLine() async {
     await resolveTestCode('''

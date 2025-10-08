@@ -17,10 +17,10 @@ class RemoveExtendsClause extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_EXTENDS_CLAUSE;
+  FixKind get fixKind => DartFixKind.removeExtendsClause;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_EXTENDS_CLAUSE_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeExtendsClauseMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -44,7 +44,7 @@ class B extends A {
 @reflectiveTest
 class RemoveUnnecessaryFinalMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_FINAL_MULTI;
+  FixKind get kind => DartFixKind.removeUnnecessaryFinalMulti;
 
   Future<void> test_multi() async {
     await resolveTestCode('''
@@ -67,7 +67,7 @@ class A {
 @reflectiveTest
 class RemoveUnnecessaryFinalTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_FINAL;
+  FixKind get kind => DartFixKind.removeUnnecessaryFinal;
 
   Future<void> test_positional() async {
     await resolveTestCode('''

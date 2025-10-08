@@ -51,7 +51,7 @@ class B extends A {
 @reflectiveTest
 class RemoveMethodDeclarationTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_METHOD_DECLARATION;
+  FixKind get kind => DartFixKind.removeMethoddeclaration;
 
   Future<void> test_extensionDeclaresMemberOfObject() async {
     await resolveTestCode('''
@@ -81,7 +81,7 @@ extension type E(int i) {
 @reflectiveTest
 class UnnecessaryOverridesTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_METHOD_DECLARATION;
+  FixKind get kind => DartFixKind.removeMethoddeclaration;
 
   @override
   String get lintCode => LintNames.unnecessary_overrides;

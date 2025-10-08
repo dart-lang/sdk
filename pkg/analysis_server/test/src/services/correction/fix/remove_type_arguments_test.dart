@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveTypeArgumentsTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_TYPE_ARGUMENTS;
+  FixKind get kind => DartFixKind.removeTypeArguments;
 
   Future<void> test_classInstantiationAccessToStaticMember() async {
     await resolveTestCode('''

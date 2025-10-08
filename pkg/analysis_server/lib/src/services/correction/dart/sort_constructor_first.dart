@@ -18,10 +18,10 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.SORT_CONSTRUCTOR_FIRST;
+  FixKind get fixKind => DartFixKind.sortConstructorFirst;
 
   @override
-  FixKind get multiFixKind => DartFixKind.SORT_CONSTRUCTOR_FIRST_MULTI;
+  FixKind get multiFixKind => DartFixKind.sortConstructorFirstMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

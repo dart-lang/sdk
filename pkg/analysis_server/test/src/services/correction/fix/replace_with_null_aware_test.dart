@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class ReplaceWithNullAwareTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
+  FixKind get kind => DartFixKind.replaceWithNullAware;
 
   Future<void> test_function() async {
     await resolveTestCode('''
@@ -119,7 +119,7 @@ void f(List<int>? l) {
 @reflectiveTest
 class UncheckedMethodInvocationOfNullableValueTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
+  FixKind get kind => DartFixKind.replaceWithNullAware;
 
   Future<void> test_method() async {
     await resolveTestCode('''
@@ -150,7 +150,7 @@ class C {
 @reflectiveTest
 class UncheckedPropertyAccessOfNullableValueTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
+  FixKind get kind => DartFixKind.replaceWithNullAware;
 
   Future<void> test_prefixedIdentifier() async {
     await resolveTestCode('''

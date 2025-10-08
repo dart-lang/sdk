@@ -56,7 +56,7 @@ void f2() {
 @reflectiveTest
 class UseRethrowTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.USE_RETHROW;
+  FixKind get kind => DartFixKind.useRethrow;
 
   @override
   String get lintCode => LintNames.use_rethrow_when_possible;

@@ -20,7 +20,7 @@ class MoveTypeArgumentsToClass extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS;
+  FixKind get fixKind => DartFixKind.moveTypeArgumentsToClass;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

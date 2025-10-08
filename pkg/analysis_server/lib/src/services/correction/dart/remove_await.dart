@@ -17,10 +17,10 @@ class RemoveAwait extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_AWAIT;
+  FixKind get fixKind => DartFixKind.removeAwait;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_AWAIT_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeAwaitMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

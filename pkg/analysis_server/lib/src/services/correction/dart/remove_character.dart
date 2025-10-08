@@ -22,7 +22,7 @@ class RemoveCharacter extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_codePoint];
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_CHARACTER;
+  FixKind get fixKind => DartFixKind.removeCharacter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

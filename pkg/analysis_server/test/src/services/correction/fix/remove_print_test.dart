@@ -79,7 +79,7 @@ void f() {
 @reflectiveTest
 class RemovePrintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_PRINT;
+  FixKind get kind => DartFixKind.removePrint;
 
   @override
   String get lintCode => LintNames.avoid_print;

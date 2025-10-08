@@ -28,10 +28,10 @@ class ReplaceCascadeWithDot extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_CASCADE_WITH_DOT;
+  FixKind get fixKind => DartFixKind.replaceCascadeWithDot;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_CASCADE_WITH_DOT_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceCascadeWithDotMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

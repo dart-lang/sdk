@@ -32,7 +32,7 @@ class RemoveAsync extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.removeAsync;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_ASYNC;
+  FixKind get fixKind => DartFixKind.removeAsync;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

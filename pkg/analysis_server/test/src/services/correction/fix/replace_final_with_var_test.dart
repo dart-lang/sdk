@@ -45,7 +45,7 @@ void f() {
 @reflectiveTest
 class ReplaceFinalWithVarTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_FINAL_WITH_VAR;
+  FixKind get kind => DartFixKind.replaceFinalWithVar;
 
   @override
   String get lintCode => LintNames.unnecessary_final;
@@ -162,7 +162,7 @@ f() {
 @reflectiveTest
 class ReplaceFinalWithVarTypedRemoveTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_FINAL;
+  FixKind get kind => DartFixKind.removeUnnecessaryFinal;
 
   @override
   String get lintCode => LintNames.unnecessary_final;

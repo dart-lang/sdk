@@ -27,7 +27,7 @@ void main() {
 @reflectiveTest
 class NonFinalFieldInEnumTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_FINAL;
+  FixKind get kind => DartFixKind.makeFinal;
 
   Future<void> test_field_type() async {
     await resolveTestCode('''
@@ -88,7 +88,7 @@ class C {
 @reflectiveTest
 class PreferFinalFieldsTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_FINAL;
+  FixKind get kind => DartFixKind.makeFinal;
 
   @override
   String get lintCode => LintNames.prefer_final_fields;
@@ -128,7 +128,7 @@ class C {
 class PreferFinalFieldsWithNullSafetyTest extends FixProcessorLintTest
     with WithNullSafetyLintMixin {
   @override
-  FixKind get kind => DartFixKind.MAKE_FINAL;
+  FixKind get kind => DartFixKind.makeFinal;
 
   @override
   String get lintCode => LintNames.prefer_final_fields;
@@ -167,7 +167,7 @@ class C {
 @reflectiveTest
 class PreferFinalInForEachTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_FINAL;
+  FixKind get kind => DartFixKind.makeFinal;
 
   @override
   String get lintCode => LintNames.prefer_final_in_for_each;
@@ -237,7 +237,7 @@ class A {
 
 f() {
   for (var A(:a) in [A(1)]) { }
-} 
+}
 ''');
     await assertHasFix('''
 class A {
@@ -247,7 +247,7 @@ class A {
 
 f() {
   for (final A(:a) in [A(1)]) { }
-} 
+}
 ''', errorFilter: (e) => e.diagnosticCode != WarningCode.unusedLocalVariable);
   }
 
@@ -319,7 +319,7 @@ f() {
 @reflectiveTest
 class PreferFinalLocalTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_FINAL;
+  FixKind get kind => DartFixKind.makeFinal;
 
   @override
   String get lintCode => LintNames.prefer_final_locals;
@@ -485,7 +485,7 @@ void fn(final String test, final int other) {
 @reflectiveTest
 class PreferFinalParametersTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_FINAL;
+  FixKind get kind => DartFixKind.makeFinal;
 
   @override
   String get lintCode => LintNames.prefer_final_parameters;

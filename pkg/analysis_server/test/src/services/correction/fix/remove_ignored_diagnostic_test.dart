@@ -78,7 +78,7 @@ class C {
 @reflectiveTest
 class RemoveUnnecessaryIgnoreTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_IGNORED_DIAGNOSTIC;
+  FixKind get kind => DartFixKind.removeIgnoredDiagnostic;
 
   @override
   String get lintCode => LintNames.unnecessary_ignore;

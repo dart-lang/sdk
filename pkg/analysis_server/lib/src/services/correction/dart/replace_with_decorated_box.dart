@@ -20,10 +20,10 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_DECORATED_BOX;
+  FixKind get fixKind => DartFixKind.replaceWithDecoratedBox;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_DECORATED_BOX_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceWithDecoratedBoxMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

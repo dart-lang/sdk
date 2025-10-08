@@ -685,7 +685,7 @@ void main() {
 
     expect(result.stderr, isEmpty);
     // This value should be consistent as long as --random_seed is processed.
-    expect(result.stdout, contains('64'));
+    expect(result.stdout, contains('21'));
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 

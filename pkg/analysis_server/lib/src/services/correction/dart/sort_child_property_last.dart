@@ -25,10 +25,10 @@ class SortChildPropertyLast extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.sortChildPropertyLast;
 
   @override
-  FixKind get fixKind => DartFixKind.SORT_CHILD_PROPERTY_LAST;
+  FixKind get fixKind => DartFixKind.sortChildPropertyLast;
 
   @override
-  FixKind get multiFixKind => DartFixKind.SORT_CHILD_PROPERTY_LAST_MULTI;
+  FixKind get multiFixKind => DartFixKind.sortChildPropertyLastMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

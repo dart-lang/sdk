@@ -18,10 +18,10 @@ class RemoveUnusedImport extends ResolvedCorrectionProducer {
       CorrectionApplicability.acrossSingleFile;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNUSED_IMPORT;
+  FixKind get fixKind => DartFixKind.removeUnusedImport;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_UNUSED_IMPORT_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnusedImportMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

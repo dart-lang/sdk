@@ -13,7 +13,7 @@ class RemoveNew extends _RemoveNew {
   RemoveNew({required super.context});
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_NEW;
+  FixKind get fixKind => DartFixKind.removeNew;
 }
 
 class RemoveUnnecessaryNew extends _RemoveNew {
@@ -24,10 +24,10 @@ class RemoveUnnecessaryNew extends _RemoveNew {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_NEW;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryNew;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_NEW_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnnecessaryNewMulti;
 }
 
 class _RemoveNew extends ParsedCorrectionProducer {

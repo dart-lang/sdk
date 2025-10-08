@@ -26,7 +26,7 @@ bool _ignoreDeadCode(Diagnostic diagnostic) =>
 @reflectiveTest
 class DeadNullAwareAssignmentExpressionTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
+  FixKind get kind => DartFixKind.removeIfNullOperator;
 
   Future<void>
   test_assignmentExpression_propertyAccess_methodInvocation() async {
@@ -115,7 +115,7 @@ void f(int a, int b, int c) => a = b;
 @reflectiveTest
 class DeadNullAwareExpressionTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
+  FixKind get kind => DartFixKind.removeIfNullOperator;
 
   Future<void> test_immediateChild() async {
     await resolveTestCode('''
@@ -175,7 +175,7 @@ var c = a;
 @reflectiveTest
 class UnnecessaryNullInIfNullOperatorsTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
+  FixKind get kind => DartFixKind.removeIfNullOperator;
 
   @override
   String get lintCode => LintNames.unnecessary_null_in_if_null_operators;

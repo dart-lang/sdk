@@ -17,10 +17,10 @@ class UseRethrow extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.USE_RETHROW;
+  FixKind get fixKind => DartFixKind.useRethrow;
 
   @override
-  FixKind get multiFixKind => DartFixKind.USE_RETHROW_MULTI;
+  FixKind get multiFixKind => DartFixKind.useRethrowMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -17,10 +17,10 @@ class UseNotEqNull extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.USE_NOT_EQ_NULL;
+  FixKind get fixKind => DartFixKind.useNotEqNull;
 
   @override
-  FixKind get multiFixKind => DartFixKind.USE_NOT_EQ_NULL_MULTI;
+  FixKind get multiFixKind => DartFixKind.useNotEqNullMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

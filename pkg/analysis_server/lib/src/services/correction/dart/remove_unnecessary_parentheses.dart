@@ -17,10 +17,10 @@ class RemoveUnnecessaryParentheses extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_PARENTHESES;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryParentheses;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_PARENTHESES_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnnecessaryParenthesesMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

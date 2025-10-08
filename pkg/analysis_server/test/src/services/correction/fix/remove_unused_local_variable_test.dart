@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class RemoveUnusedLocalVariableTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE;
+  FixKind get kind => DartFixKind.removeUnusedLocalVariable;
 
   Future<void> test_assigned() async {
     await resolveTestCode(r'''
@@ -279,7 +279,7 @@ void f() {
 class RemoveUnusedLocalVariableTest_DeclaredVariablePattern
     extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE;
+  FixKind get kind => DartFixKind.removeUnusedLocalVariable;
 
   Future<void> test_logicalAndPattern_typed_left() async {
     await resolveTestCode(r'''

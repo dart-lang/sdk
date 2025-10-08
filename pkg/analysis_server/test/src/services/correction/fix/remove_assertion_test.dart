@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveAssertionTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ASSERTION;
+  FixKind get kind => DartFixKind.removeAssertion;
 
   Future<void> test_class() async {
     await resolveTestCode('''

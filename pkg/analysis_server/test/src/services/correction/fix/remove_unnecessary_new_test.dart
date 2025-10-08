@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class RemoveNewTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_NEW;
+  FixKind get kind => DartFixKind.removeNew;
 
   Future<void> test_explicitNew() async {
     await resolveTestCode('''
@@ -72,7 +72,7 @@ class C {
 @reflectiveTest
 class RemoveUnnecessaryNewTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_NEW;
+  FixKind get kind => DartFixKind.removeUnnecessaryNew;
 
   @override
   String get lintCode => LintNames.unnecessary_new;

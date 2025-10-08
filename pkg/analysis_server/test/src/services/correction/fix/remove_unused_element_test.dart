@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class RemoveUnreachableFromMainTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_ELEMENT;
+  FixKind get kind => DartFixKind.removeUnusedElement;
 
   @override
   String get lintCode => LintNames.unreachable_from_main;
@@ -57,7 +57,7 @@ class C {
 @reflectiveTest
 class RemoveUnusedElementTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_ELEMENT;
+  FixKind get kind => DartFixKind.removeUnusedElement;
 
   Future<void> test_class_constructor_first() async {
     await resolveTestCode(r'''

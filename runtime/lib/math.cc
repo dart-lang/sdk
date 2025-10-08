@@ -14,10 +14,7 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(Random_initialSeed, 0, 0) {
-  Random* rnd = isolate->random();
-  uint64_t seed = rnd->NextUInt32();
-  seed |= (static_cast<uint64_t>(rnd->NextUInt32()) << 32);
-  return Integer::New(seed);
+  return Integer::New(thread->random()->NextUInt64());
 }
 
 DEFINE_NATIVE_ENTRY(SecureRandom_getBytes, 0, 1) {

@@ -30,10 +30,10 @@ class ReplaceWithEightDigitHex extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_replacement];
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_EIGHT_DIGIT_HEX;
+  FixKind get fixKind => DartFixKind.replaceWithEightDigitHex;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_EIGHT_DIGIT_HEX_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceWithEightDigitHexMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -21,7 +21,7 @@ class RemoveDeadIfNull extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
+  FixKind get fixKind => DartFixKind.removeIfNullOperator;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

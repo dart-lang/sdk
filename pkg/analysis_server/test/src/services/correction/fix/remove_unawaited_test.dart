@@ -79,7 +79,7 @@ Future<int> g() async => 7;
 @reflectiveTest
 class RemoveAwaitTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNAWAITED;
+  FixKind get kind => DartFixKind.removeUnawaited;
 
   @override
   String get lintCode => LintNames.unnecessary_unawaited;

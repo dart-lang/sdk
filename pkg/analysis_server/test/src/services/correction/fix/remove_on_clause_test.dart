@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveOnClauseMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ON_CLAUSE_MULTI;
+  FixKind get kind => DartFixKind.removeOnClauseMulti;
 
   Future<void> test_singleFile() async {
     newFile('$testPackageLibPath/a.dart', '''
@@ -51,7 +51,7 @@ augment extension E { }
 @reflectiveTest
 class RemoveOnClauseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ON_CLAUSE;
+  FixKind get kind => DartFixKind.removeOnClause;
 
   Future<void> test_it() async {
     newFile('$testPackageLibPath/a.dart', '''

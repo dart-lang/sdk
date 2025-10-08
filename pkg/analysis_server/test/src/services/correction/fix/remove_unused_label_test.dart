@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveUnusedLabelTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_LABEL;
+  FixKind get kind => DartFixKind.removeUnusedLabel;
 
   Future<void> test_unused_onWhile() async {
     await resolveTestCode('''

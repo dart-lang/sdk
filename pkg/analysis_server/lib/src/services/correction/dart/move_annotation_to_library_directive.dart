@@ -20,7 +20,7 @@ class MoveAnnotationToLibraryDirective extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.MOVE_ANNOTATION_TO_LIBRARY_DIRECTIVE;
+  FixKind get fixKind => DartFixKind.moveAnnotationToLibraryDirective;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

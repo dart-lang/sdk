@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ReplaceWithBracketsTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_BRACKETS;
+  FixKind get kind => DartFixKind.replaceWithBrackets;
 
   @override
   String get lintCode => LintNames.empty_statements;

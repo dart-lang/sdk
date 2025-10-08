@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class MakeSuperInvocationLastTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_SUPER_INVOCATION_LAST;
+  FixKind get kind => DartFixKind.makeSuperInvocationLast;
 
   Future<void> test_assert() async {
     await resolveTestCode('''

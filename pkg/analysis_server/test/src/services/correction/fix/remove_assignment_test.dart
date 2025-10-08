@@ -42,7 +42,7 @@ void f() {
 @reflectiveTest
 class RemoveAssignmentTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ASSIGNMENT;
+  FixKind get kind => DartFixKind.removeAssignment;
 
   @override
   String get lintCode => LintNames.unnecessary_null_aware_assignments;

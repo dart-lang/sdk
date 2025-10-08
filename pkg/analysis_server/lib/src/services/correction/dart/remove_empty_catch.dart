@@ -17,10 +17,10 @@ class RemoveEmptyCatch extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_EMPTY_CATCH;
+  FixKind get fixKind => DartFixKind.removeEmptyCatch;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_EMPTY_CATCH_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeEmptyCatchMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

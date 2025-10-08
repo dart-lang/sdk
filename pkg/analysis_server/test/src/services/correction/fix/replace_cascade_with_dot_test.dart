@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class ReplaceCascadeWithDotTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_CASCADE_WITH_DOT;
+  FixKind get kind => DartFixKind.replaceCascadeWithDot;
 
   @override
   String get lintCode =>

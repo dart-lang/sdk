@@ -23,7 +23,7 @@ class ReplaceWithPartOrUriEmpty extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_uriStr];
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_PART_OF_URI;
+  FixKind get fixKind => DartFixKind.replaceWithPartOfUri;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

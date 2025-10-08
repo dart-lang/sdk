@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveDefaultValueTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_DEFAULT_VALUE;
+  FixKind get kind => DartFixKind.removeDefaultValue;
 
   Future<void> test_default_value_on_required_parameter() async {
     await resolveTestCode('''

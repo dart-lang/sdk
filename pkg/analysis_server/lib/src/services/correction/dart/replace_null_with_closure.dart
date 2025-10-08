@@ -19,10 +19,10 @@ class ReplaceNullWithClosure extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_NULL_WITH_CLOSURE;
+  FixKind get fixKind => DartFixKind.replaceNullWithClosure;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_NULL_WITH_CLOSURE_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceNullWithClosureMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

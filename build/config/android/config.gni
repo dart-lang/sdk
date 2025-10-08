@@ -73,7 +73,7 @@ if (is_android) {
   if (current_cpu == "riscv64") {
     android_api_level = 35
   } else {
-    android_api_level = 21
+    android_api_level = 24
   }
 
   # Toolchain root directory for each build. The actual binaries are inside

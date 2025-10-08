@@ -18,11 +18,11 @@ class RemoveDeprecatedNewInCommentReference extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE;
+  FixKind get fixKind => DartFixKind.removeDeprecatedNewInCommentReference;
 
   @override
   FixKind get multiFixKind =>
-      DartFixKind.REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE_MULTI;
+      DartFixKind.removeDeprecatedNewInCommentReferenceMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -17,11 +17,10 @@ class ReplaceContainerWithSizedBox extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_CONTAINER_WITH_SIZED_BOX;
+  FixKind get fixKind => DartFixKind.replaceContainerWithSizedBox;
 
   @override
-  FixKind? get multiFixKind =>
-      DartFixKind.REPLACE_CONTAINER_WITH_SIZED_BOX_MULTI;
+  FixKind? get multiFixKind => DartFixKind.replaceContainerWithSizedBoxMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

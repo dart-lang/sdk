@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ReplaceReturnTypeTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE;
+  FixKind get kind => DartFixKind.replaceReturnType;
 
   Future<void> test_async_method() async {
     await resolveTestCode('''

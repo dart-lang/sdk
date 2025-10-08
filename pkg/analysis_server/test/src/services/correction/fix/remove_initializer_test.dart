@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class RemoveDeadWildcardInitializerTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_INITIALIZER;
+  FixKind get kind => DartFixKind.removeInitializer;
 
   Future<void> test_deadLateWildcardVariableInitializer() async {
     await resolveTestCode('''
@@ -66,7 +66,7 @@ class T2 {
 @reflectiveTest
 class RemoveInitializerTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_INITIALIZER;
+  FixKind get kind => DartFixKind.removeInitializer;
 
   @override
   String get lintCode => LintNames.avoid_init_to_null;

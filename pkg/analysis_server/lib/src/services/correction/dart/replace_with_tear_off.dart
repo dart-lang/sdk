@@ -17,10 +17,10 @@ class ReplaceWithTearOff extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_TEAR_OFF;
+  FixKind get fixKind => DartFixKind.replaceWithTearOff;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_TEAR_OFF_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceWithTearOffMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

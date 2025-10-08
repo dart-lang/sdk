@@ -18,10 +18,10 @@ class RemoveUnnecessaryFinal extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_FINAL;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryFinal;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_FINAL_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnnecessaryFinalMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

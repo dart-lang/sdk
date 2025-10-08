@@ -18,7 +18,7 @@ class RemoveVarKeyword extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_VAR_KEYWORD;
+  FixKind get fixKind => DartFixKind.removeVarKeyword;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

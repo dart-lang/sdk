@@ -38,7 +38,7 @@ extension on String {}
 @reflectiveTest
 class InsertOnKeywordTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.INSERT_ON_KEYWORD;
+  FixKind get kind => DartFixKind.insertOnKeyword;
 
   Future<void> test_hasName() async {
     await resolveTestCode('''

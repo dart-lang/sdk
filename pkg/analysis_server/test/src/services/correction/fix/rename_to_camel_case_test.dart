@@ -52,7 +52,7 @@ void f() {
 class RenameToCamelCaseTest_constantIdentifiedNames
     extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.RENAME_TO_CAMEL_CASE;
+  FixKind get kind => DartFixKind.renameToCamelCase;
 
   @override
   String get lintCode => LintNames.constant_identifier_names;
@@ -88,7 +88,7 @@ void f() {
 class RenameToCamelCaseTest_notConstantIdentifiedNames
     extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.RENAME_TO_CAMEL_CASE;
+  FixKind get kind => DartFixKind.renameToCamelCase;
 
   @override
   String get lintCode => LintNames.non_constant_identifier_names;

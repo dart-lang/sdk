@@ -25,7 +25,7 @@ class ReplaceReturnTypeStream extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_typeArgument];
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_RETURN_TYPE_STREAM;
+  FixKind get fixKind => DartFixKind.replaceReturnTypeStream;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -17,10 +17,10 @@ class RemoveEmptyConstructorBody extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY;
+  FixKind get fixKind => DartFixKind.removeEmptyConstructorBody;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeEmptyConstructorBodyMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

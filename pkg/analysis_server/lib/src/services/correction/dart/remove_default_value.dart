@@ -18,7 +18,7 @@ class RemoveDefaultValue extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_DEFAULT_VALUE;
+  FixKind get fixKind => DartFixKind.removeDefaultValue;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

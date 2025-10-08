@@ -24,7 +24,7 @@ class RemoveAnnotation extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_annotationName];
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_ANNOTATION;
+  FixKind get fixKind => DartFixKind.removeAnnotation;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

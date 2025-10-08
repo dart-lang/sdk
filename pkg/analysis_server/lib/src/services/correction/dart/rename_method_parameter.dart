@@ -27,7 +27,7 @@ class RenameMethodParameter extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_oldName, _newName];
 
   @override
-  FixKind get fixKind => DartFixKind.RENAME_METHOD_PARAMETER;
+  FixKind get fixKind => DartFixKind.renameMethodParameter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
