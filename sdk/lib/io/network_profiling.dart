@@ -11,14 +11,16 @@ const int _versionMinor = 0;
 const String _tcpSocket = 'tcp';
 const String _udpSocket = 'udp';
 
+int _nextSocketId = 0;
+
 /// Creates a Map conforming to the `HttpProfileRequest` type defined in the
 /// dart:io service extension spec from an element of dart:developer's
 /// `_developerProfilingData`.
 Map<String, Object?> _createHttpProfileRequestFromProfileMap(
-  Map<String, dynamic> requestProfile, {
+  Map<String, Object> requestProfile, {
   required bool ref,
 }) {
-  final responseData = requestProfile['responseData'] as Map<String, dynamic>;
+  final responseData = requestProfile['responseData'] as Map<String, Object>;
 
   return {
     'type': '${ref ? '@' : ''}HttpProfileRequest',
@@ -97,13 +99,15 @@ abstract class _NetworkProfiling {
               ...HttpProfiler.serializeHttpProfileRequests(updatedSince),
               ...getHttpClientProfilingData()
                   .where(
-                    (final Map<String, dynamic> p) =>
+                    (final Map<String, Object?> p) =>
                         updatedSince == null ||
                         (p['_lastUpdateTime'] as int) >= updatedSince,
                   )
                   .map(
-                    (p) =>
-                        _createHttpProfileRequestFromProfileMap(p, ref: true),
+                    (p) => _createHttpProfileRequestFromProfileMap(
+                      p.cast<String, Object>(),
+                      ref: true,
+                    ),
                   ),
             ],
           });
@@ -151,7 +155,7 @@ abstract class _NetworkProfiling {
 
 String _success() => json.encode({'type': 'Success'});
 
-String _invalidArgument(String argument, dynamic value) =>
+String _invalidArgument(String argument, Object value) =>
     "Value for parameter '$argument' is not valid: $value";
 
 String _missingArgument(String argument) => "Parameter '$argument' is required";
@@ -186,7 +190,10 @@ String _getHttpProfileRequest(Map<String, String> parameters) {
     );
     request = profileMap == null
         ? null
-        : _createHttpProfileRequestFromProfileMap(profileMap, ref: false);
+        : _createHttpProfileRequestFromProfileMap(
+            profileMap.cast<String, Object>(),
+            ref: false,
+          );
   } else {
     request = HttpProfiler.getHttpProfileRequest(id)?.toJson(ref: false);
   }
@@ -227,7 +234,7 @@ abstract class _SocketProfile {
   static bool get enableSocketProfiling => _enableSocketProfiling;
 
   static bool _enableSocketProfiling = false;
-  static Map<String, _SocketStatistic> _idToSocketStatistic = {};
+  static Map<int, _SocketStatistic> _idToSocketStatistic = {};
 
   static String toJson() => json.encode({
     'type': _kType,
@@ -243,15 +250,14 @@ abstract class _SocketProfile {
     if (!_enableSocketProfiling) {
       return;
     }
-    // TODO(srawlins): Assert that `_idToSocketStatistic` does not contain
-    // `id.toString()`?
     final address =
         (addr.type == InternetAddress.anyIPv6 ||
             addr.type == InternetAddress.loopbackIPv6)
         ? '[${addr.address}]'
         : addr.address;
-    _idToSocketStatistic[id.toString()] = _SocketStatistic(
-      id.toString(),
+    assert(!_idToSocketStatistic.containsKey(id));
+    _idToSocketStatistic[id] = _SocketStatistic(
+      id,
       startTime: Timeline.now,
       socketType: type,
       address: address,
@@ -264,13 +270,12 @@ abstract class _SocketProfile {
     _SocketProfileType type, [
     Object? object,
   ]) {
-    final idKey = id.toString();
     if (!_enableSocketProfiling) {
       return;
     }
     // Skip any socket that started before `_enableSocketProfiling` was turned
     // on.
-    final stats = _idToSocketStatistic[idKey];
+    final stats = _idToSocketStatistic[id];
     if (stats == null) return;
     switch (type) {
       case _SocketProfileType.endTime:
@@ -327,7 +332,7 @@ enum _SocketProfileType {
 
 /// Socket statistic
 class _SocketStatistic {
-  final String id;
+  final int id;
   final int startTime;
   int? endTime;
   final String address;
@@ -346,9 +351,9 @@ class _SocketStatistic {
     required this.port,
   });
 
-  Map<String, dynamic> toMap() {
+  Map<String, Object> toMap() {
     final map = <String, Object>{
-      'id': id,
+      'id': id.toString(),
       'startTime': startTime,
       'address': address,
       'port': port,
@@ -363,7 +368,7 @@ class _SocketStatistic {
     return map;
   }
 
-  void _setIfNotNull(Map<String, dynamic> json, String key, Object? value) {
+  void _setIfNotNull(Map<String, Object> json, String key, Object? value) {
     if (value == null) return;
     json[key] = value;
   }
