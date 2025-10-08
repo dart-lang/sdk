@@ -94847,6 +94847,70 @@ typedef F<Y> = List<Y>;
     );
   }
 
+  test_operation_addFile_change_sameContent() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    newFile(testFile.path, r'''
+void f() {}
+''');
+    driver.addFile2(testFile);
+
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+''');
+
+    // Notify about the file change.
+    // Even though no actual changes, we still get errors.
+    // See https://github.com/dart-lang/sdk/commit/ae2e608ff953eb511
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[status] idle
+''');
+
+    // Notify about the file change.
+    // Even though no actual changes, we still get errors.
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[status] idle
+''');
+  }
+
   test_operation_addFile_changeImported_affected() async {
     configuration.withCheckLibraryDiagnosticsRequirements = true;
 

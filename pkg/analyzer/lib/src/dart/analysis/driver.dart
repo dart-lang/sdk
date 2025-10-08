@@ -656,6 +656,9 @@ class AnalysisDriver {
       return;
     }
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
+      var file = resourceProvider.getFile(path);
+      _lastProducedSignatures.remove(path);
+      _lastProducedDiagnosticIds.remove(file);
       _priorityResults.clear();
       _resolvedLibraryCache.clear();
       _pendingFileChanges.add(_FileChange(path, _FileChangeKind.change));

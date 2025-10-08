@@ -196,7 +196,6 @@ void g() {
     // expect(filesErrors[b], isNull);
   }
 
-  @failingTest
   Future<void> test_sendNoticesAfterNopChange() async {
     // The errors are empty on the last line.
     addTestFile('');
@@ -221,7 +220,6 @@ void g() {
     expect(filesErrors, isNotEmpty);
   }
 
-  @failingTest
   Future<void> test_sendNoticesAfterNopChange_flushedUnit() async {
     // The list of errors is empty on the last line.
     addTestFile('');
