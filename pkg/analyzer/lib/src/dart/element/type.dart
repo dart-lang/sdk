@@ -321,15 +321,20 @@ class FunctionTypeImpl extends TypeImpl
     }
 
     var substitution = Substitution.fromPairs2(typeParameters, argumentTypes);
-
+    var length = parameters.length;
+    var newParameters = length == 0
+        ? const <InternalFormalParameterElement>[]
+        : List.generate(
+            length,
+            (index) => SubstitutedFormalParameterElementImpl.from(
+              parameters[index],
+              substitution,
+            ),
+          );
     return FunctionTypeImpl(
       returnType: substitution.substituteType(returnType),
       typeParameters: const [],
-      parameters: parameters
-          .map(
-            (p) => SubstitutedFormalParameterElementImpl.from(p, substitution),
-          )
-          .toFixedList(),
+      parameters: newParameters,
       nullabilitySuffix: nullabilitySuffix,
     );
   }

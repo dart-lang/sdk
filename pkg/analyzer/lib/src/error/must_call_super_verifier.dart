@@ -97,15 +97,22 @@ class MustCallSuperVerifier {
 
     // Walk up the type hierarchy from [classElement], ignoring direct
     // interfaces.
-    var superclasses = Queue<InterfaceElement?>();
+    var superclasses = Queue<InterfaceElement>();
 
     void addToQueue(InterfaceElement element) {
-      superclasses.addAll(element.mixins.map((i) => i.element));
-      superclasses.add(element.supertype?.element);
+      var mixins = element.mixins;
+      for (int i = 0; i < mixins.length; i++) {
+        superclasses.add(mixins[i].element);
+      }
+      var supertype = element.supertype;
+      if (supertype != null) {
+        superclasses.add(supertype.element);
+      }
       if (element is MixinElement) {
-        superclasses.addAll(
-          element.superclassConstraints.map((i) => i.element),
-        );
+        var superclassConstraints = element.superclassConstraints;
+        for (int i = 0; i < superclassConstraints.length; i++) {
+          superclasses.add(superclassConstraints[i].element);
+        }
       }
     }
 
@@ -113,7 +120,7 @@ class MustCallSuperVerifier {
     addToQueue(classElement);
     while (superclasses.isNotEmpty) {
       var ancestor = superclasses.removeFirst();
-      if (ancestor == null || !visitedClasses.add(ancestor)) {
+      if (!visitedClasses.add(ancestor)) {
         continue;
       }
 

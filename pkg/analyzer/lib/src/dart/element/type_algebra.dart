@@ -204,7 +204,7 @@ abstract class Substitution {
     if (map.isEmpty) {
       return _NullSubstitution.instance;
     }
-    return _MapSubstitution(map.map((key, value) => MapEntry(key, value)));
+    return _MapSubstitution(map);
   }
 
   /// Substitutes the Nth parameter in [parameters] with the Nth type in

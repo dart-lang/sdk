@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:collection/collection.dart';
 
 class UseResultVerifier {
   final DiagnosticReporter _diagnosticReporter;
@@ -180,7 +179,12 @@ class UseResultVerifier {
       element = element.variable;
     }
 
-    return element.metadata.annotations.firstWhereOrNull((e) => e.isUseResult);
+    var annotations = element.metadata.annotations;
+    for (int i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isUseResult) return annotation;
+    }
+    return null;
   }
 
   static bool _isUsed(AstNode node) {

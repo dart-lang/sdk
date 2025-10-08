@@ -13,7 +13,6 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -1949,11 +1948,15 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   }
 
   MetadataImpl _buildMetadata(List<AnnotationImpl> nodeList) {
-    var annotations = nodeList.map((ast) {
-      return ElementAnnotationImpl(_unitElement, ast);
-    }).toFixedList();
-
-    return MetadataImpl(annotations);
+    var length = nodeList.length;
+    if (length == 0) return MetadataImpl(const []);
+    return MetadataImpl(
+      List.generate(
+        length,
+        (index) => ElementAnnotationImpl(_unitElement, nodeList[index]),
+        growable: false,
+      ),
+    );
   }
 
   void _builtRepresentationDeclaration({

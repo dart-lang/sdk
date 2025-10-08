@@ -42,8 +42,12 @@ class RecursiveTypeVisitor extends UnifyingTypeVisitor<bool> {
 
   /// Visit each item in the list until one returns `false`, in which case, this
   /// will also return `false`.
-  bool visitChildren(Iterable<DartType> types) =>
-      types.every((type) => type.accept(this));
+  bool visitChildren(Iterable<DartType> types) {
+    for (var element in types) {
+      if (!element.accept(this)) return false;
+    }
+    return true;
+  }
 
   @override
   bool visitDartType(DartType type) {
