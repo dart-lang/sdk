@@ -94,6 +94,7 @@ package:analysis_server_plugin/edit/dart/correction_producer.dart:
     typeSystem (getter: TypeSystem)
     unitResult (getter: ResolvedUnitResult)
     getClassDeclaration (method: Future<ClassDeclaration?> Function(ClassFragment))
+    getDeclarationNodeFromElement (method: Future<CompilationUnitMember?> Function(InstanceElement, {bool includeExtensions}))
     getEnumDeclaration (method: Future<EnumDeclaration?> Function(EnumFragment))
     getExtensionDeclaration (method: Future<ExtensionDeclaration?> Function(ExtensionFragment))
     getExtensionTypeDeclaration (method: Future<ExtensionTypeDeclaration?> Function(ExtensionTypeFragment))
@@ -182,6 +183,7 @@ package:analyzer/dart/element/element.dart:
   EnumFragment (referenced)
   ExtensionFragment (referenced)
   ExtensionTypeFragment (referenced)
+  InstanceElement (referenced)
   InterfaceElement (referenced)
   LibraryElement (referenced)
   MixinFragment (referenced)
@@ -198,6 +200,7 @@ package:analyzer/source/source_range.dart:
 package:analyzer/src/dart/ast/ast.dart:
   AstNode (referenced)
   ClassDeclaration (referenced)
+  CompilationUnitMember (referenced)
   EnumDeclaration (referenced)
   Expression (referenced)
   ExtensionDeclaration (referenced)

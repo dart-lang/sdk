@@ -235,6 +235,7 @@ mixin M {
 class CreateMethodTearoffMixinTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createMethodTearoff;
+
   Future<void> test_functionType_method_enclosingMixin_static() async {
     await resolveTestCode('''
 mixin M {
@@ -282,6 +283,85 @@ mixin M {
 
 useFunction(int g(double a, String b)) {}
 ''');
+  }
+
+  Future<void> test_main_part() async {
+    var partPath = join(testPackageLibPath, 'part.dart');
+    newFile(partPath, '''
+part of 'test.dart';
+
+mixin M {
+}
+''');
+    await resolveTestCode('''
+part 'part.dart';
+
+void foo(M a) {
+  void Function() _ = a.myUndefinedMethod;
+}
+''');
+    await assertHasFix('''
+part of 'test.dart';
+
+mixin M {
+  void myUndefinedMethod() {
+  }
+}
+''', target: partPath);
+  }
+
+  Future<void> test_part_main() async {
+    var mainPath = join(testPackageLibPath, 'main.dart');
+    newFile(mainPath, '''
+part 'test.dart';
+
+mixin M {
+}
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(M a) {
+  void Function() _ = a.myUndefinedMethod;
+}
+''');
+    await assertHasFix('''
+part 'test.dart';
+
+mixin M {
+  void myUndefinedMethod() {
+  }
+}
+''', target: mainPath);
+  }
+
+  Future<void> test_part_sibling() async {
+    var part1Path = join(testPackageLibPath, 'part1.dart');
+    newFile(part1Path, '''
+part of 'main.dart';
+
+mixin M {
+}
+''');
+    newFile(join(testPackageLibPath, 'main.dart'), '''
+part 'part1.dart';
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(M a) {
+  void Function() _ = a.myUndefinedMethod;
+}
+''');
+    await assertHasFix('''
+part of 'main.dart';
+
+mixin M {
+  void myUndefinedMethod() {
+  }
+}
+''', target: part1Path);
   }
 }
 

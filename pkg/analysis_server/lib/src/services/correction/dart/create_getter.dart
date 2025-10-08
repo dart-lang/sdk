@@ -211,21 +211,10 @@ class CreateGetter extends CreateFieldOrGetter {
       return;
     }
     // prepare target declaration
-    var targetDeclarationResult = await sessionHelper.getFragmentDeclaration(
-      targetFragment,
+    var targetNode = await getDeclarationNodeFromElement(
+      targetFragment.element,
     );
-    if (targetDeclarationResult == null) {
-      return;
-    }
-    var targetNode = targetDeclarationResult.node;
-    if (targetNode is CompilationUnitMember) {
-      if (targetDeclarationResult.node is! ClassDeclaration &&
-          targetDeclarationResult.node is! ExtensionDeclaration &&
-          targetDeclarationResult.node is! ExtensionTypeDeclaration &&
-          targetDeclarationResult.node is! MixinDeclaration) {
-        return;
-      }
-    } else {
+    if (targetNode is! CompilationUnitMember) {
       return;
     }
     // Build method source.

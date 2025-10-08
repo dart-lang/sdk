@@ -1595,9 +1595,7 @@ CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER:
 CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR:
-  status: needsFix
-  notes: |-
-    The fix is to create the operator in an extension.
+  status: hasFix
 CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_FUNCTION:

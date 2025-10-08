@@ -111,7 +111,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
     );
     if (targetClassElement == null) return;
 
-    var targetNode = await _declarationNodeFromElement(targetClassElement);
+    var targetNode = await getDeclarationNodeFromElement(targetClassElement);
     if (targetNode is! CompilationUnitMember) return;
 
     await _writeMethod(
@@ -167,7 +167,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
       if (targetClassElement == null) return;
       targetFragment = targetClassElement.firstFragment;
 
-      targetNode = await _declarationNodeFromElement(targetClassElement);
+      targetNode = await getDeclarationNodeFromElement(targetClassElement);
       if (targetNode == null) return;
 
       // Maybe static.
@@ -187,26 +187,6 @@ class CreateMethod extends ResolvedCorrectionProducer {
       targetNode,
       hasStaticModifier: hasStaticModifier,
     );
-  }
-
-  Future<CompilationUnitMember?> _declarationNodeFromElement(
-    InterfaceElement element,
-  ) async {
-    if (element.library.isInSdk) return null;
-    if (element is MixinElement) {
-      var fragment = element.firstFragment;
-      return await getMixinDeclaration(fragment);
-    } else if (element is ClassElement) {
-      var fragment = element.firstFragment;
-      return await getClassDeclaration(fragment);
-    } else if (element is ExtensionTypeElement) {
-      var fragment = element.firstFragment;
-      return await getExtensionTypeDeclaration(fragment);
-    } else if (element is EnumElement) {
-      var fragment = element.firstFragment;
-      return await getEnumDeclaration(fragment);
-    }
-    return null;
   }
 
   /// Inserts the new method into the source code.

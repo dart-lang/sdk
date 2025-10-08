@@ -435,6 +435,24 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
+  Future<CompilationUnitMember?> getDeclarationNodeFromElement(
+    InstanceElement element, {
+    bool includeExtensions = false,
+  }) async {
+    if (element.library.isInSdk) return null;
+    return switch (element) {
+      ClassElement(:var firstFragment) => getClassDeclaration(firstFragment),
+      EnumElement(:var firstFragment) => getEnumDeclaration(firstFragment),
+      ExtensionElement(:var firstFragment) when includeExtensions =>
+        getExtensionDeclaration(firstFragment),
+      ExtensionTypeElement(:var firstFragment) => getExtensionTypeDeclaration(
+        firstFragment,
+      ),
+      MixinElement(:var firstFragment) => getMixinDeclaration(firstFragment),
+      _ => null,
+    };
+  }
+
   /// Returns the class declaration for the given [fragment], or `null` if there
   /// is no such class.
   Future<EnumDeclaration?> getEnumDeclaration(EnumFragment fragment) async {

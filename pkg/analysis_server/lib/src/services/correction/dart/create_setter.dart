@@ -52,8 +52,10 @@ class CreateSetter extends ResolvedCorrectionProducer {
     InstanceElement? targetElement;
     if (target is ExtensionOverride) {
       targetElement = target.element;
-    } else if (target is Identifier && target.element is ExtensionElement) {
-      targetElement = target.element as ExtensionElement;
+    } else if (target case Identifier(
+      :InstanceElement element,
+    ) when element is! ExtensionElement) {
+      targetElement = element;
       staticModifier = true;
     } else if (target != null) {
       // prepare target interface type
@@ -81,21 +83,10 @@ class CreateSetter extends ResolvedCorrectionProducer {
       return;
     }
     // prepare target declaration
-    var targetDeclarationResult = await sessionHelper.getFragmentDeclaration(
-      targetFragment,
+    var targetNode = await getDeclarationNodeFromElement(
+      targetFragment.element,
     );
-    if (targetDeclarationResult == null) {
-      return;
-    }
-    var targetNode = targetDeclarationResult.node;
-    if (targetNode is CompilationUnitMember) {
-      if (targetDeclarationResult.node is! ClassDeclaration &&
-          targetDeclarationResult.node is! MixinDeclaration &&
-          targetDeclarationResult.node is! ExtensionDeclaration &&
-          targetDeclarationResult.node is! ExtensionTypeDeclaration) {
-        return;
-      }
-    } else {
+    if (targetNode is! CompilationUnitMember) {
       return;
     }
     // Build setter source.
