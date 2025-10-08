@@ -107,19 +107,7 @@ class CreateOperator extends ResolvedCorrectionProducer {
       return;
     }
     // Prepare target ClassDeclaration.
-    if (targetClassElement is MixinElement) {
-      var fragment = targetClassElement.firstFragment;
-      targetNode = await getMixinDeclaration(fragment);
-    } else if (targetClassElement is ClassElement) {
-      var fragment = targetClassElement.firstFragment;
-      targetNode = await getClassDeclaration(fragment);
-    } else if (targetClassElement is ExtensionTypeElement) {
-      var fragment = targetClassElement.firstFragment;
-      targetNode = await getExtensionTypeDeclaration(fragment);
-    } else if (targetClassElement is EnumElement) {
-      var fragment = targetClassElement.firstFragment;
-      targetNode = await getEnumDeclaration(fragment);
-    }
+    targetNode = await getDeclarationNodeFromElement(targetClassElement);
     if (targetNode == null) {
       return;
     }

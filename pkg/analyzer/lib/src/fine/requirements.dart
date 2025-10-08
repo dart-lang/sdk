@@ -2502,20 +2502,29 @@ class RequirementsManifest {
     return writer.takeBytes();
   }
 
-  RequirementsManifestDigest toDigest() {
+  RequirementsManifestDigest toDigest({
+    required LinkedElementFactory elementFactory,
+    required ManifestItemId bundleId,
+  }) {
     var libraryHashes = <Uri, Hash>{};
 
     libraries.forEach((uri, library) {
-      libraryHashes[uri] = library.hashForRequirements;
+      var manifest = elementFactory.libraryManifests[uri]!;
+      libraryHashes[uri] = manifest.hashForRequirements;
     });
 
     for (var library in exportRequirements) {
       for (var export in library.exports) {
-        libraryHashes[export.exportedUri] = export.hashForRequirements;
+        var uri = export.exportedUri;
+        var manifest = elementFactory.libraryManifests[uri]!;
+        libraryHashes[uri] = manifest.hashForRequirements;
       }
     }
 
-    return RequirementsManifestDigest(libraryHashes: libraryHashes);
+    return RequirementsManifestDigest(
+      bundleId: bundleId,
+      libraryHashes: libraryHashes,
+    );
   }
 
   void write(BinaryWriter writer) {
@@ -2655,12 +2664,20 @@ class RequirementsManifest {
 /// and can be skipped. If any library is missing or any recorded hash differs,
 /// the digest is not satisfied and a detailed check must be performed.
 class RequirementsManifestDigest {
+  /// The ID of the bundle this digest validates.
+  /// Digests are stored separately from bundles.
+  final ManifestItemId bundleId;
+
   final Map<Uri, Hash> libraryHashes;
 
-  RequirementsManifestDigest({required this.libraryHashes});
+  RequirementsManifestDigest({
+    required this.bundleId,
+    required this.libraryHashes,
+  });
 
   factory RequirementsManifestDigest.read(BinaryReader reader) {
     return RequirementsManifestDigest(
+      bundleId: ManifestItemId.read(reader),
       libraryHashes: reader.readMap(
         readKey: () => reader.readUri(),
         readValue: () => Hash.read(reader),
@@ -2681,12 +2698,24 @@ class RequirementsManifestDigest {
     return true;
   }
 
-  void write(BinaryWriter writer) {
+  Uint8List toBytes() {
+    var writer = BinaryWriter();
+
+    bundleId.write(writer);
     writer.writeMap(
       libraryHashes,
       writeKey: (uri) => writer.writeUri(uri),
       writeValue: (hash) => hash.write(writer),
     );
+
+    writer.writeTableTrailer();
+    return writer.takeBytes();
+  }
+
+  static RequirementsManifestDigest fromBytes(Uint8List bytes) {
+    var reader = BinaryReader(bytes);
+    reader.initFromTableTrailer();
+    return RequirementsManifestDigest.read(reader);
   }
 }
 

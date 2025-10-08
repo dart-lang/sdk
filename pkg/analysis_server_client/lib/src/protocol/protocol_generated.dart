@@ -14,9 +14,9 @@ import 'package:analysis_server_client/src/protocol/protocol_internal.dart';
 
 /// analysis.analyzedFiles params
 ///
-/// {
-///   "directories": List<FilePath>
-/// }
+///     {
+///       "directories": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisAnalyzedFilesParams implements HasToJson {
@@ -78,10 +78,10 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
 
 /// analysis.closingLabels params
 ///
-/// {
-///   "file": FilePath
-///   "labels": List<ClosingLabel>
-/// }
+///     {
+///       "file": FilePath
+///       "labels": List<ClosingLabel>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisClosingLabelsParams implements HasToJson {
@@ -167,10 +167,10 @@ class AnalysisClosingLabelsParams implements HasToJson {
 
 /// AnalysisErrorFixes
 ///
-/// {
-///   "error": AnalysisError
-///   "fixes": List<SourceChange>
-/// }
+///     {
+///       "error": AnalysisError
+///       "fixes": List<SourceChange>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorFixes implements HasToJson {
@@ -241,10 +241,10 @@ class AnalysisErrorFixes implements HasToJson {
 
 /// analysis.errors params
 ///
-/// {
-///   "file": FilePath
-///   "errors": List<AnalysisError>
-/// }
+///     {
+///       "file": FilePath
+///       "errors": List<AnalysisError>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorsParams implements HasToJson {
@@ -322,9 +322,9 @@ class AnalysisErrorsParams implements HasToJson {
 
 /// analysis.flushResults params
 ///
-/// {
-///   "files": List<FilePath>
-/// }
+///     {
+///       "files": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisFlushResultsParams implements HasToJson {
@@ -385,10 +385,10 @@ class AnalysisFlushResultsParams implements HasToJson {
 
 /// analysis.folding params
 ///
-/// {
-///   "file": FilePath
-///   "regions": List<FoldingRegion>
-/// }
+///     {
+///       "file": FilePath
+///       "regions": List<FoldingRegion>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisFoldingParams implements HasToJson {
@@ -466,9 +466,9 @@ class AnalysisFoldingParams implements HasToJson {
 
 /// analysis.getErrors params
 ///
-/// {
-///   "file": FilePath
-/// }
+///     {
+///       "file": FilePath
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetErrorsParams implements RequestParams {
@@ -527,9 +527,9 @@ class AnalysisGetErrorsParams implements RequestParams {
 
 /// analysis.getErrors result
 ///
-/// {
-///   "errors": List<AnalysisError>
-/// }
+///     {
+///       "errors": List<AnalysisError>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetErrorsResult implements ResponseResult {
@@ -596,10 +596,10 @@ class AnalysisGetErrorsResult implements ResponseResult {
 
 /// analysis.getHover params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetHoverParams implements RequestParams {
@@ -671,9 +671,9 @@ class AnalysisGetHoverParams implements RequestParams {
 
 /// analysis.getHover result
 ///
-/// {
-///   "hovers": List<HoverInformation>
-/// }
+///     {
+///       "hovers": List<HoverInformation>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetHoverResult implements ResponseResult {
@@ -744,11 +744,11 @@ class AnalysisGetHoverResult implements ResponseResult {
 
 /// analysis.getImportedElements params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetImportedElementsParams implements RequestParams {
@@ -834,9 +834,9 @@ class AnalysisGetImportedElementsParams implements RequestParams {
 
 /// analysis.getImportedElements result
 ///
-/// {
-///   "elements": List<ImportedElements>
-/// }
+///     {
+///       "elements": List<ImportedElements>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetImportedElementsResult implements ResponseResult {
@@ -925,10 +925,10 @@ class AnalysisGetLibraryDependenciesParams implements RequestParams {
 
 /// analysis.getLibraryDependencies result
 ///
-/// {
-///   "libraries": List<FilePath>
-///   "packageMap": Map<String, Map<String, List<FilePath>>>
-/// }
+///     {
+///       "libraries": List<FilePath>
+///       "packageMap": Map<String, Map<String, List<FilePath>>>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetLibraryDependenciesResult implements ResponseResult {
@@ -1022,11 +1022,11 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
 
 /// analysis.getNavigation params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationParams implements RequestParams {
@@ -1114,11 +1114,11 @@ class AnalysisGetNavigationParams implements RequestParams {
 
 /// analysis.getNavigation result
 ///
-/// {
-///   "files": List<FilePath>
-///   "targets": List<NavigationTarget>
-///   "regions": List<NavigationRegion>
-/// }
+///     {
+///       "files": List<FilePath>
+///       "targets": List<NavigationTarget>
+///       "regions": List<NavigationRegion>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationResult implements ResponseResult {
@@ -1221,9 +1221,9 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
 /// analysis.getReachableSources params
 ///
-/// {
-///   "file": FilePath
-/// }
+///     {
+///       "file": FilePath
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetReachableSourcesParams implements RequestParams {
@@ -1283,9 +1283,9 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
 
 /// analysis.getReachableSources result
 ///
-/// {
-///   "sources": Map<String, List<String>>
-/// }
+///     {
+///       "sources": Map<String, List<String>>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetReachableSourcesResult implements ResponseResult {
@@ -1359,10 +1359,10 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
 
 /// analysis.getSignature params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetSignatureParams implements RequestParams {
@@ -1435,11 +1435,11 @@ class AnalysisGetSignatureParams implements RequestParams {
 
 /// analysis.getSignature result
 ///
-/// {
-///   "name": String
-///   "parameters": List<ParameterInfo>
-///   "dartdoc": optional String
-/// }
+///     {
+///       "name": String
+///       "parameters": List<ParameterInfo>
+///       "dartdoc": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetSignatureResult implements ResponseResult {
@@ -1540,10 +1540,10 @@ class AnalysisGetSignatureResult implements ResponseResult {
 
 /// analysis.highlights params
 ///
-/// {
-///   "file": FilePath
-///   "regions": List<HighlightRegion>
-/// }
+///     {
+///       "file": FilePath
+///       "regions": List<HighlightRegion>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisHighlightsParams implements HasToJson {
@@ -1625,11 +1625,11 @@ class AnalysisHighlightsParams implements HasToJson {
 
 /// analysis.implemented params
 ///
-/// {
-///   "file": FilePath
-///   "classes": List<ImplementedClass>
-///   "members": List<ImplementedMember>
-/// }
+///     {
+///       "file": FilePath
+///       "classes": List<ImplementedClass>
+///       "members": List<ImplementedMember>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisImplementedParams implements HasToJson {
@@ -1726,12 +1726,12 @@ class AnalysisImplementedParams implements HasToJson {
 
 /// analysis.invalidate params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-///   "delta": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///       "delta": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisInvalidateParams implements HasToJson {
@@ -1829,12 +1829,12 @@ class AnalysisInvalidateParams implements HasToJson {
 
 /// analysis.navigation params
 ///
-/// {
-///   "file": FilePath
-///   "regions": List<NavigationRegion>
-///   "targets": List<NavigationTarget>
-///   "files": List<FilePath>
-/// }
+///     {
+///       "file": FilePath
+///       "regions": List<NavigationRegion>
+///       "targets": List<NavigationTarget>
+///       "files": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisNavigationParams implements HasToJson {
@@ -1951,10 +1951,10 @@ class AnalysisNavigationParams implements HasToJson {
 
 /// analysis.occurrences params
 ///
-/// {
-///   "file": FilePath
-///   "occurrences": List<Occurrences>
-/// }
+///     {
+///       "file": FilePath
+///       "occurrences": List<Occurrences>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOccurrencesParams implements HasToJson {
@@ -2033,15 +2033,15 @@ class AnalysisOccurrencesParams implements HasToJson {
 
 /// AnalysisOptions
 ///
-/// {
-///   "enableAsync": optional bool
-///   "enableDeferredLoading": optional bool
-///   "enableEnums": optional bool
-///   "enableNullAwareOperators": optional bool
-///   "generateDart2jsHints": optional bool
-///   "generateHints": optional bool
-///   "generateLints": optional bool
-/// }
+///     {
+///       "enableAsync": optional bool
+///       "enableDeferredLoading": optional bool
+///       "enableEnums": optional bool
+///       "enableNullAwareOperators": optional bool
+///       "generateDart2jsHints": optional bool
+///       "generateHints": optional bool
+///       "generateLints": optional bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOptions implements HasToJson {
@@ -2207,12 +2207,12 @@ class AnalysisOptions implements HasToJson {
 
 /// analysis.outline params
 ///
-/// {
-///   "file": FilePath
-///   "kind": FileKind
-///   "libraryName": optional String
-///   "outline": Outline
-/// }
+///     {
+///       "file": FilePath
+///       "kind": FileKind
+///       "libraryName": optional String
+///       "outline": Outline
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOutlineParams implements HasToJson {
@@ -2316,10 +2316,10 @@ class AnalysisOutlineParams implements HasToJson {
 
 /// analysis.overrides params
 ///
-/// {
-///   "file": FilePath
-///   "overrides": List<Override>
-/// }
+///     {
+///       "file": FilePath
+///       "overrides": List<Override>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOverridesParams implements HasToJson {
@@ -2435,17 +2435,17 @@ class AnalysisReanalyzeResult implements ResponseResult {
 
 /// AnalysisService
 ///
-/// enum {
-///   CLOSING_LABELS
-///   FOLDING
-///   HIGHLIGHTS
-///   IMPLEMENTED
-///   INVALIDATE
-///   NAVIGATION
-///   OCCURRENCES
-///   OUTLINE
-///   OVERRIDES
-/// }
+///     enum {
+///       CLOSING_LABELS
+///       FOLDING
+///       HIGHLIGHTS
+///       IMPLEMENTED
+///       INVALIDATE
+///       NAVIGATION
+///       OCCURRENCES
+///       OUTLINE
+///       OVERRIDES
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum AnalysisService {
@@ -2489,11 +2489,11 @@ enum AnalysisService {
 
 /// analysis.setAnalysisRoots params
 ///
-/// {
-///   "included": List<FilePath>
-///   "excluded": List<FilePath>
-///   "packageRoots": optional Map<FilePath, FilePath>
-/// }
+///     {
+///       "included": List<FilePath>
+///       "excluded": List<FilePath>
+///       "packageRoots": optional Map<FilePath, FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetAnalysisRootsParams implements RequestParams {
@@ -2619,9 +2619,9 @@ class AnalysisSetAnalysisRootsResult implements ResponseResult {
 
 /// analysis.setGeneralSubscriptions params
 ///
-/// {
-///   "subscriptions": List<GeneralAnalysisService>
-/// }
+///     {
+///       "subscriptions": List<GeneralAnalysisService>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
@@ -2708,9 +2708,9 @@ class AnalysisSetGeneralSubscriptionsResult implements ResponseResult {
 
 /// analysis.setPriorityFiles params
 ///
-/// {
-///   "files": List<FilePath>
-/// }
+///     {
+///       "files": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesParams implements RequestParams {
@@ -2790,9 +2790,9 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
 
 /// analysis.setSubscriptions params
 ///
-/// {
-///   "subscriptions": Map<AnalysisService, List<FilePath>>
-/// }
+///     {
+///       "subscriptions": Map<AnalysisService, List<FilePath>>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsParams implements RequestParams {
@@ -2883,10 +2883,10 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
 
 /// AnalysisStatus
 ///
-/// {
-///   "isAnalyzing": bool
-///   "analysisTarget": optional String
-/// }
+///     {
+///       "isAnalyzing": bool
+///       "analysisTarget": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisStatus implements HasToJson {
@@ -2953,9 +2953,9 @@ class AnalysisStatus implements HasToJson {
 
 /// analysis.updateContent params
 ///
-/// {
-///   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
-/// }
+///     {
+///       "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentParams implements RequestParams {
@@ -3027,8 +3027,8 @@ class AnalysisUpdateContentParams implements RequestParams {
 
 /// analysis.updateContent result
 ///
-/// {
-/// }
+///     {
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentResult implements ResponseResult {
@@ -3080,9 +3080,9 @@ class AnalysisUpdateContentResult implements ResponseResult {
 
 /// analysis.updateOptions params
 ///
-/// {
-///   "options": AnalysisOptions
-/// }
+///     {
+///       "options": AnalysisOptions
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateOptionsParams implements RequestParams {
@@ -3162,9 +3162,9 @@ class AnalysisUpdateOptionsResult implements ResponseResult {
 
 /// analytics.enable params
 ///
-/// {
-///   "value": bool
-/// }
+///     {
+///       "value": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsEnableParams implements RequestParams {
@@ -3261,9 +3261,9 @@ class AnalyticsIsEnabledParams implements RequestParams {
 
 /// analytics.isEnabled result
 ///
-/// {
-///   "enabled": bool
-/// }
+///     {
+///       "enabled": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsIsEnabledResult implements ResponseResult {
@@ -3324,9 +3324,9 @@ class AnalyticsIsEnabledResult implements ResponseResult {
 
 /// analytics.sendEvent params
 ///
-/// {
-///   "action": String
-/// }
+///     {
+///       "action": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendEventParams implements RequestParams {
@@ -3404,10 +3404,10 @@ class AnalyticsSendEventResult implements ResponseResult {
 
 /// analytics.sendTiming params
 ///
-/// {
-///   "event": String
-///   "millis": int
-/// }
+///     {
+///       "event": String
+///       "millis": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendTimingParams implements RequestParams {
@@ -3498,10 +3498,10 @@ class AnalyticsSendTimingResult implements ResponseResult {
 
 /// BulkFix
 ///
-/// {
-///   "path": FilePath
-///   "fixes": List<BulkFixDetail>
-/// }
+///     {
+///       "path": FilePath
+///       "fixes": List<BulkFixDetail>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class BulkFix implements HasToJson {
@@ -3570,10 +3570,10 @@ class BulkFix implements HasToJson {
 
 /// BulkFixDetail
 ///
-/// {
-///   "code": String
-///   "occurrences": int
-/// }
+///     {
+///       "code": String
+///       "occurrences": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class BulkFixDetail implements HasToJson {
@@ -3637,11 +3637,11 @@ class BulkFixDetail implements HasToJson {
 
 /// ClosingLabel
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "label": String
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "label": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ClosingLabel implements HasToJson {
@@ -3717,11 +3717,11 @@ class ClosingLabel implements HasToJson {
 
 /// CompletionCaseMatchingMode
 ///
-/// enum {
-///   FIRST_CHAR
-///   ALL_CHARS
-///   NONE
-/// }
+///     enum {
+///       FIRST_CHAR
+///       ALL_CHARS
+///       NONE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum CompletionCaseMatchingMode {
@@ -3755,10 +3755,10 @@ enum CompletionCaseMatchingMode {
 
 /// completion.existingImports params
 ///
-/// {
-///   "file": FilePath
-///   "imports": ExistingImports
-/// }
+///     {
+///       "file": FilePath
+///       "imports": ExistingImports
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionExistingImportsParams implements HasToJson {
@@ -3832,12 +3832,12 @@ class CompletionExistingImportsParams implements HasToJson {
 
 /// completion.getSuggestionDetails2 params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "completion": String
-///   "libraryUri": String
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "completion": String
+///       "libraryUri": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionDetails2Params implements RequestParams {
@@ -3943,10 +3943,10 @@ class CompletionGetSuggestionDetails2Params implements RequestParams {
 
 /// completion.getSuggestionDetails2 result
 ///
-/// {
-///   "completion": String
-///   "change": SourceChange
-/// }
+///     {
+///       "completion": String
+///       "change": SourceChange
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionDetails2Result implements ResponseResult {
@@ -4028,12 +4028,12 @@ class CompletionGetSuggestionDetails2Result implements ResponseResult {
 
 /// completion.getSuggestions2 params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "maxResults": int
-///   "completionCaseMatchingMode": optional CompletionCaseMatchingMode
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "maxResults": int
+///       "completionCaseMatchingMode": optional CompletionCaseMatchingMode
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestions2Params implements RequestParams {
@@ -4195,12 +4195,12 @@ class CompletionGetSuggestions2Params implements RequestParams {
 
 /// completion.getSuggestions2 result
 ///
-/// {
-///   "replacementOffset": int
-///   "replacementLength": int
-///   "suggestions": List<CompletionSuggestion>
-///   "isIncomplete": bool
-/// }
+///     {
+///       "replacementOffset": int
+///       "replacementLength": int
+///       "suggestions": List<CompletionSuggestion>
+///       "isIncomplete": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestions2Result implements ResponseResult {
@@ -4328,10 +4328,10 @@ class CompletionGetSuggestions2Result implements ResponseResult {
 
 /// CompletionMode
 ///
-/// enum {
-///   BASIC
-///   SMART
-/// }
+///     enum {
+///       BASIC
+///       SMART
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum CompletionMode {
@@ -4362,9 +4362,9 @@ enum CompletionMode {
 
 /// completion.registerLibraryPaths params
 ///
-/// {
-///   "paths": List<LibraryPathSet>
-/// }
+///     {
+///       "paths": List<LibraryPathSet>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionRegisterLibraryPathsParams implements RequestParams {
@@ -4453,13 +4453,13 @@ class CompletionRegisterLibraryPathsResult implements ResponseResult {
 
 /// ContextData
 ///
-/// {
-///   "name": String
-///   "explicitFileCount": int
-///   "implicitFileCount": int
-///   "workItemQueueLength": int
-///   "cacheEntryExceptions": List<String>
-/// }
+///     {
+///       "name": String
+///       "explicitFileCount": int
+///       "implicitFileCount": int
+///       "workItemQueueLength": int
+///       "cacheEntryExceptions": List<String>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ContextData implements HasToJson {
@@ -4634,9 +4634,9 @@ class DiagnosticGetDiagnosticsParams implements RequestParams {
 
 /// diagnostic.getDiagnostics result
 ///
-/// {
-///   "contexts": List<ContextData>
-/// }
+///     {
+///       "contexts": List<ContextData>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetDiagnosticsResult implements ResponseResult {
@@ -4723,9 +4723,9 @@ class DiagnosticGetServerPortParams implements RequestParams {
 
 /// diagnostic.getServerPort result
 ///
-/// {
-///   "port": int
-/// }
+///     {
+///       "port": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetServerPortResult implements ResponseResult {
@@ -4787,12 +4787,12 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 
 /// edit.bulkFixes params
 ///
-/// {
-///   "included": List<FilePath>
-///   "inTestMode": optional bool
-///   "updatePubspec": optional bool
-///   "codes": optional List<String>
-/// }
+///     {
+///       "included": List<FilePath>
+///       "inTestMode": optional bool
+///       "updatePubspec": optional bool
+///       "codes": optional List<String>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditBulkFixesParams implements RequestParams {
@@ -4917,11 +4917,11 @@ class EditBulkFixesParams implements RequestParams {
 
 /// edit.bulkFixes result
 ///
-/// {
-///   "message": String
-///   "edits": List<SourceFileEdit>
-///   "details": List<BulkFix>
-/// }
+///     {
+///       "message": String
+///       "edits": List<SourceFileEdit>
+///       "details": List<BulkFix>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditBulkFixesResult implements ResponseResult {
@@ -5019,9 +5019,9 @@ class EditBulkFixesResult implements ResponseResult {
 
 /// edit.formatIfEnabled params
 ///
-/// {
-///   "directories": List<FilePath>
-/// }
+///     {
+///       "directories": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditFormatIfEnabledParams implements RequestParams {
@@ -5082,9 +5082,9 @@ class EditFormatIfEnabledParams implements RequestParams {
 
 /// edit.formatIfEnabled result
 ///
-/// {
-///   "edits": List<SourceFileEdit>
-/// }
+///     {
+///       "edits": List<SourceFileEdit>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditFormatIfEnabledResult implements ResponseResult {
@@ -5153,12 +5153,12 @@ class EditFormatIfEnabledResult implements ResponseResult {
 
 /// edit.format params
 ///
-/// {
-///   "file": FilePath
-///   "selectionOffset": int
-///   "selectionLength": int
-///   "lineLength": optional int
-/// }
+///     {
+///       "file": FilePath
+///       "selectionOffset": int
+///       "selectionLength": int
+///       "lineLength": optional int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditFormatParams implements RequestParams {
@@ -5263,11 +5263,11 @@ class EditFormatParams implements RequestParams {
 
 /// edit.format result
 ///
-/// {
-///   "edits": List<SourceEdit>
-///   "selectionOffset": int
-///   "selectionLength": int
-/// }
+///     {
+///       "edits": List<SourceEdit>
+///       "selectionOffset": int
+///       "selectionLength": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditFormatResult implements ResponseResult {
@@ -5362,11 +5362,11 @@ class EditFormatResult implements ResponseResult {
 
 /// edit.getAssists params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsParams implements RequestParams {
@@ -5451,9 +5451,9 @@ class EditGetAssistsParams implements RequestParams {
 
 /// edit.getAssists result
 ///
-/// {
-///   "assists": List<SourceChange>
-/// }
+///     {
+///       "assists": List<SourceChange>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsResult implements ResponseResult {
@@ -5520,11 +5520,11 @@ class EditGetAssistsResult implements ResponseResult {
 
 /// edit.getAvailableRefactorings params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsParams implements RequestParams {
@@ -5610,9 +5610,9 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
 /// edit.getAvailableRefactorings result
 ///
-/// {
-///   "kinds": List<RefactoringKind>
-/// }
+///     {
+///       "kinds": List<RefactoringKind>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsResult implements ResponseResult {
@@ -5680,10 +5680,10 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
 
 /// edit.getFixes params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetFixesParams implements RequestParams {
@@ -5755,9 +5755,9 @@ class EditGetFixesParams implements RequestParams {
 
 /// edit.getFixes result
 ///
-/// {
-///   "fixes": List<AnalysisErrorFixes>
-/// }
+///     {
+///       "fixes": List<AnalysisErrorFixes>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetFixesResult implements ResponseResult {
@@ -5824,11 +5824,11 @@ class EditGetFixesResult implements ResponseResult {
 
 /// edit.getPostfixCompletion params
 ///
-/// {
-///   "file": FilePath
-///   "key": String
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "key": String
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetPostfixCompletionParams implements RequestParams {
@@ -5913,9 +5913,9 @@ class EditGetPostfixCompletionParams implements RequestParams {
 
 /// edit.getPostfixCompletion result
 ///
-/// {
-///   "change": SourceChange
-/// }
+///     {
+///       "change": SourceChange
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetPostfixCompletionResult implements ResponseResult {
@@ -5978,14 +5978,14 @@ class EditGetPostfixCompletionResult implements ResponseResult {
 
 /// edit.getRefactoring params
 ///
-/// {
-///   "kind": RefactoringKind
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-///   "validateOnly": bool
-///   "options": optional RefactoringOptions
-/// }
+///     {
+///       "kind": RefactoringKind
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///       "validateOnly": bool
+///       "options": optional RefactoringOptions
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringParams implements RequestParams {
@@ -6120,14 +6120,14 @@ class EditGetRefactoringParams implements RequestParams {
 
 /// edit.getRefactoring result
 ///
-/// {
-///   "initialProblems": List<RefactoringProblem>
-///   "optionsProblems": List<RefactoringProblem>
-///   "finalProblems": List<RefactoringProblem>
-///   "feedback": optional RefactoringFeedback
-///   "change": optional SourceChange
-///   "potentialEdits": optional List<String>
-/// }
+///     {
+///       "initialProblems": List<RefactoringProblem>
+///       "optionsProblems": List<RefactoringProblem>
+///       "finalProblems": List<RefactoringProblem>
+///       "feedback": optional RefactoringFeedback
+///       "change": optional SourceChange
+///       "potentialEdits": optional List<String>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringResult implements ResponseResult {
@@ -6300,10 +6300,10 @@ class EditGetRefactoringResult implements ResponseResult {
 
 /// edit.getStatementCompletion params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetStatementCompletionParams implements RequestParams {
@@ -6376,10 +6376,10 @@ class EditGetStatementCompletionParams implements RequestParams {
 
 /// edit.getStatementCompletion result
 ///
-/// {
-///   "change": SourceChange
-///   "whitespaceOnly": bool
-/// }
+///     {
+///       "change": SourceChange
+///       "whitespaceOnly": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetStatementCompletionResult implements ResponseResult {
@@ -6457,11 +6457,11 @@ class EditGetStatementCompletionResult implements ResponseResult {
 
 /// edit.importElements params
 ///
-/// {
-///   "file": FilePath
-///   "elements": List<ImportedElements>
-///   "offset": optional int
-/// }
+///     {
+///       "file": FilePath
+///       "elements": List<ImportedElements>
+///       "offset": optional int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditImportElementsParams implements RequestParams {
@@ -6556,9 +6556,9 @@ class EditImportElementsParams implements RequestParams {
 
 /// edit.importElements result
 ///
-/// {
-///   "edit": optional SourceFileEdit
-/// }
+///     {
+///       "edit": optional SourceFileEdit
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditImportElementsResult implements ResponseResult {
@@ -6626,11 +6626,11 @@ class EditImportElementsResult implements ResponseResult {
 
 /// edit.isPostfixCompletionApplicable params
 ///
-/// {
-///   "file": FilePath
-///   "key": String
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "key": String
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditIsPostfixCompletionApplicableParams implements RequestParams {
@@ -6715,9 +6715,9 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
 
 /// edit.isPostfixCompletionApplicable result
 ///
-/// {
-///   "value": bool
-/// }
+///     {
+///       "value": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditIsPostfixCompletionApplicableResult implements ResponseResult {
@@ -6800,9 +6800,9 @@ class EditListPostfixCompletionTemplatesParams implements RequestParams {
 
 /// edit.listPostfixCompletionTemplates result
 ///
-/// {
-///   "templates": List<PostfixTemplateDescriptor>
-/// }
+///     {
+///       "templates": List<PostfixTemplateDescriptor>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditListPostfixCompletionTemplatesResult implements ResponseResult {
@@ -6873,9 +6873,9 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
 
 /// edit.organizeDirectives params
 ///
-/// {
-///   "file": FilePath
-/// }
+///     {
+///       "file": FilePath
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditOrganizeDirectivesParams implements RequestParams {
@@ -6935,9 +6935,9 @@ class EditOrganizeDirectivesParams implements RequestParams {
 
 /// edit.organizeDirectives result
 ///
-/// {
-///   "edit": SourceFileEdit
-/// }
+///     {
+///       "edit": SourceFileEdit
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditOrganizeDirectivesResult implements ResponseResult {
@@ -7001,9 +7001,9 @@ class EditOrganizeDirectivesResult implements ResponseResult {
 
 /// edit.sortMembers params
 ///
-/// {
-///   "file": FilePath
-/// }
+///     {
+///       "file": FilePath
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditSortMembersParams implements RequestParams {
@@ -7062,9 +7062,9 @@ class EditSortMembersParams implements RequestParams {
 
 /// edit.sortMembers result
 ///
-/// {
-///   "edit": SourceFileEdit
-/// }
+///     {
+///       "edit": SourceFileEdit
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditSortMembersResult implements ResponseResult {
@@ -7127,19 +7127,19 @@ class EditSortMembersResult implements ResponseResult {
 
 /// ElementDeclaration
 ///
-/// {
-///   "name": String
-///   "kind": ElementKind
-///   "fileIndex": int
-///   "offset": int
-///   "line": int
-///   "column": int
-///   "codeOffset": int
-///   "codeLength": int
-///   "className": optional String
-///   "mixinName": optional String
-///   "parameters": optional String
-/// }
+///     {
+///       "name": String
+///       "kind": ElementKind
+///       "fileIndex": int
+///       "offset": int
+///       "line": int
+///       "column": int
+///       "codeOffset": int
+///       "codeLength": int
+///       "className": optional String
+///       "mixinName": optional String
+///       "parameters": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ElementDeclaration implements HasToJson {
@@ -7331,10 +7331,10 @@ class ElementDeclaration implements HasToJson {
 
 /// ExecutableFile
 ///
-/// {
-///   "file": FilePath
-///   "kind": ExecutableKind
-/// }
+///     {
+///       "file": FilePath
+///       "kind": ExecutableKind
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutableFile implements HasToJson {
@@ -7397,12 +7397,12 @@ class ExecutableFile implements HasToJson {
 
 /// ExecutableKind
 ///
-/// enum {
-///   CLIENT
-///   EITHER
-///   NOT_EXECUTABLE
-///   SERVER
-/// }
+///     enum {
+///       CLIENT
+///       EITHER
+///       NOT_EXECUTABLE
+///       SERVER
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum ExecutableKind {
@@ -7434,9 +7434,9 @@ enum ExecutableKind {
 
 /// execution.createContext params
 ///
-/// {
-///   "contextRoot": FilePath
-/// }
+///     {
+///       "contextRoot": FilePath
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionCreateContextParams implements RequestParams {
@@ -7498,9 +7498,9 @@ class ExecutionCreateContextParams implements RequestParams {
 
 /// execution.createContext result
 ///
-/// {
-///   "id": ExecutionContextId
-/// }
+///     {
+///       "id": ExecutionContextId
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionCreateContextResult implements ResponseResult {
@@ -7562,9 +7562,9 @@ class ExecutionCreateContextResult implements ResponseResult {
 
 /// execution.deleteContext params
 ///
-/// {
-///   "id": ExecutionContextId
-/// }
+///     {
+///       "id": ExecutionContextId
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionDeleteContextParams implements RequestParams {
@@ -7643,14 +7643,14 @@ class ExecutionDeleteContextResult implements ResponseResult {
 
 /// execution.getSuggestions params
 ///
-/// {
-///   "code": String
-///   "offset": int
-///   "contextFile": FilePath
-///   "contextOffset": int
-///   "variables": List<RuntimeCompletionVariable>
-///   "expressions": optional List<RuntimeCompletionExpression>
-/// }
+///     {
+///       "code": String
+///       "offset": int
+///       "contextFile": FilePath
+///       "contextOffset": int
+///       "variables": List<RuntimeCompletionVariable>
+///       "expressions": optional List<RuntimeCompletionExpression>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionGetSuggestionsParams implements RequestParams {
@@ -7814,10 +7814,10 @@ class ExecutionGetSuggestionsParams implements RequestParams {
 
 /// execution.getSuggestions result
 ///
-/// {
-///   "suggestions": optional List<CompletionSuggestion>
-///   "expressions": optional List<RuntimeCompletionExpression>
-/// }
+///     {
+///       "suggestions": optional List<CompletionSuggestion>
+///       "expressions": optional List<RuntimeCompletionExpression>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionGetSuggestionsResult implements ResponseResult {
@@ -7924,11 +7924,11 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
 
 /// execution.launchData params
 ///
-/// {
-///   "file": FilePath
-///   "kind": optional ExecutableKind
-///   "referencedFiles": optional List<FilePath>
-/// }
+///     {
+///       "file": FilePath
+///       "kind": optional ExecutableKind
+///       "referencedFiles": optional List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionLaunchDataParams implements HasToJson {
@@ -8022,11 +8022,11 @@ class ExecutionLaunchDataParams implements HasToJson {
 
 /// execution.mapUri params
 ///
-/// {
-///   "id": ExecutionContextId
-///   "file": optional FilePath
-///   "uri": optional String
-/// }
+///     {
+///       "id": ExecutionContextId
+///       "file": optional FilePath
+///       "uri": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionMapUriParams implements RequestParams {
@@ -8111,10 +8111,10 @@ class ExecutionMapUriParams implements RequestParams {
 
 /// execution.mapUri result
 ///
-/// {
-///   "file": optional FilePath
-///   "uri": optional String
-/// }
+///     {
+///       "file": optional FilePath
+///       "uri": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionMapUriResult implements ResponseResult {
@@ -8192,9 +8192,9 @@ class ExecutionMapUriResult implements ResponseResult {
 
 /// ExecutionService
 ///
-/// enum {
-///   LAUNCH_DATA
-/// }
+///     enum {
+///       LAUNCH_DATA
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum ExecutionService {
@@ -8220,9 +8220,9 @@ enum ExecutionService {
 
 /// execution.setSubscriptions params
 ///
-/// {
-///   "subscriptions": List<ExecutionService>
-/// }
+///     {
+///       "subscriptions": List<ExecutionService>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionSetSubscriptionsParams implements RequestParams {
@@ -8307,10 +8307,10 @@ class ExecutionSetSubscriptionsResult implements ResponseResult {
 
 /// ExistingImport
 ///
-/// {
-///   "uri": int
-///   "elements": List<int>
-/// }
+///     {
+///       "uri": int
+///       "elements": List<int>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExistingImport implements HasToJson {
@@ -8376,10 +8376,10 @@ class ExistingImport implements HasToJson {
 
 /// ExistingImports
 ///
-/// {
-///   "elements": ImportedElementSet
-///   "imports": List<ExistingImport>
-/// }
+///     {
+///       "elements": ImportedElementSet
+///       "imports": List<ExistingImport>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExistingImports implements HasToJson {
@@ -8449,13 +8449,13 @@ class ExistingImports implements HasToJson {
 
 /// extractLocalVariable feedback
 ///
-/// {
-///   "coveringExpressionOffsets": optional List<int>
-///   "coveringExpressionLengths": optional List<int>
-///   "names": List<String>
-///   "offsets": List<int>
-///   "lengths": List<int>
-/// }
+///     {
+///       "coveringExpressionOffsets": optional List<int>
+///       "coveringExpressionLengths": optional List<int>
+///       "names": List<String>
+///       "offsets": List<int>
+///       "lengths": List<int>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableFeedback extends RefactoringFeedback {
@@ -8577,10 +8577,10 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
 /// extractLocalVariable options
 ///
-/// {
-///   "name": String
-///   "extractAll": bool
-/// }
+///     {
+///       "name": String
+///       "extractAll": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableOptions extends RefactoringOptions {
@@ -8653,16 +8653,16 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
 
 /// extractMethod feedback
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "returnType": String
-///   "names": List<String>
-///   "canCreateGetter": bool
-///   "parameters": List<RefactoringMethodParameter>
-///   "offsets": List<int>
-///   "lengths": List<int>
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "returnType": String
+///       "names": List<String>
+///       "canCreateGetter": bool
+///       "parameters": List<RefactoringMethodParameter>
+///       "offsets": List<int>
+///       "lengths": List<int>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractMethodFeedback extends RefactoringFeedback {
@@ -8822,13 +8822,13 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
 /// extractMethod options
 ///
-/// {
-///   "returnType": String
-///   "createGetter": bool
-///   "name": String
-///   "parameters": List<RefactoringMethodParameter>
-///   "extractAll": bool
-/// }
+///     {
+///       "returnType": String
+///       "createGetter": bool
+///       "name": String
+///       "parameters": List<RefactoringMethodParameter>
+///       "extractAll": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractMethodOptions extends RefactoringOptions {
@@ -8961,8 +8961,8 @@ class ExtractMethodOptions extends RefactoringOptions {
 
 /// extractWidget feedback
 ///
-/// {
-/// }
+///     {
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractWidgetFeedback extends RefactoringFeedback {
@@ -9001,9 +9001,9 @@ class ExtractWidgetFeedback extends RefactoringFeedback {
 
 /// extractWidget options
 ///
-/// {
-///   "name": String
-/// }
+///     {
+///       "name": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractWidgetOptions extends RefactoringOptions {
@@ -9058,10 +9058,10 @@ class ExtractWidgetOptions extends RefactoringOptions {
 
 /// FileKind
 ///
-/// enum {
-///   LIBRARY
-///   PART
-/// }
+///     enum {
+///       LIBRARY
+///       PART
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum FileKind {
@@ -9089,10 +9089,10 @@ enum FileKind {
 
 /// flutter.getWidgetDescription params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterGetWidgetDescriptionParams implements RequestParams {
@@ -9165,9 +9165,9 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
 
 /// flutter.getWidgetDescription result
 ///
-/// {
-///   "properties": List<FlutterWidgetProperty>
-/// }
+///     {
+///       "properties": List<FlutterWidgetProperty>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterGetWidgetDescriptionResult implements ResponseResult {
@@ -9239,20 +9239,20 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
 
 /// FlutterOutline
 ///
-/// {
-///   "kind": FlutterOutlineKind
-///   "offset": int
-///   "length": int
-///   "codeOffset": int
-///   "codeLength": int
-///   "label": optional String
-///   "dartElement": optional Element
-///   "attributes": optional List<FlutterOutlineAttribute>
-///   "className": optional String
-///   "parentAssociationLabel": optional String
-///   "variableName": optional String
-///   "children": optional List<FlutterOutline>
-/// }
+///     {
+///       "kind": FlutterOutlineKind
+///       "offset": int
+///       "length": int
+///       "codeOffset": int
+///       "codeLength": int
+///       "label": optional String
+///       "dartElement": optional Element
+///       "attributes": optional List<FlutterOutlineAttribute>
+///       "className": optional String
+///       "parentAssociationLabel": optional String
+///       "variableName": optional String
+///       "children": optional List<FlutterOutline>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterOutline implements HasToJson {
@@ -9491,15 +9491,15 @@ class FlutterOutline implements HasToJson {
 
 /// FlutterOutlineAttribute
 ///
-/// {
-///   "name": String
-///   "label": String
-///   "literalValueBoolean": optional bool
-///   "literalValueInteger": optional int
-///   "literalValueString": optional String
-///   "nameLocation": optional Location
-///   "valueLocation": optional Location
-/// }
+///     {
+///       "name": String
+///       "label": String
+///       "literalValueBoolean": optional bool
+///       "literalValueInteger": optional int
+///       "literalValueString": optional String
+///       "nameLocation": optional Location
+///       "valueLocation": optional Location
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterOutlineAttribute implements HasToJson {
@@ -9650,14 +9650,14 @@ class FlutterOutlineAttribute implements HasToJson {
 
 /// FlutterOutlineKind
 ///
-/// enum {
-///   DART_ELEMENT
-///   GENERIC
-///   NEW_INSTANCE
-///   INVOCATION
-///   VARIABLE
-///   PLACEHOLDER
-/// }
+///     enum {
+///       DART_ELEMENT
+///       GENERIC
+///       NEW_INSTANCE
+///       INVOCATION
+///       VARIABLE
+///       PLACEHOLDER
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum FlutterOutlineKind {
@@ -9701,10 +9701,10 @@ enum FlutterOutlineKind {
 
 /// flutter.outline params
 ///
-/// {
-///   "file": FilePath
-///   "outline": FlutterOutline
-/// }
+///     {
+///       "file": FilePath
+///       "outline": FlutterOutline
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterOutlineParams implements HasToJson {
@@ -9776,9 +9776,9 @@ class FlutterOutlineParams implements HasToJson {
 
 /// FlutterService
 ///
-/// enum {
-///   OUTLINE
-/// }
+///     enum {
+///       OUTLINE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum FlutterService {
@@ -9804,9 +9804,9 @@ enum FlutterService {
 
 /// flutter.setSubscriptions params
 ///
-/// {
-///   "subscriptions": Map<FlutterService, List<FilePath>>
-/// }
+///     {
+///       "subscriptions": Map<FlutterService, List<FilePath>>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterSetSubscriptionsParams implements RequestParams {
@@ -9897,10 +9897,10 @@ class FlutterSetSubscriptionsResult implements ResponseResult {
 
 /// flutter.setWidgetPropertyValue params
 ///
-/// {
-///   "id": int
-///   "value": optional FlutterWidgetPropertyValue
-/// }
+///     {
+///       "id": int
+///       "value": optional FlutterWidgetPropertyValue
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterSetWidgetPropertyValueParams implements RequestParams {
@@ -9987,9 +9987,9 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
 
 /// flutter.setWidgetPropertyValue result
 ///
-/// {
-///   "change": SourceChange
-/// }
+///     {
+///       "change": SourceChange
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterSetWidgetPropertyValueResult implements ResponseResult {
@@ -10052,17 +10052,17 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
 
 /// FlutterWidgetProperty
 ///
-/// {
-///   "documentation": optional String
-///   "expression": optional String
-///   "id": int
-///   "isRequired": bool
-///   "isSafeToUpdate": bool
-///   "name": String
-///   "children": optional List<FlutterWidgetProperty>
-///   "editor": optional FlutterWidgetPropertyEditor
-///   "value": optional FlutterWidgetPropertyValue
-/// }
+///     {
+///       "documentation": optional String
+///       "expression": optional String
+///       "id": int
+///       "isRequired": bool
+///       "isSafeToUpdate": bool
+///       "name": String
+///       "children": optional List<FlutterWidgetProperty>
+///       "editor": optional FlutterWidgetPropertyEditor
+///       "value": optional FlutterWidgetPropertyValue
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetProperty implements HasToJson {
@@ -10253,10 +10253,10 @@ class FlutterWidgetProperty implements HasToJson {
 
 /// FlutterWidgetPropertyEditor
 ///
-/// {
-///   "kind": FlutterWidgetPropertyEditorKind
-///   "enumItems": optional List<FlutterWidgetPropertyValueEnumItem>
-/// }
+///     {
+///       "kind": FlutterWidgetPropertyEditorKind
+///       "enumItems": optional List<FlutterWidgetPropertyValueEnumItem>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyEditor implements HasToJson {
@@ -10331,14 +10331,14 @@ class FlutterWidgetPropertyEditor implements HasToJson {
 
 /// FlutterWidgetPropertyEditorKind
 ///
-/// enum {
-///   BOOL
-///   DOUBLE
-///   ENUM
-///   ENUM_LIKE
-///   INT
-///   STRING
-/// }
+///     enum {
+///       BOOL
+///       DOUBLE
+///       ENUM
+///       ENUM_LIKE
+///       INT
+///       STRING
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum FlutterWidgetPropertyEditorKind {
@@ -10384,14 +10384,14 @@ enum FlutterWidgetPropertyEditorKind {
 
 /// FlutterWidgetPropertyValue
 ///
-/// {
-///   "boolValue": optional bool
-///   "doubleValue": optional double
-///   "intValue": optional int
-///   "stringValue": optional String
-///   "enumValue": optional FlutterWidgetPropertyValueEnumItem
-///   "expression": optional String
-/// }
+///     {
+///       "boolValue": optional bool
+///       "doubleValue": optional double
+///       "intValue": optional int
+///       "stringValue": optional String
+///       "enumValue": optional FlutterWidgetPropertyValueEnumItem
+///       "expression": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyValue implements HasToJson {
@@ -10521,12 +10521,12 @@ class FlutterWidgetPropertyValue implements HasToJson {
 
 /// FlutterWidgetPropertyValueEnumItem
 ///
-/// {
-///   "libraryUri": String
-///   "className": String
-///   "name": String
-///   "documentation": optional String
-/// }
+///     {
+///       "libraryUri": String
+///       "className": String
+///       "name": String
+///       "documentation": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyValueEnumItem implements HasToJson {
@@ -10625,9 +10625,9 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
 
 /// GeneralAnalysisService
 ///
-/// enum {
-///   ANALYZED_FILES
-/// }
+///     enum {
+///       ANALYZED_FILES
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum GeneralAnalysisService {
@@ -10653,20 +10653,20 @@ enum GeneralAnalysisService {
 
 /// HoverInformation
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "containingLibraryPath": optional String
-///   "containingLibraryName": optional String
-///   "containingClassDescription": optional String
-///   "dartdoc": optional String
-///   "elementDescription": optional String
-///   "elementKind": optional String
-///   "isDeprecated": optional bool
-///   "parameter": optional String
-///   "propagatedType": optional String
-///   "staticType": optional String
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "containingLibraryPath": optional String
+///       "containingLibraryName": optional String
+///       "containingClassDescription": optional String
+///       "dartdoc": optional String
+///       "elementDescription": optional String
+///       "elementKind": optional String
+///       "isDeprecated": optional bool
+///       "parameter": optional String
+///       "propagatedType": optional String
+///       "staticType": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class HoverInformation implements HasToJson {
@@ -10910,10 +10910,10 @@ class HoverInformation implements HasToJson {
 
 /// ImplementedClass
 ///
-/// {
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ImplementedClass implements HasToJson {
@@ -10975,10 +10975,10 @@ class ImplementedClass implements HasToJson {
 
 /// ImplementedMember
 ///
-/// {
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ImplementedMember implements HasToJson {
@@ -11040,11 +11040,11 @@ class ImplementedMember implements HasToJson {
 
 /// ImportedElementSet
 ///
-/// {
-///   "strings": List<String>
-///   "uris": List<int>
-///   "names": List<int>
-/// }
+///     {
+///       "strings": List<String>
+///       "uris": List<int>
+///       "names": List<int>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ImportedElementSet implements HasToJson {
@@ -11124,11 +11124,11 @@ class ImportedElementSet implements HasToJson {
 
 /// ImportedElements
 ///
-/// {
-///   "path": FilePath
-///   "prefix": String
-///   "elements": List<String>
-/// }
+///     {
+///       "path": FilePath
+///       "prefix": String
+///       "elements": List<String>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ImportedElements implements HasToJson {
@@ -11205,10 +11205,10 @@ class ImportedElements implements HasToJson {
 
 /// inlineLocalVariable feedback
 ///
-/// {
-///   "name": String
-///   "occurrences": int
-/// }
+///     {
+///       "name": String
+///       "occurrences": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineLocalVariableFeedback extends RefactoringFeedback {
@@ -11284,11 +11284,11 @@ class InlineLocalVariableOptions extends RefactoringOptions
 
 /// inlineMethod feedback
 ///
-/// {
-///   "className": optional String
-///   "methodName": String
-///   "isDeclaration": bool
-/// }
+///     {
+///       "className": optional String
+///       "methodName": String
+///       "isDeclaration": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineMethodFeedback extends RefactoringFeedback {
@@ -11370,10 +11370,10 @@ class InlineMethodFeedback extends RefactoringFeedback {
 
 /// inlineMethod options
 ///
-/// {
-///   "deleteSource": bool
-///   "inlineAll": bool
-/// }
+///     {
+///       "deleteSource": bool
+///       "inlineAll": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineMethodOptions extends RefactoringOptions {
@@ -11445,10 +11445,10 @@ class InlineMethodOptions extends RefactoringOptions {
 
 /// LibraryPathSet
 ///
-/// {
-///   "scope": FilePath
-///   "libraryPaths": List<FilePath>
-/// }
+///     {
+///       "scope": FilePath
+///       "libraryPaths": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LibraryPathSet implements HasToJson {
@@ -11516,9 +11516,9 @@ class LibraryPathSet implements HasToJson {
 
 /// lsp.handle params
 ///
-/// {
-///   "lspMessage": object
-/// }
+///     {
+///       "lspMessage": object
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LspHandleParams implements RequestParams {
@@ -11577,9 +11577,9 @@ class LspHandleParams implements RequestParams {
 
 /// lsp.handle result
 ///
-/// {
-///   "lspResponse": object
-/// }
+///     {
+///       "lspResponse": object
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LspHandleResult implements ResponseResult {
@@ -11640,9 +11640,9 @@ class LspHandleResult implements ResponseResult {
 
 /// lsp.notification params
 ///
-/// {
-///   "lspNotification": object
-/// }
+///     {
+///       "lspNotification": object
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LspNotificationParams implements HasToJson {
@@ -11700,9 +11700,9 @@ class LspNotificationParams implements HasToJson {
 
 /// MessageAction
 ///
-/// {
-///   "label": String
-/// }
+///     {
+///       "label": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class MessageAction implements HasToJson {
@@ -11752,12 +11752,12 @@ class MessageAction implements HasToJson {
 
 /// MessageType
 ///
-/// enum {
-///   ERROR
-///   WARNING
-///   INFO
-///   LOG
-/// }
+///     enum {
+///       ERROR
+///       WARNING
+///       INFO
+///       LOG
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum MessageType {
@@ -11804,9 +11804,9 @@ class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
 
 /// moveFile options
 ///
-/// {
-///   "newFile": FilePath
-/// }
+///     {
+///       "newFile": FilePath
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class MoveFileOptions extends RefactoringOptions {
@@ -11862,10 +11862,10 @@ class MoveFileOptions extends RefactoringOptions {
 
 /// OverriddenMember
 ///
-/// {
-///   "element": Element
-///   "className": String
-/// }
+///     {
+///       "element": Element
+///       "className": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class OverriddenMember implements HasToJson {
@@ -11929,12 +11929,12 @@ class OverriddenMember implements HasToJson {
 
 /// Override
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "superclassMember": optional OverriddenMember
-///   "interfaceMembers": optional List<OverriddenMember>
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "superclassMember": optional OverriddenMember
+///       "interfaceMembers": optional List<OverriddenMember>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Override implements HasToJson {
@@ -12038,11 +12038,11 @@ class Override implements HasToJson {
 
 /// PostfixTemplateDescriptor
 ///
-/// {
-///   "name": String
-///   "key": String
-///   "example": String
-/// }
+///     {
+///       "name": String
+///       "key": String
+///       "example": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PostfixTemplateDescriptor implements HasToJson {
@@ -12117,9 +12117,9 @@ class PostfixTemplateDescriptor implements HasToJson {
 
 /// PubStatus
 ///
-/// {
-///   "isListingPackageDirs": bool
-/// }
+///     {
+///       "isListingPackageDirs": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PubStatus implements HasToJson {
@@ -12170,8 +12170,8 @@ class PubStatus implements HasToJson {
 
 /// RefactoringFeedback
 ///
-/// {
-/// }
+///     {
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RefactoringFeedback implements HasToJson {
@@ -12206,8 +12206,8 @@ class RefactoringFeedback implements HasToJson {
 
 /// RefactoringOptions
 ///
-/// {
-/// }
+///     {
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RefactoringOptions implements HasToJson {
@@ -12241,12 +12241,12 @@ class RefactoringOptions implements HasToJson {
 
 /// rename feedback
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "elementKindName": String
-///   "oldName": String
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "elementKindName": String
+///       "oldName": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RenameFeedback extends RefactoringFeedback {
@@ -12337,9 +12337,9 @@ class RenameFeedback extends RefactoringFeedback {
 
 /// rename options
 ///
-/// {
-///   "newName": String
-/// }
+///     {
+///       "newName": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RenameOptions extends RefactoringOptions {
@@ -12395,11 +12395,11 @@ class RenameOptions extends RefactoringOptions {
 
 /// RequestError
 ///
-/// {
-///   "code": RequestErrorCode
-///   "message": String
-///   "stackTrace": optional String
-/// }
+///     {
+///       "code": RequestErrorCode
+///       "message": String
+///       "stackTrace": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RequestError implements HasToJson {
@@ -12479,41 +12479,41 @@ class RequestError implements HasToJson {
 
 /// RequestErrorCode
 ///
-/// enum {
-///   CONTENT_MODIFIED
-///   DEBUG_PORT_COULD_NOT_BE_OPENED
-///   FILE_NOT_ANALYZED
-///   FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED
-///   FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET
-///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION
-///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID
-///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED
-///   FORMAT_INVALID_FILE
-///   FORMAT_WITH_ERRORS
-///   GET_ERRORS_INVALID_FILE
-///   GET_FIXES_INVALID_FILE
-///   GET_IMPORTED_ELEMENTS_INVALID_FILE
-///   GET_NAVIGATION_INVALID_FILE
-///   GET_REACHABLE_SOURCES_INVALID_FILE
-///   GET_SIGNATURE_INVALID_FILE
-///   GET_SIGNATURE_INVALID_OFFSET
-///   GET_SIGNATURE_UNKNOWN_FUNCTION
-///   IMPORT_ELEMENTS_INVALID_FILE
-///   INVALID_ANALYSIS_ROOT
-///   INVALID_EXECUTION_CONTEXT
-///   INVALID_FILE_PATH_FORMAT
-///   INVALID_OVERLAY_CHANGE
-///   INVALID_PARAMETER
-///   INVALID_REQUEST
-///   ORGANIZE_DIRECTIVES_ERROR
-///   REFACTORING_REQUEST_CANCELLED
-///   SERVER_ALREADY_STARTED
-///   SERVER_ERROR
-///   SORT_MEMBERS_INVALID_FILE
-///   SORT_MEMBERS_PARSE_ERRORS
-///   UNKNOWN_REQUEST
-///   UNSUPPORTED_FEATURE
-/// }
+///     enum {
+///       CONTENT_MODIFIED
+///       DEBUG_PORT_COULD_NOT_BE_OPENED
+///       FILE_NOT_ANALYZED
+///       FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED
+///       FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET
+///       FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION
+///       FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID
+///       FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED
+///       FORMAT_INVALID_FILE
+///       FORMAT_WITH_ERRORS
+///       GET_ERRORS_INVALID_FILE
+///       GET_FIXES_INVALID_FILE
+///       GET_IMPORTED_ELEMENTS_INVALID_FILE
+///       GET_NAVIGATION_INVALID_FILE
+///       GET_REACHABLE_SOURCES_INVALID_FILE
+///       GET_SIGNATURE_INVALID_FILE
+///       GET_SIGNATURE_INVALID_OFFSET
+///       GET_SIGNATURE_UNKNOWN_FUNCTION
+///       IMPORT_ELEMENTS_INVALID_FILE
+///       INVALID_ANALYSIS_ROOT
+///       INVALID_EXECUTION_CONTEXT
+///       INVALID_FILE_PATH_FORMAT
+///       INVALID_OVERLAY_CHANGE
+///       INVALID_PARAMETER
+///       INVALID_REQUEST
+///       ORGANIZE_DIRECTIVES_ERROR
+///       REFACTORING_REQUEST_CANCELLED
+///       SERVER_ALREADY_STARTED
+///       SERVER_ERROR
+///       SORT_MEMBERS_INVALID_FILE
+///       SORT_MEMBERS_PARSE_ERRORS
+///       UNKNOWN_REQUEST
+///       UNSUPPORTED_FEATURE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum RequestErrorCode {
@@ -12670,11 +12670,11 @@ enum RequestErrorCode {
 
 /// RuntimeCompletionExpression
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "type": optional RuntimeCompletionExpressionType
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "type": optional RuntimeCompletionExpressionType
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionExpression implements HasToJson {
@@ -12753,15 +12753,15 @@ class RuntimeCompletionExpression implements HasToJson {
 
 /// RuntimeCompletionExpressionType
 ///
-/// {
-///   "libraryPath": optional FilePath
-///   "kind": RuntimeCompletionExpressionTypeKind
-///   "name": optional String
-///   "typeArguments": optional List<RuntimeCompletionExpressionType>
-///   "returnType": optional RuntimeCompletionExpressionType
-///   "parameterTypes": optional List<RuntimeCompletionExpressionType>
-///   "parameterNames": optional List<String>
-/// }
+///     {
+///       "libraryPath": optional FilePath
+///       "kind": RuntimeCompletionExpressionTypeKind
+///       "name": optional String
+///       "typeArguments": optional List<RuntimeCompletionExpressionType>
+///       "returnType": optional RuntimeCompletionExpressionType
+///       "parameterTypes": optional List<RuntimeCompletionExpressionType>
+///       "parameterNames": optional List<String>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionExpressionType implements HasToJson {
@@ -12941,11 +12941,11 @@ class RuntimeCompletionExpressionType implements HasToJson {
 
 /// RuntimeCompletionExpressionTypeKind
 ///
-/// enum {
-///   DYNAMIC
-///   FUNCTION
-///   INTERFACE
-/// }
+///     enum {
+///       DYNAMIC
+///       FUNCTION
+///       INTERFACE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum RuntimeCompletionExpressionTypeKind {
@@ -12976,10 +12976,10 @@ enum RuntimeCompletionExpressionTypeKind {
 
 /// RuntimeCompletionVariable
 ///
-/// {
-///   "name": String
-///   "type": RuntimeCompletionExpressionType
-/// }
+///     {
+///       "name": String
+///       "type": RuntimeCompletionExpressionType
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionVariable implements HasToJson {
@@ -13044,11 +13044,11 @@ class RuntimeCompletionVariable implements HasToJson {
 
 /// search.findElementReferences params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "includePotential": bool
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "includePotential": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindElementReferencesParams implements RequestParams {
@@ -13138,10 +13138,10 @@ class SearchFindElementReferencesParams implements RequestParams {
 
 /// search.findElementReferences result
 ///
-/// {
-///   "id": optional SearchId
-///   "element": optional Element
-/// }
+///     {
+///       "id": optional SearchId
+///       "element": optional Element
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindElementReferencesResult implements ResponseResult {
@@ -13225,9 +13225,9 @@ class SearchFindElementReferencesResult implements ResponseResult {
 
 /// search.findMemberDeclarations params
 ///
-/// {
-///   "name": String
-/// }
+///     {
+///       "name": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberDeclarationsParams implements RequestParams {
@@ -13287,9 +13287,9 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
 
 /// search.findMemberDeclarations result
 ///
-/// {
-///   "id": SearchId
-/// }
+///     {
+///       "id": SearchId
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberDeclarationsResult implements ResponseResult {
@@ -13351,9 +13351,9 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
 
 /// search.findMemberReferences params
 ///
-/// {
-///   "name": String
-/// }
+///     {
+///       "name": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberReferencesParams implements RequestParams {
@@ -13413,9 +13413,9 @@ class SearchFindMemberReferencesParams implements RequestParams {
 
 /// search.findMemberReferences result
 ///
-/// {
-///   "id": SearchId
-/// }
+///     {
+///       "id": SearchId
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberReferencesResult implements ResponseResult {
@@ -13477,9 +13477,9 @@ class SearchFindMemberReferencesResult implements ResponseResult {
 
 /// search.findTopLevelDeclarations params
 ///
-/// {
-///   "pattern": String
-/// }
+///     {
+///       "pattern": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindTopLevelDeclarationsParams implements RequestParams {
@@ -13541,9 +13541,9 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
 
 /// search.findTopLevelDeclarations result
 ///
-/// {
-///   "id": SearchId
-/// }
+///     {
+///       "id": SearchId
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindTopLevelDeclarationsResult implements ResponseResult {
@@ -13605,11 +13605,11 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
 
 /// search.getElementDeclarations params
 ///
-/// {
-///   "file": optional FilePath
-///   "pattern": optional String
-///   "maxResults": optional int
-/// }
+///     {
+///       "file": optional FilePath
+///       "pattern": optional String
+///       "maxResults": optional int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchGetElementDeclarationsParams implements RequestParams {
@@ -13705,10 +13705,10 @@ class SearchGetElementDeclarationsParams implements RequestParams {
 
 /// search.getElementDeclarations result
 ///
-/// {
-///   "declarations": List<ElementDeclaration>
-///   "files": List<FilePath>
-/// }
+///     {
+///       "declarations": List<ElementDeclaration>
+///       "files": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchGetElementDeclarationsResult implements ResponseResult {
@@ -13791,11 +13791,11 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
 
 /// search.getTypeHierarchy params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "superOnly": optional bool
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "superOnly": optional bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchGetTypeHierarchyParams implements RequestParams {
@@ -13885,9 +13885,9 @@ class SearchGetTypeHierarchyParams implements RequestParams {
 
 /// search.getTypeHierarchy result
 ///
-/// {
-///   "hierarchyItems": optional List<TypeHierarchyItem>
-/// }
+///     {
+///       "hierarchyItems": optional List<TypeHierarchyItem>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchGetTypeHierarchyResult implements ResponseResult {
@@ -13965,12 +13965,12 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
 
 /// SearchResult
 ///
-/// {
-///   "location": Location
-///   "kind": SearchResultKind
-///   "isPotential": bool
-///   "path": List<Element>
-/// }
+///     {
+///       "location": Location
+///       "kind": SearchResultKind
+///       "isPotential": bool
+///       "path": List<Element>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchResult implements HasToJson {
@@ -14069,15 +14069,15 @@ class SearchResult implements HasToJson {
 
 /// SearchResultKind
 ///
-/// enum {
-///   DECLARATION
-///   INVOCATION
-///   READ
-///   READ_WRITE
-///   REFERENCE
-///   UNKNOWN
-///   WRITE
-/// }
+///     enum {
+///       DECLARATION
+///       INVOCATION
+///       READ
+///       READ_WRITE
+///       REFERENCE
+///       UNKNOWN
+///       WRITE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum SearchResultKind {
@@ -14123,11 +14123,11 @@ enum SearchResultKind {
 
 /// search.results params
 ///
-/// {
-///   "id": SearchId
-///   "results": List<SearchResult>
-///   "isLast": bool
-/// }
+///     {
+///       "id": SearchId
+///       "results": List<SearchResult>
+///       "isLast": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchResultsParams implements HasToJson {
@@ -14218,9 +14218,9 @@ class SearchResultsParams implements HasToJson {
 
 /// server.cancelRequest params
 ///
-/// {
-///   "id": String
-/// }
+///     {
+///       "id": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerCancelRequestParams implements RequestParams {
@@ -14298,10 +14298,10 @@ class ServerCancelRequestResult implements ResponseResult {
 
 /// server.connected params
 ///
-/// {
-///   "version": String
-///   "pid": int
-/// }
+///     {
+///       "version": String
+///       "pid": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerConnectedParams implements HasToJson {
@@ -14373,11 +14373,11 @@ class ServerConnectedParams implements HasToJson {
 
 /// server.error params
 ///
-/// {
-///   "isFatal": bool
-///   "message": String
-///   "stackTrace": String
-/// }
+///     {
+///       "isFatal": bool
+///       "message": String
+///       "stackTrace": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerErrorParams implements HasToJson {
@@ -14484,9 +14484,9 @@ class ServerGetVersionParams implements RequestParams {
 
 /// server.getVersion result
 ///
-/// {
-///   "version": String
-/// }
+///     {
+///       "version": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerGetVersionResult implements ResponseResult {
@@ -14548,11 +14548,11 @@ class ServerGetVersionResult implements ResponseResult {
 
 /// ServerLogEntry
 ///
-/// {
-///   "time": int
-///   "kind": ServerLogEntryKind
-///   "data": String
-/// }
+///     {
+///       "time": int
+///       "kind": ServerLogEntryKind
+///       "data": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerLogEntry implements HasToJson {
@@ -14629,12 +14629,12 @@ class ServerLogEntry implements HasToJson {
 
 /// ServerLogEntryKind
 ///
-/// enum {
-///   NOTIFICATION
-///   RAW
-///   REQUEST
-///   RESPONSE
-/// }
+///     enum {
+///       NOTIFICATION
+///       RAW
+///       REQUEST
+///       RESPONSE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum ServerLogEntryKind {
@@ -14688,9 +14688,9 @@ enum ServerLogEntryKind {
 
 /// server.log params
 ///
-/// {
-///   "entry": ServerLogEntry
-/// }
+///     {
+///       "entry": ServerLogEntry
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerLogParams implements HasToJson {
@@ -14748,9 +14748,9 @@ class ServerLogParams implements HasToJson {
 
 /// server.openUrlRequest params
 ///
-/// {
-///   "url": String
-/// }
+///     {
+///       "url": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerOpenUrlRequestParams implements RequestParams {
@@ -14829,9 +14829,9 @@ class ServerOpenUrlRequestResult implements ResponseResult {
 
 /// server.pluginError params
 ///
-/// {
-///   "message": String
-/// }
+///     {
+///       "message": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerPluginErrorParams implements HasToJson {
@@ -14890,10 +14890,10 @@ class ServerPluginErrorParams implements HasToJson {
 
 /// ServerService
 ///
-/// enum {
-///   LOG
-///   STATUS
-/// }
+///     enum {
+///       LOG
+///       STATUS
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum ServerService {
@@ -14921,11 +14921,11 @@ enum ServerService {
 
 /// server.setClientCapabilities params
 ///
-/// {
-///   "requests": List<String>
-///   "supportsUris": optional bool
-///   "lspCapabilities": optional object
-/// }
+///     {
+///       "requests": List<String>
+///       "supportsUris": optional bool
+///       "lspCapabilities": optional object
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerSetClientCapabilitiesParams implements RequestParams {
@@ -15066,9 +15066,9 @@ class ServerSetClientCapabilitiesResult implements ResponseResult {
 
 /// server.setSubscriptions params
 ///
-/// {
-///   "subscriptions": List<ServerService>
-/// }
+///     {
+///       "subscriptions": List<ServerService>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerSetSubscriptionsParams implements RequestParams {
@@ -15153,11 +15153,11 @@ class ServerSetSubscriptionsResult implements ResponseResult {
 
 /// server.showMessageRequest params
 ///
-/// {
-///   "type": MessageType
-///   "message": String
-///   "actions": List<MessageAction>
-/// }
+///     {
+///       "type": MessageType
+///       "message": String
+///       "actions": List<MessageAction>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerShowMessageRequestParams implements RequestParams {
@@ -15251,9 +15251,9 @@ class ServerShowMessageRequestParams implements RequestParams {
 
 /// server.showMessageRequest result
 ///
-/// {
-///   "action": optional String
-/// }
+///     {
+///       "action": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerShowMessageRequestResult implements ResponseResult {
@@ -15356,10 +15356,10 @@ class ServerShutdownResult implements ResponseResult {
 
 /// server.status params
 ///
-/// {
-///   "analysis": optional AnalysisStatus
-///   "pub": optional PubStatus
-/// }
+///     {
+///       "analysis": optional AnalysisStatus
+///       "pub": optional PubStatus
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerStatusParams implements HasToJson {
@@ -15438,15 +15438,15 @@ class ServerStatusParams implements HasToJson {
 
 /// TypeHierarchyItem
 ///
-/// {
-///   "classElement": Element
-///   "displayName": optional String
-///   "memberElement": optional Element
-///   "superclass": optional int
-///   "interfaces": List<int>
-///   "mixins": List<int>
-///   "subclasses": List<int>
-/// }
+///     {
+///       "classElement": Element
+///       "displayName": optional String
+///       "memberElement": optional Element
+///       "superclass": optional int
+///       "interfaces": List<int>
+///       "mixins": List<int>
+///       "subclasses": List<int>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeHierarchyItem implements HasToJson {

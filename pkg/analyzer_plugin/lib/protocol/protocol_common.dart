@@ -17,11 +17,11 @@ import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 
 /// AddContentOverlay
 ///
-/// {
-///   "type": "add"
-///   "content": String
-///   "version": optional int
-/// }
+///     {
+///       "type": "add"
+///       "content": String
+///       "version": optional int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AddContentOverlay implements HasToJson {
@@ -99,17 +99,17 @@ class AddContentOverlay implements HasToJson {
 
 /// AnalysisError
 ///
-/// {
-///   "severity": AnalysisErrorSeverity
-///   "type": AnalysisErrorType
-///   "location": Location
-///   "message": String
-///   "correction": optional String
-///   "code": String
-///   "url": optional String
-///   "contextMessages": optional List<DiagnosticMessage>
-///   "hasFix": optional bool
-/// }
+///     {
+///       "severity": AnalysisErrorSeverity
+///       "type": AnalysisErrorType
+///       "location": Location
+///       "message": String
+///       "correction": optional String
+///       "code": String
+///       "url": optional String
+///       "contextMessages": optional List<DiagnosticMessage>
+///       "hasFix": optional bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisError implements HasToJson {
@@ -339,11 +339,11 @@ class AnalysisError implements HasToJson {
 
 /// AnalysisErrorSeverity
 ///
-/// enum {
-///   INFO
-///   WARNING
-///   ERROR
-/// }
+///     enum {
+///       INFO
+///       WARNING
+///       ERROR
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum AnalysisErrorSeverity {
@@ -377,16 +377,16 @@ enum AnalysisErrorSeverity {
 
 /// AnalysisErrorType
 ///
-/// enum {
-///   CHECKED_MODE_COMPILE_TIME_ERROR
-///   COMPILE_TIME_ERROR
-///   HINT
-///   LINT
-///   STATIC_TYPE_WARNING
-///   STATIC_WARNING
-///   SYNTACTIC_ERROR
-///   TODO
-/// }
+///     enum {
+///       CHECKED_MODE_COMPILE_TIME_ERROR
+///       COMPILE_TIME_ERROR
+///       HINT
+///       LINT
+///       STATIC_TYPE_WARNING
+///       STATIC_WARNING
+///       SYNTACTIC_ERROR
+///       TODO
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum AnalysisErrorType {
@@ -430,10 +430,10 @@ enum AnalysisErrorType {
 
 /// AssistDescription
 ///
-/// {
-///   "id": String
-///   "message": String
-/// }
+///     {
+///       "id": String
+///       "message": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AssistDescription implements HasToJson {
@@ -499,11 +499,11 @@ class AssistDescription implements HasToJson {
 
 /// ChangeContentOverlay
 ///
-/// {
-///   "type": "change"
-///   "edits": List<SourceEdit>
-///   "version": optional int
-/// }
+///     {
+///       "type": "change"
+///       "edits": List<SourceEdit>
+///       "version": optional int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ChangeContentOverlay implements HasToJson {
@@ -597,33 +597,33 @@ class ChangeContentOverlay implements HasToJson {
 
 /// CompletionSuggestion
 ///
-/// {
-///   "kind": CompletionSuggestionKind
-///   "relevance": int
-///   "completion": String
-///   "displayText": optional String
-///   "replacementOffset": optional int
-///   "replacementLength": optional int
-///   "selectionOffset": int
-///   "selectionLength": int
-///   "isDeprecated": bool
-///   "isPotential": bool
-///   "docSummary": optional String
-///   "docComplete": optional String
-///   "declaringType": optional String
-///   "defaultArgumentListString": optional String
-///   "defaultArgumentListTextRanges": optional List<int>
-///   "element": optional Element
-///   "returnType": optional String
-///   "parameterNames": optional List<String>
-///   "parameterTypes": optional List<String>
-///   "requiredParameterCount": optional int
-///   "hasNamedParameters": optional bool
-///   "parameterName": optional String
-///   "parameterType": optional String
-///   "libraryUri": optional String
-///   "isNotImported": optional bool
-/// }
+///     {
+///       "kind": CompletionSuggestionKind
+///       "relevance": int
+///       "completion": String
+///       "displayText": optional String
+///       "replacementOffset": optional int
+///       "replacementLength": optional int
+///       "selectionOffset": int
+///       "selectionLength": int
+///       "isDeprecated": bool
+///       "isPotential": bool
+///       "docSummary": optional String
+///       "docComplete": optional String
+///       "declaringType": optional String
+///       "defaultArgumentListString": optional String
+///       "defaultArgumentListTextRanges": optional List<int>
+///       "element": optional Element
+///       "returnType": optional String
+///       "parameterNames": optional List<String>
+///       "parameterTypes": optional List<String>
+///       "requiredParameterCount": optional int
+///       "hasNamedParameters": optional bool
+///       "parameterName": optional String
+///       "parameterType": optional String
+///       "libraryUri": optional String
+///       "isNotImported": optional bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionSuggestion implements HasToJson {
@@ -1184,18 +1184,18 @@ class CompletionSuggestion implements HasToJson {
 
 /// CompletionSuggestionKind
 ///
-/// enum {
-///   ARGUMENT_LIST
-///   IMPORT
-///   IDENTIFIER
-///   INVOCATION
-///   KEYWORD
-///   NAMED_ARGUMENT
-///   OPTIONAL_ARGUMENT
-///   OVERRIDE
-///   PARAMETER
-///   PACKAGE_NAME
-/// }
+///     enum {
+///       ARGUMENT_LIST
+///       IMPORT
+///       IDENTIFIER
+///       INVOCATION
+///       KEYWORD
+///       NAMED_ARGUMENT
+///       OPTIONAL_ARGUMENT
+///       OVERRIDE
+///       PARAMETER
+///       PACKAGE_NAME
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum CompletionSuggestionKind {
@@ -1262,10 +1262,10 @@ enum CompletionSuggestionKind {
 
 /// DiagnosticMessage
 ///
-/// {
-///   "message": String
-///   "location": Location
-/// }
+///     {
+///       "message": String
+///       "location": Location
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class DiagnosticMessage implements HasToJson {
@@ -1339,16 +1339,16 @@ class DiagnosticMessage implements HasToJson {
 
 /// Element
 ///
-/// {
-///   "kind": ElementKind
-///   "name": String
-///   "location": optional Location
-///   "flags": int
-///   "parameters": optional String
-///   "returnType": optional String
-///   "typeParameters": optional String
-///   "aliasedType": optional String
-/// }
+///     {
+///       "kind": ElementKind
+///       "name": String
+///       "location": optional Location
+///       "flags": int
+///       "parameters": optional String
+///       "returnType": optional String
+///       "typeParameters": optional String
+///       "aliasedType": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Element implements HasToJson {
@@ -1582,37 +1582,37 @@ class Element implements HasToJson {
 
 /// ElementKind
 ///
-/// enum {
-///   CLASS
-///   CLASS_TYPE_ALIAS
-///   COMPILATION_UNIT
-///   CONSTRUCTOR
-///   CONSTRUCTOR_INVOCATION
-///   ENUM
-///   ENUM_CONSTANT
-///   EXTENSION
-///   EXTENSION_TYPE
-///   FIELD
-///   FILE
-///   FUNCTION
-///   FUNCTION_INVOCATION
-///   FUNCTION_TYPE_ALIAS
-///   GETTER
-///   LABEL
-///   LIBRARY
-///   LOCAL_VARIABLE
-///   METHOD
-///   MIXIN
-///   PARAMETER
-///   PREFIX
-///   SETTER
-///   TOP_LEVEL_VARIABLE
-///   TYPE_ALIAS
-///   TYPE_PARAMETER
-///   UNIT_TEST_GROUP
-///   UNIT_TEST_TEST
-///   UNKNOWN
-/// }
+///     enum {
+///       CLASS
+///       CLASS_TYPE_ALIAS
+///       COMPILATION_UNIT
+///       CONSTRUCTOR
+///       CONSTRUCTOR_INVOCATION
+///       ENUM
+///       ENUM_CONSTANT
+///       EXTENSION
+///       EXTENSION_TYPE
+///       FIELD
+///       FILE
+///       FUNCTION
+///       FUNCTION_INVOCATION
+///       FUNCTION_TYPE_ALIAS
+///       GETTER
+///       LABEL
+///       LIBRARY
+///       LOCAL_VARIABLE
+///       METHOD
+///       MIXIN
+///       PARAMETER
+///       PREFIX
+///       SETTER
+///       TOP_LEVEL_VARIABLE
+///       TYPE_ALIAS
+///       TYPE_PARAMETER
+///       UNIT_TEST_GROUP
+///       UNIT_TEST_TEST
+///       UNKNOWN
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum ElementKind {
@@ -1698,11 +1698,11 @@ enum ElementKind {
 
 /// FixDescription
 ///
-/// {
-///   "id": String
-///   "message": String
-///   "codes": List<String>
-/// }
+///     {
+///       "id": String
+///       "message": String
+///       "codes": List<String>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FixDescription implements HasToJson {
@@ -1784,19 +1784,19 @@ class FixDescription implements HasToJson {
 
 /// FoldingKind
 ///
-/// enum {
-///   ANNOTATIONS
-///   BLOCK
-///   CLASS_BODY
-///   COMMENT
-///   DIRECTIVES
-///   DOCUMENTATION_COMMENT
-///   FILE_HEADER
-///   FUNCTION_BODY
-///   INVOCATION
-///   LITERAL
-///   PARAMETERS
-/// }
+///     enum {
+///       ANNOTATIONS
+///       BLOCK
+///       CLASS_BODY
+///       COMMENT
+///       DIRECTIVES
+///       DOCUMENTATION_COMMENT
+///       FILE_HEADER
+///       FUNCTION_BODY
+///       INVOCATION
+///       LITERAL
+///       PARAMETERS
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum FoldingKind {
@@ -1846,11 +1846,11 @@ enum FoldingKind {
 
 /// FoldingRegion
 ///
-/// {
-///   "kind": FoldingKind
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "kind": FoldingKind
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FoldingRegion implements HasToJson {
@@ -1930,11 +1930,11 @@ class FoldingRegion implements HasToJson {
 
 /// HighlightRegion
 ///
-/// {
-///   "type": HighlightRegionType
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "type": HighlightRegionType
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class HighlightRegion implements HasToJson {
@@ -2014,91 +2014,91 @@ class HighlightRegion implements HasToJson {
 
 /// HighlightRegionType
 ///
-/// enum {
-///   ANNOTATION
-///   BUILT_IN
-///   CLASS
-///   COMMENT_BLOCK
-///   COMMENT_DOCUMENTATION
-///   COMMENT_END_OF_LINE
-///   CONSTRUCTOR
-///   CONSTRUCTOR_TEAR_OFF
-///   DIRECTIVE
-///   DYNAMIC_TYPE
-///   DYNAMIC_LOCAL_VARIABLE_DECLARATION
-///   DYNAMIC_LOCAL_VARIABLE_REFERENCE
-///   DYNAMIC_PARAMETER_DECLARATION
-///   DYNAMIC_PARAMETER_REFERENCE
-///   ENUM
-///   ENUM_CONSTANT
-///   EXTENSION
-///   EXTENSION_TYPE
-///   FIELD
-///   FIELD_STATIC
-///   FUNCTION
-///   FUNCTION_DECLARATION
-///   FUNCTION_TYPE_ALIAS
-///   GETTER_DECLARATION
-///   IDENTIFIER_DEFAULT
-///   IMPORT_PREFIX
-///   INSTANCE_FIELD_DECLARATION
-///   INSTANCE_FIELD_REFERENCE
-///   INSTANCE_GETTER_DECLARATION
-///   INSTANCE_GETTER_REFERENCE
-///   INSTANCE_METHOD_DECLARATION
-///   INSTANCE_METHOD_REFERENCE
-///   INSTANCE_METHOD_TEAR_OFF
-///   INSTANCE_SETTER_DECLARATION
-///   INSTANCE_SETTER_REFERENCE
-///   INVALID_STRING_ESCAPE
-///   KEYWORD
-///   LABEL
-///   LIBRARY_NAME
-///   LITERAL_BOOLEAN
-///   LITERAL_DOUBLE
-///   LITERAL_INTEGER
-///   LITERAL_LIST
-///   LITERAL_MAP
-///   LITERAL_RECORD
-///   LITERAL_STRING
-///   LOCAL_FUNCTION_DECLARATION
-///   LOCAL_FUNCTION_REFERENCE
-///   LOCAL_FUNCTION_TEAR_OFF
-///   LOCAL_VARIABLE
-///   LOCAL_VARIABLE_DECLARATION
-///   LOCAL_VARIABLE_REFERENCE
-///   METHOD
-///   METHOD_DECLARATION
-///   METHOD_DECLARATION_STATIC
-///   METHOD_STATIC
-///   MIXIN
-///   PARAMETER
-///   SETTER_DECLARATION
-///   TOP_LEVEL_VARIABLE
-///   PARAMETER_DECLARATION
-///   PARAMETER_REFERENCE
-///   STATIC_FIELD_DECLARATION
-///   STATIC_GETTER_DECLARATION
-///   STATIC_GETTER_REFERENCE
-///   STATIC_METHOD_DECLARATION
-///   STATIC_METHOD_REFERENCE
-///   STATIC_METHOD_TEAR_OFF
-///   STATIC_SETTER_DECLARATION
-///   STATIC_SETTER_REFERENCE
-///   TOP_LEVEL_FUNCTION_DECLARATION
-///   TOP_LEVEL_FUNCTION_REFERENCE
-///   TOP_LEVEL_FUNCTION_TEAR_OFF
-///   TOP_LEVEL_GETTER_DECLARATION
-///   TOP_LEVEL_GETTER_REFERENCE
-///   TOP_LEVEL_SETTER_DECLARATION
-///   TOP_LEVEL_SETTER_REFERENCE
-///   TOP_LEVEL_VARIABLE_DECLARATION
-///   TYPE_ALIAS
-///   TYPE_NAME_DYNAMIC
-///   TYPE_PARAMETER
-///   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
-///   VALID_STRING_ESCAPE
-/// }
+///     enum {
+///       ANNOTATION
+///       BUILT_IN
+///       CLASS
+///       COMMENT_BLOCK
+///       COMMENT_DOCUMENTATION
+///       COMMENT_END_OF_LINE
+///       CONSTRUCTOR
+///       CONSTRUCTOR_TEAR_OFF
+///       DIRECTIVE
+///       DYNAMIC_TYPE
+///       DYNAMIC_LOCAL_VARIABLE_DECLARATION
+///       DYNAMIC_LOCAL_VARIABLE_REFERENCE
+///       DYNAMIC_PARAMETER_DECLARATION
+///       DYNAMIC_PARAMETER_REFERENCE
+///       ENUM
+///       ENUM_CONSTANT
+///       EXTENSION
+///       EXTENSION_TYPE
+///       FIELD
+///       FIELD_STATIC
+///       FUNCTION
+///       FUNCTION_DECLARATION
+///       FUNCTION_TYPE_ALIAS
+///       GETTER_DECLARATION
+///       IDENTIFIER_DEFAULT
+///       IMPORT_PREFIX
+///       INSTANCE_FIELD_DECLARATION
+///       INSTANCE_FIELD_REFERENCE
+///       INSTANCE_GETTER_DECLARATION
+///       INSTANCE_GETTER_REFERENCE
+///       INSTANCE_METHOD_DECLARATION
+///       INSTANCE_METHOD_REFERENCE
+///       INSTANCE_METHOD_TEAR_OFF
+///       INSTANCE_SETTER_DECLARATION
+///       INSTANCE_SETTER_REFERENCE
+///       INVALID_STRING_ESCAPE
+///       KEYWORD
+///       LABEL
+///       LIBRARY_NAME
+///       LITERAL_BOOLEAN
+///       LITERAL_DOUBLE
+///       LITERAL_INTEGER
+///       LITERAL_LIST
+///       LITERAL_MAP
+///       LITERAL_RECORD
+///       LITERAL_STRING
+///       LOCAL_FUNCTION_DECLARATION
+///       LOCAL_FUNCTION_REFERENCE
+///       LOCAL_FUNCTION_TEAR_OFF
+///       LOCAL_VARIABLE
+///       LOCAL_VARIABLE_DECLARATION
+///       LOCAL_VARIABLE_REFERENCE
+///       METHOD
+///       METHOD_DECLARATION
+///       METHOD_DECLARATION_STATIC
+///       METHOD_STATIC
+///       MIXIN
+///       PARAMETER
+///       SETTER_DECLARATION
+///       TOP_LEVEL_VARIABLE
+///       PARAMETER_DECLARATION
+///       PARAMETER_REFERENCE
+///       STATIC_FIELD_DECLARATION
+///       STATIC_GETTER_DECLARATION
+///       STATIC_GETTER_REFERENCE
+///       STATIC_METHOD_DECLARATION
+///       STATIC_METHOD_REFERENCE
+///       STATIC_METHOD_TEAR_OFF
+///       STATIC_SETTER_DECLARATION
+///       STATIC_SETTER_REFERENCE
+///       TOP_LEVEL_FUNCTION_DECLARATION
+///       TOP_LEVEL_FUNCTION_REFERENCE
+///       TOP_LEVEL_FUNCTION_TEAR_OFF
+///       TOP_LEVEL_GETTER_DECLARATION
+///       TOP_LEVEL_GETTER_REFERENCE
+///       TOP_LEVEL_SETTER_DECLARATION
+///       TOP_LEVEL_SETTER_REFERENCE
+///       TOP_LEVEL_VARIABLE_DECLARATION
+///       TYPE_ALIAS
+///       TYPE_NAME_DYNAMIC
+///       TYPE_PARAMETER
+///       UNRESOLVED_INSTANCE_MEMBER_REFERENCE
+///       VALID_STRING_ESCAPE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum HighlightRegionType {
@@ -2306,11 +2306,11 @@ enum HighlightRegionType {
 
 /// LinkedEditGroup
 ///
-/// {
-///   "positions": List<Position>
-///   "length": int
-///   "suggestions": List<LinkedEditSuggestion>
-/// }
+///     {
+///       "positions": List<Position>
+///       "length": int
+///       "suggestions": List<LinkedEditSuggestion>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LinkedEditGroup implements HasToJson {
@@ -2441,10 +2441,10 @@ class LinkedEditGroup implements HasToJson {
 
 /// LinkedEditSuggestion
 ///
-/// {
-///   "value": String
-///   "kind": LinkedEditSuggestionKind
-/// }
+///     {
+///       "value": String
+///       "kind": LinkedEditSuggestionKind
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LinkedEditSuggestion implements HasToJson {
@@ -2512,12 +2512,12 @@ class LinkedEditSuggestion implements HasToJson {
 
 /// LinkedEditSuggestionKind
 ///
-/// enum {
-///   METHOD
-///   PARAMETER
-///   TYPE
-///   VARIABLE
-/// }
+///     enum {
+///       METHOD
+///       PARAMETER
+///       TYPE
+///       VARIABLE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum LinkedEditSuggestionKind {
@@ -2553,15 +2553,15 @@ enum LinkedEditSuggestionKind {
 
 /// Location
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-///   "startLine": int
-///   "startColumn": int
-///   "endLine": optional int
-///   "endColumn": optional int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///       "startLine": int
+///       "startColumn": int
+///       "endLine": optional int
+///       "endColumn": optional int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Location implements HasToJson {
@@ -2723,11 +2723,11 @@ class Location implements HasToJson {
 
 /// NavigationRegion
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "targets": List<int>
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "targets": List<int>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class NavigationRegion implements HasToJson {
@@ -2808,16 +2808,16 @@ class NavigationRegion implements HasToJson {
 
 /// NavigationTarget
 ///
-/// {
-///   "kind": ElementKind
-///   "fileIndex": int
-///   "offset": int
-///   "length": int
-///   "startLine": int
-///   "startColumn": int
-///   "codeOffset": optional int
-///   "codeLength": optional int
-/// }
+///     {
+///       "kind": ElementKind
+///       "fileIndex": int
+///       "offset": int
+///       "length": int
+///       "startLine": int
+///       "startColumn": int
+///       "codeOffset": optional int
+///       "codeLength": optional int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class NavigationTarget implements HasToJson {
@@ -2999,11 +2999,11 @@ class NavigationTarget implements HasToJson {
 
 /// Occurrences
 ///
-/// {
-///   "element": Element
-///   "offsets": List<int>
-///   "length": int
-/// }
+///     {
+///       "element": Element
+///       "offsets": List<int>
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Occurrences implements HasToJson {
@@ -3087,14 +3087,14 @@ class Occurrences implements HasToJson {
 
 /// Outline
 ///
-/// {
-///   "element": Element
-///   "offset": int
-///   "length": int
-///   "codeOffset": int
-///   "codeLength": int
-///   "children": optional List<Outline>
-/// }
+///     {
+///       "element": Element
+///       "offset": int
+///       "length": int
+///       "codeOffset": int
+///       "codeLength": int
+///       "children": optional List<Outline>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Outline implements HasToJson {
@@ -3254,12 +3254,12 @@ class Outline implements HasToJson {
 
 /// ParameterInfo
 ///
-/// {
-///   "kind": ParameterKind
-///   "name": String
-///   "type": String
-///   "defaultValue": optional String
-/// }
+///     {
+///       "kind": ParameterKind
+///       "name": String
+///       "type": String
+///       "defaultValue": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ParameterInfo implements HasToJson {
@@ -3355,12 +3355,12 @@ class ParameterInfo implements HasToJson {
 
 /// ParameterKind
 ///
-/// enum {
-///   OPTIONAL_NAMED
-///   OPTIONAL_POSITIONAL
-///   REQUIRED_NAMED
-///   REQUIRED_POSITIONAL
-/// }
+///     enum {
+///       OPTIONAL_NAMED
+///       OPTIONAL_POSITIONAL
+///       REQUIRED_NAMED
+///       REQUIRED_POSITIONAL
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum ParameterKind {
@@ -3400,13 +3400,13 @@ enum ParameterKind {
 
 /// PluginDetails
 ///
-/// {
-///   "name": String
-///   "lintRules": List<String>
-///   "warningRules": List<String>
-///   "assists": List<AssistDescription>
-///   "fixes": List<FixDescription>
-/// }
+///     {
+///       "name": String
+///       "lintRules": List<String>
+///       "warningRules": List<String>
+///       "assists": List<AssistDescription>
+///       "fixes": List<FixDescription>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PluginDetails implements HasToJson {
@@ -3569,10 +3569,10 @@ class PluginDetails implements HasToJson {
 
 /// Position
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Position implements HasToJson {
@@ -3639,17 +3639,17 @@ class Position implements HasToJson {
 
 /// RefactoringKind
 ///
-/// enum {
-///   CONVERT_GETTER_TO_METHOD
-///   CONVERT_METHOD_TO_GETTER
-///   EXTRACT_LOCAL_VARIABLE
-///   EXTRACT_METHOD
-///   EXTRACT_WIDGET
-///   INLINE_LOCAL_VARIABLE
-///   INLINE_METHOD
-///   MOVE_FILE
-///   RENAME
-/// }
+///     enum {
+///       CONVERT_GETTER_TO_METHOD
+///       CONVERT_METHOD_TO_GETTER
+///       EXTRACT_LOCAL_VARIABLE
+///       EXTRACT_METHOD
+///       EXTRACT_WIDGET
+///       INLINE_LOCAL_VARIABLE
+///       INLINE_METHOD
+///       MOVE_FILE
+///       RENAME
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum RefactoringKind {
@@ -3695,13 +3695,13 @@ enum RefactoringKind {
 
 /// RefactoringMethodParameter
 ///
-/// {
-///   "id": optional String
-///   "kind": RefactoringMethodParameterKind
-///   "type": String
-///   "name": String
-///   "parameters": optional String
-/// }
+///     {
+///       "id": optional String
+///       "kind": RefactoringMethodParameterKind
+///       "type": String
+///       "name": String
+///       "parameters": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RefactoringMethodParameter implements HasToJson {
@@ -3828,11 +3828,11 @@ class RefactoringMethodParameter implements HasToJson {
 
 /// RefactoringMethodParameterKind
 ///
-/// enum {
-///   REQUIRED
-///   POSITIONAL
-///   NAMED
-/// }
+///     enum {
+///       REQUIRED
+///       POSITIONAL
+///       NAMED
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum RefactoringMethodParameterKind {
@@ -3870,11 +3870,11 @@ enum RefactoringMethodParameterKind {
 
 /// RefactoringProblem
 ///
-/// {
-///   "severity": RefactoringProblemSeverity
-///   "message": String
-///   "location": optional Location
-/// }
+///     {
+///       "severity": RefactoringProblemSeverity
+///       "message": String
+///       "location": optional Location
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RefactoringProblem implements HasToJson {
@@ -3969,12 +3969,12 @@ class RefactoringProblem implements HasToJson {
 
 /// RefactoringProblemSeverity
 ///
-/// enum {
-///   INFO
-///   WARNING
-///   ERROR
-///   FATAL
-/// }
+///     enum {
+///       INFO
+///       WARNING
+///       ERROR
+///       FATAL
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum RefactoringProblemSeverity {
@@ -4033,9 +4033,9 @@ enum RefactoringProblemSeverity {
 
 /// RemoveContentOverlay
 ///
-/// {
-///   "type": "remove"
-/// }
+///     {
+///       "type": "remove"
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RemoveContentOverlay implements HasToJson {
@@ -4082,14 +4082,14 @@ class RemoveContentOverlay implements HasToJson {
 
 /// SourceChange
 ///
-/// {
-///   "message": String
-///   "edits": List<SourceFileEdit>
-///   "linkedEditGroups": List<LinkedEditGroup>
-///   "selection": optional Position
-///   "selectionLength": optional int
-///   "id": optional String
-/// }
+///     {
+///       "message": String
+///       "edits": List<SourceFileEdit>
+///       "linkedEditGroups": List<LinkedEditGroup>
+///       "selection": optional Position
+///       "selectionLength": optional int
+///       "id": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SourceChange implements HasToJson {
@@ -4309,13 +4309,13 @@ class SourceChange implements HasToJson {
 
 /// SourceEdit
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "replacement": String
-///   "id": optional String
-///   "description": optional String
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "replacement": String
+///       "id": optional String
+///       "description": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SourceEdit implements HasToJson {
@@ -4459,11 +4459,11 @@ class SourceEdit implements HasToJson {
 
 /// SourceFileEdit
 ///
-/// {
-///   "file": FilePath
-///   "fileStamp": long
-///   "edits": List<SourceEdit>
-/// }
+///     {
+///       "file": FilePath
+///       "fileStamp": long
+///       "edits": List<SourceEdit>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SourceFileEdit implements HasToJson {

@@ -212,12 +212,12 @@ void f(List p) {
 
   Future<void> test_internal_instance() async {
     await resolveTestCode('''
-extension E on String {
+class C {
   int m(int x) => s = x;
 }
 ''');
     await assertHasFix('''
-extension E on String {
+class C {
   set s(int s) {}
 
   int m(int x) => s = x;
@@ -227,12 +227,12 @@ extension E on String {
 
   Future<void> test_internal_static() async {
     await resolveTestCode('''
-extension E on String {
+class C {
   static int m(int x) => s = x;
 }
 ''');
     await assertHasFix('''
-extension E on String {
+class C {
   static set s(int s) {}
 
   static int m(int x) => s = x;
@@ -332,15 +332,8 @@ void f(String s) {
   E(s).test = '0';
 }
 ''');
-    await assertHasFix('''
-extension E on String {
-  set test(String test) {}
-}
-
-void f(String s) {
-  E(s).test = '0';
-}
-''');
+    // This should be handled by create extension member fixes
+    await assertNoFix();
   }
 
   Future<void> test_part_main() async {
@@ -509,20 +502,20 @@ void f() {
 
   Future<void> test_static() async {
     await resolveTestCode('''
-extension E on String {
+class C {
 }
 
 void f(String s) {
-  E.test = 0;
+  C.test = 0;
 }
 ''');
     await assertHasFix('''
-extension E on String {
+class C {
   static set test(int test) {}
 }
 
 void f(String s) {
-  E.test = 0;
+  C.test = 0;
 }
 ''');
   }

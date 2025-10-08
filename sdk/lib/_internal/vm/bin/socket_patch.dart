@@ -582,6 +582,9 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   // a HttpServer, a WebSocket connection, a process pipe, etc.
   Object? owner;
 
+  static int _nextSocketId = 0;
+  final int id = _nextSocketId++;
+
   static Future<List<InternetAddress>> lookup(
     String host, {
     InternetAddressType type = InternetAddressType.any,
@@ -1340,7 +1343,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       }
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          _nativeGetSocketId(),
+          id,
           _SocketProfileType.readBytes,
           list?.length,
         );
@@ -1358,7 +1361,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       Datagram? result = _nativeRecvFrom();
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          _nativeGetSocketId(),
+          id,
           _SocketProfileType.readBytes,
           result?.data.length,
         );
@@ -1402,7 +1405,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       available = _nativeAvailable();
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          _nativeGetSocketId(),
+          id,
           _SocketProfileType.readBytes,
           bytesCount,
         );
@@ -1454,7 +1457,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       );
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          _nativeGetSocketId(),
+          id,
           _SocketProfileType.writeBytes,
           bufferAndStart.buffer.length - bufferAndStart.start,
         );
@@ -1504,7 +1507,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       );
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          _nativeGetSocketId(),
+          id,
           _SocketProfileType.writeBytes,
           bufferAndStart.buffer.length - bufferAndStart.start,
         );
@@ -1548,7 +1551,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       );
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          _nativeGetSocketId(),
+          id,
           _SocketProfileType.writeBytes,
           bufferAndStart.buffer.length - bufferAndStart.start,
         );
@@ -2192,7 +2195,7 @@ class _RawServerSocket extends Stream<RawSocket>
           if (socket == null) return;
           if (!const bool.fromEnvironment("dart.vm.product")) {
             _SocketProfile.collectNewSocket(
-              socket._nativeGetSocketId(),
+              socket.id,
               _tcpSocket,
               socket.address,
               socket.port,
@@ -2265,7 +2268,7 @@ class _RawSocket extends Stream<RawSocketEvent>
     ).then((socket) {
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectNewSocket(
-          socket._nativeGetSocketId(),
+          socket.id,
           _tcpSocket,
           socket.address,
           port,
@@ -2292,7 +2295,7 @@ class _RawSocket extends Stream<RawSocketEvent>
       ) {
         if (!const bool.fromEnvironment("dart.vm.product")) {
           _SocketProfile.collectNewSocket(
-            nativeSocket._nativeGetSocketId(),
+            nativeSocket.id,
             _tcpSocket,
             nativeSocket.address,
             port,
@@ -2400,10 +2403,7 @@ class _RawSocket extends Stream<RawSocketEvent>
 
   Future<RawSocket> close() => _socket.close().then<RawSocket>((_) {
     if (!const bool.fromEnvironment("dart.vm.product")) {
-      _SocketProfile.collectStatistic(
-        _socket._nativeGetSocketId(),
-        _SocketProfileType.endTime,
-      );
+      _SocketProfile.collectStatistic(_socket.id, _SocketProfileType.endTime);
     }
     return this;
   });
@@ -3008,7 +3008,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
     ).then((socket) {
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectNewSocket(
-          socket._nativeGetSocketId(),
+          socket.id,
           _udpSocket,
           socket.address,
           port,
@@ -3034,10 +3034,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
 
   Future close() => _socket.close().then<RawDatagramSocket>((_) {
     if (!const bool.fromEnvironment("dart.vm.product")) {
-      _SocketProfile.collectStatistic(
-        _socket._nativeGetSocketId(),
-        _SocketProfileType.endTime,
-      );
+      _SocketProfile.collectStatistic(_socket.id, _SocketProfileType.endTime);
     }
     return this;
   });
