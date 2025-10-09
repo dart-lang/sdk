@@ -261,11 +261,12 @@ class CompletionResponsePrinter {
     }
   }
 
-  void _writeElementOffset(CompletionSuggestion suggestion) {
-    if (configuration.withElementOffset) {
+  void _writeElementLocation(CompletionSuggestion suggestion) {
+    if (configuration.withElementLocation) {
       var element = suggestion.element;
       if (element != null) {
-        _writelnWithIndent('offset: ${element.location?.offset}');
+        _writelnWithIndent('line: ${element.location?.startLine}');
+        _writelnWithIndent('column: ${element.location?.startColumn}');
       }
     }
   }
@@ -355,7 +356,7 @@ class CompletionResponsePrinter {
     _writeCompletion(suggestion);
     _withIndent(() {
       _writeSuggestionKind(suggestion);
-      _writeElementOffset(suggestion);
+      _writeElementLocation(suggestion);
       _writeDeclaringType(suggestion);
       _writeDeprecated(suggestion);
       _writeDefaultArgumentList(suggestion);
@@ -400,7 +401,7 @@ class Configuration {
   bool withDisplayText;
   bool withDocumentation;
   bool withElement;
-  bool withElementOffset;
+  bool withElementLocation;
   bool withIsNotImported;
   bool withKind;
   bool withLibraryUri;
@@ -419,7 +420,7 @@ class Configuration {
     this.withDisplayText = false,
     this.withDocumentation = false,
     this.withElement = false,
-    this.withElementOffset = false,
+    this.withElementLocation = false,
     this.withIsNotImported = false,
     this.withKind = true,
     this.withLibraryUri = false,
