@@ -373,52 +373,185 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
       ObjectPool::Handle(zone, bytecode.object_pool());
   object_pool.DebugPrint();
 
-  THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(zone, bytecode.pc_descriptors());
-  THR_Print("%s}\n", descriptors.ToCString());
+  if (!descriptors.IsNull()) {
+    THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
+    ZoneTextBuffer buffer(zone);
+    descriptors.WriteToBuffer(&buffer, base);
+    THR_Print("%s", buffer.buffer());
+    THR_Print("}\n");
+  }
 
   if (bytecode.HasSourcePositions()) {
-    THR_Print("Source positions for function '%s' {\n", function_fullname);
-    // 4 bits per hex digit + 2 for "0x".
-    const int addr_width = (kBitsPerWord / 4) + 2;
-    // "*" in a printf format specifier tells it to read the field width from
-    // the printf argument list.
-    THR_Print("%-*s\tpos\tline\tcolumn\tyield\n", addr_width, "pc");
     const Script& script = Script::Handle(zone, function.script());
-    bytecode::BytecodeSourcePositionsIterator iter(zone, bytecode);
-    while (iter.MoveNext()) {
-      TokenPosition pos = iter.TokenPos();
-      intptr_t line = -1, column = -1;
-      script.GetTokenLocation(pos, &line, &column);
-      THR_Print("%#-*" Px "\t%s\t%" Pd "\t%" Pd "\t%s\n", addr_width,
-                base + iter.PcOffset(), pos.ToCString(), line, column,
-                iter.IsYieldPoint() ? "yield" : "");
-    }
+    THR_Print("Source positions for function '%s' {\n", function_fullname);
+    ZoneTextBuffer buffer(zone);
+    PrintSourcePositions(zone, &buffer, base, bytecode, script);
+    THR_Print("%s", buffer.buffer());
     THR_Print("}\n");
   }
 
   if (bytecode.HasLocalVariablesInfo()) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
     THR_Print("Local variable information for function '%s' {\n",
               function_fullname);
     ZoneTextBuffer buffer(zone);
-    bytecode.WriteLocalVariablesInfo(zone, &buffer);
+    PrintLocalVariablesInfo(zone, &buffer, bytecode, base);
     THR_Print("%s", buffer.buffer());
     THR_Print("}\n");
-#else
-    UNREACHABLE();
-#endif
   }
 
-  THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
   const ExceptionHandlers& handlers =
       ExceptionHandlers::Handle(zone, bytecode.exception_handlers());
-  THR_Print("%s}\n", handlers.ToCString());
-
+  if (!handlers.IsNull()) {
+    THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
+    ZoneTextBuffer buffer(zone);
+    handlers.WriteToBuffer(&buffer, base);
+    THR_Print("%s", buffer.buffer());
+    THR_Print("}\n");
+  }
 #else
   UNREACHABLE();
 #endif
+}
+
+// 4 bits per hex digit + 2 for "0x".
+static const int kProgramCounterFieldWidth = (kBitsPerWord / 4) + 2;
+static const int kUint32FieldWidth = 7;
+// For bytecode, these are either:
+// * real positions, which are a uint32_t source offset and thus a
+//   max of 7 digits,
+// * synthethic positions, which have a prefix of 'syn:' before a
+//   source offset and thus a max of 11 characters, or
+// * NoSource, which is written as "NoSource" (8).
+static const int kSourcePositionFieldWidth = 11;
+static const int kSourcePositionColumnWidths[] = {
+    kProgramCounterFieldWidth,  // pc
+    kSourcePositionFieldWidth,  // pos
+    kUint32FieldWidth,          // line
+    kUint32FieldWidth,          // col
+};
+
+void KernelBytecodeDisassembler::PrintSourcePositions(Zone* zone,
+                                                      BaseTextBuffer* buffer,
+                                                      uword base,
+                                                      const Bytecode& bytecode,
+                                                      const Script& script) {
+  if (!bytecode.HasSourcePositions()) return;
+
+  // "*" in a printf format specifier tells it to read the field width from
+  // the printf argument list.
+  buffer->Printf(" %-*s %*s %*s %*s yield\n", kSourcePositionColumnWidths[0],
+                 "pc", kSourcePositionColumnWidths[1], "pos",
+                 kSourcePositionColumnWidths[2], "line",
+                 kSourcePositionColumnWidths[3], "col");
+  bytecode::BytecodeSourcePositionsIterator iter(zone, bytecode);
+  while (iter.MoveNext()) {
+    buffer->Printf(" %#-*" Px "", kSourcePositionColumnWidths[0],
+                   base + iter.PcOffset());
+    const TokenPosition pos = iter.TokenPos();
+    buffer->Printf(" %*s", kSourcePositionColumnWidths[1], pos.ToCString());
+    intptr_t line = -1, column = -1;
+    if (!script.IsNull() && script.GetTokenLocation(pos, &line, &column)) {
+      buffer->Printf(" %*" Pd " %*" Pd "", kSourcePositionColumnWidths[2], line,
+                     kSourcePositionColumnWidths[3], column);
+    } else {
+      buffer->Printf(" %*s %*s", kSourcePositionColumnWidths[2], "-",
+                     kSourcePositionColumnWidths[3], "-");
+    }
+    if (iter.IsYieldPoint()) {
+      buffer->AddString(" X");
+    }
+    buffer->AddString("\n");
+  }
+}
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+static const int kLocalVariableKindFieldWidth = strlen(
+    bytecode::BytecodeLocalVariablesIterator::kKindNames
+        [bytecode::BytecodeLocalVariablesIterator::kVariableDeclaration]);
+
+static const int kLocalVariableColumnWidths[] = {
+    kLocalVariableKindFieldWidth,  // kind
+    kProgramCounterFieldWidth,     // start pc
+    kProgramCounterFieldWidth,     // end pc
+    kUint32FieldWidth,             // context level
+    kUint32FieldWidth,             // index
+    kSourcePositionFieldWidth,     // start token pos
+    kSourcePositionFieldWidth,     // end token pos
+    kSourcePositionFieldWidth,     // decl token pos
+};
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+void KernelBytecodeDisassembler::PrintLocalVariablesInfo(
+    Zone* zone,
+    BaseTextBuffer* buffer,
+    const Bytecode& bytecode,
+    uword base) {
+  if (!bytecode.HasLocalVariablesInfo()) return;
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  // "*" in a printf format specifier tells it to read the field width from
+  // the printf argument list.
+  buffer->Printf(
+      " %-*s %*s %*s %*s %*s %*s %*s %*s   name\n",
+      kLocalVariableColumnWidths[0], "kind", kLocalVariableColumnWidths[1],
+      "start pc", kLocalVariableColumnWidths[2], "end pc",
+      kLocalVariableColumnWidths[3], "ctx", kLocalVariableColumnWidths[4],
+      "index", kLocalVariableColumnWidths[5], "start",
+      kLocalVariableColumnWidths[6], "end", kLocalVariableColumnWidths[7],
+      "decl");
+  auto& name = String::Handle(zone);
+  auto& type = AbstractType::Handle(zone);
+  bytecode::BytecodeLocalVariablesIterator iter(zone, bytecode);
+  while (iter.MoveNext()) {
+    buffer->Printf(" %-*s %#*" Px "", kLocalVariableColumnWidths[0],
+                   iter.KindName(), kLocalVariableColumnWidths[1],
+                   base + iter.StartPC());
+    if (iter.IsVariableDeclaration() || iter.IsScope()) {
+      buffer->Printf(" %#*" Px "", kLocalVariableColumnWidths[2],
+                     base + iter.EndPC());
+    } else {
+      buffer->Printf(" %*s", kLocalVariableColumnWidths[2], "-");
+    }
+    if (iter.IsScope()) {
+      buffer->Printf(" %*" Pd "", kLocalVariableColumnWidths[3],
+                     iter.ContextLevel());
+    } else {
+      buffer->Printf(" %*s", kLocalVariableColumnWidths[3], "-");
+    }
+    if (iter.IsContextVariable() || iter.IsVariableDeclaration()) {
+      buffer->Printf(" %*" Pd "", kLocalVariableColumnWidths[4], iter.Index());
+    } else {
+      buffer->Printf(" %*s", kLocalVariableColumnWidths[4], "-");
+    }
+    if (iter.IsVariableDeclaration() || iter.IsScope()) {
+      buffer->Printf(" %*s %*s", kLocalVariableColumnWidths[5],
+                     iter.StartTokenPos().ToCString(),
+                     kLocalVariableColumnWidths[6],
+                     iter.EndTokenPos().ToCString());
+
+    } else {
+      buffer->Printf(" %*s %*s", kLocalVariableColumnWidths[5], "-",
+                     kLocalVariableColumnWidths[6], "-");
+    }
+    if (iter.IsVariableDeclaration()) {
+      name = iter.Name();
+      type = iter.Type();
+      buffer->Printf(" %*s   %s: ", kLocalVariableColumnWidths[7],
+                     iter.DeclarationTokenPos().ToCString(), name.ToCString());
+      type.PrintName(Object::kInternalName, buffer);
+      if (iter.IsCaptured()) {
+        buffer->AddString(" (captured)");
+      }
+    } else {
+      buffer->Printf(" %*s   %s", kLocalVariableColumnWidths[7], "-", "-");
+    }
+    buffer->AddString("\n");
+  }
+#else
+  UNREACHABLE();
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 }  // namespace dart

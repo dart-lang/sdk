@@ -7628,8 +7628,6 @@ class Bytecode : public Object {
     untag()->set_var_descriptors<std::memory_order_release>(value.ptr());
   }
 
-  void WriteLocalVariablesInfo(Zone* zone, BaseTextBuffer* buffer) const;
-
   // Will compute local var descriptors if necessary.
   LocalVarDescriptorsPtr GetLocalVarDescriptors() const;
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

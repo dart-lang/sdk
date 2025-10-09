@@ -77,6 +77,17 @@ class KernelBytecodeDisassembler : public AllStatic {
 
   static void Disassemble(const Function& function);
 
+  static void PrintSourcePositions(Zone* zone,
+                                   BaseTextBuffer* buffer,
+                                   uword base,
+                                   const Bytecode& bytecode,
+                                   const Script& script);
+
+  static void PrintLocalVariablesInfo(Zone* zone,
+                                      BaseTextBuffer* buffer,
+                                      const Bytecode& bytecode,
+                                      uword base);
+
  private:
   static const int kHexadecimalBufferSize = 32;
   static const int kUserReadableBufferSize = 256;

@@ -1021,8 +1021,11 @@ class BytecodeGenerator extends RecursiveVisitor {
   // variable 'foo' has type 'dynamic'.
   late final implicitCallName = Name('implicit:call');
 
-  void _recordSourcePosition(int fileOffset) {
+  void _recordSourcePosition(int fileOffset, [int? flags]) {
     asm.currentSourcePosition = fileOffset;
+    if (flags != null) {
+      asm.currentSourcePositionFlags = flags;
+    }
     maxSourcePosition = math.max(maxSourcePosition, fileOffset);
   }
 
@@ -1031,9 +1034,11 @@ class BytecodeGenerator extends RecursiveVisitor {
       return;
     }
     final savedSourcePosition = asm.currentSourcePosition;
-    _recordSourcePosition(node.fileOffset);
+    final savedFlags = asm.currentSourcePositionFlags;
+    _recordSourcePosition(node.fileOffset, 0);
     node.accept(this);
     asm.currentSourcePosition = savedSourcePosition;
+    asm.currentSourcePositionFlags = savedFlags;
   }
 
   void _generateNodeList(List<TreeNode> nodes) {
@@ -1216,6 +1221,9 @@ class BytecodeGenerator extends RecursiveVisitor {
           break;
       }
       if (returnMethod != null) {
+        // Unlike other async machinery, this can't be marked synthetic
+        // as the method may return directly from the direct call and so
+        // the debugger needs to pause at it, not the following return.
         asm.emitPopLocal(locals.returnVarIndexInFrame);
         asm.emitPush(locals.suspendStateVarIndexInFrame);
         asm.emitPush(locals.returnVarIndexInFrame);
@@ -1633,17 +1641,19 @@ class BytecodeGenerator extends RecursiveVisitor {
     savedAssemblers = null;
     currentLoopDepth = 0;
     savedMaxSourcePositions = <int>[];
-    if (node is Procedure) {
-      maxSourcePosition = node.fileStartOffset;
-    } else if (node is Constructor) {
-      maxSourcePosition = node.startFileOffset;
-    } else {
-      maxSourcePosition = node.fileOffset;
-    }
 
     locals = new LocalVariables(node, options, staticTypeContext);
     locals.enterScope(node);
 
+    final int startPosition;
+    if (node is Procedure) {
+      startPosition = node.fileStartOffset;
+    } else if (node is Constructor) {
+      startPosition = node.startFileOffset;
+    } else {
+      startPosition = node.fileOffset;
+    }
+    _recordSourcePosition(startPosition, SourcePositions.syntheticFlag);
     _genPrologue(node, node.function);
     _setupInitialContext(node.function);
     _emitFirstDebugCheck(node, node.function);
@@ -1677,6 +1687,9 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (!locals.isSuspendableFunction) {
       return;
     }
+
+    final savedFlags = asm.currentSourcePositionFlags;
+    asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
     Procedure initMethod;
     switch (function!.dartAsyncMarker) {
       case AsyncMarker.Async:
@@ -1696,6 +1709,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitPopLocal(locals.suspendStateVarIndexInFrame);
 
     if (function.dartAsyncMarker != AsyncMarker.Async) {
+      final savedFlags = asm.currentSourcePositionFlags;
+      // Mark all of the code in this block as within the yield point.
+      asm.currentSourcePositionFlags |= SourcePositions.yieldPointFlag;
+      asm.emitSourcePositionForCall();
       // Suspend async* and sync* functions after prologue is finished.
       Label done = Label();
       asm.emitSuspend(done);
@@ -1710,6 +1727,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
       asm.bind(done);
       asm.emitDrop1(); // Discard result of Suspend.
+      asm.currentSourcePositionFlags = savedFlags;
     }
 
     if (function.dartAsyncMarker == AsyncMarker.SyncStar &&
@@ -1729,6 +1747,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       asyncTryBlock.needsStackTrace = true;
       asyncTryBlock.types.add(cp.addType(const DynamicType()));
     }
+    asm.currentSourcePositionFlags = savedFlags;
   }
 
   void _endSuspendableFunction(FunctionNode? function) {
@@ -1744,6 +1763,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       // Exception handlers are reachable although there are no labels or jumps.
       asm.isUnreachable = false;
 
+      final savedFlags = asm.currentSourcePositionFlags;
+      asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
       asm.emitSetFrame(locals.frameSize);
 
       final rethrowException = Label();
@@ -1765,6 +1786,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.emitMoveSpecial(SpecialIndex.stackTrace, temp);
       asm.emitPush(temp);
       asm.emitThrow(1);
+      asm.currentSourcePositionFlags = savedFlags;
     }
   }
 
@@ -1954,9 +1976,11 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
     }
 
+    // The CheckStack below is the instruction which should be used for function
+    // entry breakpoints.
+    _recordInitialSourcePositionForFunction(node, function);
     // CheckStack must see a properly initialized context when stress-testing
     // stack trace collection.
-    _recordInitialSourcePositionForFunction(node, function);
     asm.emitCheckStack(0);
 
     if (locals.hasFunctionTypeArgsVar && isClosure) {
@@ -2063,7 +2087,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   void _recordInitialSourcePositionForFunction(
       TreeNode node, FunctionNode? function) {
-    _recordSourcePosition(_initialSourcePositionForFunction(node, function));
+    final position = _initialSourcePositionForFunction(node, function);
+    _recordSourcePosition(position, 0);
   }
 
   void _emitFirstDebugCheck(TreeNode node, FunctionNode? function) {
@@ -2417,7 +2442,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     final int closureFunctionIndex = cp.addClosureFunction(closureIndex);
 
-    maxSourcePosition = math.max(maxSourcePosition, function.fileOffset);
+    _recordSourcePosition(function.fileOffset, SourcePositions.syntheticFlag);
     _genPrologue(node, function);
     _setupInitialContext(function);
     _emitFirstDebugCheck(node, function);
@@ -2695,7 +2720,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (options.emitSourcePositions) {
       asm.emitSourcePosition();
     }
-    if (options.emitDebuggerStops) {
+    if (options.emitDebuggerStops &&
+        (asm.currentSourcePositionFlags & SourcePositions.syntheticFlag) == 0) {
       asm.emitDebugCheck();
     }
   }
@@ -3413,8 +3439,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     tryCatches![tryCatch]!.needsStackTrace = true;
 
     // Allow breakpoint on explicit rethrow statement.
-    _emitSourcePosition();
-    _genRethrow(tryCatch);
+    _genRethrow(tryCatch, isSynthetic: false);
   }
 
   bool _hasNonTrivialInitializer(Field field) {
@@ -4147,7 +4172,13 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _genRethrow(TreeNode node) {
+  void _genRethrow(TreeNode node, {required bool isSynthetic}) {
+    final savedFlags = asm.currentSourcePositionFlags;
+    if (isSynthetic) {
+      asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
+    } else {
+      asm.currentSourcePositionFlags &= ~SourcePositions.syntheticFlag;
+    }
     final capturedExceptionVar = locals.capturedExceptionVar(node);
     if (capturedExceptionVar != null) {
       assert(locals.isCaptured(capturedExceptionVar));
@@ -4165,6 +4196,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
 
     asm.emitThrow(1);
+    asm.currentSourcePositionFlags = savedFlags;
   }
 
   @override
@@ -4241,7 +4273,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (!hasCatchAll) {
       tryBlock.needsStackTrace = true;
-      _genRethrow(node);
+      _genRethrow(node, isSynthetic: true);
     }
 
     asm.bind(done);
@@ -4277,7 +4309,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     _generateNode(node.finalizer);
 
     tryBlock.needsStackTrace = true; // For rethrowing.
-    _genRethrow(node);
+    _genRethrow(node, isSynthetic: true);
 
     for (var finallyBlock in finallyBlocks[node]!) {
       asm.bind(finallyBlock.entry);
@@ -4457,6 +4489,14 @@ class BytecodeGenerator extends RecursiveVisitor {
   void visitAwaitExpression(AwaitExpression node) {
     _generateNode(node.operand);
 
+    // The rest of the await expression bytecode is the yield point.
+    // Emit a source position at the start to ensure that if the debugger
+    // is paused anywhere in this bytecode, a request to step over the await
+    // doesn't pause at either the direct call or the return, which have the
+    // same source position information.
+    final savedFlags = asm.currentSourcePositionFlags;
+    asm.currentSourcePositionFlags |= SourcePositions.yieldPointFlag;
+    asm.emitSourcePositionForCall();
     final int temp = locals.tempIndexInFrame(node);
     asm.emitPopLocal(temp);
 
@@ -4478,6 +4518,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       _genDirectCall(_await, objectTable.getArgDescHandle(2), 2);
     }
     asm.emitReturnTOS();
+    asm.currentSourcePositionFlags = savedFlags;
 
     asm.bind(done);
   }

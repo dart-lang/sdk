@@ -6,14 +6,13 @@
 
 #include "include/dart_api.h"
 
-#if defined(DART_DYNAMIC_MODULES)
 #include "vm/bytecode_reader.h"
-#endif
 #include "vm/closure_functions_cache.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/api/deopt_id.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
@@ -637,16 +636,13 @@ void ActivationFrame::PrintContextLevelError(const char* message) {
   OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
   OS::PrintErr("context_level_ %" Px "\n", context_level_);
   OS::PrintErr("token_pos_ %s\n", token_pos_.ToCString());
-  if (IsInterpreted()) {
+  if (IsInterpreted() && bytecode().HasLocalVariablesInfo()) {
 #if defined(DART_DYNAMIC_MODULES)
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     Zone* const zone = Thread::Current()->zone();
     ZoneTextBuffer buffer(zone);
-    bytecode().WriteLocalVariablesInfo(zone, &buffer);
+    KernelBytecodeDisassembler::PrintLocalVariablesInfo(
+        zone, &buffer, bytecode(), PayloadStart());
     OS::PrintErr("%s\n", buffer.buffer());
-#endif
-#else
-    UNREACHABLE();
 #endif
   } else {
     DisassembleToStdout formatter;
@@ -3904,34 +3900,19 @@ static bool IsAtAsyncJump(ActivationFrame* top_frame) {
   if (top_frame->IsInterpreted()) {
 #if defined(DART_DYNAMIC_MODULES)
     const auto& bytecode = top_frame->bytecode();
-    const uword prev = bytecode.GetInstructionBefore(top_frame->pc());
-    if (prev == 0) {
-      // Async awaiter frames have an PC offset of 0 or 1.
-      ASSERT(top_frame->pc() == bytecode.PayloadStart() ||
-             top_frame->pc() == bytecode.PayloadStart() +
-                                    StackTraceUtils::kFutureListenerPcOffset);
-      return false;
+    ASSERT(bytecode.HasSourcePositions());
+    const uword pc_offset = top_frame->pc() - bytecode.PayloadStart();
+    // pc_offset could equal to bytecode size if the last instruction is Throw.
+    ASSERT(pc_offset <= static_cast<uword>(bytecode.Size()));
+    bytecode::BytecodeSourcePositionsIterator iter(zone, bytecode);
+    bool is_yield_point = false;
+    while (iter.MoveNext()) {
+      if (pc_offset <= iter.PcOffset()) {
+        break;
+      }
+      is_yield_point = iter.IsYieldPoint();
     }
-    auto* const instr = reinterpret_cast<const KBCInstr*>(prev);
-    // Async jumps in bytecode are implemented via direct calls to the
-    // appropriate Dart method.
-    if (!KernelBytecode::IsDirectCallOpcode(instr)) {
-      return false;
-    }
-    const auto& object_pool = ObjectPool::Handle(zone, bytecode.object_pool());
-    auto const index = KernelBytecode::DecodeD(instr);
-    const auto& obj = Object::Handle(zone, object_pool.ObjectAt(index));
-    if (obj.IsNull() || !obj.IsFunction()) {
-      return false;
-    }
-    const auto& target = Function::Cast(obj);
-    auto* const object_store = thread->isolate_group()->object_store();
-    return target.ptr() == object_store->suspend_state_await() ||
-           target.ptr() ==
-               object_store->suspend_state_await_with_type_check() ||
-           target.ptr() == object_store->suspend_state_yield_async_star() ||
-           target.ptr() ==
-               object_store->suspend_state_suspend_sync_star_at_start();
+    return is_yield_point;
 #else
     UNREACHABLE();
 #endif
@@ -3955,33 +3936,28 @@ static bool IsAtAsyncJump(ActivationFrame* top_frame) {
 static bool IsAtBytecodeAsyncReturn(ActivationFrame* top_frame) {
 #if defined(DART_DYNAMIC_MODULES)
   if (!top_frame->IsInterpreted()) return false;
-
-  Thread* const thread = Thread::Current();
-  Zone* const zone = thread->zone();
   const auto& bytecode = top_frame->bytecode();
-  uword prev = bytecode.GetInstructionBefore(top_frame->pc());
+  const uword return_address = top_frame->pc();
+  const uword prev = bytecode.GetInstructionBefore(return_address);
   if (prev == 0) {
+    const uword start = bytecode.PayloadStart();
     // Async awaiter frames have an PC offset of 0 or 1.
-    ASSERT(top_frame->pc() == bytecode.PayloadStart() ||
-           top_frame->pc() == bytecode.PayloadStart() +
-                                  StackTraceUtils::kFutureListenerPcOffset);
+    ASSERT(return_address == start ||
+           return_address == start + StackTraceUtils::kFutureListenerPcOffset);
     return false;
   }
-  auto* instr = reinterpret_cast<const KBCInstr*>(prev);
+  auto* const instr = reinterpret_cast<const KBCInstr*>(prev);
   // Async returns in bytecode are implemented via direct calls to
-  // the appropriate Dart async return method followed by a return
-  // instruction.
-  if (KernelBytecode::IsReturnOpcode(instr)) {
-    prev = bytecode.GetInstructionBefore(prev);
-    ASSERT(prev != 0);
-    instr = reinterpret_cast<const KBCInstr*>(prev);
-  }
+  // the appropriate Dart async return method. Note that unlike other async
+  // machinery, the direct call to _returnAsync is not marked synthetic.
   if (!KernelBytecode::IsDirectCallOpcode(instr)) {
     return false;
   }
-  const auto& object_pool = ObjectPool::Handle(zone, bytecode.object_pool());
   auto const index = KernelBytecode::DecodeD(instr);
-  const auto& obj = Object::Handle(zone, object_pool.ObjectAt(index));
+  auto* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
+  const auto& pool = ObjectPool::Handle(zone, bytecode.object_pool());
+  const auto& obj = Object::Handle(zone, pool.ObjectAt(index));
   if (obj.IsNull() || !obj.IsFunction()) {
     return false;
   }
