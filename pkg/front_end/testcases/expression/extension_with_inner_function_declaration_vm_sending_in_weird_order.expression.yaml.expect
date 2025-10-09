@@ -1,0 +1,4 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::_Smi offset, lowered dart.core::_OneByteString #this) → dynamic
+  return offset.{dart.core::_IntegerImplementation::+}(#this.{dart.core::_StringBase::length}{dart.core::int}){(dart.core::num) → dart.core::num};

@@ -44,7 +44,7 @@ Map<String, DartType>? createDefinitionsWithTypes(
   Map<String, DartType> completeDefinitions = {};
   for (int i = 0; i < definitions.length; i++) {
     String name = definitions[i];
-    if (isLegalIdentifier(name) || (i == 0 && isExtensionThisName(name))) {
+    if (isLegalIdentifier(name) || isExtensionThisName(name)) {
       ParsedType type = definitionTypesParsed[i];
       DartType dartType = type.createDartType(libraryIndex);
       completeDefinitions[name] = dartType;
