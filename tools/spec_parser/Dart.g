@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.54 Simplify members.
+//
 // v0.53 Support declaring constructors.
 //
 // v0.52 Support static access shorthands.
@@ -435,7 +437,7 @@ classNamePart
     ;
 
 classBody
-    :    LBRACE (metadata classMemberDeclaration)* RBRACE
+    :    LBRACE (metadata memberDeclaration)* RBRACE
     |    ';'
     ;
 
@@ -461,7 +463,7 @@ interfaces
     :    IMPLEMENTS typeNotVoidNotFunctionList
     ;
 
-classMemberDeclaration
+memberDeclaration
     :    AUGMENT? methodSignature functionBody
     |    AUGMENT? declaration ';'
     ;
@@ -473,11 +475,7 @@ mixinApplicationClass
 mixinDeclaration
     :    AUGMENT? BASE? MIXIN typeWithParameters
          (ON typeNotVoidNotFunctionList)? interfaces?
-         LBRACE (metadata mixinMemberDeclaration)* RBRACE
-    ;
-
-mixinMemberDeclaration
-    :    classMemberDeclaration
+         LBRACE (metadata memberDeclaration)* RBRACE
     ;
 
 extensionTypeDeclaration
@@ -487,12 +485,8 @@ extensionTypeDeclaration
     ;
 
 extensionTypeBody
-    :    LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
+    :    LBRACE (metadata memberDeclaration)* RBRACE
     |    ';'
-    ;
-
-extensionTypeMemberDeclaration
-    :    classMemberDeclaration
     ;
 
 extensionDeclaration
@@ -501,11 +495,7 @@ extensionDeclaration
     ;
 
 extensionBody
-    :    LBRACE (metadata extensionMemberDeclaration)* RBRACE
-    ;
-
-extensionMemberDeclaration
-    :    classMemberDeclaration
+    :    LBRACE (metadata memberDeclaration)* RBRACE
     ;
 
 methodSignature
@@ -697,7 +687,7 @@ mixinApplication
 enumType
     :    AUGMENT? ENUM classNamePart mixins? interfaces? LBRACE
          enumEntry (',' enumEntry)* ','?
-         (';' (metadata classMemberDeclaration)*)?
+         (';' (metadata memberDeclaration)*)?
          RBRACE
     ;
 
