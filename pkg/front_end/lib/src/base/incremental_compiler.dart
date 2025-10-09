@@ -32,9 +32,7 @@ import 'package:kernel/kernel.dart'
         DartType,
         DynamicType,
         Expression,
-        Extension,
         ExtensionType,
-        ExtensionTypeDeclaration,
         FunctionNode,
         InterfaceType,
         Library,
@@ -1959,6 +1957,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       _ticker.logMs("Loaded library $libraryUri");
 
+      int? offsetToUse;
       Class? cls;
       if (className != null) {
         Builder? scopeMember = libraryBuilder.libraryNameSpace
@@ -1966,12 +1965,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             ?.getable;
         if (scopeMember is ClassBuilder) {
           cls = scopeMember.cls;
+          offsetToUse = cls.fileOffset;
         } else {
           return null;
         }
       }
-      Extension? extension;
-      ExtensionTypeDeclaration? extensionType;
+
+      bool isExtensionOrExtensionType = false;
       String? extensionName;
       if (usedMethodName != null) {
         int indexOfDot = usedMethodName.indexOf(".");
@@ -1997,7 +1997,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
-            extension = builder.extension;
+            isExtensionOrExtensionType = true;
+            offsetToUse = builder.fileOffset;
             Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionInstanceMember) {
@@ -2005,7 +2006,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               }
             }
           } else if (builder is ExtensionTypeDeclarationBuilder) {
-            extensionType = builder.extensionTypeDeclaration;
+            isExtensionOrExtensionType = true;
+            offsetToUse = builder.fileOffset;
             Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionTypeInstanceMember) {
@@ -2042,25 +2044,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           return null;
         }
       }
-      int index = 0;
       for (String name in usedDefinitions.keys) {
-        index++;
-        if (!(isLegalIdentifier(name) ||
-            ((extension != null || extensionType != null) &&
-                !isStatic &&
-                index == 1 &&
-                isExtensionThisName(name)))) {
-          lastGoodKernelTarget.loader.addProblem(
-            codeIncrementalCompilerIllegalParameter.withArgumentsOld(name),
-            // TODO: pass variable declarations instead of
-            // parameter names for proper location detection.
-            // https://github.com/dart-lang/sdk/issues/44158
-            -1,
-            -1,
-            libraryUri,
-          );
-          return null;
+        if (isLegalIdentifier(name)) continue;
+        if (isExtensionThisName(name) &&
+            !isStatic &&
+            isExtensionOrExtensionType) {
+          // Accept  #this for extensions and extension types.
+          continue;
         }
+
+        lastGoodKernelTarget.loader.addProblem(
+          codeIncrementalCompilerIllegalParameter.withArgumentsOld(name),
+          // TODO: pass variable declarations instead of
+          // parameter names for proper location detection.
+          // https://github.com/dart-lang/sdk/issues/44158
+          -1,
+          -1,
+          libraryUri,
+        );
+        return null;
       }
 
       // Setup scope first in two-step process:
@@ -2167,35 +2169,33 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
+      VariableDeclaration? extensionThis;
+
       // TODO: pass variable declarations instead of
       // parameter names for proper location detection.
       // https://github.com/dart-lang/sdk/issues/44158
       FunctionNode parameters = new FunctionNode(
         null,
         typeParameters: typeDefinitions,
-        positionalParameters: usedDefinitions.entries
-            .map<VariableDeclaration>(
-              (MapEntry<String, DartType> def) =>
-                  new VariableDeclarationImpl(def.key, type: def.value)
-                    ..fileOffset =
-                        cls?.fileOffset ??
-                        extension?.fileOffset ??
-                        extensionType?.fileOffset ??
-                        libraryBuilder.library.fileOffset,
-            )
-            .toList(),
+        positionalParameters: usedDefinitions.entries.map<VariableDeclaration>((
+          MapEntry<String, DartType> def,
+        ) {
+          VariableDeclarationImpl variable = new VariableDeclarationImpl(
+            def.key,
+            type: def.value,
+          )..fileOffset = offsetToUse ?? libraryBuilder.library.fileOffset;
+
+          if (isExtensionOrExtensionType &&
+              !isStatic &&
+              isExtensionThisName(def.key) &&
+              extensionThis == null) {
+            // The `#this` variable is special.
+            extensionThis = variable..isLowered = true;
+          }
+          return variable;
+        }).toList(),
       );
 
-      VariableDeclaration? extensionThis;
-      if ((extension != null || extensionType != null) &&
-          !isStatic &&
-          parameters.positionalParameters.isNotEmpty) {
-        // We expect the first parameter to be called #this and be special.
-        if (isExtensionThisName(parameters.positionalParameters.first.name)) {
-          extensionThis = parameters.positionalParameters.first;
-          extensionThis.isLowered = true;
-        }
-      }
       lastGoodKernelTarget.buildSyntheticLibrariesUntilBuildScopes([
         debugLibrary,
       ]);
