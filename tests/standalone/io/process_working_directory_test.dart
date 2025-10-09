@@ -4,9 +4,9 @@
 //
 // Process working directory test.
 
-library ProcessWorkingDirectoryTest;
-
+import 'dart:convert';
 import "dart:io";
+
 import "package:expect/expect.dart";
 import "process_test_util.dart";
 
@@ -35,8 +35,8 @@ class ProcessWorkingDirectoryTest {
             Expect.equals(99, exitCode);
             directory.deleteSync();
           });
-          process.stdout.listen((_) {});
-          process.stderr.listen((_) {});
+          process.stdout.transform(utf8.decoder).listen(stdout.write);
+          process.stderr.transform(utf8.decoder).listen(stderr.write);
         })
         .catchError((error) {
           directory.deleteSync();
