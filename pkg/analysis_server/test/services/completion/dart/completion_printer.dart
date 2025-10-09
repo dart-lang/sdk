@@ -160,13 +160,45 @@ class CompletionResponsePrinter {
     _indent = indent;
   }
 
+  /// Writes the completion text, marked with a `[!range!]` or `^position`
+  /// indicating the selection.
   void _writeCompletion(CompletionSuggestion suggestion) {
     var completion = suggestion.completion;
+
+    var annotatedCompletion = completion;
+
+    // Show the selection in the completion text using `[!range!]` or
+    // `^position` markers.
+    if (configuration.withSelection) {
+      annotatedCompletion = switch ((
+        suggestion.selectionOffset,
+        suggestion.selectionLength,
+      )) {
+        // We don't annotate positions at the end of the string
+        (int offset, 0) when offset == suggestion.completion.length =>
+          completion,
+        // Position
+        (int offset, 0) => [
+          completion.substring(0, offset),
+          '^',
+          completion.substring(offset),
+        ].join(),
+        // Range
+        (int offset, int length) => [
+          completion.substring(0, offset),
+          '[!',
+          completion.substring(offset, offset + length),
+          '!]',
+          completion.substring(offset + length),
+        ].join(),
+      };
+    }
+
     if (RegExp(r'^\s').hasMatch(completion) ||
         RegExp(r'\s$').hasMatch(completion)) {
-      _writelnWithIndent('|$completion|');
+      _writelnWithIndent('|$annotatedCompletion|');
     } else {
-      _writelnWithIndent(completion);
+      _writelnWithIndent(annotatedCompletion);
     }
   }
 
@@ -319,18 +351,6 @@ class CompletionResponsePrinter {
     }
   }
 
-  void _writeSelection(CompletionSuggestion suggestion) {
-    if (configuration.withSelection) {
-      var offset = suggestion.selectionOffset;
-      var length = suggestion.selectionLength;
-      if (length != 0) {
-        _writelnWithIndent('selection: $offset $length');
-      } else if (offset != suggestion.completion.length) {
-        _writelnWithIndent('selection: $offset');
-      }
-    }
-  }
-
   void _writeSuggestion(CompletionSuggestion suggestion) {
     _writeCompletion(suggestion);
     _withIndent(() {
@@ -347,7 +367,6 @@ class CompletionResponsePrinter {
       _writeParameterNames(suggestion);
       _writeRelevance(suggestion);
       _writeReturnType(suggestion);
-      _writeSelection(suggestion);
     });
   }
 

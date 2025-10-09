@@ -29,35 +29,30 @@ class A {var foo; ^}
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   final
     kind: keyword
   static
@@ -93,35 +88,30 @@ class A {var bar; ^ var foo;}
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   final
     kind: keyword
   static
@@ -157,35 +147,30 @@ class A {^ var foo;}
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   final
     kind: keyword
   static
@@ -221,35 +206,30 @@ class A { ^ foo() {}}
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   final
     kind: keyword
   static
@@ -300,35 +280,30 @@ class A {^}
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   final
     kind: keyword
   static
@@ -699,11 +674,10 @@ suggestions
   override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: override foo01() { … }
-    selection: 59 14
   override
     kind: topLevelVariable
     displayText: null
@@ -754,11 +728,10 @@ suggestions
   override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: override foo01() { … }
-    selection: 59 14
   override
     kind: topLevelVariable
     displayText: null
@@ -783,11 +756,10 @@ suggestions
   override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: override foo01() { … }
-    selection: 59 14
   override
     kind: topLevelVariable
     displayText: null
@@ -841,11 +813,10 @@ suggestions
   override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: override foo01() { … }
-    selection: 59 14
   override
     kind: topLevelVariable
     displayText: null
@@ -871,11 +842,10 @@ suggestions
   override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: override foo01() { … }
-    selection: 59 14
   override
     kind: topLevelVariable
     displayText: null
@@ -907,11 +877,10 @@ suggestions
   override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
     displayText: override ==(Object other) { … }
-    selection: 74 22
   override
     kind: topLevelVariable
     displayText: null
@@ -991,11 +960,10 @@ suggestions
   @override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: foo01() { … }
-    selection: 60 14
 ''');
   }
 
@@ -1048,11 +1016,10 @@ suggestions
   @override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: foo01() { … }
-    selection: 60 14
 ''');
   }
 
@@ -1074,11 +1041,10 @@ suggestions
   @override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: foo01() { … }
-    selection: 60 14
 ''');
   }
 
@@ -1106,11 +1072,10 @@ suggestions
   @override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: foo01() { … }
-    selection: 60 14
 ''');
   }
 
@@ -1136,19 +1101,17 @@ suggestions
   @override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: foo01() { … }
-    selection: 60 14
   @override
   void foo02() {
     // TODO: implement foo02
-    super.foo02();
+    [!super.foo02();!]
   }
     kind: override
     displayText: foo02() { … }
-    selection: 60 14
 ''');
   }
 
@@ -1176,11 +1139,10 @@ suggestions
   @override
   void foo02() {
     // TODO: implement foo02
-    super.foo02();
+    [!super.foo02();!]
   }
     kind: override
     displayText: foo02() { … }
-    selection: 60 14
 ''');
   }
 
@@ -1203,19 +1165,17 @@ suggestions
   @override
   void _foo01() {
     // TODO: implement _foo01
-    super._foo01();
+    [!super._foo01();!]
   }
     kind: override
     displayText: _foo01() { … }
-    selection: 62 15
   @override
   void foo02() {
     // TODO: implement foo02
-    super.foo02();
+    [!super.foo02();!]
   }
     kind: override
     displayText: foo02() { … }
-    selection: 60 14
 ''');
   }
 
@@ -1243,11 +1203,10 @@ suggestions
   @override
   FutureOr<void> foo01() {
     // TODO: implement foo01
-    return super.foo01();
+    [!return super.foo01();!]
   }
     kind: override
     displayText: foo01() { … }
-    selection: 70 21
 ''');
   }
 
@@ -1269,11 +1228,10 @@ replacement
 suggestions
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: foo01() { … }
-    selection: 48 14
 ''');
   }
 
@@ -1300,11 +1258,10 @@ replacement
 suggestions
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: foo01() { … }
-    selection: 48 14
 ''');
   }
 
@@ -1325,11 +1282,10 @@ replacement
 suggestions
   @override
   void foo01() {
-    // TODO: implement foo01
+    // TODO: implement foo01^
   }
     kind: override
     displayText: foo01() { … }
-    selection: 55
 ''');
   }
 
@@ -1351,11 +1307,10 @@ suggestions
   @override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: foo01() { … }
-    selection: 60 14
 ''');
   }
 
@@ -1377,11 +1332,10 @@ suggestions
   @override
   void foo01(int a, int b, {int? c, int? d}) {
     // TODO: implement foo01
-    super.foo01(a, b, c: c, d: d);
+    [!super.foo01(a, b, c: c, d: d);!]
   }
     kind: override
     displayText: foo01(int a, int b, {int? c, int? d}) { … }
-    selection: 90 30
 ''');
   }
 
@@ -1403,11 +1357,10 @@ suggestions
   @override
   void foo01(int a, int b) {
     // TODO: implement foo01
-    super.foo01(a, b);
+    [!super.foo01(a, b);!]
   }
     kind: override
     displayText: foo01(int a, int b) { … }
-    selection: 72 18
 ''');
   }
 
@@ -1429,11 +1382,10 @@ suggestions
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
     displayText: ==(Object other) { … }
-    selection: 75 22
 ''');
   }
 
@@ -1459,11 +1411,10 @@ suggestions
   @override
   int operator +(int other) {
     // TODO: implement +
-    return super + other;
+    [!return super + other;!]
   }
     kind: override
     displayText: +(int other) { … }
-    selection: 69 21
 ''');
   }
 
@@ -1505,11 +1456,10 @@ suggestions
   override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: override foo01() { … }
-    selection: 59 14
   override
     kind: topLevelVariable
     displayText: null
@@ -1532,11 +1482,10 @@ suggestions
   @override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: foo01() { … }
-    selection: 60 14
 ''');
   }
 
@@ -1558,11 +1507,10 @@ suggestions
   override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: override foo01() { … }
-    selection: 59 14
   override
     kind: topLevelVariable
     displayText: null
@@ -1587,11 +1535,10 @@ suggestions
   @override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: foo01() { … }
-    selection: 60 14
 ''');
   }
 
@@ -1615,11 +1562,10 @@ suggestions
   @override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: foo01() { … }
-    selection: 60 14
 ''');
   }
 
@@ -1640,11 +1586,10 @@ replacement
 suggestions
   @override
   void foo01() {
-    // TODO: implement foo01
+    // TODO: implement foo01^
   }
     kind: override
     displayText: foo01() { … }
-    selection: 55
 ''');
   }
 
@@ -1666,11 +1611,10 @@ suggestions
   @override
   void foo01() {
     // TODO: implement foo01
-    super.foo01();
+    [!super.foo01();!]
   }
     kind: override
     displayText: foo01() { … }
-    selection: 60 14
 ''');
   }
 }
