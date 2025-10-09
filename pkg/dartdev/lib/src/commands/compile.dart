@@ -643,17 +643,10 @@ Remove debugging information from the output and save it separately to the speci
           if (await builder.warnOnNativeAssets()) {
             return 255;
           }
-        } else {
-          final assets = await builder.compileNativeAssetsJit();
-          if (assets == null) {
-            stderr.writeln('Native assets build failed.');
-            return 255;
-          }
-          if (assets.isNotEmpty) {
-            stderr.writeln(
-                "'dart compile' does currently not support native assets.");
-            return 255;
-          }
+        } else if (await builder.hasHooks()) {
+          stderr.writeln(
+              "'dart compile' does not support build hooks, use 'dart build' instead.");
+          return 255;
         }
       }
     }

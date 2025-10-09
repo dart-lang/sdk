@@ -85,7 +85,7 @@ Global
   uninstall             Remove a globally installed Dart CLI tool.
 
 Project
-  build                 Build a Dart application including native assets.
+  build                 Build a Dart application including code assets.
   compile               Compile Dart to various formats.
   create                Create a new Dart project.
   pub                   Work with packages.

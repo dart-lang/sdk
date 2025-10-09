@@ -48,6 +48,8 @@ void main([List<String> args = const []]) async {
           workingDirectory: dartAppUri,
           logger: logger,
         );
+        expect(result.stdout, contains('Running build hooks'));
+        expect(result.stdout, contains('Running link hooks'));
         if (verbose) {
           expect(result.stdout, contains(usingTargetOSMessage));
           expect(result.stdout, contains('build.dart'));
@@ -110,7 +112,7 @@ void main(List<String> args) {
       expect(
         result.stderr,
         contains(
-          'Native assets build failed.',
+          'Running build hooks failed.',
         ),
       );
       expect(result.exitCode, 255);

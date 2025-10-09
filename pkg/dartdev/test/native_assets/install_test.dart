@@ -194,13 +194,15 @@ Run "dart help" to see global options.
               '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
         };
 
-        await _runDartdev(
+        final installResult = await _runDartdev(
           fromDartdevSource,
           'install',
           arguments,
           workingDirectory,
           environment,
         );
+        expect(installResult.stdout, contains('Running build hooks'));
+        expect(installResult.stdout, contains('Running link hooks'));
 
         await _runToolForTest(environment);
 
