@@ -40,9 +40,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     class ^A {}
     ''');
 
-    await provideConfig(initialize, {
-      if (preference != null) 'documentation': preference,
-    });
+    await provideConfig(initialize, {'documentation': ?preference});
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
     var hover = await getHover(mainFileUri, code.position.position);

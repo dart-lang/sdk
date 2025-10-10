@@ -197,11 +197,7 @@ class DtdServices {
   /// closing the connection.
   void _handleError(Object? error, Object? stack) {
     _server.instrumentationService.logError(
-      [
-        'Failed to connect to/initialize DTD:',
-        error,
-        if (stack != null) stack,
-      ].join('\n'),
+      ['Failed to connect to/initialize DTD:', error, ?stack].join('\n'),
     );
 
     _close(DtdConnectionState.Error);

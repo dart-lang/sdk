@@ -119,9 +119,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     var namesInThisLibrary = <String>[
       name,
       for (var otherName in otherNames)
-        if (getExportedElement(libraryElement, otherName)?.name
-            case var exportedName?)
-          exportedName,
+        ?getExportedElement(libraryElement, otherName)?.name,
     ];
     var importPrefix = import.prefix?.element;
     var importCombinator = _ImportLibraryCombinator(

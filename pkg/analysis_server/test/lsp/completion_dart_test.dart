@@ -1176,9 +1176,7 @@ class A {}
 A^
 ''';
 
-    await provideConfig(initialize, {
-      if (preference != null) 'documentation': preference,
-    });
+    await provideConfig(initialize, {'documentation': ?preference});
 
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
@@ -1218,9 +1216,7 @@ void f() {
 }
 ''';
 
-    await provideConfig(initialize, {
-      if (preference != null) 'documentation': preference,
-    });
+    await provideConfig(initialize, {'documentation': ?preference});
 
     await openFile(mainFileUri, code.code);
     await initialAnalysis;

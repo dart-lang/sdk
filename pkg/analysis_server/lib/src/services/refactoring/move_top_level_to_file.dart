@@ -574,11 +574,7 @@ extension on CompilationUnitMember {
       var implementsTypes = declaration.implementsClause?.interfaces;
       var mixesInTypes = declaration.withClause?.mixinTypes;
 
-      return [
-        if (extendsType != null) extendsType,
-        ...?implementsTypes,
-        ...?mixesInTypes,
-      ];
+      return [?extendsType, ...?implementsTypes, ...?mixesInTypes];
     } else if (declaration is MixinDeclaration) {
       var interfaceTypes = declaration.implementsClause?.interfaces;
       var constraintTypes = declaration.onClause?.superclassConstraints;

@@ -241,19 +241,17 @@ abstract class _JoinIfWithElseBlock extends ResolvedCorrectionProducer {
           statement = statement.thenStatement;
         }
 
-        var endingComment = statement.endToken.next?.precedingComments;
         var endCommentSource = _joinCommentsSources(
-          [if (endingComment case var comment?) comment],
+          [?statement.endToken.next?.precedingComments],
           prefix,
           eol: eol,
         );
 
         var beginCommentsSource = _joinCommentsSources(
           [
-            if (beforeIfKeywordComments case var comment?) comment,
-            if (beforeConditionComments case var comment?) comment,
-            if (statement.beginToken.precedingComments case var comment?)
-              comment,
+            ?beforeIfKeywordComments,
+            ?beforeConditionComments,
+            ?statement.beginToken.precedingComments,
           ],
           prefix,
           eol: eol,

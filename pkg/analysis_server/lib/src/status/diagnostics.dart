@@ -505,9 +505,9 @@ abstract class WebSocketLoggingPage extends DiagnosticPageWithNav
   void button(String text, {String? id, String classes = '', String? onClick}) {
     var attributes = {
       'type': 'button',
-      if (id != null) 'id': id,
+      'id': ?id,
       'class': 'btn $classes'.trim(),
-      if (onClick != null) 'onclick': onClick,
+      'onclick': ?onClick,
       'value': text,
     };
 
