@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:collection/collection.dart';
 
 import 'completion_check.dart';
@@ -285,7 +286,12 @@ class CompletionResponsePrinter {
 
   void _writelnWithIndent(String line) {
     buffer.write(_indent);
-    buffer.writeln(line);
+    buffer.write(line);
+    // Always write the EOLs being assumed in this test run because any
+    // multiline content will (if no bugs) be written with these, and we don't
+    // want to perform any normalization on the actual results because that
+    // could mask bugs.
+    buffer.write(testEol);
   }
 
   void _writeLocation() {

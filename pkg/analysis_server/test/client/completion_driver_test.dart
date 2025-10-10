@@ -116,6 +116,11 @@ abstract class AbstractCompletionDriverTest
   /// the name(s) is(are) invalid to [identifierRegExp], add the expected name
   /// to [allowedIdentifiers].
   void assertResponse(String expected, {String where = ''}) {
+    // The generated response will always be using the EOLs being tested so
+    // normalize the expected test to the same to ensure that all actual output
+    // uses the expected line endings.
+    expected = normalizeNewlinesForPlatform(expected);
+
     var buffer = StringBuffer();
     printer.CompletionResponsePrinter(
       buffer: buffer,
@@ -134,13 +139,19 @@ abstract class AbstractCompletionDriverTest
           where = ' (containingNode = $containingNode, entity = $entity)';
         }
       }
-      TextExpectationsCollector.add(actual);
+
+      // The source code in our test files will always be written with only `\n`
+      // (due to git settings) so strip any `\r` that might be in the actual
+      // result for any output intended to go into source files.
+      var actualForSourceCode = actual.replaceAll('\r', '');
+
+      TextExpectationsCollector.add(actualForSourceCode);
       fail('''
 The actual suggestions do not match the expected suggestions$where.
 
 To accept the current state change the expectation to
 \r${'-' * 64}
-\r${actual.trimRight().split('\n').join('\n\r')}
+\r${actualForSourceCode.trimRight().split('\n').join('\n\r')}
 \r${'-' * 64}
 ''');
     }
@@ -192,8 +203,6 @@ To accept the current state change the expectation to
 
   @override
   Future<void> setUp() async {
-    useLineEndingsForPlatform = false;
-
     super.setUp();
 
     writeTestPackagePubspecYamlFile(r'''
