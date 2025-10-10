@@ -118,12 +118,33 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
   List<String> candidates = [];
   List<String> candidatesRaw = [];
   List<String> arguments = [];
+  Set<String>? onlyIfIncludingCertainCalls;
   bool doCount = false;
   bool doTimer = false;
   bool doSingleTimer = false;
   for (String arg in inputArguments) {
     if (arg == "--count") {
       doCount = true;
+    } else if (arg == "--onlySome") {
+      onlyIfIncludingCertainCalls = const {
+        "any",
+        "map",
+        "whereType",
+        "singleWhere",
+        "singleWhereOrNull",
+        "firstWhereOrNull",
+        "lastWhere",
+        "firstWhere",
+        "every",
+        "fold",
+        "reduce",
+        "followedBy",
+      };
+    } else if (arg.startsWith("--onlySome=")) {
+      onlyIfIncludingCertainCalls = arg
+          .substring("--onlySome=".length)
+          .split(",")
+          .toSet();
     } else if (arg == "--timer") {
       doTimer = true;
     } else if (arg == "--single-timer") {
@@ -162,6 +183,7 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
       includeAll: reportCandidates,
       includeConstructors:
           !reportCandidates || doCount || doTimer || doSingleTimer,
+      onlyIfIncludingCertainCalls: onlyIfIncludingCertainCalls,
     ),
     arguments,
     output,
@@ -219,6 +241,7 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
   final bool includeAll;
   final bool includeConstructors;
   final Map<String, Set<String>> wanted;
+  final Set<String>? onlyIfIncludingCertainCalls;
 
   TimerCounterInstrumenterConfig({
     required this.libFilename,
@@ -226,6 +249,7 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
     required this.includeAll,
     required this.includeConstructors,
     required this.wanted,
+    required this.onlyIfIncludingCertainCalls,
   });
 
   @override
@@ -242,6 +266,9 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
 
   @override
   bool includeProcedure(Procedure p) {
+    if (onlyIfIncludingCertainCalls != null) {
+      return _memberCallsCertainThings(p, onlyIfIncludingCertainCalls!);
+    }
     if (includeAll) return true;
     String name = getProcedureName(p);
     Set<String> procedureNamesWantedInFile =
@@ -253,6 +280,9 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
   @override
   bool includeConstructor(Constructor c) {
     if (!includeConstructors) return false;
+    if (onlyIfIncludingCertainCalls != null) {
+      return _memberCallsCertainThings(c, onlyIfIncludingCertainCalls!);
+    }
     if (includeAll) return true;
     String name = getConstructorName(c);
     Set<String> constructorNamesWantedInFile =
@@ -303,6 +333,12 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
   @override
   Arguments createExitArguments(int id, Member member) {
     return new Arguments([new IntLiteral(id)]);
+  }
+
+  bool _memberCallsCertainThings(Member m, Set<String> matchThese) {
+    return _CollectCallsVisitor.collectCalls(
+      m.function?.body,
+    ).intersection(matchThese).isNotEmpty;
   }
 }
 
@@ -571,4 +607,29 @@ void wrapConstructor(
   );
   c.function.body = tryFinally;
   tryFinally.parent = c.function;
+}
+
+class _CollectCallsVisitor extends RecursiveVisitor {
+  static Set<String> collectCalls(TreeNode? node) {
+    if (node == null) return const {};
+    _CollectCallsVisitor visitor = new _CollectCallsVisitor._();
+    node.accept(visitor);
+    return visitor.collected;
+  }
+
+  Set<String> collected = {};
+
+  _CollectCallsVisitor._();
+
+  @override
+  void visitStaticInvocation(StaticInvocation node) {
+    collected.add(node.name.text);
+    return super.visitStaticInvocation(node);
+  }
+
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    collected.add(node.name.text);
+    return super.visitInstanceInvocation(node);
+  }
 }
