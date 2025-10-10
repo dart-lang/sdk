@@ -70,10 +70,9 @@ replacement
   left: 5
 suggestions
   setState(() {
-$spaces_8
+$spaces_8^
 $spaces_6});
     kind: invocation
-    selection: 22
 ''',
     );
   }
@@ -87,10 +86,9 @@ replacement
   left: 5
 suggestions
   setState(() {
-$spaces_6
+$spaces_6^
 $spaces_4});
     kind: invocation
-    selection: 20
 ''',
     );
   }
@@ -102,10 +100,9 @@ $spaces_4});
           '''
 suggestions
   setState(() {
-$spaces_6
+$spaces_6^
 $spaces_4});
     kind: invocation
-    selection: 20
 ''',
     );
   }

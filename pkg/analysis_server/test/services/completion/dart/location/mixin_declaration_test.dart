@@ -62,9 +62,8 @@ mixin ^
 ''');
     assertResponse(r'''
 suggestions
-  Test {}
+  Test {^}
     kind: identifier
-    selection: 6
 ''');
   }
 }

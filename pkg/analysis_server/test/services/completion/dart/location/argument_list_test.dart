@@ -265,9 +265,8 @@ build() => new Row(
 
     assertResponse(r'''
 suggestions
-  children: [],
+  children: [^],
     kind: namedArgument
-    selection: 11
 ''');
   }
 
@@ -289,9 +288,8 @@ build() => new Row(
 
     assertResponse(r'''
 suggestions
-  children: [],
+  children: [^],
     kind: namedArgument
-    selection: 11
 ''');
   }
 
@@ -360,9 +358,8 @@ build() => new Row(
 
     assertResponse(r'''
 suggestions
-  children: [],
+  children: [^],
     kind: namedArgument
-    selection: 11
 ''');
   }
 
@@ -386,9 +383,8 @@ build() => new Scaffold(
 
     assertResponse(r'''
 suggestions
-  backgroundColor: ,
+  backgroundColor: ^,
     kind: namedArgument
-    selection: 17
 ''');
   }
 
@@ -412,9 +408,8 @@ class DynamicRow extends Widget {
 
     assertResponse(r'''
 suggestions
-  children: [],
+  children: [^],
     kind: namedArgument
-    selection: 11
 ''');
   }
 
@@ -437,9 +432,8 @@ class MapRow extends Widget {
 
     assertResponse(r'''
 suggestions
-  children: ,
+  children: ^,
     kind: namedArgument
-    selection: 10
 ''');
   }
 
@@ -461,9 +455,8 @@ class CustomScrollView extends Widget {
 
     assertResponse(r'''
 suggestions
-  slivers: [],
+  slivers: [^],
     kind: namedArgument
-    selection: 10
 ''');
   }
 
@@ -547,9 +540,8 @@ suggestions
 replacement
   left: 1
 suggestions
-  foo01: ,
+  foo01: ^,
     kind: namedArgument
-    selection: 7
 ''', where: where);
       },
     );
@@ -612,9 +604,8 @@ suggestions
       check: (String where) {
         assertResponse(r'''
 suggestions
-  foo01: ,
+  foo01: ^,
     kind: namedArgument
-    selection: 7
 ''', where: where);
       },
     );
@@ -687,9 +678,8 @@ suggestions
       check: (String where) {
         assertResponse(r'''
 suggestions
-  foo02: ,
+  foo02: ^,
     kind: namedArgument
-    selection: 7
 ''', where: where);
       },
     );

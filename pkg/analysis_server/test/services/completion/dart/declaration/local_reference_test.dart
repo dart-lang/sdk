@@ -2032,35 +2032,30 @@ A0 T0;
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   x0.B0
     kind: class
   A0
@@ -5703,35 +5698,30 @@ class C1 {
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   C0
     kind: class
   C1
@@ -5768,35 +5758,30 @@ class C1 {
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   C0
     kind: class
   C1
@@ -6059,35 +6044,30 @@ A T0;
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   _B0
     kind: class
   x0.B0
@@ -7511,35 +7491,30 @@ class A<T0> {
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   T0
     kind: typeParameter
 ''');
