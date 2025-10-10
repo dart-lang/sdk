@@ -272,6 +272,11 @@ class CompletionDomainHandlerGetSuggestions2Test
     String expected, {
     bool printIfFailed = true,
   }) {
+    // The generated response will always be using the EOLs being tested so
+    // normalize the expected test to the same to ensure that all actual output
+    // uses the expected line endings.
+    expected = normalizeNewlinesForPlatform(expected);
+
     var buffer = StringBuffer();
     printer.CompletionResponsePrinter(
       buffer: buffer,
@@ -280,11 +285,16 @@ class CompletionDomainHandlerGetSuggestions2Test
     ).writeResponse();
     var actual = buffer.toString();
 
+    // The source code in our test files will always be written with only `\n`
+    // (due to git settings) so strip any `\r` that might be in the actual
+    // result for any output intended to go into source files.
+    var actualForSourceCode = actual.replaceAll('\r', '');
+
     if (actual != expected) {
       if (printIfFailed) {
-        print(actual);
+        print(actualForSourceCode);
       }
-      TextExpectationsCollector.add(actual);
+      TextExpectationsCollector.add(actualForSourceCode);
     }
     expect(actual, expected);
   }
