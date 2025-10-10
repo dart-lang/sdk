@@ -37,7 +37,7 @@ mixin ShadowingTestCases on AbstractCompletionDriverTest {
   @override
   Future<void> setUp() async {
     await super.setUp();
-    printerConfiguration.withElementOffset = true;
+    printerConfiguration.withElementLocation = true;
   }
 
   Future<void> test_field_class() async {
@@ -55,7 +55,8 @@ class f0 {}
 suggestions
   f0
     kind: field
-    offset: 19
+    line: 2
+    column: 10
 ''');
   }
 
@@ -74,7 +75,8 @@ class C {
 suggestions
   f0
     kind: field
-    offset: 39
+    line: 4
+    column: 10
 ''');
   }
 
@@ -93,7 +95,8 @@ class C {
 suggestions
   f0
     kind: field
-    offset: 36
+    line: 4
+    column: 10
 ''');
   }
 
@@ -111,7 +114,8 @@ void f() {
 suggestions
   f0
     kind: functionInvocation
-    offset: 49
+    line: 4
+    column: 10
 ''');
   }
 
@@ -129,7 +133,8 @@ void f() {
 suggestions
   v0
     kind: functionInvocation
-    offset: 48
+    line: 4
+    column: 10
 ''');
   }
 
@@ -144,7 +149,8 @@ void f(int v0) {
 suggestions
   v0
     kind: functionInvocation
-    offset: 24
+    line: 2
+    column: 8
 ''');
   }
 
@@ -162,7 +168,8 @@ void f() {
 suggestions
   v0
     kind: localVariable
-    offset: 48
+    line: 4
+    column: 9
 ''');
   }
 
@@ -180,7 +187,8 @@ void f() {
 suggestions
   v0
     kind: localVariable
-    offset: 47
+    line: 4
+    column: 9
 ''');
   }
 
@@ -195,7 +203,8 @@ void f(int v0) {
 suggestions
   v0
     kind: localVariable
-    offset: 23
+    line: 2
+    column: 7
 ''');
   }
 
@@ -210,7 +219,8 @@ void f<v0>() {
 suggestions
   v0
     kind: localVariable
-    offset: 21
+    line: 2
+    column: 7
 ''');
   }
 
@@ -228,7 +238,8 @@ class m0 {}
 suggestions
   m0
     kind: methodInvocation
-    offset: 17
+    line: 2
+    column: 8
 ''');
   }
 
@@ -246,7 +257,8 @@ class C {
 suggestions
   m0
     kind: methodInvocation
-    offset: 31
+    line: 4
+    column: 8
 ''');
   }
 
@@ -264,7 +276,8 @@ class C {
 suggestions
   m0
     kind: methodInvocation
-    offset: 30
+    line: 4
+    column: 8
 ''');
   }
 
@@ -280,7 +293,8 @@ class c0 {
 suggestions
   c0
     kind: parameter
-    offset: 24
+    line: 2
+    column: 14
 ''');
   }
 
@@ -297,7 +311,8 @@ class C {
 suggestions
   f0
     kind: parameter
-    offset: 41
+    line: 3
+    column: 14
 ''');
   }
 
@@ -314,7 +329,8 @@ class C {
 suggestions
   m0
     kind: parameter
-    offset: 44
+    line: 3
+    column: 14
 ''');
   }
 
@@ -329,7 +345,8 @@ void f(int f0) {
 suggestions
   f0
     kind: parameter
-    offset: 30
+    line: 2
+    column: 12
 ''');
   }
 
@@ -344,7 +361,8 @@ void f(int f0) {
 suggestions
   f0
     kind: parameter
-    offset: 27
+    line: 2
+    column: 12
 ''');
   }
 
@@ -358,7 +376,8 @@ void f<p0>(int p0) {
 suggestions
   p0
     kind: parameter
-    offset: 15
+    line: 1
+    column: 16
 ''');
   }
 
@@ -375,7 +394,8 @@ void f() {
 suggestions
   v0
     kind: typeParameter
-    offset: 34
+    line: 3
+    column: 10
 ''');
   }
 
@@ -391,7 +411,8 @@ void f(int p0) {
 suggestions
   p0
     kind: typeParameter
-    offset: 26
+    line: 2
+    column: 10
 ''');
   }
 
@@ -407,7 +428,8 @@ void f<p0>() {
 suggestions
   p0
     kind: typeParameter
-    offset: 24
+    line: 2
+    column: 10
 ''');
   }
 }
