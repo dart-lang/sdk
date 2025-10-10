@@ -1,4 +1,4 @@
-## 8.3.0-dev
+## 8.3.0
 * Deprecate `TypeDefiningElement`, check for specific elements.
 * Deprecate `TypeDefiningFragment`, check for specific fragments.
 
