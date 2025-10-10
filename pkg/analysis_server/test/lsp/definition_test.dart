@@ -109,6 +109,30 @@ class A {
     await testContents(contents);
   }
 
+  Future<void> test_atDeclaration_enum() async {
+    var contents = '''
+enum [!^E!] { one }
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_extension() async {
+    var contents = '''
+extension [!^E!] on String {}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_extensionType() async {
+    var contents = '''
+extension type [!^E!](int it) {}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_atDeclaration_function() async {
     var contents = '''
 void [!^f!]() {}
@@ -130,6 +154,30 @@ import 'dart:math' as [!^math!];
 class A {
   void [!^f!]() {}
 }
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_mixin() async {
+    var contents = '''
+mixin [!^M!] {}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_typeAlias_functionType() async {
+    var contents = '''
+typedef void [!^F!]();
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_typeAlias_generic() async {
+    var contents = '''
+typedef [!^F!] = void Function();
 ''';
 
     await testContents(contents);

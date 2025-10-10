@@ -123,9 +123,7 @@ final a = A(^);
     required bool includesFull,
   }) async {
     var code = TestCode.parse(content);
-    await provideConfig(initialize, {
-      if (preference != null) 'documentation': preference,
-    });
+    await provideConfig(initialize, {'documentation': ?preference});
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
     var signatureHelp = await getSignatureHelp(

@@ -128,8 +128,8 @@ class PubPackage {
   Map<String, Object> toJson() {
     return {
       'packageName': packageName,
-      if (description != null) 'description': description!,
-      if (latestVersion != null) 'latestVersion': latestVersion!,
+      'description': ?description,
+      'latestVersion': ?latestVersion,
     };
   }
 }
