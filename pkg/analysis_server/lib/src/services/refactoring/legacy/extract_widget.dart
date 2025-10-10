@@ -309,11 +309,17 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       var parameterList = method.parameters;
       if (parameterList != null) {
         for (var parameter in parameterList.parameters) {
+          var isRequired = parameter.isRequired;
           parameter = parameter.notDefault;
           if (parameter is NormalFormalParameter) {
             var element = parameter.declaredFragment!.element;
             _parameters.add(
-              _Parameter(element.name!, element.type, isMethodParameter: true),
+              _Parameter(
+                element.name!,
+                element.type,
+                isMethodParameter: true,
+                isRequired: isRequired,
+              ),
             );
           }
         }
@@ -377,21 +383,37 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     );
     _enclosingClassNode!.accept(collector);
     for (var invocation in collector.invocations) {
-      List<Expression> arguments = invocation.argumentList.arguments;
+      var arguments = invocation.argumentList.arguments;
+      var argumentsByParameterName = {
+        for (var argument in arguments)
+          argument.correspondingParameter?.name: argument,
+      };
+
       builder.addReplacement(range.node(invocation), (builder) {
         builder.write('$name(');
 
         // Insert field references (as named arguments).
         // Ensure that invocation arguments are named.
-        var argumentIndex = 0;
+        var needsComma = false;
         for (var parameter in _parameters) {
-          if (parameter != _parameters.first) {
+          var argument = argumentsByParameterName[parameter.name];
+
+          // If this is a method parameter but there was no argument, don't
+          // include it in the call.
+          if (parameter.isMethodParameter && argument == null) {
+            continue;
+          }
+
+          if (needsComma) {
             builder.write(', ');
           }
+          needsComma = true;
+
           builder.write(parameter.name);
           builder.write(': ');
-          if (parameter.isMethodParameter) {
-            var argument = arguments[argumentIndex++];
+          // argument is always non-null for method parameters because otherwise
+          // we have continued above.
+          if (parameter.isMethodParameter && argument != null) {
             if (argument is NamedExpression) {
               argument = argument.expression;
             }
@@ -446,7 +468,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
               // Add parameters for fields, local, and method parameters.
               for (var parameter in _parameters) {
-                builder.write('    required ');
+                builder.write('    ');
+                if (parameter.isRequired) {
+                  builder.write('required ');
+                }
                 if (parameter.constructorName != parameter.name) {
                   builder.writeType(parameter.type);
                   builder.write(' ');
@@ -599,11 +624,19 @@ class _Parameter {
   /// Whether the parameter is a parameter of the method being extracted.
   final bool isMethodParameter;
 
+  /// Whether the parameter is required.
+  final bool isRequired;
+
   /// If the [name] is private, the public name to use in the new widget
   /// constructor. If the [name] is already public, then the [name].
   late String constructorName;
 
-  _Parameter(this.name, this.type, {this.isMethodParameter = false});
+  _Parameter(
+    this.name,
+    this.type, {
+    this.isMethodParameter = false,
+    this.isRequired = true,
+  });
 }
 
 class _ParametersCollector extends RecursiveAstVisitor<void> {

@@ -542,6 +542,100 @@ class Test extends StatelessWidget {
 ''');
   }
 
+  Future<void> test_method_parameters_mixedAndReordered() async {
+    await indexTestUnit(r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  const MyWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Ordered differently to the parameters.
+    return myWidget(s: '', b: true, i: 1, null);
+  }
+
+  Widget ^myWidget(Null n, {int? i, String? s, required bool b}) => Text('Value: $i$s$b');
+}
+''');
+    _createRefactoring();
+
+    await _assertSuccessfulRefactoring(r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  const MyWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Ordered differently to the parameters.
+    return Test(n: null, i: 1, s: '', b: true);
+  }
+}
+
+class Test extends StatelessWidget {
+  const Test({
+    super.key,
+    required this.n,
+    this.i,
+    this.s,
+    required this.b,
+  });
+
+  final Null n;
+  final int? i;
+  final String? s;
+  final bool b;
+
+  @override
+  Widget build(BuildContext context) => Text('Value: $i$s$b');
+}
+''');
+  }
+
+  Future<void> test_method_parameters_namedOptional() async {
+    await indexTestUnit(r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  const MyWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return myWidget();
+  }
+
+  Widget ^myWidget({int? value}) => Text('Value: $value');
+}
+''');
+    _createRefactoring();
+
+    await _assertSuccessfulRefactoring(r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  const MyWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Test();
+  }
+}
+
+class Test extends StatelessWidget {
+  const Test({
+    super.key,
+    this.value,
+  });
+
+  final int? value;
+
+  @override
+  Widget build(BuildContext context) => Text('Value: $value');
+}
+''');
+  }
+
   Future<void> test_method_parameters_namedRequired() async {
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
