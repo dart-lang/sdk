@@ -97,7 +97,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "1d2e23d5e55788091a51420ba3a9889d4efe7509",
-  "boringssl_rev": "706742e482d89214f13a642ccfcdad596a24a32f",
+  "boringssl_rev": "eae76e0715de794f4fe0a189fe8c8146cbc9990c",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "0327830448901920f739259364c3f2f624df5a03",
@@ -556,26 +556,16 @@ deps = {
       "dep_type": "cipd",
   },
 
-  Var("dart_root") + "/third_party/android_tools/ndk": {
-      "packages": [
-          {
-            "package": "flutter/android/ndk/${{os}}-amd64",
-            "version": "version:r27.0.10869015"
-          }
-      ],
-      "condition": "download_android_deps",
-      "dep_type": "cipd",
-  },
-  Var("dart_root") + "/third_party/android_tools/sdk/platform-tools": {
-      "packages": [
-          {
-            "package": "flutter/android/sdk/platform-tools/linux-amd64",
-            "version": "1tZc4sOxZS6FQIvT5i0wwdycmM8AO7QZY32FC9_HfR4C"
-          }
-      ],
-      "condition": "download_android_deps",
-      "dep_type": "cipd",
-  },
+  Var("dart_root") + "/third_party/android_tools": {
+     "packages": [
+       {
+        "package": "flutter/android/sdk/all/${{platform}}",
+        "version": "version:36v3"
+       }
+     ],
+     "condition": "download_android_deps",
+     "dep_type": "cipd",
+   },
 
   Var("dart_root") + "/third_party/fuchsia/sdk/linux": {
     "packages": [
