@@ -33,6 +33,7 @@ import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 import 'package:analyzer/src/error/doc_comment_verifier.dart';
 import 'package:analyzer/src/error/element_usage_frontier_detector.dart';
 import 'package:analyzer/src/error/error_handler_verifier.dart';
+import 'package:analyzer/src/error/experimental_member_use_verifier.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
 import 'package:analyzer/src/error/widget_preview_verifier.dart';
@@ -120,6 +121,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
            workspacePackage: workspacePackage,
            elementUsageSet: const DeprecatedElementUsageSet(),
            elementUsageReporter: DeprecatedElementUsageReporter(
+             diagnosticReporter: _diagnosticReporter,
+           ),
+         ),
+         ElementUsageFrontierDetector(
+           workspacePackage: workspacePackage,
+           elementUsageSet: const ExperimentalElementUsageSet(),
+           elementUsageReporter: ExperimentalElementUsageReporter(
              diagnosticReporter: _diagnosticReporter,
            ),
          ),

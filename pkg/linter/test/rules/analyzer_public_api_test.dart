@@ -2188,6 +2188,7 @@ class C {
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(72, 1, name: experimentalInconsistency),
+      error(WarningCode.experimentalMemberUse, 74, 1),
     ]);
   }
 
@@ -2217,6 +2218,7 @@ class C extends B {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(66, 1, name: experimentalInconsistency),
+      error(WarningCode.experimentalMemberUse, 76, 1),
     ]);
   }
 
@@ -2244,6 +2246,7 @@ class C implements B {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(66, 1, name: experimentalInconsistency),
+      error(WarningCode.experimentalMemberUse, 79, 1),
     ]);
   }
 
@@ -2271,6 +2274,7 @@ class C<T extends B> {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(66, 1, name: experimentalInconsistency),
+      error(WarningCode.experimentalMemberUse, 78, 1),
     ]);
   }
 
@@ -2298,6 +2302,7 @@ class C with B {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(66, 1, name: experimentalInconsistency),
+      error(WarningCode.experimentalMemberUse, 73, 1),
     ]);
   }
 
@@ -2325,6 +2330,7 @@ extension E on B {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(70, 1, name: experimentalInconsistency),
+      error(WarningCode.experimentalMemberUse, 75, 1),
     ]);
   }
 
@@ -2352,6 +2358,7 @@ void F(B b) {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(65, 1, name: experimentalInconsistency),
+      error(WarningCode.experimentalMemberUse, 67, 1),
     ]);
   }
 
@@ -2379,6 +2386,7 @@ typedef void F(B b);
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(73, 1, name: experimentalInconsistency),
+      error(WarningCode.experimentalMemberUse, 75, 1),
     ]);
   }
 
@@ -2406,6 +2414,7 @@ typedef void F<T extends B>(T t);
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(73, 1, name: experimentalInconsistency),
+      error(WarningCode.experimentalMemberUse, 85, 1),
     ]);
   }
 
@@ -2433,6 +2442,7 @@ mixin M on B {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(66, 1, name: experimentalInconsistency),
+      error(WarningCode.experimentalMemberUse, 71, 1),
     ]);
   }
 

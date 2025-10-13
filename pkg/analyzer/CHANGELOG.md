@@ -1,3 +1,7 @@
+## 8.4.0-dev
+* Add the `experimental_member_use` warning, which warns about any reference to
+  a declaration annotated with `@experimental`.
+
 ## 8.3.0
 * Deprecate `TypeDefiningElement`, check for specific elements.
 * Deprecate `TypeDefiningFragment`, check for specific fragments.
