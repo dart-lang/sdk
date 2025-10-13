@@ -97,7 +97,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "1d2e23d5e55788091a51420ba3a9889d4efe7509",
-  "boringssl_rev": "eae76e0715de794f4fe0a189fe8c8146cbc9990c",
+  "boringssl_rev": "bc81f389c45e0192251c4b29622cfd734ae7baf2",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "0327830448901920f739259364c3f2f624df5a03",
@@ -131,10 +131,10 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "59db320ee39a1ae5f6e2830be851e52bb7263ce1",
+  "ai_rev": "a29274bb2f8a48434f6d9b44d29ee3bbabf669ba",
   "core_rev": "5c3e2c38df268be2347f3aad30ced0147dd012bb", # b/444274553
-  "dartdoc_rev": "ec2a4feee51961e9fbdd2bd94060cc8fc994c47e",
-  "ecosystem_rev": "96ee86147a5f4c70aed64262e1521b745936cdb1",
+  "dartdoc_rev": "98d03ad2cc341d1fb053e0addfc96ba35301976b",
+  "ecosystem_rev": "f4fbac4de4a61c60193556e63e52b790ecc5e986",
   "flute_rev": "d5adc4d6439572db5da71a9261b9bf0c7c96daa4",
   "http_rev": "2c53fa3c558ec5d1dd9fce4360d435113dba11e5",
   "i18n_rev": "34d1832b7e65d9aef1f7f6a82c22f6e53476191c",
@@ -143,14 +143,14 @@ vars = {
   "native_rev": "3ec573500f743d4a1393f7802143aef50fec0a47", # rolled manually while native assets are experimental
   "protobuf_rev": "14bbd0bd7ff9b7e322ff4e85bd243f6905170b92",
   "pub_rev": "f7f1891e2de3d795532f45ec214f88ac912ffcd6", # rolled manually
-  "shelf_rev": "f30d65034a868530a9aa9ada7c3067d22fa01185",
+  "shelf_rev": "710b8cef08f69acf176c807eaf274dfb8656fde0",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "8083c8f24ffbca58cc0385add03c296b70636e7a",
-  "tools_rev": "6866f9b19553625cc8af099d67aecbfb02067dcb",
+  "tools_rev": "adf3fe7853d2d41ed39ee615fc4dc1a97bf5034c",
   "vector_math_rev": "a7b7e9ccb931348dbfa669e0f8fea1bf97705b16",
   "web_rev": "816abcc1bf186f61c7e66e7f4c56d1554a61ab27",
-  "webdev_rev": "29ba1b12c83b5d0e34bc61181801120c36b95c54",
+  "webdev_rev": "186bfe71c54a851afd2629c6445cd6a8e9516ee1",
   "webdriver_rev": "09104f459ed834d48b132f6b7734923b1fbcf2e9",
   "webkit_inspection_protocol_rev": "0f7685804d77ec02c6564d7ac1a6c8a2341c5bdf",
 

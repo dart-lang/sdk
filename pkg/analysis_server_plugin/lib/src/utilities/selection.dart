@@ -270,7 +270,7 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    _fromList(node.metadata) || _fromList(node.configurations);
+    _fromList(node.metadata);
   }
 
   @override

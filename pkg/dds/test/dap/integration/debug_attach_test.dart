@@ -13,12 +13,7 @@ main() {
   group('debug mode', () {
     late DapTestSession dap;
     setUp(() async {
-      dap = await DapTestSession.setUp(
-        /// This boolean is temporarily set to `true` to aid debugging
-        /// https://github.com/dart-lang/sdk/issues/55313 and will be reverted
-        /// soon.
-        forceVerboseLogging: true,
-      );
+      dap = await DapTestSession.setUp();
     });
     tearDown(() => dap.tearDown());
 

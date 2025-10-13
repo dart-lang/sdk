@@ -67,6 +67,12 @@ class DebugAdapterCommand extends DartdevCommand {
     final args = argResults!;
     final ipv6 = args.flag(argIpv6);
 
+    // Because we use stdout.nonBlocking, exceptions may go unhandled if the
+    // stream closes while data is being flushed ("The pipe is being closed").
+    // To prevent this, install an error handler that ignores any errors writing
+    // to the stream.
+    stdout.nonBlocking.done.catchError((e) {});
+
     final server = DapServer(
       stdin,
       stdout.nonBlocking,

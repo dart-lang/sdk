@@ -55674,6 +55674,54 @@ class D extends B {}
     );
   }
 
+  test_manifest_class_allSubtypes_final_missingName() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final class A {}
+class extends A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        flags: isFinal
+        supertype: Object @ dart:core
+        interface: #M1
+    exportMapId: #M2
+    exportMap
+      A: #M0
+''',
+      updatedCode: r'''
+final class A {}
+class extends A {}
+class C extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        flags: isFinal
+        supertype: Object @ dart:core
+        allSubtypes: #M3
+        interface: #M1
+      C: #M3
+        supertype: A @ package:test/test.dart
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      A: #M0
+      C: #M3
+''',
+    );
+  }
+
   test_manifest_class_allSubtypes_final_mixin() async {
     configuration.withElementManifests = true;
 
