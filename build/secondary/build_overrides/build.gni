@@ -6,3 +6,4 @@
 # targets to distinguish embedder builds from Perfetto standalone builds, and
 # builds in the Android tree.
 perfetto_build_with_embedder = true
+perfetto_root_path = "//third_party/perfetto/src/"

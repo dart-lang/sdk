@@ -316,7 +316,7 @@ deps = {
       Var("chromium_git") + "/chromium/src/third_party/jinja2.git" +
       "@" + Var("jinja2_rev"),
 
-  Var("dart_root") + "/third_party/perfetto":
+  Var("dart_root") + "/third_party/perfetto/src":
       Var("android_git") + "/platform/external/perfetto" +
       "@" + Var("perfetto_rev"),
 

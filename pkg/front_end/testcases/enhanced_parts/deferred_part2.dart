@@ -4,8 +4,14 @@
 
 part of 'deferred_part1.dart';
 
-import 'deferred_lib2.dart' deferred as d;
+import 'deferred_lib2.dart' deferred as d show x2;
+
+part 'deferred_part3.dart';
 
 method2() {
-  d.loadLibrary();
+  d.loadLibrary(); // Ok
+  d.x1; // Error
+  d.y1; // Error
+  d.x2; // Ok
+  d.y2; // Error
 }

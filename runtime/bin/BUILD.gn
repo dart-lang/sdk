@@ -1162,8 +1162,8 @@ source_set("run_vm_tests_set") {
   }
 
   deps = [
-    "../vm:libprotozero",  # for timeline_test
     "//third_party/boringssl",  # for secure_socket_utils_test
+    "//third_party/perfetto:libprotozero",  # for timeline_test
   ]
 
   if (is_fuchsia) {
@@ -1230,8 +1230,8 @@ executable("run_vm_tests") {
     ":run_vm_tests_set",
     ":standalone_dart_io",
     "..:libdart_precompiler_testing",
-    "../vm:libprotozero",  # for timeline_test
     "//third_party/boringssl",  # for secure_socket_utils_test
+    "//third_party/perfetto:libprotozero",  # for timeline_test
     "//third_party/zlib",
   ]
 

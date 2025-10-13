@@ -25,12 +25,12 @@
 #if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 #include "perfetto/ext/tracing/core/trace_packet.h"
 #include "perfetto/protozero/scattered_heap_buffer.h"
+#include "third_party/perfetto/protos/perfetto/common/builtin_clock.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/interned_data/interned_data.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/profiling/profile_common.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/profiling/profile_packet.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/trace_packet.pbzero.h"
 #include "vm/perfetto_utils.h"
-#include "vm/protos/perfetto/common/builtin_clock.pbzero.h"
-#include "vm/protos/perfetto/trace/interned_data/interned_data.pbzero.h"
-#include "vm/protos/perfetto/trace/profiling/profile_common.pbzero.h"
-#include "vm/protos/perfetto/trace/profiling/profile_packet.pbzero.h"
-#include "vm/protos/perfetto/trace/trace_packet.pbzero.h"
 #endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 namespace dart {
@@ -1952,8 +1952,10 @@ void Profile::PrintProfilePerfetto(JSONStream* js) {
   // When serializing a new profile, we set |SEQ_INCREMENTAL_STATE_CLEARED| on
   // the first packet to clear the interned data table and avoid conflicts with
   // any profiles that are combined with this one.
-  // See "runtime/vm/protos/perfetto/trace/interned_data/interned_data.proto"
-  // a detailed description of how the interned data table works.
+  //
+  // See perfetto/trace/interned_data/interned_data.proto in
+  // third_party/perfetto/protos a detailed description of how the interned
+  // data table works.
   packet->set_sequence_flags(
       perfetto::protos::pbzero::TracePacket_SequenceFlags::
           SEQ_INCREMENTAL_STATE_CLEARED);

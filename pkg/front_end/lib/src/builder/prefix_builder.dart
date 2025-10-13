@@ -167,6 +167,7 @@ class PrefixFragment {
   PrefixBuilder createPrefixBuilder(PrefixBuilder? parentPrefixBuilder) {
     LoadLibraryBuilder? loadLibraryBuilder;
     if (deferred) {
+      assert(parentPrefixBuilder == null, "Deferred prefixes do not nest.");
       loadLibraryBuilder = new LoadLibraryBuilder(
         importer.libraryBuilder,
         prefixOffset,

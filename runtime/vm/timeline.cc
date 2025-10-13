@@ -33,16 +33,16 @@
 
 #if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 #include "perfetto/ext/tracing/core/trace_packet.h"
+#include "third_party/perfetto/protos/perfetto/common/builtin_clock.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/clock_snapshot.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/interned_data/interned_data.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/trace_packet.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/track_event/debug_annotation.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/track_event/process_descriptor.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/track_event/thread_descriptor.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/track_event/track_descriptor.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/track_event/track_event.pbzero.h"
 #include "vm/perfetto_utils.h"
-#include "vm/protos/perfetto/common/builtin_clock.pbzero.h"
-#include "vm/protos/perfetto/trace/clock_snapshot.pbzero.h"
-#include "vm/protos/perfetto/trace/interned_data/interned_data.pbzero.h"
-#include "vm/protos/perfetto/trace/trace_packet.pbzero.h"
-#include "vm/protos/perfetto/trace/track_event/debug_annotation.pbzero.h"
-#include "vm/protos/perfetto/trace/track_event/process_descriptor.pbzero.h"
-#include "vm/protos/perfetto/trace/track_event/thread_descriptor.pbzero.h"
-#include "vm/protos/perfetto/trace/track_event/track_descriptor.pbzero.h"
-#include "vm/protos/perfetto/trace/track_event/track_event.pbzero.h"
 #endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 namespace dart {

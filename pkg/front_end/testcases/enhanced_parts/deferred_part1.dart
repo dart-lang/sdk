@@ -4,10 +4,12 @@
 
 part of 'deferred.dart';
 
-import 'deferred_lib1.dart' deferred as d;
+import 'deferred_lib1.dart' deferred as d hide y1;
 
 part 'deferred_part2.dart';
 
 method1() {
-  d.loadLibrary();
+  d.loadLibrary(); // Ok
+  d.x1; // Ok
+  d.y1; // Error
 }
