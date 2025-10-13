@@ -12,3 +12,4 @@ resolution: workspace
 dependencies:
 
 dev_dependencies:
+  test: any
