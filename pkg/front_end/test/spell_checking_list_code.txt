@@ -1684,6 +1684,7 @@ severities
 sh
 sha
 shadowed
+shadows
 shaker
 shaking
 shallow

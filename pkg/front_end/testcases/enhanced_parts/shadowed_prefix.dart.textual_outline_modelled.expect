@@ -1,0 +1,5 @@
+import 'shadowed_prefix_lib1.dart' as prefix;
+
+part 'shadowed_prefix_part1.dart';
+
+method1() {}

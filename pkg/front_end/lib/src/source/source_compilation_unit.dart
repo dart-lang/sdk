@@ -258,17 +258,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
        _referenceIsPartOwner = referenceIsPartOwner,
        _problemReporting = new LibraryProblemReporting(loader, fileUri),
        _augmentationRoot = augmentationRoot {
-    LookupScope scope = _importScope = new CompilationUnitImportScope(
-      this,
-      _importNameSpace,
-    );
+    CompilationUnitImportScope importScope = _importScope =
+        new CompilationUnitImportScope(this, _importNameSpace);
     ExtensionScope extensionScope = new CompilationUnitImportExtensionScope(
       this,
       _importedExtensions,
     );
     _prefixScope = new CompilationUnitPrefixScope(
       prefixNameSpace,
-      parent: scope,
+      parent: importScope,
     );
     _prefixExtensionScope = new CompilationUnitPrefixExtensionScope(
       prefixNameSpace,
@@ -780,10 +778,27 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   @override
   PrefixBuilder? lookupPrefixBuilder(String name) {
-    PrefixBuilder? declaredPrefixBuilder =
-        prefixNameSpace.lookup(name)?.getable as PrefixBuilder?;
-    return declaredPrefixBuilder ??
-        parentCompilationUnit?.lookupPrefixBuilder(name);
+    LookupResult? prefixLookupResult = prefixScope.lookup(name);
+    if (prefixLookupResult != null) {
+      if (!prefixLookupResult.isInvalidLookup &&
+          prefixLookupResult.getable is PrefixBuilder) {
+        PrefixBuilder prefixBuilder =
+            prefixLookupResult.getable as PrefixBuilder;
+        if (prefixBuilder.deferred) {
+          // Deferred prefixes are not extended.
+          return null;
+        } else {
+          // The parent scope has a non-deferred prefix by the same name.
+          return prefixLookupResult.getable as PrefixBuilder;
+        }
+      } else {
+        // A non-prefix builder shadows the parent prefix scope of the same
+        // name.
+        return null;
+      }
+    } else {
+      return parentCompilationUnit?.lookupPrefixBuilder(name);
+    }
   }
 
   @override
@@ -1535,7 +1550,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     _prefixNameSpace.addLocalMember(
       name,
       prefixFragment.createPrefixBuilder(
-        parentCompilationUnit?.lookupPrefixBuilder(name),
+        prefixFragment.deferred
+            // Deferred prefixes do not extend parent prefixes.
+            ? null
+            : parentCompilationUnit?.lookupPrefixBuilder(name),
       ),
       setter: false,
     );
