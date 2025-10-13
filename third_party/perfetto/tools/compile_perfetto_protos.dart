@@ -17,8 +17,8 @@ Future<void> compilePerfettoProtos() async {
   final processResult = await Process.run('./tools/build.py', [
     '-mdebug',
     '-a$hostArch',
-    'runtime/vm:perfetto_protos_protozero',
-    'runtime/vm:perfetto_protos_dart',
+    'third_party/perfetto:perfetto_protos_protozero',
+    'third_party/perfetto:perfetto_protos_dart',
   ]);
 
   final int exitCode = processResult.exitCode;
@@ -34,14 +34,14 @@ Future<void> compilePerfettoProtos() async {
 }
 
 const noticesToPrepend = r'''
-// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // IMPORTANT: This file should only ever be modified by modifying the
 // corresponding .proto file and then running
-// `dart runtime/vm/protos/tools/compile_perfetto_protos.dart` from the SDK root
-// directory.
+// `dart third_party/perfetto/tools/compile_perfetto_protos.dart` from the
+// SDK root directory.
 ''';
 
 Future<void> copyGeneratedFiles({
@@ -109,7 +109,7 @@ void createFileThatExportsAllGeneratedDartCode() {
 }
 
 main(List<String> files) async {
-  if (!Directory('./runtime/vm').existsSync()) {
+  if (!Directory('./third_party/perfetto').existsSync()) {
     print('Error: this tool must be run from the root directory of the SDK.');
     return;
   }
@@ -119,8 +119,8 @@ main(List<String> files) async {
 
   await compilePerfettoProtos();
   await copyGeneratedFiles(
-    destination: Directory('./runtime/vm'),
-    source: Directory('$buildDir/gen/runtime/vm/protos'),
+    destination: Directory('third_party/perfetto'),
+    source: Directory('$buildDir/gen/third_party/perfetto/protos'),
   );
   await copyGeneratedFiles(
     destination: Directory('./pkg/vm_service_protos/lib/src'),

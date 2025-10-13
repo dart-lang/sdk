@@ -17,7 +17,7 @@ Future<void> generatePerfettoBuildFlags() async {
   final processResult = await Process.run('./tools/build.py', [
     '-mdebug',
     '-ax64',
-    'third_party/perfetto/gn:gen_buildflags',
+    'third_party/perfetto/src/gn:gen_buildflags',
   ]);
 
   final int exitCode = processResult.exitCode;
@@ -44,14 +44,15 @@ List<String> compilerFlagsForFile(String filepath) {
   // and the host architecture is fixed.
 
   final flags = <String>[
+    '-I.',
     '-Iruntime',
     '-Ithird_party',
     '-Iruntime/include',
     if (filepath.contains('samples/embedder')) '-Iruntime/engine',
     '-Ithird_party/boringssl/src/include',
-    '-Ithird_party/perfetto/include',
+    '-Ithird_party/perfetto/src/include',
     '-Ithird_party/zlib',
-    '-Iout/DebugX64/gen/third_party/perfetto/build_config',
+    '-Iout/DebugX64/gen/third_party/perfetto/src/build_config',
     '-DTARGET_ARCH_$arch',
     '-DTESTING',
     '-std=c++20',

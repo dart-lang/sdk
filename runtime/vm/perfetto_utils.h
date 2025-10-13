@@ -13,14 +13,14 @@
 
 #include "perfetto/ext/tracing/core/trace_packet.h"
 #include "perfetto/protozero/scattered_heap_buffer.h"
+#include "third_party/perfetto/protos/perfetto/common/builtin_clock.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/clock_snapshot.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/trace_packet.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/track_event/process_descriptor.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/track_event/track_descriptor.pbzero.h"
 #include "vm/hash_map.h"
 #include "vm/json_stream.h"
 #include "vm/os.h"
-#include "vm/protos/perfetto/common/builtin_clock.pbzero.h"
-#include "vm/protos/perfetto/trace/clock_snapshot.pbzero.h"
-#include "vm/protos/perfetto/trace/trace_packet.pbzero.h"
-#include "vm/protos/perfetto/trace/track_event/process_descriptor.pbzero.h"
-#include "vm/protos/perfetto/trace/track_event/track_descriptor.pbzero.h"
 
 namespace dart {
 

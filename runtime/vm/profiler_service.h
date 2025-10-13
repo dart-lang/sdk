@@ -18,8 +18,8 @@
 
 #if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 #include "perfetto/protozero/scattered_heap_buffer.h"
-#include "vm/protos/perfetto/trace/profiling/profile_common.pbzero.h"
-#include "vm/protos/perfetto/trace/trace_packet.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/profiling/profile_common.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/trace_packet.pbzero.h"
 #endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 // CPU Profile model and service protocol bits.

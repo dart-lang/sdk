@@ -361,7 +361,7 @@ library_for_all_configs("libdart") {
   target_type = dart_component_kind
   extra_nonproduct_deps = []
   if (dart_support_perfetto) {
-    extra_nonproduct_deps += [ "vm:libprotozero" ]
+    extra_nonproduct_deps += [ "//third_party/perfetto:libprotozero" ]
   }
   extra_deps = [
     ":generate_version_cc_file",
