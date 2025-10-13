@@ -3902,6 +3902,7 @@ abstract class TypeAliasElement
   /// For example, it could be [GenericFunctionTypeElement].
   ///
   /// If there is no structure, return `null`.
+  @Deprecated('Use aliasedType instead')
   Element? get aliasedElement;
 
   /// If the aliased type has structure, return the corresponding element.

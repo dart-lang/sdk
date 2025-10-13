@@ -1,6 +1,7 @@
 ## 8.4.0-dev
 * Add the `experimental_member_use` warning, which warns about any reference to
   a declaration annotated with `@experimental`.
+* Deprecate `TypeAliasElement.aliasedElement`, use `aliasedType` instead.
 
 ## 8.3.0
 * Deprecate `TypeDefiningElement`, check for specific elements.

@@ -272,12 +272,11 @@ void foo() {}
     expect(node.name.lexeme, 'foo');
   }
 
-  test_genericFunctionTypeElement() async {
+  test_genericFunctionTypeFragment() async {
     await resolveTestCode(r'''
-typedef F = void Function();
+void f(void Function() x) {}
 ''');
-    var typeAlias = findElement2.typeAlias('F');
-    var fragment = typeAlias.aliasedElement!.firstFragment;
+    var fragment = findNode.singleGenericFunctionType.declaredFragment!;
     var result = await getFragmentDeclaration(fragment);
     expect(result, isNull);
   }
