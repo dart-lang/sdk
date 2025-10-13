@@ -12,9 +12,7 @@ main() {
   group('debug mode', () {
     late DapTestSession dap;
     setUp(() async {
-      // Temporarily enable verbose logging to help track down
-      // https://github.com/dart-lang/sdk/issues/55685
-      dap = await DapTestSession.setUp(forceVerboseLogging: true);
+      dap = await DapTestSession.setUp();
     });
     tearDown(() => dap.tearDown());
 
@@ -57,7 +55,7 @@ main() {
       // Run the app and expect it to complete (it should not pause).
       final outputEvents = await client.collectOutput(file: testFile);
 
-      // Expect error info printed to stderr.
+      // Expect error info sent to stdout via `print()`.
       final output = outputEvents
           .where((e) => e.category == 'stdout')
           .map((e) => e.output)
