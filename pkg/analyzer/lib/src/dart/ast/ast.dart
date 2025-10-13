@@ -22409,6 +22409,9 @@ final class SuperExpressionImpl extends ExpressionImpl
 ///        'super' '.' name ([TypeParameterList]? [FormalParameterList])?
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SuperFormalParameter implements NormalFormalParameter {
+  @override
+  SuperFormalParameterFragment? get declaredFragment;
+
   /// The token representing either the `final`, `const` or `var` keyword, or
   /// `null` if no keyword was used.
   Token? get keyword;
@@ -22511,6 +22514,11 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
     _becomeParentOf(typeParameters);
     _becomeParentOf(parameters);
   }
+
+  @generated
+  @override
+  SuperFormalParameterFragmentImpl? get declaredFragment =>
+      super.declaredFragment as SuperFormalParameterFragmentImpl?;
 
   @generated
   @override

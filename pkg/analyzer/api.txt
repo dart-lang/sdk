@@ -1661,6 +1661,7 @@ package:analyzer/dart/ast/ast.dart:
   SuperExpression (class extends Object implements Expression):
     superKeyword (getter: Token)
   SuperFormalParameter (class extends Object implements NormalFormalParameter):
+    declaredFragment (getter: SuperFormalParameterFragment?)
     keyword (getter: Token?)
     name (getter: Token)
     parameters (getter: FormalParameterList?)
