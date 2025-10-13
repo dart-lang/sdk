@@ -64,8 +64,8 @@ enum Register {
   S4 = 20,  // ARGS_DESC_REG
   S5 = 21,  // IC_DATA_REG
   S6 = 22,
-  S7 = 23,   // CALLEE_SAVED_TEMP2
-  S8 = 24,   // CALLEE_SAVED_TEMP / FAR_TMP
+  S7 = 23,   // CALLEE_SAVED_TEMP
+  S8 = 24,   // FAR_TMP
   S9 = 25,   // DISPATCH_TABLE_REG
   S10 = 26,  // NULL_REG
   S11 = 27,  // WRITE_BARRIER_STATE
@@ -158,8 +158,7 @@ constexpr Register SPREG = SP;          // Stack pointer register.
 constexpr Register IC_DATA_REG = S5;    // ICData/MegamorphicCache register.
 constexpr Register ARGS_DESC_REG = S4;  // Arguments descriptor register.
 constexpr Register THR = S1;  // Caches current thread in generated code.
-constexpr Register CALLEE_SAVED_TEMP = S8;
-constexpr Register CALLEE_SAVED_TEMP2 = S7;
+constexpr Register CALLEE_SAVED_TEMP = S7;
 constexpr Register WRITE_BARRIER_STATE = S11;
 constexpr Register NULL_REG = S10;  // Caches NullObject() value.
 #define DART_ASSEMBLER_HAS_NULL_REG 1

@@ -7328,9 +7328,10 @@ static void EmitTsanCall(FlowGraphCompiler* compiler,
                          std::function<const RuntimeEntry&()> move_parameters) {
   ASSERT(IsCalleeSavedRegister(saved_sp));
   ASSERT(IsCalleeSavedRegister(THR));
+#if defined(TARGET_ARCH_X64)
   ASSERT(IsCalleeSavedRegister(PP));
-  ASSERT(IsCalleeSavedRegister(CODE_REG));
-#if defined(TARGET_ARCH_ARM64)
+#elif defined(TARGET_ARCH_ARM64)
+  ASSERT(IsCalleeSavedRegister(PP));
   ASSERT(IsCalleeSavedRegister(NULL_REG));
   ASSERT(IsCalleeSavedRegister(HEAP_BITS));
   ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
@@ -7338,10 +7339,14 @@ static void EmitTsanCall(FlowGraphCompiler* compiler,
   ASSERT(IsCalleeSavedRegister(NULL_REG));
   ASSERT(IsCalleeSavedRegister(WRITE_BARRIER_STATE));
   ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
+  ASSERT(IsCalleeSavedRegister(FAR_TMP));
 #endif
 
   __ PushRegisters(spill_set);
   __ MoveRegister(saved_sp, SPREG);
+#if defined(TARGET_ARCH_RISCV64)
+  __ MoveRegister(FAR_TMP, PP);
+#endif
 #if defined(TARGET_ARCH_ARM64)
   __ AndImmediate(CSP, SP, ~(OS::ActivationFrameAlignment() - 1));
 #else
@@ -7357,6 +7362,9 @@ static void EmitTsanCall(FlowGraphCompiler* compiler,
   __ LoadImmediate(TMP, VMTag::kDartTagId);
   __ Store(TMP,
            compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+#if defined(TARGET_ARCH_RISCV64)
+  __ MoveRegister(PP, FAR_TMP);
+#endif
   __ MoveRegister(SPREG, saved_sp);
 #if defined(TARGET_ARCH_ARM64)
   __ SetupCSPFromThread(THR);

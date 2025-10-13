@@ -1425,7 +1425,7 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   return MakeLocationSummaryInternal(
       zone, is_optimizing,
       (R(CallingConventions::kSecondNonArgumentRegister) |
-       R(CallingConventions::kFfiAnyNonAbiRegister) | R(CALLEE_SAVED_TEMP2)));
+       R(CallingConventions::kFfiAnyNonAbiRegister) | R(CALLEE_SAVED_TEMP)));
 }
 
 #undef R

@@ -2131,8 +2131,6 @@ LeafRuntimeScope::~LeafRuntimeScope() {
 }
 
 void Assembler::TsanLoadAcquire(Register dst, Address addr, OperandSize size) {
-  ASSERT(addr.base() != RSP);
-  ASSERT(addr.base() != RBP);
   ASSERT(dst != RSP);
   ASSERT(dst != RBP);
   Comment("TsanLoadAcquire");
@@ -2178,8 +2176,6 @@ void Assembler::TsanLoadAcquire(Register dst, Address addr, OperandSize size) {
 }
 
 void Assembler::TsanStoreRelease(Register src, Address addr, OperandSize size) {
-  ASSERT(addr.base() != RSP);
-  ASSERT(addr.base() != RBP);
   ASSERT(src != RSP);
   ASSERT(src != RBP);
   Comment("TsanStoreRelease");
