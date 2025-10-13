@@ -216,21 +216,7 @@ class DocumentationValidator {
   Future<void> validate() async {
     await _validateMessages(analyzerMessages);
     await _validateMessages(lintMessages);
-    ErrorClassInfo? errorClassIncludingCfeMessages;
-    for (var errorClass in errorClasses) {
-      if (errorClass.includeCfeMessages) {
-        if (errorClassIncludingCfeMessages != null) {
-          fail(
-            'Multiple error classes include CFE messages: '
-            '${errorClassIncludingCfeMessages.name} and ${errorClass.name}',
-          );
-        }
-        errorClassIncludingCfeMessages = errorClass;
-        await _validateMessages(
-          sharedToAnalyzerErrorCodeTables.analyzerCodeToInfo,
-        );
-      }
-    }
+    await _validateMessages(sharedToAnalyzerErrorCodeTables.analyzerCodeToInfo);
     if (buffer.isNotEmpty) {
       fail(buffer.toString());
     }
