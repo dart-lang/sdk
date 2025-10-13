@@ -1,6 +1,7 @@
 ## 8.3.0
 * Deprecate `TypeDefiningElement`, check for specific elements.
 * Deprecate `TypeDefiningFragment`, check for specific fragments.
+* Deprecate `PartDirective.configurations`, removed from the specification.
 
 ## 8.2.0
 * Updated SDK constraint to `^3.9.0`.

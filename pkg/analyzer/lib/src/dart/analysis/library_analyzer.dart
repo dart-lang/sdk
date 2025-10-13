@@ -1076,7 +1076,7 @@ class LibraryAnalyzer {
 
     if (directive != null) {
       _resolveUriConfigurations(
-        configurationNodes: directive.configurations,
+        configurationNodes: [],
         configurationUris: partState.uris.configurations,
       );
     }

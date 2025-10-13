@@ -1504,7 +1504,7 @@ package:analyzer/dart/ast/ast.dart:
     pattern (getter: DartPattern)
     rightParenthesis (getter: Token)
   PartDirective (class extends Object implements UriBasedDirective):
-    configurations (getter: NodeList<Configuration>)
+    configurations (getter: NodeList<Configuration>, deprecated)
     partInclude (getter: PartInclude?)
     partKeyword (getter: Token)
     semicolon (getter: Token)

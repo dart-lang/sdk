@@ -18179,6 +18179,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PartDirective implements UriBasedDirective {
   /// The configurations that control which file is actually included.
+  @Deprecated('Removed from the specification')
   NodeList<Configuration> get configurations;
 
   /// Information about this part directive.
@@ -18197,7 +18198,6 @@ abstract final class PartDirective implements UriBasedDirective {
   childEntitiesOrder: [
     GenerateNodeProperty('partKeyword'),
     GenerateNodeProperty('uri', isSuper: true),
-    GenerateNodeProperty('configurations'),
     GenerateNodeProperty('semicolon'),
   ],
 )
@@ -18206,10 +18206,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   @generated
   @override
   final Token partKeyword;
-
-  @generated
-  @override
-  final NodeListImpl<ConfigurationImpl> configurations = NodeListImpl._();
 
   @generated
   @override
@@ -18225,8 +18221,12 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     required this.partKeyword,
     required super.uri,
     required this.semicolon,
-  }) {
-    configurations._initialize(this, null);
+  });
+
+  @Deprecated('Removed from the specification')
+  @override
+  NodeListImpl<ConfigurationImpl> get configurations {
+    return NodeListImpl._().._initialize(this, null);
   }
 
   @generated
@@ -18246,7 +18246,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   ChildEntities get _childEntities => super._childEntities
     ..addToken('partKeyword', partKeyword)
     ..addNode('uri', uri)
-    ..addNodeList('configurations', configurations)
     ..addToken('semicolon', semicolon);
 
   @generated
@@ -18258,7 +18257,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     uri.accept(visitor);
-    configurations.accept(visitor);
   }
 
   @generated
@@ -18269,10 +18267,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     }
     if (uri._containsOffset(rangeOffset, rangeEnd)) {
       return uri;
-    }
-    if (configurations._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
     }
     return null;
   }
