@@ -96,15 +96,18 @@ final List<Option> options = [
   Flag("no-source-maps",
       (o, value) => o.translatorOptions.generateSourceMaps = !value,
       defaultsTo: !_d.translatorOptions.generateSourceMaps),
+  // Options for deferred loading
   Flag("enable-deferred-loading",
       (o, value) => o.translatorOptions.enableDeferredLoading = value,
       defaultsTo: _d.translatorOptions.enableDeferredLoading),
-  Flag("require-js-string-builtin",
-      (o, value) => o.translatorOptions.requireJsStringBuiltin = value,
-      defaultsTo: _d.translatorOptions.requireJsStringBuiltin),
+  UriOption("load-ids", (o, value) => o.loadsIdsUri = value),
   Flag("enable-multi-module-stress-test-mode",
       (o, value) => o.translatorOptions.enableMultiModuleStressTestMode = value,
       defaultsTo: _d.translatorOptions.enableMultiModuleStressTestMode),
+
+  Flag("require-js-string-builtin",
+      (o, value) => o.translatorOptions.requireJsStringBuiltin = value,
+      defaultsTo: _d.translatorOptions.requireJsStringBuiltin),
 
   // Flags for dynamic modules
   StringOption("dynamic-module-type",

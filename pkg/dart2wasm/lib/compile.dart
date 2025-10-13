@@ -285,19 +285,20 @@ Future<CompilationResult> compileToModule(
     moduleStrategy =
         DeferredLoadingModuleStrategy(component, options, target, coreTypes);
   } else if (options.translatorOptions.enableMultiModuleStressTestMode) {
-    moduleStrategy =
-        StressTestModuleStrategy(component, coreTypes, target, classHierarchy);
+    moduleStrategy = StressTestModuleStrategy(
+        component, coreTypes, options, target, classHierarchy);
   } else if (isDynamicMainModule) {
     moduleStrategy = DynamicMainModuleStrategy(
         component,
         coreTypes,
+        options,
         File.fromUri(dynamicInterfaceUri!).readAsStringSync(),
         options.dynamicInterfaceUri!);
   } else if (isDynamicSubmodule) {
     moduleStrategy = DynamicSubmoduleStrategy(
         component, options, target, coreTypes, dynamicMainModuleUri!);
   } else {
-    moduleStrategy = DefaultModuleStrategy(component);
+    moduleStrategy = DefaultModuleStrategy(component, options);
   }
 
   // DynamicMainModuleStrategy.prepareComponent() includes
@@ -346,6 +347,8 @@ Future<CompilationResult> compileToModule(
         target, VerificationStage.afterGlobalTransformations, component);
     return true;
   }());
+
+  await moduleStrategy.processComponentAfterTfa();
 
   final moduleOutputData = moduleStrategy.buildModuleOutputData();
 

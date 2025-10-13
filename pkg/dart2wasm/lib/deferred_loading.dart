@@ -2,10 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show JsonEncoder;
+import 'dart:io' show File;
+
+import 'package:_fe_analyzer_shared/src/util/relativize.dart'
+    show relativizeUri;
 import 'package:collection/collection.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/library_index.dart' show LibraryIndex;
 
 import 'await_transformer.dart' as await_transformer;
 import 'compiler_options.dart';
@@ -65,38 +71,48 @@ class _RootSet {
 /// deferred roots that eagerly require that library. Two libraries have an
 /// equal [_RootSet] if they are required by the same set of deferred roots.
 /// Having an equal [_RootSet] means that the libraries will always need to be
-/// loaded together so we include them in the same [ModuleOutput].
+/// loaded together so we include them in the same [ModuleMetadata].
 ///
-/// Once we've visited all the deferred roots we create one [ModuleOutput] per
+/// Once we've visited all the deferred roots we create one [ModuleMetadata] per
 /// unique [_RootSet] and include all libraries with that [_RootSet] in the
-/// [ModuleOutput]. Finally, [ModuleOutput] is added to the load list of every
+/// [ModuleMetadata]. Finally, [ModuleMetadata] is added to the load list of every
 /// deferred root in the [_RootSet].
 ///
 /// To support the actual process of loading the deferred wasm modules, we also
 /// collect a mapping from each import site (i.e. a library and deferred import
 /// name pair) to the load list needed at that import site.
-class DeferredLoadingModuleStrategy extends DefaultModuleStrategy {
+class DeferredLoadingModuleStrategy extends ModuleStrategy {
+  final Component component;
   final WasmCompilerOptions options;
   final WasmTarget kernelTarget;
   final CoreTypes coreTypes;
+  final Map<String, Map<String, String>> loadIdMap = {};
+  late final ModuleOutputData moduleOutputData;
 
   DeferredLoadingModuleStrategy(
-      super.component, this.options, this.kernelTarget, this.coreTypes);
+      this.component, this.options, this.kernelTarget, this.coreTypes);
 
   @override
-  ModuleOutputData buildModuleOutputData() {
+  void prepareComponent() {
+    if (options.loadsIdsUri != null) {
+      component.accept(_DeferredLoadingLoadIdTransformer(coreTypes, loadIdMap));
+    }
+  }
+
+  @override
+  Future<void> processComponentAfterTfa() async {
     final (libraryToRootSet, importTargetMap) = _buildLibraryToImports();
 
-    final moduleBuilder = ModuleOutputBuilder();
-    // Dedupe root sets combining equal sets into a single ModuleOutput.
-    final mainModule = moduleBuilder.buildModule();
-    final Map<_RootSet, ModuleOutput> rootSetToModule = {};
-    final Map<Library, List<ModuleOutput>> rootToModules = {};
+    final builder = ModuleMetadataBuilder(options);
+    // Dedupe root sets combining equal sets into a single ModuleMetadata.
+    final mainModule = builder.buildModuleMetadata();
+    final Map<_RootSet, ModuleMetadata> rootSetToModule = {};
+    final Map<Library, List<ModuleMetadata>> rootToModules = {};
     libraryToRootSet.forEach((targetLibrary, rootSet) {
       // If the libary is used by the entryPoint root, then assign it to the
       // main module immediately. It should not be split into its own module,
       // even if another root depends on it.
-      ModuleOutput? module =
+      ModuleMetadata? module =
           rootSet.containsEntryPoint ? mainModule : rootSetToModule[rootSet];
       if (module != null) {
         // We've already seen a library required by the same roots so added it
@@ -107,7 +123,7 @@ class DeferredLoadingModuleStrategy extends DefaultModuleStrategy {
 
       // This library is used by a new set of roots so create a new module for
       // it. Each root that needs this library should depend on this module.
-      module = rootSetToModule[rootSet] = moduleBuilder.buildModule();
+      module = rootSetToModule[rootSet] = builder.buildModuleMetadata();
 
       module.libraries.add(targetLibrary);
       for (final root in rootSet.libraries) {
@@ -115,19 +131,26 @@ class DeferredLoadingModuleStrategy extends DefaultModuleStrategy {
       }
     });
 
-    final Map<Library, Map<String, List<ModuleOutput>>> importMap = {};
+    final Map<Library, Map<String, List<ModuleMetadata>>> moduleMap = {};
     importTargetMap.forEach((enclosingLibrary, nameToTarget) {
-      final outputMapping = <String, List<ModuleOutput>>{};
+      final outputMapping = <String, List<ModuleMetadata>>{};
       nameToTarget.forEach((importName, targetLibrary) {
         // Modules can be empty if the library was also imported eagerly
         // under the same root.
         outputMapping[importName] = rootToModules[targetLibrary] ?? const [];
       });
-      importMap[enclosingLibrary] = outputMapping;
+      moduleMap[enclosingLibrary] = outputMapping;
     });
 
-    return ModuleOutputData([mainModule, ...rootSetToModule.values], importMap);
+    await _initDeferredImports(
+        component, coreTypes, options, loadIdMap, moduleMap);
+
+    moduleOutputData =
+        ModuleOutputData([mainModule, ...rootSetToModule.values]);
   }
+
+  @override
+  ModuleOutputData buildModuleOutputData() => moduleOutputData;
 
   bool _isRequiredLibrary(Library lib) {
     final importUri = lib.importUri;
@@ -205,6 +228,9 @@ class StressTestModuleStrategy extends ModuleStrategy {
   final CoreTypes coreTypes;
   final WasmTarget kernelTarget;
   final ClassHierarchy classHierarchy;
+  final WasmCompilerOptions options;
+  final Map<String, Map<String, String>> loadIdMap = {};
+  late final ModuleOutputData moduleOutputData;
 
   /// We load all 'dart:*' libraries since just doing the deferred load of modules
   /// requires a significant portion of the SDK libraries.
@@ -213,8 +239,8 @@ class StressTestModuleStrategy extends ModuleStrategy {
         (l) => l.importUri.scheme == 'dart' || containsWasmExport(coreTypes, l))
   };
 
-  StressTestModuleStrategy(
-      this.component, this.coreTypes, this.kernelTarget, this.classHierarchy);
+  StressTestModuleStrategy(this.component, this.coreTypes, this.options,
+      this.kernelTarget, this.classHierarchy);
 
   /// Augments the `_invokeMain` JS->WASM entry point with test mode setup.
   ///
@@ -247,9 +273,9 @@ class StressTestModuleStrategy extends ModuleStrategy {
     final oldBody = invokeMain.function.body!;
 
     // Add print of 'unittest-suite-wait-for-done' to indicate to test harnesses
-    // that the test contains async work. Any test using test most must therefore
-    // also include a concluding 'unittest-suite-done' message. Usually via calls
-    // to `asyncStart` and `asyncEnd` helpers.
+    // that the test contains async work. Any test must therefore also include a
+    // concluding 'unittest-suite-done' message. Usually via calls to
+    // `asyncStart` and `asyncEnd` helpers.
     final asyncStart = ExpressionStatement(StaticInvocation(
         coreTypes.printProcedure,
         Arguments([StringLiteral('unittest-suite-wait-for-done')])));
@@ -259,30 +285,162 @@ class StressTestModuleStrategy extends ModuleStrategy {
     // rerun it on the transformed `_invokeMain` method.
     await_transformer.transformLibraries(
         [invokeMain.enclosingLibrary], classHierarchy, coreTypes);
+
+    if (options.loadsIdsUri != null) {
+      component.accept(_DeferredLoadingLoadIdTransformer(coreTypes, loadIdMap));
+    }
   }
 
   @override
-  ModuleOutputData buildModuleOutputData() {
-    final moduleBuilder = ModuleOutputBuilder();
-    final mainModule = moduleBuilder.buildModule();
+  Future<void> processComponentAfterTfa() async {
+    final moduleBuilder = ModuleMetadataBuilder(options);
+    final mainModule = moduleBuilder.buildModuleMetadata();
     final initLibraries = _testModeMainLibraries;
     mainModule.libraries.addAll(initLibraries);
-    final modules = <ModuleOutput>[];
-    final importMap = <String, List<ModuleOutput>>{};
+    final modules = <ModuleMetadata>[];
+    final importMap = <String, List<ModuleMetadata>>{};
 
     // Put each library in a separate module.
     for (final library in component.libraries) {
       if (initLibraries.contains(library)) continue;
-      final module = moduleBuilder.buildModule();
+      final module = moduleBuilder.buildModuleMetadata();
       modules.add(module);
       module.libraries.add(library);
       final importName = '${library.importUri}';
       importMap[importName] = [module];
     }
 
-    final invokeMain =
-        coreTypes.index.getTopLevelProcedure('dart:_internal', '_invokeMain');
-    return ModuleOutputData(
-        [mainModule, ...modules], {invokeMain.enclosingLibrary: importMap});
+    await _initDeferredImports(component, coreTypes, options, loadIdMap,
+        {coreTypes.index.getLibrary('dart:_internal'): importMap});
+
+    moduleOutputData = ModuleOutputData([mainModule, ...modules]);
+  }
+
+  @override
+  ModuleOutputData buildModuleOutputData() => moduleOutputData;
+}
+
+Future<void> _initDeferredImports(
+    Component component,
+    CoreTypes coreTypes,
+    WasmCompilerOptions options,
+    Map<String, Map<String, String>> loadIdMap,
+    Map<Library, Map<String, List<ModuleMetadata>>> moduleMap) async {
+  if (options.loadsIdsUri == null) {
+    _initDeferredImportsPrefix(component, coreTypes, options, moduleMap);
+  } else {
+    await _initDeferredImportsLoadIds(
+        component, coreTypes, options, loadIdMap, moduleMap);
+  }
+}
+
+void _initDeferredImportsPrefix(
+    Component component,
+    CoreTypes coreTypes,
+    WasmCompilerOptions options,
+    Map<Library, Map<String, List<ModuleMetadata>>> moduleMap) {
+  final Procedure? loadLibraryImportMap = coreTypes.index.tryGetProcedure(
+      'dart:_internal', LibraryIndex.topLevel, 'get:_importMapping');
+
+  if (loadLibraryImportMap == null) return;
+
+  final importMapEntries = <MapLiteralEntry>[];
+  moduleMap.forEach((library, importMap) {
+    final subMapEntries = <MapLiteralEntry>[];
+    importMap.forEach((importName, modules) {
+      subMapEntries.add(MapLiteralEntry(
+          StringLiteral(importName),
+          ListLiteral([...modules.map((m) => StringLiteral(m.moduleName))],
+              typeArgument: coreTypes.stringNonNullableRawType)));
+    });
+    importMapEntries.add(MapLiteralEntry(
+        StringLiteral('${library.importUri}'),
+        MapLiteral(subMapEntries,
+            keyType: coreTypes.stringNonNullableRawType,
+            valueType: InterfaceType(
+                coreTypes.listClass,
+                Nullability.nonNullable,
+                [coreTypes.stringNonNullableRawType]))));
+  });
+  loadLibraryImportMap.function.body = ReturnStatement(MapLiteral(
+      importMapEntries,
+      keyType: coreTypes.stringNonNullableRawType,
+      valueType: InterfaceType(coreTypes.mapClass, Nullability.nonNullable, [
+        coreTypes.stringNonNullableRawType,
+        InterfaceType(coreTypes.listClass, Nullability.nonNullable,
+            [coreTypes.stringNonNullableRawType])
+      ])));
+  loadLibraryImportMap.isExternal = false;
+}
+
+Future<void> _initDeferredImportsLoadIds(
+    Component component,
+    CoreTypes coreTypes,
+    WasmCompilerOptions options,
+    Map<String, Map<String, String>> loadIdMap,
+    Map<Library, Map<String, List<ModuleMetadata>>> moduleMap) async {
+  await (File.fromUri(options.loadsIdsUri!)..createSync()).writeAsString(
+      _generateDeferredMapJson(component.mainMethod!.enclosingLibrary.importUri,
+          moduleMap, loadIdMap));
+}
+
+String _generateDeferredMapJson(
+    Uri rootLibraryUri,
+    Map<Library, Map<String, List<ModuleMetadata>>> moduleMap,
+    Map<String, Map<String, String>> loadIds) {
+  final output = <String, dynamic>{};
+  moduleMap.forEach((library, imports) {
+    final libOutput =
+        output[relativizeUri(rootLibraryUri, library.importUri, false)] = {};
+    libOutput['name'] = library.name ?? '<unnamed>';
+    final libImports = libOutput['imports'] = <String, List<String>>{};
+    final libPrefixMappings =
+        libOutput['importPrefixToLoadId'] = <String, String>{};
+    final prefixLoadIds = loadIds['${library.importUri}']!;
+    imports.forEach((prefix, modules) {
+      final loadId = prefixLoadIds[prefix]!;
+      final prefixImports = libImports[loadId] = <String>[];
+      libPrefixMappings[prefix] = loadId;
+      for (final module in modules) {
+        prefixImports.add(module.moduleName);
+      }
+    });
+  });
+
+  return const JsonEncoder.withIndent('  ').convert(output);
+}
+
+class _DeferredLoadingLoadIdTransformer extends Transformer {
+  final Procedure? _loadLibrary;
+  final Procedure? _checkLibraryIsLoaded;
+  final Procedure _loadLibraryFromLoadId;
+  final Procedure _checkLibraryIsLoadedFromLoadId;
+  final Map<String, Map<String, String>> loadIdCollector;
+  int loadIdCounter = 1;
+
+  _DeferredLoadingLoadIdTransformer(CoreTypes coreTypes, this.loadIdCollector)
+      : _loadLibrary = coreTypes.index.tryGetProcedure(
+            'dart:_internal', LibraryIndex.topLevel, 'loadLibrary'),
+        _checkLibraryIsLoaded = coreTypes.index.tryGetProcedure(
+            'dart:_internal', LibraryIndex.topLevel, 'checkLibraryIsLoaded'),
+        _loadLibraryFromLoadId = coreTypes.index
+            .getTopLevelProcedure('dart:_internal', 'loadLibraryFromLoadId'),
+        _checkLibraryIsLoadedFromLoadId = coreTypes.index.getTopLevelProcedure(
+            'dart:_internal', 'checkLibraryIsLoadedFromLoadId');
+
+  @override
+  TreeNode visitStaticInvocation(StaticInvocation node) {
+    if (node.target != _loadLibrary && node.target != _checkLibraryIsLoaded) {
+      return super.visitStaticInvocation(node);
+    }
+    final [libraryName as StringLiteral, importPrefix as StringLiteral] =
+        node.arguments.positional;
+    final loadId = (loadIdCollector[libraryName.value] ??=
+        {})[importPrefix.value] ??= '${loadIdCounter++}';
+    return StaticInvocation(
+        node.target == _loadLibrary
+            ? _loadLibraryFromLoadId
+            : _checkLibraryIsLoadedFromLoadId,
+        Arguments([StringLiteral(loadId)]));
   }
 }

@@ -79,6 +79,7 @@ SNAPSHOT_NAME="dart2wasm"
 # flags.
 VM_ARGS=()
 DART2WASM_ARGS=("--require-js-string-builtin")
+ADDITIONAL_BINARYEN_FLAGS=()
 DART_FILE=""
 WASM_FILE=""
 while [ $# -gt 0 ]; do
@@ -100,7 +101,7 @@ while [ $# -gt 0 ]; do
       ;;
 
     -g | --no-strip-wasm)
-      BINARYEN_FLAGS+=("-g")
+      ADDITIONAL_BINARYEN_FLAGS+=("-g")
       shift
       ;;
 
@@ -282,7 +283,7 @@ BINARYEN_SIZE=0
 BINARYEN_GZIP_SIZE=0
 
 function run_binaryen_single() {
-  binaryen_command=("$BINARYEN" "$@" "$WASM_FILE" -o "$WASM_FILE")
+  binaryen_command=("$BINARYEN" "$@" "${ADDITIONAL_BINARYEN_FLAGS[@]}" "$WASM_FILE" -o "$WASM_FILE")
   if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
     # If we're measuring run each binaryen command sequentially.
     measure ${binaryen_command[@]}

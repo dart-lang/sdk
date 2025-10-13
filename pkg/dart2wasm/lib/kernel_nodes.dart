@@ -205,14 +205,6 @@ mixin KernelNodes {
   late final Field wasmI64ValueField =
       index.getField("dart:_wasm", "WasmI64", "_value");
 
-  // dart:_internal procedures
-  late final Procedure loadLibrary =
-      index.getTopLevelProcedure("dart:_internal", "loadLibrary");
-  late final Procedure checkLibraryIsLoaded =
-      index.getTopLevelProcedure("dart:_internal", "checkLibraryIsLoaded");
-  late final Procedure? loadLibraryImportMap = index.tryGetProcedure(
-      "dart:_internal", LibraryIndex.topLevel, "get:_importMapping");
-
   // dart:_js_helper procedures
   late final Procedure getInternalizedString =
       index.getTopLevelProcedure("dart:_js_helper", "getInternalizedString");
