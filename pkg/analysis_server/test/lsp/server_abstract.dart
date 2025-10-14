@@ -146,12 +146,6 @@ abstract class AbstractLspAnalysisServerTest
     return pluginIsolate;
   }
 
-  /// Returns a matcher that checks that the input matches [expected] after
-  /// newlines have been normalized to the current platforms (only in
-  /// [expected]).
-  Matcher equalsNormalized(String expected) =>
-      equals(normalizeNewlinesForPlatform(expected));
-
   void expectContextBuilds() => expect(
     server.contextBuilds - _previousContextBuilds,
     greaterThan(0),

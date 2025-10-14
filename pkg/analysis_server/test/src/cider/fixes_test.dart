@@ -12,6 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../utils/matchers.dart';
 import 'cider_service.dart';
 
 void main() {
@@ -35,7 +36,7 @@ class CiderFixesComputerTest extends CiderServiceTest {
       _correctionContext.content,
       fileEdits.single.edits,
     );
-    expect(resultContent, expected);
+    expect(resultContent, equalsNormalized(expected));
   }
 
   Future<void> test_cachedResolvedFiles() async {
@@ -220,7 +221,7 @@ var v = 0;
   }
 
   void _updateFile(String content) {
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     content = code.code;
 
     var offset = code.position.offset;
