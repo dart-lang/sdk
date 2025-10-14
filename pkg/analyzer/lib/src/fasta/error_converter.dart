@@ -9,6 +9,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_code_values.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 /// An error reporter that knows how to convert a Fasta error into an analyzer

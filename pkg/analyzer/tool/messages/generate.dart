@@ -102,16 +102,6 @@ class _AnalyzerErrorGenerator {
     out.write('''
 part of ${json.encode(file.parentLibrary)};
 ''');
-    bool shouldGenerateFastaAnalyzerErrorCodes = false;
-    for (var errorClass in errorClasses) {
-      if (errorClass.includeCfeMessages) {
-        shouldGenerateFastaAnalyzerErrorCodes = true;
-      }
-    }
-    if (shouldGenerateFastaAnalyzerErrorCodes) {
-      out.writeln();
-      _generateFastaAnalyzerErrorCodeList();
-    }
     for (var errorClass
         in errorClasses.toList()..sort((a, b) => a.name.compareTo(b.name))) {
       out.writeln();
@@ -199,21 +189,6 @@ DiagnosticType get type => ${errorClass.typeCode};
     }
   }
 
-  void _generateFastaAnalyzerErrorCodeList() {
-    out.writeln('final fastaAnalyzerErrorCodes = <DiagnosticCode?>[');
-    for (var entry in sharedToAnalyzerErrorCodeTables.indexToInfo) {
-      if (sharedToAnalyzerErrorCodeTables.infoToAnalyzerCode[entry]
-          case var analyzerCode?) {
-        out.writeln(
-          '${analyzerCode.errorClass.name}.${analyzerCode.camelCaseErrorName},',
-        );
-      } else {
-        out.writeln('null,');
-      }
-    }
-    out.writeln('];');
-  }
-
   void _outputDerivedClass(
     GeneratedErrorClassInfo errorClass, {
     required bool withArguments,
@@ -277,13 +252,7 @@ class _DiagnosticCodeValuesGenerator {
 
     out.writeln();
     out.writeln(r'''
-import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
-import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:analyzer/src/dart/error/ffi_code.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/manifest/manifest_warning_code.dart';
-import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
+part of 'diagnostic_code_values.dart';
 ''');
     out.writeln();
     out.writeln(
@@ -296,6 +265,8 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
     }
     out.writeln('];');
     out.writeln();
+    _generateFastaAnalyzerErrorCodeList();
+    out.writeln();
     out.writeln(
       "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')",
     );
@@ -303,5 +274,20 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
     out.writeln(
       'List<DiagnosticCode> get errorCodeValues => diagnosticCodeValues;',
     );
+  }
+
+  void _generateFastaAnalyzerErrorCodeList() {
+    out.writeln('final fastaAnalyzerErrorCodes = <DiagnosticCode?>[');
+    for (var entry in sharedToAnalyzerErrorCodeTables.indexToInfo) {
+      if (sharedToAnalyzerErrorCodeTables.infoToAnalyzerCode[entry]
+          case var analyzerCode?) {
+        out.writeln(
+          '${analyzerCode.errorClass.name}.${analyzerCode.camelCaseErrorName},',
+        );
+      } else {
+        out.writeln('null,');
+      }
+    }
+    out.writeln('];');
   }
 }
