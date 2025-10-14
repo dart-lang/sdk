@@ -236,7 +236,7 @@ Map<AnalyzerCode, AnalyzerErrorCodeInfo> decodeAnalyzerMessagesYaml(
       try {
         errorCodeInfo =
             result[AnalyzerCode(
-              className: className,
+              errorClass: ErrorClassInfo.byName(className),
               snakeCaseErrorName: errorName,
             )] = AnalyzerErrorCodeInfo.fromYaml(
               errorValue,

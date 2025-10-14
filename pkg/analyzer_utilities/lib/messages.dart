@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/analyzer_messages.dart';
 import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
@@ -69,6 +70,8 @@ final RegExp placeholderPattern = RegExp(
 /// A set of tables mapping between shared and analyzer error codes.
 final SharedToAnalyzerErrorCodeTables sharedToAnalyzerErrorCodeTables =
     SharedToAnalyzerErrorCodeTables._(feAnalyzerSharedMessages);
+
+final _parserErrorCodeClass = ErrorClassInfo.byName('ParserErrorCode');
 
 /// Convert a template string (which uses placeholders matching
 /// [placeholderPattern]) to an analyzer internal template string (which uses
@@ -183,7 +186,7 @@ List<String> _splitText(
 /// [List.sort]ed.
 class AnalyzerCode implements Comparable<AnalyzerCode> {
   /// The class name.
-  final String className;
+  final ErrorClassInfo errorClass;
 
   /// The error name.
   ///
@@ -194,24 +197,27 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
   // case.
   final String snakeCaseErrorName;
 
-  AnalyzerCode({required this.className, required this.snakeCaseErrorName});
+  AnalyzerCode({required this.errorClass, required this.snakeCaseErrorName});
 
   /// The error name, converted to camel case.
   String get camelCaseErrorName => snakeCaseErrorName.toCamelCase();
 
   @override
-  int get hashCode => Object.hash(className, snakeCaseErrorName);
+  int get hashCode => Object.hash(errorClass, snakeCaseErrorName);
 
   @override
   bool operator ==(Object other) =>
       other is AnalyzerCode &&
-      className == other.className &&
+      errorClass == other.errorClass &&
       snakeCaseErrorName == other.snakeCaseErrorName;
 
   @override
   int compareTo(AnalyzerCode other) {
-    var className = this.className;
-    var otherClassName = other.className;
+    // Compare the error classes by name. This works because we know that the
+    // error classes are unique (this is verified by the `ErrorClassInfo.byName`
+    // method).
+    var className = errorClass.name;
+    var otherClassName = other.errorClass.name;
     if (className.compareTo(otherClassName) case var result when result != 0) {
       return result;
     }
@@ -219,7 +225,7 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
   }
 
   @override
-  String toString() => [className, snakeCaseErrorName].join('.');
+  String toString() => [errorClass.name, snakeCaseErrorName].join('.');
 }
 
 /// In-memory representation of error code information obtained from a
@@ -281,10 +287,29 @@ sealed class Conversion {
 
 /// Information about a class derived from `ErrorCode`.
 class ErrorClassInfo {
+  static final Map<String, ErrorClassInfo> _errorClassesByName = () {
+    var result = <String, ErrorClassInfo>{};
+    for (var info in errorClasses) {
+      if (result.containsKey(info.name)) {
+        throw 'Duplicate error class name: ${json.encode(info.name)}';
+      }
+      result[info.name] = info;
+    }
+    return result;
+  }();
+
+  static String get _allErrorClassNames =>
+      (_errorClassesByName.keys.toList()..sort()).map(json.encode).join(', ');
+
   /// The name of this class.
   final String name;
 
   const ErrorClassInfo({required this.name});
+
+  static ErrorClassInfo byName(String name) =>
+      _errorClassesByName[name] ??
+      (throw 'No error class named ${json.encode(name)}. Possible names: '
+          '$_allErrorClassNames');
 }
 
 /// In-memory representation of error code information obtained from either the
@@ -1032,7 +1057,7 @@ class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
       case [var className, var errorName]
           when errorName == errorName.toUpperCase():
         return AnalyzerCode(
-          className: className,
+          errorClass: ErrorClassInfo.byName(className),
           snakeCaseErrorName: errorName,
         );
       default:
@@ -1096,7 +1121,7 @@ dart pkg/front_end/tool/generate_messages.dart
       // TODO(paulberry): allow shared errors to be things other than parser
       // errors. See `ErrorClassInfo.includeCfeMessages`.
       var expectedClassName = 'ParserErrorCode';
-      if (analyzerCode.className != expectedClassName) {
+      if (analyzerCode.errorClass != _parserErrorCodeClass) {
         throw 'Expected all analyzer error codes to be prefixed with '
             '${json.encode('$expectedClassName.')}.  Found '
             '${json.encode(analyzerCode.toString())}.';

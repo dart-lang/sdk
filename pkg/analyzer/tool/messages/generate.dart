@@ -131,8 +131,7 @@ part of ${json.encode(file.parentLibrary)};
               ...sharedToAnalyzerErrorCodeTables.analyzerCodeToInfo.entries,
           ].where(
             (error) =>
-                error.key.className == errorClass.name &&
-                !error.value.isRemoved,
+                error.key.errorClass == errorClass && !error.value.isRemoved,
           );
       for (var entry in entries) {
         var errorCode = entry.key;
@@ -206,7 +205,7 @@ DiagnosticType get type => ${errorClass.typeCode};
       if (sharedToAnalyzerErrorCodeTables.infoToAnalyzerCode[entry]
           case var analyzerCode?) {
         out.writeln(
-          '${analyzerCode.className}.${analyzerCode.camelCaseErrorName},',
+          '${analyzerCode.errorClass.name}.${analyzerCode.camelCaseErrorName},',
         );
       } else {
         out.writeln('null,');
@@ -293,7 +292,7 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
     out.writeln('const List<DiagnosticCode> diagnosticCodeValues = [');
     for (var analyzerCode in generatedCodes) {
       var errorName = analyzerCode.camelCaseErrorName;
-      out.writeln('  ${analyzerCode.className}.$errorName,');
+      out.writeln('  ${analyzerCode.errorClass.name}.$errorName,');
     }
     out.writeln('];');
     out.writeln();
