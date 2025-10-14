@@ -378,28 +378,25 @@ class FastaErrorReporter {
       case null:
         break;
     }
-    assert(false, "Unreported message $pseudoSharedCode.");
+    assert(false, "Unreported message $pseudoSharedCode (${message.code}).");
   }
 
   /// Report an error based on the given [message] whose range is described by
   /// the given [offset] and [length].
   void reportMessage(Message message, int offset, int length) {
     Code code = message.code;
-    int index = code.index;
-    if (index > 0 && index < fastaAnalyzerErrorCodes.length) {
-      var errorCode = fastaAnalyzerErrorCodes[index];
-      if (errorCode != null) {
-        diagnosticReporter!.reportError(
-          Diagnostic.tmp(
-            source: diagnosticReporter!.source,
-            offset: offset,
-            length: length,
-            diagnosticCode: errorCode,
-            arguments: message.arguments.values.toList(),
-          ),
-        );
-        return;
-      }
+    if (code.sharedCode case var sharedCode?) {
+      var errorCode = sharedAnalyzerCodes[sharedCode.index];
+      diagnosticReporter!.reportError(
+        Diagnostic.tmp(
+          source: diagnosticReporter!.source,
+          offset: offset,
+          length: length,
+          diagnosticCode: errorCode,
+          arguments: message.arguments.values.toList(),
+        ),
+      );
+      return;
     }
     reportByCode(code.pseudoSharedCode, offset, length, message);
   }

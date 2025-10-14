@@ -461,10 +461,6 @@ class MessageTestSuite extends ChainContext {
               externalTest = node.value;
               break;
 
-            case "index":
-              // index is validated during generation
-              break;
-
             case "hasPublishedDocs":
               if (value != true) {
                 badHasPublishedDocsValue.add(name);

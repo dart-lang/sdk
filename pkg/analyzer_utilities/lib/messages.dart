@@ -12,6 +12,7 @@ import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/analyzer_messages.dart';
 import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/tools.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml, YamlMap;
 
@@ -199,6 +200,11 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
 
   AnalyzerCode({required this.errorClass, required this.snakeCaseErrorName});
 
+  /// The string that should be generated into analyzer source code to refer to
+  /// this diagnostic code.
+  String get analyzerCodeReference =>
+      [errorClass.name, camelCaseErrorName].join('.');
+
   /// The error name, converted to camel case.
   String get camelCaseErrorName => snakeCaseErrorName.toCamelCase();
 
@@ -231,32 +237,16 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
 /// In-memory representation of error code information obtained from a
 /// `messages.yaml` file in `pkg/front_end` or `pkg/_fe_analyzer_shared`.
 abstract class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
-  /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
-  final int? index;
-
   /// The name of the [CfeSeverity] constant describing this error code's CFE
   /// severity.
   final String? cfeSeverity;
 
   CfeStyleErrorCodeInfo.fromYaml(YamlMap yaml)
-    : index = _decodeIndex(yaml['index']),
-      cfeSeverity = _decodeSeverity(yaml['severity']),
+    : cfeSeverity = _decodeSeverity(yaml['severity']),
       super.fromYaml(yaml) {
     if (yaml['problemMessage'] == null) {
       throw 'Missing problemMessage';
     }
-  }
-
-  static int? _decodeIndex(Object? value) {
-    switch (value) {
-      case null:
-        return null;
-      case int():
-        if (value >= 1) {
-          return value;
-        }
-    }
-    throw 'Expected positive int for "index:", but found $value';
   }
 
   static String? _decodeSeverity(Object? yamlEntry) {
@@ -792,9 +782,6 @@ class FrontEndErrorCodeInfo extends CfeStyleErrorCodeInfo {
     if (yaml['analyzerCode'] != null) {
       throw StateError('Only shared messages can have an analyzer code');
     }
-    if (index != null) {
-      throw StateError('Non-shared messages must not have an index');
-    }
   }
 }
 
@@ -1040,17 +1027,7 @@ class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
                 )))
             as String,
       ),
-      super.fromYaml() {
-    if (super.index == null) {
-      throw StateError('Shared messages must have an index');
-    }
-  }
-
-  /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
-  ///
-  /// Shared error codes are required to have a non-null index.
-  @override
-  int get index => super.index!;
+      super.fromYaml();
 
   static AnalyzerCode _decodeAnalyzerCode(String s) {
     switch (s.split('.')) {
@@ -1072,10 +1049,6 @@ class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
 /// Data tables mapping between shared errors and their corresponding
 /// automatically generated analyzer errors.
 class SharedToAnalyzerErrorCodeTables {
-  /// List of shared errors for which analyzer errors should be automatically
-  /// generated, organized by their `index` property.
-  final List<SharedErrorCodeInfo?> indexToInfo = [];
-
   /// Map whose values are the shared errors for which analyzer errors should be
   /// automatically generated, and whose keys are the corresponding analyzer
   /// error code.
@@ -1094,27 +1067,15 @@ class SharedToAnalyzerErrorCodeTables {
   /// automatically generated, and whose values are the front end error name.
   final Map<SharedErrorCodeInfo, String> infoToFrontEndCode = {};
 
+  /// List of shared errors for which analyzer errors should be automatically
+  /// generated, sorted by analyzer code.
+  final List<SharedErrorCodeInfo> sortedSharedErrors = [];
+
   SharedToAnalyzerErrorCodeTables._(Map<String, SharedErrorCodeInfo> messages) {
     for (var entry in messages.entries) {
       var errorCodeInfo = entry.value;
-      var index = errorCodeInfo.index;
       var frontEndCode = entry.key;
-      if (index < 1) {
-        throw '''
-$frontEndCode specifies index $index but indices must be 1 or greater.
-For more information run:
-dart pkg/front_end/tool/generate_messages.dart
-''';
-      }
-      if (indexToInfo.length <= index) {
-        indexToInfo.length = index + 1;
-      }
-      var previousEntryForIndex = indexToInfo[index];
-      if (previousEntryForIndex != null) {
-        throw 'Index $index used by both '
-            '${infoToFrontEndCode[previousEntryForIndex]} and $frontEndCode';
-      }
-      indexToInfo[index] = errorCodeInfo;
+      sortedSharedErrors.add(errorCodeInfo);
       frontEndCodeToInfo[frontEndCode] = errorCodeInfo;
       infoToFrontEndCode[errorCodeInfo] = frontEndCode;
       var analyzerCode = errorCodeInfo.analyzerCode;
@@ -1135,11 +1096,7 @@ dart pkg/front_end/tool/generate_messages.dart
       }
       analyzerCodeToInfo[analyzerCode] = errorCodeInfo;
     }
-    for (int i = 1; i < indexToInfo.length; i++) {
-      if (indexToInfo[i] == null) {
-        throw 'Indices are not consecutive; no error code has index $i.';
-      }
-    }
+    sortedSharedErrors.sortBy((e) => e.analyzerCode);
   }
 }
 

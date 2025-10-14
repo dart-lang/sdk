@@ -265,8 +265,7 @@ part of 'diagnostic_code_values.dart';
     }
     out.writeln('];');
     out.writeln();
-    _generateFastaAnalyzerErrorCodeList();
-    out.writeln();
+    _generateSharedAnalyzerCodeList();
     out.writeln(
       "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')",
     );
@@ -276,17 +275,10 @@ part of 'diagnostic_code_values.dart';
     );
   }
 
-  void _generateFastaAnalyzerErrorCodeList() {
-    out.writeln('final fastaAnalyzerErrorCodes = <DiagnosticCode?>[');
-    for (var entry in sharedToAnalyzerErrorCodeTables.indexToInfo) {
-      if (sharedToAnalyzerErrorCodeTables.infoToAnalyzerCode[entry]
-          case var analyzerCode?) {
-        out.writeln(
-          '${analyzerCode.errorClass.name}.${analyzerCode.camelCaseErrorName},',
-        );
-      } else {
-        out.writeln('null,');
-      }
+  void _generateSharedAnalyzerCodeList() {
+    out.writeln('final sharedAnalyzerCodes = <DiagnosticCode>[');
+    for (var entry in sharedToAnalyzerErrorCodeTables.sortedSharedErrors) {
+      out.writeln('${entry.analyzerCode.analyzerCodeReference},');
     }
     out.writeln('];');
   }
