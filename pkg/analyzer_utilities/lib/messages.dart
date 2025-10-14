@@ -1044,15 +1044,6 @@ class SharedToAnalyzerErrorCodeTables {
   /// error code.
   final Map<AnalyzerCode, SharedErrorCodeInfo> analyzerCodeToInfo = {};
 
-  /// Map whose values are the shared errors for which analyzer errors should be
-  /// automatically generated, and whose keys are the front end error name.
-  final Map<String, SharedErrorCodeInfo> frontEndCodeToInfo = {};
-
-  /// Map whose keys are the shared errors for which analyzer errors should be
-  /// automatically generated, and whose values are the corresponding analyzer
-  /// error name.
-  final Map<SharedErrorCodeInfo, AnalyzerCode> infoToAnalyzerCode = {};
-
   /// Map whose keys are the shared errors for which analyzer errors should be
   /// automatically generated, and whose values are the front end error name.
   final Map<SharedErrorCodeInfo, String> infoToFrontEndCode = {};
@@ -1066,10 +1057,8 @@ class SharedToAnalyzerErrorCodeTables {
       var errorCodeInfo = entry.value;
       var frontEndCode = entry.key;
       sortedSharedErrors.add(errorCodeInfo);
-      frontEndCodeToInfo[frontEndCode] = errorCodeInfo;
       infoToFrontEndCode[errorCodeInfo] = frontEndCode;
       var analyzerCode = errorCodeInfo.analyzerCode;
-      infoToAnalyzerCode[errorCodeInfo] = analyzerCode;
       var previousEntryForAnalyzerCode = analyzerCodeToInfo[analyzerCode];
       if (previousEntryForAnalyzerCode != null) {
         throw 'Analyzer code $analyzerCode used by both '
