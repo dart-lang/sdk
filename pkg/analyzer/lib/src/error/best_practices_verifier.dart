@@ -318,9 +318,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     // TODO(srawlins): Use _elementUsageFrontierDetectors to detect
-    // super-parameters corresponding to `@Deprecated` or `@experimental`
-    // parameters.
-    // TODO(srawlins): Use _elementUsageFrontierDetectors to detect
     // `@Deprecated` or `@experimental` parameters in a redirecting factory
     // constructor.
 
@@ -880,6 +877,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
+    for (var v in _elementUsageFrontierDetectors) {
+      v.superFormalParameter(node);
+    }
     _checkFinalParameter(node, node.keyword);
     super.visitSuperFormalParameter(node);
   }

@@ -1654,6 +1654,117 @@ void f(A a) {
     );
   }
 
+  test_parameterInSuper_explicitInvocation() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A([@deprecated int? p]);
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B() : super(7);
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 64, 1)],
+    );
+  }
+
+  test_parameterInSuper_explicitInvocation_namedParameter() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A({@deprecated int? p});
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B() : super(p: 7);
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 64, 1)],
+    );
+  }
+
+  test_parameterInSuper_implicitArgument() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A([@deprecated int? p]);
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B([super.p]);
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 55, 7)],
+    );
+  }
+
+  test_parameterInSuper_implicitArgument_alsoDeprecated() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A([@deprecated int? p]);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B([@deprecated super.p]);
+}
+''');
+  }
+
+  test_parameterInSuper_implicitArgument_explicitInvocation() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A.named([@deprecated int? p]);
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B([super.p]) : super.named();
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 55, 7)],
+    );
+  }
+
+  test_parameterInSuper_implicitInvocation_namedParameter() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A({@deprecated int? p});
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B({super.p});
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 55, 7)],
+    );
+  }
+
   test_postfixExpression_deprecatedGetter() async {
     await assertErrorsInCode2(
       externalCode: r'''
