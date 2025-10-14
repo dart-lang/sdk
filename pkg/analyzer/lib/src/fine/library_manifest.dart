@@ -988,6 +988,7 @@ class LibraryManifestBuilder {
     _fillInterfaceElementsInterface();
     _addClassTypeAliasConstructors();
     _fillClassAllSubtypes();
+    _fillClassDirectSubtypesOfSealed();
   }
 
   void _computeHashForRequirements() {
@@ -1078,8 +1079,8 @@ class LibraryManifestBuilder {
               builder.addBool(item.hasNonFinalField);
               addId(item.interface.id);
               if (item is ClassItem) {
-                // Not strictly necessary, we add all top-levels.
                 addIdList(item.allSubtypes);
+                addIdList(item.directSubtypesOfSealed);
               }
             }
           }
@@ -1117,6 +1118,25 @@ class LibraryManifestBuilder {
               .map((item) => item.id)
               .sorted();
           classItem.allSubtypes = ManifestItemIdList(ids);
+        }
+      }
+    }
+  }
+
+  void _fillClassDirectSubtypesOfSealed() {
+    for (var libraryElement in libraryElements) {
+      for (var classElement in libraryElement.classes) {
+        if (classElement.isSealed) {
+          var classItem = declaredItems[classElement];
+          if (classItem != null) {
+            classItem as ClassItem;
+            var ids = classElement.directSubtypesOfSealed
+                .map((element) => declaredItems[element])
+                .whereType<InterfaceItem>()
+                .map((item) => item.id)
+                .sorted();
+            classItem.directSubtypesOfSealed = ManifestItemIdList(ids);
+          }
         }
       }
     }

@@ -239,6 +239,10 @@ class BundleRequirementsPrinter extends ManifestPrinter {
         }
         _writelnIdList('allConstructors', requirements.allConstructors);
         _writelnIdList('allSubtypes', requirements.allSubtypes);
+        _writelnIdList(
+          'directSubtypesOfSealed',
+          requirements.directSubtypesOfSealed,
+        );
         sink.writeElements(
           'requestedConstructors',
           requirements.requestedConstructors.sorted,
@@ -1289,6 +1293,10 @@ class LibraryManifestPrinter extends ManifestPrinter {
         _writeTypeList('mixins', item.mixins);
         _writeTypeList('interfaces', item.interfaces);
         _writelnIdListIfNotEmpty('allSubtypes', item.allSubtypes);
+        _writelnIdListIfNotEmpty(
+          'directSubtypesOfSealed',
+          item.directSubtypesOfSealed,
+        );
       });
     }
 

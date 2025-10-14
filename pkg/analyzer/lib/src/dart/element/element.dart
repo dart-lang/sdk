@@ -209,6 +209,55 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     });
   }
 
+  @trackedDirectly
+  List<InterfaceElementImpl> get directSubtypesOfSealed {
+    assert(isSealed);
+    globalResultRequirements?.record_classElement_directSubtypesOfSealed(
+      element: this,
+    );
+
+    return globalResultRequirements.alreadyRecorded(() {
+      List<InterfaceElementImpl> subclasses = [];
+      outer:
+      for (var declaration in library.children) {
+        if (declaration is ExtensionTypeElement) {
+          continue;
+        }
+        if (declaration != this && declaration is InterfaceElementImpl) {
+          bool checkType(InterfaceTypeImpl? type) {
+            if (type?.element == this) {
+              subclasses.add(declaration);
+              return true;
+            }
+            return false;
+          }
+
+          if (checkType(declaration.supertype)) {
+            continue outer;
+          }
+          for (var mixin in declaration.mixins) {
+            if (checkType(mixin)) {
+              continue outer;
+            }
+          }
+          for (var interface in declaration.interfaces) {
+            if (checkType(interface)) {
+              continue outer;
+            }
+          }
+          if (declaration is MixinElementImpl) {
+            for (var type in declaration.superclassConstraints) {
+              if (checkType(type)) {
+                continue outer;
+              }
+            }
+          }
+        }
+      }
+      return subclasses;
+    });
+  }
+
   @override
   @trackedDirectlyOpaque
   ClassFragmentImpl get firstFragment {
