@@ -274,15 +274,16 @@ Message _withArgumentsOld$name(${positionalParameters.join(', ')}) =>
 
   String? interpolate(String? text) {
     if (text == null) return null;
-    text = text.replaceAll(r"$", r"\$").replaceAllMapped(placeholderPattern, (
-      Match m,
-    ) {
-      var placeholder = ParsedPlaceholder.fromMatch(m);
-      var interpolator = interpolators[placeholder] ??= computeInterpolator(
-        placeholder,
-      );
-      return "\${$interpolator}";
-    });
+    text = text
+        .replaceAll(r'\', r'\\')
+        .replaceAll(r"$", r"\$")
+        .replaceAllMapped(placeholderPattern, (Match m) {
+          var placeholder = ParsedPlaceholder.fromMatch(m);
+          var interpolator = interpolators[placeholder] ??= computeInterpolator(
+            placeholder,
+          );
+          return "\${$interpolator}";
+        });
     return "\"\"\"$text\"\"\"";
   }
 
