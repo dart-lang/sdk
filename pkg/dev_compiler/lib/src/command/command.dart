@@ -549,18 +549,22 @@ Future<CompilerResult> _compile(
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
       outFiles.add(
-        File('$output.map').writeAsString(json.encode(jsCode.sourceMap)),
+        File('$output.map').writeAsString('${json.encode(jsCode.sourceMap)}\n'),
       );
     }
     if (jsCode.metadata != null) {
       outFiles.add(
-        File('$output.metadata').writeAsString(json.encode(jsCode.metadata)),
+        File(
+          '$output.metadata',
+        ).writeAsString('${json.encode(jsCode.metadata)}\n'),
       );
     }
 
     if (jsCode.symbols != null) {
       outFiles.add(
-        File('$output.symbols').writeAsString(json.encode(jsCode.symbols)),
+        File(
+          '$output.symbols',
+        ).writeAsString('${json.encode(jsCode.symbols)}\n'),
       );
     }
   }
