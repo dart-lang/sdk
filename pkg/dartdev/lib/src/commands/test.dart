@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dartdev/src/experiments.dart';
+import 'package:dartdev/src/progress.dart';
 import 'package:pub/pub.dart';
 
 import '../core.dart';
@@ -81,11 +82,13 @@ Run "${runner!.executableName} help" to see global options.''');
           if (await builder.warnOnNativeAssets()) {
             return DartdevCommand.errorExitCode;
           }
-        } else {
-          final assetsYamlFileUri =
-              await builder.compileNativeAssetsJitYamlFile();
+        } else if (await builder.hasHooks()) {
+          final assetsYamlFileUri = await progress(
+            'Running build hooks',
+            builder.compileNativeAssetsJitYamlFile,
+          );
           if (assetsYamlFileUri == null) {
-            log.stderr('Error: Compiling native assets failed.');
+            log.stderr('Error: Running build hooks failed.');
             return DartdevCommand.errorExitCode;
           }
           // TODO(https://github.com/dart-lang/sdk/issues/60489): Add a way to

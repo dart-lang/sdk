@@ -11,6 +11,7 @@ import 'package:dartdev/src/commands/compile.dart';
 import 'package:dartdev/src/experiments.dart';
 import 'package:dartdev/src/native_assets_bundling.dart';
 import 'package:dartdev/src/native_assets_macos.dart';
+import 'package:dartdev/src/progress.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
@@ -32,7 +33,7 @@ class BuildCommand extends DartdevCommand {
       {bool verbose = false,
       required this.recordUseEnabled,
       required this.dataAssetsExperimentEnabled})
-      : super(cmdName, 'Build a Dart application including native assets.',
+      : super(cmdName, 'Build a Dart application including code assets.',
             verbose) {
     addSubcommand(BuildCliSubcommand(
       verbose: verbose,
@@ -232,8 +233,6 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
     final binDirectory = Directory.fromUri(bundleDirectory.uri.resolve('bin/'));
     await binDirectory.create(recursive: true);
 
-    stdout.writeln('Building native assets.');
-
     final packageConfig =
         await DartNativeAssetsBuilder.loadPackageConfig(packageConfigUri);
     if (packageConfig == null) {
@@ -253,9 +252,12 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
       verbose: verbose,
       dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
     );
-    final buildResult = await builder.buildNativeAssetsAOT();
+    final buildResult = await progress(
+      'Running build hooks',
+      builder.buildNativeAssetsAOT,
+    );
     if (buildResult == null) {
-      stderr.writeln('Native assets build failed.');
+      stderr.writeln('Running build hooks failed.');
       return 255;
     }
 
@@ -294,13 +296,16 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
         if (first) {
           // Multiple executables are only supported with recorded uses
           // disabled, so don't re-invoke link hooks.
-          linkResult = await builder.linkNativeAssetsAOT(
-            recordedUsagesPath: recordedUsagesPath,
-            buildResult: buildResult,
+          linkResult = await progress(
+            'Running link hooks',
+            () => builder.linkNativeAssetsAOT(
+              recordedUsagesPath: recordedUsagesPath,
+              buildResult: buildResult,
+            ),
           );
         }
         if (linkResult == null) {
-          stderr.writeln('Native assets link failed.');
+          stderr.writeln('Running link hooks failed.');
           return 255;
         }
 

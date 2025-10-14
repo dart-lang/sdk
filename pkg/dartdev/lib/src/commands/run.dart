@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dartdev/src/commands/compile.dart';
+import 'package:dartdev/src/progress.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:frontend_server/resident_frontend_server_utils.dart'
@@ -420,11 +421,13 @@ class RunCommand extends DartdevCommand {
           if (await builder.warnOnNativeAssets()) {
             return errorExitCode;
           }
-        } else {
-          final assetsYamlFileUri =
-              await builder.compileNativeAssetsJitYamlFile();
+        } else if (await builder.hasHooks()) {
+          final assetsYamlFileUri = await progress(
+            'Running build hooks',
+            builder.compileNativeAssetsJitYamlFile,
+          );
           if (assetsYamlFileUri == null) {
-            log.stderr('Error: Compiling native assets failed.');
+            log.stderr('Error: Running build hooks failed.');
             return errorExitCode;
           }
           nativeAssets = assetsYamlFileUri.toFilePath();

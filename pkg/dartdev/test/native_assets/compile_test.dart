@@ -4,8 +4,6 @@
 
 // @dart=2.18
 
-import 'dart:io';
-
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -31,34 +29,9 @@ void main() async {
       expect(
         result.stderr,
         contains(
-          "'dart compile' does currently not support native assets.",
+          "'dart compile' does not support build hooks, use 'dart build' instead.",
         ),
       );
-      expect(result.exitCode, 255);
-    });
-  });
-
-  test('dart compile native assets build failure', timeout: longTimeout,
-      () async {
-    await nativeAssetsTest('dart_app', (dartAppUri) async {
-      final buildDotDart = dartAppUri.resolve('../native_add/hook/build.dart');
-      await File.fromUri(buildDotDart).writeAsString('''
-void main(List<String> args) {
-  throw UnimplementedError();
-}
-''');
-      final result = await runDart(
-        arguments: [
-          'compile',
-          'exe',
-          'bin/dart_app.dart',
-        ],
-        workingDirectory: dartAppUri,
-        logger: logger,
-        expectExitCodeZero: false,
-      );
-      expect(result.stderr,
-          contains('Building assets for package:native_add failed.'));
       expect(result.exitCode, 255);
     });
   });
