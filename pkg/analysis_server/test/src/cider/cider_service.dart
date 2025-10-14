@@ -6,11 +6,13 @@ import 'dart:convert';
 
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
@@ -49,6 +51,14 @@ class CiderServiceTest with ResourceProviderMixin {
       isGenerated: (_) => false,
       testData: testData,
     );
+  }
+
+  @override
+  File newFile(String path, String content) {
+    // TODO(dantup): Remove this and handle in resource provider once all tests
+    //  work that way.
+    content = normalizeNewlinesForPlatform(content);
+    return super.newFile(path, content);
   }
 
   void setUp() {

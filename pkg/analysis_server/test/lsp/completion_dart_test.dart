@@ -31,6 +31,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/matchers.dart';
 import '../utils/test_code_extensions.dart';
 import 'completion.dart';
 import 'server_abstract.dart';
