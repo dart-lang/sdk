@@ -6,6 +6,7 @@ abstract class Foo extends core::Object {
 
   [@vm.unreachable.metadata=]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=[!regcc]]
   @#C3
   late final field core::int hashCode = throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
 }
