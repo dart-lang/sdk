@@ -195,13 +195,6 @@ const MessageCode code$name =
 
     List<String> templateArguments = <String>[];
     templateArguments.add('\"$name\"');
-    templateArguments.add('problemMessageTemplate: r"""$problemMessage"""');
-    if (correctionMessage != null) {
-      templateArguments.add(
-        'correctionMessageTemplate: r"""$correctionMessage"""',
-      );
-    }
-
     templateArguments.add("withArgumentsOld: _withArgumentsOld$name");
     templateArguments.add("withArguments: _withArguments$name");
     templateArguments.addAll(codeArguments);

@@ -104,8 +104,6 @@ const Template<
 >
 codeAsciiControlCharacter = const Template(
   "AsciiControlCharacter",
-  problemMessageTemplate:
-      r"""The control character #character can only be used in strings and comments.""",
   withArgumentsOld: _withArgumentsOldAsciiControlCharacter,
   withArguments: _withArgumentsAsciiControlCharacter,
   pseudoSharedCode: PseudoSharedCode.illegalCharacter,
@@ -174,9 +172,6 @@ const Template<
 >
 codeBinaryOperatorWrittenOut = const Template(
   "BinaryOperatorWrittenOut",
-  problemMessageTemplate:
-      r"""Binary operator '#string' is written as '#string2' instead of the written out word.""",
-  correctionMessageTemplate: r"""Try replacing '#string' with '#string2'.""",
   withArgumentsOld: _withArgumentsOldBinaryOperatorWrittenOut,
   withArguments: _withArgumentsBinaryOperatorWrittenOut,
   sharedCode: SharedCode.BinaryOperatorWrittenOut,
@@ -220,8 +215,6 @@ const Template<
 >
 codeBuiltInIdentifierAsType = const Template(
   "BuiltInIdentifierAsType",
-  problemMessageTemplate:
-      r"""The built-in identifier '#lexeme' can't be used as a type.""",
   withArgumentsOld: _withArgumentsOldBuiltInIdentifierAsType,
   withArguments: _withArgumentsBuiltInIdentifierAsType,
   pseudoSharedCode: PseudoSharedCode.builtInIdentifierAsType,
@@ -249,7 +242,6 @@ const Template<
 >
 codeBuiltInIdentifierInDeclaration = const Template(
   "BuiltInIdentifierInDeclaration",
-  problemMessageTemplate: r"""Can't use '#lexeme' as a name here.""",
   withArgumentsOld: _withArgumentsOldBuiltInIdentifierInDeclaration,
   withArguments: _withArgumentsBuiltInIdentifierInDeclaration,
   pseudoSharedCode: PseudoSharedCode.builtInIdentifierInDeclaration,
@@ -312,9 +304,6 @@ const Template<
 >
 codeConflictingModifiers = const Template(
   "ConflictingModifiers",
-  problemMessageTemplate:
-      r"""Members can't be declared to be both '#string' and '#string2'.""",
-  correctionMessageTemplate: r"""Try removing one of the keywords.""",
   withArgumentsOld: _withArgumentsOldConflictingModifiers,
   withArguments: _withArgumentsConflictingModifiers,
   sharedCode: SharedCode.ConflictingModifiers,
@@ -384,10 +373,6 @@ const Template<
 >
 codeConstFieldWithoutInitializer = const Template(
   "ConstFieldWithoutInitializer",
-  problemMessageTemplate:
-      r"""The const variable '#name' must be initialized.""",
-  correctionMessageTemplate:
-      r"""Try adding an initializer ('= expression') to the declaration.""",
   withArgumentsOld: _withArgumentsOldConstFieldWithoutInitializer,
   withArguments: _withArgumentsConstFieldWithoutInitializer,
   pseudoSharedCode: PseudoSharedCode.constNotInitialized,
@@ -531,10 +516,6 @@ const Template<
 >
 codeDuplicateLabelInSwitchStatement = const Template(
   "DuplicateLabelInSwitchStatement",
-  problemMessageTemplate:
-      r"""The label '#name' was already used in this switch statement.""",
-  correctionMessageTemplate:
-      r"""Try choosing a different name for this label.""",
   withArgumentsOld: _withArgumentsOldDuplicateLabelInSwitchStatement,
   withArguments: _withArgumentsDuplicateLabelInSwitchStatement,
   sharedCode: SharedCode.DuplicateLabelInSwitchStatement,
@@ -572,9 +553,6 @@ const Template<
 >
 codeDuplicatedModifier = const Template(
   "DuplicatedModifier",
-  problemMessageTemplate: r"""The modifier '#lexeme' was already specified.""",
-  correctionMessageTemplate:
-      r"""Try removing all but one occurrence of the modifier.""",
   withArgumentsOld: _withArgumentsOldDuplicatedModifier,
   withArguments: _withArgumentsDuplicatedModifier,
   sharedCode: SharedCode.DuplicatedModifier,
@@ -653,7 +631,6 @@ const Template<
 >
 codeExpectedAfterButGot = const Template(
   "ExpectedAfterButGot",
-  problemMessageTemplate: r"""Expected '#string' after this.""",
   withArgumentsOld: _withArgumentsOldExpectedAfterButGot,
   withArguments: _withArgumentsExpectedAfterButGot,
   pseudoSharedCode: PseudoSharedCode.expectedToken,
@@ -695,7 +672,6 @@ const Template<
 >
 codeExpectedButGot = const Template(
   "ExpectedButGot",
-  problemMessageTemplate: r"""Expected '#string' before this.""",
   withArgumentsOld: _withArgumentsOldExpectedButGot,
   withArguments: _withArgumentsExpectedButGot,
   pseudoSharedCode: PseudoSharedCode.expectedToken,
@@ -739,7 +715,6 @@ const Template<
 >
 codeExpectedClassMember = const Template(
   "ExpectedClassMember",
-  problemMessageTemplate: r"""Expected a class member, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedClassMember,
   withArguments: _withArgumentsExpectedClassMember,
   pseudoSharedCode: PseudoSharedCode.expectedClassMember,
@@ -766,7 +741,6 @@ const Template<
 >
 codeExpectedDeclaration = const Template(
   "ExpectedDeclaration",
-  problemMessageTemplate: r"""Expected a declaration, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedDeclaration,
   withArguments: _withArgumentsExpectedDeclaration,
   pseudoSharedCode: PseudoSharedCode.expectedExecutable,
@@ -800,9 +774,6 @@ const Template<
 >
 codeExpectedEnumBody = const Template(
   "ExpectedEnumBody",
-  problemMessageTemplate: r"""Expected a enum body, but got '#lexeme'.""",
-  correctionMessageTemplate:
-      r"""An enum definition must have a body with at least one constant name.""",
   withArgumentsOld: _withArgumentsOldExpectedEnumBody,
   withArguments: _withArgumentsExpectedEnumBody,
   pseudoSharedCode: PseudoSharedCode.missingEnumBody,
@@ -858,7 +829,6 @@ const Template<
 >
 codeExpectedFunctionBody = const Template(
   "ExpectedFunctionBody",
-  problemMessageTemplate: r"""Expected a function body, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedFunctionBody,
   withArguments: _withArgumentsExpectedFunctionBody,
   pseudoSharedCode: PseudoSharedCode.missingFunctionBody,
@@ -892,9 +862,6 @@ const Template<
 >
 codeExpectedIdentifier = const Template(
   "ExpectedIdentifier",
-  problemMessageTemplate: r"""Expected an identifier, but got '#lexeme'.""",
-  correctionMessageTemplate:
-      r"""Try inserting an identifier before '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedIdentifier,
   withArguments: _withArgumentsExpectedIdentifier,
   pseudoSharedCode: PseudoSharedCode.missingIdentifier,
@@ -922,10 +889,6 @@ const Template<
 >
 codeExpectedIdentifierButGotKeyword = const Template(
   "ExpectedIdentifierButGotKeyword",
-  problemMessageTemplate:
-      r"""'#lexeme' can't be used as an identifier because it's a keyword.""",
-  correctionMessageTemplate:
-      r"""Try renaming this to be an identifier that isn't a keyword.""",
   withArgumentsOld: _withArgumentsOldExpectedIdentifierButGotKeyword,
   withArguments: _withArgumentsExpectedIdentifierButGotKeyword,
   sharedCode: SharedCode.ExpectedIdentifierButGotKeyword,
@@ -955,7 +918,6 @@ const Template<
 >
 codeExpectedInstead = const Template(
   "ExpectedInstead",
-  problemMessageTemplate: r"""Expected '#string' instead of this.""",
   withArgumentsOld: _withArgumentsOldExpectedInstead,
   withArguments: _withArgumentsExpectedInstead,
   sharedCode: SharedCode.ExpectedInstead,
@@ -998,7 +960,6 @@ const Template<
 >
 codeExpectedString = const Template(
   "ExpectedString",
-  problemMessageTemplate: r"""Expected a String, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedString,
   withArguments: _withArgumentsExpectedString,
   pseudoSharedCode: PseudoSharedCode.expectedStringLiteral,
@@ -1043,7 +1004,6 @@ const Template<
 >
 codeExpectedToken = const Template(
   "ExpectedToken",
-  problemMessageTemplate: r"""Expected to find '#string'.""",
   withArgumentsOld: _withArgumentsOldExpectedToken,
   withArguments: _withArgumentsExpectedToken,
   pseudoSharedCode: PseudoSharedCode.expectedToken,
@@ -1078,7 +1038,6 @@ const Template<
 >
 codeExpectedType = const Template(
   "ExpectedType",
-  problemMessageTemplate: r"""Expected a type, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedType,
   withArguments: _withArgumentsExpectedType,
   pseudoSharedCode: PseudoSharedCode.expectedTypeName,
@@ -1105,10 +1064,6 @@ const Template<
 >
 codeExperimentNotEnabled = const Template(
   "ExperimentNotEnabled",
-  problemMessageTemplate:
-      r"""This requires the '#string' language feature to be enabled.""",
-  correctionMessageTemplate:
-      r"""Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'.""",
   withArgumentsOld: _withArgumentsOldExperimentNotEnabled,
   withArguments: _withArgumentsExperimentNotEnabled,
   sharedCode: SharedCode.ExperimentNotEnabled,
@@ -1142,10 +1097,6 @@ const Template<
 >
 codeExperimentNotEnabledOffByDefault = const Template(
   "ExperimentNotEnabledOffByDefault",
-  problemMessageTemplate:
-      r"""This requires the experimental '#string' language feature to be enabled.""",
-  correctionMessageTemplate:
-      r"""Try passing the '--enable-experiment=#string' command line option.""",
   withArgumentsOld: _withArgumentsOldExperimentNotEnabledOffByDefault,
   withArguments: _withArgumentsExperimentNotEnabledOffByDefault,
   sharedCode: SharedCode.ExperimentNotEnabledOffByDefault,
@@ -1329,8 +1280,6 @@ const Template<
 >
 codeExtraneousModifier = const Template(
   "ExtraneousModifier",
-  problemMessageTemplate: r"""Can't have modifier '#lexeme' here.""",
-  correctionMessageTemplate: r"""Try removing '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExtraneousModifier,
   withArguments: _withArgumentsExtraneousModifier,
   sharedCode: SharedCode.ExtraneousModifier,
@@ -1358,8 +1307,6 @@ const Template<
 >
 codeExtraneousModifierInExtension = const Template(
   "ExtraneousModifierInExtension",
-  problemMessageTemplate: r"""Can't have modifier '#lexeme' in an extension.""",
-  correctionMessageTemplate: r"""Try removing '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExtraneousModifierInExtension,
   withArguments: _withArgumentsExtraneousModifierInExtension,
   sharedCode: SharedCode.ExtraneousModifierInExtension,
@@ -1387,9 +1334,6 @@ const Template<
 >
 codeExtraneousModifierInExtensionType = const Template(
   "ExtraneousModifierInExtensionType",
-  problemMessageTemplate:
-      r"""Can't have modifier '#lexeme' in an extension type.""",
-  correctionMessageTemplate: r"""Try removing '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExtraneousModifierInExtensionType,
   withArguments: _withArgumentsExtraneousModifierInExtensionType,
   sharedCode: SharedCode.ExtraneousModifierInExtensionType,
@@ -1420,9 +1364,6 @@ const Template<
 >
 codeExtraneousModifierInPrimaryConstructor = const Template(
   "ExtraneousModifierInPrimaryConstructor",
-  problemMessageTemplate:
-      r"""Can't have modifier '#lexeme' in a primary constructor.""",
-  correctionMessageTemplate: r"""Try removing '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExtraneousModifierInPrimaryConstructor,
   withArguments: _withArgumentsExtraneousModifierInPrimaryConstructor,
   sharedCode: SharedCode.ExtraneousModifierInPrimaryConstructor,
@@ -1470,7 +1411,6 @@ const Template<
 >
 codeFastaCLIArgumentRequired = const Template(
   "FastaCLIArgumentRequired",
-  problemMessageTemplate: r"""Expected value after '#name'.""",
   withArgumentsOld: _withArgumentsOldFastaCLIArgumentRequired,
   withArguments: _withArgumentsFastaCLIArgumentRequired,
   pseudoSharedCode: PseudoSharedCode.fastaCliArgumentRequired,
@@ -1552,10 +1492,6 @@ const Template<
 >
 codeFinalFieldWithoutInitializer = const Template(
   "FinalFieldWithoutInitializer",
-  problemMessageTemplate:
-      r"""The final variable '#name' must be initialized.""",
-  correctionMessageTemplate:
-      r"""Try adding an initializer ('= expression') to the declaration.""",
   withArgumentsOld: _withArgumentsOldFinalFieldWithoutInitializer,
   withArguments: _withArgumentsFinalFieldWithoutInitializer,
   pseudoSharedCode: PseudoSharedCode.finalNotInitialized,
@@ -1646,9 +1582,6 @@ const Template<
 >
 codeIllegalPatternAssignmentVariableName = const Template(
   "IllegalPatternAssignmentVariableName",
-  problemMessageTemplate:
-      r"""A variable assigned by a pattern assignment can't be named '#lexeme'.""",
-  correctionMessageTemplate: r"""Choose a different name.""",
   withArgumentsOld: _withArgumentsOldIllegalPatternAssignmentVariableName,
   withArguments: _withArgumentsIllegalPatternAssignmentVariableName,
   sharedCode: SharedCode.IllegalPatternAssignmentVariableName,
@@ -1679,9 +1612,6 @@ const Template<
 >
 codeIllegalPatternIdentifierName = const Template(
   "IllegalPatternIdentifierName",
-  problemMessageTemplate:
-      r"""A pattern can't refer to an identifier named '#lexeme'.""",
-  correctionMessageTemplate: r"""Match the identifier using '==""",
   withArgumentsOld: _withArgumentsOldIllegalPatternIdentifierName,
   withArguments: _withArgumentsIllegalPatternIdentifierName,
   sharedCode: SharedCode.IllegalPatternIdentifierName,
@@ -1710,9 +1640,6 @@ const Template<
 >
 codeIllegalPatternVariableName = const Template(
   "IllegalPatternVariableName",
-  problemMessageTemplate:
-      r"""The variable declared by a variable pattern can't be named '#lexeme'.""",
-  correctionMessageTemplate: r"""Choose a different name.""",
   withArgumentsOld: _withArgumentsOldIllegalPatternVariableName,
   withArguments: _withArgumentsIllegalPatternVariableName,
   sharedCode: SharedCode.IllegalPatternVariableName,
@@ -1812,8 +1739,6 @@ const Template<
 >
 codeInternalProblemStackNotEmpty = const Template(
   "InternalProblemStackNotEmpty",
-  problemMessageTemplate: r"""#name.stack isn't empty:
-  #string""",
   withArgumentsOld: _withArgumentsOldInternalProblemStackNotEmpty,
   withArguments: _withArgumentsInternalProblemStackNotEmpty,
   pseudoSharedCode: PseudoSharedCode.internalProblemStackNotEmpty,
@@ -1848,7 +1773,6 @@ const Template<
 >
 codeInternalProblemUnhandled = const Template(
   "InternalProblemUnhandled",
-  problemMessageTemplate: r"""Unhandled #string in #string2.""",
   withArgumentsOld: _withArgumentsOldInternalProblemUnhandled,
   withArguments: _withArgumentsInternalProblemUnhandled,
   pseudoSharedCode: PseudoSharedCode.internalProblemUnhandled,
@@ -1882,7 +1806,6 @@ const Template<
 >
 codeInternalProblemUnsupported = const Template(
   "InternalProblemUnsupported",
-  problemMessageTemplate: r"""Unsupported operation: '#name'.""",
   withArgumentsOld: _withArgumentsOldInternalProblemUnsupported,
   withArguments: _withArgumentsInternalProblemUnsupported,
   pseudoSharedCode: PseudoSharedCode.internalProblemUnsupported,
@@ -1935,10 +1858,6 @@ const Template<
 >
 codeInvalidConstantPatternBinary = const Template(
   "InvalidConstantPatternBinary",
-  problemMessageTemplate:
-      r"""The binary operator #name is not supported as a constant pattern.""",
-  correctionMessageTemplate:
-      r"""Try wrapping the expression in 'const ( ... )'.""",
   withArgumentsOld: _withArgumentsOldInvalidConstantPatternBinary,
   withArguments: _withArgumentsInvalidConstantPatternBinary,
   sharedCode: SharedCode.InvalidConstantPatternBinary,
@@ -2012,10 +1931,6 @@ const Template<
 >
 codeInvalidConstantPatternUnary = const Template(
   "InvalidConstantPatternUnary",
-  problemMessageTemplate:
-      r"""The unary operator #name is not supported as a constant pattern.""",
-  correctionMessageTemplate:
-      r"""Try wrapping the expression in 'const ( ... )'.""",
   withArgumentsOld: _withArgumentsOldInvalidConstantPatternUnary,
   withArguments: _withArgumentsInvalidConstantPatternUnary,
   sharedCode: SharedCode.InvalidConstantPatternUnary,
@@ -2089,8 +2004,6 @@ const Template<
 >
 codeInvalidOperator = const Template(
   "InvalidOperator",
-  problemMessageTemplate:
-      r"""The string '#lexeme' isn't a user-definable operator.""",
   withArgumentsOld: _withArgumentsOldInvalidOperator,
   withArguments: _withArgumentsInvalidOperator,
   sharedCode: SharedCode.InvalidOperator,
@@ -2194,9 +2107,6 @@ const Template<
 >
 codeLiteralWithClass = const Template(
   "LiteralWithClass",
-  problemMessageTemplate:
-      r"""A #string literal can't be prefixed by '#lexeme'.""",
-  correctionMessageTemplate: r"""Try removing '#lexeme'""",
   withArgumentsOld: _withArgumentsOldLiteralWithClass,
   withArguments: _withArgumentsLiteralWithClass,
   sharedCode: SharedCode.LiteralWithClass,
@@ -2229,9 +2139,6 @@ const Template<
 >
 codeLiteralWithClassAndNew = const Template(
   "LiteralWithClassAndNew",
-  problemMessageTemplate:
-      r"""A #string literal can't be prefixed by 'new #lexeme'.""",
-  correctionMessageTemplate: r"""Try removing 'new' and '#lexeme'""",
   withArgumentsOld: _withArgumentsOldLiteralWithClassAndNew,
   withArguments: _withArgumentsLiteralWithClassAndNew,
   sharedCode: SharedCode.LiteralWithClassAndNew,
@@ -2432,9 +2339,6 @@ const Template<
 >
 codeModifierOutOfOrder = const Template(
   "ModifierOutOfOrder",
-  problemMessageTemplate:
-      r"""The modifier '#string' should be before the modifier '#string2'.""",
-  correctionMessageTemplate: r"""Try re-ordering the modifiers.""",
   withArgumentsOld: _withArgumentsOldModifierOutOfOrder,
   withArguments: _withArgumentsModifierOutOfOrder,
   sharedCode: SharedCode.ModifierOutOfOrder,
@@ -2467,10 +2371,6 @@ const Template<
 >
 codeMultipleClauses = const Template(
   "MultipleClauses",
-  problemMessageTemplate:
-      r"""Each '#string' definition can have at most one '#string2' clause.""",
-  correctionMessageTemplate:
-      r"""Try combining all of the '#string2' clauses into a single clause.""",
   withArgumentsOld: _withArgumentsOldMultipleClauses,
   withArguments: _withArgumentsMultipleClauses,
   sharedCode: SharedCode.MultipleClauses,
@@ -2577,10 +2477,6 @@ const Template<
 >
 codeNonAsciiIdentifier = const Template(
   "NonAsciiIdentifier",
-  problemMessageTemplate:
-      r"""The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments.""",
-  correctionMessageTemplate:
-      r"""Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).""",
   withArgumentsOld: _withArgumentsOldNonAsciiIdentifier,
   withArguments: _withArgumentsNonAsciiIdentifier,
   pseudoSharedCode: PseudoSharedCode.illegalCharacter,
@@ -2614,8 +2510,6 @@ const Template<
 >
 codeNonAsciiWhitespace = const Template(
   "NonAsciiWhitespace",
-  problemMessageTemplate:
-      r"""The non-ASCII space character #unicode can only be used in strings and comments.""",
   withArgumentsOld: _withArgumentsOldNonAsciiWhitespace,
   withArguments: _withArgumentsNonAsciiWhitespace,
   pseudoSharedCode: PseudoSharedCode.illegalCharacter,
@@ -2682,10 +2576,6 @@ const Template<
 >
 codeOutOfOrderClauses = const Template(
   "OutOfOrderClauses",
-  problemMessageTemplate:
-      r"""The '#string' clause must come before the '#string2' clause.""",
-  correctionMessageTemplate:
-      r"""Try moving the '#string' clause before the '#string2' clause.""",
   withArgumentsOld: _withArgumentsOldOutOfOrderClauses,
   withArguments: _withArgumentsOutOfOrderClauses,
   sharedCode: SharedCode.OutOfOrderClauses,
@@ -2727,10 +2617,6 @@ const Template<
 >
 codePatternAssignmentDeclaresVariable = const Template(
   "PatternAssignmentDeclaresVariable",
-  problemMessageTemplate:
-      r"""Variable '#name' can't be declared in a pattern assignment.""",
-  correctionMessageTemplate:
-      r"""Try using a preexisting variable or changing the assignment to a pattern variable declaration.""",
   withArgumentsOld: _withArgumentsOldPatternAssignmentDeclaresVariable,
   withArguments: _withArgumentsPatternAssignmentDeclaresVariable,
   sharedCode: SharedCode.PatternAssignmentDeclaresVariable,
@@ -2991,9 +2877,6 @@ const Template<
 >
 codeTypeArgumentsOnTypeVariable = const Template(
   "TypeArgumentsOnTypeVariable",
-  problemMessageTemplate:
-      r"""Can't use type arguments with type variable '#name'.""",
-  correctionMessageTemplate: r"""Try removing the type arguments.""",
   withArgumentsOld: _withArgumentsOldTypeArgumentsOnTypeVariable,
   withArguments: _withArgumentsTypeArgumentsOnTypeVariable,
   sharedCode: SharedCode.TypeArgumentsOnTypeVariable,
@@ -3056,7 +2939,6 @@ const Template<
 >
 codeUnexpectedToken = const Template(
   "UnexpectedToken",
-  problemMessageTemplate: r"""Unexpected token '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldUnexpectedToken,
   withArguments: _withArgumentsUnexpectedToken,
   pseudoSharedCode: PseudoSharedCode.unexpectedToken,
@@ -3090,7 +2972,6 @@ const Template<
 >
 codeUnmatchedToken = const Template(
   "UnmatchedToken",
-  problemMessageTemplate: r"""Can't find '#string' to match '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldUnmatchedToken,
   withArguments: _withArgumentsUnmatchedToken,
   pseudoSharedCode: PseudoSharedCode.expectedToken,
@@ -3121,7 +3002,6 @@ const Template<
 >
 codeUnspecified = const Template(
   "Unspecified",
-  problemMessageTemplate: r"""#string""",
   withArgumentsOld: _withArgumentsOldUnspecified,
   withArguments: _withArgumentsUnspecified,
   pseudoSharedCode: PseudoSharedCode.unspecified,
@@ -3148,7 +3028,6 @@ const Template<
 >
 codeUnsupportedOperator = const Template(
   "UnsupportedOperator",
-  problemMessageTemplate: r"""The '#lexeme' operator is not supported.""",
   withArgumentsOld: _withArgumentsOldUnsupportedOperator,
   withArguments: _withArgumentsUnsupportedOperator,
   pseudoSharedCode: PseudoSharedCode.unsupportedOperator,
@@ -3190,8 +3069,6 @@ const Template<
 >
 codeUnterminatedString = const Template(
   "UnterminatedString",
-  problemMessageTemplate:
-      r"""String starting with #string must end with #string2.""",
   withArgumentsOld: _withArgumentsOldUnterminatedString,
   withArguments: _withArgumentsUnterminatedString,
   pseudoSharedCode: PseudoSharedCode.unterminatedStringLiteral,

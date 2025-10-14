@@ -24,8 +24,6 @@ const Template<
 >
 codeAbstractClassInstantiation = const Template(
   "AbstractClassInstantiation",
-  problemMessageTemplate:
-      r"""The class '#name' is abstract and can't be instantiated.""",
   withArgumentsOld: _withArgumentsOldAbstractClassInstantiation,
   withArguments: _withArgumentsAbstractClassInstantiation,
 );
@@ -68,8 +66,6 @@ const Template<
 >
 codeAbstractRedirectedClassInstantiation = const Template(
   "AbstractRedirectedClassInstantiation",
-  problemMessageTemplate:
-      r"""Factory redirects to class '#name', which is abstract and can't be instantiated.""",
   withArgumentsOld: _withArgumentsOldAbstractRedirectedClassInstantiation,
   withArguments: _withArgumentsAbstractRedirectedClassInstantiation,
 );
@@ -105,10 +101,6 @@ const Template<
 >
 codeAmbiguousExtensionMethod = const Template(
   "AmbiguousExtensionMethod",
-  problemMessageTemplate:
-      r"""The method '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
-  correctionMessageTemplate:
-      r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
   withArgumentsOld: _withArgumentsOldAmbiguousExtensionMethod,
   withArguments: _withArgumentsAmbiguousExtensionMethod,
 );
@@ -143,10 +135,6 @@ const Template<
 >
 codeAmbiguousExtensionOperator = const Template(
   "AmbiguousExtensionOperator",
-  problemMessageTemplate:
-      r"""The operator '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
-  correctionMessageTemplate:
-      r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
   withArgumentsOld: _withArgumentsOldAmbiguousExtensionOperator,
   withArguments: _withArgumentsAmbiguousExtensionOperator,
 );
@@ -183,10 +171,6 @@ const Template<
 >
 codeAmbiguousExtensionProperty = const Template(
   "AmbiguousExtensionProperty",
-  problemMessageTemplate:
-      r"""The property '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
-  correctionMessageTemplate:
-      r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
   withArgumentsOld: _withArgumentsOldAmbiguousExtensionProperty,
   withArguments: _withArgumentsAmbiguousExtensionProperty,
 );
@@ -227,8 +211,6 @@ const Template<
 >
 codeAmbiguousSupertypes = const Template(
   "AmbiguousSupertypes",
-  problemMessageTemplate:
-      r"""'#name' can't implement both '#type' and '#type2'""",
   withArgumentsOld: _withArgumentsOldAmbiguousSupertypes,
   withArguments: _withArgumentsAmbiguousSupertypes,
 );
@@ -287,8 +269,6 @@ const Template<
 >
 codeArgumentTypeNotAssignable = const Template(
   "ArgumentTypeNotAssignable",
-  problemMessageTemplate:
-      r"""The argument type '#type' can't be assigned to the parameter type '#type2'.""",
   withArgumentsOld: _withArgumentsOldArgumentTypeNotAssignable,
   withArguments: _withArgumentsArgumentTypeNotAssignable,
 );
@@ -337,8 +317,6 @@ const Template<
 >
 codeBaseClassImplementedOutsideOfLibrary = const Template(
   "BaseClassImplementedOutsideOfLibrary",
-  problemMessageTemplate:
-      r"""The class '#name' can't be implemented outside of its library because it's a base class.""",
   withArgumentsOld: _withArgumentsOldBaseClassImplementedOutsideOfLibrary,
   withArguments: _withArgumentsBaseClassImplementedOutsideOfLibrary,
 );
@@ -367,8 +345,6 @@ const Template<
 >
 codeBaseMixinImplementedOutsideOfLibrary = const Template(
   "BaseMixinImplementedOutsideOfLibrary",
-  problemMessageTemplate:
-      r"""The mixin '#name' can't be implemented outside of its library because it's a base mixin.""",
   withArgumentsOld: _withArgumentsOldBaseMixinImplementedOutsideOfLibrary,
   withArguments: _withArgumentsBaseMixinImplementedOutsideOfLibrary,
 );
@@ -397,8 +373,6 @@ const Template<
 >
 codeBaseOrFinalClassImplementedOutsideOfLibraryCause = const Template(
   "BaseOrFinalClassImplementedOutsideOfLibraryCause",
-  problemMessageTemplate:
-      r"""The type '#name' is a subtype of '#name2', and '#name2' is defined here.""",
   withArgumentsOld:
       _withArgumentsOldBaseOrFinalClassImplementedOutsideOfLibraryCause,
   withArguments: _withArgumentsBaseOrFinalClassImplementedOutsideOfLibraryCause,
@@ -436,10 +410,6 @@ const Template<
 >
 codeBoundIssueViaCycleNonSimplicity = const Template(
   "BoundIssueViaCycleNonSimplicity",
-  problemMessageTemplate:
-      r"""Generic type '#name' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '#name2'.""",
-  correctionMessageTemplate:
-      r"""Try providing type arguments to '#name2' here or to some other raw types in the bounds along the reference chain.""",
   withArgumentsOld: _withArgumentsOldBoundIssueViaCycleNonSimplicity,
   withArguments: _withArgumentsBoundIssueViaCycleNonSimplicity,
 );
@@ -474,10 +444,6 @@ const Template<
 >
 codeBoundIssueViaLoopNonSimplicity = const Template(
   "BoundIssueViaLoopNonSimplicity",
-  problemMessageTemplate:
-      r"""Generic type '#name' can't be used without type arguments in the bounds of its own type variables.""",
-  correctionMessageTemplate:
-      r"""Try providing type arguments to '#name' here.""",
   withArgumentsOld: _withArgumentsOldBoundIssueViaLoopNonSimplicity,
   withArguments: _withArgumentsBoundIssueViaLoopNonSimplicity,
 );
@@ -505,10 +471,6 @@ const Template<
 >
 codeBoundIssueViaRawTypeWithNonSimpleBounds = const Template(
   "BoundIssueViaRawTypeWithNonSimpleBounds",
-  problemMessageTemplate:
-      r"""Generic type '#name' can't be used without type arguments in a type variable bound.""",
-  correctionMessageTemplate:
-      r"""Try providing type arguments to '#name' here.""",
   withArgumentsOld: _withArgumentsOldBoundIssueViaRawTypeWithNonSimpleBounds,
   withArguments: _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds,
 );
@@ -538,8 +500,6 @@ const Template<
 >
 codeBreakTargetOutsideFunction = const Template(
   "BreakTargetOutsideFunction",
-  problemMessageTemplate:
-      r"""Can't break to '#name' in a different function.""",
   withArgumentsOld: _withArgumentsOldBreakTargetOutsideFunction,
   withArguments: _withArgumentsBreakTargetOutsideFunction,
 );
@@ -572,8 +532,6 @@ const Template<
 >
 codeCandidateFoundIsDefaultConstructor = const Template(
   "CandidateFoundIsDefaultConstructor",
-  problemMessageTemplate:
-      r"""The class '#name' has a constructor that takes no arguments.""",
   withArgumentsOld: _withArgumentsOldCandidateFoundIsDefaultConstructor,
   withArguments: _withArgumentsCandidateFoundIsDefaultConstructor,
   severity: CfeSeverity.context,
@@ -603,7 +561,6 @@ const Template<
 >
 codeCannotAssignToConstVariable = const Template(
   "CannotAssignToConstVariable",
-  problemMessageTemplate: r"""Can't assign to the const variable '#name'.""",
   withArgumentsOld: _withArgumentsOldCannotAssignToConstVariable,
   withArguments: _withArgumentsCannotAssignToConstVariable,
 );
@@ -635,7 +592,6 @@ const Template<
 >
 codeCannotAssignToFinalVariable = const Template(
   "CannotAssignToFinalVariable",
-  problemMessageTemplate: r"""Can't assign to the final variable '#name'.""",
   withArgumentsOld: _withArgumentsOldCannotAssignToFinalVariable,
   withArguments: _withArgumentsCannotAssignToFinalVariable,
 );
@@ -679,9 +635,6 @@ const Template<
 >
 codeCannotReadSdkSpecification = const Template(
   "CannotReadSdkSpecification",
-  problemMessageTemplate:
-      r"""Unable to read the 'libraries.json' specification file:
-  #string.""",
   withArgumentsOld: _withArgumentsOldCannotReadSdkSpecification,
   withArguments: _withArgumentsCannotReadSdkSpecification,
 );
@@ -724,8 +677,6 @@ const Template<
 >
 codeCantHaveNamedParameters = const Template(
   "CantHaveNamedParameters",
-  problemMessageTemplate:
-      r"""'#name' can't be declared with named parameters.""",
   withArgumentsOld: _withArgumentsOldCantHaveNamedParameters,
   withArguments: _withArgumentsCantHaveNamedParameters,
 );
@@ -751,8 +702,6 @@ const Template<
 >
 codeCantHaveOptionalParameters = const Template(
   "CantHaveOptionalParameters",
-  problemMessageTemplate:
-      r"""'#name' can't be declared with optional parameters.""",
   withArgumentsOld: _withArgumentsOldCantHaveOptionalParameters,
   withArguments: _withArgumentsCantHaveOptionalParameters,
 );
@@ -797,9 +746,6 @@ const Template<
 >
 codeCantInferReturnTypeDueToNoCombinedSignature = const Template(
   "CantInferReturnTypeDueToNoCombinedSignature",
-  problemMessageTemplate:
-      r"""Can't infer a return type for '#name' as the overridden members don't have a combined signature.""",
-  correctionMessageTemplate: r"""Try adding an explicit type.""",
   withArgumentsOld:
       _withArgumentsOldCantInferReturnTypeDueToNoCombinedSignature,
   withArguments: _withArgumentsCantInferReturnTypeDueToNoCombinedSignature,
@@ -831,9 +777,6 @@ const Template<
 >
 codeCantInferTypeDueToCircularity = const Template(
   "CantInferTypeDueToCircularity",
-  problemMessageTemplate:
-      r"""Can't infer the type of '#string': circularity found during type inference.""",
-  correctionMessageTemplate: r"""Specify the type explicitly.""",
   withArgumentsOld: _withArgumentsOldCantInferTypeDueToCircularity,
   withArguments: _withArgumentsCantInferTypeDueToCircularity,
 );
@@ -861,9 +804,6 @@ const Template<
 >
 codeCantInferTypeDueToNoCombinedSignature = const Template(
   "CantInferTypeDueToNoCombinedSignature",
-  problemMessageTemplate:
-      r"""Can't infer a type for '#name' as the overridden members don't have a combined signature.""",
-  correctionMessageTemplate: r"""Try adding an explicit type.""",
   withArgumentsOld: _withArgumentsOldCantInferTypeDueToNoCombinedSignature,
   withArguments: _withArgumentsCantInferTypeDueToNoCombinedSignature,
 );
@@ -893,9 +833,6 @@ const Template<
 >
 codeCantInferTypesDueToNoCombinedSignature = const Template(
   "CantInferTypesDueToNoCombinedSignature",
-  problemMessageTemplate:
-      r"""Can't infer types for '#name' as the overridden members don't have a combined signature.""",
-  correctionMessageTemplate: r"""Try adding explicit types.""",
   withArgumentsOld: _withArgumentsOldCantInferTypesDueToNoCombinedSignature,
   withArguments: _withArgumentsCantInferTypesDueToNoCombinedSignature,
 );
@@ -925,7 +862,6 @@ const Template<
 >
 codeCantReadFile = const Template(
   "CantReadFile",
-  problemMessageTemplate: r"""Error when reading '#uri': #string""",
   withArgumentsOld: _withArgumentsOldCantReadFile,
   withArguments: _withArgumentsCantReadFile,
 );
@@ -952,8 +888,6 @@ const Template<
 >
 codeCantUseClassAsMixin = const Template(
   "CantUseClassAsMixin",
-  problemMessageTemplate:
-      r"""The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin.""",
   withArgumentsOld: _withArgumentsOldCantUseClassAsMixin,
   withArguments: _withArgumentsCantUseClassAsMixin,
 );
@@ -980,8 +914,6 @@ const Template<
 >
 codeCantUseControlFlowOrSpreadAsConstant = const Template(
   "CantUseControlFlowOrSpreadAsConstant",
-  problemMessageTemplate:
-      r"""'#lexeme' is not supported in constant expressions.""",
   withArgumentsOld: _withArgumentsOldCantUseControlFlowOrSpreadAsConstant,
   withArguments: _withArgumentsCantUseControlFlowOrSpreadAsConstant,
 );
@@ -1010,10 +942,6 @@ const Template<
 >
 codeCantUseDeferredPrefixAsConstant = const Template(
   "CantUseDeferredPrefixAsConstant",
-  problemMessageTemplate:
-      r"""'#lexeme' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
-  correctionMessageTemplate:
-      r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
   withArgumentsOld: _withArgumentsOldCantUseDeferredPrefixAsConstant,
   withArguments: _withArgumentsCantUseDeferredPrefixAsConstant,
 );
@@ -1063,9 +991,6 @@ const Template<
 >
 codeClassShouldBeListedAsCallableInDynamicInterface = const Template(
   "ClassShouldBeListedAsCallableInDynamicInterface",
-  problemMessageTemplate: r"""Cannot use class '#name' in a dynamic module.""",
-  correctionMessageTemplate:
-      r"""Try removing the reference to class '#name' or update the dynamic interface to list class '#name' as callable.""",
   withArgumentsOld:
       _withArgumentsOldClassShouldBeListedAsCallableInDynamicInterface,
   withArguments: _withArgumentsClassShouldBeListedAsCallableInDynamicInterface,
@@ -1097,10 +1022,6 @@ const Template<
 >
 codeClassShouldBeListedAsExtendableInDynamicInterface = const Template(
   "ClassShouldBeListedAsExtendableInDynamicInterface",
-  problemMessageTemplate:
-      r"""Cannot extend, implement or mix-in class '#name' in a dynamic module.""",
-  correctionMessageTemplate:
-      r"""Try removing the reference to class '#name' or update the dynamic interface to list class '#name' as extendable.""",
   withArgumentsOld:
       _withArgumentsOldClassShouldBeListedAsExtendableInDynamicInterface,
   withArguments:
@@ -1135,10 +1056,6 @@ const Template<
 >
 codeCombinedMemberSignatureFailed = const Template(
   "CombinedMemberSignatureFailed",
-  problemMessageTemplate:
-      r"""Class '#name' inherits multiple members named '#name2' with incompatible signatures.""",
-  correctionMessageTemplate:
-      r"""Try adding a declaration of '#name2' to '#name'.""",
   withArgumentsOld: _withArgumentsOldCombinedMemberSignatureFailed,
   withArguments: _withArgumentsCombinedMemberSignatureFailed,
 );
@@ -1173,8 +1090,6 @@ const Template<
 >
 codeConflictsWithImplicitSetter = const Template(
   "ConflictsWithImplicitSetter",
-  problemMessageTemplate:
-      r"""Conflicts with the implicit setter of the field '#name'.""",
   withArgumentsOld: _withArgumentsOldConflictsWithImplicitSetter,
   withArguments: _withArgumentsConflictsWithImplicitSetter,
 );
@@ -1201,7 +1116,6 @@ const Template<
 >
 codeConflictsWithImplicitSetterCause = const Template(
   "ConflictsWithImplicitSetterCause",
-  problemMessageTemplate: r"""Field '#name' with the implicit setter.""",
   withArgumentsOld: _withArgumentsOldConflictsWithImplicitSetterCause,
   withArguments: _withArgumentsConflictsWithImplicitSetterCause,
   severity: CfeSeverity.context,
@@ -1228,7 +1142,6 @@ const Template<
 >
 codeConflictsWithTypeParameter = const Template(
   "ConflictsWithTypeParameter",
-  problemMessageTemplate: r"""Conflicts with type variable '#name'.""",
   withArgumentsOld: _withArgumentsOldConflictsWithTypeParameter,
   withArguments: _withArgumentsConflictsWithTypeParameter,
 );
@@ -1303,8 +1216,6 @@ const Template<
 >
 codeConstEvalCaseImplementsEqual = const Template(
   "ConstEvalCaseImplementsEqual",
-  problemMessageTemplate:
-      r"""Case expression '#constant' does not have a primitive operator '=='.""",
   withArgumentsOld: _withArgumentsOldConstEvalCaseImplementsEqual,
   withArguments: _withArgumentsConstEvalCaseImplementsEqual,
 );
@@ -1348,10 +1259,6 @@ const Template<
 >
 codeConstEvalDeferredLibrary = const Template(
   "ConstEvalDeferredLibrary",
-  problemMessageTemplate:
-      r"""'#nameOKEmpty' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
-  correctionMessageTemplate:
-      r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
   withArgumentsOld: _withArgumentsOldConstEvalDeferredLibrary,
   withArguments: _withArgumentsConstEvalDeferredLibrary,
 );
@@ -1380,8 +1287,6 @@ const Template<
 >
 codeConstEvalDuplicateElement = const Template(
   "ConstEvalDuplicateElement",
-  problemMessageTemplate:
-      r"""The element '#constant' conflicts with another existing element in the set.""",
   withArgumentsOld: _withArgumentsOldConstEvalDuplicateElement,
   withArguments: _withArgumentsConstEvalDuplicateElement,
 );
@@ -1410,8 +1315,6 @@ const Template<
 >
 codeConstEvalDuplicateKey = const Template(
   "ConstEvalDuplicateKey",
-  problemMessageTemplate:
-      r"""The key '#constant' conflicts with another existing key in the map.""",
   withArgumentsOld: _withArgumentsOldConstEvalDuplicateKey,
   withArguments: _withArgumentsConstEvalDuplicateKey,
 );
@@ -1440,8 +1343,6 @@ const Template<
 >
 codeConstEvalElementImplementsEqual = const Template(
   "ConstEvalElementImplementsEqual",
-  problemMessageTemplate:
-      r"""The element '#constant' does not have a primitive operator '=='.""",
   withArgumentsOld: _withArgumentsOldConstEvalElementImplementsEqual,
   withArguments: _withArgumentsConstEvalElementImplementsEqual,
 );
@@ -1472,8 +1373,6 @@ const Template<
 >
 codeConstEvalElementNotPrimitiveEquality = const Template(
   "ConstEvalElementNotPrimitiveEquality",
-  problemMessageTemplate:
-      r"""The element '#constant' does not have a primitive equality.""",
   withArgumentsOld: _withArgumentsOldConstEvalElementNotPrimitiveEquality,
   withArguments: _withArgumentsConstEvalElementNotPrimitiveEquality,
 );
@@ -1505,8 +1404,6 @@ const Template<
 >
 codeConstEvalEqualsOperandNotPrimitiveEquality = const Template(
   "ConstEvalEqualsOperandNotPrimitiveEquality",
-  problemMessageTemplate:
-      r"""Binary operator '==' requires receiver constant '#constant' of a type with primitive equality or type 'double', but was of type '#type'.""",
   withArgumentsOld: _withArgumentsOldConstEvalEqualsOperandNotPrimitiveEquality,
   withArguments: _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality,
 );
@@ -1544,7 +1441,6 @@ const Template<
 >
 codeConstEvalError = const Template(
   "ConstEvalError",
-  problemMessageTemplate: r"""Error evaluating constant expression: #string""",
   withArgumentsOld: _withArgumentsOldConstEvalError,
   withArguments: _withArgumentsConstEvalError,
 );
@@ -1597,8 +1493,6 @@ const Template<
 >
 codeConstEvalFailedAssertionWithMessage = const Template(
   "ConstEvalFailedAssertionWithMessage",
-  problemMessageTemplate:
-      r"""This assertion failed with message: #stringOKEmpty""",
   withArgumentsOld: _withArgumentsOldConstEvalFailedAssertionWithMessage,
   withArguments: _withArgumentsConstEvalFailedAssertionWithMessage,
 );
@@ -1637,7 +1531,6 @@ const Template<
 >
 codeConstEvalGetterNotFound = const Template(
   "ConstEvalGetterNotFound",
-  problemMessageTemplate: r"""Variable get not found: '#nameOKEmpty'""",
   withArgumentsOld: _withArgumentsOldConstEvalGetterNotFound,
   withArguments: _withArgumentsConstEvalGetterNotFound,
 );
@@ -1673,8 +1566,6 @@ const Template<
 >
 codeConstEvalInvalidBinaryOperandType = const Template(
   "ConstEvalInvalidBinaryOperandType",
-  problemMessageTemplate:
-      r"""Binary operator '#stringOKEmpty' on '#constant' requires operand of type '#type', but was of type '#type2'.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidBinaryOperandType,
   withArguments: _withArgumentsConstEvalInvalidBinaryOperandType,
 );
@@ -1725,8 +1616,6 @@ const Template<
 >
 codeConstEvalInvalidEqualsOperandType = const Template(
   "ConstEvalInvalidEqualsOperandType",
-  problemMessageTemplate:
-      r"""Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidEqualsOperandType,
   withArguments: _withArgumentsConstEvalInvalidEqualsOperandType,
 );
@@ -1764,8 +1653,6 @@ const Template<
 >
 codeConstEvalInvalidMethodInvocation = const Template(
   "ConstEvalInvalidMethodInvocation",
-  problemMessageTemplate:
-      r"""The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidMethodInvocation,
   withArguments: _withArgumentsConstEvalInvalidMethodInvocation,
 );
@@ -1803,8 +1690,6 @@ const Template<
 >
 codeConstEvalInvalidPropertyGet = const Template(
   "ConstEvalInvalidPropertyGet",
-  problemMessageTemplate:
-      r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidPropertyGet,
   withArguments: _withArgumentsConstEvalInvalidPropertyGet,
 );
@@ -1842,8 +1727,6 @@ const Template<
 >
 codeConstEvalInvalidRecordIndexGet = const Template(
   "ConstEvalInvalidRecordIndexGet",
-  problemMessageTemplate:
-      r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidRecordIndexGet,
   withArguments: _withArgumentsConstEvalInvalidRecordIndexGet,
 );
@@ -1881,8 +1764,6 @@ const Template<
 >
 codeConstEvalInvalidRecordNameGet = const Template(
   "ConstEvalInvalidRecordNameGet",
-  problemMessageTemplate:
-      r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidRecordNameGet,
   withArguments: _withArgumentsConstEvalInvalidRecordNameGet,
 );
@@ -1920,8 +1801,6 @@ const Template<
 >
 codeConstEvalInvalidStaticInvocation = const Template(
   "ConstEvalInvalidStaticInvocation",
-  problemMessageTemplate:
-      r"""The invocation of '#nameOKEmpty' is not allowed in a constant expression.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidStaticInvocation,
   withArguments: _withArgumentsConstEvalInvalidStaticInvocation,
 );
@@ -1950,9 +1829,6 @@ const Template<
 >
 codeConstEvalInvalidStringInterpolationOperand = const Template(
   "ConstEvalInvalidStringInterpolationOperand",
-  problemMessageTemplate:
-      r"""The constant value '#constant' can't be used as part of a string interpolation in a constant expression.
-Only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidStringInterpolationOperand,
   withArguments: _withArgumentsConstEvalInvalidStringInterpolationOperand,
 );
@@ -1987,8 +1863,6 @@ const Template<
 >
 codeConstEvalInvalidSymbolName = const Template(
   "ConstEvalInvalidSymbolName",
-  problemMessageTemplate:
-      r"""The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#constant'.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidSymbolName,
   withArguments: _withArgumentsConstEvalInvalidSymbolName,
 );
@@ -2021,8 +1895,6 @@ const Template<
 >
 codeConstEvalInvalidType = const Template(
   "ConstEvalInvalidType",
-  problemMessageTemplate:
-      r"""Expected constant '#constant' to be of type '#type', but was of type '#type2'.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidType,
   withArguments: _withArgumentsConstEvalInvalidType,
 );
@@ -2064,8 +1936,6 @@ const Template<
 >
 codeConstEvalKeyImplementsEqual = const Template(
   "ConstEvalKeyImplementsEqual",
-  problemMessageTemplate:
-      r"""The key '#constant' does not have a primitive operator '=='.""",
   withArgumentsOld: _withArgumentsOldConstEvalKeyImplementsEqual,
   withArguments: _withArgumentsConstEvalKeyImplementsEqual,
 );
@@ -2096,8 +1966,6 @@ const Template<
 >
 codeConstEvalKeyNotPrimitiveEquality = const Template(
   "ConstEvalKeyNotPrimitiveEquality",
-  problemMessageTemplate:
-      r"""The key '#constant' does not have a primitive equality.""",
   withArgumentsOld: _withArgumentsOldConstEvalKeyNotPrimitiveEquality,
   withArguments: _withArgumentsConstEvalKeyNotPrimitiveEquality,
 );
@@ -2132,8 +2000,6 @@ const Template<
 >
 codeConstEvalNegativeShift = const Template(
   "ConstEvalNegativeShift",
-  problemMessageTemplate:
-      r"""Binary operator '#string' on '#string2' requires non-negative operand, but was '#string3'.""",
   withArgumentsOld: _withArgumentsOldConstEvalNegativeShift,
   withArguments: _withArgumentsConstEvalNegativeShift,
 );
@@ -2173,8 +2039,6 @@ const Template<
 >
 codeConstEvalNonConstantVariableGet = const Template(
   "ConstEvalNonConstantVariableGet",
-  problemMessageTemplate:
-      r"""The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed.""",
   withArgumentsOld: _withArgumentsOldConstEvalNonConstantVariableGet,
   withArguments: _withArgumentsConstEvalNonConstantVariableGet,
 );
@@ -2234,8 +2098,6 @@ const Template<
 >
 codeConstEvalTruncateError = const Template(
   "ConstEvalTruncateError",
-  problemMessageTemplate:
-      r"""Binary operator '#string ~/ #string2' results is Infinity or NaN.""",
   withArgumentsOld: _withArgumentsOldConstEvalTruncateError,
   withArguments: _withArgumentsConstEvalTruncateError,
 );
@@ -2274,7 +2136,6 @@ const Template<
 >
 codeConstEvalUnhandledCoreException = const Template(
   "ConstEvalUnhandledCoreException",
-  problemMessageTemplate: r"""Unhandled core exception: #stringOKEmpty""",
   withArgumentsOld: _withArgumentsOldConstEvalUnhandledCoreException,
   withArguments: _withArgumentsConstEvalUnhandledCoreException,
 );
@@ -2304,7 +2165,6 @@ const Template<
 >
 codeConstEvalUnhandledException = const Template(
   "ConstEvalUnhandledException",
-  problemMessageTemplate: r"""Unhandled exception: #constant""",
   withArgumentsOld: _withArgumentsOldConstEvalUnhandledException,
   withArguments: _withArgumentsConstEvalUnhandledException,
 );
@@ -2334,8 +2194,6 @@ const Template<
 >
 codeConstEvalZeroDivisor = const Template(
   "ConstEvalZeroDivisor",
-  problemMessageTemplate:
-      r"""Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'.""",
   withArgumentsOld: _withArgumentsOldConstEvalZeroDivisor,
   withArguments: _withArgumentsConstEvalZeroDivisor,
 );
@@ -2383,7 +2241,6 @@ const Template<
 >
 codeConstructorConflictsWithMember = const Template(
   "ConstructorConflictsWithMember",
-  problemMessageTemplate: r"""The constructor conflicts with member '#name'.""",
   withArgumentsOld: _withArgumentsOldConstructorConflictsWithMember,
   withArguments: _withArgumentsConstructorConflictsWithMember,
 );
@@ -2409,7 +2266,6 @@ const Template<
 >
 codeConstructorConflictsWithMemberCause = const Template(
   "ConstructorConflictsWithMemberCause",
-  problemMessageTemplate: r"""Conflicting member '#name'.""",
   withArgumentsOld: _withArgumentsOldConstructorConflictsWithMemberCause,
   withArguments: _withArgumentsConstructorConflictsWithMemberCause,
   severity: CfeSeverity.context,
@@ -2446,8 +2302,6 @@ const Template<
 >
 codeConstructorInitializeSameInstanceVariableSeveralTimes = const Template(
   "ConstructorInitializeSameInstanceVariableSeveralTimes",
-  problemMessageTemplate:
-      r"""'#name' was already initialized by this constructor.""",
   withArgumentsOld:
       _withArgumentsOldConstructorInitializeSameInstanceVariableSeveralTimes,
   withArguments:
@@ -2481,7 +2335,6 @@ const Template<
 >
 codeConstructorNotFound = const Template(
   "ConstructorNotFound",
-  problemMessageTemplate: r"""Couldn't find constructor '#name'.""",
   withArgumentsOld: _withArgumentsOldConstructorNotFound,
   withArguments: _withArgumentsConstructorNotFound,
 );
@@ -2514,10 +2367,6 @@ const Template<
 >
 codeConstructorShouldBeListedAsCallableInDynamicInterface = const Template(
   "ConstructorShouldBeListedAsCallableInDynamicInterface",
-  problemMessageTemplate:
-      r"""Cannot invoke constructor '#name' from a dynamic module.""",
-  correctionMessageTemplate:
-      r"""Try removing the call or update the dynamic interface to list constructor '#name' as callable.""",
   withArgumentsOld:
       _withArgumentsOldConstructorShouldBeListedAsCallableInDynamicInterface,
   withArguments:
@@ -2562,7 +2411,6 @@ const Template<
 >
 codeConstructorWithWrongNameContext = const Template(
   "ConstructorWithWrongNameContext",
-  problemMessageTemplate: r"""The name of the enclosing class is '#name'.""",
   withArgumentsOld: _withArgumentsOldConstructorWithWrongNameContext,
   withArguments: _withArgumentsConstructorWithWrongNameContext,
   severity: CfeSeverity.context,
@@ -2596,8 +2444,6 @@ const Template<
 >
 codeContinueTargetOutsideFunction = const Template(
   "ContinueTargetOutsideFunction",
-  problemMessageTemplate:
-      r"""Can't continue at '#name' in a different function.""",
   withArgumentsOld: _withArgumentsOldContinueTargetOutsideFunction,
   withArguments: _withArgumentsContinueTargetOutsideFunction,
 );
@@ -2624,8 +2470,6 @@ const Template<
 >
 codeCouldNotParseUri = const Template(
   "CouldNotParseUri",
-  problemMessageTemplate: r"""Couldn't parse URI '#string':
-  #string2.""",
   withArgumentsOld: _withArgumentsOldCouldNotParseUri,
   withArguments: _withArgumentsCouldNotParseUri,
 );
@@ -2656,10 +2500,6 @@ const Template<
 >
 codeCycleInTypeParameters = const Template(
   "CycleInTypeParameters",
-  problemMessageTemplate:
-      r"""Type '#name' is a bound of itself via '#string'.""",
-  correctionMessageTemplate:
-      r"""Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
   withArgumentsOld: _withArgumentsOldCycleInTypeParameters,
   withArguments: _withArgumentsCycleInTypeParameters,
 );
@@ -2692,7 +2532,6 @@ const Template<
 >
 codeCyclicClassHierarchy = const Template(
   "CyclicClassHierarchy",
-  problemMessageTemplate: r"""'#name' is a supertype of itself.""",
   withArgumentsOld: _withArgumentsOldCyclicClassHierarchy,
   withArguments: _withArgumentsCyclicClassHierarchy,
 );
@@ -2718,7 +2557,6 @@ const Template<
 >
 codeCyclicRedirectingFactoryConstructors = const Template(
   "CyclicRedirectingFactoryConstructors",
-  problemMessageTemplate: r"""Cyclic definition of factory '#name'.""",
   withArgumentsOld: _withArgumentsOldCyclicRedirectingFactoryConstructors,
   withArguments: _withArgumentsCyclicRedirectingFactoryConstructors,
 );
@@ -2753,7 +2591,6 @@ const Template<
 >
 codeCyclicTypedef = const Template(
   "CyclicTypedef",
-  problemMessageTemplate: r"""The typedef '#name' has a reference to itself.""",
   withArgumentsOld: _withArgumentsOldCyclicTypedef,
   withArguments: _withArgumentsCyclicTypedef,
 );
@@ -2785,8 +2622,6 @@ const Template<
 >
 codeDebugTrace = const Template(
   "DebugTrace",
-  problemMessageTemplate: r"""Fatal '#name' at:
-#string""",
   withArgumentsOld: _withArgumentsOldDebugTrace,
   withArguments: _withArgumentsDebugTrace,
   severity: CfeSeverity.ignored,
@@ -2818,7 +2653,6 @@ const Template<
 >
 codeDeclarationConflictsWithSetter = const Template(
   "DeclarationConflictsWithSetter",
-  problemMessageTemplate: r"""The declaration conflicts with setter '#name'.""",
   withArgumentsOld: _withArgumentsOldDeclarationConflictsWithSetter,
   withArguments: _withArgumentsDeclarationConflictsWithSetter,
 );
@@ -2844,7 +2678,6 @@ const Template<
 >
 codeDeclarationConflictsWithSetterCause = const Template(
   "DeclarationConflictsWithSetterCause",
-  problemMessageTemplate: r"""Conflicting setter '#name'.""",
   withArgumentsOld: _withArgumentsOldDeclarationConflictsWithSetterCause,
   withArguments: _withArgumentsDeclarationConflictsWithSetterCause,
   severity: CfeSeverity.context,
@@ -2905,9 +2738,6 @@ const Template<
 >
 codeDefaultValueInRedirectingFactoryConstructor = const Template(
   "DefaultValueInRedirectingFactoryConstructor",
-  problemMessageTemplate:
-      r"""Can't have a default value here because any default values of '#name' would be used instead.""",
-  correctionMessageTemplate: r"""Try removing the default value.""",
   withArgumentsOld:
       _withArgumentsOldDefaultValueInRedirectingFactoryConstructor,
   withArguments: _withArgumentsDefaultValueInRedirectingFactoryConstructor,
@@ -2939,9 +2769,6 @@ const Template<
 >
 codeDeferredExtensionImport = const Template(
   "DeferredExtensionImport",
-  problemMessageTemplate:
-      r"""Extension '#name' cannot be imported through a deferred import.""",
-  correctionMessageTemplate: r"""Try adding the `hide #name` to the import.""",
   withArgumentsOld: _withArgumentsOldDeferredExtensionImport,
   withArguments: _withArgumentsDeferredExtensionImport,
 );
@@ -2969,8 +2796,6 @@ const Template<
 >
 codeDeferredPrefixDuplicated = const Template(
   "DeferredPrefixDuplicated",
-  problemMessageTemplate:
-      r"""Can't use the name '#name' for a deferred library, as the name is used elsewhere.""",
   withArgumentsOld: _withArgumentsOldDeferredPrefixDuplicated,
   withArguments: _withArgumentsDeferredPrefixDuplicated,
 );
@@ -2997,7 +2822,6 @@ const Template<
 >
 codeDeferredPrefixDuplicatedCause = const Template(
   "DeferredPrefixDuplicatedCause",
-  problemMessageTemplate: r"""'#name' is used here.""",
   withArgumentsOld: _withArgumentsOldDeferredPrefixDuplicatedCause,
   withArguments: _withArgumentsDeferredPrefixDuplicatedCause,
   severity: CfeSeverity.context,
@@ -3024,10 +2848,6 @@ const Template<
 >
 codeDeferredTypeAnnotation = const Template(
   "DeferredTypeAnnotation",
-  problemMessageTemplate:
-      r"""The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation.""",
-  correctionMessageTemplate:
-      r"""Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred.""",
   withArgumentsOld: _withArgumentsOldDeferredTypeAnnotation,
   withArguments: _withArgumentsDeferredTypeAnnotation,
 );
@@ -3068,10 +2888,6 @@ const Template<
 >
 codeDillOutlineSummary = const Template(
   "DillOutlineSummary",
-  problemMessageTemplate:
-      r"""Indexed #count libraries (#count2 bytes) in #num1%.3ms, that is,
-#num2%12.3 bytes/ms, and
-#num3%12.3 ms/libraries.""",
   withArgumentsOld: _withArgumentsOldDillOutlineSummary,
   withArguments: _withArgumentsDillOutlineSummary,
 );
@@ -3140,9 +2956,6 @@ const Template<
 >
 codeDirectCycleInTypeParameters = const Template(
   "DirectCycleInTypeParameters",
-  problemMessageTemplate: r"""Type '#name' can't use itself as a bound.""",
-  correctionMessageTemplate:
-      r"""Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
   withArgumentsOld: _withArgumentsOldDirectCycleInTypeParameters,
   withArguments: _withArgumentsDirectCycleInTypeParameters,
 );
@@ -3180,8 +2993,6 @@ const Template<
 >
 codeDotShorthandsInvalidContext = const Template(
   "DotShorthandsInvalidContext",
-  problemMessageTemplate:
-      r"""No type was provided to find the dot shorthand '#name'.""",
   withArgumentsOld: _withArgumentsOldDotShorthandsInvalidContext,
   withArguments: _withArgumentsDotShorthandsInvalidContext,
 );
@@ -3208,10 +3019,6 @@ const Template<
 >
 codeDotShorthandsUndefinedGetter = const Template(
   "DotShorthandsUndefinedGetter",
-  problemMessageTemplate:
-      r"""The static getter or field '#name' isn't defined for the type '#type'.""",
-  correctionMessageTemplate:
-      r"""Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '#name'.""",
   withArgumentsOld: _withArgumentsOldDotShorthandsUndefinedGetter,
   withArguments: _withArgumentsDotShorthandsUndefinedGetter,
 );
@@ -3248,10 +3055,6 @@ const Template<
 >
 codeDotShorthandsUndefinedInvocation = const Template(
   "DotShorthandsUndefinedInvocation",
-  problemMessageTemplate:
-      r"""The static method or constructor '#name' isn't defined for the type '#type'.""",
-  correctionMessageTemplate:
-      r"""Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#name'.""",
   withArgumentsOld: _withArgumentsOldDotShorthandsUndefinedInvocation,
   withArguments: _withArgumentsDotShorthandsUndefinedInvocation,
 );
@@ -3288,9 +3091,6 @@ const Template<
 >
 codeDuplicatePatternAssignmentVariable = const Template(
   "DuplicatePatternAssignmentVariable",
-  problemMessageTemplate:
-      r"""The variable '#name' is already assigned in this pattern.""",
-  correctionMessageTemplate: r"""Try renaming the variable.""",
   withArgumentsOld: _withArgumentsOldDuplicatePatternAssignmentVariable,
   withArguments: _withArgumentsDuplicatePatternAssignmentVariable,
 );
@@ -3328,9 +3128,6 @@ const Template<
 >
 codeDuplicateRecordPatternField = const Template(
   "DuplicateRecordPatternField",
-  problemMessageTemplate:
-      r"""The field '#name' is already matched in this pattern.""",
-  correctionMessageTemplate: r"""Try removing the duplicate field.""",
   withArgumentsOld: _withArgumentsOldDuplicateRecordPatternField,
   withArguments: _withArgumentsDuplicateRecordPatternField,
 );
@@ -3380,7 +3177,6 @@ const Template<
 >
 codeDuplicatedDeclaration = const Template(
   "DuplicatedDeclaration",
-  problemMessageTemplate: r"""'#name' is already declared in this scope.""",
   withArgumentsOld: _withArgumentsOldDuplicatedDeclaration,
   withArguments: _withArgumentsDuplicatedDeclaration,
 );
@@ -3406,7 +3202,6 @@ const Template<
 >
 codeDuplicatedDeclarationCause = const Template(
   "DuplicatedDeclarationCause",
-  problemMessageTemplate: r"""Previous declaration of '#name'.""",
   withArgumentsOld: _withArgumentsOldDuplicatedDeclarationCause,
   withArguments: _withArgumentsDuplicatedDeclarationCause,
   severity: CfeSeverity.context,
@@ -3433,8 +3228,6 @@ const Template<
 >
 codeDuplicatedDeclarationSyntheticCause = const Template(
   "DuplicatedDeclarationSyntheticCause",
-  problemMessageTemplate:
-      r"""Previous declaration of '#name' is implied by this definition.""",
   withArgumentsOld: _withArgumentsOldDuplicatedDeclarationSyntheticCause,
   withArguments: _withArgumentsDuplicatedDeclarationSyntheticCause,
   severity: CfeSeverity.context,
@@ -3464,8 +3257,6 @@ const Template<
 >
 codeDuplicatedDeclarationUse = const Template(
   "DuplicatedDeclarationUse",
-  problemMessageTemplate:
-      r"""Can't use '#name' because it is declared more than once.""",
   withArgumentsOld: _withArgumentsOldDuplicatedDeclarationUse,
   withArguments: _withArgumentsDuplicatedDeclarationUse,
 );
@@ -3492,8 +3283,6 @@ const Template<
 >
 codeDuplicatedExport = const Template(
   "DuplicatedExport",
-  problemMessageTemplate:
-      r"""'#name' is exported from both '#uri' and '#uri2'.""",
   withArgumentsOld: _withArgumentsOldDuplicatedExport,
   withArguments: _withArgumentsDuplicatedExport,
 );
@@ -3526,8 +3315,6 @@ const Template<
 >
 codeDuplicatedImport = const Template(
   "DuplicatedImport",
-  problemMessageTemplate:
-      r"""'#name' is imported from both '#uri' and '#uri2'.""",
   withArgumentsOld: _withArgumentsOldDuplicatedImport,
   withArguments: _withArgumentsDuplicatedImport,
 );
@@ -3560,7 +3347,6 @@ const Template<
 >
 codeDuplicatedNamedArgument = const Template(
   "DuplicatedNamedArgument",
-  problemMessageTemplate: r"""Duplicated named argument '#name'.""",
   withArgumentsOld: _withArgumentsOldDuplicatedNamedArgument,
   withArguments: _withArgumentsDuplicatedNamedArgument,
 );
@@ -3586,7 +3372,6 @@ const Template<
 >
 codeDuplicatedParameterName = const Template(
   "DuplicatedParameterName",
-  problemMessageTemplate: r"""Duplicated parameter name '#name'.""",
   withArgumentsOld: _withArgumentsOldDuplicatedParameterName,
   withArguments: _withArgumentsDuplicatedParameterName,
 );
@@ -3612,7 +3397,6 @@ const Template<
 >
 codeDuplicatedParameterNameCause = const Template(
   "DuplicatedParameterNameCause",
-  problemMessageTemplate: r"""Other parameter named '#name'.""",
   withArgumentsOld: _withArgumentsOldDuplicatedParameterNameCause,
   withArguments: _withArgumentsDuplicatedParameterNameCause,
   severity: CfeSeverity.context,
@@ -3639,9 +3423,6 @@ const Template<
 >
 codeDuplicatedRecordLiteralFieldName = const Template(
   "DuplicatedRecordLiteralFieldName",
-  problemMessageTemplate: r"""Duplicated record literal field name '#name'.""",
-  correctionMessageTemplate:
-      r"""Try renaming or removing one of the named record literal fields.""",
   withArgumentsOld: _withArgumentsOldDuplicatedRecordLiteralFieldName,
   withArguments: _withArgumentsDuplicatedRecordLiteralFieldName,
 );
@@ -3669,8 +3450,6 @@ const Template<
 >
 codeDuplicatedRecordLiteralFieldNameContext = const Template(
   "DuplicatedRecordLiteralFieldNameContext",
-  problemMessageTemplate:
-      r"""This is the existing record literal field named '#name'.""",
   withArgumentsOld: _withArgumentsOldDuplicatedRecordLiteralFieldNameContext,
   withArguments: _withArgumentsDuplicatedRecordLiteralFieldNameContext,
   severity: CfeSeverity.context,
@@ -3700,9 +3479,6 @@ const Template<
 >
 codeDuplicatedRecordTypeFieldName = const Template(
   "DuplicatedRecordTypeFieldName",
-  problemMessageTemplate: r"""Duplicated record type field name '#name'.""",
-  correctionMessageTemplate:
-      r"""Try renaming or removing one of the named record type fields.""",
   withArgumentsOld: _withArgumentsOldDuplicatedRecordTypeFieldName,
   withArguments: _withArgumentsDuplicatedRecordTypeFieldName,
 );
@@ -3730,8 +3506,6 @@ const Template<
 >
 codeDuplicatedRecordTypeFieldNameContext = const Template(
   "DuplicatedRecordTypeFieldNameContext",
-  problemMessageTemplate:
-      r"""This is the existing record type field named '#name'.""",
   withArgumentsOld: _withArgumentsOldDuplicatedRecordTypeFieldNameContext,
   withArguments: _withArgumentsDuplicatedRecordTypeFieldNameContext,
   severity: CfeSeverity.context,
@@ -3793,8 +3567,6 @@ const Template<
 >
 codeEnumContainsRestrictedInstanceDeclaration = const Template(
   "EnumContainsRestrictedInstanceDeclaration",
-  problemMessageTemplate:
-      r"""An enum can't declare a non-abstract member named '#name'.""",
   withArgumentsOld: _withArgumentsOldEnumContainsRestrictedInstanceDeclaration,
   withArguments: _withArgumentsEnumContainsRestrictedInstanceDeclaration,
 );
@@ -3843,8 +3615,6 @@ const Template<
 >
 codeEnumImplementerContainsRestrictedInstanceDeclaration = const Template(
   "EnumImplementerContainsRestrictedInstanceDeclaration",
-  problemMessageTemplate:
-      r"""'#name' has 'Enum' as a superinterface and can't contain non-static members with name '#name2'.""",
   withArgumentsOld:
       _withArgumentsOldEnumImplementerContainsRestrictedInstanceDeclaration,
   withArguments:
@@ -3882,8 +3652,6 @@ const Template<
 >
 codeEnumImplementerContainsValuesDeclaration = const Template(
   "EnumImplementerContainsValuesDeclaration",
-  problemMessageTemplate:
-      r"""'#name' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.""",
   withArgumentsOld: _withArgumentsOldEnumImplementerContainsValuesDeclaration,
   withArguments: _withArgumentsEnumImplementerContainsValuesDeclaration,
 );
@@ -3913,7 +3681,6 @@ const Template<
 >
 codeEnumInheritsRestricted = const Template(
   "EnumInheritsRestricted",
-  problemMessageTemplate: r"""An enum can't inherit a member named '#name'.""",
   withArgumentsOld: _withArgumentsOldEnumInheritsRestricted,
   withArguments: _withArgumentsEnumInheritsRestricted,
 );
@@ -3959,8 +3726,6 @@ const Template<
 >
 codeEnumSupertypeOfNonAbstractClass = const Template(
   "EnumSupertypeOfNonAbstractClass",
-  problemMessageTemplate:
-      r"""Non-abstract class '#name' has 'Enum' as a superinterface.""",
   withArgumentsOld: _withArgumentsOldEnumSupertypeOfNonAbstractClass,
   withArguments: _withArgumentsEnumSupertypeOfNonAbstractClass,
 );
@@ -4008,7 +3773,6 @@ const Template<
 >
 codeExceptionReadingFile = const Template(
   "ExceptionReadingFile",
-  problemMessageTemplate: r"""Exception when reading '#uri': #string""",
   withArgumentsOld: _withArgumentsOldExceptionReadingFile,
   withArguments: _withArgumentsExceptionReadingFile,
 );
@@ -4075,10 +3839,6 @@ const Template<
 >
 codeExperimentDisabled = const Template(
   "ExperimentDisabled",
-  problemMessageTemplate:
-      r"""This requires the '#string' language feature to be enabled.""",
-  correctionMessageTemplate:
-      r"""The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed.""",
   withArgumentsOld: _withArgumentsOldExperimentDisabled,
   withArguments: _withArgumentsExperimentDisabled,
 );
@@ -4107,8 +3867,6 @@ const Template<
 >
 codeExperimentDisabledInvalidLanguageVersion = const Template(
   "ExperimentDisabledInvalidLanguageVersion",
-  problemMessageTemplate:
-      r"""This requires the '#string' language feature, which requires language version of #string2 or higher.""",
   withArgumentsOld: _withArgumentsOldExperimentDisabledInvalidLanguageVersion,
   withArguments: _withArgumentsExperimentDisabledInvalidLanguageVersion,
 );
@@ -4144,8 +3902,6 @@ const Template<
 >
 codeExperimentExpiredDisabled = const Template(
   "ExperimentExpiredDisabled",
-  problemMessageTemplate:
-      r"""The experiment '#name' has expired and can't be disabled.""",
   withArgumentsOld: _withArgumentsOldExperimentExpiredDisabled,
   withArguments: _withArgumentsExperimentExpiredDisabled,
 );
@@ -4172,8 +3928,6 @@ const Template<
 >
 codeExperimentExpiredEnabled = const Template(
   "ExperimentExpiredEnabled",
-  problemMessageTemplate:
-      r"""The experiment '#name' has expired and can't be enabled.""",
   withArgumentsOld: _withArgumentsOldExperimentExpiredEnabled,
   withArguments: _withArgumentsExperimentExpiredEnabled,
 );
@@ -4200,8 +3954,6 @@ const Template<
 >
 codeExperimentOptOutComment = const Template(
   "ExperimentOptOutComment",
-  problemMessageTemplate:
-      r"""This is the annotation that opts out this library from the '#string' language feature.""",
   withArgumentsOld: _withArgumentsOldExperimentOptOutComment,
   withArguments: _withArgumentsExperimentOptOutComment,
   severity: CfeSeverity.context,
@@ -4229,10 +3981,6 @@ const Template<
 >
 codeExperimentOptOutExplicit = const Template(
   "ExperimentOptOutExplicit",
-  problemMessageTemplate:
-      r"""The '#string' language feature is disabled for this library.""",
-  correctionMessageTemplate:
-      r"""Try removing the `@dart=` annotation or setting the language version to #string2 or higher.""",
   withArgumentsOld: _withArgumentsOldExperimentOptOutExplicit,
   withArguments: _withArgumentsExperimentOptOutExplicit,
 );
@@ -4267,10 +4015,6 @@ const Template<
 >
 codeExperimentOptOutImplicit = const Template(
   "ExperimentOptOutImplicit",
-  problemMessageTemplate:
-      r"""The '#string' language feature is disabled for this library.""",
-  correctionMessageTemplate:
-      r"""Try removing the package language version or setting the language version to #string2 or higher.""",
   withArgumentsOld: _withArgumentsOldExperimentOptOutImplicit,
   withArguments: _withArgumentsExperimentOptOutImplicit,
 );
@@ -4326,8 +4070,6 @@ const Template<
 >
 codeExplicitExtensionTypeArgumentMismatch = const Template(
   "ExplicitExtensionTypeArgumentMismatch",
-  problemMessageTemplate:
-      r"""Explicit extension application of extension '#name' takes '#count' type argument(s).""",
   withArgumentsOld: _withArgumentsOldExplicitExtensionTypeArgumentMismatch,
   withArguments: _withArgumentsExplicitExtensionTypeArgumentMismatch,
 );
@@ -4369,8 +4111,6 @@ const Template<
 >
 codeExpressionEvaluationKnownVariableUnavailable = const Template(
   "ExpressionEvaluationKnownVariableUnavailable",
-  problemMessageTemplate:
-      r"""The variable '#name' is unavailable in this expression evaluation.""",
   withArgumentsOld:
       _withArgumentsOldExpressionEvaluationKnownVariableUnavailable,
   withArguments: _withArgumentsExpressionEvaluationKnownVariableUnavailable,
@@ -4408,8 +4148,6 @@ const Template<
 >
 codeExtendingEnum = const Template(
   "ExtendingEnum",
-  problemMessageTemplate:
-      r"""'#name' is an enum and can't be extended or implemented.""",
   withArgumentsOld: _withArgumentsOldExtendingEnum,
   withArguments: _withArgumentsExtendingEnum,
 );
@@ -4436,8 +4174,6 @@ const Template<
 >
 codeExtendingRestricted = const Template(
   "ExtendingRestricted",
-  problemMessageTemplate:
-      r"""'#name' is restricted and can't be extended or implemented.""",
   withArgumentsOld: _withArgumentsOldExtendingRestricted,
   withArguments: _withArgumentsExtendingRestricted,
 );
@@ -4478,8 +4214,6 @@ const Template<
 >
 codeExtensionMemberConflictsWithObjectMember = const Template(
   "ExtensionMemberConflictsWithObjectMember",
-  problemMessageTemplate:
-      r"""This extension member conflicts with Object member '#name'.""",
   withArgumentsOld: _withArgumentsOldExtensionMemberConflictsWithObjectMember,
   withArguments: _withArgumentsExtensionMemberConflictsWithObjectMember,
 );
@@ -4509,10 +4243,6 @@ const Template<
 >
 codeExtensionTypeCombinedMemberSignatureFailed = const Template(
   "ExtensionTypeCombinedMemberSignatureFailed",
-  problemMessageTemplate:
-      r"""Extension type '#name' inherits multiple members named '#name2' with incompatible signatures.""",
-  correctionMessageTemplate:
-      r"""Try adding a declaration of '#name2' to '#name'.""",
   withArgumentsOld: _withArgumentsOldExtensionTypeCombinedMemberSignatureFailed,
   withArguments: _withArgumentsExtensionTypeCombinedMemberSignatureFailed,
 );
@@ -4612,10 +4342,6 @@ const Template<
 >
 codeExtensionTypeShouldBeListedAsCallableInDynamicInterface = const Template(
   "ExtensionTypeShouldBeListedAsCallableInDynamicInterface",
-  problemMessageTemplate:
-      r"""Cannot use extension type '#name' in a dynamic module.""",
-  correctionMessageTemplate:
-      r"""Try removing the reference to extension type '#name' or update the dynamic interface to list extension type '#name' as callable.""",
   withArgumentsOld:
       _withArgumentsOldExtensionTypeShouldBeListedAsCallableInDynamicInterface,
   withArguments:
@@ -4668,7 +4394,6 @@ const Template<
 >
 codeFactoryConflictsWithMember = const Template(
   "FactoryConflictsWithMember",
-  problemMessageTemplate: r"""The factory conflicts with member '#name'.""",
   withArgumentsOld: _withArgumentsOldFactoryConflictsWithMember,
   withArguments: _withArgumentsFactoryConflictsWithMember,
 );
@@ -4694,7 +4419,6 @@ const Template<
 >
 codeFactoryConflictsWithMemberCause = const Template(
   "FactoryConflictsWithMemberCause",
-  problemMessageTemplate: r"""Conflicting member '#name'.""",
   withArgumentsOld: _withArgumentsOldFactoryConflictsWithMemberCause,
   withArguments: _withArgumentsFactoryConflictsWithMemberCause,
   severity: CfeSeverity.context,
@@ -4857,9 +4581,6 @@ const Template<
 >
 codeFfiCompoundImplementsFinalizable = const Template(
   "FfiCompoundImplementsFinalizable",
-  problemMessageTemplate: r"""#string '#name' can't implement Finalizable.""",
-  correctionMessageTemplate:
-      r"""Try removing the implements clause from '#name'.""",
   withArgumentsOld: _withArgumentsOldFfiCompoundImplementsFinalizable,
   withArguments: _withArgumentsFfiCompoundImplementsFinalizable,
 );
@@ -4900,7 +4621,6 @@ const Template<
 >
 codeFfiDartTypeMismatch = const Template(
   "FfiDartTypeMismatch",
-  problemMessageTemplate: r"""Expected '#type' to be a subtype of '#type2'.""",
   withArgumentsOld: _withArgumentsOldFfiDartTypeMismatch,
   withArguments: _withArgumentsFfiDartTypeMismatch,
 );
@@ -4987,8 +4707,6 @@ const Template<
 >
 codeFfiEmptyStruct = const Template(
   "FfiEmptyStruct",
-  problemMessageTemplate:
-      r"""#string '#name' is empty. Empty structs and unions are undefined behavior.""",
   withArgumentsOld: _withArgumentsOldFfiEmptyStruct,
   withArguments: _withArgumentsFfiEmptyStruct,
 );
@@ -5031,7 +4749,6 @@ const Template<
 >
 codeFfiExpectedConstantArg = const Template(
   "FfiExpectedConstantArg",
-  problemMessageTemplate: r"""Argument '#name' must be a constant.""",
   withArgumentsOld: _withArgumentsOldFfiExpectedConstantArg,
   withArguments: _withArgumentsFfiExpectedConstantArg,
 );
@@ -5057,8 +4774,6 @@ const Template<
 >
 codeFfiExpectedExceptionalReturn = const Template(
   "FfiExpectedExceptionalReturn",
-  problemMessageTemplate:
-      r"""Expected an exceptional return value for a native callback returning '#type'.""",
   withArgumentsOld: _withArgumentsOldFfiExpectedExceptionalReturn,
   withArguments: _withArgumentsFfiExpectedExceptionalReturn,
 );
@@ -5087,8 +4802,6 @@ const Template<
 >
 codeFfiExpectedNoExceptionalReturn = const Template(
   "FfiExpectedNoExceptionalReturn",
-  problemMessageTemplate:
-      r"""Exceptional return value cannot be provided for a native callback returning '#type'.""",
   withArgumentsOld: _withArgumentsOldFfiExpectedNoExceptionalReturn,
   withArguments: _withArgumentsFfiExpectedNoExceptionalReturn,
 );
@@ -5117,8 +4830,6 @@ const Template<
 >
 codeFfiExtendsOrImplementsSealedClass = const Template(
   "FfiExtendsOrImplementsSealedClass",
-  problemMessageTemplate:
-      r"""Class '#name' cannot be extended or implemented.""",
   withArgumentsOld: _withArgumentsOldFfiExtendsOrImplementsSealedClass,
   withArguments: _withArgumentsFfiExtendsOrImplementsSealedClass,
 );
@@ -5146,8 +4857,6 @@ const Template<
 >
 codeFfiFieldAnnotation = const Template(
   "FfiFieldAnnotation",
-  problemMessageTemplate:
-      r"""Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields.""",
   withArgumentsOld: _withArgumentsOldFfiFieldAnnotation,
   withArguments: _withArgumentsFfiFieldAnnotation,
 );
@@ -5178,8 +4887,6 @@ const Template<
 >
 codeFfiFieldCyclic = const Template(
   "FfiFieldCyclic",
-  problemMessageTemplate: r"""#string '#name' contains itself. Cycle elements:
-#names""",
   withArgumentsOld: _withArgumentsOldFfiFieldCyclic,
   withArguments: _withArgumentsFfiFieldCyclic,
 );
@@ -5215,10 +4922,6 @@ const Template<
 >
 codeFfiFieldInitializer = const Template(
   "FfiFieldInitializer",
-  problemMessageTemplate:
-      r"""Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
-  correctionMessageTemplate:
-      r"""Mark the field as external to avoid having to initialize it.""",
   withArgumentsOld: _withArgumentsOldFfiFieldInitializer,
   withArguments: _withArgumentsFfiFieldInitializer,
 );
@@ -5247,8 +4950,6 @@ const Template<
 >
 codeFfiFieldNoAnnotation = const Template(
   "FfiFieldNoAnnotation",
-  problemMessageTemplate:
-      r"""Field '#name' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code.""",
   withArgumentsOld: _withArgumentsOldFfiFieldNoAnnotation,
   withArguments: _withArgumentsFfiFieldNoAnnotation,
 );
@@ -5275,8 +4976,6 @@ const Template<
 >
 codeFfiFieldNull = const Template(
   "FfiFieldNull",
-  problemMessageTemplate:
-      r"""Field '#name' cannot be nullable or have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
   withArgumentsOld: _withArgumentsOldFfiFieldNull,
   withArguments: _withArgumentsFfiFieldNull,
 );
@@ -5315,8 +5014,6 @@ const Template<
 >
 codeFfiNativeCallableListenerReturnVoid = const Template(
   "FfiNativeCallableListenerReturnVoid",
-  problemMessageTemplate:
-      r"""The return type of the function passed to NativeCallable.listener must be void rather than '#type'.""",
   withArgumentsOld: _withArgumentsOldFfiNativeCallableListenerReturnVoid,
   withArguments: _withArgumentsFfiNativeCallableListenerReturnVoid,
 );
@@ -5395,8 +5092,6 @@ const Template<
 >
 codeFfiNativeUnexpectedNumberOfParameters = const Template(
   "FfiNativeUnexpectedNumberOfParameters",
-  problemMessageTemplate:
-      r"""Unexpected number of Native annotation parameters. Expected #count but has #count2.""",
   withArgumentsOld: _withArgumentsOldFfiNativeUnexpectedNumberOfParameters,
   withArguments: _withArgumentsFfiNativeUnexpectedNumberOfParameters,
 );
@@ -5430,8 +5125,6 @@ const Template<
 >
 codeFfiNativeUnexpectedNumberOfParametersWithReceiver = const Template(
   "FfiNativeUnexpectedNumberOfParametersWithReceiver",
-  problemMessageTemplate:
-      r"""Unexpected number of Native annotation parameters. Expected #count but has #count2. Native instance method annotation must have receiver as first argument.""",
   withArgumentsOld:
       _withArgumentsOldFfiNativeUnexpectedNumberOfParametersWithReceiver,
   withArguments:
@@ -5467,8 +5160,6 @@ const Template<
 >
 codeFfiNotStatic = const Template(
   "FfiNotStatic",
-  problemMessageTemplate:
-      r"""#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context.""",
   withArgumentsOld: _withArgumentsOldFfiNotStatic,
   withArguments: _withArgumentsFfiNotStatic,
 );
@@ -5495,8 +5186,6 @@ const Template<
 >
 codeFfiPackedAnnotation = const Template(
   "FfiPackedAnnotation",
-  problemMessageTemplate:
-      r"""Struct '#name' must have at most one 'Packed' annotation.""",
   withArgumentsOld: _withArgumentsOldFfiPackedAnnotation,
   withArguments: _withArgumentsFfiPackedAnnotation,
 );
@@ -5529,8 +5218,6 @@ const Template<
 >
 codeFfiSizeAnnotation = const Template(
   "FfiSizeAnnotation",
-  problemMessageTemplate:
-      r"""Field '#name' must have exactly one 'Array' annotation.""",
   withArgumentsOld: _withArgumentsOldFfiSizeAnnotation,
   withArguments: _withArgumentsFfiSizeAnnotation,
 );
@@ -5557,8 +5244,6 @@ const Template<
 >
 codeFfiSizeAnnotationDimensions = const Template(
   "FfiSizeAnnotationDimensions",
-  problemMessageTemplate:
-      r"""Field '#name' must have an 'Array' annotation that matches the dimensions.""",
   withArgumentsOld: _withArgumentsOldFfiSizeAnnotationDimensions,
   withArguments: _withArgumentsFfiSizeAnnotationDimensions,
 );
@@ -5585,7 +5270,6 @@ const Template<
 >
 codeFfiStructGeneric = const Template(
   "FfiStructGeneric",
-  problemMessageTemplate: r"""#string '#name' should not be generic.""",
   withArgumentsOld: _withArgumentsOldFfiStructGeneric,
   withArguments: _withArgumentsFfiStructGeneric,
 );
@@ -5615,8 +5299,6 @@ const Template<
 >
 codeFfiTypeInvalid = const Template(
   "FfiTypeInvalid",
-  problemMessageTemplate:
-      r"""Expected type '#type' to be a valid and instantiated subtype of 'NativeType'.""",
   withArgumentsOld: _withArgumentsOldFfiTypeInvalid,
   withArguments: _withArgumentsFfiTypeInvalid,
 );
@@ -5649,8 +5331,6 @@ const Template<
 >
 codeFfiTypeMismatch = const Template(
   "FfiTypeMismatch",
-  problemMessageTemplate:
-      r"""Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'.""",
   withArgumentsOld: _withArgumentsOldFfiTypeMismatch,
   withArguments: _withArgumentsFfiTypeMismatch,
 );
@@ -5697,8 +5377,6 @@ const Template<
 >
 codeFieldAlreadyInitializedAtDeclaration = const Template(
   "FieldAlreadyInitializedAtDeclaration",
-  problemMessageTemplate:
-      r"""'#name' is a final instance variable that was initialized at the declaration.""",
   withArgumentsOld: _withArgumentsOldFieldAlreadyInitializedAtDeclaration,
   withArguments: _withArgumentsFieldAlreadyInitializedAtDeclaration,
 );
@@ -5727,7 +5405,6 @@ const Template<
 >
 codeFieldAlreadyInitializedAtDeclarationCause = const Template(
   "FieldAlreadyInitializedAtDeclarationCause",
-  problemMessageTemplate: r"""'#name' was initialized here.""",
   withArgumentsOld: _withArgumentsOldFieldAlreadyInitializedAtDeclarationCause,
   withArguments: _withArgumentsFieldAlreadyInitializedAtDeclarationCause,
   severity: CfeSeverity.context,
@@ -5757,8 +5434,6 @@ const Template<
 >
 codeFieldNonNullableNotInitializedByConstructorError = const Template(
   "FieldNonNullableNotInitializedByConstructorError",
-  problemMessageTemplate:
-      r"""This constructor should initialize field '#name' because its type '#type' doesn't allow null.""",
   withArgumentsOld:
       _withArgumentsOldFieldNonNullableNotInitializedByConstructorError,
   withArguments: _withArgumentsFieldNonNullableNotInitializedByConstructorError,
@@ -5797,8 +5472,6 @@ const Template<
 >
 codeFieldNonNullableWithoutInitializerError = const Template(
   "FieldNonNullableWithoutInitializerError",
-  problemMessageTemplate:
-      r"""Field '#name' should be initialized because its type '#type' doesn't allow null.""",
   withArgumentsOld: _withArgumentsOldFieldNonNullableWithoutInitializerError,
   withArguments: _withArgumentsFieldNonNullableWithoutInitializerError,
 );
@@ -5840,9 +5513,6 @@ const Template<
 >
 codeFieldNotPromotedBecauseConflictingField = const Template(
   "FieldNotPromotedBecauseConflictingField",
-  problemMessageTemplate:
-      r"""'#name' couldn't be promoted because there is a conflicting non-promotable field in class '#name2'.""",
-  correctionMessageTemplate: r"""See #string""",
   withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseConflictingField,
   withArguments: _withArgumentsFieldNotPromotedBecauseConflictingField,
 );
@@ -5887,9 +5557,6 @@ const Template<
 >
 codeFieldNotPromotedBecauseConflictingGetter = const Template(
   "FieldNotPromotedBecauseConflictingGetter",
-  problemMessageTemplate:
-      r"""'#name' couldn't be promoted because there is a conflicting getter in class '#name2'.""",
-  correctionMessageTemplate: r"""See #string""",
   withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseConflictingGetter,
   withArguments: _withArgumentsFieldNotPromotedBecauseConflictingGetter,
 );
@@ -5934,9 +5601,6 @@ const Template<
 >
 codeFieldNotPromotedBecauseConflictingNsmForwarder = const Template(
   "FieldNotPromotedBecauseConflictingNsmForwarder",
-  problemMessageTemplate:
-      r"""'#name' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '#name2'.""",
-  correctionMessageTemplate: r"""See #string""",
   withArgumentsOld:
       _withArgumentsOldFieldNotPromotedBecauseConflictingNsmForwarder,
   withArguments: _withArgumentsFieldNotPromotedBecauseConflictingNsmForwarder,
@@ -5978,9 +5642,6 @@ const Template<
 >
 codeFieldNotPromotedBecauseExternal = const Template(
   "FieldNotPromotedBecauseExternal",
-  problemMessageTemplate:
-      r"""'#name' refers to an external field so it couldn't be promoted.""",
-  correctionMessageTemplate: r"""See #string""",
   withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseExternal,
   withArguments: _withArgumentsFieldNotPromotedBecauseExternal,
 );
@@ -6014,9 +5675,6 @@ const Template<
 >
 codeFieldNotPromotedBecauseNotEnabled = const Template(
   "FieldNotPromotedBecauseNotEnabled",
-  problemMessageTemplate:
-      r"""'#name' couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
-  correctionMessageTemplate: r"""See #string""",
   withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseNotEnabled,
   withArguments: _withArgumentsFieldNotPromotedBecauseNotEnabled,
 );
@@ -6051,9 +5709,6 @@ const Template<
 >
 codeFieldNotPromotedBecauseNotField = const Template(
   "FieldNotPromotedBecauseNotField",
-  problemMessageTemplate:
-      r"""'#name' refers to a getter so it couldn't be promoted.""",
-  correctionMessageTemplate: r"""See #string""",
   withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseNotField,
   withArguments: _withArgumentsFieldNotPromotedBecauseNotField,
 );
@@ -6087,9 +5742,6 @@ const Template<
 >
 codeFieldNotPromotedBecauseNotFinal = const Template(
   "FieldNotPromotedBecauseNotFinal",
-  problemMessageTemplate:
-      r"""'#name' refers to a non-final field so it couldn't be promoted.""",
-  correctionMessageTemplate: r"""See #string""",
   withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseNotFinal,
   withArguments: _withArgumentsFieldNotPromotedBecauseNotFinal,
 );
@@ -6123,9 +5775,6 @@ const Template<
 >
 codeFieldNotPromotedBecauseNotPrivate = const Template(
   "FieldNotPromotedBecauseNotPrivate",
-  problemMessageTemplate:
-      r"""'#name' refers to a public property so it couldn't be promoted.""",
-  correctionMessageTemplate: r"""See #string""",
   withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseNotPrivate,
   withArguments: _withArgumentsFieldNotPromotedBecauseNotPrivate,
 );
@@ -6160,8 +5809,6 @@ const Template<
 >
 codeFinalClassExtendedOutsideOfLibrary = const Template(
   "FinalClassExtendedOutsideOfLibrary",
-  problemMessageTemplate:
-      r"""The class '#name' can't be extended outside of its library because it's a final class.""",
   withArgumentsOld: _withArgumentsOldFinalClassExtendedOutsideOfLibrary,
   withArguments: _withArgumentsFinalClassExtendedOutsideOfLibrary,
 );
@@ -6190,8 +5837,6 @@ const Template<
 >
 codeFinalClassImplementedOutsideOfLibrary = const Template(
   "FinalClassImplementedOutsideOfLibrary",
-  problemMessageTemplate:
-      r"""The class '#name' can't be implemented outside of its library because it's a final class.""",
   withArgumentsOld: _withArgumentsOldFinalClassImplementedOutsideOfLibrary,
   withArguments: _withArgumentsFinalClassImplementedOutsideOfLibrary,
 );
@@ -6220,8 +5865,6 @@ const Template<
 >
 codeFinalClassUsedAsMixinConstraintOutsideOfLibrary = const Template(
   "FinalClassUsedAsMixinConstraintOutsideOfLibrary",
-  problemMessageTemplate:
-      r"""The class '#name' can't be used as a mixin superclass constraint outside of its library because it's a final class.""",
   withArgumentsOld:
       _withArgumentsOldFinalClassUsedAsMixinConstraintOutsideOfLibrary,
   withArguments: _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary,
@@ -6252,9 +5895,6 @@ const Template<
 >
 codeFinalFieldNotInitialized = const Template(
   "FinalFieldNotInitialized",
-  problemMessageTemplate: r"""Final field '#name' is not initialized.""",
-  correctionMessageTemplate:
-      r"""Try to initialize the field in the declaration or in every constructor.""",
   withArgumentsOld: _withArgumentsOldFinalFieldNotInitialized,
   withArguments: _withArgumentsFinalFieldNotInitialized,
 );
@@ -6282,10 +5922,6 @@ const Template<
 >
 codeFinalFieldNotInitializedByConstructor = const Template(
   "FinalFieldNotInitializedByConstructor",
-  problemMessageTemplate:
-      r"""Final field '#name' is not initialized by this constructor.""",
-  correctionMessageTemplate:
-      r"""Try to initialize the field using an initializing formal or a field initializer.""",
   withArgumentsOld: _withArgumentsOldFinalFieldNotInitializedByConstructor,
   withArguments: _withArgumentsFinalFieldNotInitializedByConstructor,
 );
@@ -6316,8 +5952,6 @@ const Template<
 >
 codeFinalNotAssignedError = const Template(
   "FinalNotAssignedError",
-  problemMessageTemplate:
-      r"""Final variable '#name' must be assigned before it can be used.""",
   withArgumentsOld: _withArgumentsOldFinalNotAssignedError,
   withArguments: _withArgumentsFinalNotAssignedError,
 );
@@ -6344,8 +5978,6 @@ const Template<
 >
 codeFinalPossiblyAssignedError = const Template(
   "FinalPossiblyAssignedError",
-  problemMessageTemplate:
-      r"""Final variable '#name' might already be assigned at this point.""",
   withArgumentsOld: _withArgumentsOldFinalPossiblyAssignedError,
   withArguments: _withArgumentsFinalPossiblyAssignedError,
 );
@@ -6372,9 +6004,6 @@ const Template<
 >
 codeForInLoopElementTypeNotAssignable = const Template(
   "ForInLoopElementTypeNotAssignable",
-  problemMessageTemplate:
-      r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
-  correctionMessageTemplate: r"""Try changing the type of the variable.""",
   withArgumentsOld: _withArgumentsOldForInLoopElementTypeNotAssignable,
   withArguments: _withArgumentsForInLoopElementTypeNotAssignable,
 );
@@ -6423,8 +6052,6 @@ const Template<
 >
 codeForInLoopTypeNotIterable = const Template(
   "ForInLoopTypeNotIterable",
-  problemMessageTemplate:
-      r"""The type '#type' used in the 'for' loop must implement '#type2'.""",
   withArgumentsOld: _withArgumentsOldForInLoopTypeNotIterable,
   withArguments: _withArgumentsForInLoopTypeNotIterable,
 );
@@ -6466,10 +6093,6 @@ const Template<
 >
 codeGenericFunctionTypeAsTypeArgumentThroughTypedef = const Template(
   "GenericFunctionTypeAsTypeArgumentThroughTypedef",
-  problemMessageTemplate:
-      r"""Generic function type '#type' used as a type argument through typedef '#type2'.""",
-  correctionMessageTemplate:
-      r"""Try providing a non-generic function type explicitly.""",
   withArgumentsOld:
       _withArgumentsOldGenericFunctionTypeAsTypeArgumentThroughTypedef,
   withArguments: _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef,
@@ -6517,10 +6140,6 @@ const Template<
 >
 codeGenericFunctionTypeInferredAsActualTypeArgument = const Template(
   "GenericFunctionTypeInferredAsActualTypeArgument",
-  problemMessageTemplate:
-      r"""Generic function type '#type' inferred as a type argument.""",
-  correctionMessageTemplate:
-      r"""Try providing a non-generic function type explicitly.""",
   withArgumentsOld:
       _withArgumentsOldGenericFunctionTypeInferredAsActualTypeArgument,
   withArguments: _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument,
@@ -6564,7 +6183,6 @@ const Template<
 >
 codeGetterNotFound = const Template(
   "GetterNotFound",
-  problemMessageTemplate: r"""Getter not found: '#name'.""",
   withArgumentsOld: _withArgumentsOldGetterNotFound,
   withArguments: _withArgumentsGetterNotFound,
 );
@@ -6611,7 +6229,6 @@ const Template<
 >
 codeIllegalMixin = const Template(
   "IllegalMixin",
-  problemMessageTemplate: r"""The type '#name' can't be mixed in.""",
   withArgumentsOld: _withArgumentsOldIllegalMixin,
   withArguments: _withArgumentsIllegalMixin,
 );
@@ -6637,8 +6254,6 @@ const Template<
 >
 codeIllegalMixinDueToConstructors = const Template(
   "IllegalMixinDueToConstructors",
-  problemMessageTemplate:
-      r"""Can't use '#name' as a mixin because it has constructors.""",
   withArgumentsOld: _withArgumentsOldIllegalMixinDueToConstructors,
   withArguments: _withArgumentsIllegalMixinDueToConstructors,
 );
@@ -6665,8 +6280,6 @@ const Template<
 >
 codeIllegalMixinDueToConstructorsCause = const Template(
   "IllegalMixinDueToConstructorsCause",
-  problemMessageTemplate:
-      r"""This constructor prevents using '#name' as a mixin.""",
   withArgumentsOld: _withArgumentsOldIllegalMixinDueToConstructorsCause,
   withArguments: _withArgumentsIllegalMixinDueToConstructorsCause,
   severity: CfeSeverity.context,
@@ -6710,10 +6323,6 @@ const Template<
 >
 codeImplementMultipleExtensionTypeMembers = const Template(
   "ImplementMultipleExtensionTypeMembers",
-  problemMessageTemplate:
-      r"""The extension type '#name' can't inherit the member '#name2' from more than one extension type.""",
-  correctionMessageTemplate:
-      r"""Try declaring a member '#name2' in '#name' to resolve the conflict.""",
   withArgumentsOld: _withArgumentsOldImplementMultipleExtensionTypeMembers,
   withArguments: _withArgumentsImplementMultipleExtensionTypeMembers,
 );
@@ -6751,10 +6360,6 @@ const Template<
 >
 codeImplementNonExtensionTypeAndExtensionTypeMember = const Template(
   "ImplementNonExtensionTypeAndExtensionTypeMember",
-  problemMessageTemplate:
-      r"""The extension type '#name' can't inherit the member '#name2' as both an extension type member and a non-extension type member.""",
-  correctionMessageTemplate:
-      r"""Try declaring a member '#name2' in '#name' to resolve the conflict.""",
   withArgumentsOld:
       _withArgumentsOldImplementNonExtensionTypeAndExtensionTypeMember,
   withArguments: _withArgumentsImplementNonExtensionTypeAndExtensionTypeMember,
@@ -6807,8 +6412,6 @@ const Template<
 >
 codeImplementsRepeated = const Template(
   "ImplementsRepeated",
-  problemMessageTemplate: r"""'#name' can only be implemented once.""",
-  correctionMessageTemplate: r"""Try removing #count of the occurrences.""",
   withArgumentsOld: _withArgumentsOldImplementsRepeated,
   withArguments: _withArgumentsImplementsRepeated,
 );
@@ -6838,9 +6441,6 @@ const Template<
 >
 codeImplementsSuperClass = const Template(
   "ImplementsSuperClass",
-  problemMessageTemplate:
-      r"""'#name' can't be used in both 'extends' and 'implements' clauses.""",
-  correctionMessageTemplate: r"""Try removing one of the occurrences.""",
   withArgumentsOld: _withArgumentsOldImplementsSuperClass,
   withArguments: _withArgumentsImplementsSuperClass,
 );
@@ -6868,10 +6468,6 @@ const Template<
 >
 codeImplicitCallOfNonMethod = const Template(
   "ImplicitCallOfNonMethod",
-  problemMessageTemplate:
-      r"""Cannot invoke an instance of '#type' because it declares 'call' to be something other than a method.""",
-  correctionMessageTemplate:
-      r"""Try changing 'call' to a method or explicitly invoke 'call'.""",
   withArgumentsOld: _withArgumentsOldImplicitCallOfNonMethod,
   withArguments: _withArgumentsImplicitCallOfNonMethod,
 );
@@ -6906,8 +6502,6 @@ const Template<
 >
 codeImplicitMixinOverride = const Template(
   "ImplicitMixinOverride",
-  problemMessageTemplate:
-      r"""Applying the mixin '#name' to '#name2' introduces an erroneous override of '#name3'.""",
   withArgumentsOld: _withArgumentsOldImplicitMixinOverride,
   withArguments: _withArgumentsImplicitMixinOverride,
 );
@@ -6944,8 +6538,6 @@ const Template<
 >
 codeImplicitReturnNull = const Template(
   "ImplicitReturnNull",
-  problemMessageTemplate:
-      r"""A non-null value must be returned since the return type '#type' doesn't allow null.""",
   withArgumentsOld: _withArgumentsOldImplicitReturnNull,
   withArguments: _withArgumentsImplicitReturnNull,
 );
@@ -6983,10 +6575,6 @@ const Template<
 >
 codeImplicitSuperInitializerMissingArguments = const Template(
   "ImplicitSuperInitializerMissingArguments",
-  problemMessageTemplate:
-      r"""The implicitly called unnamed constructor from '#name' has required parameters.""",
-  correctionMessageTemplate:
-      r"""Try adding an explicit super initializer with the required arguments.""",
   withArgumentsOld: _withArgumentsOldImplicitSuperInitializerMissingArguments,
   withArguments: _withArgumentsImplicitSuperInitializerMissingArguments,
 );
@@ -7022,13 +6610,6 @@ const Template<
 >
 codeImportChainContext = const Template(
   "ImportChainContext",
-  problemMessageTemplate:
-      r"""The unavailable library '#uri' is imported through these packages:
-
-#string
-Detailed import paths for (some of) the these imports:
-
-#string2""",
   withArgumentsOld: _withArgumentsOldImportChainContext,
   withArguments: _withArgumentsImportChainContext,
   severity: CfeSeverity.context,
@@ -7074,10 +6655,6 @@ const Template<
 >
 codeImportChainContextSimple = const Template(
   "ImportChainContextSimple",
-  problemMessageTemplate:
-      r"""The unavailable library '#uri' is imported through these paths:
-
-#string""",
   withArgumentsOld: _withArgumentsOldImportChainContextSimple,
   withArguments: _withArgumentsImportChainContextSimple,
   severity: CfeSeverity.context,
@@ -7111,8 +6688,6 @@ const Template<
 >
 codeIncompatibleRedirecteeFunctionType = const Template(
   "IncompatibleRedirecteeFunctionType",
-  problemMessageTemplate:
-      r"""The constructor function type '#type' isn't a subtype of '#type2'.""",
   withArgumentsOld: _withArgumentsOldIncompatibleRedirecteeFunctionType,
   withArguments: _withArgumentsIncompatibleRedirecteeFunctionType,
 );
@@ -7152,10 +6727,6 @@ const Template<
 >
 codeIncorrectTypeArgument = const Template(
   "IncorrectTypeArgument",
-  problemMessageTemplate:
-      r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
-  correctionMessageTemplate:
-      r"""Try changing type arguments so that they conform to the bounds.""",
   withArgumentsOld: _withArgumentsOldIncorrectTypeArgument,
   withArguments: _withArgumentsIncorrectTypeArgument,
 );
@@ -7208,10 +6779,6 @@ const Template<
 >
 codeIncorrectTypeArgumentInferred = const Template(
   "IncorrectTypeArgumentInferred",
-  problemMessageTemplate:
-      r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
-  correctionMessageTemplate:
-      r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
   withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInferred,
   withArguments: _withArgumentsIncorrectTypeArgumentInferred,
 );
@@ -7264,10 +6831,6 @@ const Template<
 >
 codeIncorrectTypeArgumentInstantiation = const Template(
   "IncorrectTypeArgumentInstantiation",
-  problemMessageTemplate:
-      r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'.""",
-  correctionMessageTemplate:
-      r"""Try changing type arguments so that they conform to the bounds.""",
   withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInstantiation,
   withArguments: _withArgumentsIncorrectTypeArgumentInstantiation,
 );
@@ -7320,10 +6883,6 @@ const Template<
 >
 codeIncorrectTypeArgumentInstantiationInferred = const Template(
   "IncorrectTypeArgumentInstantiationInferred",
-  problemMessageTemplate:
-      r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'.""",
-  correctionMessageTemplate:
-      r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
   withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInstantiationInferred,
   withArguments: _withArgumentsIncorrectTypeArgumentInstantiationInferred,
 );
@@ -7383,10 +6942,6 @@ const Template<
 >
 codeIncorrectTypeArgumentQualified = const Template(
   "IncorrectTypeArgumentQualified",
-  problemMessageTemplate:
-      r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
-  correctionMessageTemplate:
-      r"""Try changing type arguments so that they conform to the bounds.""",
   withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentQualified,
   withArguments: _withArgumentsIncorrectTypeArgumentQualified,
 );
@@ -7456,10 +7011,6 @@ const Template<
 >
 codeIncorrectTypeArgumentQualifiedInferred = const Template(
   "IncorrectTypeArgumentQualifiedInferred",
-  problemMessageTemplate:
-      r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
-  correctionMessageTemplate:
-      r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
   withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentQualifiedInferred,
   withArguments: _withArgumentsIncorrectTypeArgumentQualifiedInferred,
 );
@@ -7525,8 +7076,6 @@ const Template<
 >
 codeIncrementalCompilerIllegalParameter = const Template(
   "IncrementalCompilerIllegalParameter",
-  problemMessageTemplate:
-      r"""Illegal parameter name '#string' found during expression compilation.""",
   withArgumentsOld: _withArgumentsOldIncrementalCompilerIllegalParameter,
   withArguments: _withArgumentsIncrementalCompilerIllegalParameter,
 );
@@ -7555,8 +7104,6 @@ const Template<
 >
 codeIncrementalCompilerIllegalTypeParameter = const Template(
   "IncrementalCompilerIllegalTypeParameter",
-  problemMessageTemplate:
-      r"""Illegal type parameter name '#string' found during expression compilation.""",
   withArgumentsOld: _withArgumentsOldIncrementalCompilerIllegalTypeParameter,
   withArguments: _withArgumentsIncrementalCompilerIllegalTypeParameter,
 );
@@ -7590,8 +7137,6 @@ const Template<
 >
 codeIndexOutOfBoundInRecordIndexGet = const Template(
   "IndexOutOfBoundInRecordIndexGet",
-  problemMessageTemplate:
-      r"""Index #count is out of range 0..#count2 of positional fields of records #type.""",
   withArgumentsOld: _withArgumentsOldIndexOutOfBoundInRecordIndexGet,
   withArguments: _withArgumentsIndexOutOfBoundInRecordIndexGet,
 );
@@ -7651,8 +7196,6 @@ const Template<
 >
 codeInheritedRestrictedMemberOfEnumImplementer = const Template(
   "InheritedRestrictedMemberOfEnumImplementer",
-  problemMessageTemplate:
-      r"""A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'.""",
   withArgumentsOld: _withArgumentsOldInheritedRestrictedMemberOfEnumImplementer,
   withArguments: _withArgumentsInheritedRestrictedMemberOfEnumImplementer,
 );
@@ -7688,12 +7231,6 @@ const Template<
 >
 codeInitializeFromDillNotSelfContained = const Template(
   "InitializeFromDillNotSelfContained",
-  problemMessageTemplate:
-      r"""Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug.
-
-The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
-If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #uri in your error report, but be aware that this file includes your source code.
-Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
   withArgumentsOld: _withArgumentsOldInitializeFromDillNotSelfContained,
   withArguments: _withArgumentsInitializeFromDillNotSelfContained,
   severity: CfeSeverity.warning,
@@ -7731,10 +7268,6 @@ const Template<
 >
 codeInitializeFromDillNotSelfContainedNoDump = const Template(
   "InitializeFromDillNotSelfContainedNoDump",
-  problemMessageTemplate:
-      r"""Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug.
-
-The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
   withArgumentsOld: _withArgumentsOldInitializeFromDillNotSelfContainedNoDump,
   withArguments: _withArgumentsInitializeFromDillNotSelfContainedNoDump,
   severity: CfeSeverity.warning,
@@ -7772,15 +7305,6 @@ const Template<
 >
 codeInitializeFromDillUnknownProblem = const Template(
   "InitializeFromDillUnknownProblem",
-  problemMessageTemplate:
-      r"""Tried to initialize from a previous compilation (#string), but couldn't.
-Error message was '#string2'.
-Stacktrace included '#string3'.
-This might be a bug.
-
-The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
-If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #uri in your error report, but be aware that this file includes your source code.
-Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
   withArgumentsOld: _withArgumentsOldInitializeFromDillUnknownProblem,
   withArguments: _withArgumentsInitializeFromDillUnknownProblem,
   severity: CfeSeverity.warning,
@@ -7841,13 +7365,6 @@ const Template<
 >
 codeInitializeFromDillUnknownProblemNoDump = const Template(
   "InitializeFromDillUnknownProblemNoDump",
-  problemMessageTemplate:
-      r"""Tried to initialize from a previous compilation (#string), but couldn't.
-Error message was '#string2'.
-Stacktrace included '#string3'.
-This might be a bug.
-
-The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
   withArgumentsOld: _withArgumentsOldInitializeFromDillUnknownProblemNoDump,
   withArguments: _withArgumentsInitializeFromDillUnknownProblemNoDump,
   severity: CfeSeverity.warning,
@@ -7893,7 +7410,6 @@ const Template<
 >
 codeInitializerForStaticField = const Template(
   "InitializerForStaticField",
-  problemMessageTemplate: r"""'#name' isn't an instance field of this class.""",
   withArgumentsOld: _withArgumentsOldInitializerForStaticField,
   withArguments: _withArgumentsInitializerForStaticField,
 );
@@ -7923,10 +7439,6 @@ const Template<
 >
 codeInitializingFormalTypeMismatch = const Template(
   "InitializingFormalTypeMismatch",
-  problemMessageTemplate:
-      r"""The type of parameter '#name', '#type' is not a subtype of the corresponding field's type, '#type2'.""",
-  correctionMessageTemplate:
-      r"""Try changing the type of parameter '#name' to a subtype of '#type2'.""",
   withArgumentsOld: _withArgumentsOldInitializingFormalTypeMismatch,
   withArguments: _withArgumentsInitializingFormalTypeMismatch,
 );
@@ -7974,7 +7486,6 @@ const MessageCode codeInitializingFormalTypeMismatchField = const MessageCode(
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
 codeInputFileNotFound = const Template(
   "InputFileNotFound",
-  problemMessageTemplate: r"""Input file not found: #uri.""",
   withArgumentsOld: _withArgumentsOldInputFileNotFound,
   withArguments: _withArgumentsInputFileNotFound,
 );
@@ -8000,8 +7511,6 @@ const Template<
 >
 codeInstanceAndSynthesizedStaticConflict = const Template(
   "InstanceAndSynthesizedStaticConflict",
-  problemMessageTemplate:
-      r"""This instance member conflicts with the synthesized static member called '#name'.""",
   withArgumentsOld: _withArgumentsOldInstanceAndSynthesizedStaticConflict,
   withArguments: _withArgumentsInstanceAndSynthesizedStaticConflict,
 );
@@ -8030,8 +7539,6 @@ const Template<
 >
 codeInstanceConflictsWithStatic = const Template(
   "InstanceConflictsWithStatic",
-  problemMessageTemplate:
-      r"""Instance property '#name' conflicts with static property of the same name.""",
   withArgumentsOld: _withArgumentsOldInstanceConflictsWithStatic,
   withArguments: _withArgumentsInstanceConflictsWithStatic,
 );
@@ -8058,7 +7565,6 @@ const Template<
 >
 codeInstanceConflictsWithStaticCause = const Template(
   "InstanceConflictsWithStaticCause",
-  problemMessageTemplate: r"""Conflicting static property '#name'.""",
   withArgumentsOld: _withArgumentsOldInstanceConflictsWithStaticCause,
   withArguments: _withArgumentsInstanceConflictsWithStaticCause,
   severity: CfeSeverity.context,
@@ -8085,10 +7591,6 @@ const Template<
 >
 codeInstantiationNonGenericFunctionType = const Template(
   "InstantiationNonGenericFunctionType",
-  problemMessageTemplate:
-      r"""The static type of the explicit instantiation operand must be a generic function type but is '#type'.""",
-  correctionMessageTemplate:
-      r"""Try changing the operand or remove the type arguments.""",
   withArgumentsOld: _withArgumentsOldInstantiationNonGenericFunctionType,
   withArguments: _withArgumentsInstantiationNonGenericFunctionType,
 );
@@ -8121,10 +7623,6 @@ const Template<
 >
 codeInstantiationNullableGenericFunctionType = const Template(
   "InstantiationNullableGenericFunctionType",
-  problemMessageTemplate:
-      r"""The static type of the explicit instantiation operand must be a non-null generic function type but is '#type'.""",
-  correctionMessageTemplate:
-      r"""Try changing the operand or remove the type arguments.""",
   withArgumentsOld: _withArgumentsOldInstantiationNullableGenericFunctionType,
   withArguments: _withArgumentsInstantiationNullableGenericFunctionType,
 );
@@ -8158,9 +7656,6 @@ const Template<
 >
 codeInstantiationTooFewArguments = const Template(
   "InstantiationTooFewArguments",
-  problemMessageTemplate:
-      r"""Too few type arguments: #count required, #count2 given.""",
-  correctionMessageTemplate: r"""Try adding the missing type arguments.""",
   withArgumentsOld: _withArgumentsOldInstantiationTooFewArguments,
   withArguments: _withArgumentsInstantiationTooFewArguments,
 );
@@ -8190,9 +7685,6 @@ const Template<
 >
 codeInstantiationTooManyArguments = const Template(
   "InstantiationTooManyArguments",
-  problemMessageTemplate:
-      r"""Too many type arguments: #count allowed, but #count2 found.""",
-  correctionMessageTemplate: r"""Try removing the extra type arguments.""",
   withArgumentsOld: _withArgumentsOldInstantiationTooManyArguments,
   withArguments: _withArgumentsInstantiationTooManyArguments,
 );
@@ -8222,10 +7714,6 @@ const Template<
 >
 codeIntegerLiteralIsOutOfRange = const Template(
   "IntegerLiteralIsOutOfRange",
-  problemMessageTemplate:
-      r"""The integer literal #string can't be represented in 64 bits.""",
-  correctionMessageTemplate:
-      r"""Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
   withArgumentsOld: _withArgumentsOldIntegerLiteralIsOutOfRange,
   withArguments: _withArgumentsIntegerLiteralIsOutOfRange,
 );
@@ -8254,8 +7742,6 @@ const Template<
 >
 codeInterfaceCheck = const Template(
   "InterfaceCheck",
-  problemMessageTemplate:
-      r"""The implementation of '#name' in the non-abstract class '#name2' does not conform to its interface.""",
   withArgumentsOld: _withArgumentsOldInterfaceCheck,
   withArguments: _withArgumentsInterfaceCheck,
 );
@@ -8286,8 +7772,6 @@ const Template<
 >
 codeInterfaceClassExtendedOutsideOfLibrary = const Template(
   "InterfaceClassExtendedOutsideOfLibrary",
-  problemMessageTemplate:
-      r"""The class '#name' can't be extended outside of its library because it's an interface class.""",
   withArgumentsOld: _withArgumentsOldInterfaceClassExtendedOutsideOfLibrary,
   withArguments: _withArgumentsInterfaceClassExtendedOutsideOfLibrary,
 );
@@ -8331,7 +7815,6 @@ const Template<
 >
 codeInternalProblemConstructorNotFound = const Template(
   "InternalProblemConstructorNotFound",
-  problemMessageTemplate: r"""No constructor named '#name' in '#uri'.""",
   withArgumentsOld: _withArgumentsOldInternalProblemConstructorNotFound,
   withArguments: _withArgumentsInternalProblemConstructorNotFound,
   severity: CfeSeverity.internalProblem,
@@ -8364,8 +7847,6 @@ const Template<
 >
 codeInternalProblemContextSeverity = const Template(
   "InternalProblemContextSeverity",
-  problemMessageTemplate:
-      r"""Non-context message has context severity: #string""",
   withArgumentsOld: _withArgumentsOldInternalProblemContextSeverity,
   withArguments: _withArgumentsInternalProblemContextSeverity,
   severity: CfeSeverity.internalProblem,
@@ -8392,8 +7873,6 @@ const Template<
 >
 codeInternalProblemDebugAbort = const Template(
   "InternalProblemDebugAbort",
-  problemMessageTemplate: r"""Compilation aborted due to fatal '#name' at:
-#string""",
   withArgumentsOld: _withArgumentsOldInternalProblemDebugAbort,
   withArguments: _withArgumentsInternalProblemDebugAbort,
   severity: CfeSeverity.internalProblem,
@@ -8453,7 +7932,6 @@ const Template<
 >
 codeInternalProblemNotFound = const Template(
   "InternalProblemNotFound",
-  problemMessageTemplate: r"""Couldn't find '#name'.""",
   withArgumentsOld: _withArgumentsOldInternalProblemNotFound,
   withArguments: _withArgumentsInternalProblemNotFound,
   severity: CfeSeverity.internalProblem,
@@ -8480,7 +7958,6 @@ const Template<
 >
 codeInternalProblemNotFoundIn = const Template(
   "InternalProblemNotFoundIn",
-  problemMessageTemplate: r"""Couldn't find '#name' in '#name2'.""",
   withArgumentsOld: _withArgumentsOldInternalProblemNotFoundIn,
   withArguments: _withArgumentsInternalProblemNotFoundIn,
   severity: CfeSeverity.internalProblem,
@@ -8527,7 +8004,6 @@ const Template<
 >
 codeInternalProblemPrivateConstructorAccess = const Template(
   "InternalProblemPrivateConstructorAccess",
-  problemMessageTemplate: r"""Can't access private constructor '#name'.""",
   withArgumentsOld: _withArgumentsOldInternalProblemPrivateConstructorAccess,
   withArguments: _withArgumentsInternalProblemPrivateConstructorAccess,
   severity: CfeSeverity.internalProblem,
@@ -8565,7 +8041,6 @@ const Template<
 >
 codeInternalProblemUnexpected = const Template(
   "InternalProblemUnexpected",
-  problemMessageTemplate: r"""Expected '#string', but got '#string2'.""",
   withArgumentsOld: _withArgumentsOldInternalProblemUnexpected,
   withArguments: _withArgumentsInternalProblemUnexpected,
   severity: CfeSeverity.internalProblem,
@@ -8598,7 +8073,6 @@ const Template<
 >
 codeInternalProblemUnimplemented = const Template(
   "InternalProblemUnimplemented",
-  problemMessageTemplate: r"""Unimplemented #string.""",
   withArgumentsOld: _withArgumentsOldInternalProblemUnimplemented,
   withArguments: _withArgumentsInternalProblemUnimplemented,
   severity: CfeSeverity.internalProblem,
@@ -8625,8 +8099,6 @@ const Template<
 >
 codeInternalProblemUnsupportedNullability = const Template(
   "InternalProblemUnsupportedNullability",
-  problemMessageTemplate:
-      r"""Unsupported nullability value '#string' on type '#type'.""",
   withArgumentsOld: _withArgumentsOldInternalProblemUnsupportedNullability,
   withArguments: _withArgumentsInternalProblemUnsupportedNullability,
   severity: CfeSeverity.internalProblem,
@@ -8662,7 +8134,6 @@ Message _withArgumentsOldInternalProblemUnsupportedNullability(
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
 codeInternalProblemUriMissingScheme = const Template(
   "InternalProblemUriMissingScheme",
-  problemMessageTemplate: r"""The URI '#uri' has no scheme.""",
   withArgumentsOld: _withArgumentsOldInternalProblemUriMissingScheme,
   withArguments: _withArgumentsInternalProblemUriMissingScheme,
   severity: CfeSeverity.internalProblem,
@@ -8689,8 +8160,6 @@ const Template<
 >
 codeInternalProblemVerificationError = const Template(
   "InternalProblemVerificationError",
-  problemMessageTemplate: r"""Verification of the generated program failed:
-#string""",
   withArgumentsOld: _withArgumentsOldInternalProblemVerificationError,
   withArguments: _withArgumentsInternalProblemVerificationError,
   severity: CfeSeverity.internalProblem,
@@ -8720,8 +8189,6 @@ const Template<
 >
 codeInvalidAssignmentError = const Template(
   "InvalidAssignmentError",
-  problemMessageTemplate:
-      r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
   withArgumentsOld: _withArgumentsOldInvalidAssignmentError,
   withArguments: _withArgumentsInvalidAssignmentError,
 );
@@ -8763,7 +8230,6 @@ const Template<
 >
 codeInvalidBreakTarget = const Template(
   "InvalidBreakTarget",
-  problemMessageTemplate: r"""Can't break to '#name'.""",
   withArgumentsOld: _withArgumentsOldInvalidBreakTarget,
   withArguments: _withArgumentsInvalidBreakTarget,
 );
@@ -8789,10 +8255,6 @@ const Template<
 >
 codeInvalidCastFunctionExpr = const Template(
   "InvalidCastFunctionExpr",
-  problemMessageTemplate:
-      r"""The function expression type '#type' isn't of expected type '#type2'.""",
-  correctionMessageTemplate:
-      r"""Change the type of the function expression or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastFunctionExpr,
   withArguments: _withArgumentsInvalidCastFunctionExpr,
 );
@@ -8829,10 +8291,6 @@ const Template<
 >
 codeInvalidCastLiteralList = const Template(
   "InvalidCastLiteralList",
-  problemMessageTemplate:
-      r"""The list literal type '#type' isn't of expected type '#type2'.""",
-  correctionMessageTemplate:
-      r"""Change the type of the list literal or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastLiteralList,
   withArguments: _withArgumentsInvalidCastLiteralList,
 );
@@ -8869,10 +8327,6 @@ const Template<
 >
 codeInvalidCastLiteralMap = const Template(
   "InvalidCastLiteralMap",
-  problemMessageTemplate:
-      r"""The map literal type '#type' isn't of expected type '#type2'.""",
-  correctionMessageTemplate:
-      r"""Change the type of the map literal or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastLiteralMap,
   withArguments: _withArgumentsInvalidCastLiteralMap,
 );
@@ -8907,10 +8361,6 @@ const Template<
 >
 codeInvalidCastLiteralSet = const Template(
   "InvalidCastLiteralSet",
-  problemMessageTemplate:
-      r"""The set literal type '#type' isn't of expected type '#type2'.""",
-  correctionMessageTemplate:
-      r"""Change the type of the set literal or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastLiteralSet,
   withArguments: _withArgumentsInvalidCastLiteralSet,
 );
@@ -8945,10 +8395,6 @@ const Template<
 >
 codeInvalidCastLocalFunction = const Template(
   "InvalidCastLocalFunction",
-  problemMessageTemplate:
-      r"""The local function has type '#type' that isn't of expected type '#type2'.""",
-  correctionMessageTemplate:
-      r"""Change the type of the function or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastLocalFunction,
   withArguments: _withArgumentsInvalidCastLocalFunction,
 );
@@ -8985,10 +8431,6 @@ const Template<
 >
 codeInvalidCastNewExpr = const Template(
   "InvalidCastNewExpr",
-  problemMessageTemplate:
-      r"""The constructor returns type '#type' that isn't of expected type '#type2'.""",
-  correctionMessageTemplate:
-      r"""Change the type of the object being constructed or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastNewExpr,
   withArguments: _withArgumentsInvalidCastNewExpr,
 );
@@ -9023,10 +8465,6 @@ const Template<
 >
 codeInvalidCastStaticMethod = const Template(
   "InvalidCastStaticMethod",
-  problemMessageTemplate:
-      r"""The static method has type '#type' that isn't of expected type '#type2'.""",
-  correctionMessageTemplate:
-      r"""Change the type of the method or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastStaticMethod,
   withArguments: _withArgumentsInvalidCastStaticMethod,
 );
@@ -9063,10 +8501,6 @@ const Template<
 >
 codeInvalidCastTopLevelFunction = const Template(
   "InvalidCastTopLevelFunction",
-  problemMessageTemplate:
-      r"""The top level function has type '#type' that isn't of expected type '#type2'.""",
-  correctionMessageTemplate:
-      r"""Change the type of the function or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastTopLevelFunction,
   withArguments: _withArgumentsInvalidCastTopLevelFunction,
 );
@@ -9103,7 +8537,6 @@ const Template<
 >
 codeInvalidContinueTarget = const Template(
   "InvalidContinueTarget",
-  problemMessageTemplate: r"""Can't continue at '#name'.""",
   withArgumentsOld: _withArgumentsOldInvalidContinueTarget,
   withArguments: _withArgumentsInvalidContinueTarget,
 );
@@ -9134,10 +8567,6 @@ const Template<
 >
 codeInvalidExtensionTypeSuperExtensionType = const Template(
   "InvalidExtensionTypeSuperExtensionType",
-  problemMessageTemplate:
-      r"""The representation type '#type' of extension type '#name' must be either a subtype of the representation type '#type2' of the implemented extension type '#type3' or a subtype of '#type3' itself.""",
-  correctionMessageTemplate:
-      r"""Try changing the representation type to a subtype of '#type2'.""",
   withArgumentsOld: _withArgumentsOldInvalidExtensionTypeSuperExtensionType,
   withArguments: _withArgumentsInvalidExtensionTypeSuperExtensionType,
 );
@@ -9189,10 +8618,6 @@ const Template<
 >
 codeInvalidExtensionTypeSuperInterface = const Template(
   "InvalidExtensionTypeSuperInterface",
-  problemMessageTemplate:
-      r"""The implemented interface '#type' must be a supertype of the representation type '#type2' of extension type '#name'.""",
-  correctionMessageTemplate:
-      r"""Try changing the interface type to a supertype of '#type2' or the representation type to a subtype of '#type'.""",
   withArgumentsOld: _withArgumentsOldInvalidExtensionTypeSuperInterface,
   withArguments: _withArgumentsInvalidExtensionTypeSuperInterface,
 );
@@ -9241,8 +8666,6 @@ const Template<
 >
 codeInvalidGetterSetterType = const Template(
   "InvalidGetterSetterType",
-  problemMessageTemplate:
-      r"""The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
   withArgumentsOld: _withArgumentsOldInvalidGetterSetterType,
   withArguments: _withArgumentsInvalidGetterSetterType,
 );
@@ -9293,8 +8716,6 @@ const Template<
 >
 codeInvalidGetterSetterTypeBothInheritedField = const Template(
   "InvalidGetterSetterTypeBothInheritedField",
-  problemMessageTemplate:
-      r"""The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
   withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeBothInheritedField,
   withArguments: _withArgumentsInvalidGetterSetterTypeBothInheritedField,
 );
@@ -9345,8 +8766,6 @@ const Template<
 >
 codeInvalidGetterSetterTypeBothInheritedGetter = const Template(
   "InvalidGetterSetterTypeBothInheritedGetter",
-  problemMessageTemplate:
-      r"""The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
   withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeBothInheritedGetter,
   withArguments: _withArgumentsInvalidGetterSetterTypeBothInheritedGetter,
 );
@@ -9392,7 +8811,6 @@ const Template<
 >
 codeInvalidGetterSetterTypeFieldContext = const Template(
   "InvalidGetterSetterTypeFieldContext",
-  problemMessageTemplate: r"""This is the declaration of the field '#name'.""",
   withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeFieldContext,
   withArguments: _withArgumentsInvalidGetterSetterTypeFieldContext,
   severity: CfeSeverity.context,
@@ -9426,8 +8844,6 @@ const Template<
 >
 codeInvalidGetterSetterTypeFieldInherited = const Template(
   "InvalidGetterSetterTypeFieldInherited",
-  problemMessageTemplate:
-      r"""The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
   withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeFieldInherited,
   withArguments: _withArgumentsInvalidGetterSetterTypeFieldInherited,
 );
@@ -9473,7 +8889,6 @@ const Template<
 >
 codeInvalidGetterSetterTypeGetterContext = const Template(
   "InvalidGetterSetterTypeGetterContext",
-  problemMessageTemplate: r"""This is the declaration of the getter '#name'.""",
   withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeGetterContext,
   withArguments: _withArgumentsInvalidGetterSetterTypeGetterContext,
   severity: CfeSeverity.context,
@@ -9507,8 +8922,6 @@ const Template<
 >
 codeInvalidGetterSetterTypeGetterInherited = const Template(
   "InvalidGetterSetterTypeGetterInherited",
-  problemMessageTemplate:
-      r"""The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
   withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeGetterInherited,
   withArguments: _withArgumentsInvalidGetterSetterTypeGetterInherited,
 );
@@ -9554,7 +8967,6 @@ const Template<
 >
 codeInvalidGetterSetterTypeSetterContext = const Template(
   "InvalidGetterSetterTypeSetterContext",
-  problemMessageTemplate: r"""This is the declaration of the setter '#name'.""",
   withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeSetterContext,
   withArguments: _withArgumentsInvalidGetterSetterTypeSetterContext,
   severity: CfeSeverity.context,
@@ -9588,8 +9000,6 @@ const Template<
 >
 codeInvalidGetterSetterTypeSetterInheritedField = const Template(
   "InvalidGetterSetterTypeSetterInheritedField",
-  problemMessageTemplate:
-      r"""The type '#type' of the field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
   withArgumentsOld:
       _withArgumentsOldInvalidGetterSetterTypeSetterInheritedField,
   withArguments: _withArgumentsInvalidGetterSetterTypeSetterInheritedField,
@@ -9641,8 +9051,6 @@ const Template<
 >
 codeInvalidGetterSetterTypeSetterInheritedGetter = const Template(
   "InvalidGetterSetterTypeSetterInheritedGetter",
-  problemMessageTemplate:
-      r"""The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
   withArgumentsOld:
       _withArgumentsOldInvalidGetterSetterTypeSetterInheritedGetter,
   withArguments: _withArgumentsInvalidGetterSetterTypeSetterInheritedGetter,
@@ -9689,8 +9097,6 @@ const Template<
 >
 codeInvalidPackageUri = const Template(
   "InvalidPackageUri",
-  problemMessageTemplate: r"""Invalid package URI '#uri':
-  #string.""",
   withArgumentsOld: _withArgumentsOldInvalidPackageUri,
   withArguments: _withArgumentsInvalidPackageUri,
 );
@@ -9721,8 +9127,6 @@ const Template<
 >
 codeInvalidReturn = const Template(
   "InvalidReturn",
-  problemMessageTemplate:
-      r"""A value of type '#type' can't be returned from a function with return type '#type2'.""",
   withArgumentsOld: _withArgumentsOldInvalidReturn,
   withArguments: _withArgumentsInvalidReturn,
 );
@@ -9755,8 +9159,6 @@ const Template<
 >
 codeInvalidReturnAsync = const Template(
   "InvalidReturnAsync",
-  problemMessageTemplate:
-      r"""A value of type '#type' can't be returned from an async function with return type '#type2'.""",
   withArgumentsOld: _withArgumentsOldInvalidReturnAsync,
   withArguments: _withArgumentsInvalidReturnAsync,
 );
@@ -9793,8 +9195,6 @@ const Template<
 >
 codeInvalidTypeParameterInSupertype = const Template(
   "InvalidTypeParameterInSupertype",
-  problemMessageTemplate:
-      r"""Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'.""",
   withArgumentsOld: _withArgumentsOldInvalidTypeParameterInSupertype,
   withArguments: _withArgumentsInvalidTypeParameterInSupertype,
 );
@@ -9839,8 +9239,6 @@ const Template<
 >
 codeInvalidTypeParameterInSupertypeWithVariance = const Template(
   "InvalidTypeParameterInSupertypeWithVariance",
-  problemMessageTemplate:
-      r"""Can't use '#string' type variable '#name' in an '#string2' position in supertype '#name2'.""",
   withArgumentsOld:
       _withArgumentsOldInvalidTypeParameterInSupertypeWithVariance,
   withArguments: _withArgumentsInvalidTypeParameterInSupertypeWithVariance,
@@ -9894,8 +9292,6 @@ const Template<
 >
 codeInvalidTypeParameterVariancePosition = const Template(
   "InvalidTypeParameterVariancePosition",
-  problemMessageTemplate:
-      r"""Can't use '#string' type variable '#name' in an '#string2' position.""",
   withArgumentsOld: _withArgumentsOldInvalidTypeParameterVariancePosition,
   withArguments: _withArgumentsInvalidTypeParameterVariancePosition,
 );
@@ -9939,8 +9335,6 @@ const Template<
 >
 codeInvalidTypeParameterVariancePositionInReturnType = const Template(
   "InvalidTypeParameterVariancePositionInReturnType",
-  problemMessageTemplate:
-      r"""Can't use '#string' type variable '#name' in an '#string2' position in the return type.""",
   withArgumentsOld:
       _withArgumentsOldInvalidTypeParameterVariancePositionInReturnType,
   withArguments: _withArgumentsInvalidTypeParameterVariancePositionInReturnType,
@@ -9988,8 +9382,6 @@ const Template<
 >
 codeInvokeNonFunction = const Template(
   "InvokeNonFunction",
-  problemMessageTemplate:
-      r"""'#name' isn't a function or method and can't be invoked.""",
   withArgumentsOld: _withArgumentsOldInvokeNonFunction,
   withArguments: _withArgumentsInvokeNonFunction,
 );
@@ -10016,8 +9408,6 @@ const Template<
 >
 codeJointPatternVariableNotInAll = const Template(
   "JointPatternVariableNotInAll",
-  problemMessageTemplate:
-      r"""The variable '#name' is available in some, but not all cases that share this body.""",
   withArgumentsOld: _withArgumentsOldJointPatternVariableNotInAll,
   withArguments: _withArgumentsJointPatternVariableNotInAll,
 );
@@ -10044,8 +9434,6 @@ const Template<
 >
 codeJointPatternVariableWithLabelDefault = const Template(
   "JointPatternVariableWithLabelDefault",
-  problemMessageTemplate:
-      r"""The variable '#name' is not available because there is a label or 'default' case.""",
   withArgumentsOld: _withArgumentsOldJointPatternVariableWithLabelDefault,
   withArguments: _withArgumentsJointPatternVariableWithLabelDefault,
 );
@@ -10074,8 +9462,6 @@ const Template<
 >
 codeJointPatternVariablesMismatch = const Template(
   "JointPatternVariablesMismatch",
-  problemMessageTemplate:
-      r"""Variable pattern '#name' doesn't have the same type or finality in all cases.""",
   withArgumentsOld: _withArgumentsOldJointPatternVariablesMismatch,
   withArguments: _withArgumentsJointPatternVariablesMismatch,
 );
@@ -10102,10 +9488,6 @@ const Template<
 >
 codeJsInteropDartClassExtendsJSClass = const Template(
   "JsInteropDartClassExtendsJSClass",
-  problemMessageTemplate:
-      r"""Dart class '#name' cannot extend JS interop class '#name2'.""",
-  correctionMessageTemplate:
-      r"""Try adding the JS interop annotation or removing it from the parent class.""",
   withArgumentsOld: _withArgumentsOldJsInteropDartClassExtendsJSClass,
   withArguments: _withArgumentsJsInteropDartClassExtendsJSClass,
 );
@@ -10150,10 +9532,6 @@ const Template<
 >
 codeJsInteropDisallowedInteropLibraryInDart2Wasm = const Template(
   "JsInteropDisallowedInteropLibraryInDart2Wasm",
-  problemMessageTemplate:
-      r"""JS interop library '#name' can't be imported when compiling to Wasm.""",
-  correctionMessageTemplate:
-      r"""Try using 'dart:js_interop' or 'dart:js_interop_unsafe' instead.""",
   withArgumentsOld:
       _withArgumentsOldJsInteropDisallowedInteropLibraryInDart2Wasm,
   withArguments: _withArgumentsJsInteropDisallowedInteropLibraryInDart2Wasm,
@@ -10202,10 +9580,6 @@ const Template<
 >
 codeJsInteropExportClassNotMarkedExportable = const Template(
   "JsInteropExportClassNotMarkedExportable",
-  problemMessageTemplate:
-      r"""Class '#name' does not have a `@JSExport` on it or any of its members.""",
-  correctionMessageTemplate:
-      r"""Use the `@JSExport` annotation on this class.""",
   withArgumentsOld: _withArgumentsOldJsInteropExportClassNotMarkedExportable,
   withArguments: _withArgumentsJsInteropExportClassNotMarkedExportable,
 );
@@ -10235,9 +9609,6 @@ const Template<
 >
 codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue = const Template(
   "JsInteropExportDartInterfaceHasNonEmptyJSExportValue",
-  problemMessageTemplate:
-      r"""The value in the `@JSExport` annotation on the class or mixin '#name' will be ignored.""",
-  correctionMessageTemplate: r"""Remove the value in the annotation.""",
   withArgumentsOld:
       _withArgumentsOldJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
   withArguments:
@@ -10273,10 +9644,6 @@ const Template<
 >
 codeJsInteropExportDisallowedMember = const Template(
   "JsInteropExportDisallowedMember",
-  problemMessageTemplate:
-      r"""Member '#name' is not a concrete instance member or declares type parameters, and therefore can't be exported.""",
-  correctionMessageTemplate:
-      r"""Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
   withArgumentsOld: _withArgumentsOldJsInteropExportDisallowedMember,
   withArguments: _withArgumentsJsInteropExportDisallowedMember,
 );
@@ -10305,10 +9672,6 @@ const Template<
 >
 codeJsInteropExportInvalidInteropTypeArgument = const Template(
   "JsInteropExportInvalidInteropTypeArgument",
-  problemMessageTemplate:
-      r"""Type argument '#type' needs to be a non-JS interop type.""",
-  correctionMessageTemplate:
-      r"""Use a non-JS interop class that uses `@JSExport` instead.""",
   withArgumentsOld: _withArgumentsOldJsInteropExportInvalidInteropTypeArgument,
   withArguments: _withArgumentsJsInteropExportInvalidInteropTypeArgument,
 );
@@ -10342,10 +9705,6 @@ const Template<
 >
 codeJsInteropExportInvalidTypeArgument = const Template(
   "JsInteropExportInvalidTypeArgument",
-  problemMessageTemplate:
-      r"""Type argument '#type' needs to be an interface type.""",
-  correctionMessageTemplate:
-      r"""Use a non-JS interop class that uses `@JSExport` instead.""",
   withArgumentsOld: _withArgumentsOldJsInteropExportInvalidTypeArgument,
   withArguments: _withArgumentsJsInteropExportInvalidTypeArgument,
 );
@@ -10378,10 +9737,6 @@ const Template<
 >
 codeJsInteropExportMemberCollision = const Template(
   "JsInteropExportMemberCollision",
-  problemMessageTemplate:
-      r"""The following class members collide with the same export '#name': #string.""",
-  correctionMessageTemplate:
-      r"""Either remove the conflicting members or use a different export name.""",
   withArgumentsOld: _withArgumentsOldJsInteropExportMemberCollision,
   withArguments: _withArgumentsJsInteropExportMemberCollision,
 );
@@ -10416,10 +9771,6 @@ const Template<
 >
 codeJsInteropExportNoExportableMembers = const Template(
   "JsInteropExportNoExportableMembers",
-  problemMessageTemplate:
-      r"""Class '#name' has no exportable members in the class or the inheritance chain.""",
-  correctionMessageTemplate:
-      r"""Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain.""",
   withArgumentsOld: _withArgumentsOldJsInteropExportNoExportableMembers,
   withArguments: _withArgumentsJsInteropExportNoExportableMembers,
 );
@@ -10460,10 +9811,6 @@ const Template<
 >
 codeJsInteropExtensionTypeNotInterop = const Template(
   "JsInteropExtensionTypeNotInterop",
-  problemMessageTemplate:
-      r"""Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'.""",
-  correctionMessageTemplate:
-      r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
   withArgumentsOld: _withArgumentsOldJsInteropExtensionTypeNotInterop,
   withArguments: _withArgumentsJsInteropExtensionTypeNotInterop,
 );
@@ -10537,10 +9884,6 @@ const Template<
 >
 codeJsInteropFunctionToJSNamedParameters = const Template(
   "JsInteropFunctionToJSNamedParameters",
-  problemMessageTemplate:
-      r"""Functions converted via '#conversion' cannot declare named parameters.""",
-  correctionMessageTemplate:
-      r"""Remove the declared named parameters from the function.""",
   withArgumentsOld: _withArgumentsOldJsInteropFunctionToJSNamedParameters,
   withArguments: _withArgumentsJsInteropFunctionToJSNamedParameters,
 );
@@ -10572,10 +9915,6 @@ const Template<
 >
 codeJsInteropFunctionToJSRequiresStaticType = const Template(
   "JsInteropFunctionToJSRequiresStaticType",
-  problemMessageTemplate:
-      r"""Functions converted via '#conversion' require a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`.""",
-  correctionMessageTemplate:
-      r"""Insert an explicit cast to the expected function type.""",
   withArgumentsOld: _withArgumentsOldJsInteropFunctionToJSRequiresStaticType,
   withArguments: _withArgumentsJsInteropFunctionToJSRequiresStaticType,
 );
@@ -10615,10 +9954,6 @@ const Template<
 >
 codeJsInteropFunctionToJSTypeParameters = const Template(
   "JsInteropFunctionToJSTypeParameters",
-  problemMessageTemplate:
-      r"""Functions converted via '#conversion' cannot declare type parameters.""",
-  correctionMessageTemplate:
-      r"""Remove the declared type parameters from the function.""",
   withArgumentsOld: _withArgumentsOldJsInteropFunctionToJSTypeParameters,
   withArguments: _withArgumentsJsInteropFunctionToJSTypeParameters,
 );
@@ -10650,10 +9985,6 @@ const Template<
 >
 codeJsInteropFunctionToJSTypeViolation = const Template(
   "JsInteropFunctionToJSTypeViolation",
-  problemMessageTemplate:
-      r"""Function converted via '#conversion' contains invalid types in its function signature: '#string2'.""",
-  correctionMessageTemplate:
-      r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
   withArgumentsOld: _withArgumentsOldJsInteropFunctionToJSTypeViolation,
   withArguments: _withArgumentsJsInteropFunctionToJSTypeViolation,
 );
@@ -10698,10 +10029,6 @@ const Template<
 >
 codeJsInteropIsAInvalidTypeVariable = const Template(
   "JsInteropIsAInvalidTypeVariable",
-  problemMessageTemplate:
-      r"""Type argument '#type' provided to 'isA' cannot be a type variable and must be an interop extension type that can be determined at compile-time.""",
-  correctionMessageTemplate:
-      r"""Use a valid interop extension type that can be determined at compile-time as the type argument instead.""",
   withArgumentsOld: _withArgumentsOldJsInteropIsAInvalidTypeVariable,
   withArguments: _withArgumentsJsInteropIsAInvalidTypeVariable,
 );
@@ -10734,10 +10061,6 @@ const Template<
 >
 codeJsInteropIsAObjectLiteralType = const Template(
   "JsInteropIsAObjectLiteralType",
-  problemMessageTemplate:
-      r"""Type argument '#type' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check.""",
-  correctionMessageTemplate:
-      r"""Use 'JSObject' as the type argument instead.""",
   withArgumentsOld: _withArgumentsOldJsInteropIsAObjectLiteralType,
   withArguments: _withArgumentsJsInteropIsAObjectLiteralType,
 );
@@ -10767,10 +10090,6 @@ const Template<
 >
 codeJsInteropIsAPrimitiveExtensionType = const Template(
   "JsInteropIsAPrimitiveExtensionType",
-  problemMessageTemplate:
-      r"""Type argument '#type' wraps primitive JS type '#string', which is specially handled using 'typeof'.""",
-  correctionMessageTemplate:
-      r"""Use the primitive JS type '#string' as the type argument instead.""",
   withArgumentsOld: _withArgumentsOldJsInteropIsAPrimitiveExtensionType,
   withArguments: _withArgumentsJsInteropIsAPrimitiveExtensionType,
 );
@@ -10818,10 +10137,6 @@ const Template<
 >
 codeJsInteropJSClassExtendsDartClass = const Template(
   "JsInteropJSClassExtendsDartClass",
-  problemMessageTemplate:
-      r"""JS interop class '#name' cannot extend Dart class '#name2'.""",
-  correctionMessageTemplate:
-      r"""Try removing the JS interop annotation or adding it to the parent class.""",
   withArgumentsOld: _withArgumentsOldJsInteropJSClassExtendsDartClass,
   withArguments: _withArgumentsJsInteropJSClassExtendsDartClass,
 );
@@ -10869,10 +10184,6 @@ const Template<
 >
 codeJsInteropNativeClassInAnnotation = const Template(
   "JsInteropNativeClassInAnnotation",
-  problemMessageTemplate:
-      r"""Non-static JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'.""",
-  correctionMessageTemplate:
-      r"""Try replacing it with a static JS interop class using `@staticInterop` with extension methods, or use js_util to interact with the native object of type '#name2'.""",
   withArgumentsOld: _withArgumentsOldJsInteropNativeClassInAnnotation,
   withArguments: _withArgumentsJsInteropNativeClassInAnnotation,
 );
@@ -10930,10 +10241,6 @@ const Template<
 >
 codeJsInteropNonStaticWithStaticInteropSupertype = const Template(
   "JsInteropNonStaticWithStaticInteropSupertype",
-  problemMessageTemplate:
-      r"""Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does.""",
-  correctionMessageTemplate:
-      r"""Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'.""",
   withArgumentsOld:
       _withArgumentsOldJsInteropNonStaticWithStaticInteropSupertype,
   withArguments: _withArgumentsJsInteropNonStaticWithStaticInteropSupertype,
@@ -10972,10 +10279,6 @@ const Template<
 >
 codeJsInteropObjectLiteralConstructorPositionalParameters = const Template(
   "JsInteropObjectLiteralConstructorPositionalParameters",
-  problemMessageTemplate:
-      r"""#string should not contain any positional parameters.""",
-  correctionMessageTemplate:
-      r"""Try replacing them with named parameters instead.""",
   withArgumentsOld:
       _withArgumentsOldJsInteropObjectLiteralConstructorPositionalParameters,
   withArguments:
@@ -11028,10 +10331,6 @@ const Template<
 >
 codeJsInteropStaticInteropExternalAccessorTypeViolation = const Template(
   "JsInteropStaticInteropExternalAccessorTypeViolation",
-  problemMessageTemplate:
-      r"""External JS interop member contains an invalid type: '#type'.""",
-  correctionMessageTemplate:
-      r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
   withArgumentsOld:
       _withArgumentsOldJsInteropStaticInteropExternalAccessorTypeViolation,
   withArguments:
@@ -11069,10 +10368,6 @@ const Template<
 >
 codeJsInteropStaticInteropExternalFunctionTypeViolation = const Template(
   "JsInteropStaticInteropExternalFunctionTypeViolation",
-  problemMessageTemplate:
-      r"""External JS interop member contains invalid types in its function signature: '#string2'.""",
-  correctionMessageTemplate:
-      r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
   withArgumentsOld:
       _withArgumentsOldJsInteropStaticInteropExternalFunctionTypeViolation,
   withArguments:
@@ -11129,10 +10424,6 @@ const Template<
 >
 codeJsInteropStaticInteropMockMissingGetterOrSetter = const Template(
   "JsInteropStaticInteropMockMissingGetterOrSetter",
-  problemMessageTemplate:
-      r"""Dart class '#name' has a #string, but does not have a #string2 to implement any of the following extension member(s) with export name '#name2': #string3.""",
-  correctionMessageTemplate:
-      r"""Declare an exportable #string2 that implements one of these extension members.""",
   withArgumentsOld:
       _withArgumentsOldJsInteropStaticInteropMockMissingGetterOrSetter,
   withArguments: _withArgumentsJsInteropStaticInteropMockMissingGetterOrSetter,
@@ -11193,10 +10484,6 @@ const Template<
 >
 codeJsInteropStaticInteropMockMissingImplements = const Template(
   "JsInteropStaticInteropMockMissingImplements",
-  problemMessageTemplate:
-      r"""Dart class '#name' does not have any members that implement any of the following extension member(s) with export name '#name2': #string.""",
-  correctionMessageTemplate:
-      r"""Declare an exportable member that implements one of these extension members.""",
   withArgumentsOld:
       _withArgumentsOldJsInteropStaticInteropMockMissingImplements,
   withArguments: _withArgumentsJsInteropStaticInteropMockMissingImplements,
@@ -11239,9 +10526,6 @@ const Template<
 >
 codeJsInteropStaticInteropMockNotStaticInteropType = const Template(
   "JsInteropStaticInteropMockNotStaticInteropType",
-  problemMessageTemplate:
-      r"""Type argument '#type' needs to be a `@staticInterop` type.""",
-  correctionMessageTemplate: r"""Use a `@staticInterop` class instead.""",
   withArgumentsOld:
       _withArgumentsOldJsInteropStaticInteropMockNotStaticInteropType,
   withArguments: _withArgumentsJsInteropStaticInteropMockNotStaticInteropType,
@@ -11275,10 +10559,6 @@ const Template<
 >
 codeJsInteropStaticInteropMockTypeParametersNotAllowed = const Template(
   "JsInteropStaticInteropMockTypeParametersNotAllowed",
-  problemMessageTemplate:
-      r"""Type argument '#type' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.""",
-  correctionMessageTemplate:
-      r"""Remove the type parameter in the type argument or replace it with its bound.""",
   withArgumentsOld:
       _withArgumentsOldJsInteropStaticInteropMockTypeParametersNotAllowed,
   withArguments:
@@ -11316,9 +10596,6 @@ const Template<
 >
 codeJsInteropStaticInteropNoJSAnnotation = const Template(
   "JsInteropStaticInteropNoJSAnnotation",
-  problemMessageTemplate:
-      r"""`@staticInterop` classes should also have the `@JS` annotation.""",
-  correctionMessageTemplate: r"""Add `@JS` to class '#name'.""",
   withArgumentsOld: _withArgumentsOldJsInteropStaticInteropNoJSAnnotation,
   withArguments: _withArgumentsJsInteropStaticInteropNoJSAnnotation,
 );
@@ -11369,10 +10646,6 @@ const Template<
 >
 codeJsInteropStaticInteropTearOffsDisallowed = const Template(
   "JsInteropStaticInteropTearOffsDisallowed",
-  problemMessageTemplate:
-      r"""Tear-offs of external #string '#name' are disallowed.""",
-  correctionMessageTemplate:
-      r"""Declare a closure that calls this member instead.""",
   withArgumentsOld: _withArgumentsOldJsInteropStaticInteropTearOffsDisallowed,
   withArguments: _withArgumentsJsInteropStaticInteropTearOffsDisallowed,
 );
@@ -11409,9 +10682,6 @@ const Template<
 >
 codeJsInteropStaticInteropTrustTypesUsageNotAllowed = const Template(
   "JsInteropStaticInteropTrustTypesUsageNotAllowed",
-  problemMessageTemplate:
-      r"""JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk.""",
-  correctionMessageTemplate: r"""Try removing the `@trustTypes` annotation.""",
   withArgumentsOld:
       _withArgumentsOldJsInteropStaticInteropTrustTypesUsageNotAllowed,
   withArguments: _withArgumentsJsInteropStaticInteropTrustTypesUsageNotAllowed,
@@ -11443,10 +10713,6 @@ const Template<
 >
 codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop = const Template(
   "JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop",
-  problemMessageTemplate:
-      r"""JS interop class '#name' has an `@trustTypes` annotation, but no `@staticInterop` annotation.""",
-  correctionMessageTemplate:
-      r"""Try marking the class using `@staticInterop`.""",
   withArgumentsOld:
       _withArgumentsOldJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
   withArguments:
@@ -11482,10 +10748,6 @@ const Template<
 >
 codeJsInteropStaticInteropWithInstanceMembers = const Template(
   "JsInteropStaticInteropWithInstanceMembers",
-  problemMessageTemplate:
-      r"""JS interop class '#name' with `@staticInterop` annotation cannot declare instance members.""",
-  correctionMessageTemplate:
-      r"""Try moving the instance member to a static extension.""",
   withArgumentsOld: _withArgumentsOldJsInteropStaticInteropWithInstanceMembers,
   withArguments: _withArgumentsJsInteropStaticInteropWithInstanceMembers,
 );
@@ -11517,10 +10779,6 @@ const Template<
 >
 codeJsInteropStaticInteropWithNonStaticSupertype = const Template(
   "JsInteropStaticInteropWithNonStaticSupertype",
-  problemMessageTemplate:
-      r"""JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not.""",
-  correctionMessageTemplate:
-      r"""Try marking the supertype as a static interop class using `@staticInterop`.""",
   withArgumentsOld:
       _withArgumentsOldJsInteropStaticInteropWithNonStaticSupertype,
   withArguments: _withArgumentsJsInteropStaticInteropWithNonStaticSupertype,
@@ -11559,9 +10817,6 @@ const Template<
 >
 codeLabelNotFound = const Template(
   "LabelNotFound",
-  problemMessageTemplate: r"""Can't find label '#name'.""",
-  correctionMessageTemplate:
-      r"""Try defining the label, or correcting the name to match an existing label.""",
   withArgumentsOld: _withArgumentsOldLabelNotFound,
   withArguments: _withArgumentsLabelNotFound,
 );
@@ -11636,8 +10891,6 @@ const Template<
 >
 codeLanguageVersionTooHighExplicit = const Template(
   "LanguageVersionTooHighExplicit",
-  problemMessageTemplate:
-      r"""The specified language version #count.#count2 is too high. The highest supported language version is #count3.#count4.""",
   withArgumentsOld: _withArgumentsOldLanguageVersionTooHighExplicit,
   withArguments: _withArgumentsLanguageVersionTooHighExplicit,
 );
@@ -11688,8 +10941,6 @@ const Template<
 >
 codeLanguageVersionTooHighPackage = const Template(
   "LanguageVersionTooHighPackage",
-  problemMessageTemplate:
-      r"""The language version #count.#count2 specified for the package '#name' is too high. The highest supported language version is #count3.#count4.""",
   withArgumentsOld: _withArgumentsOldLanguageVersionTooHighPackage,
   withArguments: _withArgumentsLanguageVersionTooHighPackage,
 );
@@ -11744,8 +10995,6 @@ const Template<
 >
 codeLanguageVersionTooLowExplicit = const Template(
   "LanguageVersionTooLowExplicit",
-  problemMessageTemplate:
-      r"""The specified language version #count.#count2 is too low. The lowest supported language version is #count3.#count4.""",
   withArgumentsOld: _withArgumentsOldLanguageVersionTooLowExplicit,
   withArguments: _withArgumentsLanguageVersionTooLowExplicit,
 );
@@ -11796,8 +11045,6 @@ const Template<
 >
 codeLanguageVersionTooLowPackage = const Template(
   "LanguageVersionTooLowPackage",
-  problemMessageTemplate:
-      r"""The language version #count.#count2 specified for the package '#name' is too low. The lowest supported language version is #count3.#count4.""",
   withArgumentsOld: _withArgumentsOldLanguageVersionTooLowPackage,
   withArguments: _withArgumentsLanguageVersionTooLowPackage,
 );
@@ -11847,8 +11094,6 @@ const Template<
 >
 codeLateDefinitelyAssignedError = const Template(
   "LateDefinitelyAssignedError",
-  problemMessageTemplate:
-      r"""Late final variable '#name' definitely assigned.""",
   withArgumentsOld: _withArgumentsOldLateDefinitelyAssignedError,
   withArguments: _withArgumentsLateDefinitelyAssignedError,
 );
@@ -11874,8 +11119,6 @@ const Template<
 >
 codeLateDefinitelyUnassignedError = const Template(
   "LateDefinitelyUnassignedError",
-  problemMessageTemplate:
-      r"""Late variable '#name' without initializer is definitely unassigned.""",
   withArgumentsOld: _withArgumentsOldLateDefinitelyUnassignedError,
   withArguments: _withArgumentsLateDefinitelyUnassignedError,
 );
@@ -11920,8 +11163,6 @@ const Template<
 >
 codeLocalVariableUsedBeforeDeclared = const Template(
   "LocalVariableUsedBeforeDeclared",
-  problemMessageTemplate:
-      r"""Local variable '#name' can't be referenced before it is declared.""",
   withArgumentsOld: _withArgumentsOldLocalVariableUsedBeforeDeclared,
   withArguments: _withArgumentsLocalVariableUsedBeforeDeclared,
 );
@@ -11948,8 +11189,6 @@ const Template<
 >
 codeLocalVariableUsedBeforeDeclaredContext = const Template(
   "LocalVariableUsedBeforeDeclaredContext",
-  problemMessageTemplate:
-      r"""This is the declaration of the variable '#name'.""",
   withArgumentsOld: _withArgumentsOldLocalVariableUsedBeforeDeclaredContext,
   withArguments: _withArgumentsLocalVariableUsedBeforeDeclaredContext,
   severity: CfeSeverity.context,
@@ -12019,8 +11258,6 @@ const Template<
 >
 codeMainWrongParameterType = const Template(
   "MainWrongParameterType",
-  problemMessageTemplate:
-      r"""The type '#type' of the first parameter of the 'main' method is not a supertype of '#type2'.""",
   withArgumentsOld: _withArgumentsOldMainWrongParameterType,
   withArguments: _withArgumentsMainWrongParameterType,
 );
@@ -12055,8 +11292,6 @@ const Template<
 >
 codeMainWrongParameterTypeExported = const Template(
   "MainWrongParameterTypeExported",
-  problemMessageTemplate:
-      r"""The type '#type' of the first parameter of the exported 'main' method is not a supertype of '#type2'.""",
   withArgumentsOld: _withArgumentsOldMainWrongParameterTypeExported,
   withArguments: _withArgumentsMainWrongParameterTypeExported,
 );
@@ -12097,7 +11332,6 @@ const Template<
 >
 codeMemberConflictsWithConstructor = const Template(
   "MemberConflictsWithConstructor",
-  problemMessageTemplate: r"""The member conflicts with constructor '#name'.""",
   withArgumentsOld: _withArgumentsOldMemberConflictsWithConstructor,
   withArguments: _withArgumentsMemberConflictsWithConstructor,
 );
@@ -12123,7 +11357,6 @@ const Template<
 >
 codeMemberConflictsWithConstructorCause = const Template(
   "MemberConflictsWithConstructorCause",
-  problemMessageTemplate: r"""Conflicting constructor '#name'.""",
   withArgumentsOld: _withArgumentsOldMemberConflictsWithConstructorCause,
   withArguments: _withArgumentsMemberConflictsWithConstructorCause,
   severity: CfeSeverity.context,
@@ -12152,7 +11385,6 @@ const Template<
 >
 codeMemberConflictsWithFactory = const Template(
   "MemberConflictsWithFactory",
-  problemMessageTemplate: r"""The member conflicts with factory '#name'.""",
   withArgumentsOld: _withArgumentsOldMemberConflictsWithFactory,
   withArguments: _withArgumentsMemberConflictsWithFactory,
 );
@@ -12178,7 +11410,6 @@ const Template<
 >
 codeMemberConflictsWithFactoryCause = const Template(
   "MemberConflictsWithFactoryCause",
-  problemMessageTemplate: r"""Conflicting factory '#name'.""",
   withArgumentsOld: _withArgumentsOldMemberConflictsWithFactoryCause,
   withArguments: _withArgumentsMemberConflictsWithFactoryCause,
   severity: CfeSeverity.context,
@@ -12205,7 +11436,6 @@ const Template<
 >
 codeMemberNotFound = const Template(
   "MemberNotFound",
-  problemMessageTemplate: r"""Member not found: '#name'.""",
   withArgumentsOld: _withArgumentsOldMemberNotFound,
   withArguments: _withArgumentsMemberNotFound,
 );
@@ -12231,10 +11461,6 @@ const Template<
 >
 codeMemberShouldBeListedAsCallableInDynamicInterface = const Template(
   "MemberShouldBeListedAsCallableInDynamicInterface",
-  problemMessageTemplate:
-      r"""Cannot invoke member '#name' from a dynamic module.""",
-  correctionMessageTemplate:
-      r"""Try removing the call or update the dynamic interface to list member '#name' as callable.""",
   withArgumentsOld:
       _withArgumentsOldMemberShouldBeListedAsCallableInDynamicInterface,
   withArguments: _withArgumentsMemberShouldBeListedAsCallableInDynamicInterface,
@@ -12267,10 +11493,6 @@ const Template<
 >
 codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface = const Template(
   "MemberShouldBeListedAsCanBeOverriddenInDynamicInterface",
-  problemMessageTemplate:
-      r"""Cannot override member '#name.#name2' in a dynamic module.""",
-  correctionMessageTemplate:
-      r"""Try removing the override or update the dynamic interface to list member '#name.#name2' as can-be-overridden.""",
   withArgumentsOld:
       _withArgumentsOldMemberShouldBeListedAsCanBeOverriddenInDynamicInterface,
   withArguments:
@@ -12311,7 +11533,6 @@ const Template<
 >
 codeMethodNotFound = const Template(
   "MethodNotFound",
-  problemMessageTemplate: r"""Method not found: '#name'.""",
   withArgumentsOld: _withArgumentsOldMethodNotFound,
   withArguments: _withArgumentsMethodNotFound,
 );
@@ -12344,7 +11565,6 @@ const Template<
 >
 codeMissingImplementationCause = const Template(
   "MissingImplementationCause",
-  problemMessageTemplate: r"""'#name' is defined here.""",
   withArgumentsOld: _withArgumentsOldMissingImplementationCause,
   withArguments: _withArgumentsMissingImplementationCause,
   severity: CfeSeverity.context,
@@ -12371,14 +11591,6 @@ const Template<
 >
 codeMissingImplementationNotAbstract = const Template(
   "MissingImplementationNotAbstract",
-  problemMessageTemplate:
-      r"""The non-abstract class '#name' is missing implementations for these members:
-#names""",
-  correctionMessageTemplate: r"""Try to either
- - provide an implementation,
- - inherit an implementation from a superclass or mixin,
- - mark the class as abstract, or
- - provide a 'noSuchMethod' implementation.""",
   withArgumentsOld: _withArgumentsOldMissingImplementationNotAbstract,
   withArguments: _withArgumentsMissingImplementationNotAbstract,
 );
@@ -12434,8 +11646,6 @@ const MessageCode codeMissingNamedSuperConstructorParameter = const MessageCode(
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
 codeMissingPartOf = const Template(
   "MissingPartOf",
-  problemMessageTemplate:
-      r"""Can't use '#uri' as a part, because it has no 'part of' declaration.""",
   withArgumentsOld: _withArgumentsOldMissingPartOf,
   withArguments: _withArgumentsMissingPartOf,
 );
@@ -12470,10 +11680,6 @@ const Template<
 >
 codeMissingVariablePattern = const Template(
   "MissingVariablePattern",
-  problemMessageTemplate:
-      r"""Variable pattern '#name' is missing in this branch of the logical-or pattern.""",
-  correctionMessageTemplate:
-      r"""Try declaring this variable pattern in the branch.""",
   withArgumentsOld: _withArgumentsOldMissingVariablePattern,
   withArguments: _withArgumentsMissingVariablePattern,
 );
@@ -12505,8 +11711,6 @@ const Template<
 >
 codeMixinApplicationIncompatibleSupertype = const Template(
   "MixinApplicationIncompatibleSupertype",
-  problemMessageTemplate:
-      r"""'#type' doesn't implement '#type2' so it can't be used with '#type3'.""",
   withArgumentsOld: _withArgumentsOldMixinApplicationIncompatibleSupertype,
   withArguments: _withArgumentsMixinApplicationIncompatibleSupertype,
 );
@@ -12548,8 +11752,6 @@ const Template<
 >
 codeMixinApplicationNoConcreteGetter = const Template(
   "MixinApplicationNoConcreteGetter",
-  problemMessageTemplate:
-      r"""The class doesn't have a concrete implementation of the super-accessed member '#name'.""",
   withArgumentsOld: _withArgumentsOldMixinApplicationNoConcreteGetter,
   withArguments: _withArgumentsMixinApplicationNoConcreteGetter,
 );
@@ -12585,8 +11787,6 @@ const Template<
 >
 codeMixinApplicationNoConcreteMethod = const Template(
   "MixinApplicationNoConcreteMethod",
-  problemMessageTemplate:
-      r"""The class doesn't have a concrete implementation of the super-invoked member '#name'.""",
   withArgumentsOld: _withArgumentsOldMixinApplicationNoConcreteMethod,
   withArguments: _withArgumentsMixinApplicationNoConcreteMethod,
 );
@@ -12613,8 +11813,6 @@ const Template<
 >
 codeMixinApplicationNoConcreteSetter = const Template(
   "MixinApplicationNoConcreteSetter",
-  problemMessageTemplate:
-      r"""The class doesn't have a concrete implementation of the super-accessed setter '#name'.""",
   withArgumentsOld: _withArgumentsOldMixinApplicationNoConcreteSetter,
   withArguments: _withArgumentsMixinApplicationNoConcreteSetter,
 );
@@ -12652,8 +11850,6 @@ const Template<
 >
 codeMixinInferenceNoMatchingClass = const Template(
   "MixinInferenceNoMatchingClass",
-  problemMessageTemplate:
-      r"""Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'.""",
   withArgumentsOld: _withArgumentsOldMixinInferenceNoMatchingClass,
   withArguments: _withArgumentsMixinInferenceNoMatchingClass,
 );
@@ -12695,8 +11891,6 @@ const Template<
 >
 codeMixinInheritsFromNotObject = const Template(
   "MixinInheritsFromNotObject",
-  problemMessageTemplate:
-      r"""The class '#name' can't be used as a mixin because it extends a class other than 'Object'.""",
   withArgumentsOld: _withArgumentsOldMixinInheritsFromNotObject,
   withArguments: _withArgumentsMixinInheritsFromNotObject,
 );
@@ -12723,9 +11917,6 @@ const Template<
 >
 codeMixinSubtypeOfBaseIsNotBase = const Template(
   "MixinSubtypeOfBaseIsNotBase",
-  problemMessageTemplate:
-      r"""The mixin '#name' must be 'base' because the supertype '#name2' is 'base'.""",
-  correctionMessageTemplate: r"""Try adding 'base' to the mixin.""",
   withArgumentsOld: _withArgumentsOldMixinSubtypeOfBaseIsNotBase,
   withArguments: _withArgumentsMixinSubtypeOfBaseIsNotBase,
 );
@@ -12759,9 +11950,6 @@ const Template<
 >
 codeMixinSubtypeOfFinalIsNotBase = const Template(
   "MixinSubtypeOfFinalIsNotBase",
-  problemMessageTemplate:
-      r"""The mixin '#name' must be 'base' because the supertype '#name2' is 'final'.""",
-  correctionMessageTemplate: r"""Try adding 'base' to the mixin.""",
   withArgumentsOld: _withArgumentsOldMixinSubtypeOfFinalIsNotBase,
   withArguments: _withArgumentsMixinSubtypeOfFinalIsNotBase,
 );
@@ -12817,7 +12005,6 @@ const Template<
 >
 codeNameNotFound = const Template(
   "NameNotFound",
-  problemMessageTemplate: r"""Undefined name '#name'.""",
   withArgumentsOld: _withArgumentsOldNameNotFound,
   withArguments: _withArgumentsNameNotFound,
 );
@@ -12843,8 +12030,6 @@ const Template<
 >
 codeNameNotFoundInRecordNameGet = const Template(
   "NameNotFoundInRecordNameGet",
-  problemMessageTemplate:
-      r"""Field name #string isn't found in records of type #type.""",
   withArgumentsOld: _withArgumentsOldNameNotFoundInRecordNameGet,
   withArguments: _withArgumentsNameNotFoundInRecordNameGet,
 );
@@ -12887,8 +12072,6 @@ const Template<
 >
 codeNamedMixinOverride = const Template(
   "NamedMixinOverride",
-  problemMessageTemplate:
-      r"""The mixin application class '#name' introduces an erroneous override of '#name2'.""",
   withArgumentsOld: _withArgumentsOldNamedMixinOverride,
   withArguments: _withArgumentsNamedMixinOverride,
 );
@@ -12986,7 +12169,6 @@ const Template<
 >
 codeNoSuchNamedParameter = const Template(
   "NoSuchNamedParameter",
-  problemMessageTemplate: r"""No named parameter with the name '#name'.""",
   withArgumentsOld: _withArgumentsOldNoSuchNamedParameter,
   withArguments: _withArgumentsNoSuchNamedParameter,
 );
@@ -13070,10 +12252,6 @@ const Template<
 >
 codeNonExhaustiveSwitchExpression = const Template(
   "NonExhaustiveSwitchExpression",
-  problemMessageTemplate:
-      r"""The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'.""",
-  correctionMessageTemplate:
-      r"""Try adding a wildcard pattern or cases that match '#string2'.""",
   withArgumentsOld: _withArgumentsOldNonExhaustiveSwitchExpression,
   withArguments: _withArgumentsNonExhaustiveSwitchExpression,
 );
@@ -13121,10 +12299,6 @@ const Template<
 >
 codeNonExhaustiveSwitchStatement = const Template(
   "NonExhaustiveSwitchStatement",
-  problemMessageTemplate:
-      r"""The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'.""",
-  correctionMessageTemplate:
-      r"""Try adding a default case or cases that match '#string2'.""",
   withArgumentsOld: _withArgumentsOldNonExhaustiveSwitchStatement,
   withArguments: _withArgumentsNonExhaustiveSwitchStatement,
 );
@@ -13183,7 +12357,6 @@ const Template<
 >
 codeNonNullAwareSpreadIsNull = const Template(
   "NonNullAwareSpreadIsNull",
-  problemMessageTemplate: r"""Can't spread a value with static type '#type'.""",
   withArgumentsOld: _withArgumentsOldNonNullAwareSpreadIsNull,
   withArguments: _withArgumentsNonNullAwareSpreadIsNull,
 );
@@ -13212,8 +12385,6 @@ const Template<
 >
 codeNonNullableNotAssignedError = const Template(
   "NonNullableNotAssignedError",
-  problemMessageTemplate:
-      r"""Non-nullable variable '#name' must be assigned before it can be used.""",
   withArgumentsOld: _withArgumentsOldNonNullableNotAssignedError,
   withArguments: _withArgumentsNonNullableNotAssignedError,
 );
@@ -13246,8 +12417,6 @@ const Template<
 >
 codeNonSimpleBoundViaReference = const Template(
   "NonSimpleBoundViaReference",
-  problemMessageTemplate:
-      r"""Bound of this variable references raw type '#name'.""",
   withArgumentsOld: _withArgumentsOldNonSimpleBoundViaReference,
   withArguments: _withArgumentsNonSimpleBoundViaReference,
   severity: CfeSeverity.context,
@@ -13275,8 +12444,6 @@ const Template<
 >
 codeNonSimpleBoundViaVariable = const Template(
   "NonSimpleBoundViaVariable",
-  problemMessageTemplate:
-      r"""Bound of this variable references variable '#name' from the same declaration.""",
   withArgumentsOld: _withArgumentsOldNonSimpleBoundViaVariable,
   withArguments: _withArgumentsNonSimpleBoundViaVariable,
   severity: CfeSeverity.context,
@@ -13326,8 +12493,6 @@ const Template<
 >
 codeNotAPrefixInTypeAnnotation = const Template(
   "NotAPrefixInTypeAnnotation",
-  problemMessageTemplate:
-      r"""'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix.""",
   withArgumentsOld: _withArgumentsOldNotAPrefixInTypeAnnotation,
   withArguments: _withArgumentsNotAPrefixInTypeAnnotation,
 );
@@ -13360,7 +12525,6 @@ const Template<
 >
 codeNotAType = const Template(
   "NotAType",
-  problemMessageTemplate: r"""'#name' isn't a type.""",
   withArgumentsOld: _withArgumentsOldNotAType,
   withArguments: _withArgumentsNotAType,
 );
@@ -13399,7 +12563,6 @@ const Template<
 >
 codeNotBinaryOperator = const Template(
   "NotBinaryOperator",
-  problemMessageTemplate: r"""'#lexeme' isn't a binary operator.""",
   withArgumentsOld: _withArgumentsOldNotBinaryOperator,
   withArguments: _withArgumentsNotBinaryOperator,
 );
@@ -13425,7 +12588,6 @@ const Template<
 >
 codeNotConstantExpression = const Template(
   "NotConstantExpression",
-  problemMessageTemplate: r"""#string is not a constant expression.""",
   withArgumentsOld: _withArgumentsOldNotConstantExpression,
   withArguments: _withArgumentsNotConstantExpression,
 );
@@ -13451,9 +12613,6 @@ const Template<
 >
 codeNullableExpressionCallError = const Template(
   "NullableExpressionCallError",
-  problemMessageTemplate:
-      r"""Can't use an expression of type '#type' as a function because it's potentially null.""",
-  correctionMessageTemplate: r"""Try calling using ?.call instead.""",
   withArgumentsOld: _withArgumentsOldNullableExpressionCallError,
   withArguments: _withArgumentsNullableExpressionCallError,
 );
@@ -13483,8 +12642,6 @@ const Template<
 >
 codeNullableInterfaceError = const Template(
   "NullableInterfaceError",
-  problemMessageTemplate: r"""Can't implement '#name' because it's nullable.""",
-  correctionMessageTemplate: r"""Try removing the question mark.""",
   withArgumentsOld: _withArgumentsOldNullableInterfaceError,
   withArguments: _withArgumentsNullableInterfaceError,
 );
@@ -13511,9 +12668,6 @@ const Template<
 >
 codeNullableMethodCallError = const Template(
   "NullableMethodCallError",
-  problemMessageTemplate:
-      r"""Method '#name' cannot be called on '#type' because it is potentially null.""",
-  correctionMessageTemplate: r"""Try calling using ?. instead.""",
   withArgumentsOld: _withArgumentsOldNullableMethodCallError,
   withArguments: _withArgumentsNullableMethodCallError,
 );
@@ -13547,8 +12701,6 @@ const Template<
 >
 codeNullableMixinError = const Template(
   "NullableMixinError",
-  problemMessageTemplate: r"""Can't mix '#name' in because it's nullable.""",
-  correctionMessageTemplate: r"""Try removing the question mark.""",
   withArgumentsOld: _withArgumentsOldNullableMixinError,
   withArguments: _withArgumentsNullableMixinError,
 );
@@ -13575,8 +12727,6 @@ const Template<
 >
 codeNullableOperatorCallError = const Template(
   "NullableOperatorCallError",
-  problemMessageTemplate:
-      r"""Operator '#name' cannot be called on '#type' because it is potentially null.""",
   withArgumentsOld: _withArgumentsOldNullableOperatorCallError,
   withArguments: _withArgumentsNullableOperatorCallError,
 );
@@ -13611,9 +12761,6 @@ const Template<
 >
 codeNullablePropertyAccessError = const Template(
   "NullablePropertyAccessError",
-  problemMessageTemplate:
-      r"""Property '#name' cannot be accessed on '#type' because it is potentially null.""",
-  correctionMessageTemplate: r"""Try accessing using ?. instead.""",
   withArgumentsOld: _withArgumentsOldNullablePropertyAccessError,
   withArguments: _withArgumentsNullablePropertyAccessError,
 );
@@ -13656,8 +12803,6 @@ const Template<
 >
 codeNullableSuperclassError = const Template(
   "NullableSuperclassError",
-  problemMessageTemplate: r"""Can't extend '#name' because it's nullable.""",
-  correctionMessageTemplate: r"""Try removing the question mark.""",
   withArgumentsOld: _withArgumentsOldNullableSuperclassError,
   withArguments: _withArgumentsNullableSuperclassError,
 );
@@ -13684,8 +12829,6 @@ const Template<
 >
 codeNullableTearoffError = const Template(
   "NullableTearoffError",
-  problemMessageTemplate:
-      r"""Can't tear off method '#name' from a potentially null value.""",
   withArgumentsOld: _withArgumentsOldNullableTearoffError,
   withArguments: _withArgumentsNullableTearoffError,
 );
@@ -13745,10 +12888,6 @@ const Template<
 >
 codeOperatorMinusParameterMismatch = const Template(
   "OperatorMinusParameterMismatch",
-  problemMessageTemplate:
-      r"""Operator '#name' should have zero or one parameter.""",
-  correctionMessageTemplate:
-      r"""With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.""",
   withArgumentsOld: _withArgumentsOldOperatorMinusParameterMismatch,
   withArguments: _withArgumentsOperatorMinusParameterMismatch,
 );
@@ -13777,8 +12916,6 @@ const Template<
 >
 codeOperatorParameterMismatch0 = const Template(
   "OperatorParameterMismatch0",
-  problemMessageTemplate:
-      r"""Operator '#name' shouldn't have any parameters.""",
   withArgumentsOld: _withArgumentsOldOperatorParameterMismatch0,
   withArguments: _withArgumentsOperatorParameterMismatch0,
 );
@@ -13804,8 +12941,6 @@ const Template<
 >
 codeOperatorParameterMismatch1 = const Template(
   "OperatorParameterMismatch1",
-  problemMessageTemplate:
-      r"""Operator '#name' should have exactly one parameter.""",
   withArgumentsOld: _withArgumentsOldOperatorParameterMismatch1,
   withArguments: _withArgumentsOperatorParameterMismatch1,
 );
@@ -13832,8 +12967,6 @@ const Template<
 >
 codeOperatorParameterMismatch2 = const Template(
   "OperatorParameterMismatch2",
-  problemMessageTemplate:
-      r"""Operator '#name' should have exactly two parameters.""",
   withArgumentsOld: _withArgumentsOldOperatorParameterMismatch2,
   withArguments: _withArgumentsOperatorParameterMismatch2,
 );
@@ -13866,10 +12999,6 @@ const Template<
 >
 codeOptionalNonNullableWithoutInitializerError = const Template(
   "OptionalNonNullableWithoutInitializerError",
-  problemMessageTemplate:
-      r"""The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'.""",
-  correctionMessageTemplate:
-      r"""Try adding either an explicit non-'null' default value or the 'required' modifier.""",
   withArgumentsOld: _withArgumentsOldOptionalNonNullableWithoutInitializerError,
   withArguments: _withArgumentsOptionalNonNullableWithoutInitializerError,
 );
@@ -13917,8 +13046,6 @@ const Template<
 >
 codeOptionalSuperParameterWithoutInitializer = const Template(
   "OptionalSuperParameterWithoutInitializer",
-  problemMessageTemplate:
-      r"""Type '#type' of the optional super-initializer parameter '#name' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.""",
   withArgumentsOld: _withArgumentsOldOptionalSuperParameterWithoutInitializer,
   withArguments: _withArgumentsOptionalSuperParameterWithoutInitializer,
 );
@@ -13956,7 +13083,6 @@ const Template<
 >
 codeOverriddenMethodCause = const Template(
   "OverriddenMethodCause",
-  problemMessageTemplate: r"""This is the overridden method ('#name').""",
   withArgumentsOld: _withArgumentsOldOverriddenMethodCause,
   withArguments: _withArgumentsOverriddenMethodCause,
   severity: CfeSeverity.context,
@@ -13983,8 +13109,6 @@ const Template<
 >
 codeOverrideFewerNamedArguments = const Template(
   "OverrideFewerNamedArguments",
-  problemMessageTemplate:
-      r"""The method '#name' has fewer named arguments than those of overridden method '#name2'.""",
   withArgumentsOld: _withArgumentsOldOverrideFewerNamedArguments,
   withArguments: _withArgumentsOverrideFewerNamedArguments,
 );
@@ -14017,8 +13141,6 @@ const Template<
 >
 codeOverrideFewerPositionalArguments = const Template(
   "OverrideFewerPositionalArguments",
-  problemMessageTemplate:
-      r"""The method '#name' has fewer positional arguments than those of overridden method '#name2'.""",
   withArgumentsOld: _withArgumentsOldOverrideFewerPositionalArguments,
   withArguments: _withArgumentsOverrideFewerPositionalArguments,
 );
@@ -14055,8 +13177,6 @@ const Template<
 >
 codeOverrideMismatchNamedParameter = const Template(
   "OverrideMismatchNamedParameter",
-  problemMessageTemplate:
-      r"""The method '#name' doesn't have the named parameter '#name2' of overridden method '#name3'.""",
   withArgumentsOld: _withArgumentsOldOverrideMismatchNamedParameter,
   withArguments: _withArgumentsOverrideMismatchNamedParameter,
 );
@@ -14100,8 +13220,6 @@ const Template<
 >
 codeOverrideMismatchRequiredNamedParameter = const Template(
   "OverrideMismatchRequiredNamedParameter",
-  problemMessageTemplate:
-      r"""The required named parameter '#name' in method '#name2' is not required in overridden method '#name3'.""",
   withArgumentsOld: _withArgumentsOldOverrideMismatchRequiredNamedParameter,
   withArguments: _withArgumentsOverrideMismatchRequiredNamedParameter,
 );
@@ -14141,8 +13259,6 @@ const Template<
 >
 codeOverrideMoreRequiredArguments = const Template(
   "OverrideMoreRequiredArguments",
-  problemMessageTemplate:
-      r"""The method '#name' has more required arguments than those of overridden method '#name2'.""",
   withArgumentsOld: _withArgumentsOldOverrideMoreRequiredArguments,
   withArguments: _withArgumentsOverrideMoreRequiredArguments,
 );
@@ -14187,10 +13303,6 @@ const Template<
 >
 codeOverrideTypeMismatchParameter = const Template(
   "OverrideTypeMismatchParameter",
-  problemMessageTemplate:
-      r"""The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type, '#type2', in the overridden method, '#name3'.""",
-  correctionMessageTemplate:
-      r"""Change to a supertype of '#type2', or, for a covariant parameter, a subtype.""",
   withArgumentsOld: _withArgumentsOldOverrideTypeMismatchParameter,
   withArguments: _withArgumentsOverrideTypeMismatchParameter,
 );
@@ -14253,9 +13365,6 @@ const Template<
 >
 codeOverrideTypeMismatchReturnType = const Template(
   "OverrideTypeMismatchReturnType",
-  problemMessageTemplate:
-      r"""The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'.""",
-  correctionMessageTemplate: r"""Change to a subtype of '#type2'.""",
   withArgumentsOld: _withArgumentsOldOverrideTypeMismatchReturnType,
   withArguments: _withArgumentsOverrideTypeMismatchReturnType,
 );
@@ -14307,8 +13416,6 @@ const Template<
 >
 codeOverrideTypeMismatchSetter = const Template(
   "OverrideTypeMismatchSetter",
-  problemMessageTemplate:
-      r"""The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'.""",
   withArgumentsOld: _withArgumentsOldOverrideTypeMismatchSetter,
   withArguments: _withArgumentsOverrideTypeMismatchSetter,
 );
@@ -14366,8 +13473,6 @@ const Template<
 >
 codeOverrideTypeParametersBoundMismatch = const Template(
   "OverrideTypeParametersBoundMismatch",
-  problemMessageTemplate:
-      r"""Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'.""",
   withArgumentsOld: _withArgumentsOldOverrideTypeParametersBoundMismatch,
   withArguments: _withArgumentsOverrideTypeParametersBoundMismatch,
 );
@@ -14423,8 +13528,6 @@ const Template<
 >
 codeOverrideTypeParametersMismatch = const Template(
   "OverrideTypeParametersMismatch",
-  problemMessageTemplate:
-      r"""Declared type variables of '#name' doesn't match those on overridden method '#name2'.""",
   withArgumentsOld: _withArgumentsOldOverrideTypeParametersMismatch,
   withArguments: _withArgumentsOverrideTypeParametersMismatch,
 );
@@ -14457,8 +13560,6 @@ const Template<
 >
 codePackageNotFound = const Template(
   "PackageNotFound",
-  problemMessageTemplate:
-      r"""Couldn't resolve the package '#name' in '#uri'.""",
   withArgumentsOld: _withArgumentsOldPackageNotFound,
   withArguments: _withArgumentsPackageNotFound,
 );
@@ -14489,8 +13590,6 @@ const Template<
 >
 codePackagesFileFormat = const Template(
   "PackagesFileFormat",
-  problemMessageTemplate:
-      r"""Problem in packages configuration file: #string""",
   withArgumentsOld: _withArgumentsOldPackagesFileFormat,
   withArguments: _withArgumentsPackagesFileFormat,
 );
@@ -14543,10 +13642,6 @@ const MessageCode codePartInPartLibraryContext = const MessageCode(
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
 codePartOfInLibrary = const Template(
   "PartOfInLibrary",
-  problemMessageTemplate:
-      r"""Can't import '#uri', because it has a 'part of' declaration.""",
-  correctionMessageTemplate:
-      r"""Try removing the 'part of' declaration, or using '#uri' as a part.""",
   withArgumentsOld: _withArgumentsOldPartOfInLibrary,
   withArguments: _withArgumentsPartOfInLibrary,
 );
@@ -14579,8 +13674,6 @@ const Template<
 >
 codePartOfLibraryNameMismatch = const Template(
   "PartOfLibraryNameMismatch",
-  problemMessageTemplate:
-      r"""Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'.""",
   withArgumentsOld: _withArgumentsOldPartOfLibraryNameMismatch,
   withArguments: _withArgumentsPartOfLibraryNameMismatch,
 );
@@ -14646,8 +13739,6 @@ const Template<
 >
 codePartOfUriMismatch = const Template(
   "PartOfUriMismatch",
-  problemMessageTemplate:
-      r"""Using '#uri' as part of '#uri2' but its 'part of' declaration says '#uri3'.""",
   withArgumentsOld: _withArgumentsOldPartOfUriMismatch,
   withArguments: _withArgumentsPartOfUriMismatch,
 );
@@ -14680,10 +13771,6 @@ const Template<
 >
 codePartOfUseUri = const Template(
   "PartOfUseUri",
-  problemMessageTemplate:
-      r"""Using '#uri' as part of '#uri2' but its 'part of' declaration says '#name'.""",
-  correctionMessageTemplate:
-      r"""Try changing the 'part of' declaration to use a relative file name.""",
   withArgumentsOld: _withArgumentsOldPartOfUseUri,
   withArguments: _withArgumentsPartOfUseUri,
 );
@@ -14722,7 +13809,6 @@ const MessageCode codePartOrphan = const MessageCode(
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
 codePartTwice = const Template(
   "PartTwice",
-  problemMessageTemplate: r"""Can't use '#uri' as a part more than once.""",
   withArgumentsOld: _withArgumentsOldPartTwice,
   withArguments: _withArgumentsPartTwice,
 );
@@ -14790,9 +13876,6 @@ const Template<
 >
 codePatchInjectionFailed = const Template(
   "PatchInjectionFailed",
-  problemMessageTemplate: r"""Can't inject public '#name' into '#uri'.""",
-  correctionMessageTemplate:
-      r"""Make '#name' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").""",
   withArgumentsOld: _withArgumentsOldPatchInjectionFailed,
   withArguments: _withArgumentsPatchInjectionFailed,
 );
@@ -14838,10 +13921,6 @@ const Template<
 >
 codePatternTypeMismatchInIrrefutableContext = const Template(
   "PatternTypeMismatchInIrrefutableContext",
-  problemMessageTemplate:
-      r"""The matched value of type '#type' isn't assignable to the required type '#type2'.""",
-  correctionMessageTemplate:
-      r"""Try changing the required type of the pattern, or the matched value type.""",
   withArgumentsOld: _withArgumentsOldPatternTypeMismatchInIrrefutableContext,
   withArguments: _withArgumentsPatternTypeMismatchInIrrefutableContext,
 );
@@ -14946,8 +14025,6 @@ const Template<
 >
 codeRedirectingFactoryIncompatibleTypeArgument = const Template(
   "RedirectingFactoryIncompatibleTypeArgument",
-  problemMessageTemplate: r"""The type '#type' doesn't extend '#type2'.""",
-  correctionMessageTemplate: r"""Try using a different type as argument.""",
   withArgumentsOld: _withArgumentsOldRedirectingFactoryIncompatibleTypeArgument,
   withArguments: _withArgumentsRedirectingFactoryIncompatibleTypeArgument,
 );
@@ -14986,8 +14063,6 @@ const Template<
 >
 codeRedirectionTargetNotFound = const Template(
   "RedirectionTargetNotFound",
-  problemMessageTemplate:
-      r"""Redirection constructor target not found: '#name'""",
   withArgumentsOld: _withArgumentsOldRedirectionTargetNotFound,
   withArguments: _withArgumentsRedirectionTargetNotFound,
 );
@@ -15034,8 +14109,6 @@ const Template<
 >
 codeRequiredNamedParameterHasDefaultValueError = const Template(
   "RequiredNamedParameterHasDefaultValueError",
-  problemMessageTemplate:
-      r"""Named parameter '#name' is required and can't have a default value.""",
   withArgumentsOld: _withArgumentsOldRequiredNamedParameterHasDefaultValueError,
   withArguments: _withArgumentsRequiredNamedParameterHasDefaultValueError,
 );
@@ -15102,7 +14175,6 @@ const MessageCode codeScriptTagInPartFile = const MessageCode(
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
 codeSdkRootNotFound = const Template(
   "SdkRootNotFound",
-  problemMessageTemplate: r"""SDK root directory not found: #uri.""",
   withArgumentsOld: _withArgumentsOldSdkRootNotFound,
   withArguments: _withArgumentsSdkRootNotFound,
 );
@@ -15125,9 +14197,6 @@ Message _withArgumentsOldSdkRootNotFound(Uri uri) =>
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
 codeSdkSpecificationNotFound = const Template(
   "SdkSpecificationNotFound",
-  problemMessageTemplate: r"""SDK libraries specification not found: #uri.""",
-  correctionMessageTemplate:
-      r"""Normally, the specification is a file named 'libraries.json' in the Dart SDK install location.""",
   withArgumentsOld: _withArgumentsOldSdkSpecificationNotFound,
   withArguments: _withArgumentsSdkSpecificationNotFound,
 );
@@ -15152,7 +14221,6 @@ Message _withArgumentsOldSdkSpecificationNotFound(Uri uri) =>
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
 codeSdkSummaryNotFound = const Template(
   "SdkSummaryNotFound",
-  problemMessageTemplate: r"""SDK summary not found: #uri.""",
   withArgumentsOld: _withArgumentsOldSdkSummaryNotFound,
   withArguments: _withArgumentsSdkSummaryNotFound,
 );
@@ -15178,8 +14246,6 @@ const Template<
 >
 codeSealedClassSubtypeOutsideOfLibrary = const Template(
   "SealedClassSubtypeOutsideOfLibrary",
-  problemMessageTemplate:
-      r"""The class '#name' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
   withArgumentsOld: _withArgumentsOldSealedClassSubtypeOutsideOfLibrary,
   withArguments: _withArgumentsSealedClassSubtypeOutsideOfLibrary,
 );
@@ -15208,7 +14274,6 @@ const Template<
 >
 codeSetterConflictsWithDeclaration = const Template(
   "SetterConflictsWithDeclaration",
-  problemMessageTemplate: r"""The setter conflicts with declaration '#name'.""",
   withArgumentsOld: _withArgumentsOldSetterConflictsWithDeclaration,
   withArguments: _withArgumentsSetterConflictsWithDeclaration,
 );
@@ -15234,7 +14299,6 @@ const Template<
 >
 codeSetterConflictsWithDeclarationCause = const Template(
   "SetterConflictsWithDeclarationCause",
-  problemMessageTemplate: r"""Conflicting declaration '#name'.""",
   withArgumentsOld: _withArgumentsOldSetterConflictsWithDeclarationCause,
   withArguments: _withArgumentsSetterConflictsWithDeclarationCause,
   severity: CfeSeverity.context,
@@ -15263,7 +14327,6 @@ const Template<
 >
 codeSetterNotFound = const Template(
   "SetterNotFound",
-  problemMessageTemplate: r"""Setter not found: '#name'.""",
   withArgumentsOld: _withArgumentsOldSetterNotFound,
   withArguments: _withArgumentsSetterNotFound,
 );
@@ -15301,10 +14364,6 @@ const Template<
 >
 codeSourceBodySummary = const Template(
   "SourceBodySummary",
-  problemMessageTemplate:
-      r"""Built bodies for #count compilation units (#count2 bytes) in #num1%.3ms, that is,
-#num2%12.3 bytes/ms, and
-#num3%12.3 ms/compilation unit.""",
   withArgumentsOld: _withArgumentsOldSourceBodySummary,
   withArguments: _withArgumentsSourceBodySummary,
 );
@@ -15379,10 +14438,6 @@ const Template<
 >
 codeSourceOutlineSummary = const Template(
   "SourceOutlineSummary",
-  problemMessageTemplate:
-      r"""Built outlines for #count compilation units (#count2 bytes) in #num1%.3ms, that is,
-#num2%12.3 bytes/ms, and
-#num3%12.3 ms/compilation unit.""",
   withArgumentsOld: _withArgumentsOldSourceOutlineSummary,
   withArguments: _withArgumentsSourceOutlineSummary,
 );
@@ -15458,8 +14513,6 @@ const Template<
 >
 codeSpreadElementTypeMismatch = const Template(
   "SpreadElementTypeMismatch",
-  problemMessageTemplate:
-      r"""Can't assign spread elements of type '#type' to collection elements of type '#type2'.""",
   withArgumentsOld: _withArgumentsOldSpreadElementTypeMismatch,
   withArguments: _withArgumentsSpreadElementTypeMismatch,
 );
@@ -15501,8 +14554,6 @@ const Template<
 >
 codeSpreadMapEntryElementKeyTypeMismatch = const Template(
   "SpreadMapEntryElementKeyTypeMismatch",
-  problemMessageTemplate:
-      r"""Can't assign spread entry keys of type '#type' to map entry keys of type '#type2'.""",
   withArgumentsOld: _withArgumentsOldSpreadMapEntryElementKeyTypeMismatch,
   withArguments: _withArgumentsSpreadMapEntryElementKeyTypeMismatch,
 );
@@ -15540,8 +14591,6 @@ const Template<
 >
 codeSpreadMapEntryElementValueTypeMismatch = const Template(
   "SpreadMapEntryElementValueTypeMismatch",
-  problemMessageTemplate:
-      r"""Can't assign spread entry values of type '#type' to map entry values of type '#type2'.""",
   withArgumentsOld: _withArgumentsOldSpreadMapEntryElementValueTypeMismatch,
   withArguments: _withArgumentsSpreadMapEntryElementValueTypeMismatch,
 );
@@ -15579,8 +14628,6 @@ const Template<
 >
 codeSpreadMapEntryTypeMismatch = const Template(
   "SpreadMapEntryTypeMismatch",
-  problemMessageTemplate:
-      r"""Unexpected type '#type' of a map spread entry.  Expected 'dynamic' or a Map.""",
   withArgumentsOld: _withArgumentsOldSpreadMapEntryTypeMismatch,
   withArguments: _withArgumentsSpreadMapEntryTypeMismatch,
 );
@@ -15609,8 +14656,6 @@ const Template<
 >
 codeSpreadTypeMismatch = const Template(
   "SpreadTypeMismatch",
-  problemMessageTemplate:
-      r"""Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable.""",
   withArgumentsOld: _withArgumentsOldSpreadTypeMismatch,
   withArguments: _withArgumentsSpreadTypeMismatch,
 );
@@ -15639,8 +14684,6 @@ const Template<
 >
 codeStaticConflictsWithInstance = const Template(
   "StaticConflictsWithInstance",
-  problemMessageTemplate:
-      r"""Static property '#name' conflicts with instance property of the same name.""",
   withArgumentsOld: _withArgumentsOldStaticConflictsWithInstance,
   withArguments: _withArgumentsStaticConflictsWithInstance,
 );
@@ -15667,7 +14710,6 @@ const Template<
 >
 codeStaticConflictsWithInstanceCause = const Template(
   "StaticConflictsWithInstanceCause",
-  problemMessageTemplate: r"""Conflicting instance property '#name'.""",
   withArgumentsOld: _withArgumentsOldStaticConflictsWithInstanceCause,
   withArguments: _withArgumentsStaticConflictsWithInstanceCause,
   severity: CfeSeverity.context,
@@ -15703,10 +14745,6 @@ const Template<
 >
 codeSubtypeOfBaseIsNotBaseFinalOrSealed = const Template(
   "SubtypeOfBaseIsNotBaseFinalOrSealed",
-  problemMessageTemplate:
-      r"""The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'base'.""",
-  correctionMessageTemplate:
-      r"""Try adding 'base', 'final', or 'sealed' to the type.""",
   withArgumentsOld: _withArgumentsOldSubtypeOfBaseIsNotBaseFinalOrSealed,
   withArguments: _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed,
 );
@@ -15742,10 +14780,6 @@ const Template<
 >
 codeSubtypeOfFinalIsNotBaseFinalOrSealed = const Template(
   "SubtypeOfFinalIsNotBaseFinalOrSealed",
-  problemMessageTemplate:
-      r"""The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'final'.""",
-  correctionMessageTemplate:
-      r"""Try adding 'base', 'final', or 'sealed' to the type.""",
   withArgumentsOld: _withArgumentsOldSubtypeOfFinalIsNotBaseFinalOrSealed,
   withArguments: _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed,
 );
@@ -15797,8 +14831,6 @@ const Template<
 >
 codeSuperBoundedHint = const Template(
   "SuperBoundedHint",
-  problemMessageTemplate:
-      r"""If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not.""",
   withArgumentsOld: _withArgumentsOldSuperBoundedHint,
   withArguments: _withArgumentsSuperBoundedHint,
   severity: CfeSeverity.context,
@@ -15832,8 +14864,6 @@ const Template<
 >
 codeSuperExtensionTypeIsIllegal = const Template(
   "SuperExtensionTypeIsIllegal",
-  problemMessageTemplate:
-      r"""The type '#name' can't be implemented by an extension type.""",
   withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsIllegal,
   withArguments: _withArgumentsSuperExtensionTypeIsIllegal,
 );
@@ -15860,8 +14890,6 @@ const Template<
 >
 codeSuperExtensionTypeIsIllegalAliased = const Template(
   "SuperExtensionTypeIsIllegalAliased",
-  problemMessageTemplate:
-      r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type.""",
   withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsIllegalAliased,
   withArguments: _withArgumentsSuperExtensionTypeIsIllegalAliased,
 );
@@ -15896,8 +14924,6 @@ const Template<
 >
 codeSuperExtensionTypeIsNullableAliased = const Template(
   "SuperExtensionTypeIsNullableAliased",
-  problemMessageTemplate:
-      r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type because it is nullable.""",
   withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsNullableAliased,
   withArguments: _withArgumentsSuperExtensionTypeIsNullableAliased,
 );
@@ -15932,8 +14958,6 @@ const Template<
 >
 codeSuperExtensionTypeIsTypeParameter = const Template(
   "SuperExtensionTypeIsTypeParameter",
-  problemMessageTemplate:
-      r"""The type variable '#name' can't be implemented by an extension type.""",
   withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsTypeParameter,
   withArguments: _withArgumentsSuperExtensionTypeIsTypeParameter,
 );
@@ -15984,7 +15008,6 @@ const Template<
 >
 codeSuperclassHasNoConstructor = const Template(
   "SuperclassHasNoConstructor",
-  problemMessageTemplate: r"""Superclass has no constructor named '#name'.""",
   withArgumentsOld: _withArgumentsOldSuperclassHasNoConstructor,
   withArguments: _withArgumentsSuperclassHasNoConstructor,
 );
@@ -16010,8 +15033,6 @@ const Template<
 >
 codeSuperclassHasNoDefaultConstructor = const Template(
   "SuperclassHasNoDefaultConstructor",
-  problemMessageTemplate:
-      r"""The superclass, '#name', has no unnamed constructor that takes no arguments.""",
   withArgumentsOld: _withArgumentsOldSuperclassHasNoDefaultConstructor,
   withArguments: _withArgumentsSuperclassHasNoDefaultConstructor,
 );
@@ -16040,7 +15061,6 @@ const Template<
 >
 codeSuperclassHasNoGetter = const Template(
   "SuperclassHasNoGetter",
-  problemMessageTemplate: r"""Superclass has no getter named '#name'.""",
   withArgumentsOld: _withArgumentsOldSuperclassHasNoGetter,
   withArguments: _withArgumentsSuperclassHasNoGetter,
 );
@@ -16066,7 +15086,6 @@ const Template<
 >
 codeSuperclassHasNoMember = const Template(
   "SuperclassHasNoMember",
-  problemMessageTemplate: r"""Superclass has no member named '#name'.""",
   withArgumentsOld: _withArgumentsOldSuperclassHasNoMember,
   withArguments: _withArgumentsSuperclassHasNoMember,
 );
@@ -16092,7 +15111,6 @@ const Template<
 >
 codeSuperclassHasNoMethod = const Template(
   "SuperclassHasNoMethod",
-  problemMessageTemplate: r"""Superclass has no method named '#name'.""",
   withArgumentsOld: _withArgumentsOldSuperclassHasNoMethod,
   withArguments: _withArgumentsSuperclassHasNoMethod,
 );
@@ -16118,7 +15136,6 @@ const Template<
 >
 codeSuperclassHasNoSetter = const Template(
   "SuperclassHasNoSetter",
-  problemMessageTemplate: r"""Superclass has no setter named '#name'.""",
   withArgumentsOld: _withArgumentsOldSuperclassHasNoSetter,
   withArguments: _withArgumentsSuperclassHasNoSetter,
 );
@@ -16150,7 +15167,6 @@ const Template<
 >
 codeSupertypeIsIllegal = const Template(
   "SupertypeIsIllegal",
-  problemMessageTemplate: r"""The type '#name' can't be used as supertype.""",
   withArgumentsOld: _withArgumentsOldSupertypeIsIllegal,
   withArguments: _withArgumentsSupertypeIsIllegal,
 );
@@ -16176,8 +15192,6 @@ const Template<
 >
 codeSupertypeIsIllegalAliased = const Template(
   "SupertypeIsIllegalAliased",
-  problemMessageTemplate:
-      r"""The type '#name' which is an alias of '#type' can't be used as supertype.""",
   withArgumentsOld: _withArgumentsOldSupertypeIsIllegalAliased,
   withArguments: _withArgumentsSupertypeIsIllegalAliased,
 );
@@ -16212,8 +15226,6 @@ const Template<
 >
 codeSupertypeIsNullableAliased = const Template(
   "SupertypeIsNullableAliased",
-  problemMessageTemplate:
-      r"""The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable.""",
   withArgumentsOld: _withArgumentsOldSupertypeIsNullableAliased,
   withArguments: _withArgumentsSupertypeIsNullableAliased,
 );
@@ -16248,8 +15260,6 @@ const Template<
 >
 codeSupertypeIsTypeParameter = const Template(
   "SupertypeIsTypeParameter",
-  problemMessageTemplate:
-      r"""The type variable '#name' can't be used as supertype.""",
   withArgumentsOld: _withArgumentsOldSupertypeIsTypeParameter,
   withArguments: _withArgumentsSupertypeIsTypeParameter,
 );
@@ -16289,8 +15299,6 @@ const Template<
 >
 codeSwitchExpressionNotSubtype = const Template(
   "SwitchExpressionNotSubtype",
-  problemMessageTemplate:
-      r"""Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression.""",
   withArgumentsOld: _withArgumentsOldSwitchExpressionNotSubtype,
   withArguments: _withArgumentsSwitchExpressionNotSubtype,
 );
@@ -16331,8 +15339,6 @@ const Template<
 >
 codeThisAccessInFieldInitializer = const Template(
   "ThisAccessInFieldInitializer",
-  problemMessageTemplate:
-      r"""Can't access 'this' in a field initializer to read '#name'.""",
   withArgumentsOld: _withArgumentsOldThisAccessInFieldInitializer,
   withArguments: _withArgumentsThisAccessInFieldInitializer,
 );
@@ -16365,8 +15371,6 @@ const Template<
 >
 codeThisNotPromoted = const Template(
   "ThisNotPromoted",
-  problemMessageTemplate: r"""'this' can't be promoted.""",
-  correctionMessageTemplate: r"""See #string""",
   withArgumentsOld: _withArgumentsOldThisNotPromoted,
   withArguments: _withArgumentsThisNotPromoted,
 );
@@ -16393,7 +15397,6 @@ const Template<
 >
 codeThisOrSuperAccessInFieldInitializer = const Template(
   "ThisOrSuperAccessInFieldInitializer",
-  problemMessageTemplate: r"""Can't access '#string' in a field initializer.""",
   withArgumentsOld: _withArgumentsOldThisOrSuperAccessInFieldInitializer,
   withArguments: _withArgumentsThisOrSuperAccessInFieldInitializer,
 );
@@ -16421,8 +15424,6 @@ const Template<
 >
 codeThrowingNotAssignableToObjectError = const Template(
   "ThrowingNotAssignableToObjectError",
-  problemMessageTemplate:
-      r"""Can't throw a value of '#type' since it is neither dynamic nor non-nullable.""",
   withArgumentsOld: _withArgumentsOldThrowingNotAssignableToObjectError,
   withArguments: _withArgumentsThrowingNotAssignableToObjectError,
 );
@@ -16453,8 +15454,6 @@ const Template<
 >
 codeTooFewArguments = const Template(
   "TooFewArguments",
-  problemMessageTemplate:
-      r"""Too few positional arguments: #count required, #count2 given.""",
   withArgumentsOld: _withArgumentsOldTooFewArguments,
   withArguments: _withArgumentsTooFewArguments,
 );
@@ -16483,10 +15482,6 @@ const Template<
 >
 codeTooManyArguments = const Template(
   "TooManyArguments",
-  problemMessageTemplate:
-      r"""Too many positional arguments: #count allowed, but #count2 found.""",
-  correctionMessageTemplate:
-      r"""Try removing the extra positional arguments.""",
   withArgumentsOld: _withArgumentsOldTooManyArguments,
   withArguments: _withArgumentsTooManyArguments,
 );
@@ -16516,7 +15511,6 @@ const Template<
 >
 codeTypeArgumentMismatch = const Template(
   "TypeArgumentMismatch",
-  problemMessageTemplate: r"""Expected #count type arguments.""",
   withArgumentsOld: _withArgumentsOldTypeArgumentMismatch,
   withArguments: _withArgumentsTypeArgumentMismatch,
 );
@@ -16541,7 +15535,6 @@ const Template<
 >
 codeTypeNotFound = const Template(
   "TypeNotFound",
-  problemMessageTemplate: r"""Type '#name' not found.""",
   withArgumentsOld: _withArgumentsOldTypeNotFound,
   withArguments: _withArgumentsTypeNotFound,
 );
@@ -16567,7 +15560,6 @@ const Template<
 >
 codeTypeOrigin = const Template(
   "TypeOrigin",
-  problemMessageTemplate: r"""'#name' is from '#uri'.""",
   withArgumentsOld: _withArgumentsOldTypeOrigin,
   withArguments: _withArgumentsTypeOrigin,
 );
@@ -16594,7 +15586,6 @@ const Template<
 >
 codeTypeOriginWithFileUri = const Template(
   "TypeOriginWithFileUri",
-  problemMessageTemplate: r"""'#name' is from '#uri' ('#uri2').""",
   withArgumentsOld: _withArgumentsOldTypeOriginWithFileUri,
   withArguments: _withArgumentsTypeOriginWithFileUri,
 );
@@ -16635,7 +15626,6 @@ const Template<
 >
 codeTypeParameterDuplicatedNameCause = const Template(
   "TypeParameterDuplicatedNameCause",
-  problemMessageTemplate: r"""The other type variable named '#name'.""",
   withArgumentsOld: _withArgumentsOldTypeParameterDuplicatedNameCause,
   withArguments: _withArgumentsTypeParameterDuplicatedNameCause,
   severity: CfeSeverity.context,
@@ -16725,8 +15715,6 @@ const MessageCode codeTypedefUnaliasedTypeCause = const MessageCode(
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
 codeUnavailableDartLibrary = const Template(
   "UnavailableDartLibrary",
-  problemMessageTemplate:
-      r"""Dart library '#uri' is not available on this platform.""",
   withArgumentsOld: _withArgumentsOldUnavailableDartLibrary,
   withArguments: _withArgumentsUnavailableDartLibrary,
 );
@@ -16753,10 +15741,6 @@ const Template<
 >
 codeUndefinedGetter = const Template(
   "UndefinedGetter",
-  problemMessageTemplate:
-      r"""The getter '#name' isn't defined for the type '#type'.""",
-  correctionMessageTemplate:
-      r"""Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'.""",
   withArgumentsOld: _withArgumentsOldUndefinedGetter,
   withArguments: _withArgumentsUndefinedGetter,
 );
@@ -16791,10 +15775,6 @@ const Template<
 >
 codeUndefinedMethod = const Template(
   "UndefinedMethod",
-  problemMessageTemplate:
-      r"""The method '#name' isn't defined for the type '#type'.""",
-  correctionMessageTemplate:
-      r"""Try correcting the name to the name of an existing method, or defining a method named '#name'.""",
   withArgumentsOld: _withArgumentsOldUndefinedMethod,
   withArguments: _withArgumentsUndefinedMethod,
 );
@@ -16829,10 +15809,6 @@ const Template<
 >
 codeUndefinedOperator = const Template(
   "UndefinedOperator",
-  problemMessageTemplate:
-      r"""The operator '#name' isn't defined for the type '#type'.""",
-  correctionMessageTemplate:
-      r"""Try correcting the operator to an existing operator, or defining a '#name' operator.""",
   withArgumentsOld: _withArgumentsOldUndefinedOperator,
   withArguments: _withArgumentsUndefinedOperator,
 );
@@ -16867,10 +15843,6 @@ const Template<
 >
 codeUndefinedSetter = const Template(
   "UndefinedSetter",
-  problemMessageTemplate:
-      r"""The setter '#name' isn't defined for the type '#type'.""",
-  correctionMessageTemplate:
-      r"""Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'.""",
   withArgumentsOld: _withArgumentsOldUndefinedSetter,
   withArguments: _withArgumentsUndefinedSetter,
 );
@@ -16913,10 +15885,6 @@ const Template<
 >
 codeUnmatchedAugmentationClass = const Template(
   "UnmatchedAugmentationClass",
-  problemMessageTemplate:
-      r"""Augmentation class '#name' doesn't match a class in the augmented library.""",
-  correctionMessageTemplate:
-      r"""Try changing the name to an existing class or removing the 'augment' modifier.""",
   withArgumentsOld: _withArgumentsOldUnmatchedAugmentationClass,
   withArguments: _withArgumentsUnmatchedAugmentationClass,
 );
@@ -16945,10 +15913,6 @@ const Template<
 >
 codeUnmatchedAugmentationClassMember = const Template(
   "UnmatchedAugmentationClassMember",
-  problemMessageTemplate:
-      r"""Augmentation member '#name' doesn't match a member in the augmented class.""",
-  correctionMessageTemplate:
-      r"""Try changing the name to an existing member or removing the 'augment' modifier.""",
   withArgumentsOld: _withArgumentsOldUnmatchedAugmentationClassMember,
   withArguments: _withArgumentsUnmatchedAugmentationClassMember,
 );
@@ -16977,10 +15941,6 @@ const Template<
 >
 codeUnmatchedAugmentationConstructor = const Template(
   "UnmatchedAugmentationConstructor",
-  problemMessageTemplate:
-      r"""Augmentation constructor '#name' doesn't match a constructor in the augmented class.""",
-  correctionMessageTemplate:
-      r"""Try changing the name to an existing constructor or removing the 'augment' modifier.""",
   withArgumentsOld: _withArgumentsOldUnmatchedAugmentationConstructor,
   withArguments: _withArgumentsUnmatchedAugmentationConstructor,
 );
@@ -17009,10 +15969,6 @@ const Template<
 >
 codeUnmatchedAugmentationDeclaration = const Template(
   "UnmatchedAugmentationDeclaration",
-  problemMessageTemplate:
-      r"""Augmentation '#name' doesn't match a declaration in the augmented library.""",
-  correctionMessageTemplate:
-      r"""Try changing the name to an existing declaration or removing the 'augment' modifier.""",
   withArgumentsOld: _withArgumentsOldUnmatchedAugmentationDeclaration,
   withArguments: _withArgumentsUnmatchedAugmentationDeclaration,
 );
@@ -17041,10 +15997,6 @@ const Template<
 >
 codeUnmatchedAugmentationLibraryMember = const Template(
   "UnmatchedAugmentationLibraryMember",
-  problemMessageTemplate:
-      r"""Augmentation member '#name' doesn't match a member in the augmented library.""",
-  correctionMessageTemplate:
-      r"""Try changing the name to an existing member or removing the 'augment' modifier.""",
   withArgumentsOld: _withArgumentsOldUnmatchedAugmentationLibraryMember,
   withArguments: _withArgumentsUnmatchedAugmentationLibraryMember,
 );
@@ -17075,10 +16027,6 @@ const Template<
 >
 codeUnmatchedPatchClass = const Template(
   "UnmatchedPatchClass",
-  problemMessageTemplate:
-      r"""Patch class '#name' doesn't match a class in the origin library.""",
-  correctionMessageTemplate:
-      r"""Try changing the name to an existing class or removing the '@patch' annotation.""",
   withArgumentsOld: _withArgumentsOldUnmatchedPatchClass,
   withArguments: _withArgumentsUnmatchedPatchClass,
 );
@@ -17107,10 +16055,6 @@ const Template<
 >
 codeUnmatchedPatchClassMember = const Template(
   "UnmatchedPatchClassMember",
-  problemMessageTemplate:
-      r"""Patch member '#name' doesn't match a member in the origin class.""",
-  correctionMessageTemplate:
-      r"""Try changing the name to an existing member or removing the '@patch' annotation.""",
   withArgumentsOld: _withArgumentsOldUnmatchedPatchClassMember,
   withArguments: _withArgumentsUnmatchedPatchClassMember,
 );
@@ -17139,10 +16083,6 @@ const Template<
 >
 codeUnmatchedPatchDeclaration = const Template(
   "UnmatchedPatchDeclaration",
-  problemMessageTemplate:
-      r"""Patch '#name' doesn't match a declaration in the origin library.""",
-  correctionMessageTemplate:
-      r"""Try changing the name to an existing declaration or removing the '@patch' annotation.""",
   withArgumentsOld: _withArgumentsOldUnmatchedPatchDeclaration,
   withArguments: _withArgumentsUnmatchedPatchDeclaration,
 );
@@ -17171,10 +16111,6 @@ const Template<
 >
 codeUnmatchedPatchLibraryMember = const Template(
   "UnmatchedPatchLibraryMember",
-  problemMessageTemplate:
-      r"""Patch member '#name' doesn't match a member in the origin library.""",
-  correctionMessageTemplate:
-      r"""Try changing the name to an existing member or removing the '@patch' annotation.""",
   withArgumentsOld: _withArgumentsOldUnmatchedPatchLibraryMember,
   withArguments: _withArgumentsUnmatchedPatchLibraryMember,
 );
@@ -17243,7 +16179,6 @@ const MessageCode codeUnterminatedToken = const MessageCode(
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
 codeUntranslatableUri = const Template(
   "UntranslatableUri",
-  problemMessageTemplate: r"""Not found: '#uri'""",
   withArgumentsOld: _withArgumentsOldUntranslatableUri,
   withArguments: _withArgumentsUntranslatableUri,
 );
@@ -17269,8 +16204,6 @@ const Template<
 >
 codeValueForRequiredParameterNotProvidedError = const Template(
   "ValueForRequiredParameterNotProvidedError",
-  problemMessageTemplate:
-      r"""Required named parameter '#name' must be provided.""",
   withArgumentsOld: _withArgumentsOldValueForRequiredParameterNotProvidedError,
   withArguments: _withArgumentsValueForRequiredParameterNotProvidedError,
 );
@@ -17300,10 +16233,6 @@ const Template<
 >
 codeVariableCouldBeNullDueToWrite = const Template(
   "VariableCouldBeNullDueToWrite",
-  problemMessageTemplate:
-      r"""Variable '#name' could not be promoted due to an assignment.""",
-  correctionMessageTemplate:
-      r"""Try null checking the variable after the assignment.  See #string""",
   withArgumentsOld: _withArgumentsOldVariableCouldBeNullDueToWrite,
   withArguments: _withArgumentsVariableCouldBeNullDueToWrite,
 );
@@ -17401,10 +16330,6 @@ const Template<
 >
 codeWebLiteralCannotBeRepresentedExactly = const Template(
   "WebLiteralCannotBeRepresentedExactly",
-  problemMessageTemplate:
-      r"""The integer literal #string can't be represented exactly in JavaScript.""",
-  correctionMessageTemplate:
-      r"""Try changing the literal to something that can be represented in JavaScript. In JavaScript #string2 is the nearest value that can be represented exactly.""",
   withArgumentsOld: _withArgumentsOldWebLiteralCannotBeRepresentedExactly,
   withArguments: _withArgumentsWebLiteralCannotBeRepresentedExactly,
 );
@@ -17442,8 +16367,6 @@ const Template<
 >
 codeWrongTypeParameterVarianceInSuperinterface = const Template(
   "WrongTypeParameterVarianceInSuperinterface",
-  problemMessageTemplate:
-      r"""'#name' can't be used contravariantly or invariantly in '#type'.""",
   withArgumentsOld: _withArgumentsOldWrongTypeParameterVarianceInSuperinterface,
   withArguments: _withArgumentsWrongTypeParameterVarianceInSuperinterface,
 );
