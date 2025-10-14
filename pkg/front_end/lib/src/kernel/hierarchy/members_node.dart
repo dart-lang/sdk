@@ -2505,11 +2505,58 @@ class _SanitizedMember {
         interfaceMembers.addAll(_implementedMembers);
 
         ClassMember? noSuchMethodTarget;
-        if (_extendedMember.isNoSuchMethodForwarder &&
-            !classBuilder.isAbstract &&
-            (userNoSuchMethodMember != null ||
-                !isNameVisibleIn(name, classBuilder.libraryBuilder))) {
-          noSuchMethodTarget = noSuchMethodMember;
+        if (!classBuilder.isAbstract) {
+          if (_extendedMember.isNoSuchMethodForwarder &&
+              userNoSuchMethodMember != null) {
+            // If we inherit a noSuchMethod forwarder we might need to create
+            // a new one in this class.
+            //
+            // For instance
+            //
+            //     class Super {
+            //       noSuchMethod(_) => null;
+            //       method1(); // noSuchMethod forwarder created for this.
+            //       method2(int i); // noSuchMethod forwarder created for this.
+            //       method3(int i); // noSuchMethod forwarder created for this.
+            //       method4(int i) {}
+            //     }
+            //     abstract class Abstract extends Super {
+            //       method2(num i); // No noSuchMethod forwarder will be
+            //                       // inserted here.
+            //     }
+            //     class Class extends Abstract {
+            //       method1(); // noSuchMethod forwarder from Super is valid.
+            //       /* method2(num i) */ // A new noSuchMethod forwarder is
+            //                            // created.
+            //       method3(num i); // A new noSuchMethod forwarder is created.
+            //       method4(num i); // No noSuchMethod forwarder will be
+            //                       // inserted and this will be an error.
+            //     }
+            noSuchMethodTarget = noSuchMethodMember;
+          }
+          if (!isNameVisibleIn(name, classBuilder.libraryBuilder)) {
+            // [name] is not visible, so  there is no requirement that
+            // [_extendedMember]  implements the [interfaceMembers]. We will
+            // create a noSuchMethod forwarder if it doesn't.
+            //
+            // For instance
+            //
+            //     // library a.dart
+            //     class A {
+            //       void _m(int i) {}
+            //     }
+            //     abstract class B extends A {
+            //       void _m(num i);
+            //     }
+            //
+            //     // library b.dart
+            //     import 'a.dart';
+            //     class C extends B {
+            //       /* _m(num i) */ // A._m doesn't implement B._m so a
+            //                       // noSuchMethod forwarder is created.
+            //     }
+            noSuchMethodTarget = noSuchMethodMember;
+          }
         }
 
         /// Normally, if only one member defines the interface member there

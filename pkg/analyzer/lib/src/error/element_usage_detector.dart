@@ -223,6 +223,10 @@ class ElementUsageDetector<TagInfo extends Object> {
     _invocationArguments(node.element, node.argumentList);
   }
 
+  void superFormalParameter(SuperFormalParameter node) {
+    checkUsage(node.declaredFragment!.element.superConstructorParameter, node);
+  }
+
   void _invocationArguments(Element? element, ArgumentList arguments) {
     element = element?.baseElement;
     if (element is ExecutableElement) {

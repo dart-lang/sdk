@@ -107,7 +107,7 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// Lookups the required member [name] declared in this library.
   ///
   /// If no member is found an internal problem is reported.
-  NamedBuilder? lookupRequiredLocalMember(String name);
+  NamedBuilder lookupRequiredLocalMember(String name);
 
   void recordAccess(
     CompilationUnit accessor,
@@ -257,7 +257,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   }
 
   @override
-  NamedBuilder? lookupRequiredLocalMember(String name) {
+  NamedBuilder lookupRequiredLocalMember(String name) {
     NamedBuilder? builder = libraryNameSpace.lookup(name)?.getable;
     if (builder == null) {
       internalProblem(
