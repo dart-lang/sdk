@@ -35,7 +35,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
   }) async {
     uri ??= mainFileUri;
 
-    code = TestCode.parse(sourceContent);
+    code = TestCode.parseNormalized(sourceContent);
     if (lineFoldingOnly) {
       setLineFoldingOnly();
     }
@@ -164,15 +164,23 @@ class AnnotatedDartClass/*[1*/ {
 }/*1]*/
 ''';
 
-    var pluginResult = plugin.AnalysisFoldingParams(pluginAnalyzedFilePath, [
-      plugin.FoldingRegion(plugin.FoldingKind.DIRECTIVES, 3, 26),
-    ]);
+    initializePlugin() {
+      // Plugin only produces first range of two.
+      var range = code.ranges[0].sourceRange;
+      var pluginResult = plugin.AnalysisFoldingParams(pluginAnalyzedFilePath, [
+        plugin.FoldingRegion(
+          plugin.FoldingKind.DIRECTIVES,
+          range.offset,
+          range.length,
+        ),
+      ]);
+      configureTestPlugin(notification: pluginResult.toNotification());
+    }
 
     await computeRanges(
       content,
       uri: pluginAnalyzedUri,
-      initializePlugin: () =>
-          configureTestPlugin(notification: pluginResult.toNotification()),
+      initializePlugin: initializePlugin,
     );
     expectRanges({
       0: FoldingRangeKind.Imports, // From plugin
@@ -190,15 +198,22 @@ CREATE TABLE foo(
 );
 ''';
 
-    var pluginResult = plugin.AnalysisFoldingParams(pluginAnalyzedFilePath, [
-      plugin.FoldingRegion(plugin.FoldingKind.CLASS_BODY, 22, 15),
-    ]);
+    initializePlugin() {
+      var range = code.range.sourceRange;
+      var pluginResult = plugin.AnalysisFoldingParams(pluginAnalyzedFilePath, [
+        plugin.FoldingRegion(
+          plugin.FoldingKind.CLASS_BODY,
+          range.offset,
+          range.length,
+        ),
+      ]);
+      configureTestPlugin(notification: pluginResult.toNotification());
+    }
 
     await computeRanges(
       content,
       uri: pluginAnalyzedUri,
-      initializePlugin: () =>
-          configureTestPlugin(notification: pluginResult.toNotification()),
+      initializePlugin: initializePlugin,
     );
     expectRanges({
       0: noFoldingKind, // From plugin
