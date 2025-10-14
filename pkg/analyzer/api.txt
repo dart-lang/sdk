@@ -1661,6 +1661,7 @@ package:analyzer/dart/ast/ast.dart:
   SuperExpression (class extends Object implements Expression):
     superKeyword (getter: Token)
   SuperFormalParameter (class extends Object implements NormalFormalParameter):
+    declaredFragment (getter: SuperFormalParameterFragment?)
     keyword (getter: Token?)
     name (getter: Token)
     parameters (getter: FormalParameterList?)
@@ -4160,7 +4161,7 @@ package:analyzer/dart/element/element.dart:
     previousFragment (getter: TopLevelVariableFragment?)
   TypeAliasElement (class extends Object implements TypeParameterizedElement, TypeDefiningElement):
     new (constructor: TypeAliasElement Function())
-    aliasedElement (getter: Element?)
+    aliasedElement (getter: Element?, deprecated)
     aliasedElement2 (getter: Element?, deprecated)
     aliasedType (getter: DartType)
     enclosingElement (getter: LibraryElement)

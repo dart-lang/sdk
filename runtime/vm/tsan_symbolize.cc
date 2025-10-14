@@ -57,6 +57,7 @@ void RegisterTsanSymbolize(const Code& code) {
   WriteString(out, function.QualifiedUserVisibleNameCString());
   WriteString(out, url.ToCString());
 
+  NoSafepointScope no_safepoint;
   ReadStream stream(map.Data(), map.Length());
   while (stream.PendingBytes() > 0) {
     int32_t arg;

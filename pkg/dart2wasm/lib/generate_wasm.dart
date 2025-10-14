@@ -60,10 +60,7 @@ Future<int> generateWasm(WasmCompilerOptions options,
   }
 
   String moduleNameToWasmOutputFile(String moduleName) {
-    final outputFile = options.outputFile;
-    if (moduleName.isEmpty) return outputFile;
-    final extension = path.extension(outputFile);
-    return path.setExtension(outputFile, '_$moduleName$extension');
+    return path.join(path.dirname(options.outputFile), moduleName);
   }
 
   String moduleNameToSourceMapFile(String moduleName) {

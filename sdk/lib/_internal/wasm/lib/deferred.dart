@@ -4,14 +4,26 @@
 
 part of "internal_patch.dart";
 
-final Map<String, Future> _loadingModules = {};
-final Set<String> _loadedModules = {};
+/// Contains active futures for any entities (either module names or IDs)
+/// currently being loaded.
+final Map<String, Future<void>> _loading = {};
+
+/// Contains the set of entities (either modules or IDs) already loaded.
+final Set<String> _loaded = {};
+
+/// Only used when loading modules directly, contains the set of loaded
+/// prefixes for each importing library.
 final Map<String, Set<String>> _loadedLibraries = {};
 
-external Map<String, Map<String, List<String>>> get _importMapping;
+/// Only used when loading modules directly, will get populated by the compiler.
+/// Maps importing library -> import prefix -> module set.
+Map<String, Map<String, List<String>>> get _importMapping => {};
 
-@pragma("wasm:import", "moduleLoadingHelper.loadModule")
-external WasmExternRef _loadModule(WasmExternRef moduleName);
+@pragma("wasm:import", "moduleLoadingHelper.loadDeferredModule")
+external WasmExternRef _loadDeferredModule(WasmExternRef moduleName);
+
+@pragma("wasm:import", "moduleLoadingHelper.loadDeferredId")
+external WasmExternRef _loadDeferredId(WasmExternRef loadId);
 
 class DeferredNotLoadedError extends Error implements NoSuchMethodError {
   final String libraryName;
@@ -24,18 +36,53 @@ class DeferredNotLoadedError extends Error implements NoSuchMethodError {
   }
 }
 
-Future<void> loadLibrary(String enclosingLibrary, String importPrefix) {
+class DeferredLoadIdNotLoadedError extends Error implements NoSuchMethodError {
+  final String loadId;
+
+  DeferredLoadIdNotLoadedError(this.loadId);
+
+  String toString() {
+    return 'Deferred load id $loadId has not loaded.';
+  }
+}
+
+Future<void> loadLibraryFromLoadId(String loadId) {
+  return _loading.putIfAbsent(loadId, () {
+    // Start module load
+    final promise =
+        (_loadDeferredId(loadId.toJS.toExternRef!).toJS as JSPromise);
+    return promise.toDart.then(
+      (_) {
+        // Module loaded
+        _loaded.add(loadId);
+        _loading.remove(loadId);
+      },
+      onError: (e) {
+        throw DeferredLoadException('Error loading load ID: $loadId\n$e');
+      },
+    );
+  });
+}
+
+Object checkLibraryIsLoadedFromLoadId(String loadId) {
+  if (!_loaded.contains(loadId)) {
+    throw DeferredLoadIdNotLoadedError(loadId);
+  }
+  return true;
+}
+
+Future<void> loadLibrary(String enclosingLibraryOrLoadId, String importPrefix) {
   if (_importMapping.isEmpty) {
     // Only contains one unit.
-    (_loadedLibraries[enclosingLibrary] ??= {}).add(importPrefix);
+    (_loadedLibraries[enclosingLibraryOrLoadId] ??= {}).add(importPrefix);
     return Future.value();
   }
-  final loadedImports = _loadedLibraries[enclosingLibrary];
+  final loadedImports = _loadedLibraries[enclosingLibraryOrLoadId];
   if (loadedImports != null && loadedImports.contains(importPrefix)) {
     // Import already loaded.
     return Future.value();
   }
-  final importNameMapping = _importMapping[enclosingLibrary];
+  final importNameMapping = _importMapping[enclosingLibraryOrLoadId];
   final moduleNames = importNameMapping?[importPrefix];
 
   if (moduleNames == null) {
@@ -45,7 +92,7 @@ Future<void> loadLibrary(String enclosingLibrary, String importPrefix) {
     // import mapping for the lowered loadLibrary call.
     // This can also occur in module test mode where all imports are deferred
     // but loaded eagerly.
-    (_loadedLibraries[enclosingLibrary] ??= {}).add(importPrefix);
+    (_loadedLibraries[enclosingLibraryOrLoadId] ??= {}).add(importPrefix);
     return Future.value();
   }
 
@@ -56,11 +103,11 @@ Future<void> loadLibrary(String enclosingLibrary, String importPrefix) {
   // Start loading modules
   final List<Future> loadFutures = [];
   for (final moduleName in moduleNames) {
-    if (_loadedModules.contains(moduleName)) {
+    if (_loaded.contains(moduleName)) {
       // Already loaded module
       continue;
     }
-    final existingLoad = _loadingModules[moduleName];
+    final existingLoad = _loading[moduleName];
     if (existingLoad != null) {
       // Already loading module
       loadFutures.add(existingLoad);
@@ -69,28 +116,32 @@ Future<void> loadLibrary(String enclosingLibrary, String importPrefix) {
 
     // Start module load
     final promise =
-        (_loadModule(moduleName.toJS.toExternRef!).toJS as JSPromise);
+        (_loadDeferredModule(moduleName.toJS.toExternRef!).toJS as JSPromise);
     final future = promise.toDart.then(
       (_) {
         // Module loaded
-        _loadedModules.add(moduleName);
+        _loaded.add(moduleName);
+        _loading.remove(moduleName);
       },
       onError: (e) {
         throw DeferredLoadException('Error loading module: $moduleName\n$e');
       },
     );
     loadFutures.add(future);
-    _loadingModules[moduleName] = future;
+    _loading[moduleName] = future;
   }
   return Future.wait(loadFutures).then((_) {
-    (_loadedLibraries[enclosingLibrary] ??= {}).add(importPrefix);
+    (_loadedLibraries[enclosingLibraryOrLoadId] ??= {}).add(importPrefix);
   });
 }
 
-Object checkLibraryIsLoaded(String enclosingLibrary, String importPrefix) {
-  final loadedImports = _loadedLibraries[enclosingLibrary];
+Object checkLibraryIsLoaded(
+  String enclosingLibraryOrLoadId,
+  String importPrefix,
+) {
+  final loadedImports = _loadedLibraries[enclosingLibraryOrLoadId];
   if (loadedImports == null || !loadedImports.contains(importPrefix)) {
-    throw DeferredNotLoadedError(enclosingLibrary, importPrefix);
+    throw DeferredNotLoadedError(enclosingLibraryOrLoadId, importPrefix);
   }
   return true;
 }

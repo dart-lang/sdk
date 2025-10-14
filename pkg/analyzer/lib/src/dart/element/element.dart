@@ -10454,6 +10454,7 @@ class TypeAliasElementImpl extends ElementImpl
     _firstFragment.element = this;
   }
 
+  @Deprecated('Use aliasedType instead')
   @override
   @trackedIncludedInId
   ElementImpl? get aliasedElement {

@@ -554,13 +554,6 @@ class DartObjectImpl implements DartObject, Constant {
     return null;
   }
 
-  /// Gets the constructor that was called to create this value, if this is a
-  /// const constructor invocation. Otherwise returns null.
-  @Deprecated('Use constructorInvocation instead')
-  ConstructorInvocationImpl? getInvocation() {
-    return constructorInvocation;
-  }
-
   /// Return the result of invoking the '&gt;' operator on this object with the
   /// [rightOperand].
   ///

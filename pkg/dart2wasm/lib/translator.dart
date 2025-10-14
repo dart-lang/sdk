@@ -429,8 +429,8 @@ class Translator with KernelNodes {
   w.ModuleBuilder get mainModule =>
       _outputToBuilder[_moduleOutputData.mainModule]!;
   w.TypesBuilder get typesBuilder => mainModule.types;
-  final Map<ModuleOutput, w.ModuleBuilder> _outputToBuilder = {};
-  final Map<w.ModuleBuilder, ModuleOutput> _builderToOutput = {};
+  final Map<ModuleMetadata, w.ModuleBuilder> _outputToBuilder = {};
+  final Map<w.ModuleBuilder, ModuleMetadata> _builderToOutput = {};
   final Map<w.Module, w.ModuleBuilder> moduleToBuilder = {};
   bool get hasMultipleModules => _moduleOutputData.hasMultipleModules;
 
@@ -493,33 +493,6 @@ class Translator with KernelNodes {
         Exporter(exportNamer, mainModuleMetadata, dynamicModuleConstants);
   }
 
-  void _initLoadLibraryImportMap() {
-    final importMapGetter = loadLibraryImportMap;
-
-    // Can be null for dynamic modules that don't use deferred libraries.
-    if (importMapGetter == null) return;
-
-    final mapEntries = <MapLiteralEntry>[];
-    _moduleOutputData.generateModuleImportMap().forEach((libName, importMap) {
-      final subMapEntries = <MapLiteralEntry>[];
-      importMap.forEach((importName, moduleNames) {
-        subMapEntries.add(MapLiteralEntry(StringLiteral(importName),
-            ListLiteral([...moduleNames.map(StringLiteral.new)])));
-      });
-      mapEntries.add(
-          MapLiteralEntry(StringLiteral(libName), MapLiteral(subMapEntries)));
-    });
-    final stringClass = jsStringClass;
-    importMapGetter.function.body = ReturnStatement(MapLiteral(mapEntries,
-        keyType: InterfaceType(stringClass, Nullability.nonNullable),
-        valueType: InterfaceType(coreTypes.mapNonNullableRawType.classNode,
-            Nullability.nonNullable, [
-          InterfaceType(stringClass, Nullability.nonNullable),
-          InterfaceType(stringClass, Nullability.nonNullable)
-        ])));
-    importMapGetter.isExternal = false;
-  }
-
   void _initModules(Uri Function(String moduleName)? sourceMapUrlGenerator) {
     for (final outputModule in _moduleOutputData.modules) {
       // `moduleName` is the suffix appended to the filename which is the empty
@@ -543,9 +516,8 @@ class Translator with KernelNodes {
     }
   }
 
-  Map<ModuleOutput, w.Module> translate(
+  Map<ModuleMetadata, w.Module> translate(
       Uri Function(String moduleName)? sourceMapUrlGenerator) {
-    _initLoadLibraryImportMap();
     _initModules(sourceMapUrlGenerator);
     initFunction = mainModule.functions
         .define(typesBuilder.defineFunction(const [], const []), "#init");
@@ -589,7 +561,7 @@ class Translator with KernelNodes {
     }
     _printFunction(initFunction, "init");
 
-    final result = <ModuleOutput, w.Module>{};
+    final result = <ModuleMetadata, w.Module>{};
     _outputToBuilder.forEach((outputModule, builder) {
       result[outputModule] = builder.build();
     });

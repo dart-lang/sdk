@@ -20,6 +20,7 @@ class WasmCompilerOptions {
   Uri? dynamicMainModuleUri;
   Uri? dynamicInterfaceUri;
   Uri? dynamicModuleMetadataFile;
+  Uri? loadsIdsUri;
   bool validateDynamicModules = true;
   Map<String, String> environment = {};
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
@@ -43,6 +44,13 @@ class WasmCompilerOptions {
         translatorOptions.sharedMemoryMaxPages == null) {
       throw ArgumentError("--shared-memory-max-pages must be specified if "
           "--import-shared-memory is used.");
+    }
+
+    if (!translatorOptions.enableDeferredLoading) {
+      if (loadsIdsUri != null) {
+        throw ArgumentError("--load-ids can only be used with "
+            "--enable-deferred-loading");
+      }
     }
 
     if (enableDynamicModules) {
