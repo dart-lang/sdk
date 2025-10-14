@@ -73,7 +73,6 @@ void main([List<String> args = const []]) async {
   test('run pub get if needed', timeout: longTimeout, () async {
     await nativeAssetsTest(
       'native_add',
-      skipPubGet: true,
       (dartAppUri) async {
         final result = await runDart(
           arguments: [

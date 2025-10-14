@@ -254,12 +254,10 @@ final dartExecutable = Uri.file(Platform.resolvedExecutable);
 Future<void> nativeAssetsTest(
   String packageUnderTest,
   Future<void> Function(Uri) fun, {
-  bool skipPubGet = false,
   bool usePubWorkspace = false,
 }) async =>
     await runPackageTest(
       packageUnderTest,
-      skipPubGet,
       fun,
       const [
         'add_asset_link',
@@ -281,12 +279,10 @@ Future<void> nativeAssetsTest(
 
 Future<void> recordUseTest(
   String packageUnderTest,
-  Future<void> Function(Uri) fun, {
-  bool skipPubGet = false,
-}) async =>
+  Future<void> Function(Uri) fun,
+) async =>
     await runPackageTest(
       packageUnderTest,
-      skipPubGet,
       fun,
       const ['drop_dylib_recording'],
       sdkRootUri.resolve('pkg/record_use/'),
@@ -296,7 +292,6 @@ Future<void> recordUseTest(
 
 Future<void> runPackageTest(
   String packageUnderTest,
-  bool skipPubGet,
   Future<void> Function(Uri) fun,
   List<String> validPackages,
   Uri packageLocation,
@@ -308,9 +303,6 @@ Future<void> runPackageTest(
     await copyTestProjects(
         tempUri, logger, packageLocation, sdkRoot, usePubWorkspace);
     final packageUri = tempUri.resolve('$packageUnderTest/');
-    if (!skipPubGet) {
-      await runPubGet(workingDirectory: packageUri, logger: logger);
-    }
     return await fun(packageUri);
   });
 }

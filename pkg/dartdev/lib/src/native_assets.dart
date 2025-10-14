@@ -237,8 +237,9 @@ class DartNativeAssetsBuilder {
         // Silently run `pub get`, this is what would happen in
         // `getExecutableForCommand` later.
         try {
-          await ensurePubspecResolved(uri.toFilePath());
-        } on ResolutionFailedException {
+          await ensurePubspecResolved(pubspecMaybe.resolve('.').toFilePath());
+        } on ResolutionFailedException catch (e) {
+          stderr.writeln(e.message);
           return null;
         }
         packageConfig = await _findPackageConfigUri(uri);
