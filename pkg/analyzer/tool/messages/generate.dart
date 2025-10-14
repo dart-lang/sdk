@@ -33,8 +33,13 @@ final List<GeneratedContent> allTargets = _analyzerGeneratedFiles();
 /// Generates a list of [GeneratedContent] objects describing all the analyzer
 /// files that need to be generated.
 List<GeneratedContent> _analyzerGeneratedFiles() {
-  var classesByFile = <GeneratedErrorCodeFile, List<ErrorClassInfo>>{};
+  var classesByFile = <GeneratedErrorCodeFile, List<GeneratedErrorClassInfo>>{};
   for (var errorClassInfo in errorClasses) {
+    if (errorClassInfo is! GeneratedErrorClassInfo) continue;
+
+    // Lint codes are generated separately.
+    if (errorClassInfo == linterLintCodeInfo) continue;
+
     (classesByFile[errorClassInfo.file] ??= []).add(errorClassInfo);
   }
   var generatedCodes = <AnalyzerCode>[];
@@ -63,7 +68,7 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
 class _AnalyzerErrorGenerator {
   final GeneratedErrorCodeFile file;
 
-  final List<ErrorClassInfo> errorClasses;
+  final List<GeneratedErrorClassInfo> errorClasses;
 
   final List<AnalyzerCode> generatedCodes;
 
@@ -97,16 +102,6 @@ class _AnalyzerErrorGenerator {
     out.write('''
 part of ${json.encode(file.parentLibrary)};
 ''');
-    bool shouldGenerateFastaAnalyzerErrorCodes = false;
-    for (var errorClass in errorClasses) {
-      if (errorClass.includeCfeMessages) {
-        shouldGenerateFastaAnalyzerErrorCodes = true;
-      }
-    }
-    if (shouldGenerateFastaAnalyzerErrorCodes) {
-      out.writeln();
-      _generateFastaAnalyzerErrorCodeList();
-    }
     for (var errorClass
         in errorClasses.toList()..sort((a, b) => a.name.compareTo(b.name))) {
       out.writeln();
@@ -119,15 +114,14 @@ part of ${json.encode(file.parentLibrary)};
         'class ${errorClass.name} extends DiagnosticCodeWithExpectedTypes {',
       );
       var memberAccumulator = MemberAccumulator();
+
       var entries =
           [
             ...analyzerMessages.entries,
-            if (errorClass.includeCfeMessages)
-              ...sharedToAnalyzerErrorCodeTables.analyzerCodeToInfo.entries,
+            ...sharedToAnalyzerErrorCodeTables.analyzerCodeToInfo.entries,
           ].where(
             (error) =>
-                error.key.className == errorClass.name &&
-                !error.value.isRemoved,
+                error.key.errorClass == errorClass && !error.value.isRemoved,
           );
       for (var entry in entries) {
         var errorCode = entry.key;
@@ -195,23 +189,8 @@ DiagnosticType get type => ${errorClass.typeCode};
     }
   }
 
-  void _generateFastaAnalyzerErrorCodeList() {
-    out.writeln('final fastaAnalyzerErrorCodes = <DiagnosticCode?>[');
-    for (var entry in sharedToAnalyzerErrorCodeTables.indexToInfo) {
-      if (sharedToAnalyzerErrorCodeTables.infoToAnalyzerCode[entry]
-          case var analyzerCode?) {
-        out.writeln(
-          '${analyzerCode.className}.${analyzerCode.camelCaseErrorName},',
-        );
-      } else {
-        out.writeln('null,');
-      }
-    }
-    out.writeln('];');
-  }
-
   void _outputDerivedClass(
-    ErrorClassInfo errorClass, {
+    GeneratedErrorClassInfo errorClass, {
     required bool withArguments,
   }) {
     var className = withArguments
@@ -273,13 +252,7 @@ class _DiagnosticCodeValuesGenerator {
 
     out.writeln();
     out.writeln(r'''
-import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
-import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:analyzer/src/dart/error/ffi_code.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/manifest/manifest_warning_code.dart';
-import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
+part of 'diagnostic_code_values.dart';
 ''');
     out.writeln();
     out.writeln(
@@ -288,10 +261,11 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
     out.writeln('const List<DiagnosticCode> diagnosticCodeValues = [');
     for (var analyzerCode in generatedCodes) {
       var errorName = analyzerCode.camelCaseErrorName;
-      out.writeln('  ${analyzerCode.className}.$errorName,');
+      out.writeln('  ${analyzerCode.errorClass.name}.$errorName,');
     }
     out.writeln('];');
     out.writeln();
+    _generateSharedAnalyzerCodeList();
     out.writeln(
       "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')",
     );
@@ -299,5 +273,13 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
     out.writeln(
       'List<DiagnosticCode> get errorCodeValues => diagnosticCodeValues;',
     );
+  }
+
+  void _generateSharedAnalyzerCodeList() {
+    out.writeln('final sharedAnalyzerCodes = <DiagnosticCode>[');
+    for (var entry in sharedToAnalyzerErrorCodeTables.sortedSharedErrors) {
+      out.writeln('${entry.analyzerCode.analyzerCodeReference},');
+    }
+    out.writeln('];');
   }
 }

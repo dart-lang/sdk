@@ -371,7 +371,7 @@ class DocumentationValidator {
         }
         for (int i = 0; i < exampleSnippets.length; i++) {
           _SnippetData snippet = exampleSnippets[i];
-          if (errorName.className == 'LintCode') {
+          if (errorName.errorClass == lintCodeInfo) {
             snippet.lintCode = codeName;
           }
           await _validateSnippet('example', i, snippet);
@@ -386,7 +386,7 @@ class DocumentationValidator {
           if (firstExample != null) {
             snippet.auxiliaryFiles.addAll(firstExample.auxiliaryFiles);
           }
-          if (errorName.className == 'LintCode') {
+          if (errorName.errorClass == lintCodeInfo) {
             snippet.lintCode = codeName;
           }
           await _validateSnippet('fixes', i, snippet);

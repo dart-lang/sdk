@@ -321,6 +321,9 @@ class InterfaceItemRequirements {
   /// Set if [ClassElementImpl.allSubtypes] was invoked.
   ManifestItemIdList? allSubtypes;
 
+  /// Set if [ClassElementImpl.directSubtypesOfSealed] was invoked.
+  ManifestItemIdList? directSubtypesOfSealed;
+
   InterfaceItemRequirements({
     required this.interfaceId,
     required this.hasNonFinalField,
@@ -330,6 +333,7 @@ class InterfaceItemRequirements {
     required this.implementedMethods,
     required this.superMethods,
     required this.allSubtypes,
+    required this.directSubtypesOfSealed,
   });
 
   factory InterfaceItemRequirements.empty() {
@@ -342,6 +346,7 @@ class InterfaceItemRequirements {
       implementedMethods: {},
       superMethods: {},
       allSubtypes: null,
+      directSubtypesOfSealed: null,
     );
   }
 
@@ -358,6 +363,7 @@ class InterfaceItemRequirements {
         readValue: () => reader.readNameToOptionalIdMap(),
       ),
       allSubtypes: ManifestItemIdList.readOptional(reader),
+      directSubtypesOfSealed: ManifestItemIdList.readOptional(reader),
     );
   }
 
@@ -374,6 +380,7 @@ class InterfaceItemRequirements {
       writeValue: (map) => writer.writeNameToIdMap(map),
     );
     allSubtypes.writeOptional(writer);
+    directSubtypesOfSealed.writeOptional(writer);
   }
 }
 
@@ -1572,6 +1579,20 @@ class RequirementsManifest {
             );
           }
         }
+
+        if (interfaceRequirements.directSubtypesOfSealed case var required?) {
+          interfaceItem as ClassItem;
+          var actualIds = interfaceItem.directSubtypesOfSealed;
+          if (required != actualIds) {
+            return InterfaceChildrenIdsMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              childrenPropertyName: 'directSubtypesOfSealed',
+              expectedIds: required,
+              actualIds: actualIds,
+            );
+          }
+        }
       }
 
       if (libraryRequirements.exportedExtensions case var expectedIds?) {
@@ -1623,6 +1644,24 @@ class RequirementsManifest {
     var requirements = itemRequirements.requirements;
 
     requirements.allSubtypes ??= item.allSubtypes;
+  }
+
+  void record_classElement_directSubtypesOfSealed({
+    required ClassElementImpl element,
+  }) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var itemRequirements = _getInterfaceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item as ClassItem;
+    var requirements = itemRequirements.requirements;
+
+    requirements.directSubtypesOfSealed ??= item.directSubtypesOfSealed;
   }
 
   void record_fieldElement_getter({

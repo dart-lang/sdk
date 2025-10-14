@@ -6,7 +6,6 @@
 library;
 
 import 'dart:convert';
-import 'dart:io' show exitCode;
 
 import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/messages.dart';
@@ -66,31 +65,10 @@ part of 'codes.dart';
 part of 'cfe_codes.dart';
 """);
 
-  bool hasError = false;
-  int largestIndex = 0;
-  final indexNameMap = new Map<int, String>();
-
   List<String> keys = frontEndAndSharedMessages.keys.toList()..sort();
   var pseudoSharedCodeValues = <String>{};
   for (String name in keys) {
     var errorCodeInfo = frontEndAndSharedMessages[name]!;
-    var index = errorCodeInfo.index;
-    if (index != null) {
-      String? otherName = indexNameMap[index];
-      if (otherName != null) {
-        print(
-          'Error: The "index:" field must be unique, '
-          'but is the same for $otherName and $name',
-        );
-        hasError = true;
-        // Continue looking for other problems.
-      } else {
-        indexNameMap[index] = name;
-        if (largestIndex < index) {
-          largestIndex = index;
-        }
-      }
-    }
     var forFeAnalyzerShared =
         errorCodeInfo is SharedErrorCodeInfo ||
         errorCodeInfo is FrontEndErrorCodeInfo &&
@@ -99,7 +77,7 @@ part of 'cfe_codes.dart';
     try {
       template = _TemplateCompiler(
         name: name,
-        index: index,
+        isShared: errorCodeInfo is SharedErrorCodeInfo,
         errorCodeInfo: errorCodeInfo,
         pseudoSharedCodeValues: forFeAnalyzerShared
             ? pseudoSharedCodeValues
@@ -124,28 +102,18 @@ part of 'cfe_codes.dart';
     sharedMessages.writeln('  $code,');
   }
   sharedMessages.writeln('}');
-  if (largestIndex > indexNameMap.length) {
-    print(
-      'Error: The "index:" field values should be unique, consecutive'
-      ' whole numbers starting with 1.',
+  sharedMessages.writeln();
+  sharedMessages.writeln(
+    '/// Enum containing analyzer error codes referenced by '
+    '[Code.sharedCode].',
+  );
+  sharedMessages.writeln('enum SharedCode {');
+  for (var code in sharedToAnalyzerErrorCodeTables.sortedSharedErrors) {
+    sharedMessages.writeln(
+      '  ${sharedToAnalyzerErrorCodeTables.infoToFrontEndCode[code]},',
     );
-    hasError = true;
-    // Fall through to print more information.
   }
-  if (hasError) {
-    exitCode = 1;
-    print('The largest index is $largestIndex');
-    final sortedIndices = indexNameMap.keys.toList()..sort();
-    int nextAvailableIndex = largestIndex + 1;
-    for (int index = 1; index <= sortedIndices.length; ++index) {
-      if (sortedIndices[index - 1] != index) {
-        nextAvailableIndex = index;
-        break;
-      }
-    }
-    print('The next available index is ${nextAvailableIndex}');
-    return new Messages('', '');
-  }
+  sharedMessages.writeln('}');
 
   return new Messages("$sharedMessages", "$cfeMessages");
 }
@@ -165,7 +133,7 @@ String _newName({required Set<String> usedNames, required String nameHint}) {
 
 class _TemplateCompiler {
   final String name;
-  final int? index;
+  final bool isShared;
   final String problemMessage;
   final String? correctionMessage;
   final String? severity;
@@ -193,7 +161,7 @@ class _TemplateCompiler {
 
   _TemplateCompiler({
     required this.name,
-    required this.index,
+    required this.isShared,
     required CfeStyleErrorCodeInfo errorCodeInfo,
     required this.pseudoSharedCodeValues,
   }) : problemMessage = errorCodeInfo.problemMessage,
@@ -206,13 +174,10 @@ class _TemplateCompiler {
 
   String compile() {
     var codeArguments = <String>[
-      if (index != null)
-        'index: $index'
-      else if (pseudoSharedCodeValues != null && pseudoSharedCode != null)
-        // If "index:" is defined, then "analyzerCode:" should not be generated
-        // in the front end. See comment in messages.yaml
+      if (pseudoSharedCodeValues != null && pseudoSharedCode != null)
         'pseudoSharedCode: ${_encodePseudoSharedCode(pseudoSharedCode!)}',
       if (severity != null) 'severity: CfeSeverity.$severity',
+      if (isShared) 'sharedCode: SharedCode.$name',
     ];
 
     if (parameters.isEmpty) {

@@ -9,8 +9,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/analyzer_messages.dart';
 import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/tools.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml, YamlMap;
 
@@ -183,7 +185,7 @@ List<String> _splitText(
 /// [List.sort]ed.
 class AnalyzerCode implements Comparable<AnalyzerCode> {
   /// The class name.
-  final String className;
+  final ErrorClassInfo errorClass;
 
   /// The error name.
   ///
@@ -194,24 +196,32 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
   // case.
   final String snakeCaseErrorName;
 
-  AnalyzerCode({required this.className, required this.snakeCaseErrorName});
+  AnalyzerCode({required this.errorClass, required this.snakeCaseErrorName});
+
+  /// The string that should be generated into analyzer source code to refer to
+  /// this diagnostic code.
+  String get analyzerCodeReference =>
+      [errorClass.name, camelCaseErrorName].join('.');
 
   /// The error name, converted to camel case.
   String get camelCaseErrorName => snakeCaseErrorName.toCamelCase();
 
   @override
-  int get hashCode => Object.hash(className, snakeCaseErrorName);
+  int get hashCode => Object.hash(errorClass, snakeCaseErrorName);
 
   @override
   bool operator ==(Object other) =>
       other is AnalyzerCode &&
-      className == other.className &&
+      errorClass == other.errorClass &&
       snakeCaseErrorName == other.snakeCaseErrorName;
 
   @override
   int compareTo(AnalyzerCode other) {
-    var className = this.className;
-    var otherClassName = other.className;
+    // Compare the error classes by name. This works because we know that the
+    // error classes are unique (this is verified by the `ErrorClassInfo.byName`
+    // method).
+    var className = errorClass.name;
+    var otherClassName = other.errorClass.name;
     if (className.compareTo(otherClassName) case var result when result != 0) {
       return result;
     }
@@ -219,38 +229,22 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
   }
 
   @override
-  String toString() => [className, snakeCaseErrorName].join('.');
+  String toString() => [errorClass.name, snakeCaseErrorName].join('.');
 }
 
 /// In-memory representation of error code information obtained from a
 /// `messages.yaml` file in `pkg/front_end` or `pkg/_fe_analyzer_shared`.
 abstract class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
-  /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
-  final int? index;
-
   /// The name of the [CfeSeverity] constant describing this error code's CFE
   /// severity.
   final String? cfeSeverity;
 
   CfeStyleErrorCodeInfo.fromYaml(YamlMap yaml)
-    : index = _decodeIndex(yaml['index']),
-      cfeSeverity = _decodeSeverity(yaml['severity']),
+    : cfeSeverity = _decodeSeverity(yaml['severity']),
       super.fromYaml(yaml) {
     if (yaml['problemMessage'] == null) {
       throw 'Missing problemMessage';
     }
-  }
-
-  static int? _decodeIndex(Object? value) {
-    switch (value) {
-      case null:
-        return null;
-      case int():
-        if (value >= 1) {
-          return value;
-        }
-    }
-    throw 'Expected positive int for "index:", but found $value';
   }
 
   static String? _decodeSeverity(Object? yamlEntry) {
@@ -279,78 +273,31 @@ sealed class Conversion {
   String? toCode({required String name, required ErrorCodeParameterType type});
 }
 
-/// Information about a code generated class derived from `ErrorCode`.
+/// Information about a class derived from `ErrorCode`.
 class ErrorClassInfo {
-  /// The generated file containing this class.
-  final GeneratedErrorCodeFile file;
+  static final Map<String, ErrorClassInfo> _errorClassesByName = () {
+    var result = <String, ErrorClassInfo>{};
+    for (var info in errorClasses) {
+      if (result.containsKey(info.name)) {
+        throw 'Duplicate error class name: ${json.encode(info.name)}';
+      }
+      result[info.name] = info;
+    }
+    return result;
+  }();
 
-  /// True if this class should contain error messages extracted from the front
-  /// end's `messages.yaml` file.
-  ///
-  /// Note: at the moment we only support extracting front end error messages to
-  /// a single error class.
-  final bool includeCfeMessages;
+  static String get _allErrorClassNames =>
+      (_errorClassesByName.keys.toList()..sort()).map(json.encode).join(', ');
 
   /// The name of this class.
   final String name;
 
-  /// The severity of errors in this class, or `null` if the severity should be
-  /// based on the [type] of the error.
-  final String? severity;
+  const ErrorClassInfo({required this.name});
 
-  /// The type of errors in this class.
-  final String type;
-
-  /// The names of any errors which are relied upon by analyzer clients, and
-  /// therefore will need their "snake case" form preserved (with a deprecation
-  /// notice) after migration to camel case error codes.
-  final Set<String> deprecatedSnakeCaseNames;
-
-  /// If `true` (the default), error codes of this class will be included in the
-  /// automatically-generated `diagnosticCodeValues` list.
-  final bool includeInDiagnosticCodeValues;
-
-  /// Documentation comment to generate for the error class.
-  ///
-  /// If no documentation comment is needed, this should be the empty string.
-  final String comment;
-
-  const ErrorClassInfo({
-    required this.file,
-    this.includeCfeMessages = false,
-    required this.name,
-    this.severity,
-    required this.type,
-    this.deprecatedSnakeCaseNames = const {},
-    this.includeInDiagnosticCodeValues = true,
-    this.comment = '',
-  });
-
-  /// Generates the code to compute the severity of errors of this class.
-  String get severityCode {
-    var severity = this.severity;
-    if (severity == null) {
-      return '$typeCode.severity';
-    } else {
-      return 'DiagnosticSeverity.$severity';
-    }
-  }
-
-  String get templateName => '${_baseName}Template';
-
-  /// Generates the code to compute the type of errors of this class.
-  String get typeCode => 'DiagnosticType.$type';
-
-  String get withoutArgumentsName => '${_baseName}WithoutArguments';
-
-  String get _baseName {
-    const suffix = 'Code';
-    if (name.endsWith(suffix)) {
-      return name.substring(0, name.length - suffix.length);
-    } else {
-      throw StateError("Can't infer base name for class $name");
-    }
-  }
+  static ErrorClassInfo byName(String name) =>
+      _errorClassesByName[name] ??
+      (throw 'No error class named ${json.encode(name)}. Possible names: '
+          '$_allErrorClassNames');
 }
 
 /// In-memory representation of error code information obtained from either the
@@ -479,7 +426,7 @@ abstract class ErrorCodeInfo {
   ///
   /// [diagnosticCode] is the name of the error code to be generated.
   void toAnalyzerCode(
-    ErrorClassInfo errorClassInfo,
+    GeneratedErrorClassInfo errorClassInfo,
     String diagnosticCode, {
     String? sharedNameReference,
     required MemberAccumulator memberAccumulator,
@@ -833,8 +780,68 @@ class FrontEndErrorCodeInfo extends CfeStyleErrorCodeInfo {
     if (yaml['analyzerCode'] != null) {
       throw StateError('Only shared messages can have an analyzer code');
     }
-    if (index != null) {
-      throw StateError('Non-shared messages must not have an index');
+  }
+}
+
+/// Information about a code generated class derived from `ErrorCode`.
+class GeneratedErrorClassInfo extends ErrorClassInfo {
+  /// The generated file containing this class.
+  final GeneratedErrorCodeFile file;
+
+  /// The severity of errors in this class, or `null` if the severity should be
+  /// based on the [type] of the error.
+  final String? severity;
+
+  /// The type of errors in this class.
+  final String type;
+
+  /// The names of any errors which are relied upon by analyzer clients, and
+  /// therefore will need their "snake case" form preserved (with a deprecation
+  /// notice) after migration to camel case error codes.
+  final Set<String> deprecatedSnakeCaseNames;
+
+  /// If `true` (the default), error codes of this class will be included in the
+  /// automatically-generated `diagnosticCodeValues` list.
+  final bool includeInDiagnosticCodeValues;
+
+  /// Documentation comment to generate for the error class.
+  ///
+  /// If no documentation comment is needed, this should be the empty string.
+  final String comment;
+
+  const GeneratedErrorClassInfo({
+    required this.file,
+    required super.name,
+    this.severity,
+    required this.type,
+    this.deprecatedSnakeCaseNames = const {},
+    this.includeInDiagnosticCodeValues = true,
+    this.comment = '',
+  });
+
+  /// Generates the code to compute the severity of errors of this class.
+  String get severityCode {
+    var severity = this.severity;
+    if (severity == null) {
+      return '$typeCode.severity';
+    } else {
+      return 'DiagnosticSeverity.$severity';
+    }
+  }
+
+  String get templateName => '${_baseName}Template';
+
+  /// Generates the code to compute the type of errors of this class.
+  String get typeCode => 'DiagnosticType.$type';
+
+  String get withoutArgumentsName => '${_baseName}WithoutArguments';
+
+  String get _baseName {
+    const suffix = 'Code';
+    if (name.endsWith(suffix)) {
+      return name.substring(0, name.length - suffix.length);
+    } else {
+      throw StateError("Can't infer base name for class $name");
     }
   }
 }
@@ -1010,24 +1017,14 @@ class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
                 )))
             as String,
       ),
-      super.fromYaml() {
-    if (super.index == null) {
-      throw StateError('Shared messages must have an index');
-    }
-  }
-
-  /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
-  ///
-  /// Shared error codes are required to have a non-null index.
-  @override
-  int get index => super.index!;
+      super.fromYaml();
 
   static AnalyzerCode _decodeAnalyzerCode(String s) {
     switch (s.split('.')) {
       case [var className, var errorName]
           when errorName == errorName.toUpperCase():
         return AnalyzerCode(
-          className: className,
+          errorClass: ErrorClassInfo.byName(className),
           snakeCaseErrorName: errorName,
         );
       default:
@@ -1042,61 +1039,26 @@ class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
 /// Data tables mapping between shared errors and their corresponding
 /// automatically generated analyzer errors.
 class SharedToAnalyzerErrorCodeTables {
-  /// List of shared errors for which analyzer errors should be automatically
-  /// generated, organized by their `index` property.
-  final List<SharedErrorCodeInfo?> indexToInfo = [];
-
   /// Map whose values are the shared errors for which analyzer errors should be
   /// automatically generated, and whose keys are the corresponding analyzer
   /// error code.
   final Map<AnalyzerCode, SharedErrorCodeInfo> analyzerCodeToInfo = {};
 
-  /// Map whose values are the shared errors for which analyzer errors should be
-  /// automatically generated, and whose keys are the front end error name.
-  final Map<String, SharedErrorCodeInfo> frontEndCodeToInfo = {};
-
-  /// Map whose keys are the shared errors for which analyzer errors should be
-  /// automatically generated, and whose values are the corresponding analyzer
-  /// error name.
-  final Map<SharedErrorCodeInfo, AnalyzerCode> infoToAnalyzerCode = {};
-
   /// Map whose keys are the shared errors for which analyzer errors should be
   /// automatically generated, and whose values are the front end error name.
   final Map<SharedErrorCodeInfo, String> infoToFrontEndCode = {};
 
+  /// List of shared errors for which analyzer errors should be automatically
+  /// generated, sorted by analyzer code.
+  final List<SharedErrorCodeInfo> sortedSharedErrors = [];
+
   SharedToAnalyzerErrorCodeTables._(Map<String, SharedErrorCodeInfo> messages) {
     for (var entry in messages.entries) {
       var errorCodeInfo = entry.value;
-      var index = errorCodeInfo.index;
       var frontEndCode = entry.key;
-      if (index < 1) {
-        throw '''
-$frontEndCode specifies index $index but indices must be 1 or greater.
-For more information run:
-dart pkg/front_end/tool/generate_messages.dart
-''';
-      }
-      if (indexToInfo.length <= index) {
-        indexToInfo.length = index + 1;
-      }
-      var previousEntryForIndex = indexToInfo[index];
-      if (previousEntryForIndex != null) {
-        throw 'Index $index used by both '
-            '${infoToFrontEndCode[previousEntryForIndex]} and $frontEndCode';
-      }
-      indexToInfo[index] = errorCodeInfo;
-      frontEndCodeToInfo[frontEndCode] = errorCodeInfo;
+      sortedSharedErrors.add(errorCodeInfo);
       infoToFrontEndCode[errorCodeInfo] = frontEndCode;
       var analyzerCode = errorCodeInfo.analyzerCode;
-      // TODO(paulberry): allow shared errors to be things other than parser
-      // errors. See `ErrorClassInfo.includeCfeMessages`.
-      var expectedClassName = 'ParserErrorCode';
-      if (analyzerCode.className != expectedClassName) {
-        throw 'Expected all analyzer error codes to be prefixed with '
-            '${json.encode('$expectedClassName.')}.  Found '
-            '${json.encode(analyzerCode.toString())}.';
-      }
-      infoToAnalyzerCode[errorCodeInfo] = analyzerCode;
       var previousEntryForAnalyzerCode = analyzerCodeToInfo[analyzerCode];
       if (previousEntryForAnalyzerCode != null) {
         throw 'Analyzer code $analyzerCode used by both '
@@ -1105,11 +1067,7 @@ dart pkg/front_end/tool/generate_messages.dart
       }
       analyzerCodeToInfo[analyzerCode] = errorCodeInfo;
     }
-    for (int i = 1; i < indexToInfo.length; i++) {
-      if (indexToInfo[i] == null) {
-        throw 'Indices are not consecutive; no error code has index $i.';
-      }
-    }
+    sortedSharedErrors.sortBy((e) => e.analyzerCode);
   }
 }
 

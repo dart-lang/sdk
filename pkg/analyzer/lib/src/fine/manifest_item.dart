@@ -22,6 +22,10 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
   /// See [ClassElementImpl.allSubtypes] for details.
   ManifestItemIdList allSubtypes;
 
+  /// See [ClassElementImpl.directSubtypesOfSealed] for details.
+  /// If the class is not sealed, then empty.
+  ManifestItemIdList directSubtypesOfSealed;
+
   ClassItem({
     required super.id,
     required _ClassItemFlags super.flags,
@@ -40,6 +44,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     required super.interfaces,
     required super.interface,
     required this.allSubtypes,
+    required this.directSubtypesOfSealed,
   });
 
   factory ClassItem.fromElement({
@@ -66,6 +71,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
         interfaces: element.interfaces.encode(context),
         interface: ManifestInterface.empty(),
         allSubtypes: ManifestItemIdList([]),
+        directSubtypesOfSealed: ManifestItemIdList([]),
       );
     });
   }
@@ -89,6 +95,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
       interfaces: ManifestType.readList(reader),
       interface: ManifestInterface.read(reader),
       allSubtypes: ManifestItemIdList.read(reader),
+      directSubtypesOfSealed: ManifestItemIdList.read(reader),
     );
   }
 
@@ -111,6 +118,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
   void write(BinaryWriter writer) {
     super.write(writer);
     allSubtypes.write(writer);
+    directSubtypesOfSealed.write(writer);
   }
 }
 

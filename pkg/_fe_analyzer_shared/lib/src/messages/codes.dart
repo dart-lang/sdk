@@ -5,6 +5,7 @@
 /// @docImport 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 /// @docImport 'package:analyzer/src/fasta/ast_builder.dart';
 /// @docImport 'package:analyzer/src/fasta/error_converter.dart';
+/// @docImport 'package:analyzer/src/diagnostic/diagnostic_code_values.dart';
 library _fe_analyzer_shared.messages.codes;
 
 import 'dart:convert' show JsonEncoder, json;
@@ -26,11 +27,6 @@ const int noLength = 1;
 class Code {
   final String name;
 
-  /// The unique positive integer associated with this code,
-  /// or `-1` if none. This index is used when translating
-  /// this error to its corresponding Analyzer error.
-  final int index;
-
   /// Enumerated value that can be used to map this [Code] to a corresponding
   /// analyzer code.
   ///
@@ -42,16 +38,24 @@ class Code {
   ///
   /// Note that error codes that require translation in this way are not truly
   /// shared (hence the name "pseudoSharedCode"). Truly shared error codes are
-  /// mapped to corresponding analyzer error codes using [index].
+  /// mapped to corresponding analyzer error codes using [sharedCode].
   final PseudoSharedCode? pseudoSharedCode;
 
   final CfeSeverity severity;
 
+  /// Enumerated value that can be used to map this [Code] to a corresponding
+  /// analyzer code.
+  ///
+  /// If this value is non-null, then this error code is shared between the
+  /// analyzer and the CFE. The index of this enum can be used to look up the
+  /// corresponding analyzer error in the [sharedAnalyzerCodes] table.
+  final SharedCode? sharedCode;
+
   const Code(
     this.name, {
-    this.index = -1,
     this.pseudoSharedCode,
     this.severity = CfeSeverity.error,
+    this.sharedCode,
   });
 
   @override
@@ -97,11 +101,11 @@ class MessageCode extends Code implements Message {
 
   const MessageCode(
     super.name, {
-    super.index,
     super.pseudoSharedCode,
     super.severity,
     required this.problemMessage,
     this.correctionMessage,
+    super.sharedCode,
   });
 
   @override
@@ -138,9 +142,9 @@ class Template<TOld extends Function, T extends Function> extends Code {
     required this.problemMessageTemplate,
     required this.withArgumentsOld,
     required this.withArguments,
-    super.index = -1,
     super.pseudoSharedCode,
     super.severity = CfeSeverity.error,
+    super.sharedCode,
   });
 
   @override

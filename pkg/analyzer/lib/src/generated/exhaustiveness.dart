@@ -142,45 +142,9 @@ class AnalyzerSealedClassOperations
   List<InterfaceElementImpl> getDirectSubclasses(
     InterfaceElementImpl sealedClass,
   ) {
-    List<InterfaceElementImpl> subclasses = [];
-    var library = sealedClass.library;
-    outer:
-    for (var declaration in library.children) {
-      if (declaration is ExtensionTypeElement) {
-        continue;
-      }
-      if (declaration != sealedClass && declaration is InterfaceElementImpl) {
-        bool checkType(InterfaceTypeImpl? type) {
-          if (type?.element == sealedClass) {
-            subclasses.add(declaration);
-            return true;
-          }
-          return false;
-        }
-
-        if (checkType(declaration.supertype)) {
-          continue outer;
-        }
-        for (var mixin in declaration.mixins) {
-          if (checkType(mixin)) {
-            continue outer;
-          }
-        }
-        for (var interface in declaration.interfaces) {
-          if (checkType(interface)) {
-            continue outer;
-          }
-        }
-        if (declaration is MixinElementImpl) {
-          for (var type in declaration.superclassConstraints) {
-            if (checkType(type)) {
-              continue outer;
-            }
-          }
-        }
-      }
-    }
-    return subclasses;
+    // Only classes can be sealed.
+    sealedClass as ClassElementImpl;
+    return sealedClass.directSubtypesOfSealed;
   }
 
   @override

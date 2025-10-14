@@ -8,7 +8,7 @@ library;
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:analyzer/src/diagnostic/diagnostic_code_values.g.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_code_values.dart';
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
     show
@@ -25,7 +25,8 @@ export 'package:_fe_analyzer_shared/src/base/errors.dart'
         // ignore: deprecated_member_use
         ErrorType;
 export 'package:analyzer/src/dart/error/lint_codes.dart' show LintCode;
-export 'package:analyzer/src/diagnostic/diagnostic_code_values.g.dart';
+export 'package:analyzer/src/diagnostic/diagnostic_code_values.dart'
+    show diagnosticCodeValues, errorCodeValues;
 
 /// The lazy initialized map from [DiagnosticCode.uniqueName] to the
 /// [DiagnosticCode] instance.
