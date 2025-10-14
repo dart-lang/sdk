@@ -167,8 +167,16 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
 #else
   bool flag_profile_microtasks = Options::profile_microtasks();
 #endif  // defined(PRODUCT)
-  result = DartUtils::PrepareForScriptLoading(false, Options::trace_loading(),
-                                              flag_profile_microtasks);
+  result = DartUtils::SetupCoreLibraries(
+      /*is_service_isolate=*/false, Options::trace_loading(),
+      flag_profile_microtasks,
+      DartIoSettings{
+          .namespace_root = is_kernel_isolate || (Options::namespc() == nullptr)
+                                ? nullptr
+                                : DartUtils::NewString(Options::namespc()),
+          .script_uri = script_uri,
+          .disable_exit = Options::exit_disabled(),
+      });
   if (Dart_IsError(result)) return result;
 
   // Setup packages config if specified.
@@ -193,15 +201,7 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
   if (Dart_IsError(result)) return result;
 
   // Setup the native resolver as the snapshot does not carry it.
-  Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
-  Builtin::SetNativeResolver(Builtin::kIOLibrary);
-  Builtin::SetNativeResolver(Builtin::kCLILibrary);
   VmService::SetNativeResolver();
-
-  const char* namespc = is_kernel_isolate ? nullptr : Options::namespc();
-  result =
-      DartUtils::SetupIOLibrary(namespc, script_uri, Options::exit_disabled());
-  if (Dart_IsError(result)) return result;
 
   return Dart_Null();
 }

@@ -67,6 +67,40 @@ void* LookupIOFfiNative(const char* name, uintptr_t argument_count);
 // a valid I/O native function.
 const uint8_t* LookupIONativeSymbol(Dart_NativeFunction nf);
 
+// Configuration for embedder extension points provided by `dart:io`.
+struct DartIoSettings {
+  // Value for `dart:_http` `_httpConnectionHook`, `nullptr` means default.
+  //
+  // Must be a function of type `void Function(Uri)`.
+  Dart_Handle http_connection_hook = nullptr;
+
+  // Callback to intercept `_Platform.localeName`, `nullptr` means default.
+  //
+  // Must be a function of type `String Function()`.
+  Dart_Handle locale_name_callback = nullptr;
+
+  // Namespace root to pass to `_Namespace._setupNamespace`.
+  //
+  // Must be either an string (path) or an integer (dirfd).
+  Dart_Handle namespace_root = nullptr;
+
+  // Value for `Platform.script`.
+  const char* script_uri = nullptr;
+
+  // Setting this to `true` will disable `exit`.
+  //
+  // When disabled `exit` throws an `UnsupportedError`.
+  bool disable_exit = false;
+
+  // Register service extensions for profiling networking traffic.
+  //
+  // See `_NetworkProfile` for the list of extensions.
+  bool enable_network_profiling = true;
+};
+
+// Prepare 'dart:io' library for running.
+Dart_Handle SetupDartIoLibrary(const DartIoSettings& settings);
+
 }  // namespace bin
 }  // namespace dart
 

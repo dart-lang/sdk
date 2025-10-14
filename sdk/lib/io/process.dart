@@ -102,11 +102,6 @@ void sleep(Duration duration) {
   if (milliseconds < 0) {
     throw new ArgumentError("sleep: duration cannot be negative");
   }
-  if (!_EmbedderConfig._maySleep) {
-    throw new UnsupportedError(
-      "This embedder disallows calling dart:io's sleep()",
-    );
-  }
   _ProcessUtils._sleep(milliseconds);
 }
 
