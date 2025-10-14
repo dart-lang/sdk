@@ -72,8 +72,6 @@ final RegExp placeholderPattern = RegExp(
 final SharedToAnalyzerErrorCodeTables sharedToAnalyzerErrorCodeTables =
     SharedToAnalyzerErrorCodeTables._(feAnalyzerSharedMessages);
 
-final _parserErrorCodeClass = ErrorClassInfo.byName('ParserErrorCode');
-
 /// Convert a template string (which uses placeholders matching
 /// [placeholderPattern]) to an analyzer internal template string (which uses
 /// placeholders like `{0}`).
@@ -790,13 +788,6 @@ class GeneratedErrorClassInfo extends ErrorClassInfo {
   /// The generated file containing this class.
   final GeneratedErrorCodeFile file;
 
-  /// True if this class should contain error messages extracted from the front
-  /// end's `messages.yaml` file.
-  ///
-  /// Note: at the moment we only support extracting front end error messages to
-  /// a single error class.
-  final bool includeCfeMessages;
-
   /// The severity of errors in this class, or `null` if the severity should be
   /// based on the [type] of the error.
   final String? severity;
@@ -820,7 +811,6 @@ class GeneratedErrorClassInfo extends ErrorClassInfo {
 
   const GeneratedErrorClassInfo({
     required this.file,
-    this.includeCfeMessages = false,
     required super.name,
     this.severity,
     required this.type,
@@ -1079,14 +1069,6 @@ class SharedToAnalyzerErrorCodeTables {
       frontEndCodeToInfo[frontEndCode] = errorCodeInfo;
       infoToFrontEndCode[errorCodeInfo] = frontEndCode;
       var analyzerCode = errorCodeInfo.analyzerCode;
-      // TODO(paulberry): allow shared errors to be things other than parser
-      // errors. See `ErrorClassInfo.includeCfeMessages`.
-      var expectedClassName = 'ParserErrorCode';
-      if (analyzerCode.errorClass != _parserErrorCodeClass) {
-        throw 'Expected all analyzer error codes to be prefixed with '
-            '${json.encode('$expectedClassName.')}.  Found '
-            '${json.encode(analyzerCode.toString())}.';
-      }
       infoToAnalyzerCode[errorCodeInfo] = analyzerCode;
       var previousEntryForAnalyzerCode = analyzerCodeToInfo[analyzerCode];
       if (previousEntryForAnalyzerCode != null) {

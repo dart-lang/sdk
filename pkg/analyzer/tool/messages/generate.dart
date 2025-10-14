@@ -114,11 +114,11 @@ part of ${json.encode(file.parentLibrary)};
         'class ${errorClass.name} extends DiagnosticCodeWithExpectedTypes {',
       );
       var memberAccumulator = MemberAccumulator();
+
       var entries =
           [
             ...analyzerMessages.entries,
-            if (errorClass.includeCfeMessages)
-              ...sharedToAnalyzerErrorCodeTables.analyzerCodeToInfo.entries,
+            ...sharedToAnalyzerErrorCodeTables.analyzerCodeToInfo.entries,
           ].where(
             (error) =>
                 error.key.errorClass == errorClass && !error.value.isRemoved,

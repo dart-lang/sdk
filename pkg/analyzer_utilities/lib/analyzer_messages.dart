@@ -69,7 +69,6 @@ const List<ErrorClassInfo> errorClasses = [
     name: 'ParserErrorCode',
     type: 'SYNTACTIC_ERROR',
     severity: 'ERROR',
-    includeCfeMessages: true,
     deprecatedSnakeCaseNames: {
       'UNEXPECTED_TOKEN', // Referenced by `package:dart_style`.
     },
