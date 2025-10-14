@@ -19,48 +19,52 @@ const codesFile = GeneratedErrorCodeFile(
 /// Information about all the classes derived from `DiagnosticCode` that are
 /// code-generated based on the contents of the analyzer and front end
 /// `messages.yaml` files.
+///
+/// Note: to look up an error class by name, use [ErrorClassInfo.byName].
 const List<ErrorClassInfo> errorClasses = [
-  ErrorClassInfo(
+  lintCodeInfo,
+  linterLintCodeInfo,
+  GeneratedErrorClassInfo(
     file: optionCodesFile,
     name: 'AnalysisOptionsErrorCode',
     type: 'COMPILE_TIME_ERROR',
     severity: 'ERROR',
   ),
-  ErrorClassInfo(
+  GeneratedErrorClassInfo(
     file: optionCodesFile,
     name: 'AnalysisOptionsWarningCode',
     type: 'STATIC_WARNING',
     severity: 'WARNING',
   ),
-  ErrorClassInfo(
+  GeneratedErrorClassInfo(
     file: codesFile,
     name: 'CompileTimeErrorCode',
     type: 'COMPILE_TIME_ERROR',
   ),
-  ErrorClassInfo(
+  GeneratedErrorClassInfo(
     file: scannerErrorFile,
     name: 'ScannerErrorCode',
     type: 'SYNTACTIC_ERROR',
   ),
-  ErrorClassInfo(
+  GeneratedErrorClassInfo(
     file: codesFile,
     name: 'StaticWarningCode',
     type: 'STATIC_WARNING',
     severity: 'WARNING',
   ),
-  ErrorClassInfo(
+  GeneratedErrorClassInfo(
     file: codesFile,
     name: 'WarningCode',
     type: 'STATIC_WARNING',
     severity: 'WARNING',
   ),
-  ErrorClassInfo(
+  GeneratedErrorClassInfo(
     file: ffiCodesFile,
     name: 'FfiCode',
     type: 'COMPILE_TIME_ERROR',
   ),
-  ErrorClassInfo(file: hintCodesFile, name: 'HintCode', type: 'HINT'),
-  ErrorClassInfo(
+  GeneratedErrorClassInfo(file: hintCodesFile, name: 'HintCode', type: 'HINT'),
+  GeneratedErrorClassInfo(
     file: syntacticErrorsFile,
     name: 'ParserErrorCode',
     type: 'SYNTACTIC_ERROR',
@@ -70,19 +74,19 @@ const List<ErrorClassInfo> errorClasses = [
       'UNEXPECTED_TOKEN', // Referenced by `package:dart_style`.
     },
   ),
-  ErrorClassInfo(
+  GeneratedErrorClassInfo(
     file: manifestWarningCodeFile,
     name: 'ManifestWarningCode',
     type: 'STATIC_WARNING',
     severity: 'WARNING',
   ),
-  ErrorClassInfo(
+  GeneratedErrorClassInfo(
     file: pubspecWarningCodeFile,
     name: 'PubspecWarningCode',
     type: 'STATIC_WARNING',
     severity: 'WARNING',
   ),
-  ErrorClassInfo(
+  GeneratedErrorClassInfo(
     file: todoCodesFile,
     name: 'TodoCode',
     type: 'TODO',
@@ -92,7 +96,7 @@ The error code indicating a marker in code for work that needs to be finished
 or revisited.
 ''',
   ),
-  ErrorClassInfo(
+  GeneratedErrorClassInfo(
     file: transformSetErrorCodeFile,
     name: 'TransformSetErrorCode',
     type: 'COMPILE_TIME_ERROR',
@@ -110,9 +114,24 @@ const ffiCodesFile = GeneratedErrorCodeFile(
   parentLibrary: 'package:analyzer/src/dart/error/ffi_code.dart',
 );
 
+const String generatedLintCodesPath = 'linter/lib/src/lint_codes.g.dart';
+
 const hintCodesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/hint_codes.g.dart',
   parentLibrary: 'package:analyzer/src/dart/error/hint_codes.dart',
+);
+
+const lintCodeInfo = ErrorClassInfo(name: 'LintCode');
+
+const lintCodesFile = GeneratedErrorCodeFile(
+  path: generatedLintCodesPath,
+  parentLibrary: 'package:linter/src/lint_codes.dart',
+);
+
+const linterLintCodeInfo = GeneratedErrorClassInfo(
+  file: lintCodesFile,
+  name: 'LinterLintCode',
+  type: 'LINT',
 );
 
 const manifestWarningCodeFile = GeneratedErrorCodeFile(

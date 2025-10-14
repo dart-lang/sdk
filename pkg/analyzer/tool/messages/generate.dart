@@ -33,8 +33,13 @@ final List<GeneratedContent> allTargets = _analyzerGeneratedFiles();
 /// Generates a list of [GeneratedContent] objects describing all the analyzer
 /// files that need to be generated.
 List<GeneratedContent> _analyzerGeneratedFiles() {
-  var classesByFile = <GeneratedErrorCodeFile, List<ErrorClassInfo>>{};
+  var classesByFile = <GeneratedErrorCodeFile, List<GeneratedErrorClassInfo>>{};
   for (var errorClassInfo in errorClasses) {
+    if (errorClassInfo is! GeneratedErrorClassInfo) continue;
+
+    // Lint codes are generated separately.
+    if (errorClassInfo == linterLintCodeInfo) continue;
+
     (classesByFile[errorClassInfo.file] ??= []).add(errorClassInfo);
   }
   var generatedCodes = <AnalyzerCode>[];
@@ -63,7 +68,7 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
 class _AnalyzerErrorGenerator {
   final GeneratedErrorCodeFile file;
 
-  final List<ErrorClassInfo> errorClasses;
+  final List<GeneratedErrorClassInfo> errorClasses;
 
   final List<AnalyzerCode> generatedCodes;
 
@@ -211,7 +216,7 @@ DiagnosticType get type => ${errorClass.typeCode};
   }
 
   void _outputDerivedClass(
-    ErrorClassInfo errorClass, {
+    GeneratedErrorClassInfo errorClass, {
     required bool withArguments,
   }) {
     var className = withArguments

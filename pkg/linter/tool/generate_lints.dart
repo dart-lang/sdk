@@ -8,7 +8,6 @@ library;
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/analyzer_messages.dart';
-import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';
 
 import 'messages_info.dart';
@@ -20,22 +19,9 @@ void main() async {
   ]);
 }
 
-const String generatedCodesPath = 'linter/lib/src/lint_codes.g.dart';
-
 const String generatedNamesPath = 'linter/lib/src/lint_names.g.dart';
 
-const lintCodesFile = GeneratedErrorCodeFile(
-  path: generatedCodesPath,
-  parentLibrary: 'package:linter/src/lint_codes.dart',
-);
-
-const linterLintCodeInfo = ErrorClassInfo(
-  file: lintCodesFile,
-  name: 'LinterLintCode',
-  type: 'LINT',
-);
-
-GeneratedFile get generatedCodesFile => GeneratedFile(generatedCodesPath, (
+GeneratedFile get generatedCodesFile => GeneratedFile(generatedLintCodesPath, (
   pkgRoot,
 ) async {
   var out = StringBuffer('''

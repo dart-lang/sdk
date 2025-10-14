@@ -279,78 +279,12 @@ sealed class Conversion {
   String? toCode({required String name, required ErrorCodeParameterType type});
 }
 
-/// Information about a code generated class derived from `ErrorCode`.
+/// Information about a class derived from `ErrorCode`.
 class ErrorClassInfo {
-  /// The generated file containing this class.
-  final GeneratedErrorCodeFile file;
-
-  /// True if this class should contain error messages extracted from the front
-  /// end's `messages.yaml` file.
-  ///
-  /// Note: at the moment we only support extracting front end error messages to
-  /// a single error class.
-  final bool includeCfeMessages;
-
   /// The name of this class.
   final String name;
 
-  /// The severity of errors in this class, or `null` if the severity should be
-  /// based on the [type] of the error.
-  final String? severity;
-
-  /// The type of errors in this class.
-  final String type;
-
-  /// The names of any errors which are relied upon by analyzer clients, and
-  /// therefore will need their "snake case" form preserved (with a deprecation
-  /// notice) after migration to camel case error codes.
-  final Set<String> deprecatedSnakeCaseNames;
-
-  /// If `true` (the default), error codes of this class will be included in the
-  /// automatically-generated `diagnosticCodeValues` list.
-  final bool includeInDiagnosticCodeValues;
-
-  /// Documentation comment to generate for the error class.
-  ///
-  /// If no documentation comment is needed, this should be the empty string.
-  final String comment;
-
-  const ErrorClassInfo({
-    required this.file,
-    this.includeCfeMessages = false,
-    required this.name,
-    this.severity,
-    required this.type,
-    this.deprecatedSnakeCaseNames = const {},
-    this.includeInDiagnosticCodeValues = true,
-    this.comment = '',
-  });
-
-  /// Generates the code to compute the severity of errors of this class.
-  String get severityCode {
-    var severity = this.severity;
-    if (severity == null) {
-      return '$typeCode.severity';
-    } else {
-      return 'DiagnosticSeverity.$severity';
-    }
-  }
-
-  String get templateName => '${_baseName}Template';
-
-  /// Generates the code to compute the type of errors of this class.
-  String get typeCode => 'DiagnosticType.$type';
-
-  String get withoutArgumentsName => '${_baseName}WithoutArguments';
-
-  String get _baseName {
-    const suffix = 'Code';
-    if (name.endsWith(suffix)) {
-      return name.substring(0, name.length - suffix.length);
-    } else {
-      throw StateError("Can't infer base name for class $name");
-    }
-  }
+  const ErrorClassInfo({required this.name});
 }
 
 /// In-memory representation of error code information obtained from either the
@@ -479,7 +413,7 @@ abstract class ErrorCodeInfo {
   ///
   /// [diagnosticCode] is the name of the error code to be generated.
   void toAnalyzerCode(
-    ErrorClassInfo errorClassInfo,
+    GeneratedErrorClassInfo errorClassInfo,
     String diagnosticCode, {
     String? sharedNameReference,
     required MemberAccumulator memberAccumulator,
@@ -835,6 +769,77 @@ class FrontEndErrorCodeInfo extends CfeStyleErrorCodeInfo {
     }
     if (index != null) {
       throw StateError('Non-shared messages must not have an index');
+    }
+  }
+}
+
+/// Information about a code generated class derived from `ErrorCode`.
+class GeneratedErrorClassInfo extends ErrorClassInfo {
+  /// The generated file containing this class.
+  final GeneratedErrorCodeFile file;
+
+  /// True if this class should contain error messages extracted from the front
+  /// end's `messages.yaml` file.
+  ///
+  /// Note: at the moment we only support extracting front end error messages to
+  /// a single error class.
+  final bool includeCfeMessages;
+
+  /// The severity of errors in this class, or `null` if the severity should be
+  /// based on the [type] of the error.
+  final String? severity;
+
+  /// The type of errors in this class.
+  final String type;
+
+  /// The names of any errors which are relied upon by analyzer clients, and
+  /// therefore will need their "snake case" form preserved (with a deprecation
+  /// notice) after migration to camel case error codes.
+  final Set<String> deprecatedSnakeCaseNames;
+
+  /// If `true` (the default), error codes of this class will be included in the
+  /// automatically-generated `diagnosticCodeValues` list.
+  final bool includeInDiagnosticCodeValues;
+
+  /// Documentation comment to generate for the error class.
+  ///
+  /// If no documentation comment is needed, this should be the empty string.
+  final String comment;
+
+  const GeneratedErrorClassInfo({
+    required this.file,
+    this.includeCfeMessages = false,
+    required super.name,
+    this.severity,
+    required this.type,
+    this.deprecatedSnakeCaseNames = const {},
+    this.includeInDiagnosticCodeValues = true,
+    this.comment = '',
+  });
+
+  /// Generates the code to compute the severity of errors of this class.
+  String get severityCode {
+    var severity = this.severity;
+    if (severity == null) {
+      return '$typeCode.severity';
+    } else {
+      return 'DiagnosticSeverity.$severity';
+    }
+  }
+
+  String get templateName => '${_baseName}Template';
+
+  /// Generates the code to compute the type of errors of this class.
+  String get typeCode => 'DiagnosticType.$type';
+
+  String get withoutArgumentsName => '${_baseName}WithoutArguments';
+
+  String get _baseName {
+    const suffix = 'Code';
+    if (name.endsWith(suffix)) {
+      return name.substring(0, name.length - suffix.length);
+    } else {
+      throw StateError("Can't infer base name for class $name");
     }
   }
 }
