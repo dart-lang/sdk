@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/kernel/hierarchy/members_node.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
@@ -871,15 +872,18 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
 
   @override
   bool get isNoSuchMethodForwarder {
-    // [implementedInterfaceMember] can only be a noSuchMethod forwarder if
-    // [inheritedClassMember] also is, since we don't allow overriding a regular
-    // member with a noSuchMethodForwarder.
+    // [implementedInterfaceMember] can be a noSuchMethod forwarder in two
+    // scenarios:
     //
-    // If the current class is abstract, [inheritedClassMember] can be a
-    // a noSuchMethod forwarder while [implementedInterfaceMember] is not,
-    // because we only insert noSuchMethod forwarders into non-abstract classes.
+    //  * If [inheritedClassMember] also is, since we don't allow overriding a
+    //    regular member with a noSuchMethodForwarder.
     //
-    // For instance
+    //    If the current class is abstract, [inheritedClassMember] can be a
+    //    a noSuchMethod forwarder while [implementedInterfaceMember] is not,
+    //    because we only insert noSuchMethod forwarders into non-abstract
+    //    classes.
+    //
+    //    For instance
     //
     //     class Super {
     //       noSuchMethod(_) => null;
@@ -899,15 +903,43 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
     //                       // and this will be an error.
     //     }
     //
+    //  * If [name] is not visible in the library of [classBuilder].
+    //
+    //    If the [inheritedClassMember] is private wrt. a different library,
+    //    there is no requirement that it implements the
+    //    [implementedInterfaceMember], and we will create a noSuchMethod
+    //    forwarder if it doesn't.
+    //
+    //    For instance
+    //
+    //     // library a.dart
+    //     class A {
+    //       void _m(int i) {}
+    //     }
+    //     abstract class B extends A {
+    //       void _m(num i);
+    //     }
+    //
+    //     // library b.dart
+    //     import 'a.dart';
+    //     class C extends B {
+    //       /* _m(num i) */ // A._m doesn't implement B._m so a noSuchMethod
+    //                       // forwarder is created.
+    //     }
+    //
     assert(
-      !(implementedInterfaceMember.isNoSuchMethodForwarder &&
-          !inheritedClassMember.isNoSuchMethodForwarder),
+      !implementedInterfaceMember.isNoSuchMethodForwarder ||
+          inheritedClassMember.isNoSuchMethodForwarder ||
+          !isNameVisibleIn(name, classBuilder.libraryBuilder),
       "The inherited $inheritedClassMember has "
       "isNoSuchMethodForwarder="
       "${inheritedClassMember.isNoSuchMethodForwarder} but "
       "the implemented $implementedInterfaceMember has "
       "isNoSuchMethodForwarder="
-      "${implementedInterfaceMember.isNoSuchMethodForwarder}.",
+      "${implementedInterfaceMember.isNoSuchMethodForwarder} "
+      " and the name $name is "
+      "${!isNameVisibleIn(name, classBuilder.libraryBuilder) ? " not " : ""} "
+      "visible.",
     );
     return inheritedClassMember.isNoSuchMethodForwarder;
   }
