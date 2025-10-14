@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
@@ -144,7 +143,10 @@ abstract class AstVisitor<R> {
 ''');
     for (var node in astLibrary.nodes) {
       if (node.isConcrete) {
-        var name = node.name;
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
         out.writeln('''
   R? visit$name($name node);
 ''');
@@ -214,10 +216,13 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   }
 ''');
     for (var node in astLibrary.nodes) {
-      var name = node.name;
+      var name = node.apiElementName;
       var superNode = node.superNode;
       if (superNode == null) {
         continue;
+      }
+      if (node.isExperimental) {
+        out.writeln('@experimental');
       }
       if (node.isConcrete) {
         out.writeln('@override');
@@ -225,7 +230,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
       // TODO(fshcheglov): Remove special case after AST hierarchy is fixed.
       // https://github.com/dart-lang/sdk/issues/61224
-      if (node.name == 'FunctionDeclaration') {
+      if (node.apiElementName == 'FunctionDeclaration') {
         out.writeln(r'''
 R? visitFunctionDeclaration(FunctionDeclaration node) {
   if (node.parent is FunctionDeclarationStatement) {
@@ -236,13 +241,13 @@ R? visitFunctionDeclaration(FunctionDeclaration node) {
         continue;
       }
 
-      if (superNode.element.isAstNodeImplExactly) {
+      if (superNode.implElement.isAstNodeImplExactly) {
         out.writeln('''
 R? visit$name($name node) => visitNode(node);
 ''');
       } else {
         out.writeln('''
-R? visit$name($name node) => visit${superNode.name}(node);
+R? visit$name($name node) => visit${superNode.apiElementName}(node);
 ''');
       }
     }
@@ -267,7 +272,10 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 ''');
     for (var node in astLibrary.nodes) {
       if (node.isConcrete) {
-        var name = node.name;
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
         out.writeln('''
   @override
   R? visit$name($name node) {
@@ -294,7 +302,10 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 ''');
     for (var node in astLibrary.nodes) {
       if (node.isConcrete) {
-        var name = node.name;
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
         out.writeln('''
   @override
   R? visit$name($name node) => null;
@@ -327,7 +338,10 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 ''');
     for (var node in astLibrary.nodes) {
       if (node.isConcrete) {
-        var name = node.name;
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
         out.writeln('''
   @override
   R? visit$name($name node) => _throw(node);
@@ -356,7 +370,10 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
 ''');
     for (var node in astLibrary.nodes) {
       if (node.isConcrete) {
-        var name = node.name;
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
         out.writeln('''
   @override
   T? visit$name($name node) {
@@ -395,7 +412,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 ''');
     for (var node in astLibrary.nodes) {
       if (node.isConcrete) {
-        var name = node.name;
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
         out.writeln('''
   @override
   R? visit$name($name node) => visitNode(node);
@@ -507,7 +527,10 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
 ''');
     for (var node in astLibrary.nodes) {
       if (node.isConcrete) {
-        var name = node.name;
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
         out.writeln('''
   @override
   void visit$name($name node) {
@@ -547,7 +570,7 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 ''');
     for (var node in astLibrary.nodes) {
       if (node.isConcrete) {
-        var name = node.name;
+        var name = node.apiElementName;
         out.writeln('''
 final List<_Subscription<$name>> _for$name = [];
 
@@ -563,15 +586,25 @@ void add$name(AbstractAnalysisRule rule, AstVisitor visitor) {
 }
 
 class _Node {
-  final ClassElement element;
-  final String name;
+  final ClassElement implElement;
+  final ClassElement apiElement;
+  final String apiElementName;
 
-  _Node(this.element, this.name);
+  _Node({
+    required this.implElement,
+    required this.apiElement,
+    required this.apiElementName,
+  });
 
-  bool get isConcrete => !element.isAbstract;
+  bool get isConcrete => !implElement.isAbstract;
+
+  bool get isExperimental {
+    return apiElement.metadata.hasExperimental;
+  }
 
   _Node? get superNode {
-    return element.supertype?.element.ifTypeOrNull<ClassElement>()?.asNode;
+    var superElement = implElement.supertype?.element;
+    return superElement.ifTypeOrNull<ClassElement>()?.asNode;
   }
 }
 
@@ -621,7 +654,10 @@ abstract class RuleVisitorRegistry {
 ''');
     for (var node in astLibrary.nodes) {
       if (node.isConcrete) {
-        var name = node.name;
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('@experimental');
+        }
         out.writeln('''
 void add$name(AbstractAnalysisRule rule, AstVisitor visitor);
 ''');
@@ -638,10 +674,18 @@ extension on InterfaceElement {
 
 extension on ClassElement {
   _Node? get asNode {
-    var interfaceName = name?.removeSuffix('Impl');
-    if ((isAstNodeImplSubtype || isAstNodeImplExactly) &&
-        interfaceName != null) {
-      return _Node(this, interfaceName);
+    if (isAstNodeImplSubtype || isAstNodeImplExactly) {
+      var apiElement = interfaces.lastOrNull?.element;
+      if (apiElement is ClassElement) {
+        var apiElementName = apiElement.name!;
+        if ('${apiElementName}Impl' == name) {
+          return _Node(
+            implElement: this,
+            apiElement: apiElement,
+            apiElementName: apiElementName,
+          );
+        }
+      }
     }
     return null;
   }

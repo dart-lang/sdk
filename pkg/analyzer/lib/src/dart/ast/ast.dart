@@ -170,7 +170,9 @@ abstract final class AnnotatedNode implements AstNode {
   List<AstNode> get sortedCommentAndAnnotations;
 }
 
-sealed class AnnotatedNodeImpl extends AstNodeImpl with _AnnotatedNodeMixin {
+sealed class AnnotatedNodeImpl extends AstNodeImpl
+    with _AnnotatedNodeMixin
+    implements AnnotatedNode {
   /// Initializes a newly created annotated node.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the node
@@ -5521,7 +5523,7 @@ sealed class DartPattern implements AstNode, ListPatternElement {
 }
 
 sealed class DartPatternImpl extends AstNodeImpl
-    implements DartPattern, ListPatternElementImpl {
+    implements ListPatternElementImpl, DartPattern {
   @override
   TypeImpl? matchedValueType;
 
