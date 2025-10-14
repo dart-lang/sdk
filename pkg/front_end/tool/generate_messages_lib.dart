@@ -180,10 +180,16 @@ class _TemplateCompiler {
       if (isShared) 'sharedCode: SharedCode.$name',
     ];
 
+    String interpolatedProblemMessage = interpolate(problemMessage)!;
+    String? interpolatedCorrectionMessage = interpolate(correctionMessage);
+    if (hasLabeler) {
+      interpolatedProblemMessage += " + labeler.originMessages";
+    }
+
     if (parameters.isEmpty) {
-      codeArguments.add('problemMessage: r"""$problemMessage"""');
+      codeArguments.add('problemMessage: $interpolatedProblemMessage');
       if (correctionMessage != null) {
-        codeArguments.add('correctionMessage: r"""$correctionMessage"""');
+        codeArguments.add('correctionMessage: $interpolatedCorrectionMessage');
       }
 
       return """
@@ -198,12 +204,6 @@ const MessageCode code$name =
     templateArguments.add("withArgumentsOld: _withArgumentsOld$name");
     templateArguments.add("withArguments: _withArguments$name");
     templateArguments.addAll(codeArguments);
-
-    String interpolatedProblemMessage = interpolate(problemMessage)!;
-    String? interpolatedCorrectionMessage = interpolate(correctionMessage);
-    if (hasLabeler) {
-      interpolatedProblemMessage += " + labeler.originMessages";
-    }
 
     List<String> messageArguments = <String>[
       "problemMessage: $interpolatedProblemMessage",

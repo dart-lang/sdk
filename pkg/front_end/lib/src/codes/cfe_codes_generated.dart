@@ -14,7 +14,7 @@ part of 'cfe_codes.dart';
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAbstractClassConstructorTearOff = const MessageCode(
   "AbstractClassConstructorTearOff",
-  problemMessage: r"""Constructors on abstract classes can't be torn off.""",
+  problemMessage: """Constructors on abstract classes can't be torn off.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -46,17 +46,17 @@ Message _withArgumentsOldAbstractClassInstantiation(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAbstractFieldConstructorInitializer = const MessageCode(
   "AbstractFieldConstructorInitializer",
-  problemMessage: r"""Abstract fields cannot have initializers.""",
+  problemMessage: """Abstract fields cannot have initializers.""",
   correctionMessage:
-      r"""Try removing the field initializer or the 'abstract' keyword from the field declaration.""",
+      """Try removing the field initializer or the 'abstract' keyword from the field declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAbstractFieldInitializer = const MessageCode(
   "AbstractFieldInitializer",
-  problemMessage: r"""Abstract fields cannot have initializers.""",
+  problemMessage: """Abstract fields cannot have initializers.""",
   correctionMessage:
-      r"""Try removing the initializer or the 'abstract' keyword.""",
+      """Try removing the initializer or the 'abstract' keyword.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -91,7 +91,7 @@ Message _withArgumentsOldAbstractRedirectedClassInstantiation(String name) =>
 const MessageCode codeAmbiguousExtensionCause = const MessageCode(
   "AmbiguousExtensionCause",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is one of the extension members.""",
+  problemMessage: """This is one of the extension members.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -245,21 +245,20 @@ Message _withArgumentsOldAmbiguousSupertypes(
 const MessageCode codeAnnotationOnFunctionTypeTypeParameter = const MessageCode(
   "AnnotationOnFunctionTypeTypeParameter",
   problemMessage:
-      r"""A type variable on a function type can't have annotations.""",
+      """A type variable on a function type can't have annotations.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAnonymousBreakTargetOutsideFunction = const MessageCode(
   "AnonymousBreakTargetOutsideFunction",
-  problemMessage: r"""Can't break to a target in a different function.""",
+  problemMessage: """Can't break to a target in a different function.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAnonymousContinueTargetOutsideFunction =
     const MessageCode(
       "AnonymousContinueTargetOutsideFunction",
-      problemMessage:
-          r"""Can't continue at a target in a different function.""",
+      problemMessage: """Can't continue at a target in a different function.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -300,14 +299,14 @@ Message _withArgumentsOldArgumentTypeNotAssignable(
 const MessageCode codeAwaitInLateLocalInitializer = const MessageCode(
   "AwaitInLateLocalInitializer",
   problemMessage:
-      r"""`await` expressions are not supported in late local initializers.""",
+      """`await` expressions are not supported in late local initializers.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAwaitOfExtensionTypeNotFuture = const MessageCode(
   "AwaitOfExtensionTypeNotFuture",
   problemMessage:
-      r"""The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.""",
+      """The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -522,7 +521,7 @@ Message _withArgumentsOldBreakTargetOutsideFunction(String name) =>
 const MessageCode codeCandidateFound = const MessageCode(
   "CandidateFound",
   severity: CfeSeverity.context,
-  problemMessage: r"""Found this candidate, but the arguments don't match.""",
+  problemMessage: """Found this candidate, but the arguments don't match.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -582,7 +581,7 @@ Message _withArgumentsOldCannotAssignToConstVariable(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeCannotAssignToExtensionThis = const MessageCode(
   "CannotAssignToExtensionThis",
-  problemMessage: r"""Can't assign to 'this'.""",
+  problemMessage: """Can't assign to 'this'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -613,19 +612,19 @@ Message _withArgumentsOldCannotAssignToFinalVariable(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeCannotAssignToParenthesizedExpression = const MessageCode(
   "CannotAssignToParenthesizedExpression",
-  problemMessage: r"""Can't assign to a parenthesized expression.""",
+  problemMessage: """Can't assign to a parenthesized expression.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeCannotAssignToSuper = const MessageCode(
   "CannotAssignToSuper",
-  problemMessage: r"""Can't assign to super.""",
+  problemMessage: """Can't assign to super.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeCannotAssignToTypeLiteral = const MessageCode(
   "CannotAssignToTypeLiteral",
-  problemMessage: r"""Can't assign to a type literal.""",
+  problemMessage: """Can't assign to a type literal.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -658,16 +657,16 @@ Message _withArgumentsOldCannotReadSdkSpecification(String string) =>
 const MessageCode codeCantDisambiguateAmbiguousInformation = const MessageCode(
   "CantDisambiguateAmbiguousInformation",
   problemMessage:
-      r"""Both Iterable and Map spread elements encountered in ambiguous literal.""",
+      """Both Iterable and Map spread elements encountered in ambiguous literal.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeCantDisambiguateNotEnoughInformation = const MessageCode(
   "CantDisambiguateNotEnoughInformation",
   problemMessage:
-      r"""Not enough type information to disambiguate between literal set and literal map.""",
+      """Not enough type information to disambiguate between literal set and literal map.""",
   correctionMessage:
-      r"""Try providing type arguments for the literal explicitly to disambiguate it.""",
+      """Try providing type arguments for the literal explicitly to disambiguate it.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -725,18 +724,18 @@ Message _withArgumentsOldCantHaveOptionalParameters(String name) =>
 const MessageCode codeCantInferPackagesFromManyInputs = const MessageCode(
   "CantInferPackagesFromManyInputs",
   problemMessage:
-      r"""Can't infer a packages file when compiling multiple inputs.""",
+      """Can't infer a packages file when compiling multiple inputs.""",
   correctionMessage:
-      r"""Try specifying the file explicitly with the --packages option.""",
+      """Try specifying the file explicitly with the --packages option.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeCantInferPackagesFromPackageUri = const MessageCode(
   "CantInferPackagesFromPackageUri",
   problemMessage:
-      r"""Can't infer a packages file from an input 'package:*' URI.""",
+      """Can't infer a packages file from an input 'package:*' URI.""",
   correctionMessage:
-      r"""Try specifying the file explicitly with the --packages option.""",
+      """Try specifying the file explicitly with the --packages option.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -966,22 +965,22 @@ Message _withArgumentsOldCantUseDeferredPrefixAsConstant(Token lexeme) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeCantUsePrefixAsExpression = const MessageCode(
   "CantUsePrefixAsExpression",
-  problemMessage: r"""A prefix can't be used as an expression.""",
+  problemMessage: """A prefix can't be used as an expression.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeCantUsePrefixWithNullAware = const MessageCode(
   "CantUsePrefixWithNullAware",
-  problemMessage: r"""A prefix can't be used with null-aware operators.""",
-  correctionMessage: r"""Try replacing '?.' with '.'""",
+  problemMessage: """A prefix can't be used with null-aware operators.""",
+  correctionMessage: """Try replacing '?.' with '.'""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeClassImplementsDeferredClass = const MessageCode(
   "ClassImplementsDeferredClass",
-  problemMessage: r"""Classes and mixins can't implement deferred classes.""",
+  problemMessage: """Classes and mixins can't implement deferred classes.""",
   correctionMessage:
-      r"""Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.""",
+      """Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1164,49 +1163,49 @@ Message _withArgumentsOldConflictsWithTypeParameter(String name) =>
 const MessageCode codeConflictsWithTypeParameterCause = const MessageCode(
   "ConflictsWithTypeParameterCause",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the type variable.""",
+  problemMessage: """This is the type variable.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstConstructorLateFinalFieldCause = const MessageCode(
   "ConstConstructorLateFinalFieldCause",
   severity: CfeSeverity.context,
-  problemMessage: r"""This constructor is const.""",
+  problemMessage: """This constructor is const.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstConstructorLateFinalFieldError = const MessageCode(
   "ConstConstructorLateFinalFieldError",
   problemMessage:
-      r"""Can't have a late final field in a class with a const constructor.""",
+      """Can't have a late final field in a class with a const constructor.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstConstructorNonFinalField = const MessageCode(
   "ConstConstructorNonFinalField",
   problemMessage:
-      r"""Constructor is marked 'const' so all fields must be final.""",
+      """Constructor is marked 'const' so all fields must be final.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstConstructorNonFinalFieldCause = const MessageCode(
   "ConstConstructorNonFinalFieldCause",
   severity: CfeSeverity.context,
-  problemMessage: r"""Field isn't final, but constructor is 'const'.""",
+  problemMessage: """Field isn't final, but constructor is 'const'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstConstructorRedirectionToNonConst = const MessageCode(
   "ConstConstructorRedirectionToNonConst",
   problemMessage:
-      r"""A constant constructor can't call a non-constant constructor.""",
+      """A constant constructor can't call a non-constant constructor.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstConstructorWithNonConstSuper = const MessageCode(
   "ConstConstructorWithNonConstSuper",
   problemMessage:
-      r"""A constant constructor can't call a non-constant super constructor.""",
+      """A constant constructor can't call a non-constant super constructor.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1242,14 +1241,14 @@ Message _withArgumentsOldConstEvalCaseImplementsEqual(Constant constant) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalCircularity = const MessageCode(
   "ConstEvalCircularity",
-  problemMessage: r"""Constant expression depends on itself.""",
+  problemMessage: """Constant expression depends on itself.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalContext = const MessageCode(
   "ConstEvalContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""While analyzing:""",
+  problemMessage: """While analyzing:""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1463,27 +1462,27 @@ Message _withArgumentsOldConstEvalError(String string) =>
 const MessageCode codeConstEvalExtension = const MessageCode(
   "ConstEvalExtension",
   problemMessage:
-      r"""Extension operations can't be used in constant expressions.""",
+      """Extension operations can't be used in constant expressions.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalExternalConstructor = const MessageCode(
   "ConstEvalExternalConstructor",
   problemMessage:
-      r"""External constructors can't be evaluated in constant expressions.""",
+      """External constructors can't be evaluated in constant expressions.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalExternalFactory = const MessageCode(
   "ConstEvalExternalFactory",
   problemMessage:
-      r"""External factory constructors can't be evaluated in constant expressions.""",
+      """External factory constructors can't be evaluated in constant expressions.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalFailedAssertion = const MessageCode(
   "ConstEvalFailedAssertion",
-  problemMessage: r"""This assertion failed.""",
+  problemMessage: """This assertion failed.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1521,7 +1520,7 @@ Message _withArgumentsOldConstEvalFailedAssertionWithMessage(
 const MessageCode codeConstEvalFailedAssertionWithNonStringMessage =
     const MessageCode(
       "ConstEvalFailedAssertionWithNonStringMessage",
-      problemMessage: r"""This assertion failed with a non-String message.""",
+      problemMessage: """This assertion failed with a non-String message.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2063,32 +2062,32 @@ Message _withArgumentsOldConstEvalNonConstantVariableGet(String nameOKEmpty) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalNonNull = const MessageCode(
   "ConstEvalNonNull",
-  problemMessage: r"""Constant expression must be non-null.""",
+  problemMessage: """Constant expression must be non-null.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalNotListOrSetInSpread = const MessageCode(
   "ConstEvalNotListOrSetInSpread",
   problemMessage:
-      r"""Only lists and sets can be used in spreads in constant lists and sets.""",
+      """Only lists and sets can be used in spreads in constant lists and sets.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalNotMapInSpread = const MessageCode(
   "ConstEvalNotMapInSpread",
-  problemMessage: r"""Only maps can be used in spreads in constant maps.""",
+  problemMessage: """Only maps can be used in spreads in constant maps.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalNullValue = const MessageCode(
   "ConstEvalNullValue",
-  problemMessage: r"""Null value during constant evaluation.""",
+  problemMessage: """Null value during constant evaluation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalStartingPoint = const MessageCode(
   "ConstEvalStartingPoint",
-  problemMessage: r"""Constant evaluation error:""",
+  problemMessage: """Constant evaluation error:""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2126,7 +2125,7 @@ Message _withArgumentsOldConstEvalTruncateError(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalUnevaluated = const MessageCode(
   "ConstEvalUnevaluated",
-  problemMessage: r"""Couldn't evaluate constant expression.""",
+  problemMessage: """Couldn't evaluate constant expression.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2221,17 +2220,17 @@ Message _withArgumentsOldConstEvalZeroDivisor(String string, String string2) =>
 const MessageCode codeConstFactoryRedirectionToNonConst = const MessageCode(
   "ConstFactoryRedirectionToNonConst",
   problemMessage:
-      r"""Constant factory constructor can't delegate to a non-constant constructor.""",
+      """Constant factory constructor can't delegate to a non-constant constructor.""",
   correctionMessage:
-      r"""Try redirecting to a different constructor or marking the target constructor 'const'.""",
+      """Try redirecting to a different constructor or marking the target constructor 'const'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstInstanceField = const MessageCode(
   "ConstInstanceField",
-  problemMessage: r"""Only static fields can be declared as const.""",
+  problemMessage: """Only static fields can be declared as const.""",
   correctionMessage:
-      r"""Try using 'final' instead of 'const', or adding the keyword 'static'.""",
+      """Try using 'final' instead of 'const', or adding the keyword 'static'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2290,9 +2289,9 @@ Message _withArgumentsOldConstructorConflictsWithMemberCause(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstructorCyclic = const MessageCode(
   "ConstructorCyclic",
-  problemMessage: r"""Redirecting constructors can't be cyclic.""",
+  problemMessage: """Redirecting constructors can't be cyclic.""",
   correctionMessage:
-      r"""Try to have all constructors eventually redirect to a non-redirecting constructor.""",
+      """Try to have all constructors eventually redirect to a non-redirecting constructor.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2357,7 +2356,7 @@ Message _withArgumentsOldConstructorNotFound(String name) =>
 const MessageCode codeConstructorNotSync = const MessageCode(
   "ConstructorNotSync",
   problemMessage:
-      r"""Constructor bodies can't use 'async', 'async*', or 'sync*'.""",
+      """Constructor bodies can't use 'async', 'async*', or 'sync*'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2399,9 +2398,9 @@ Message _withArgumentsOldConstructorShouldBeListedAsCallableInDynamicInterface(
 const MessageCode codeConstructorTearOffWithTypeArguments = const MessageCode(
   "ConstructorTearOffWithTypeArguments",
   problemMessage:
-      r"""A constructor tear-off can't have type arguments after the constructor name.""",
+      """A constructor tear-off can't have type arguments after the constructor name.""",
   correctionMessage:
-      r"""Try removing the type arguments or placing them after the class name.""",
+      """Try removing the type arguments or placing them after the class name.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2434,7 +2433,7 @@ Message _withArgumentsOldConstructorWithWrongNameContext(String name) =>
 const MessageCode codeContinueLabelInvalid = const MessageCode(
   "ContinueLabelInvalid",
   problemMessage:
-      r"""A 'continue' label must be on a loop or a switch member.""",
+      """A 'continue' label must be on a loop or a switch member.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2581,7 +2580,7 @@ Message _withArgumentsOldCyclicRedirectingFactoryConstructors(String name) =>
 const MessageCode codeCyclicRepresentationDependency = const MessageCode(
   "CyclicRepresentationDependency",
   problemMessage:
-      r"""An extension type can't depend on itself through its representation type.""",
+      """An extension type can't depend on itself through its representation type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2612,7 +2611,7 @@ Message _withArgumentsOldCyclicTypedef(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDartFfiLibraryInDart2Wasm = const MessageCode(
   "DartFfiLibraryInDart2Wasm",
-  problemMessage: r"""'dart:ffi' can't be imported when compiling to Wasm.""",
+  problemMessage: """'dart:ffi' can't be imported when compiling to Wasm.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2704,7 +2703,7 @@ const MessageCode codeDeclaredMemberConflictsWithInheritedMember =
     const MessageCode(
       "DeclaredMemberConflictsWithInheritedMember",
       problemMessage:
-          r"""Can't declare a member that conflicts with an inherited one.""",
+          """Can't declare a member that conflicts with an inherited one.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2712,7 +2711,7 @@ const MessageCode codeDeclaredMemberConflictsWithInheritedMemberCause =
     const MessageCode(
       "DeclaredMemberConflictsWithInheritedMemberCause",
       severity: CfeSeverity.context,
-      problemMessage: r"""This is the inherited member.""",
+      problemMessage: """This is the inherited member.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2720,7 +2719,7 @@ const MessageCode codeDeclaredMemberConflictsWithInheritedMembersCause =
     const MessageCode(
       "DeclaredMemberConflictsWithInheritedMembersCause",
       severity: CfeSeverity.context,
-      problemMessage: r"""This is one of the inherited members.""",
+      problemMessage: """This is one of the inherited members.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2728,7 +2727,7 @@ const MessageCode codeDeclaredMemberConflictsWithOverriddenMembersCause =
     const MessageCode(
       "DeclaredMemberConflictsWithOverriddenMembersCause",
       severity: CfeSeverity.context,
-      problemMessage: r"""This is one of the overridden members.""",
+      problemMessage: """This is one of the overridden members.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2981,9 +2980,9 @@ const MessageCode
 codeDotShorthandsConstructorInvocationWithTypeArguments = const MessageCode(
   "DotShorthandsConstructorInvocationWithTypeArguments",
   problemMessage:
-      r"""A dot shorthand constructor invocation can't have type arguments.""",
+      """A dot shorthand constructor invocation can't have type arguments.""",
   correctionMessage:
-      r"""Try adding the class name and type arguments explicitly before the constructor name.""",
+      """Try adding the class name and type arguments explicitly before the constructor name.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3118,7 +3117,7 @@ const MessageCode codeDuplicatePatternAssignmentVariableContext =
     const MessageCode(
       "DuplicatePatternAssignmentVariableContext",
       severity: CfeSeverity.context,
-      problemMessage: r"""The first assigned variable pattern.""",
+      problemMessage: """The first assigned variable pattern.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3152,22 +3151,22 @@ Message _withArgumentsOldDuplicateRecordPatternField(String name) =>
 const MessageCode codeDuplicateRecordPatternFieldContext = const MessageCode(
   "DuplicateRecordPatternFieldContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""The first field.""",
+  problemMessage: """The first field.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDuplicateRestElementInPattern = const MessageCode(
   "DuplicateRestElementInPattern",
   problemMessage:
-      r"""At most one rest element is allowed in a list or map pattern.""",
-  correctionMessage: r"""Try removing the duplicate rest element.""",
+      """At most one rest element is allowed in a list or map pattern.""",
+  correctionMessage: """Try removing the duplicate rest element.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDuplicateRestElementInPatternContext = const MessageCode(
   "DuplicateRestElementInPatternContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""The first rest element.""",
+  problemMessage: """The first rest element.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3532,32 +3531,32 @@ Message _withArgumentsOldDuplicatedRecordTypeFieldNameContext(String name) =>
 const MessageCode codeDynamicCallsAreNotAllowedInDynamicModule =
     const MessageCode(
       "DynamicCallsAreNotAllowedInDynamicModule",
-      problemMessage: r"""Dynamic calls are not allowed in a dynamic module.""",
+      problemMessage: """Dynamic calls are not allowed in a dynamic module.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEmptyMapPattern = const MessageCode(
   "EmptyMapPattern",
-  problemMessage: r"""A map pattern must have at least one entry.""",
-  correctionMessage: r"""Try replacing it with an object pattern 'Map()'.""",
+  problemMessage: """A map pattern must have at least one entry.""",
+  correctionMessage: """Try replacing it with an object pattern 'Map()'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEnumAbstractMember = const MessageCode(
   "EnumAbstractMember",
-  problemMessage: r"""Enums can't declare abstract members.""",
+  problemMessage: """Enums can't declare abstract members.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEnumConstructorSuperInitializer = const MessageCode(
   "EnumConstructorSuperInitializer",
-  problemMessage: r"""Enum constructors can't contain super-initializers.""",
+  problemMessage: """Enum constructors can't contain super-initializers.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEnumConstructorTearoff = const MessageCode(
   "EnumConstructorTearoff",
-  problemMessage: r"""Enum constructors can't be torn off.""",
+  problemMessage: """Enum constructors can't be torn off.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3592,20 +3591,20 @@ Message _withArgumentsOldEnumContainsRestrictedInstanceDeclaration(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEnumContainsValuesDeclaration = const MessageCode(
   "EnumContainsValuesDeclaration",
-  problemMessage: r"""An enum can't declare a member named 'values'.""",
+  problemMessage: """An enum can't declare a member named 'values'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEnumDeclarationEmpty = const MessageCode(
   "EnumDeclarationEmpty",
-  problemMessage: r"""An enum declaration can't be empty.""",
+  problemMessage: """An enum declaration can't be empty.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEnumFactoryRedirectsToConstructor = const MessageCode(
   "EnumFactoryRedirectsToConstructor",
   problemMessage:
-      r"""Enum factory constructors can't redirect to generative constructors.""",
+      """Enum factory constructors can't redirect to generative constructors.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3703,20 +3702,19 @@ Message _withArgumentsOldEnumInheritsRestricted(String name) =>
 const MessageCode codeEnumInheritsRestrictedMember = const MessageCode(
   "EnumInheritsRestrictedMember",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the inherited member""",
+  problemMessage: """This is the inherited member""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEnumInstantiation = const MessageCode(
   "EnumInstantiation",
-  problemMessage: r"""Enums can't be instantiated.""",
+  problemMessage: """Enums can't be instantiated.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEnumNonConstConstructor = const MessageCode(
   "EnumNonConstConstructor",
-  problemMessage:
-      r"""Generative enum constructors must be marked as 'const'.""",
+  problemMessage: """Generative enum constructors must be marked as 'const'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3749,21 +3747,21 @@ Message _withArgumentsOldEnumSupertypeOfNonAbstractClass(String name) =>
 const MessageCode codeEnumWithNameValues = const MessageCode(
   "EnumWithNameValues",
   problemMessage:
-      r"""The name 'values' is not a valid name for an enum. Try using a different name.""",
+      """The name 'values' is not a valid name for an enum. Try using a different name.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEqualKeysInMapPattern = const MessageCode(
   "EqualKeysInMapPattern",
-  problemMessage: r"""Two keys in a map pattern can't be equal.""",
-  correctionMessage: r"""Change or remove the duplicate key.""",
+  problemMessage: """Two keys in a map pattern can't be equal.""",
+  correctionMessage: """Change or remove the duplicate key.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEqualKeysInMapPatternContext = const MessageCode(
   "EqualKeysInMapPatternContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the previous use of the same key.""",
+  problemMessage: """This is the previous use of the same key.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3798,38 +3796,38 @@ Message _withArgumentsOldExceptionReadingFile(Uri uri, String string) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedBlockToSkip = const MessageCode(
   "ExpectedBlockToSkip",
-  problemMessage: r"""Expected a function body or '=>'.""",
-  correctionMessage: r"""Try adding {}.""",
+  problemMessage: """Expected a function body or '=>'.""",
+  correctionMessage: """Try adding {}.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedNamedArgument = const MessageCode(
   "ExpectedNamedArgument",
-  problemMessage: r"""Expected named argument.""",
+  problemMessage: """Expected named argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedOneExpression = const MessageCode(
   "ExpectedOneExpression",
-  problemMessage: r"""Expected one expression, but found additional input.""",
+  problemMessage: """Expected one expression, but found additional input.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedRepresentationField = const MessageCode(
   "ExpectedRepresentationField",
-  problemMessage: r"""Expected a representation field.""",
+  problemMessage: """Expected a representation field.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedRepresentationType = const MessageCode(
   "ExpectedRepresentationType",
-  problemMessage: r"""Expected a representation type.""",
+  problemMessage: """Expected a representation type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedUri = const MessageCode(
   "ExpectedUri",
-  problemMessage: r"""Expected a URI.""",
+  problemMessage: """Expected a URI.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4046,21 +4044,21 @@ Message _withArgumentsOldExperimentOptOutImplicit(
 const MessageCode codeExplicitExtensionArgumentMismatch = const MessageCode(
   "ExplicitExtensionArgumentMismatch",
   problemMessage:
-      r"""Explicit extension application requires exactly 1 positional argument.""",
+      """Explicit extension application requires exactly 1 positional argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExplicitExtensionAsExpression = const MessageCode(
   "ExplicitExtensionAsExpression",
   problemMessage:
-      r"""Explicit extension application cannot be used as an expression.""",
+      """Explicit extension application cannot be used as an expression.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExplicitExtensionAsLvalue = const MessageCode(
   "ExplicitExtensionAsLvalue",
   problemMessage:
-      r"""Explicit extension application cannot be a target for assignment.""",
+      """Explicit extension application cannot be a target for assignment.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4101,7 +4099,7 @@ Message _withArgumentsOldExplicitExtensionTypeArgumentMismatch(
 const MessageCode codeExportedMain = const MessageCode(
   "ExportedMain",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is exported 'main' declaration.""",
+  problemMessage: """This is exported 'main' declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4138,7 +4136,7 @@ Message _withArgumentsOldExpressionEvaluationKnownVariableUnavailable(
 const MessageCode codeExpressionNotMetadata = const MessageCode(
   "ExpressionNotMetadata",
   problemMessage:
-      r"""This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.""",
+      """This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4196,15 +4194,15 @@ Message _withArgumentsOldExtendingRestricted(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtendsDeferredClass = const MessageCode(
   "ExtendsDeferredClass",
-  problemMessage: r"""Classes can't extend deferred classes.""",
+  problemMessage: """Classes can't extend deferred classes.""",
   correctionMessage:
-      r"""Try specifying a different superclass, or removing the extends clause.""",
+      """Try specifying a different superclass, or removing the extends clause.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtendsNever = const MessageCode(
   "ExtendsNever",
-  problemMessage: r"""The type 'Never' can't be used in an 'extends' clause.""",
+  problemMessage: """The type 'Never' can't be used in an 'extends' clause.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4278,36 +4276,36 @@ const MessageCode
 codeExtensionTypeConstructorWithSuperFormalParameter = const MessageCode(
   "ExtensionTypeConstructorWithSuperFormalParameter",
   problemMessage:
-      r"""Extension type constructors can't declare super formal parameters.""",
+      """Extension type constructors can't declare super formal parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionTypeDeclarationCause = const MessageCode(
   "ExtensionTypeDeclarationCause",
   severity: CfeSeverity.context,
-  problemMessage: r"""The issue arises via this extension type declaration.""",
+  problemMessage: """The issue arises via this extension type declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionTypeImplementsDeferred = const MessageCode(
   "ExtensionTypeImplementsDeferred",
-  problemMessage: r"""Extension types can't implement deferred types.""",
+  problemMessage: """Extension types can't implement deferred types.""",
   correctionMessage:
-      r"""Try specifying a different type, removing the type from the list, or changing the import to not be deferred.""",
+      """Try specifying a different type, removing the type from the list, or changing the import to not be deferred.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionTypeMemberContext = const MessageCode(
   "ExtensionTypeMemberContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the inherited extension type member.""",
+  problemMessage: """This is the inherited extension type member.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionTypeMemberOneOfContext = const MessageCode(
   "ExtensionTypeMemberOneOfContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is one of the inherited extension type members.""",
+  problemMessage: """This is one of the inherited extension type members.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4315,9 +4313,9 @@ const MessageCode
 codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax = const MessageCode(
   "ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax",
   problemMessage:
-      r"""Primary constructors in extension types can't use function formal parameter syntax.""",
+      """Primary constructors in extension types can't use function formal parameter syntax.""",
   correctionMessage:
-      r"""Try rewriting with an explicit function type, like `int Function() f`.""",
+      """Try rewriting with an explicit function type, like `int Function() f`.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4325,14 +4323,14 @@ const MessageCode
 codeExtensionTypePrimaryConstructorWithInitializingFormal = const MessageCode(
   "ExtensionTypePrimaryConstructorWithInitializingFormal",
   problemMessage:
-      r"""Primary constructors in extension types can't use initializing formals.""",
-  correctionMessage: r"""Try removing `this.` from the formal parameter.""",
+      """Primary constructors in extension types can't use initializing formals.""",
+  correctionMessage: """Try removing `this.` from the formal parameter.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionTypeRepresentationTypeBottom = const MessageCode(
   "ExtensionTypeRepresentationTypeBottom",
-  problemMessage: r"""The representation type can't be a bottom type.""",
+  problemMessage: """The representation type can't be a bottom type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4374,17 +4372,17 @@ _withArgumentsOldExtensionTypeShouldBeListedAsCallableInDynamicInterface(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExternalFieldConstructorInitializer = const MessageCode(
   "ExternalFieldConstructorInitializer",
-  problemMessage: r"""External fields cannot have initializers.""",
+  problemMessage: """External fields cannot have initializers.""",
   correctionMessage:
-      r"""Try removing the field initializer or the 'external' keyword from the field declaration.""",
+      """Try removing the field initializer or the 'external' keyword from the field declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExternalFieldInitializer = const MessageCode(
   "ExternalFieldInitializer",
-  problemMessage: r"""External fields cannot have initializers.""",
+  problemMessage: """External fields cannot have initializers.""",
   correctionMessage:
-      r"""Try removing the initializer or the 'external' keyword.""",
+      """Try removing the initializer or the 'external' keyword.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4441,7 +4439,7 @@ Message _withArgumentsOldFactoryConflictsWithMemberCause(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFastaUsageLong = const MessageCode(
   "FastaUsageLong",
-  problemMessage: r"""Supported options:
+  problemMessage: """Supported options:
 
   -o <file>, --output=<file>
     Generate the output into <file>.
@@ -4531,7 +4529,7 @@ const MessageCode codeFastaUsageLong = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFastaUsageShort = const MessageCode(
   "FastaUsageShort",
-  problemMessage: r"""Frequently used options:
+  problemMessage: """Frequently used options:
 
   -o <file> Generate the output into <file>.
   -h        Display this message (add -v for information about all options).""",
@@ -4541,37 +4539,37 @@ const MessageCode codeFastaUsageShort = const MessageCode(
 const MessageCode codeFfiAbiSpecificIntegerInvalid = const MessageCode(
   "FfiAbiSpecificIntegerInvalid",
   problemMessage:
-      r"""Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments.""",
+      """Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiAbiSpecificIntegerMappingInvalid = const MessageCode(
   "FfiAbiSpecificIntegerMappingInvalid",
   problemMessage:
-      r"""Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.""",
+      """Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiAddressOfMustBeNative = const MessageCode(
   "FfiAddressOfMustBeNative",
   problemMessage:
-      r"""Argument to 'Native.addressOf' must be annotated with @Native.""",
+      """Argument to 'Native.addressOf' must be annotated with @Native.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiAddressPosition = const MessageCode(
   "FfiAddressPosition",
   problemMessage:
-      r"""The '.address' expression can only be used as argument to a leaf native external call.""",
+      """The '.address' expression can only be used as argument to a leaf native external call.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiAddressReceiver = const MessageCode(
   "FfiAddressReceiver",
   problemMessage:
-      r"""The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field.""",
+      """The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field.""",
   correctionMessage:
-      r"""Change the receiver of '.address' to one of the allowed kinds.""",
+      """Change the receiver of '.address' to one of the allowed kinds.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4611,7 +4609,7 @@ Message _withArgumentsOldFfiCompoundImplementsFinalizable(
 const MessageCode codeFfiCreateOfStructOrUnion = const MessageCode(
   "FfiCreateOfStructOrUnion",
   problemMessage:
-      r"""Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.""",
+      """Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4650,17 +4648,17 @@ Message _withArgumentsOldFfiDartTypeMismatch(DartType type, DartType type2) =>
 const MessageCode codeFfiDeeplyImmutableClassesMustBeFinalOrSealed =
     const MessageCode(
       "FfiDeeplyImmutableClassesMustBeFinalOrSealed",
-      problemMessage: r"""Deeply immutable classes must be final or sealed.""",
-      correctionMessage: r"""Try marking this class as final or sealed.""",
+      problemMessage: """Deeply immutable classes must be final or sealed.""",
+      correctionMessage: """Try marking this class as final or sealed.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiDeeplyImmutableFieldsModifiers = const MessageCode(
   "FfiDeeplyImmutableFieldsModifiers",
   problemMessage:
-      r"""Deeply immutable classes must only have final non-late instance fields.""",
+      """Deeply immutable classes must only have final non-late instance fields.""",
   correctionMessage:
-      r"""Add the 'final' modifier to this field, and remove 'late' modifier from this field.""",
+      """Add the 'final' modifier to this field, and remove 'late' modifier from this field.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4668,9 +4666,9 @@ const MessageCode
 codeFfiDeeplyImmutableFieldsMustBeDeeplyImmutable = const MessageCode(
   "FfiDeeplyImmutableFieldsMustBeDeeplyImmutable",
   problemMessage:
-      r"""Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', and classes annotated with `@pragma('vm:deeply-immutable')`.""",
+      """Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', and classes annotated with `@pragma('vm:deeply-immutable')`.""",
   correctionMessage:
-      r"""Try changing the type of this field to a deeply immutable type or mark the type of this field as deeply immutable.""",
+      """Try changing the type of this field to a deeply immutable type or mark the type of this field as deeply immutable.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4678,9 +4676,9 @@ const MessageCode
 codeFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable = const MessageCode(
   "FfiDeeplyImmutableSubtypesMustBeDeeplyImmutable",
   problemMessage:
-      r"""Subtypes of deeply immutable classes must be deeply immutable.""",
+      """Subtypes of deeply immutable classes must be deeply immutable.""",
   correctionMessage:
-      r"""Try marking this class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
+      """Try marking this class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4688,16 +4686,16 @@ const MessageCode
 codeFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable = const MessageCode(
   "FfiDeeplyImmutableSupertypeMustBeDeeplyImmutable",
   problemMessage:
-      r"""The super type of deeply immutable classes must be deeply immutable.""",
+      """The super type of deeply immutable classes must be deeply immutable.""",
   correctionMessage:
-      r"""Try marking the super class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
+      """Try marking the super class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiDefaultAssetDuplicate = const MessageCode(
   "FfiDefaultAssetDuplicate",
   problemMessage:
-      r"""There may be at most one @DefaultAsset annotation on a library.""",
+      """There may be at most one @DefaultAsset annotation on a library.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4733,13 +4731,13 @@ Message _withArgumentsOldFfiEmptyStruct(String string, String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiExceptionalReturnNull = const MessageCode(
   "FfiExceptionalReturnNull",
-  problemMessage: r"""Exceptional return value must not be null.""",
+  problemMessage: """Exceptional return value must not be null.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiExpectedConstant = const MessageCode(
   "FfiExpectedConstant",
-  problemMessage: r"""Exceptional return value must be a constant.""",
+  problemMessage: """Exceptional return value must be a constant.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4998,13 +4996,13 @@ Message _withArgumentsOldFfiFieldNull(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiLeafCallMustNotReturnHandle = const MessageCode(
   "FfiLeafCallMustNotReturnHandle",
-  problemMessage: r"""FFI leaf call must not have Handle return type.""",
+  problemMessage: """FFI leaf call must not have Handle return type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiLeafCallMustNotTakeHandle = const MessageCode(
   "FfiLeafCallMustNotTakeHandle",
-  problemMessage: r"""FFI leaf call must not have Handle argument types.""",
+  problemMessage: """FFI leaf call must not have Handle argument types.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5041,40 +5039,40 @@ Message _withArgumentsOldFfiNativeCallableListenerReturnVoid(DartType type) =>
 const MessageCode codeFfiNativeDuplicateAnnotations = const MessageCode(
   "FfiNativeDuplicateAnnotations",
   problemMessage:
-      r"""Native functions and fields must not have more than @Native annotation.""",
+      """Native functions and fields must not have more than @Native annotation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiNativeFieldMissingType = const MessageCode(
   "FfiNativeFieldMissingType",
   problemMessage:
-      r"""The native type of this field could not be inferred and must be specified in the annotation.""",
+      """The native type of this field could not be inferred and must be specified in the annotation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiNativeFieldMustBeStatic = const MessageCode(
   "FfiNativeFieldMustBeStatic",
-  problemMessage: r"""Native fields must be static.""",
+  problemMessage: """Native fields must be static.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiNativeFieldType = const MessageCode(
   "FfiNativeFieldType",
   problemMessage:
-      r"""Unsupported type for native fields. Native fields only support pointers, compounds and numeric types.""",
+      """Unsupported type for native fields. Native fields only support pointers, compounds and numeric types.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiNativeFunctionMissingType = const MessageCode(
   "FfiNativeFunctionMissingType",
   problemMessage:
-      r"""The native type of this function couldn't be inferred so it must be specified in the annotation.""",
+      """The native type of this function couldn't be inferred so it must be specified in the annotation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiNativeMustBeExternal = const MessageCode(
   "FfiNativeMustBeExternal",
-  problemMessage: r"""Native functions and fields must be marked external.""",
+  problemMessage: """Native functions and fields must be marked external.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5082,7 +5080,7 @@ const MessageCode
 codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer = const MessageCode(
   "FfiNativeOnlyNativeFieldWrapperClassCanBePointer",
   problemMessage:
-      r"""Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.""",
+      """Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5208,7 +5206,7 @@ Message _withArgumentsOldFfiPackedAnnotation(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiPackedAnnotationAlignment = const MessageCode(
   "FfiPackedAnnotationAlignment",
-  problemMessage: r"""Only packing to 1, 2, 4, 8, and 16 bytes is supported.""",
+  problemMessage: """Only packing to 1, 2, 4, 8, and 16 bytes is supported.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5365,9 +5363,9 @@ Message _withArgumentsOldFfiTypeMismatch(
 const MessageCode codeFfiVariableLengthArrayNotLast = const MessageCode(
   "FfiVariableLengthArrayNotLast",
   problemMessage:
-      r"""Variable length 'Array's must only occur as the last field of Structs.""",
+      """Variable length 'Array's must only occur as the last field of Structs.""",
   correctionMessage:
-      r"""Try adjusting the arguments in the 'Array' annotation.""",
+      """Try adjusting the arguments in the 'Array' annotation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6035,14 +6033,14 @@ Message _withArgumentsOldForInLoopElementTypeNotAssignable(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeForInLoopExactlyOneVariable = const MessageCode(
   "ForInLoopExactlyOneVariable",
-  problemMessage: r"""A for-in loop can't have more than one loop variable.""",
+  problemMessage: """A for-in loop can't have more than one loop variable.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeForInLoopNotAssignable = const MessageCode(
   "ForInLoopNotAssignable",
   problemMessage:
-      r"""Can't assign to this, so it can't be used in a for-in loop.""",
+      """Can't assign to this, so it can't be used in a for-in loop.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6082,8 +6080,8 @@ Message _withArgumentsOldForInLoopTypeNotIterable(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeForInLoopWithConstVariable = const MessageCode(
   "ForInLoopWithConstVariable",
-  problemMessage: r"""A for-in loop-variable can't be 'const'.""",
-  correctionMessage: r"""Try removing the 'const' modifier.""",
+  problemMessage: """A for-in loop-variable can't be 'const'.""",
+  correctionMessage: """Try removing the 'const' modifier.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6130,7 +6128,7 @@ Message _withArgumentsOldGenericFunctionTypeAsTypeArgumentThroughTypedef(
 const MessageCode codeGenericFunctionTypeInBound = const MessageCode(
   "GenericFunctionTypeInBound",
   problemMessage:
-      r"""Type variables can't have generic function types in their bounds.""",
+      """Type variables can't have generic function types in their bounds.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6172,8 +6170,8 @@ const MessageCode codeGenericFunctionTypeUsedAsActualTypeArgument =
     const MessageCode(
       "GenericFunctionTypeUsedAsActualTypeArgument",
       problemMessage:
-          r"""A generic function type can't be used as a type argument.""",
-      correctionMessage: r"""Try using a non-generic function type.""",
+          """A generic function type can't be used as a type argument.""",
+      correctionMessage: """Try using a non-generic function type.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6205,21 +6203,21 @@ Message _withArgumentsOldGetterNotFound(String name) =>
 const MessageCode codeIllegalAsyncGeneratorReturnType = const MessageCode(
   "IllegalAsyncGeneratorReturnType",
   problemMessage:
-      r"""Functions marked 'async*' must have a return type assignable to 'Stream'.""",
+      """Functions marked 'async*' must have a return type assignable to 'Stream'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeIllegalAsyncGeneratorVoidReturnType = const MessageCode(
   "IllegalAsyncGeneratorVoidReturnType",
   problemMessage:
-      r"""Functions marked 'async*' can't have return type 'void'.""",
+      """Functions marked 'async*' can't have return type 'void'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeIllegalAsyncReturnType = const MessageCode(
   "IllegalAsyncReturnType",
   problemMessage:
-      r"""Functions marked 'async' must have a return type assignable to 'Future'.""",
+      """Functions marked 'async' must have a return type assignable to 'Future'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6306,14 +6304,13 @@ Message _withArgumentsOldIllegalMixinDueToConstructorsCause(String name) =>
 const MessageCode codeIllegalSyncGeneratorReturnType = const MessageCode(
   "IllegalSyncGeneratorReturnType",
   problemMessage:
-      r"""Functions marked 'sync*' must have a return type assignable to 'Iterable'.""",
+      """Functions marked 'sync*' must have a return type assignable to 'Iterable'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeIllegalSyncGeneratorVoidReturnType = const MessageCode(
   "IllegalSyncGeneratorVoidReturnType",
-  problemMessage:
-      r"""Functions marked 'sync*' can't have return type 'void'.""",
+  problemMessage: """Functions marked 'sync*' can't have return type 'void'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6395,14 +6392,14 @@ Message _withArgumentsOldImplementNonExtensionTypeAndExtensionTypeMember(
 const MessageCode codeImplementsFutureOr = const MessageCode(
   "ImplementsFutureOr",
   problemMessage:
-      r"""The type 'FutureOr' can't be used in an 'implements' clause.""",
+      """The type 'FutureOr' can't be used in an 'implements' clause.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeImplementsNever = const MessageCode(
   "ImplementsNever",
   problemMessage:
-      r"""The type 'Never' can't be used in an 'implements' clause.""",
+      """The type 'Never' can't be used in an 'implements' clause.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6563,9 +6560,9 @@ Message _withArgumentsOldImplicitReturnNull(DartType type) =>
 const MessageCode codeImplicitSuperCallOfNonMethod = const MessageCode(
   "ImplicitSuperCallOfNonMethod",
   problemMessage:
-      r"""Cannot invoke `super` because it declares 'call' to be something other than a method.""",
+      """Cannot invoke `super` because it declares 'call' to be something other than a method.""",
   correctionMessage:
-      r"""Try changing 'call' to a method or explicitly invoke 'call'.""",
+      """Try changing 'call' to a method or explicitly invoke 'call'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7066,7 +7063,7 @@ const MessageCode codeIncorrectTypeArgumentVariable = const MessageCode(
   "IncorrectTypeArgumentVariable",
   severity: CfeSeverity.context,
   problemMessage:
-      r"""This is the type variable whose bound isn't conformed to.""",
+      """This is the type variable whose bound isn't conformed to.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7172,21 +7169,21 @@ Message _withArgumentsOldIndexOutOfBoundInRecordIndexGet(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInheritedMembersConflict = const MessageCode(
   "InheritedMembersConflict",
-  problemMessage: r"""Can't inherit members that conflict with each other.""",
+  problemMessage: """Can't inherit members that conflict with each other.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInheritedMembersConflictCause1 = const MessageCode(
   "InheritedMembersConflictCause1",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is one inherited member.""",
+  problemMessage: """This is one inherited member.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInheritedMembersConflictCause2 = const MessageCode(
   "InheritedMembersConflictCause2",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the other inherited member.""",
+  problemMessage: """This is the other inherited member.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7479,7 +7476,7 @@ Message _withArgumentsOldInitializingFormalTypeMismatch(
 const MessageCode codeInitializingFormalTypeMismatchField = const MessageCode(
   "InitializingFormalTypeMismatchField",
   severity: CfeSeverity.context,
-  problemMessage: r"""The field that corresponds to the parameter.""",
+  problemMessage: """The field that corresponds to the parameter.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7798,14 +7795,14 @@ const MessageCode codeInternalProblemAlreadyInitialized = const MessageCode(
   "InternalProblemAlreadyInitialized",
   severity: CfeSeverity.internalProblem,
   problemMessage:
-      r"""Attempt to set initializer on field without initializer.""",
+      """Attempt to set initializer on field without initializer.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInternalProblemBodyOnAbstractMethod = const MessageCode(
   "InternalProblemBodyOnAbstractMethod",
   severity: CfeSeverity.internalProblem,
-  problemMessage: r"""Attempting to set body on abstract method.""",
+  problemMessage: """Attempting to set body on abstract method.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7904,7 +7901,7 @@ const MessageCode codeInternalProblemExtendingUnmodifiableScope =
     const MessageCode(
       "InternalProblemExtendingUnmodifiableScope",
       severity: CfeSeverity.internalProblem,
-      problemMessage: r"""Can't extend an unmodifiable scope.""",
+      problemMessage: """Can't extend an unmodifiable scope.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7913,16 +7910,16 @@ const MessageCode codeInternalProblemLabelUsageInVariablesDeclaration =
       "InternalProblemLabelUsageInVariablesDeclaration",
       severity: CfeSeverity.internalProblem,
       problemMessage:
-          r"""Unexpected usage of label inside declaration of variables.""",
+          """Unexpected usage of label inside declaration of variables.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInternalProblemMissingContext = const MessageCode(
   "InternalProblemMissingContext",
   severity: CfeSeverity.internalProblem,
-  problemMessage: r"""Compiler cannot run without a compiler context.""",
+  problemMessage: """Compiler cannot run without a compiler context.""",
   correctionMessage:
-      r"""Are calls to the compiler wrapped in CompilerContext.runInContext?""",
+      """Are calls to the compiler wrapped in CompilerContext.runInContext?""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7987,14 +7984,14 @@ codeInternalProblemOmittedTypeNameInConstructorReference = const MessageCode(
   "InternalProblemOmittedTypeNameInConstructorReference",
   severity: CfeSeverity.internalProblem,
   problemMessage:
-      r"""Unsupported omission of the type name in a constructor reference outside of an enum element declaration.""",
+      """Unsupported omission of the type name in a constructor reference outside of an enum element declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInternalProblemPreviousTokenNotFound = const MessageCode(
   "InternalProblemPreviousTokenNotFound",
   severity: CfeSeverity.internalProblem,
-  problemMessage: r"""Couldn't find previous token.""",
+  problemMessage: """Couldn't find previous token.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8031,7 +8028,7 @@ const MessageCode codeInternalProblemProvidedBothCompileSdkAndSdkSummary =
       "InternalProblemProvidedBothCompileSdkAndSdkSummary",
       severity: CfeSeverity.internalProblem,
       problemMessage:
-          r"""The compileSdk and sdkSummary options are mutually exclusive""",
+          """The compileSdk and sdkSummary options are mutually exclusive""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8220,7 +8217,7 @@ Message _withArgumentsOldInvalidAssignmentError(
 const MessageCode codeInvalidAugmentSuper = const MessageCode(
   "InvalidAugmentSuper",
   problemMessage:
-      r"""'augment super' is only allowed in member augmentations.""",
+      """'augment super' is only allowed in member augmentations.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9371,8 +9368,8 @@ Message _withArgumentsOldInvalidTypeParameterVariancePositionInReturnType(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInvalidUseOfNullAwareAccess = const MessageCode(
   "InvalidUseOfNullAwareAccess",
-  problemMessage: r"""Cannot use '?.' here.""",
-  correctionMessage: r"""Try using '.'.""",
+  problemMessage: """Cannot use '?.' here.""",
+  correctionMessage: """Try using '.'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9520,9 +9517,9 @@ const MessageCode
 codeJsInteropDartJsInteropAnnotationForStaticInteropOnly = const MessageCode(
   "JsInteropDartJsInteropAnnotationForStaticInteropOnly",
   problemMessage:
-      r"""The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes.""",
+      """The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes.""",
   correctionMessage:
-      r"""Try making this class an extension type or marking it as '@staticInterop'.""",
+      """Try making this class an extension type or marking it as '@staticInterop'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9561,8 +9558,8 @@ Message _withArgumentsOldJsInteropDisallowedInteropLibraryInDart2Wasm(
 const MessageCode codeJsInteropEnclosingClassJSAnnotation = const MessageCode(
   "JsInteropEnclosingClassJSAnnotation",
   problemMessage:
-      r"""Member has a JS interop annotation but the enclosing class does not.""",
-  correctionMessage: r"""Try adding the annotation to the enclosing class.""",
+      """Member has a JS interop annotation but the enclosing class does not.""",
+  correctionMessage: """Try adding the annotation to the enclosing class.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9570,7 +9567,7 @@ const MessageCode codeJsInteropEnclosingClassJSAnnotationContext =
     const MessageCode(
       "JsInteropEnclosingClassJSAnnotationContext",
       severity: CfeSeverity.context,
-      problemMessage: r"""This is the enclosing class.""",
+      problemMessage: """This is the enclosing class.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9799,9 +9796,9 @@ const MessageCode
 codeJsInteropExtensionTypeMemberNotInterop = const MessageCode(
   "JsInteropExtensionTypeMemberNotInterop",
   problemMessage:
-      r"""Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.""",
+      """Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.""",
   correctionMessage:
-      r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
+      """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9845,9 +9842,9 @@ const MessageCode
 codeJsInteropExtensionTypeUsedWithWrongJsAnnotation = const MessageCode(
   "JsInteropExtensionTypeUsedWithWrongJsAnnotation",
   problemMessage:
-      r"""Extension types should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.""",
+      """Extension types should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.""",
   correctionMessage:
-      r"""Try using the '@JS' annotation from 'dart:js_interop' annotation on this extension type instead.""",
+      """Try using the '@JS' annotation from 'dart:js_interop' annotation on this extension type instead.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9855,9 +9852,9 @@ const MessageCode
 codeJsInteropExternalExtensionMemberOnTypeInvalid = const MessageCode(
   "JsInteropExternalExtensionMemberOnTypeInvalid",
   problemMessage:
-      r"""JS interop type or @Native type from an SDK web library required for 'external' extension members.""",
+      """JS interop type or @Native type from an SDK web library required for 'external' extension members.""",
   correctionMessage:
-      r"""Try making the on-type a JS interop type or an @Native SDK web library type.""",
+      """Try making the on-type a JS interop type or an @Native SDK web library type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9865,16 +9862,16 @@ const MessageCode
 codeJsInteropExternalExtensionMemberWithStaticDisallowed = const MessageCode(
   "JsInteropExternalExtensionMemberWithStaticDisallowed",
   problemMessage:
-      r"""External extension members with the keyword 'static' on JS interop and @Native types are disallowed.""",
-  correctionMessage: r"""Try putting the member in the on-type instead.""",
+      """External extension members with the keyword 'static' on JS interop and @Native types are disallowed.""",
+  correctionMessage: """Try putting the member in the on-type instead.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropExternalMemberNotJSAnnotated = const MessageCode(
   "JsInteropExternalMemberNotJSAnnotated",
-  problemMessage: r"""Only JS interop members may be 'external'.""",
+  problemMessage: """Only JS interop members may be 'external'.""",
   correctionMessage:
-      r"""Try removing the 'external' keyword or adding a JS interop annotation.""",
+      """Try removing the 'external' keyword or adding a JS interop annotation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10019,7 +10016,7 @@ Message _withArgumentsOldJsInteropFunctionToJSTypeViolation(
 const MessageCode codeJsInteropInvalidStaticClassMemberName = const MessageCode(
   "JsInteropInvalidStaticClassMemberName",
   problemMessage:
-      r"""JS interop static class members cannot have '.' in their JS name.""",
+      """JS interop static class members cannot have '.' in their JS name.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10125,9 +10122,9 @@ Message _withArgumentsOldJsInteropIsAPrimitiveExtensionType(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropIsATearoff = const MessageCode(
   "JsInteropIsATearoff",
-  problemMessage: r"""'isA' can't be torn off.""",
+  problemMessage: """'isA' can't be torn off.""",
   correctionMessage:
-      r"""Use a method that calls 'isA' and tear off that method instead.""",
+      """Use a method that calls 'isA' and tear off that method instead.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10168,9 +10165,9 @@ Message _withArgumentsOldJsInteropJSClassExtendsDartClass(
 const MessageCode codeJsInteropNamedParameters = const MessageCode(
   "JsInteropNamedParameters",
   problemMessage:
-      r"""Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.""",
+      """Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.""",
   correctionMessage:
-      r"""Try replacing them with normal or optional parameters.""",
+      """Try replacing them with normal or optional parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10222,16 +10219,16 @@ Message _withArgumentsOldJsInteropNativeClassInAnnotation(
 const MessageCode codeJsInteropNonExternalConstructor = const MessageCode(
   "JsInteropNonExternalConstructor",
   problemMessage:
-      r"""JS interop classes do not support non-external constructors.""",
-  correctionMessage: r"""Try annotating with `external`.""",
+      """JS interop classes do not support non-external constructors.""",
+  correctionMessage: """Try annotating with `external`.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropNonExternalMember = const MessageCode(
   "JsInteropNonExternalMember",
   problemMessage:
-      r"""This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.""",
-  correctionMessage: r"""Try annotating the member with `external`.""",
+      """This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.""",
+  correctionMessage: """Try annotating the member with `external`.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10310,18 +10307,17 @@ Message _withArgumentsOldJsInteropObjectLiteralConstructorPositionalParameters(
 const MessageCode codeJsInteropOperatorCannotBeRenamed = const MessageCode(
   "JsInteropOperatorCannotBeRenamed",
   problemMessage:
-      r"""JS interop operator methods cannot be renamed using the '@JS' annotation.""",
+      """JS interop operator methods cannot be renamed using the '@JS' annotation.""",
   correctionMessage:
-      r"""Remove the annotation or remove the value inside the annotation.""",
+      """Remove the annotation or remove the value inside the annotation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropOperatorsNotSupported = const MessageCode(
   "JsInteropOperatorsNotSupported",
   problemMessage:
-      r"""JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.""",
-  correctionMessage:
-      r"""Try making this class a static interop type instead.""",
+      """JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.""",
+  correctionMessage: """Try making this class a static interop type instead.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10401,8 +10397,8 @@ const MessageCode
 codeJsInteropStaticInteropGenerativeConstructor = const MessageCode(
   "JsInteropStaticInteropGenerativeConstructor",
   problemMessage:
-      r"""`@staticInterop` classes should not contain any generative constructors.""",
-  correctionMessage: r"""Use factory constructors instead.""",
+      """`@staticInterop` classes should not contain any generative constructors.""",
+  correctionMessage: """Use factory constructors instead.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10624,9 +10620,9 @@ codeJsInteropStaticInteropParameterInitializersAreIgnored = const MessageCode(
   "JsInteropStaticInteropParameterInitializersAreIgnored",
   severity: CfeSeverity.warning,
   problemMessage:
-      r"""Initializers for parameters are ignored on static interop external functions.""",
+      """Initializers for parameters are ignored on static interop external functions.""",
   correctionMessage:
-      r"""Declare a forwarding non-external function with this initializer, or remove the initializer.""",
+      """Declare a forwarding non-external function with this initializer, or remove the initializer.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10634,9 +10630,9 @@ const MessageCode
 codeJsInteropStaticInteropSyntheticConstructor = const MessageCode(
   "JsInteropStaticInteropSyntheticConstructor",
   problemMessage:
-      r"""Synthetic constructors on `@staticInterop` classes can not be used.""",
+      """Synthetic constructors on `@staticInterop` classes can not be used.""",
   correctionMessage:
-      r"""Declare an external factory constructor for this `@staticInterop` class and use that instead.""",
+      """Declare an external factory constructor for this `@staticInterop` class and use that instead.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10841,42 +10837,42 @@ Message _withArgumentsOldLabelNotFound(String name) =>
 const MessageCode codeLanguageVersionInvalidInDotPackages = const MessageCode(
   "LanguageVersionInvalidInDotPackages",
   problemMessage:
-      r"""The language version is not specified correctly in the packages file.""",
+      """The language version is not specified correctly in the packages file.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeLanguageVersionLibraryContext = const MessageCode(
   "LanguageVersionLibraryContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is language version annotation in the library.""",
+  problemMessage: """This is language version annotation in the library.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeLanguageVersionMismatchInPart = const MessageCode(
   "LanguageVersionMismatchInPart",
   problemMessage:
-      r"""The language version override has to be the same in the library and its part(s).""",
+      """The language version override has to be the same in the library and its part(s).""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeLanguageVersionMismatchInPatch = const MessageCode(
   "LanguageVersionMismatchInPatch",
   problemMessage:
-      r"""The language version override has to be the same in the library and its patch(es).""",
+      """The language version override has to be the same in the library and its patch(es).""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeLanguageVersionPartContext = const MessageCode(
   "LanguageVersionPartContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is language version annotation in the part.""",
+  problemMessage: """This is language version annotation in the part.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeLanguageVersionPatchContext = const MessageCode(
   "LanguageVersionPatchContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is language version annotation in the patch.""",
+  problemMessage: """This is language version annotation in the patch.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11141,19 +11137,19 @@ Message _withArgumentsOldLateDefinitelyUnassignedError(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeListLiteralTooManyTypeArguments = const MessageCode(
   "ListLiteralTooManyTypeArguments",
-  problemMessage: r"""List literal requires exactly one type argument.""",
+  problemMessage: """List literal requires exactly one type argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeListPatternTooManyTypeArguments = const MessageCode(
   "ListPatternTooManyTypeArguments",
-  problemMessage: r"""A list pattern requires exactly one type argument.""",
+  problemMessage: """A list pattern requires exactly one type argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeLoadLibraryTakesNoArguments = const MessageCode(
   "LoadLibraryTakesNoArguments",
-  problemMessage: r"""'loadLibrary' takes no arguments.""",
+  problemMessage: """'loadLibrary' takes no arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11213,42 +11209,42 @@ Message _withArgumentsOldLocalVariableUsedBeforeDeclaredContext(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMainNotFunctionDeclaration = const MessageCode(
   "MainNotFunctionDeclaration",
-  problemMessage: r"""The 'main' declaration must be a function declaration.""",
+  problemMessage: """The 'main' declaration must be a function declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMainNotFunctionDeclarationExported = const MessageCode(
   "MainNotFunctionDeclarationExported",
   problemMessage:
-      r"""The exported 'main' declaration must be a function declaration.""",
+      """The exported 'main' declaration must be a function declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMainRequiredNamedParameters = const MessageCode(
   "MainRequiredNamedParameters",
   problemMessage:
-      r"""The 'main' method cannot have required named parameters.""",
+      """The 'main' method cannot have required named parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMainRequiredNamedParametersExported = const MessageCode(
   "MainRequiredNamedParametersExported",
   problemMessage:
-      r"""The exported 'main' method cannot have required named parameters.""",
+      """The exported 'main' method cannot have required named parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMainTooManyRequiredParameters = const MessageCode(
   "MainTooManyRequiredParameters",
   problemMessage:
-      r"""The 'main' method must have at most 2 required parameters.""",
+      """The 'main' method must have at most 2 required parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMainTooManyRequiredParametersExported = const MessageCode(
   "MainTooManyRequiredParametersExported",
   problemMessage:
-      r"""The exported 'main' method must have at most 2 required parameters.""",
+      """The exported 'main' method must have at most 2 required parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11322,7 +11318,7 @@ Message _withArgumentsOldMainWrongParameterTypeExported(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMapPatternTypeArgumentMismatch = const MessageCode(
   "MapPatternTypeArgumentMismatch",
-  problemMessage: r"""A map pattern requires exactly two type arguments.""",
+  problemMessage: """A map pattern requires exactly two type arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11554,8 +11550,8 @@ Message _withArgumentsOldMethodNotFound(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingExplicitConst = const MessageCode(
   "MissingExplicitConst",
-  problemMessage: r"""Constant expression expected.""",
-  correctionMessage: r"""Try inserting 'const'.""",
+  problemMessage: """Constant expression expected.""",
+  correctionMessage: """Try inserting 'const'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11625,21 +11621,21 @@ Message _withArgumentsOldMissingImplementationNotAbstract(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingInput = const MessageCode(
   "MissingInput",
-  problemMessage: r"""No input file provided to the compiler.""",
+  problemMessage: """No input file provided to the compiler.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingMain = const MessageCode(
   "MissingMain",
-  problemMessage: r"""No 'main' method found.""",
-  correctionMessage: r"""Try adding a method named 'main' to your program.""",
+  problemMessage: """No 'main' method found.""",
+  correctionMessage: """Try adding a method named 'main' to your program.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingNamedSuperConstructorParameter = const MessageCode(
   "MissingNamedSuperConstructorParameter",
   problemMessage:
-      r"""The super constructor has no corresponding named parameter.""",
+      """The super constructor has no corresponding named parameter.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11670,7 +11666,7 @@ const MessageCode
 codeMissingPositionalSuperConstructorParameter = const MessageCode(
   "MissingPositionalSuperConstructorParameter",
   problemMessage:
-      r"""The super constructor has no corresponding positional parameter.""",
+      """The super constructor has no corresponding positional parameter.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11777,7 +11773,7 @@ const MessageCode codeMixinApplicationNoConcreteMemberContext =
       "MixinApplicationNoConcreteMemberContext",
       severity: CfeSeverity.context,
       problemMessage:
-          r"""This is the super-access that doesn't have a concrete target.""",
+          """This is the super-access that doesn't have a concrete target.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11835,8 +11831,8 @@ Message _withArgumentsOldMixinApplicationNoConcreteSetter(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMixinDeferredMixin = const MessageCode(
   "MixinDeferredMixin",
-  problemMessage: r"""Classes can't mix in deferred mixins.""",
-  correctionMessage: r"""Try changing the import to not be deferred.""",
+  problemMessage: """Classes can't mix in deferred mixins.""",
+  correctionMessage: """Try changing the import to not be deferred.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11981,21 +11977,21 @@ const MessageCode codeMixinSuperClassConstraintDeferredClass =
     const MessageCode(
       "MixinSuperClassConstraintDeferredClass",
       problemMessage:
-          r"""Deferred classes can't be used as superclass constraints.""",
-      correctionMessage: r"""Try changing the import to not be deferred.""",
+          """Deferred classes can't be used as superclass constraints.""",
+      correctionMessage: """Try changing the import to not be deferred.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMoreThanOneSuperInitializer = const MessageCode(
   "MoreThanOneSuperInitializer",
-  problemMessage: r"""Can't have more than one 'super' initializer.""",
+  problemMessage: """Can't have more than one 'super' initializer.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMultipleRepresentationFields = const MessageCode(
   "MultipleRepresentationFields",
   problemMessage:
-      r"""Each extension type should have exactly one representation field.""",
+      """Each extension type should have exactly one representation field.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12062,7 +12058,7 @@ const MessageCode
 codeNamedFieldClashesWithPositionalFieldInRecord = const MessageCode(
   "NamedFieldClashesWithPositionalFieldInRecord",
   problemMessage:
-      r"""Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field.""",
+      """Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12100,66 +12096,66 @@ const MessageCode codeNamedParametersInExtensionTypeDeclaration =
     const MessageCode(
       "NamedParametersInExtensionTypeDeclaration",
       problemMessage:
-          r"""Extension type declarations can't have named parameters.""",
+          """Extension type declarations can't have named parameters.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNegativeVariableDimension = const MessageCode(
   "NegativeVariableDimension",
   problemMessage:
-      r"""The variable dimension of a variable-length array must be non-negative.""",
+      """The variable dimension of a variable-length array must be non-negative.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNeverReachableSwitchDefaultError = const MessageCode(
   "NeverReachableSwitchDefaultError",
   problemMessage:
-      r"""`null` encountered as case in a switch expression with a non-nullable enum type.""",
+      """`null` encountered as case in a switch expression with a non-nullable enum type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNeverReachableSwitchExpressionError = const MessageCode(
   "NeverReachableSwitchExpressionError",
   problemMessage:
-      r"""`null` encountered as case in a switch expression with a non-nullable type.""",
+      """`null` encountered as case in a switch expression with a non-nullable type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNeverReachableSwitchStatementError = const MessageCode(
   "NeverReachableSwitchStatementError",
   problemMessage:
-      r"""`null` encountered as case in a switch statement with a non-nullable type.""",
+      """`null` encountered as case in a switch statement with a non-nullable type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNeverValueError = const MessageCode(
   "NeverValueError",
   problemMessage:
-      r"""`null` encountered as the result from expression with type `Never`.""",
+      """`null` encountered as the result from expression with type `Never`.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNewAsSelector = const MessageCode(
   "NewAsSelector",
-  problemMessage: r"""'new' can only be used as a constructor reference.""",
+  problemMessage: """'new' can only be used as a constructor reference.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNoAugmentSuperInvokeTarget = const MessageCode(
   "NoAugmentSuperInvokeTarget",
-  problemMessage: r"""Cannot call 'augment super'.""",
+  problemMessage: """Cannot call 'augment super'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNoAugmentSuperReadTarget = const MessageCode(
   "NoAugmentSuperReadTarget",
-  problemMessage: r"""Cannot read from 'augment super'.""",
+  problemMessage: """Cannot read from 'augment super'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNoAugmentSuperWriteTarget = const MessageCode(
   "NoAugmentSuperWriteTarget",
-  problemMessage: r"""Cannot write to 'augment super'.""",
+  problemMessage: """Cannot write to 'augment super'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12190,7 +12186,7 @@ Message _withArgumentsOldNoSuchNamedParameter(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNoUnnamedConstructorInObject = const MessageCode(
   "NoUnnamedConstructorInObject",
-  problemMessage: r"""'Object' has no unnamed constructor.""",
+  problemMessage: """'Object' has no unnamed constructor.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12198,37 +12194,37 @@ const MessageCode codeNonAugmentationDeclarationConflictCause =
     const MessageCode(
       "NonAugmentationDeclarationConflictCause",
       severity: CfeSeverity.context,
-      problemMessage: r"""This is the existing declaration.""",
+      problemMessage: """This is the existing declaration.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonAugmentationMemberConflictCause = const MessageCode(
   "NonAugmentationMemberConflictCause",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the existing member.""",
+  problemMessage: """This is the existing member.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonBoolCondition = const MessageCode(
   "NonBoolCondition",
-  problemMessage: r"""Conditions must have a static type of 'bool'.""",
-  correctionMessage: r"""Try changing the condition.""",
+  problemMessage: """Conditions must have a static type of 'bool'.""",
+  correctionMessage: """Try changing the condition.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonConstConstructor = const MessageCode(
   "NonConstConstructor",
   problemMessage:
-      r"""Cannot invoke a non-'const' constructor where a const expression is expected.""",
-  correctionMessage: r"""Try using a constructor or factory that is 'const'.""",
+      """Cannot invoke a non-'const' constructor where a const expression is expected.""",
+  correctionMessage: """Try using a constructor or factory that is 'const'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonConstFactory = const MessageCode(
   "NonConstFactory",
   problemMessage:
-      r"""Cannot invoke a non-'const' factory where a const expression is expected.""",
-  correctionMessage: r"""Try using a constructor or factory that is 'const'.""",
+      """Cannot invoke a non-'const' factory where a const expression is expected.""",
+  correctionMessage: """Try using a constructor or factory that is 'const'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12236,9 +12232,9 @@ const MessageCode
 codeNonCovariantTypeParameterInRepresentationType = const MessageCode(
   "NonCovariantTypeParameterInRepresentationType",
   problemMessage:
-      r"""An extension type parameter can't be used non-covariantly in its representation type.""",
+      """An extension type parameter can't be used non-covariantly in its representation type.""",
   correctionMessage:
-      r"""Try removing the type parameters from function parameter types and type parameter bounds.""",
+      """Try removing the type parameters from function parameter types and type parameter bounds.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12339,7 +12335,7 @@ Message _withArgumentsOldNonExhaustiveSwitchStatement(
 const MessageCode codeNonExtensionTypeMemberContext = const MessageCode(
   "NonExtensionTypeMemberContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the inherited non-extension type member.""",
+  problemMessage: """This is the inherited non-extension type member.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12347,7 +12343,7 @@ const MessageCode codeNonExtensionTypeMemberOneOfContext = const MessageCode(
   "NonExtensionTypeMemberOneOfContext",
   severity: CfeSeverity.context,
   problemMessage:
-      r"""This is one of the inherited non-extension type members.""",
+      """This is one of the inherited non-extension type members.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12407,7 +12403,7 @@ Message _withArgumentsOldNonNullableNotAssignedError(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonPositiveArrayDimensions = const MessageCode(
   "NonPositiveArrayDimensions",
-  problemMessage: r"""Array dimensions must be positive numbers.""",
+  problemMessage: """Array dimensions must be positive numbers.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12467,23 +12463,22 @@ Message _withArgumentsOldNonSimpleBoundViaVariable(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonVoidReturnOperator = const MessageCode(
   "NonVoidReturnOperator",
-  problemMessage: r"""The return type of the operator []= must be 'void'.""",
-  correctionMessage: r"""Try changing the return type to 'void'.""",
+  problemMessage: """The return type of the operator []= must be 'void'.""",
+  correctionMessage: """Try changing the return type to 'void'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonVoidReturnSetter = const MessageCode(
   "NonVoidReturnSetter",
-  problemMessage:
-      r"""The return type of the setter must be 'void' or absent.""",
+  problemMessage: """The return type of the setter must be 'void' or absent.""",
   correctionMessage:
-      r"""Try removing the return type, or define a method rather than a setter.""",
+      """Try removing the return type, or define a method rather than a setter.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNotAConstantExpression = const MessageCode(
   "NotAConstantExpression",
-  problemMessage: r"""Not a constant expression.""",
+  problemMessage: """Not a constant expression.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12547,13 +12542,13 @@ Message _withArgumentsOldNotAType(String name) =>
 const MessageCode codeNotATypeContext = const MessageCode(
   "NotATypeContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""This isn't a type.""",
+  problemMessage: """This isn't a type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNotAnLvalue = const MessageCode(
   "NotAnLvalue",
-  problemMessage: r"""Can't assign to this.""",
+  problemMessage: """Can't assign to this.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12793,7 +12788,7 @@ Message _withArgumentsOldNullablePropertyAccessError(
 const MessageCode codeNullableSpreadError = const MessageCode(
   "NullableSpreadError",
   problemMessage:
-      r"""An expression whose value can be 'null' must be null-checked before it can be dereferenced.""",
+      """An expression whose value can be 'null' must be null-checked before it can be dereferenced.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12851,34 +12846,34 @@ Message _withArgumentsOldNullableTearoffError(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeObjectExtends = const MessageCode(
   "ObjectExtends",
-  problemMessage: r"""The class 'Object' can't have a superclass.""",
+  problemMessage: """The class 'Object' can't have a superclass.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeObjectImplements = const MessageCode(
   "ObjectImplements",
-  problemMessage: r"""The class 'Object' can't implement anything.""",
+  problemMessage: """The class 'Object' can't implement anything.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeObjectMemberNameUsedForRecordField = const MessageCode(
   "ObjectMemberNameUsedForRecordField",
   problemMessage:
-      r"""Record field names can't be the same as a member from 'Object'.""",
+      """Record field names can't be the same as a member from 'Object'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeObjectMixesIn = const MessageCode(
   "ObjectMixesIn",
-  problemMessage: r"""The class 'Object' can't use mixins.""",
+  problemMessage: """The class 'Object' can't use mixins.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeObsoleteColonForDefaultValue = const MessageCode(
   "ObsoleteColonForDefaultValue",
   problemMessage:
-      r"""Using a colon as a separator before a default value is no longer supported.""",
-  correctionMessage: r"""Try replacing the colon with an equal sign.""",
+      """Using a colon as a separator before a default value is no longer supported.""",
+  correctionMessage: """Try replacing the colon with an equal sign.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12989,7 +12984,7 @@ Message _withArgumentsOldOperatorParameterMismatch2(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeOperatorWithOptionalFormals = const MessageCode(
   "OperatorWithOptionalFormals",
-  problemMessage: r"""An operator can't have optional parameters.""",
+  problemMessage: """An operator can't have optional parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13036,7 +13031,7 @@ const MessageCode codeOptionalParametersInExtensionTypeDeclaration =
     const MessageCode(
       "OptionalParametersInExtensionTypeDeclaration",
       problemMessage:
-          r"""Extension type declarations can't have optional parameters.""",
+          """Extension type declarations can't have optional parameters.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13612,30 +13607,30 @@ Message _withArgumentsOldPackagesFileFormat(String string) =>
 const MessageCode codePartExport = const MessageCode(
   "PartExport",
   problemMessage:
-      r"""Can't export this file because it contains a 'part of' declaration.""",
+      """Can't export this file because it contains a 'part of' declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePartExportContext = const MessageCode(
   "PartExportContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the file that can't be exported.""",
+  problemMessage: """This is the file that can't be exported.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePartInPart = const MessageCode(
   "PartInPart",
   problemMessage:
-      r"""A file that's a part of a library can't have parts itself.""",
+      """A file that's a part of a library can't have parts itself.""",
   correctionMessage:
-      r"""Try moving the 'part' declaration to the containing library.""",
+      """Try moving the 'part' declaration to the containing library.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePartInPartLibraryContext = const MessageCode(
   "PartInPartLibraryContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the containing library.""",
+  problemMessage: """This is the containing library.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13707,29 +13702,29 @@ Message _withArgumentsOldPartOfLibraryNameMismatch(
 const MessageCode codePartOfName = const MessageCode(
   "PartOfName",
   problemMessage:
-      r"""The 'part of' directive can't use a name with the enhanced-parts feature.""",
-  correctionMessage: r"""Try using 'part of' with a URI instead.""",
+      """The 'part of' directive can't use a name with the enhanced-parts feature.""",
+  correctionMessage: """Try using 'part of' with a URI instead.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePartOfSelf = const MessageCode(
   "PartOfSelf",
-  problemMessage: r"""A file can't be a part of itself.""",
+  problemMessage: """A file can't be a part of itself.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePartOfTwoLibraries = const MessageCode(
   "PartOfTwoLibraries",
-  problemMessage: r"""A file can't be part of more than one library.""",
+  problemMessage: """A file can't be part of more than one library.""",
   correctionMessage:
-      r"""Try moving the shared declarations into the libraries, or into a new library.""",
+      """Try moving the shared declarations into the libraries, or into a new library.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePartOfTwoLibrariesContext = const MessageCode(
   "PartOfTwoLibrariesContext",
   severity: CfeSeverity.context,
-  problemMessage: r"""Used as a part in this library.""",
+  problemMessage: """Used as a part in this library.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13801,8 +13796,8 @@ Message _withArgumentsOldPartOfUseUri(Uri uri, Uri uri2, String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePartOrphan = const MessageCode(
   "PartOrphan",
-  problemMessage: r"""This part doesn't have a containing library.""",
-  correctionMessage: r"""Try removing the 'part of' declaration.""",
+  problemMessage: """This part doesn't have a containing library.""",
+  correctionMessage: """Try removing the 'part of' declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13830,43 +13825,43 @@ Message _withArgumentsOldPartTwice(Uri uri) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePartWithLibraryDirective = const MessageCode(
   "PartWithLibraryDirective",
-  problemMessage: r"""A part cannot have a library directive.""",
-  correctionMessage: r"""Try removing the library directive.""",
+  problemMessage: """A part cannot have a library directive.""",
+  correctionMessage: """Try removing the library directive.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePatchClassOrigin = const MessageCode(
   "PatchClassOrigin",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the origin class.""",
+  problemMessage: """This is the origin class.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePatchClassTypeParametersMismatch = const MessageCode(
   "PatchClassTypeParametersMismatch",
   problemMessage:
-      r"""A patch class must have the same number of type variables as its origin class.""",
+      """A patch class must have the same number of type variables as its origin class.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePatchDeclarationOrigin = const MessageCode(
   "PatchDeclarationOrigin",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the origin declaration.""",
+  problemMessage: """This is the origin declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePatchExtensionOrigin = const MessageCode(
   "PatchExtensionOrigin",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the origin extension.""",
+  problemMessage: """This is the origin extension.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePatchExtensionTypeParametersMismatch = const MessageCode(
   "PatchExtensionTypeParametersMismatch",
   problemMessage:
-      r"""A patch extension must have the same number of type variables as its origin extension.""",
+      """A patch extension must have the same number of type variables as its origin extension.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13904,14 +13899,14 @@ Message _withArgumentsOldPatchInjectionFailed(String name, Uri uri) =>
 const MessageCode codePatternAssignmentNotLocalVariable = const MessageCode(
   "PatternAssignmentNotLocalVariable",
   problemMessage:
-      r"""Only local variables or formal parameters can be used in pattern assignments.""",
-  correctionMessage: r"""Try assigning to a local variable.""",
+      """Only local variables or formal parameters can be used in pattern assignments.""",
+  correctionMessage: """Try assigning to a local variable.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePatternMatchingError = const MessageCode(
   "PatternMatchingError",
-  problemMessage: r"""Pattern matching error""",
+  problemMessage: """Pattern matching error""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13957,41 +13952,41 @@ Message _withArgumentsOldPatternTypeMismatchInIrrefutableContext(
 const MessageCode codePatternVariableAssignmentInsideGuard = const MessageCode(
   "PatternVariableAssignmentInsideGuard",
   problemMessage:
-      r"""Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.""",
-  correctionMessage: r"""Try assigning to a different variable.""",
+      """Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.""",
+  correctionMessage: """Try assigning to a different variable.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePlatformPrivateLibraryAccess = const MessageCode(
   "PlatformPrivateLibraryAccess",
-  problemMessage: r"""Can't access platform private library.""",
+  problemMessage: """Can't access platform private library.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePositionalSuperParametersAndArguments = const MessageCode(
   "PositionalSuperParametersAndArguments",
   problemMessage:
-      r"""Positional super-initializer parameters cannot be used when the super initializer has positional arguments.""",
+      """Positional super-initializer parameters cannot be used when the super initializer has positional arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRecordFieldsCantBePrivate = const MessageCode(
   "RecordFieldsCantBePrivate",
-  problemMessage: r"""Record field names can't be private.""",
+  problemMessage: """Record field names can't be private.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRecordUseCannotBePlacedHere = const MessageCode(
   "RecordUseCannotBePlacedHere",
   problemMessage:
-      r"""`RecordUse` annotation cannot be placed on this element.""",
+      """`RecordUse` annotation cannot be placed on this element.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRecordUsedAsCallable = const MessageCode(
   "RecordUsedAsCallable",
   problemMessage:
-      r"""The 'call' property on the record type isn't directly callable but could be invoked by `.call(...)`""",
+      """The 'call' property on the record type isn't directly callable but could be invoked by `.call(...)`""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13999,23 +13994,23 @@ const MessageCode codeRedirectingConstructorWithAnotherInitializer =
     const MessageCode(
       "RedirectingConstructorWithAnotherInitializer",
       problemMessage:
-          r"""A redirecting constructor can't have other initializers.""",
+          """A redirecting constructor can't have other initializers.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeRedirectingConstructorWithMultipleRedirectInitializers = const MessageCode(
-  "RedirectingConstructorWithMultipleRedirectInitializers",
-  problemMessage:
-      r"""A redirecting constructor can't have more than one redirection.""",
-);
+const MessageCode codeRedirectingConstructorWithMultipleRedirectInitializers =
+    const MessageCode(
+      "RedirectingConstructorWithMultipleRedirectInitializers",
+      problemMessage:
+          """A redirecting constructor can't have more than one redirection.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRedirectingConstructorWithSuperInitializer =
     const MessageCode(
       "RedirectingConstructorWithSuperInitializer",
       problemMessage:
-          r"""A redirecting constructor can't have a 'super' initializer.""",
+          """A redirecting constructor can't have a 'super' initializer.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14085,21 +14080,21 @@ Message _withArgumentsOldRedirectionTargetNotFound(String name) =>
 const MessageCode codeRefutablePatternInIrrefutableContext = const MessageCode(
   "RefutablePatternInIrrefutableContext",
   problemMessage:
-      r"""Refutable patterns can't be used in an irrefutable context.""",
+      """Refutable patterns can't be used in an irrefutable context.""",
   correctionMessage:
-      r"""Try using an if-case, a 'switch' statement, or a 'switch' expression instead.""",
+      """Try using an if-case, a 'switch' statement, or a 'switch' expression instead.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRepresentationFieldModifier = const MessageCode(
   "RepresentationFieldModifier",
-  problemMessage: r"""Representation fields can't have modifiers.""",
+  problemMessage: """Representation fields can't have modifiers.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRepresentationFieldTrailingComma = const MessageCode(
   "RepresentationFieldTrailingComma",
-  problemMessage: r"""The representation field can't have a trailing comma.""",
+  problemMessage: """The representation field can't have a trailing comma.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14134,41 +14129,41 @@ Message _withArgumentsOldRequiredNamedParameterHasDefaultValueError(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRestPatternInMapPattern = const MessageCode(
   "RestPatternInMapPattern",
-  problemMessage: r"""The '...' pattern can't appear in map patterns.""",
+  problemMessage: """The '...' pattern can't appear in map patterns.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRethrowNotCatch = const MessageCode(
   "RethrowNotCatch",
-  problemMessage: r"""'rethrow' can only be used in catch clauses.""",
+  problemMessage: """'rethrow' can only be used in catch clauses.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeReturnFromVoidFunction = const MessageCode(
   "ReturnFromVoidFunction",
-  problemMessage: r"""Can't return a value from a void function.""",
+  problemMessage: """Can't return a value from a void function.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeReturnWithoutExpressionAsync = const MessageCode(
   "ReturnWithoutExpressionAsync",
   problemMessage:
-      r"""A value must be explicitly returned from a non-void async function.""",
+      """A value must be explicitly returned from a non-void async function.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeReturnWithoutExpressionSync = const MessageCode(
   "ReturnWithoutExpressionSync",
   problemMessage:
-      r"""A value must be explicitly returned from a non-void function.""",
+      """A value must be explicitly returned from a non-void function.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeScriptTagInPartFile = const MessageCode(
   "ScriptTagInPartFile",
-  problemMessage: r"""A part file cannot have script tag.""",
+  problemMessage: """A part file cannot have script tag.""",
   correctionMessage:
-      r"""Try removing the script tag or the 'part of' directive.""",
+      """Try removing the script tag or the 'part of' directive.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14348,7 +14343,7 @@ Message _withArgumentsOldSetterNotFound(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSetterWithWrongNumberOfFormals = const MessageCode(
   "SetterWithWrongNumberOfFormals",
-  problemMessage: r"""A setter should have exactly one formal parameter.""",
+  problemMessage: """A setter should have exactly one formal parameter.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14503,7 +14498,7 @@ Message _withArgumentsOldSourceOutlineSummary(
 const MessageCode codeSpreadElement = const MessageCode(
   "SpreadElement",
   severity: CfeSeverity.context,
-  problemMessage: r"""Iterable spread.""",
+  problemMessage: """Iterable spread.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14544,7 +14539,7 @@ Message _withArgumentsOldSpreadElementTypeMismatch(
 const MessageCode codeSpreadMapElement = const MessageCode(
   "SpreadMapElement",
   severity: CfeSeverity.context,
-  problemMessage: r"""Map spread.""",
+  problemMessage: """Map spread.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14733,9 +14728,9 @@ Message _withArgumentsOldStaticConflictsWithInstanceCause(String name) =>
 const MessageCode codeStaticTearOffFromInstantiatedClass = const MessageCode(
   "StaticTearOffFromInstantiatedClass",
   problemMessage:
-      r"""Cannot access static member on an instantiated generic class.""",
+      """Cannot access static member on an instantiated generic class.""",
   correctionMessage:
-      r"""Try removing the type arguments or placing them after the member name.""",
+      """Try removing the type arguments or placing them after the member name.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14813,15 +14808,15 @@ Message _withArgumentsOldSubtypeOfFinalIsNotBaseFinalOrSealed(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSuperAsExpression = const MessageCode(
   "SuperAsExpression",
-  problemMessage: r"""Can't use 'super' as an expression.""",
+  problemMessage: """Can't use 'super' as an expression.""",
   correctionMessage:
-      r"""To delegate a constructor to a super constructor, put the super call as an initializer.""",
+      """To delegate a constructor to a super constructor, put the super call as an initializer.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSuperAsIdentifier = const MessageCode(
   "SuperAsIdentifier",
-  problemMessage: r"""Expected identifier, but got 'super'.""",
+  problemMessage: """Expected identifier, but got 'super'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14982,14 +14977,14 @@ Message _withArgumentsOldSuperExtensionTypeIsTypeParameter(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSuperInitializerNotLast = const MessageCode(
   "SuperInitializerNotLast",
-  problemMessage: r"""Can't have initializers after 'super'.""",
+  problemMessage: """Can't have initializers after 'super'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSuperInitializerParameter = const MessageCode(
   "SuperInitializerParameter",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the super-initializer parameter.""",
+  problemMessage: """This is the super-initializer parameter.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14997,8 +14992,8 @@ const MessageCode
 codeSuperParameterInitializerOutsideConstructor = const MessageCode(
   "SuperParameterInitializerOutsideConstructor",
   problemMessage:
-      r"""Super-initializer formal parameters can only be used in generative constructors.""",
-  correctionMessage: r"""Try removing 'super.'.""",
+      """Super-initializer formal parameters can only be used in generative constructors.""",
+  correctionMessage: """Try removing 'super.'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15157,7 +15152,7 @@ Message _withArgumentsOldSuperclassHasNoSetter(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSupertypeIsFunction = const MessageCode(
   "SupertypeIsFunction",
-  problemMessage: r"""Can't use a function type as supertype.""",
+  problemMessage: """Can't use a function type as supertype.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15282,14 +15277,14 @@ Message _withArgumentsOldSupertypeIsTypeParameter(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSwitchCaseFallThrough = const MessageCode(
   "SwitchCaseFallThrough",
-  problemMessage: r"""Switch case may fall through to the next case.""",
+  problemMessage: """Switch case may fall through to the next case.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSwitchExpressionNotAssignableCause = const MessageCode(
   "SwitchExpressionNotAssignableCause",
   severity: CfeSeverity.context,
-  problemMessage: r"""The switch expression is here.""",
+  problemMessage: """The switch expression is here.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15329,7 +15324,7 @@ Message _withArgumentsOldSwitchExpressionNotSubtype(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSyntheticToken = const MessageCode(
   "SyntheticToken",
-  problemMessage: r"""This couldn't be parsed.""",
+  problemMessage: """This couldn't be parsed.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15361,7 +15356,7 @@ Message _withArgumentsOldThisAccessInFieldInitializer(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeThisAsIdentifier = const MessageCode(
   "ThisAsIdentifier",
-  problemMessage: r"""Expected identifier, but got 'this'.""",
+  problemMessage: """Expected identifier, but got 'this'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15616,7 +15611,7 @@ Message _withArgumentsOldTypeOriginWithFileUri(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypeParameterDuplicatedName = const MessageCode(
   "TypeParameterDuplicatedName",
-  problemMessage: r"""A type variable can't have the same name as another.""",
+  problemMessage: """A type variable can't have the same name as another.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15649,51 +15644,51 @@ Message _withArgumentsOldTypeParameterDuplicatedNameCause(String name) =>
 const MessageCode codeTypeParameterSameNameAsEnclosing = const MessageCode(
   "TypeParameterSameNameAsEnclosing",
   problemMessage:
-      r"""A type variable can't have the same name as its enclosing declaration.""",
+      """A type variable can't have the same name as its enclosing declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypeVariableInConstantContext = const MessageCode(
   "TypeVariableInConstantContext",
-  problemMessage: r"""Type variables can't be used as constants.""",
+  problemMessage: """Type variables can't be used as constants.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypeVariableInStaticContext = const MessageCode(
   "TypeVariableInStaticContext",
-  problemMessage: r"""Type variables can't be used in static members.""",
+  problemMessage: """Type variables can't be used in static members.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypedefCause = const MessageCode(
   "TypedefCause",
   severity: CfeSeverity.context,
-  problemMessage: r"""The issue arises via this type alias.""",
+  problemMessage: """The issue arises via this type alias.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypedefNotFunction = const MessageCode(
   "TypedefNotFunction",
-  problemMessage: r"""Can't create typedef from non-function type.""",
+  problemMessage: """Can't create typedef from non-function type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypedefNotType = const MessageCode(
   "TypedefNotType",
-  problemMessage: r"""Can't create typedef from non-type.""",
+  problemMessage: """Can't create typedef from non-type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypedefNullableType = const MessageCode(
   "TypedefNullableType",
-  problemMessage: r"""Can't create typedef from nullable type.""",
+  problemMessage: """Can't create typedef from nullable type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypedefTypeParameterNotConstructor = const MessageCode(
   "TypedefTypeParameterNotConstructor",
   problemMessage:
-      r"""Can't use a typedef denoting a type variable as a constructor, nor for a static member access.""",
+      """Can't use a typedef denoting a type variable as a constructor, nor for a static member access.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15701,14 +15696,14 @@ const MessageCode codeTypedefTypeParameterNotConstructorCause =
     const MessageCode(
       "TypedefTypeParameterNotConstructorCause",
       severity: CfeSeverity.context,
-      problemMessage: r"""This is the type variable ultimately denoted.""",
+      problemMessage: """This is the type variable ultimately denoted.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypedefUnaliasedTypeCause = const MessageCode(
   "TypedefUnaliasedTypeCause",
   severity: CfeSeverity.context,
-  problemMessage: r"""This is the type denoted by the type alias.""",
+  problemMessage: """This is the type denoted by the type alias.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15875,7 +15870,7 @@ const MessageCode
 codeUnexpectedSuperParametersInGenerativeConstructors = const MessageCode(
   "UnexpectedSuperParametersInGenerativeConstructors",
   problemMessage:
-      r"""Super parameters can only be used in non-redirecting generative constructors.""",
+      """Super parameters can only be used in non-redirecting generative constructors.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16135,44 +16130,43 @@ Message _withArgumentsOldUnmatchedPatchLibraryMember(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnnamedObjectPatternField = const MessageCode(
   "UnnamedObjectPatternField",
-  problemMessage: r"""A pattern field in an object pattern must be named.""",
-  correctionMessage:
-      r"""Try adding a pattern name or ':' before the pattern.""",
+  problemMessage: """A pattern field in an object pattern must be named.""",
+  correctionMessage: """Try adding a pattern name or ':' before the pattern.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnsoundSwitchExpressionError = const MessageCode(
   "UnsoundSwitchExpressionError",
   problemMessage:
-      r"""None of the patterns in the switch expression the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""",
+      """None of the patterns in the switch expression the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnsoundSwitchStatementError = const MessageCode(
   "UnsoundSwitchStatementError",
   problemMessage:
-      r"""None of the patterns in the exhaustive switch statement the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""",
+      """None of the patterns in the exhaustive switch statement the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnspecifiedGetterNameInObjectPattern = const MessageCode(
   "UnspecifiedGetterNameInObjectPattern",
   problemMessage:
-      r"""The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.""",
+      """The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnsupportedDartExt = const MessageCode(
   "UnsupportedDartExt",
-  problemMessage: r"""Dart native extensions are no longer supported.""",
+  problemMessage: """Dart native extensions are no longer supported.""",
   correctionMessage:
-      r"""Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)""",
+      """Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnterminatedToken = const MessageCode(
   "UnterminatedToken",
-  problemMessage: r"""Incomplete token.""",
+  problemMessage: """Incomplete token.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16265,20 +16259,20 @@ const MessageCode codeVerificationErrorOriginContext = const MessageCode(
   "VerificationErrorOriginContext",
   severity: CfeSeverity.context,
   problemMessage:
-      r"""The node most likely is taken from here by a transformer.""",
+      """The node most likely is taken from here by a transformer.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeVoidExpression = const MessageCode(
   "VoidExpression",
-  problemMessage: r"""This expression has type 'void' and can't be used.""",
+  problemMessage: """This expression has type 'void' and can't be used.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeWasmImportOrExportInUserCode = const MessageCode(
   "WasmImportOrExportInUserCode",
   problemMessage:
-      r"""Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code.""",
+      """Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16286,41 +16280,41 @@ const MessageCode codeWeakReferenceMismatchReturnAndArgumentTypes =
     const MessageCode(
       "WeakReferenceMismatchReturnAndArgumentTypes",
       problemMessage:
-          r"""Return and argument types of a weak reference should match.""",
+          """Return and argument types of a weak reference should match.""",
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeWeakReferenceNotOneArgument = const MessageCode(
   "WeakReferenceNotOneArgument",
   problemMessage:
-      r"""Weak reference should take one required positional argument.""",
+      """Weak reference should take one required positional argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeWeakReferenceNotStatic = const MessageCode(
   "WeakReferenceNotStatic",
   problemMessage:
-      r"""Weak reference pragma can be used on a static method only.""",
+      """Weak reference pragma can be used on a static method only.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeWeakReferenceReturnTypeNotNullable = const MessageCode(
   "WeakReferenceReturnTypeNotNullable",
-  problemMessage: r"""Return type of a weak reference should be nullable.""",
+  problemMessage: """Return type of a weak reference should be nullable.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeWeakReferenceTargetHasParameters = const MessageCode(
   "WeakReferenceTargetHasParameters",
   problemMessage:
-      r"""The target of weak reference should not take parameters.""",
+      """The target of weak reference should not take parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeWeakReferenceTargetNotStaticTearoff = const MessageCode(
   "WeakReferenceTargetNotStaticTearoff",
   problemMessage:
-      r"""The target of weak reference should be a tearoff of a static method.""",
+      """The target of weak reference should be a tearoff of a static method.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
