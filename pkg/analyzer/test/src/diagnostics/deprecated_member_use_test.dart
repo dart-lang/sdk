@@ -1947,6 +1947,41 @@ import '$externalLibUri' show A;
     );
   }
 
+  test_superConstructor_factoryConstructor() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+class A {
+  @deprecated
+  A();
+  A.two();
+}
+''',
+      code: r'''
+class B extends A {
+  factory B() => B.two();
+  B.two() : super.two();
+}
+''',
+    );
+  }
+
+  test_superConstructor_implicitCall() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+class A {
+  @deprecated
+  A();
+}
+''',
+      code: r'''
+class B extends A {
+  B();
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 51, 4)],
+    );
+  }
+
   test_superConstructor_namedConstructor() async {
     await assertErrorsInCode2(
       externalCode: r'''
@@ -1968,6 +2003,24 @@ class B extends A {
           text: "'A.named' is deprecated and shouldn't be used.",
         ),
       ],
+    );
+  }
+
+  test_superConstructor_redirectingConstructor() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+class A {
+  @deprecated
+  A();
+  A.two();
+}
+''',
+      code: r'''
+class B extends A {
+  B() : this.two();
+  B.two() : super.two();
+}
+''',
     );
   }
 

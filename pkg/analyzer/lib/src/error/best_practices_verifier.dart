@@ -316,6 +316,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     for (var v in _elementUsageFrontierDetectors) {
       v.pushElement(element);
     }
+    for (var v in _elementUsageFrontierDetectors) {
+      v.constructorDeclaration(node);
+    }
 
     // TODO(srawlins): Use _elementUsageFrontierDetectors to detect
     // `@Deprecated` or `@experimental` parameters in a redirecting factory
