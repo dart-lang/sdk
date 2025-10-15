@@ -125,6 +125,14 @@ class DefinedFunction extends BaseFunction implements Serializable {
     p.write(')');
   }
 
+  void printDeclarationTo(IrPrinter p) {
+    p.write('(func \$$functionName ');
+    p.withLocalNames(localNames, () {
+      type.printSignatureWithNamesTo(p, oneLine: true);
+    });
+    p.writeln(')');
+  }
+
   @override
   String toString() => functionName ?? "#$finalizableIndex";
 }

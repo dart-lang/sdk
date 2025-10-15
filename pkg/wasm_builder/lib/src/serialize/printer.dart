@@ -26,7 +26,14 @@ class ModulePrinter {
   final _typeQueue = Queue<ir.DefType>();
   final _functionsQueue = Queue<ir.DefinedFunction>();
 
-  ModulePrinter(this._module);
+  /// Closure that tells us whether the body of a function should be printed or
+  /// not.
+  late final bool Function(ir.BaseFunction) _printFunctionBody;
+
+  ModulePrinter(this._module,
+      {bool Function(ir.BaseFunction)? printFunctionBody}) {
+    _printFunctionBody = printFunctionBody ?? (_) => true;
+  }
 
   IrPrinter newIrPrinter() => IrPrinter._(_module, _typeNamer, _globalNamer,
       _functionNamer, _tagNamer, _tableNamer);
@@ -74,7 +81,8 @@ class ModulePrinter {
     while (_functionsQueue.isNotEmpty || _typeQueue.isNotEmpty) {
       while (_functionsQueue.isNotEmpty) {
         final fun = _functionsQueue.removeFirst();
-        _generateFunction(fun);
+
+        _generateFunction(fun, includingBody: _printFunctionBody(fun));
       }
     }
 
@@ -172,10 +180,15 @@ class ModulePrinter {
     _functions[fun] = p.getText();
   }
 
-  void _generateFunction(ir.DefinedFunction fun) {
+  void _generateFunction(ir.DefinedFunction fun,
+      {required bool includingBody}) {
     final p = newIrPrinter();
-    fun.printTo(p);
-    _functions[fun] = p.getText();
+    if (includingBody) {
+      fun.printTo(p);
+    } else {
+      fun.printDeclarationTo(p);
+    }
+    _functions[fun] = p.getText().trimRight();
   }
 
   void _generateType(ir.DefType type) {
