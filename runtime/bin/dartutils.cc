@@ -17,15 +17,6 @@
 #include "platform/mach_o.h"
 #include "platform/utils.h"
 
-// Return the error from the containing function if handle is in error handle.
-#define RETURN_IF_ERROR(handle)                                                \
-  {                                                                            \
-    Dart_Handle __handle = handle;                                             \
-    if (Dart_IsError((__handle))) {                                            \
-      return __handle;                                                         \
-    }                                                                          \
-  }
-
 namespace dart {
 namespace bin {
 
@@ -558,10 +549,6 @@ Dart_Handle DartUtils::PrepareAsyncLibrary(Dart_Handle async_lib,
                      args);
 }
 
-Dart_Handle DartUtils::PrepareIOLibrary(Dart_Handle io_lib) {
-  return Dart_Invoke(io_lib, NewString("_setupHooks"), 0, nullptr);
-}
-
 Dart_Handle DartUtils::PrepareIsolateLibrary(Dart_Handle isolate_lib) {
   return Dart_Invoke(isolate_lib, NewString("_setupHooks"), 0, nullptr);
 }
@@ -585,36 +572,34 @@ Dart_Handle DartUtils::SetupPackageConfig(const char* packages_config) {
   return result;
 }
 
-Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
-                                               bool trace_loading,
-                                               bool flag_profile_microtasks) {
+Dart_Handle DartUtils::SetupCoreLibraries(
+    bool is_service_isolate,
+    bool trace_loading,
+    bool flag_profile_microtasks,
+    const DartIoSettings& dart_io_settings) {
   // First ensure all required libraries are available.
-  Dart_Handle url = NewString(kCoreLibURL);
-  RETURN_IF_ERROR(url);
-  Dart_Handle core_lib = Dart_LookupLibrary(url);
-  RETURN_IF_ERROR(core_lib);
-  url = NewString(kAsyncLibURL);
-  RETURN_IF_ERROR(url);
-  Dart_Handle async_lib = Dart_LookupLibrary(url);
-  RETURN_IF_ERROR(async_lib);
-  url = NewString(kIsolateLibURL);
-  RETURN_IF_ERROR(url);
-  Dart_Handle isolate_lib = Dart_LookupLibrary(url);
-  RETURN_IF_ERROR(isolate_lib);
-  url = NewString(kInternalLibURL);
-  RETURN_IF_ERROR(url);
-  Dart_Handle internal_lib = Dart_LookupLibrary(url);
-  RETURN_IF_ERROR(internal_lib);
-  Dart_Handle builtin_lib =
-      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  RETURN_IF_ERROR(builtin_lib);
-  Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
-  Dart_Handle io_lib = Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
-  RETURN_IF_ERROR(io_lib);
-  Builtin::SetNativeResolver(Builtin::kIOLibrary);
-  Dart_Handle cli_lib = Builtin::LoadAndCheckLibrary(Builtin::kCLILibrary);
-  RETURN_IF_ERROR(cli_lib);
-  Builtin::SetNativeResolver(Builtin::kCLILibrary);
+  ASSIGN_OR_RETURN(Dart_Handle core_lib,
+                   Dart_LookupLibrary(NewString(kCoreLibURL)));
+  ASSIGN_OR_RETURN(Dart_Handle async_lib,
+                   Dart_LookupLibrary(NewString(kAsyncLibURL)));
+  ASSIGN_OR_RETURN(Dart_Handle isolate_lib,
+                   Dart_LookupLibrary(NewString(kIsolateLibURL)));
+  ASSIGN_OR_RETURN(Dart_Handle internal_lib,
+                   Dart_LookupLibrary(NewString(kInternalLibURL)));
+  ASSIGN_OR_RETURN(Dart_Handle builtin_lib,
+                   Dart_LookupLibrary(NewString(kBuiltinLibURL)));
+  ASSIGN_OR_RETURN(Dart_Handle io_lib,
+                   Dart_LookupLibrary(NewString(kIOLibURL)));
+  ASSIGN_OR_RETURN(Dart_Handle cli_lib,
+                   Dart_LookupLibrary(NewString(kCLILibURL)));
+
+  // Configure native resolvers for dart:_builtin and dart:cli.
+  for (auto id : {Builtin::kBuiltinLibrary, Builtin::kCLILibrary}) {
+    RETURN_IF_ERROR(Builtin::TrySetNativeResolver(id));
+  }
+
+  // Initialize dart:io library.
+  RETURN_IF_ERROR(SetupDartIoLibrary(dart_io_settings));
 
   // We need to ensure that all the scripts loaded so far are finalized
   // as we are about to invoke some Dart code below to setup closures.
@@ -629,59 +614,8 @@ Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
       PrepareAsyncLibrary(async_lib, isolate_lib, flag_profile_microtasks));
   RETURN_IF_ERROR(PrepareCoreLibrary(core_lib, io_lib, is_service_isolate));
   RETURN_IF_ERROR(PrepareIsolateLibrary(isolate_lib));
-  RETURN_IF_ERROR(PrepareIOLibrary(io_lib));
   RETURN_IF_ERROR(PrepareCLILibrary(cli_lib));
   return result;
-}
-
-Dart_Handle DartUtils::SetupIOLibrary(const char* namespc_path,
-                                      const char* script_uri,
-                                      bool disable_exit) {
-  Dart_Handle io_lib_url = NewString(kIOLibURL);
-  RETURN_IF_ERROR(io_lib_url);
-  Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
-  RETURN_IF_ERROR(io_lib);
-
-  if (namespc_path != nullptr) {
-    Dart_Handle namespc_type = GetDartType(DartUtils::kIOLibURL, "_Namespace");
-    RETURN_IF_ERROR(namespc_type);
-    Dart_Handle args[1];
-    args[0] = NewString(namespc_path);
-    RETURN_IF_ERROR(args[0]);
-    Dart_Handle result =
-        Dart_Invoke(namespc_type, NewString("_setupNamespace"), 1, args);
-    RETURN_IF_ERROR(result);
-  }
-
-  if (disable_exit) {
-    Dart_Handle embedder_config_type =
-        GetDartType(DartUtils::kIOLibURL, "_EmbedderConfig");
-    RETURN_IF_ERROR(embedder_config_type);
-    Dart_Handle result = Dart_SetField(embedder_config_type,
-                                       NewString("_mayExit"), Dart_False());
-    RETURN_IF_ERROR(result);
-  }
-
-  Dart_Handle platform_type = GetDartType(DartUtils::kIOLibURL, "_Platform");
-  RETURN_IF_ERROR(platform_type);
-  Dart_Handle script_name = NewString("_nativeScript");
-  RETURN_IF_ERROR(script_name);
-  Dart_Handle dart_script = NewString(script_uri);
-  RETURN_IF_ERROR(dart_script);
-  Dart_Handle set_script_name =
-      Dart_SetField(platform_type, script_name, dart_script);
-  RETURN_IF_ERROR(set_script_name);
-
-#if !defined(PRODUCT)
-  Dart_Handle network_profiling_type =
-      GetDartType(DartUtils::kIOLibURL, "_NetworkProfiling");
-  RETURN_IF_ERROR(network_profiling_type);
-  Dart_Handle result =
-      Dart_Invoke(network_profiling_type,
-                  NewString("_registerServiceExtension"), 0, nullptr);
-  RETURN_IF_ERROR(result);
-#endif  // !defined(PRODUCT)
-  return Dart_Null();
 }
 
 bool DartUtils::PostNull(Dart_Port port_id) {

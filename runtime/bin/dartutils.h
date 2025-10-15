@@ -6,6 +6,7 @@
 #define RUNTIME_BIN_DARTUTILS_H_
 
 #include "bin/isolate_data.h"
+#include "include/bin/dart_io_api.h"
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
@@ -34,6 +35,26 @@ static inline Dart_Handle ThrowIfError(Dart_Handle handle) {
   }
   return handle;
 }
+
+// Return the error from the containing function if handle is in error handle.
+#define RETURN_IF_ERROR(handle)                                                \
+  {                                                                            \
+    Dart_Handle __handle = handle;                                             \
+    if (Dart_IsError((__handle))) {                                            \
+      return __handle;                                                         \
+    }                                                                          \
+  }
+
+#define TEMPVAR_IMPL(x, y) x##y
+#define TEMPVAR(x, y) TEMPVAR_IMPL(x, y)
+
+// Return the error from the containing function if handle is in error handle.
+#define ASSIGN_OR_RETURN(lhs, expr)                                            \
+  Dart_Handle TEMPVAR(_aor_handle, __LINE__) = expr;                           \
+  if (Dart_IsError(TEMPVAR(_aor_handle, __LINE__))) {                          \
+    return TEMPVAR(_aor_handle, __LINE__);                                     \
+  }                                                                            \
+  lhs = TEMPVAR(_aor_handle, __LINE__);
 
 static inline void* GetHashmapKeyFromString(char* key) {
   return reinterpret_cast<void*>(key);
@@ -175,14 +196,11 @@ class DartUtils {
   static bool EntropySource(uint8_t* buffer, intptr_t length);
   static Dart_Handle ReadStringFromFile(const char* filename);
   static Dart_Handle MakeUint8Array(const void* buffer, intptr_t length);
-  static Dart_Handle PrepareForScriptLoading(bool is_service_isolate,
-                                             bool trace_loading,
-                                             bool flag_profile_microtasks);
+  static Dart_Handle SetupCoreLibraries(bool is_service_isolate,
+                                        bool trace_loading,
+                                        bool flag_profile_microtasks,
+                                        const DartIoSettings& dart_io_settings);
   static Dart_Handle SetupPackageConfig(const char* packages_file);
-
-  static Dart_Handle SetupIOLibrary(const char* namespc_path,
-                                    const char* script_uri,
-                                    bool disable_exit);
 
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);
@@ -336,7 +354,6 @@ class DartUtils {
   static Dart_Handle PrepareAsyncLibrary(Dart_Handle async_lib,
                                          Dart_Handle isolate_lib,
                                          bool flag_profile_microtasks);
-  static Dart_Handle PrepareIOLibrary(Dart_Handle io_lib);
   static Dart_Handle PrepareIsolateLibrary(Dart_Handle isolate_lib);
   static Dart_Handle PrepareCLILibrary(Dart_Handle cli_lib);
 

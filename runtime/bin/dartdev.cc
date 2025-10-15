@@ -108,7 +108,15 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
   // Prepare builtin and other core libraries for use to resolve URIs.
   // Set up various closures, e.g: printing, timers etc.
   // Set up package configuration for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(false, false, false);
+  result = DartUtils::SetupCoreLibraries(
+      /*is_service_isolate=*/false, /*trace_loading=*/false,
+      /*profile_microtasks=*/false,
+      DartIoSettings{
+          .namespace_root = Options::namespc() != nullptr
+                                ? DartUtils::NewString(Options::namespc())
+                                : nullptr,
+          .script_uri = script_uri,
+          .disable_exit = Options::exit_disabled()});
   if (Dart_IsError(result)) return result;
 
   // Setup packages config if specified.
@@ -124,15 +132,7 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
   if (Dart_IsError(result)) return result;
 
   // Setup the native resolver as the snapshot does not carry it.
-  Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
-  Builtin::SetNativeResolver(Builtin::kIOLibrary);
-  Builtin::SetNativeResolver(Builtin::kCLILibrary);
   VmService::SetNativeResolver();
-
-  const char* namespc = Options::namespc();
-  result =
-      DartUtils::SetupIOLibrary(namespc, script_uri, Options::exit_disabled());
-  if (Dart_IsError(result)) return result;
 
   return Dart_Null();
 }

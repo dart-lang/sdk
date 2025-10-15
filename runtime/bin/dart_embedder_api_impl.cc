@@ -42,24 +42,13 @@ bool InitOnce(char** error) {
                                   err.message());
     return false;
   }
-  bin::TimerUtils::InitOnce();
-  bin::Process::Init();
-#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
-  bin::SSLFilter::Init();
-#endif
-  bin::EventHandler::Start();
+  bin::BootstrapDartIo();
   return true;
 }
 
 void Cleanup() {
   bin::Process::ClearAllSignalHandlers();
-
-  bin::EventHandler::Stop();
-#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
-  bin::SSLFilter::Cleanup();
-#endif
-  bin::Process::Cleanup();
-  bin::IOService::Cleanup();
+  bin::CleanupDartIo();
 }
 
 Dart_Isolate CreateKernelServiceIsolate(const IsolateCreationData& data,
@@ -81,9 +70,10 @@ Dart_Isolate CreateKernelServiceIsolate(const IsolateCreationData& data,
     Dart_ShutdownIsolate();
     return nullptr;
   }
-  result = bin::DartUtils::PrepareForScriptLoading(
+  result = bin::DartUtils::SetupCoreLibraries(
       /*is_service_isolate=*/false,
-      /*trace_loading=*/false, /*flag_profile_microtasks=*/false);
+      /*trace_loading=*/false, /*flag_profile_microtasks=*/false,
+      bin::DartIoSettings{});
   Dart_ExitScope();
   Dart_ExitIsolate();
   return kernel_isolate;

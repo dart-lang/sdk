@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
@@ -28,12 +29,21 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
     bool openCloseFile = true,
     bool expectNoAdditionalItems = false,
   }) async {
-    var code = TestCode.parse(content);
     // If verifyInsertReplaceRanges is true, we need both expected contents.
     assert(
       !verifyInsertReplaceRanges ||
           (expectedContent != null && expectedContentIfInserting != null),
     );
+
+    var code = TestCode.parseNormalized(content);
+    if (expectedContent != null) {
+      expectedContent = normalizeNewlinesForPlatform(expectedContent);
+    }
+    if (expectedContentIfInserting != null) {
+      expectedContentIfInserting = normalizeNewlinesForPlatform(
+        expectedContentIfInserting,
+      );
+    }
 
     if (!initialized) {
       setCompletionItemSnippetSupport();

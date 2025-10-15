@@ -27,7 +27,7 @@ source_set("engine_jit_set") {
 
   deps = [
     "..:libdart_jit",
-    "../bin:dart_io_api",
+    "../bin:common_embedder_dart_io",
     "../bin:dart_kernel_platform_cc",
     "../bin:libdart_builtin",
   ]
@@ -59,7 +59,7 @@ source_set("engine_aot_set") {
 
   deps = [
     "..:libdart_aotruntime",
-    "../bin:dart_io_api",
+    "../bin:common_embedder_dart_io",
     "../bin:libdart_builtin",
   ]
 }

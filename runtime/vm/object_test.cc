@@ -5,6 +5,7 @@
 #include <limits>
 #include <memory>
 
+#include "include/bin/dart_io_api.h"
 #include "include/dart_api.h"
 
 #include "bin/builtin.h"
@@ -5903,8 +5904,8 @@ ISOLATE_UNIT_TEST_CASE(ToCString) {
   {
     TransitionVMToNative transition(thread);
     bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
-    bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
     bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+    bin::SetupDartIoLibrary({});
     bin::VmService::SetNativeResolver();
   }
 
@@ -5931,8 +5932,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSON) {
   {
     TransitionVMToNative transition(thread);
     bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
-    bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
     bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+    bin::SetupDartIoLibrary({});
     bin::VmService::SetNativeResolver();
   }
 

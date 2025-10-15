@@ -4,6 +4,8 @@
 
 #include "vm/benchmark_test.h"
 
+#include "include/bin/dart_io_api.h"
+
 #include "bin/builtin.h"
 #include "bin/file.h"
 #include "bin/isolate_data.h"
@@ -44,8 +46,8 @@ void Benchmark::RunAll(const char* executable) {
 //
 BENCHMARK(CorelibCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
-  bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+  bin::SetupDartIoLibrary({});
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
   Timer timer;
@@ -222,8 +224,8 @@ static Dart_NativeFunction NativeResolver(Dart_Handle name,
 BENCHMARK(KernelServiceCompileAll) {
   // kernel_service.dill is built with sound null safety.
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
-  bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+  bin::SetupDartIoLibrary({});
   char* dill_path = ComputeKernelServicePath(Benchmark::Executable());
   File* file = File::Open(nullptr, dill_path, File::kRead);
   EXPECT(file != nullptr);

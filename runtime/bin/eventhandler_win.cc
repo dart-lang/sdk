@@ -326,7 +326,8 @@ void Handle::ReadSyncCompleteAsync() {
   }
   char* buffer_start = pending_read_->GetBufferStart();
   DWORD bytes_read = 0;
-  BOOL ok = ReadFile(handle_, buffer_start, buffer_size, &bytes_read, nullptr);
+  BOOL ok =
+      ::ReadFile(handle_, buffer_start, buffer_size, &bytes_read, nullptr);
   if (!ok) {
     bytes_read = 0;
   }
@@ -349,8 +350,8 @@ bool Handle::IssueReadLocked(MonitorLocker* ml) {
   pending_read_ = buffer.get();
   if (supports_overlapped_io()) {
     BOOL ok =
-        ReadFile(handle_, buffer->GetBufferStart(), buffer->GetBufferSize(),
-                 nullptr, buffer->GetCleanOverlapped());
+        ::ReadFile(handle_, buffer->GetBufferStart(), buffer->GetBufferSize(),
+                   nullptr, buffer->GetCleanOverlapped());
     if (ok || (GetLastError() == ERROR_IO_PENDING)) {
       // Completing asynchronously.
       buffer.release();  // HandleIOCompletion will take ownership.
@@ -390,8 +391,8 @@ bool Handle::IssueWriteLocked(MonitorLocker* ml,
   // because completion will race with this code.
   pending_write_ = buffer.get();
   BOOL ok =
-      WriteFile(handle_, buffer->GetBufferStart(), buffer->GetBufferSize(),
-                nullptr, buffer->GetCleanOverlapped());
+      ::WriteFile(handle_, buffer->GetBufferStart(), buffer->GetBufferSize(),
+                  nullptr, buffer->GetCleanOverlapped());
   if (ok || (GetLastError() == ERROR_IO_PENDING)) {
     // Completing asynchronously.
     buffer.release();  // HandleIOCompletion will take ownership.
@@ -765,8 +766,9 @@ void StdHandle::WriteSyncCompleteAsync() {
   ASSERT(HasPendingWrite());
 
   DWORD bytes_written = -1;
-  BOOL ok = WriteFile(handle_, pending_write_->GetBufferStart(),
-                      pending_write_->GetBufferSize(), &bytes_written, nullptr);
+  BOOL ok =
+      ::WriteFile(handle_, pending_write_->GetBufferStart(),
+                  pending_write_->GetBufferSize(), &bytes_written, nullptr);
   if (!ok) {
     bytes_written = 0;
   }

@@ -180,10 +180,16 @@ class _TemplateCompiler {
       if (isShared) 'sharedCode: SharedCode.$name',
     ];
 
+    String interpolatedProblemMessage = interpolate(problemMessage)!;
+    String? interpolatedCorrectionMessage = interpolate(correctionMessage);
+    if (hasLabeler) {
+      interpolatedProblemMessage += " + labeler.originMessages";
+    }
+
     if (parameters.isEmpty) {
-      codeArguments.add('problemMessage: r"""$problemMessage"""');
+      codeArguments.add('problemMessage: $interpolatedProblemMessage');
       if (correctionMessage != null) {
-        codeArguments.add('correctionMessage: r"""$correctionMessage"""');
+        codeArguments.add('correctionMessage: $interpolatedCorrectionMessage');
       }
 
       return """
@@ -195,22 +201,9 @@ const MessageCode code$name =
 
     List<String> templateArguments = <String>[];
     templateArguments.add('\"$name\"');
-    templateArguments.add('problemMessageTemplate: r"""$problemMessage"""');
-    if (correctionMessage != null) {
-      templateArguments.add(
-        'correctionMessageTemplate: r"""$correctionMessage"""',
-      );
-    }
-
     templateArguments.add("withArgumentsOld: _withArgumentsOld$name");
     templateArguments.add("withArguments: _withArguments$name");
     templateArguments.addAll(codeArguments);
-
-    String interpolatedProblemMessage = interpolate(problemMessage)!;
-    String? interpolatedCorrectionMessage = interpolate(correctionMessage);
-    if (hasLabeler) {
-      interpolatedProblemMessage += " + labeler.originMessages";
-    }
 
     List<String> messageArguments = <String>[
       "problemMessage: $interpolatedProblemMessage",
@@ -281,15 +274,16 @@ Message _withArgumentsOld$name(${positionalParameters.join(', ')}) =>
 
   String? interpolate(String? text) {
     if (text == null) return null;
-    text = text.replaceAll(r"$", r"\$").replaceAllMapped(placeholderPattern, (
-      Match m,
-    ) {
-      var placeholder = ParsedPlaceholder.fromMatch(m);
-      var interpolator = interpolators[placeholder] ??= computeInterpolator(
-        placeholder,
-      );
-      return "\${$interpolator}";
-    });
+    text = text
+        .replaceAll(r'\', r'\\')
+        .replaceAll(r"$", r"\$")
+        .replaceAllMapped(placeholderPattern, (Match m) {
+          var placeholder = ParsedPlaceholder.fromMatch(m);
+          var interpolator = interpolators[placeholder] ??= computeInterpolator(
+            placeholder,
+          );
+          return "\${$interpolator}";
+        });
     return "\"\"\"$text\"\"\"";
   }
 

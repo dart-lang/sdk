@@ -24,7 +24,7 @@ bool Stdin::ReadByte(intptr_t fd, int* byte) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   uint8_t buffer[1];
   DWORD read = 0;
-  BOOL success = ReadFile(h, buffer, 1, &read, nullptr);
+  BOOL success = ::ReadFile(h, buffer, 1, &read, nullptr);
   if (!success && (GetLastError() != ERROR_BROKEN_PIPE)) {
     return false;
   }
