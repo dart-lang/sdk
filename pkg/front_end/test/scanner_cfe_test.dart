@@ -6,12 +6,12 @@ import 'dart:convert';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     as usedForFuzzTesting;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart';
 import 'package:front_end/src/codes/cfe_codes.dart';
 import 'package:test/test.dart';

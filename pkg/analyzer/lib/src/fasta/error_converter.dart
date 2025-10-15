@@ -353,7 +353,7 @@ class FastaErrorReporter {
       case PseudoSharedCode.unexpectedSeparatorInNumber:
       case PseudoSharedCode.unsupportedOperator:
         // This is handled by `translateErrorToken` in
-        // `package:_fe_analyzer_shared/src/scanner/errors.dart`.
+        // `package:analyzer/src/dart/error/syntactic_errors.dart`.
         assert(false, 'Should be handled by translateErrorToken');
         return;
       case PseudoSharedCode.setOrMapLiteralTooManyTypeArguments:

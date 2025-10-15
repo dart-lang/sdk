@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
-    show ScannerErrorCode;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart'
+    show ScannerErrorCode;
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
     show translateErrorToken;
 import 'package:test/test.dart';
