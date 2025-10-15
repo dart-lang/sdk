@@ -9523,38 +9523,6 @@ codeJsInteropDartJsInteropAnnotationForStaticInteropOnly = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function(String name),
-  Message Function({required String name})
->
-codeJsInteropDisallowedInteropLibraryInDart2Wasm = const Template(
-  "JsInteropDisallowedInteropLibraryInDart2Wasm",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropDisallowedInteropLibraryInDart2Wasm,
-  withArguments: _withArgumentsJsInteropDisallowedInteropLibraryInDart2Wasm,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropDisallowedInteropLibraryInDart2Wasm({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeJsInteropDisallowedInteropLibraryInDart2Wasm,
-    problemMessage:
-        """JS interop library '${name_0}' can't be imported when compiling to Wasm.""",
-    correctionMessage:
-        """Try using 'dart:js_interop' or 'dart:js_interop_unsafe' instead.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropDisallowedInteropLibraryInDart2Wasm(
-  String name,
-) => _withArgumentsJsInteropDisallowedInteropLibraryInDart2Wasm(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropEnclosingClassJSAnnotation = const MessageCode(
   "JsInteropEnclosingClassJSAnnotation",
   problemMessage:

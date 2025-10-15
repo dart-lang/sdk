@@ -162,10 +162,6 @@ JSMethods performJSInteropTransformations(List<Library> libraries,
     CoreTypes coreTypes, ClassHierarchy classHierarchy) {
   Set<Library> transitiveImportingJSInterop = {
     ...calculateTransitiveImportsOfJsInteropIfUsed(
-        libraries, Uri.parse("package:js/js.dart")),
-    ...calculateTransitiveImportsOfJsInteropIfUsed(
-        libraries, Uri.parse("dart:_js_annotations")),
-    ...calculateTransitiveImportsOfJsInteropIfUsed(
         libraries, Uri.parse("dart:_js_helper")),
     ...calculateTransitiveImportsOfJsInteropIfUsed(
         libraries, Uri.parse("dart:js_interop")),

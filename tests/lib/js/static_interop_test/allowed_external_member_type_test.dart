@@ -4,15 +4,6 @@
 
 import 'dart:js_interop';
 
-import 'package:js/js.dart' as pkgJs;
-
-@pkgJs.JS()
-class PkgJS {}
-
-@pkgJs.JS()
-@pkgJs.anonymous
-class Anonymous {}
-
 // Test `@staticInterop`, interop extension type, and top-level external
 // members.
 
@@ -49,13 +40,6 @@ extension JSClassExtension on StaticInterop {
   //                     ^
   // [web] External JS interop member contains an invalid type: 'List<Object?>'.
 
-  external PkgJS get getter;
-  //                 ^
-  // [web] External JS interop member contains an invalid type: 'PkgJS'.
-
-  external set setter(Anonymous _);
-  //           ^
-  // [web] External JS interop member contains an invalid type: 'Anonymous'.
   external Future operator [](List _);
   //                       ^
   // [web] External JS interop member contains invalid types in its function signature: '*Future<dynamic>* Function(*List<dynamic>*)'.
@@ -108,13 +92,6 @@ extension type ExtensionType._(JSObject _) {
   //                     ^
   // [web] External JS interop member contains an invalid type: 'List<Object?>'.
 
-  external PkgJS get getter;
-  //                 ^
-  // [web] External JS interop member contains an invalid type: 'PkgJS'.
-
-  external set setter(Anonymous _);
-  //           ^
-  // [web] External JS interop member contains an invalid type: 'Anonymous'.
   external Future operator [](List _);
   //                       ^
   // [web] External JS interop member contains invalid types in its function signature: '*Future<dynamic>* Function(*List<dynamic>*)'.
@@ -131,14 +108,6 @@ extension ExtensionTypeExtension on ExtensionType {
   external List<Object?> extensionField;
   //                     ^
   // [web] External JS interop member contains an invalid type: 'List<Object?>'.
-
-  external PkgJS get extensionGetter;
-  //                 ^
-  // [web] External JS interop member contains an invalid type: 'PkgJS'.
-
-  external set extensionSetter(Anonymous _);
-  //           ^
-  // [web] External JS interop member contains an invalid type: 'Anonymous'.
 }
 
 @JS()
@@ -150,30 +119,6 @@ external void method(List _);
 external List<Object?> field;
 //                     ^
 // [web] External JS interop member contains an invalid type: 'List<Object?>'.
-
-@JS()
-external PkgJS get getter;
-//                 ^
-// [web] External JS interop member contains an invalid type: 'PkgJS'.
-
-@JS()
-external set setter(Anonymous _);
-//           ^
-// [web] External JS interop member contains an invalid type: 'Anonymous'.
-
-@JS()
-external void optionalParameters(List _, [Anonymous __]);
-//            ^
-// [web] External JS interop member contains invalid types in its function signature: 'void Function(*List<dynamic>*, *Anonymous*)'.
-
-// While users can't use both positional and named parameters, make sure that
-// the error around invalid types is still accurate.
-@JS()
-external void positionalAndNamedParameters(List _, {Anonymous a});
-//            ^
-// [web] External JS interop member contains invalid types in its function signature: 'void Function(*List<dynamic>*, {*a: Anonymous*})'.
-//                                                            ^
-// [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
 
 // Allowed types.
 

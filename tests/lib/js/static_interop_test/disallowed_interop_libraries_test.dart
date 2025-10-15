@@ -9,16 +9,8 @@ import 'dart:js';
 // [web] Dart library 'dart:js' is not available on this platform.
 
 import 'dart:js_util';
-// [error column 1]
-// [web] JS interop library 'dart:js_util' can't be imported when compiling to Wasm.
-
-import 'package:js/js.dart';
-// [error column 1]
-// [web] JS interop library 'package:js/js.dart' can't be imported when compiling to Wasm.
-
-import 'package:js/js_util.dart';
-// [error column 1]
-// [web] JS interop library 'package:js/js_util.dart' can't be imported when compiling to Wasm.
+//     ^
+// [web] Dart library 'dart:js_util' is not available on this platform.
 
 import 'dart:ffi';
 // [error column 1]

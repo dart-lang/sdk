@@ -67,7 +67,6 @@ _fe_analyzer_shared/InvalidSuperInInitializer/example: missingExample # Only iss
 _fe_analyzer_shared/InvalidThisInInitializer/example: missingExample # Only issued in Analyzer
 front_end/JsInteropDartClassExtendsJSClass/example: missingExample # Web compiler specific
 front_end/JsInteropDartJsInteropAnnotationForStaticInteropOnly/example: missingExample # Web compiler specific
-front_end/JsInteropDisallowedInteropLibraryInDart2Wasm/example: missingExample # Web compiler specific
 front_end/JsInteropEnclosingClassJSAnnotation/example: missingExample # Web compiler specific
 front_end/JsInteropExportClassNotMarkedExportable/example: missingExample # Web compiler specific
 front_end/JsInteropExportDartInterfaceHasNonEmptyJSExportValue/example: missingExample # Web compiler specific

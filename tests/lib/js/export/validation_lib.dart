@@ -1,12 +1,8 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests uses of `@JSExport` and `createDartExport` or `createJSInteropWrapper`.
-
 import 'dart:js_interop';
-
-import 'package:js/js_util.dart';
 
 // You can either have a @JSExport annotation on the entire class or select
 // members only, and they may contain members that are ignored.
@@ -96,35 +92,6 @@ class ExportWithEmptyExportSuperclass extends ExportEmpty {}
 // `createDartExport`.
 class NoExportWithExportSuperclass extends ExportAll {}
 
-void testNumberOfExports() {
-  createDartExport(ExportAll());
-  createDartExport(ExportSome());
-  createDartExport(NoAnnotations());
-  // [error column 3]
-  // [web] Class 'NoAnnotations' does not have a `@JSExport` on it or any of its members.
-  createDartExport(ExportNoneQualify());
-  createDartExport(ExportEmpty());
-  createDartExport(ExportWithNoExportSuperclass());
-  createDartExport(ExportWithEmptyExportSuperclass());
-  createDartExport(NoExportWithExportSuperclass());
-  // [error column 3]
-  // [web] Class 'NoExportWithExportSuperclass' does not have a `@JSExport` on it or any of its members.
-
-  // Same method with different name and type.
-  createJSInteropWrapper(ExportAll());
-  createJSInteropWrapper(ExportSome());
-  createJSInteropWrapper(NoAnnotations());
-  // [error column 3]
-  // [web] Class 'NoAnnotations' does not have a `@JSExport` on it or any of its members.
-  createJSInteropWrapper(ExportNoneQualify());
-  createJSInteropWrapper(ExportEmpty());
-  createJSInteropWrapper(ExportWithNoExportSuperclass());
-  createJSInteropWrapper(ExportWithEmptyExportSuperclass());
-  createJSInteropWrapper(NoExportWithExportSuperclass());
-  // [error column 3]
-  // [web] Class 'NoExportWithExportSuperclass' does not have a `@JSExport` on it or any of its members.
-}
-
 @JS()
 @staticInterop
 class StaticInterop {
@@ -132,27 +99,6 @@ class StaticInterop {
 }
 
 typedef InvalidType = void Function();
-
-void testUseDartInterface() {
-  // Needs to be an interface type.
-  createDartExport<InvalidType>(() {});
-  // [error column 3]
-  // [web] Type argument 'void Function()' needs to be an interface type.
-
-  // Can't use an interop class.
-  createDartExport(StaticInterop());
-  // [error column 3]
-  // [web] Type argument 'StaticInterop' needs to be a non-JS interop type.
-
-  createJSInteropWrapper<InvalidType>(() {});
-  // [error column 3]
-  // [web] Type argument 'void Function()' needs to be an interface type.
-
-  // Can't use an interop class.
-  createJSInteropWrapper(StaticInterop());
-  // [error column 3]
-  // [web] Type argument 'StaticInterop' needs to be a non-JS interop type.
-}
 
 // Incompatible members can't have the same export name using renaming.
 @JSExport()
@@ -182,14 +128,6 @@ class GetSetNoCollision {
   set renamedSetter(int val) => throw '';
 }
 
-void testCollisions() {
-  createDartExport(RenameCollision());
-  createDartExport(GetSetNoCollision());
-
-  createJSInteropWrapper(RenameCollision());
-  createJSInteropWrapper(GetSetNoCollision());
-}
-
 // Class annotation values are warnings
 @JSExport('Invalid')
 class ClassWithValue {
@@ -203,12 +141,6 @@ mixin MixinWithValue {
   //  ^
   // [web] The value in the `@JSExport` annotation on the class or mixin 'MixinWithValue' will be ignored.
   int get getSet => throw '';
-}
-
-void testClassExportWithValue() {
-  createDartExport(ClassWithValue());
-
-  createJSInteropWrapper(ClassWithValue());
 }
 
 // `JSExport` classes can't export methods that define type parameters as those
@@ -265,22 +197,4 @@ class ExportUnexportableMembers {
   static int staticMethod() => 0;
   //         ^
   // [web] Member 'staticMethod' is not a concrete instance member or declares type parameters, and therefore can't be exported.
-}
-
-void testClassWithGenerics() {
-  createDartExport(GenericAll());
-  createDartExport(GenericSome());
-  createDartExport(GenericSome<int>());
-
-  createJSInteropWrapper(GenericAll());
-  createJSInteropWrapper(GenericSome());
-  createJSInteropWrapper(GenericSome<int>());
-}
-
-void main() {
-  testNumberOfExports();
-  testUseDartInterface();
-  testCollisions();
-  testClassExportWithValue();
-  testClassWithGenerics();
 }

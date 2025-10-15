@@ -5,10 +5,7 @@
 // Test that type parameters in external static interop members extend a static
 // interop type when using dart:js_interop.
 
-library external_member_type_parameters_static_test;
-
 import 'dart:js_interop';
-import 'package:js/js.dart' as pkgJs;
 
 @JS()
 external T validTopLevel<T extends JSObject>(T t);
@@ -153,30 +150,6 @@ extension UninstantiatedExtensionTypeExtension<
   // [web] External JS interop member contains an invalid type: 'T'.
   external U get extensionGetU;
   external V get extensionGetV;
-}
-
-// We should ignore classes and extensions on classes that use package:js to
-// avoid a breaking change.
-@pkgJs.JS()
-external T pkgJsTopLevel<T>(T t);
-
-@pkgJs.JS()
-@staticInterop
-class PkgJsStaticInterop<T> {
-  external factory PkgJsStaticInterop(T t);
-}
-
-extension PkgJsStaticInteropExtension<T> on PkgJsStaticInterop<T> {
-  external T getT;
-}
-
-@pkgJs.JS()
-class PkgJs<T> {
-  external PkgJs(T t);
-}
-
-extension PkgJsExtension<T> on PkgJs<T> {
-  external T getT;
 }
 
 // Test generic types where all the type parameters are instantiated.

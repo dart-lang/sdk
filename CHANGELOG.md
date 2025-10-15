@@ -2,6 +2,17 @@
 
 **Released on:** Unreleased
 
+### Libraries
+
+#### `dart:js_util`
+
+- dart2wasm no longer supports `dart:js_util`. Any code that imports
+  `dart:js_util` will no longer compile with dart2wasm. Consequently, code that
+  depends on `package:js` will no longer compile with dart2wasm either.
+  See [#61550][] for more details.
+
+[#61550]: https://github.com/dart-lang/sdk/issues/61550
+
 ## 3.10.0
 
 **Released on:** Unreleased
