@@ -4,8 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
-    show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
@@ -16,6 +14,8 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
+    show translateErrorToken;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';

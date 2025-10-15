@@ -6,6 +6,7 @@
 /// @docImport 'package:analyzer/src/fasta/ast_builder.dart';
 /// @docImport 'package:analyzer/src/fasta/error_converter.dart';
 /// @docImport 'package:analyzer/src/diagnostic/diagnostic_code_values.dart';
+/// @docImport 'package:analyzer/src/dart/scanner/translate_error_token.dart';
 library _fe_analyzer_shared.messages.codes;
 
 import 'dart:convert' show JsonEncoder, json;
