@@ -10,7 +10,7 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 import 'package:fixnum/fixnum.dart';
 
 import 'native_version_dummy.dart'
-    if (dart.library.js) 'native_version_javascript.dart';
+    if (dart.library.js_interop) 'native_version_javascript.dart';
 
 // Benchmark BigInt and Int64 formatting and parsing.
 
