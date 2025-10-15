@@ -11,7 +11,7 @@ import 'schema.dart' as schema;
 
 /// Returns the name of the [constructor].
 ///
-/// This is either '<class-name>' or '<class-name>.<constructor-name>',
+/// This is either `<class-name>` or `<class-name>.<constructor-name>`,
 /// depending on whether the constructor is a named constructor.
 String _computeConstructorElementName(ConstructorElement constructor) {
   var name = constructor.enclosingElement.name!;

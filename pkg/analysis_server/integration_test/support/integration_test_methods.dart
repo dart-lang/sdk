@@ -32,7 +32,7 @@ abstract class IntegrationTest {
   ///
   /// Returns
   ///
-  /// version: String
+  /// * `version: String`
   ///
   ///   The version number of the analysis server.
   Future<ServerGetVersionResult> sendServerGetVersion() async {
@@ -65,7 +65,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// subscriptions: List<ServerService>
+  /// * `subscriptions: List<ServerService>`
   ///
   ///   A list of the services being subscribed to.
   Future<void> sendServerSetSubscriptions(
@@ -88,7 +88,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// id: String
+  /// * `id: String`
   ///
   ///   The id of the request that should be cancelled.
   Future<void> sendServerCancelRequest(String id) async {
@@ -104,7 +104,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// requests: List<String>
+  /// * `requests: List<String>`
   ///
   ///   The names of the requests that the server can safely send to the
   ///   client. Only requests whose name is in the list will be sent.
@@ -120,7 +120,7 @@ abstract class IntegrationTest {
   ///   - `openUrlRequest`
   ///   - `showMessageRequest`
   ///
-  /// supportsUris: bool (optional)
+  /// * `supportsUris: bool (optional)`
   ///
   ///   True if the client supports the server sending URIs in place of file
   ///   paths.
@@ -134,7 +134,7 @@ abstract class IntegrationTest {
   ///   LSP notifications are automatically enabled when the client sets this
   ///   capability.
   ///
-  /// lspCapabilities: object (optional)
+  /// * `lspCapabilities: object (optional)`
   ///
   ///   LSP capabilities of the client as defined by the Language Server
   ///   Protocol specification.
@@ -172,7 +172,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// url: String
+  /// * `url: String`
   ///
   ///   The URL to be opened.
   Future<void> sendServerOpenUrlRequest(String url) async {
@@ -200,21 +200,21 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// type: MessageType
+  /// * `type: MessageType`
   ///
   ///   The type of the message.
   ///
-  /// message: String
+  /// * `message: String`
   ///
   ///   The message to be displayed.
   ///
-  /// actions: List<MessageAction>
+  /// * `actions: List<MessageAction>`
   ///
   ///   The labels of the buttons by which the user can dismiss the message.
   ///
   /// Returns
   ///
-  /// action: String (optional)
+  /// * `action: String (optional)`
   ///
   ///   The label of the action that was selected by the user. May be omitted
   ///   or `null` if the user dismissed the message without clicking an action
@@ -247,11 +247,11 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// version: String
+  /// * `version: String`
   ///
   ///   The version number of the analysis server.
   ///
-  /// pid: int
+  /// * `pid: int`
   ///
   ///   The process id of the analysis server process.
   late final Stream<ServerConnectedParams> onServerConnected =
@@ -272,16 +272,16 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// isFatal: bool
+  /// * `isFatal: bool`
   ///
   ///   True if the error is a fatal error, meaning that the server will
   ///   shutdown automatically after sending this notification.
   ///
-  /// message: String
+  /// * `message: String`
   ///
   ///   The error message indicating what kind of error was encountered.
   ///
-  /// stackTrace: String
+  /// * `stackTrace: String`
   ///
   ///   The stack trace associated with the generation of the error, used for
   ///   debugging the server.
@@ -298,7 +298,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// message: String
+  /// * `message: String`
   ///
   ///   The error message indicating what kind of error was encountered.
   late final Stream<ServerPluginErrorParams> onServerPluginError =
@@ -313,7 +313,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// entry: ServerLogEntry
+  /// * `entry: ServerLogEntry`
   late final Stream<ServerLogParams> onServerLog = _onServerLog.stream
       .asBroadcastStream();
 
@@ -329,12 +329,12 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// analysis: AnalysisStatus (optional)
+  /// * `analysis: AnalysisStatus (optional)`
   ///
   ///   The current status of analysis, including whether analysis is being
   ///   performed and if so what is being analyzed.
   ///
-  /// pub: PubStatus (optional)
+  /// * `pub: PubStatus (optional)`
   ///
   ///   The current status of pub execution, indicating whether we are
   ///   currently running pub.
@@ -370,13 +370,13 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file for which errors are being requested.
   ///
   /// Returns
   ///
-  /// errors: List<AnalysisError>
+  /// * `errors: List<AnalysisError>`
   ///
   ///   The errors associated with the file.
   Future<AnalysisGetErrorsResult> sendAnalysisGetErrors(String file) async {
@@ -399,17 +399,17 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file in which hover information is being requested.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset for which hover information is being requested.
   ///
   /// Returns
   ///
-  /// hovers: List<HoverInformation>
+  /// * `hovers: List<HoverInformation>`
   ///
   ///   The hover information associated with the location. The list will be
   ///   empty if no information could be determined for the location. The list
@@ -444,23 +444,23 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file in which import information is being requested.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset of the region for which import information is being
   ///   requested.
   ///
-  /// length: int
+  /// * `length: int`
   ///
   ///   The length of the region for which import information is being
   ///   requested.
   ///
   /// Returns
   ///
-  /// elements: List<ImportedElements>
+  /// * `elements: List<ImportedElements>`
   ///
   ///   The information about the elements that are referenced in the specified
   ///   region of the specified file that come from imported libraries.
@@ -492,12 +492,12 @@ abstract class IntegrationTest {
   ///
   /// Returns
   ///
-  /// libraries: List<FilePath>
+  /// * `libraries: List<FilePath>`
   ///
   ///   A list of the paths of library elements referenced by files in existing
   ///   analysis roots.
   ///
-  /// packageMap: Map<String, Map<String, List<FilePath>>>
+  /// * `packageMap: Map<String, Map<String, List<FilePath>>>`
   ///
   ///   A mapping from context source roots to package maps which map package
   ///   names to source directories for use in client-side package URI
@@ -536,33 +536,33 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file in which navigation information is being requested.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset of the region for which navigation information is being
   ///   requested.
   ///
-  /// length: int
+  /// * `length: int`
   ///
   ///   The length of the region for which navigation information is being
   ///   requested.
   ///
   /// Returns
   ///
-  /// files: List<FilePath>
+  /// * `files: List<FilePath>`
   ///
   ///   A list of the paths of files that are referenced by the navigation
   ///   targets.
   ///
-  /// targets: List<NavigationTarget>
+  /// * `targets: List<NavigationTarget>`
   ///
   ///   A list of the navigation targets that are referenced by the navigation
   ///   regions.
   ///
-  /// regions: List<NavigationRegion>
+  /// * `regions: List<NavigationRegion>`
   ///
   ///   A list of the navigation regions within the requested region of the
   ///   file.
@@ -595,13 +595,13 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file for which reachable source information is being requested.
   ///
   /// Returns
   ///
-  /// sources: Map<String, List<String>>
+  /// * `sources: Map<String, List<String>>`
   ///
   ///   A mapping from source URIs to directly reachable source URIs. For
   ///   example, a file "foo.dart" that imports "bar.dart" would have the
@@ -647,26 +647,26 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file in which signature information is being requested.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The location for which signature information is being requested.
   ///
   /// Returns
   ///
-  /// name: String
+  /// * `name: String`
   ///
   ///   The name of the function being invoked at the given offset.
   ///
-  /// parameters: List<ParameterInfo>
+  /// * `parameters: List<ParameterInfo>`
   ///
   ///   A list of information about each of the parameters of the function
   ///   being invoked.
   ///
-  /// dartdoc: String (optional)
+  /// * `dartdoc: String (optional)`
   ///
   ///   The dartdoc associated with the function being invoked. Other than the
   ///   removal of the comment delimiters, including leading asterisks in the
@@ -726,16 +726,16 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// included: List<FilePath>
+  /// * `included: List<FilePath>`
   ///
   ///   A list of the files and directories that should be analyzed.
   ///
-  /// excluded: List<FilePath>
+  /// * `excluded: List<FilePath>`
   ///
   ///   A list of the files and directories within the included directories
   ///   that should not be analyzed.
   ///
-  /// packageRoots: Map<FilePath, FilePath> (optional)
+  /// * `packageRoots: Map<FilePath, FilePath> (optional)`
   ///
   ///   A mapping from source directories to package roots that should override
   ///   the normal package: URI resolution mechanism.
@@ -774,7 +774,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// subscriptions: List<GeneralAnalysisService>
+  /// * `subscriptions: List<GeneralAnalysisService>`
   ///
   ///   A list of the services being subscribed to.
   Future<void> sendAnalysisSetGeneralSubscriptions(
@@ -807,7 +807,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// files: List<FilePath>
+  /// * `files: List<FilePath>`
   ///
   ///   The files that are to be a priority for analysis.
   Future<void> sendAnalysisSetPriorityFiles(List<String> files) async {
@@ -844,7 +844,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// subscriptions: Map<AnalysisService, List<FilePath>>
+  /// * `subscriptions: Map<AnalysisService, List<FilePath>>`
   ///
   ///   A table mapping services to a list of the files being subscribed to the
   ///   service.
@@ -867,8 +867,8 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// files: Map<FilePath, AddContentOverlay | ChangeContentOverlay |
-  /// RemoveContentOverlay>
+  /// * `files: Map<FilePath, AddContentOverlay | ChangeContentOverlay |
+  /// RemoveContentOverlay>`
   ///
   ///   A table mapping the files whose content has changed to a description of
   ///   the content change.
@@ -900,7 +900,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// options: AnalysisOptions
+  /// * `options: AnalysisOptions`
   ///
   ///   The options that are to be used to control analysis.
   // TODO(srawlins): Provide a deprecation message, or remove.
@@ -922,7 +922,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// directories: List<FilePath>
+  /// * `directories: List<FilePath>`
   ///
   ///   A list of the paths of the files that are being analyzed.
   late final Stream<AnalysisAnalyzedFilesParams> onAnalysisAnalyzedFiles =
@@ -940,11 +940,11 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file the closing labels relate to.
   ///
-  /// labels: List<ClosingLabel>
+  /// * `labels: List<ClosingLabel>`
   ///
   ///   Closing labels relevant to the file. Each item represents a useful
   ///   label associated with some range which may be useful to display to the
@@ -966,11 +966,11 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the errors.
   ///
-  /// errors: List<AnalysisError>
+  /// * `errors: List<AnalysisError>`
   ///
   ///   The errors contained in the file.
   late final Stream<AnalysisErrorsParams> onAnalysisErrors = _onAnalysisErrors
@@ -995,7 +995,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// files: List<FilePath>
+  /// * `files: List<FilePath>`
   ///
   ///   The files that are no longer being analyzed.
   late final Stream<AnalysisFlushResultsParams> onAnalysisFlushResults =
@@ -1017,11 +1017,11 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the folding regions.
   ///
-  /// regions: List<FoldingRegion>
+  /// * `regions: List<FoldingRegion>`
   ///
   ///   The folding regions contained in the file.
   late final Stream<AnalysisFoldingParams> onAnalysisFolding =
@@ -1040,11 +1040,11 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the highlight regions.
   ///
-  /// regions: List<HighlightRegion>
+  /// * `regions: List<HighlightRegion>`
   ///
   ///   The highlight regions contained in the file. Each highlight region
   ///   represents a particular syntactic or semantic meaning associated with
@@ -1068,15 +1068,15 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file with which the implementations are associated.
   ///
-  /// classes: List<ImplementedClass>
+  /// * `classes: List<ImplementedClass>`
   ///
   ///   The classes defined in the file that are implemented or extended.
   ///
-  /// members: List<ImplementedMember>
+  /// * `members: List<ImplementedMember>`
   ///
   ///   The members defined in the file that are implemented or overridden.
   late final Stream<AnalysisImplementedParams> onAnalysisImplemented =
@@ -1096,19 +1096,19 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file whose information has been invalidated.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset of the invalidated region.
   ///
-  /// length: int
+  /// * `length: int`
   ///
   ///   The length of the invalidated region.
   ///
-  /// delta: int
+  /// * `delta: int`
   ///
   ///   The delta to be applied to the offsets in information that follows the
   ///   invalidated region in order to update it so that it doesn't need to be
@@ -1129,11 +1129,11 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the navigation regions.
   ///
-  /// regions: List<NavigationRegion>
+  /// * `regions: List<NavigationRegion>`
   ///
   ///   The navigation regions contained in the file. The regions are sorted by
   ///   their offsets. Each navigation region represents a list of targets
@@ -1143,12 +1143,12 @@ abstract class IntegrationTest {
   ///   versions of a package. Note that the navigation regions that are
   ///   returned do not overlap other navigation regions.
   ///
-  /// targets: List<NavigationTarget>
+  /// * `targets: List<NavigationTarget>`
   ///
   ///   The navigation targets referenced in the file. They are referenced by
   ///   `NavigationRegion`s by their index in this array.
   ///
-  /// files: List<FilePath>
+  /// * `files: List<FilePath>`
   ///
   ///   The files containing navigation targets referenced in the file. They
   ///   are referenced by `NavigationTarget`s by their index in this array.
@@ -1168,11 +1168,11 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file in which the references occur.
   ///
-  /// occurrences: List<Occurrences>
+  /// * `occurrences: List<Occurrences>`
   ///
   ///   The occurrences of references to elements within the file.
   late final Stream<AnalysisOccurrencesParams> onAnalysisOccurrences =
@@ -1191,15 +1191,15 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file with which the outline is associated.
   ///
-  /// kind: FileKind
+  /// * `kind: FileKind`
   ///
   ///   The kind of the file.
   ///
-  /// libraryName: String (optional)
+  /// * `libraryName: String (optional)`
   ///
   ///   The name of the library defined by the file using a "library"
   ///   directive, or referenced by a "part of" directive. If both "library"
@@ -1207,7 +1207,7 @@ abstract class IntegrationTest {
   ///   takes precedence. This field will be omitted if the file has neither
   ///   "library" nor "part of" directives.
   ///
-  /// outline: Outline
+  /// * `outline: Outline`
   ///
   ///   The outline associated with the file.
   late final Stream<AnalysisOutlineParams> onAnalysisOutline =
@@ -1226,11 +1226,11 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file with which the overrides are associated.
   ///
-  /// overrides: List<Override>
+  /// * `overrides: List<Override>`
   ///
   ///   The overrides associated with the file.
   late final Stream<AnalysisOverridesParams> onAnalysisOverrides =
@@ -1247,28 +1247,28 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the point at which suggestions are to be made.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset within the file at which suggestions are to be made.
   ///
-  /// maxResults: int
+  /// * `maxResults: int`
   ///
   ///   The maximum number of suggestions to return. If the number of
   ///   suggestions after filtering is greater than the `maxResults`, then
   ///   `isIncomplete` is set to `true`.
   ///
-  /// completionCaseMatchingMode: CompletionCaseMatchingMode (optional)
+  /// * `completionCaseMatchingMode: CompletionCaseMatchingMode (optional)`
   ///
   ///   The mode of code completion being invoked. If no value is provided,
   ///   `MATCH_FIRST_CHAR` will be assumed.
   ///
   /// Returns
   ///
-  /// replacementOffset: int
+  /// * `replacementOffset: int`
   ///
   ///   The offset of the start of the text to be replaced. This will be
   ///   different from the offset used to request the completion suggestions if
@@ -1276,14 +1276,14 @@ abstract class IntegrationTest {
   ///   particular, the replacementOffset will be the offset of the beginning
   ///   of said identifier.
   ///
-  /// replacementLength: int
+  /// * `replacementLength: int`
   ///
   ///   The length of the text to be replaced if the remainder of the
   ///   identifier containing the cursor is to be replaced when the suggestion
   ///   is applied (that is, the number of characters in the existing
   ///   identifier).
   ///
-  /// suggestions: List<CompletionSuggestion>
+  /// * `suggestions: List<CompletionSuggestion>`
   ///
   ///   The completion suggestions being reported. This list is filtered by the
   ///   already existing prefix, and sorted first by relevance, and (if the
@@ -1296,7 +1296,7 @@ abstract class IntegrationTest {
   ///   libraries. Items from not yet imported libraries will have
   ///   `isNotImported` set to `true`.
   ///
-  /// isIncomplete: bool
+  /// * `isIncomplete: bool`
   ///
   ///   True if the number of suggestions after filtering was greater than the
   ///   requested `maxResults`.
@@ -1338,7 +1338,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// paths: List<LibraryPathSet>
+  /// * `paths: List<LibraryPathSet>`
   ///
   ///   A list of objects each containing a path and the additional libraries
   ///   from which the client is interested in receiving completion
@@ -1367,35 +1367,35 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The path of the file into which this completion is being inserted.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset in the file where the completion will be inserted.
   ///
-  /// completion: String
+  /// * `completion: String`
   ///
   ///   The `completion` from the selected `CompletionSuggestion`. It could be
   ///   a name of a class, or a name of a constructor in the form
   ///   "typeName.constructorName()", or an enumeration constant in the form
   ///   "enumName.constantName", etc.
   ///
-  /// libraryUri: String
+  /// * `libraryUri: String`
   ///
   ///   The URI of the library to import, so that the element referenced in the
   ///   `completion` becomes accessible.
   ///
   /// Returns
   ///
-  /// completion: String
+  /// * `completion: String`
   ///
   ///   The full text to insert, which possibly includes now an import prefix.
   ///   The client should insert this text, not the `completion` from the
   ///   selected `CompletionSuggestion`.
   ///
-  /// change: SourceChange
+  /// * `change: SourceChange`
   ///
   ///   A change for the client to apply to make the accepted completion
   ///   suggestion available. In most cases the change is to add a new import
@@ -1429,11 +1429,11 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The defining file of the library.
   ///
-  /// imports: ExistingImports
+  /// * `imports: ExistingImports`
   ///
   ///   The existing imports in the library.
   late final Stream<CompletionExistingImportsParams>
@@ -1452,23 +1452,23 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the declaration of or reference to the element used
   ///   to define the search.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset within the file of the declaration of or reference to the
   ///   element.
   ///
-  /// includePotential: bool
+  /// * `includePotential: bool`
   ///
   ///   True if potential matches are to be included in the results.
   ///
   /// Returns
   ///
-  /// id: SearchId (optional)
+  /// * `id: SearchId (optional)`
   ///
   ///   The identifier used to associate results with this search request.
   ///
@@ -1476,7 +1476,7 @@ abstract class IntegrationTest {
   ///   absent, and no results will be reported via the search.results
   ///   notification.
   ///
-  /// element: Element (optional)
+  /// * `element: Element (optional)`
   ///
   ///   The element referenced or defined at the given offset and whose
   ///   references will be returned in the search results.
@@ -1511,13 +1511,13 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// name: String
+  /// * `name: String`
   ///
   ///   The name of the declarations to be found.
   ///
   /// Returns
   ///
-  /// id: SearchId
+  /// * `id: SearchId`
   ///
   ///   The identifier used to associate results with this search request.
   Future<SearchFindMemberDeclarationsResult> sendSearchFindMemberDeclarations(
@@ -1546,13 +1546,13 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// name: String
+  /// * `name: String`
   ///
   ///   The name of the references to be found.
   ///
   /// Returns
   ///
-  /// id: SearchId
+  /// * `id: SearchId`
   ///
   ///   The identifier used to associate results with this search request.
   Future<SearchFindMemberReferencesResult> sendSearchFindMemberReferences(
@@ -1580,14 +1580,14 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// pattern: String
+  /// * `pattern: String`
   ///
   ///   The regular expression used to match the names of the declarations to
   ///   be found.
   ///
   /// Returns
   ///
-  /// id: SearchId
+  /// * `id: SearchId`
   ///
   ///   The identifier used to associate results with this search request.
   Future<SearchFindTopLevelDeclarationsResult>
@@ -1609,28 +1609,28 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath (optional)
+  /// * `file: FilePath (optional)`
   ///
   ///   If this field is provided, return only declarations in this file. If
   ///   this field is missing, return declarations in all files.
   ///
-  /// pattern: String (optional)
+  /// * `pattern: String (optional)`
   ///
   ///   The regular expression used to match the names of declarations. If this
   ///   field is missing, return all declarations.
   ///
-  /// maxResults: int (optional)
+  /// * `maxResults: int (optional)`
   ///
   ///   The maximum number of declarations to return. If this field is missing,
   ///   return all matching declarations.
   ///
   /// Returns
   ///
-  /// declarations: List<ElementDeclaration>
+  /// * `declarations: List<ElementDeclaration>`
   ///
   ///   The list of declarations.
   ///
-  /// files: List<FilePath>
+  /// * `files: List<FilePath>`
   ///
   ///   The list of the paths of files with declarations.
   Future<SearchGetElementDeclarationsResult> sendSearchGetElementDeclarations({
@@ -1658,23 +1658,23 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the declaration or reference to the type for which
   ///   a hierarchy is being requested.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset of the name of the type within the file.
   ///
-  /// superOnly: bool (optional)
+  /// * `superOnly: bool (optional)`
   ///
   ///   True if the client is only requesting superclasses and interfaces
   ///   hierarchy.
   ///
   /// Returns
   ///
-  /// hierarchyItems: List<TypeHierarchyItem> (optional)
+  /// * `hierarchyItems: List<TypeHierarchyItem> (optional)`
   ///
   ///   A list of the types in the requested hierarchy. The first element of
   ///   the list is the item representing the type for which the hierarchy was
@@ -1712,15 +1712,15 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// id: SearchId
+  /// * `id: SearchId`
   ///
   ///   The id associated with the search.
   ///
-  /// results: List<SearchResult>
+  /// * `results: List<SearchResult>`
   ///
   ///   The search results being reported.
   ///
-  /// isLast: bool
+  /// * `isLast: bool`
   ///
   ///   True if this is that last set of results that will be returned for the
   ///   indicated search.
@@ -1747,19 +1747,19 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the code to be formatted.
   ///
-  /// selectionOffset: int
+  /// * `selectionOffset: int`
   ///
   ///   The offset of the current selection in the file.
   ///
-  /// selectionLength: int
+  /// * `selectionLength: int`
   ///
   ///   The length of the current selection in the file.
   ///
-  /// lineLength: int (optional)
+  /// * `lineLength: int (optional)`
   ///
   ///   The line length to be used by the formatter. This value is ignored if a
   ///   `formatter.page_width` has been configured in the relevant
@@ -1767,16 +1767,16 @@ abstract class IntegrationTest {
   ///
   /// Returns
   ///
-  /// edits: List<SourceEdit>
+  /// * `edits: List<SourceEdit>`
   ///
   ///   The edit(s) to be applied in order to format the code. The list will be
   ///   empty if the code was already formatted (there are no changes).
   ///
-  /// selectionOffset: int
+  /// * `selectionOffset: int`
   ///
   ///   The offset of the selection after formatting the code.
   ///
-  /// selectionLength: int
+  /// * `selectionLength: int`
   ///
   ///   The length of the selection after formatting the code.
   Future<EditFormatResult> sendEditFormat(
@@ -1812,13 +1812,13 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// directories: List<FilePath>
+  /// * `directories: List<FilePath>`
   ///
   ///   The paths of the directories containing the code to be formatted.
   ///
   /// Returns
   ///
-  /// edits: List<SourceFileEdit>
+  /// * `edits: List<SourceFileEdit>`
   ///
   ///   The edit(s) to be applied in order to format the code. The list will be
   ///   empty if none of the files were formatted, whether because they were
@@ -1846,21 +1846,21 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the code for which assists are being requested.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset of the code for which assists are being requested.
   ///
-  /// length: int
+  /// * `length: int`
   ///
   ///   The length of the code for which assists are being requested.
   ///
   /// Returns
   ///
-  /// assists: List<SourceChange>
+  /// * `assists: List<SourceChange>`
   ///
   ///   The assists that are available at the given location.
   Future<EditGetAssistsResult> sendEditGetAssists(
@@ -1888,21 +1888,21 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the code on which the refactoring would be based.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset of the code on which the refactoring would be based.
   ///
-  /// length: int
+  /// * `length: int`
   ///
   ///   The length of the code on which the refactoring would be based.
   ///
   /// Returns
   ///
-  /// kinds: List<RefactoringKind>
+  /// * `kinds: List<RefactoringKind>`
   ///
   ///   The kinds of refactorings that are valid for the given selection.
   Future<EditGetAvailableRefactoringsResult> sendEditGetAvailableRefactorings(
@@ -1932,7 +1932,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// included: List<FilePath>
+  /// * `included: List<FilePath>`
   ///
   ///   A list of the files and directories for which edits should be
   ///   suggested.
@@ -1945,7 +1945,7 @@ abstract class IntegrationTest {
   ///   analysis.setAnalysisRoots), an error of type `FILE_NOT_ANALYZED` will
   ///   be generated.
   ///
-  /// inTestMode: bool (optional)
+  /// * `inTestMode: bool (optional)`
   ///
   ///   A flag indicating whether the bulk fixes are being run in test mode.
   ///   The only difference is that in test mode the fix processor will look
@@ -1954,7 +1954,7 @@ abstract class IntegrationTest {
   ///
   ///   If this field is omitted the flag defaults to `false`.
   ///
-  /// updatePubspec: bool (optional)
+  /// * `updatePubspec: bool (optional)`
   ///
   ///   A flag indicating whether to validate that the dependencies used by the
   ///   included files are listed in the pubspec file. If specified, the fix
@@ -1964,21 +1964,21 @@ abstract class IntegrationTest {
   ///
   ///   If this field is omitted the flag defaults to `false`.
   ///
-  /// codes: List<String> (optional)
+  /// * `codes: List<String> (optional)`
   ///
   ///   A list of diagnostic codes to be fixed.
   ///
   /// Returns
   ///
-  /// message: String
+  /// * `message: String`
   ///
   ///   An optional message explaining unapplied fixes.
   ///
-  /// edits: List<SourceFileEdit>
+  /// * `edits: List<SourceFileEdit>`
   ///
   ///   A list of source edits to apply the recommended changes.
   ///
-  /// details: List<BulkFix>
+  /// * `details: List<BulkFix>`
   ///
   ///   Details that summarize the fixes associated with the recommended
   ///   changes.
@@ -2014,17 +2014,17 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the errors for which fixes are being requested.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset used to select the errors for which fixes will be returned.
   ///
   /// Returns
   ///
-  /// fixes: List<AnalysisErrorFixes>
+  /// * `fixes: List<AnalysisErrorFixes>`
   ///
   ///   The fixes that are available for the errors at the given offset.
   Future<EditGetFixesResult> sendEditGetFixes(String file, int offset) async {
@@ -2047,22 +2047,22 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the postfix template to be expanded.
   ///
-  /// key: String
+  /// * `key: String`
   ///
   ///   The unique name that identifies the template in use.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset used to identify the code to which the template will be
   ///   applied.
   ///
   /// Returns
   ///
-  /// change: SourceChange
+  /// * `change: SourceChange`
   ///
   ///   The change to be applied in order to complete the statement.
   Future<EditGetPostfixCompletionResult> sendEditGetPostfixCompletion(
@@ -2092,28 +2092,28 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// kind: RefactoringKind
+  /// * `kind: RefactoringKind`
   ///
   ///   The kind of refactoring to be performed.
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the code involved in the refactoring.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset of the region involved in the refactoring.
   ///
-  /// length: int
+  /// * `length: int`
   ///
   ///   The length of the region involved in the refactoring.
   ///
-  /// validateOnly: bool
+  /// * `validateOnly: bool`
   ///
   ///   True if the client is only requesting that the values of the options be
   ///   validated and no change be generated.
   ///
-  /// options: RefactoringOptions (optional)
+  /// * `options: RefactoringOptions (optional)`
   ///
   ///   Data used to provide values provided by the user. The structure of the
   ///   data is dependent on the kind of refactoring being performed. The data
@@ -2124,39 +2124,39 @@ abstract class IntegrationTest {
   ///
   /// Returns
   ///
-  /// initialProblems: List<RefactoringProblem>
+  /// * `initialProblems: List<RefactoringProblem>`
   ///
   ///   The initial status of the refactoring, i.e. problems related to the
   ///   context in which the refactoring is requested. The array will be empty
   ///   if there are no known problems.
   ///
-  /// optionsProblems: List<RefactoringProblem>
+  /// * `optionsProblems: List<RefactoringProblem>`
   ///
   ///   The options validation status, i.e. problems in the given options, such
   ///   as light-weight validation of a new name, flags compatibility, etc. The
   ///   array will be empty if there are no known problems.
   ///
-  /// finalProblems: List<RefactoringProblem>
+  /// * `finalProblems: List<RefactoringProblem>`
   ///
   ///   The final status of the refactoring, i.e. problems identified in the
   ///   result of a full, potentially expensive validation and / or change
   ///   creation. The array will be empty if there are no known problems.
   ///
-  /// feedback: RefactoringFeedback (optional)
+  /// * `feedback: RefactoringFeedback (optional)`
   ///
   ///   Data used to provide feedback to the user. The structure of the data is
   ///   dependent on the kind of refactoring being created. The data that is
   ///   returned is documented in the section titled Refactorings, labeled as
   ///   "Feedback".
   ///
-  /// change: SourceChange (optional)
+  /// * `change: SourceChange (optional)`
   ///
   ///   The changes that are to be applied to affect the refactoring. This
   ///   field will be omitted if there are problems that prevent a set of
   ///   changes from being computed, such as having no options specified for a
   ///   refactoring that requires them, or if only validation was requested.
   ///
-  /// potentialEdits: List<String> (optional)
+  /// * `potentialEdits: List<String> (optional)`
   ///
   ///   The ids of source edits that are not known to be valid. An edit is not
   ///   known to be valid if there was insufficient type information for the
@@ -2201,21 +2201,21 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the statement to be completed.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset used to identify the statement to be completed.
   ///
   /// Returns
   ///
-  /// change: SourceChange
+  /// * `change: SourceChange`
   ///
   ///   The change to be applied in order to complete the statement.
   ///
-  /// whitespaceOnly: bool
+  /// * `whitespaceOnly: bool`
   ///
   ///   Will be true if the change contains nothing but whitespace characters,
   ///   or is empty.
@@ -2242,22 +2242,22 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file containing the postfix template to be expanded.
   ///
-  /// key: String
+  /// * `key: String`
   ///
   ///   The unique name that identifies the template in use.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset used to identify the code to which the template will be
   ///   applied.
   ///
   /// Returns
   ///
-  /// value: bool
+  /// * `value: bool`
   ///
   ///   True if the template can be expanded at the given location.
   Future<EditIsPostfixCompletionApplicableResult>
@@ -2288,7 +2288,7 @@ abstract class IntegrationTest {
   ///
   /// Returns
   ///
-  /// templates: List<PostfixTemplateDescriptor>
+  /// * `templates: List<PostfixTemplateDescriptor>`
   ///
   ///   The list of available templates.
   Future<EditListPostfixCompletionTemplatesResult>
@@ -2314,15 +2314,15 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file in which the specified elements are to be made accessible.
   ///
-  /// elements: List<ImportedElements>
+  /// * `elements: List<ImportedElements>`
   ///
   ///   The elements to be made accessible in the specified file.
   ///
-  /// offset: int (optional)
+  /// * `offset: int (optional)`
   ///
   ///   The offset at which the specified elements need to be made accessible.
   ///   If provided, this is used to guard against adding imports for text that
@@ -2331,7 +2331,7 @@ abstract class IntegrationTest {
   ///
   /// Returns
   ///
-  /// edit: SourceFileEdit (optional)
+  /// * `edit: SourceFileEdit (optional)`
   ///
   ///   The edits to be applied in order to make the specified elements
   ///   accessible. The file to be edited will be the defining compilation unit
@@ -2371,13 +2371,13 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The Dart file to sort.
   ///
   /// Returns
   ///
-  /// edit: SourceFileEdit
+  /// * `edit: SourceFileEdit`
   ///
   ///   The file edit that is to be applied to the given file to affect the
   ///   sorting.
@@ -2409,13 +2409,13 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The Dart file to organize directives in.
   ///
   /// Returns
   ///
-  /// edit: SourceFileEdit
+  /// * `edit: SourceFileEdit`
   ///
   ///   The file edit that is to be applied to the given file to affect the
   ///   organizing.
@@ -2442,14 +2442,14 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// contextRoot: FilePath
+  /// * `contextRoot: FilePath`
   ///
   ///   The path of the Dart or HTML file that will be launched, or the path of
   ///   the directory containing the file.
   ///
   /// Returns
   ///
-  /// id: ExecutionContextId
+  /// * `id: ExecutionContextId`
   ///
   ///   The identifier used to refer to the execution context that was created.
   Future<ExecutionCreateContextResult> sendExecutionCreateContext(
@@ -2474,7 +2474,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// id: ExecutionContextId
+  /// * `id: ExecutionContextId`
   ///
   ///   The identifier of the execution context that is to be deleted.
   Future<void> sendExecutionDeleteContext(String id) async {
@@ -2502,32 +2502,32 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// code: String
+  /// * `code: String`
   ///
   ///   The code to get suggestions in.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset within the code to get suggestions at.
   ///
-  /// contextFile: FilePath
+  /// * `contextFile: FilePath`
   ///
   ///   The path of the context file, e.g. the file of the current debugger
   ///   frame. The combination of the context file and context offset can be
   ///   used to ensure that all variables of the context are available for
   ///   completion (with their static types).
   ///
-  /// contextOffset: int
+  /// * `contextOffset: int`
   ///
   ///   The offset in the context file, e.g. the line offset in the current
   ///   debugger frame.
   ///
-  /// variables: List<RuntimeCompletionVariable>
+  /// * `variables: List<RuntimeCompletionVariable>`
   ///
   ///   The runtime context variables that are potentially referenced in the
   ///   code.
   ///
-  /// expressions: List<RuntimeCompletionExpression> (optional)
+  /// * `expressions: List<RuntimeCompletionExpression> (optional)`
   ///
   ///   The list of sub-expressions in the code for which the client wants to
   ///   provide runtime types. It does not have to be the full list of
@@ -2541,7 +2541,7 @@ abstract class IntegrationTest {
   ///
   /// Returns
   ///
-  /// suggestions: List<CompletionSuggestion> (optional)
+  /// * `suggestions: List<CompletionSuggestion> (optional)`
   ///
   ///   The completion suggestions. In contrast to usual completion requests,
   ///   suggestions for private elements also will be provided.
@@ -2552,7 +2552,7 @@ abstract class IntegrationTest {
   ///   server omits this field in the response, and instead will return the
   ///   "expressions" field.
   ///
-  /// expressions: List<RuntimeCompletionExpression> (optional)
+  /// * `expressions: List<RuntimeCompletionExpression> (optional)`
   ///
   ///   The list of sub-expressions in the code for which the server would like
   ///   to know runtime types to provide better completion suggestions.
@@ -2607,27 +2607,27 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// id: ExecutionContextId
+  /// * `id: ExecutionContextId`
   ///
   ///   The identifier of the execution context in which the URI is to be
   ///   mapped.
   ///
-  /// file: FilePath (optional)
+  /// * `file: FilePath (optional)`
   ///
   ///   The path of the file to be mapped into a URI.
   ///
-  /// uri: String (optional)
+  /// * `uri: String (optional)`
   ///
   ///   The URI to be mapped into a file path.
   ///
   /// Returns
   ///
-  /// file: FilePath (optional)
+  /// * `file: FilePath (optional)`
   ///
   ///   The file to which the URI was mapped. This field is omitted if the uri
   ///   field was not given in the request.
   ///
-  /// uri: String (optional)
+  /// * `uri: String (optional)`
   ///
   ///   The URI to which the file path was mapped. This field is omitted if the
   ///   file field was not given in the request.
@@ -2662,7 +2662,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// subscriptions: List<ExecutionService>
+  /// * `subscriptions: List<ExecutionService>`
   ///
   ///   A list of the services being subscribed to.
   // TODO(srawlins): Provide a deprecation message, or remove.
@@ -2686,17 +2686,17 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file for which launch data is being provided. This will either be a
   ///   Dart library or an HTML file.
   ///
-  /// kind: ExecutableKind (optional)
+  /// * `kind: ExecutableKind (optional)`
   ///
   ///   The kind of the executable file. This field is omitted if the file is
   ///   not a Dart file.
   ///
-  /// referencedFiles: List<FilePath> (optional)
+  /// * `referencedFiles: List<FilePath> (optional)`
   ///
   ///   A list of the Dart files that are referenced by the file. This field is
   ///   omitted if the file is not an HTML file.
@@ -2712,7 +2712,7 @@ abstract class IntegrationTest {
   ///
   /// Returns
   ///
-  /// contexts: List<ContextData>
+  /// * `contexts: List<ContextData>`
   ///
   ///   The list of analysis contexts.
   Future<DiagnosticGetDiagnosticsResult> sendDiagnosticGetDiagnostics() async {
@@ -2733,7 +2733,7 @@ abstract class IntegrationTest {
   ///
   /// Returns
   ///
-  /// port: int
+  /// * `port: int`
   ///
   ///   The diagnostic server port.
   Future<DiagnosticGetServerPortResult> sendDiagnosticGetServerPort() async {
@@ -2766,7 +2766,7 @@ abstract class IntegrationTest {
   ///
   /// Returns
   ///
-  /// enabled: bool
+  /// * `enabled: bool`
   ///
   ///   Whether sending analytics is enabled or not.
   // TODO(srawlins): Provide a deprecation message, or remove.
@@ -2793,7 +2793,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// value: bool
+  /// * `value: bool`
   ///
   ///   Enable or disable analytics.
   // TODO(srawlins): Provide a deprecation message, or remove.
@@ -2822,7 +2822,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// action: String
+  /// * `action: String`
   ///
   ///   The value used to indicate which action was performed.
   Future<void> sendAnalyticsSendEvent(String action) async {
@@ -2847,11 +2847,11 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// event: String
+  /// * `event: String`
   ///
   ///   The name of the event.
   ///
-  /// millis: int
+  /// * `millis: int`
   ///
   ///   The duration of the event in milliseconds.
   Future<void> sendAnalyticsSendTiming(String event, int millis) async {
@@ -2874,17 +2874,17 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file where the widget instance is created.
   ///
-  /// offset: int
+  /// * `offset: int`
   ///
   ///   The offset in the file where the widget instance is created.
   ///
   /// Returns
   ///
-  /// properties: List<FlutterWidgetProperty>
+  /// * `properties: List<FlutterWidgetProperty>`
   ///
   ///   The list of properties of the widget. Some of the properties might be
   ///   read only, when their `editor` is not set. This might be because they
@@ -2918,7 +2918,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// id: int
+  /// * `id: int`
   ///
   ///   The identifier of the property, previously returned as a part of a
   ///   `FlutterWidgetProperty`.
@@ -2926,7 +2926,7 @@ abstract class IntegrationTest {
   ///   An error of type `FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID` is
   ///   generated if the identifier is not valid.
   ///
-  /// value: FlutterWidgetPropertyValue (optional)
+  /// * `value: FlutterWidgetPropertyValue (optional)`
   ///
   ///   The new value to set for the property.
   ///
@@ -2940,7 +2940,7 @@ abstract class IntegrationTest {
   ///
   /// Returns
   ///
-  /// change: SourceChange
+  /// * `change: SourceChange`
   ///
   ///   The change that should be applied.
   Future<FlutterSetWidgetPropertyValueResult> sendFlutterSetWidgetPropertyValue(
@@ -2987,7 +2987,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// subscriptions: Map<FlutterService, List<FilePath>>
+  /// * `subscriptions: Map<FlutterService, List<FilePath>>`
   ///
   ///   A table mapping services to a list of the files being subscribed to the
   ///   service.
@@ -3009,11 +3009,11 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// file: FilePath
+  /// * `file: FilePath`
   ///
   ///   The file with which the outline is associated.
   ///
-  /// outline: FlutterOutline
+  /// * `outline: FlutterOutline`
   ///
   ///   The outline associated with the file.
   late final Stream<FlutterOutlineParams> onFlutterOutline = _onFlutterOutline
@@ -3032,13 +3032,13 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// lspMessage: object
+  /// * `lspMessage: object`
   ///
   ///   The LSP RequestMessage.
   ///
   /// Returns
   ///
-  /// lspResponse: object
+  /// * `lspResponse: object`
   ///
   ///   The LSP ResponseMessage returned by the handler.
   Future<LspHandleResult> sendLspHandle(Object lspMessage) async {
@@ -3059,7 +3059,7 @@ abstract class IntegrationTest {
   ///
   /// Parameters
   ///
-  /// lspNotification: object
+  /// * `lspNotification: object`
   ///
   ///   The LSP NotificationMessage sent by the server.
   late final Stream<LspNotificationParams> onLspNotification =

@@ -74,7 +74,6 @@ class _TextFormatter with CodeGenerator {
         case 'br':
           lineBreak(false);
         case 'dl':
-        case 'dt':
         case 'h1':
         case 'h2':
         case 'h3':
@@ -106,6 +105,10 @@ class _TextFormatter with CodeGenerator {
             addAll(node.nodes);
             lineBreak(false);
           });
+        case 'dt':
+          word += '* `';
+          addAll(node.nodes);
+          word += '`';
         case 'dd':
           lineBreak(true);
           indent(() {

@@ -105,7 +105,7 @@ class Driver implements ServerStarter {
 
   /// The option for specifying the http diagnostic port.
   /// If specified, users can review server status and performance information
-  /// by opening a web browser on http://localhost:<port>
+  /// by opening a web browser on `http://localhost:<port>`.
   static const String DIAGNOSTIC_PORT = 'diagnostic-port';
   static const String DIAGNOSTIC_PORT_ALIAS = 'port';
 
