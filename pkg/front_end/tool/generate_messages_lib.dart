@@ -5,8 +5,6 @@
 /// @docImport 'package:front_end/src/codes/type_labeler.dart';
 library;
 
-import 'dart:convert';
-
 import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/messages.dart';
 
@@ -134,8 +132,8 @@ String _newName({required Set<String> usedNames, required String nameHint}) {
 class _TemplateCompiler {
   final String name;
   final bool isShared;
-  final String problemMessage;
-  final String? correctionMessage;
+  final List<TemplatePart> problemMessage;
+  final List<TemplatePart>? correctionMessage;
   final String? severity;
   final Map<String, ErrorCodeParameter> parameters;
   final String? pseudoSharedCode;
@@ -155,7 +153,7 @@ class _TemplateCompiler {
   late final List<String> arguments = parameters.keys
       .map((name) => "'$name': $name")
       .toList();
-  final Map<ParsedPlaceholder, String> interpolators = {};
+  final Map<TemplateParameterPart, String> interpolators = {};
   final List<String> withArgumentsStatements = [];
   bool hasLabeler = false;
 
@@ -241,49 +239,37 @@ Message _withArgumentsOld$name(${positionalParameters.join(', ')}) =>
 """;
   }
 
-  String computeInterpolator(ParsedPlaceholder placeholder) {
-    var name = placeholder.name;
-    var parameter = parameters[name];
-    if (parameter == null) {
-      throw StateError(
-        'Placeholder ${json.encode(name)} not declared as a parameter',
-      );
-    }
-    var conversion =
-        placeholder.conversionOverride ?? parameter.type.cfeConversion;
+  String computeInterpolator(TemplateParameterPart placeholder) {
+    var parameter = placeholder.parameter;
+    var name = parameter.name;
+    var type = parameter.type;
+    var conversion = placeholder.conversionOverride ?? type.cfeConversion;
     if (conversion is LabelerConversion && !hasLabeler) {
       withArgumentsStatements.add("TypeLabeler labeler = new TypeLabeler();");
       hasLabeler = true;
     }
 
-    if (conversion?.toCode(
-          name: placeholder.name,
-          type: parameters[placeholder.name]!.type,
-        )
-        case var conversion?) {
-      var interpolator = _newName(
-        usedNames: usedNames,
-        nameHint: placeholder.name,
-      );
+    if (conversion?.toCode(name: name, type: type) case var conversion?) {
+      var interpolator = _newName(usedNames: usedNames, nameHint: name);
       withArgumentsStatements.add("var $interpolator = $conversion;");
       return interpolator;
     } else {
-      return placeholder.name;
+      return name;
     }
   }
 
-  String? interpolate(String? text) {
-    if (text == null) return null;
-    text = text
-        .replaceAll(r'\', r'\\')
-        .replaceAll(r"$", r"\$")
-        .replaceAllMapped(placeholderPattern, (Match m) {
-          var placeholder = ParsedPlaceholder.fromMatch(m);
-          var interpolator = interpolators[placeholder] ??= computeInterpolator(
-            placeholder,
-          );
-          return "\${$interpolator}";
-        });
+  String? interpolate(List<TemplatePart>? template) {
+    if (template == null) return null;
+    var text = template
+        .map(
+          (part) => switch (part) {
+            TemplateLiteralPart(:var text) =>
+              text.replaceAll(r'\', r'\\').replaceAll(r"$", r"\$"),
+            TemplateParameterPart() =>
+              "\${${interpolators[part] ??= computeInterpolator(part)}}",
+          },
+        )
+        .join();
     return "\"\"\"$text\"\"\"";
   }
 
