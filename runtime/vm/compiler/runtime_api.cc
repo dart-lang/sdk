@@ -333,6 +333,10 @@ word RuntimeEntry::OffsetFromThread() const {
   return target::Thread::OffsetFromThread(runtime_entry_);
 }
 
+const char* RuntimeEntry::name() const {
+  return runtime_entry_->name();
+}
+
 bool RuntimeEntry::is_leaf() const {
   return runtime_entry_->is_leaf();
 }

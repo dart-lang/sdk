@@ -4831,6 +4831,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   }
   lx(T5, compiler::Address(THR, entry.OffsetFromThread()));
   li(T4, argument_count);
+  Comment("Runtime call: %s", entry.name());
   Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
   if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
       tsan_enter_exit) {
@@ -4877,6 +4878,7 @@ void LeafRuntimeScope::Call(const RuntimeEntry& entry,
   ASSERT(argument_count == entry.argument_count());
   __ Load(TMP2, compiler::Address(THR, entry.OffsetFromThread()));
   __ sx(TMP2, compiler::Address(THR, target::Thread::vm_tag_offset()));
+  __ Comment("Leaf runtime call: %s", entry.name());
   __ jalr(TMP2);
   __ LoadImmediate(TMP2, VMTag::kDartTagId);
   __ sx(TMP2, compiler::Address(THR, target::Thread::vm_tag_offset()));

@@ -3281,6 +3281,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   LoadFromOffset(R9, THR, entry.OffsetFromThread());
   LoadImmediate(R4, argument_count);
   ldr(IP, Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
+  Comment("Runtime call: %s", entry.name());
   blx(IP);
 }
 
@@ -3298,7 +3299,6 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
                                    intptr_t frame_size,
                                    bool preserve_registers)
     : assembler_(assembler), preserve_registers_(preserve_registers) {
-  __ Comment("EnterCallRuntimeFrame");
   if (preserve_registers) {
     // Preserve volatile CPU registers and PP.
     SPILLS_LR_TO_FRAME(__ EnterFrame(
@@ -3323,6 +3323,7 @@ void LeafRuntimeScope::Call(const RuntimeEntry& entry,
   __ LoadFromOffset(TMP, THR, entry.OffsetFromThread());
   __ str(TMP,
          compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+  __ Comment("Leaf runtime call: %s", entry.name());
   __ blx(TMP);
   __ LoadImmediate(TMP, VMTag::kDartTagId);
   __ str(TMP,

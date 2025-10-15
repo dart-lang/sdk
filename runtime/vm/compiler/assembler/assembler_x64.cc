@@ -2069,6 +2069,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   }
   movq(RBX, compiler::Address(THR, entry.OffsetFromThread()));
   LoadImmediate(R10, compiler::Immediate(argument_count));
+  Comment("Runtime call: %s", entry.name());
   call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
   if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
       tsan_enter_exit) {
@@ -2085,7 +2086,6 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
                                    intptr_t frame_size,
                                    bool preserve_registers)
     : assembler_(assembler), preserve_registers_(preserve_registers) {
-  __ Comment("EnterCallRuntimeFrame");
   __ EnterFrame(0);
 
   if (preserve_registers_) {
@@ -2107,6 +2107,7 @@ void LeafRuntimeScope::Call(const RuntimeEntry& entry,
   COMPILE_ASSERT(CallingConventions::kVolatileCpuRegisters & (1 << RAX));
   __ movq(RAX, compiler::Address(THR, entry.OffsetFromThread()));
   __ movq(compiler::Assembler::VMTagAddress(), RAX);
+  __ Comment("Leaf runtime call: %s", entry.name());
   __ CallCFunction(RAX);
   __ movq(compiler::Assembler::VMTagAddress(),
           compiler::Immediate(VMTag::kDartTagId));
