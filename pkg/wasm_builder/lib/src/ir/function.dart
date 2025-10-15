@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../serialize/serialize.dart';
+import '../serialize/printer.dart';
 import 'ir.dart';
 
 /// A local variable defined in a function.
@@ -11,6 +12,15 @@ class Local {
   final ValueType type;
 
   Local(this.index, this.type);
+
+  void printTo(IrPrinter p, Map<int, String> localNames,
+      {bool isParam = false}) {
+    p.write(isParam ? 'param' : 'local');
+    p.write(' ');
+    p.writeLocalIndexReference(index);
+    p.write(' ');
+    p.writeValueType(type);
+  }
 
   @override
   String toString() => "$index";
@@ -82,6 +92,39 @@ class DefinedFunction extends BaseFunction implements Serializable {
     s.writeData(localS);
   }
 
+  void printTo(IrPrinter p) {
+    p.write('(func ');
+    p.writeFunctionReference(this);
+    String? exportName;
+    for (final f in enclosingModule.exports.exported) {
+      if (f is FunctionExport && f.function == this) {
+        exportName = f.name;
+        break;
+      }
+    }
+    if (exportName != null) {
+      p.write(' ');
+      p.writeExport(exportName);
+    }
+
+    p.withLocalNames(localNames, () {
+      if (type.inputs.isNotEmpty || type.outputs.isNotEmpty) {
+        p.write(' ');
+        type.printSignatureWithNamesTo(p, oneLine: true);
+      }
+      p.writeln('');
+      p.withIndent(() {
+        for (int i = type.inputs.length; i < locals.length; ++i) {
+          p.write('(');
+          locals[i].printTo(p, localNames);
+          p.writeln(')');
+        }
+        body.printTo(p);
+      });
+    });
+    p.write(')');
+  }
+
   @override
   String toString() => functionName ?? "#$finalizableIndex";
 }
@@ -103,6 +146,15 @@ class ImportedFunction extends BaseFunction implements Import {
     s.writeName(name);
     s.writeByte(0x00);
     s.writeUnsigned(type.index);
+  }
+
+  void printTo(IrPrinter p) {
+    p.write('(func ');
+    p.writeFunctionReference(this);
+    p.writeImport(module, name);
+    p.write(' ');
+    type.printOneLineSignatureTo(p);
+    p.write(')');
   }
 
   @override

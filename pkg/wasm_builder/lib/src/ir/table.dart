@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../serialize/serialize.dart';
+import '../serialize/printer.dart';
 import 'ir.dart';
 
 /// An (imported or defined) table.
@@ -44,6 +45,27 @@ class DefinedTable extends Table {
 
   DefinedTable(super.enclosingModule, this.elements, super.finalizableIndex,
       super.type, super.minSize, super.maxSize);
+
+  void printTo(IrPrinter p) {
+    // NOTE: This format differs from what V8's `wami` will print.
+    // It makes it easier to see the exact values of the table.
+    p.write('(table ');
+    p.writeTableReference(this, alwaysPrint: true);
+    p.write(' ${elements.length} ');
+    p.writeValueType(type);
+    p.writeln();
+    p.withIndent(() {
+      for (int i = 0; i < elements.length; ++i) {
+        final function = elements[i];
+        if (function != null) {
+          p.write('(at $i ');
+          p.writeFunctionReference(function);
+          p.writeln(')');
+        }
+      }
+    });
+    p.write(')');
+  }
 }
 
 /// An imported table.
