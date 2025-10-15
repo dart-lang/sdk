@@ -1,4 +1,4 @@
-## 8.4.0-dev
+## 8.4.0
 * Add the `experimental_member_use` warning, which warns about any reference to
   a declaration annotated with `@experimental`.
 * Deprecate `TypeAliasElement.aliasedElement`, use `aliasedType` instead.

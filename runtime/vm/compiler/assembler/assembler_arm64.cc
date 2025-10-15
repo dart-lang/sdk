@@ -1807,6 +1807,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   }
   ldr(R5, compiler::Address(THR, entry.OffsetFromThread()));
   LoadImmediate(R4, argument_count);
+  Comment("Runtime call: %s", entry.name());
   Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
   if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
       tsan_enter_exit) {
@@ -1824,7 +1825,6 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
                                    intptr_t frame_size,
                                    bool preserve_registers)
     : assembler_(assembler), preserve_registers_(preserve_registers) {
-  __ Comment("EnterCallRuntimeFrame");
   __ EnterFrame(0);
 
   if (preserve_registers) {
@@ -1854,6 +1854,7 @@ void LeafRuntimeScope::Call(const RuntimeEntry& entry,
   __ mov(CSP, SP);
   __ ldr(TMP, compiler::Address(THR, entry.OffsetFromThread()));
   __ str(TMP, compiler::Address(THR, target::Thread::vm_tag_offset()));
+  __ Comment("Leaf runtime call: %s", entry.name());
   __ blr(TMP);
   __ LoadImmediate(TMP, VMTag::kDartTagId);
   __ str(TMP, compiler::Address(THR, target::Thread::vm_tag_offset()));

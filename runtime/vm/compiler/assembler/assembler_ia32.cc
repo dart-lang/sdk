@@ -2622,6 +2622,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   // informative error message.
   movl(ECX, compiler::Address(THR, entry.OffsetFromThread()));
   movl(EDX, compiler::Immediate(argument_count));
+  Comment("Runtime call: %s", entry.name());
   call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }
 
@@ -2631,7 +2632,6 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
                                    intptr_t frame_size,
                                    bool preserve_registers)
     : assembler_(assembler), preserve_registers_(preserve_registers) {
-  __ Comment("EnterCallRuntimeFrame");
   __ EnterFrame(0);
 
   if (preserve_registers_) {
@@ -2663,6 +2663,7 @@ void LeafRuntimeScope::Call(const RuntimeEntry& entry,
   ASSERT(argument_count == entry.argument_count());
   __ movl(EAX, compiler::Address(THR, entry.OffsetFromThread()));
   __ movl(compiler::Assembler::VMTagAddress(), EAX);
+  __ Comment("Leaf runtime call: %s", entry.name());
   __ call(EAX);
   __ movl(compiler::Assembler::VMTagAddress(),
           compiler::Immediate(VMTag::kDartTagId));

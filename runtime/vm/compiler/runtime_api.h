@@ -227,6 +227,7 @@ class RuntimeEntry : public ValueObject {
 
   word OffsetFromThread() const;
 
+  const char* name() const;
   bool is_leaf() const;
   intptr_t argument_count() const;
 

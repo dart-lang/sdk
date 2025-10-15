@@ -1779,6 +1779,89 @@ abstract final class Block implements Statement {
   NodeList<Statement> get statements;
 }
 
+/// The class body with members.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+sealed class BlockClassBody implements ClassBody {
+  /// The left curly bracket.
+  Token get leftBracket;
+
+  /// The members declared in the body.
+  NodeList<ClassMember> get members;
+
+  /// The right curly bracket.
+  Token get rightBracket;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftBracket'),
+    GenerateNodeProperty('members'),
+    GenerateNodeProperty('rightBracket'),
+  ],
+)
+final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
+  @generated
+  @override
+  final Token leftBracket;
+
+  @generated
+  @override
+  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+
+  @generated
+  @override
+  final Token rightBracket;
+
+  @generated
+  BlockClassBodyImpl({
+    required this.leftBracket,
+    required List<ClassMemberImpl> members,
+    required this.rightBracket,
+  }) {
+    this.members._initialize(this, members);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return leftBracket;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return rightBracket;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockClassBody(this);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    members.accept(visitor);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (members._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+}
+
 /// A function body that consists of a block of statements.
 ///
 ///    blockFunctionBody ::=
@@ -2891,6 +2974,13 @@ class ChildEntity {
   ChildEntity(this.name, this.value);
 }
 
+/// The body of a class declaration.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+sealed class ClassBody implements AstNode {}
+
+sealed class ClassBodyImpl extends AstNodeImpl implements ClassBody {}
+
 /// The declaration of a class.
 ///
 ///    classDeclaration ::=
@@ -2911,6 +3001,13 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
 
   /// The `base` keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
+
+  /// The body of the class declaration.
+  ///
+  /// Will become not `null` when [Feature.declaring_constructors] is
+  /// implemented, replaces [leftBracket], [members], [rightBracket].
+  @experimental
+  ClassBody? get body;
 
   /// The token representing the `class` keyword.
   Token get classKeyword;
@@ -2944,6 +3041,14 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
 
   /// The `mixin` keyword, or `null` if the keyword was absent.
   Token? get mixinKeyword;
+
+  /// The name of the class, as an identifier with type parameters, or
+  /// a primary constructor.
+  ///
+  /// Will become not `null` when [Feature.declaring_constructors] is
+  /// implemented, replaces [name].
+  @experimental
+  ClassNamePart? get namePart;
 
   /// The native clause for this class, or `null` if the class doesn't have a
   /// native clause.
@@ -3090,6 +3195,10 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     this.members._initialize(this, members);
   }
 
+  @override
+  // TODO(scheglov): implement declaring constructors
+  ClassBodyImpl? get body => throw UnimplementedError();
+
   @generated
   @override
   Token get endToken {
@@ -3143,6 +3252,10 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   set implementsClause(ImplementsClauseImpl? implementsClause) {
     _implementsClause = _becomeParentOf(implementsClause);
   }
+
+  @override
+  // TODO(scheglov): implement declaring constructors
+  ClassNamePart? get namePart => throw UnimplementedError();
 
   @generated
   @override
@@ -3260,6 +3373,19 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   /// doesn't have the corresponding attribute.
   ClassMemberImpl({required super.comment, required super.metadata});
 }
+
+/// The name of a class, enum, or extension type declaration.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+sealed class ClassNamePart implements AstNode {
+  /// The name of the type being declared.
+  Token get typeName;
+
+  /// The type parameters.
+  TypeParameterList? get typeParameters;
+}
+
+sealed class ClassNamePartImpl extends AstNodeImpl implements ClassNamePart {}
 
 /// A class type alias.
 ///
@@ -6805,6 +6931,55 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   }
 }
 
+/// The empty class body.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+sealed class EmptyClassBody implements ClassBody {
+  /// The semicolon token.
+  Token get semicolon;
+}
+
+@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('semicolon')])
+final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
+  @generated
+  @override
+  final Token semicolon;
+
+  @generated
+  EmptyClassBodyImpl({required this.semicolon});
+
+  @generated
+  @override
+  Token get beginToken {
+    return semicolon;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return semicolon;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities =>
+      ChildEntities()..addToken('semicolon', semicolon);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyClassBody(this);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
 /// An empty function body.
 ///
 /// An empty function body can only appear in constructors or abstract methods.
@@ -6914,6 +7089,118 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
+/// The enum declaration body, with constants and members.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+sealed class EnumBody implements ClassBody {
+  /// The enumeration constants being declared.
+  NodeList<EnumConstantDeclaration> get constants;
+
+  /// The left curly bracket.
+  Token get leftBracket;
+
+  /// The members declared in the body.
+  NodeList<ClassMember> get members;
+
+  /// The right curly bracket.
+  Token get rightBracket;
+
+  /// The optional semicolon after the last constant.
+  Token? get semicolon;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftBracket'),
+    GenerateNodeProperty('constants'),
+    GenerateNodeProperty('semicolon'),
+    GenerateNodeProperty('members'),
+    GenerateNodeProperty('rightBracket'),
+  ],
+)
+final class EnumBodyImpl extends ClassBodyImpl implements EnumBody {
+  @generated
+  @override
+  final Token leftBracket;
+
+  @generated
+  @override
+  final NodeListImpl<EnumConstantDeclarationImpl> constants = NodeListImpl._();
+
+  @generated
+  @override
+  final Token? semicolon;
+
+  @generated
+  @override
+  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+
+  @generated
+  @override
+  final Token rightBracket;
+
+  @generated
+  EnumBodyImpl({
+    required this.leftBracket,
+    required List<EnumConstantDeclarationImpl> constants,
+    required this.semicolon,
+    required List<ClassMemberImpl> members,
+    required this.rightBracket,
+  }) {
+    this.constants._initialize(this, constants);
+    this.members._initialize(this, members);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return leftBracket;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return rightBracket;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('constants', constants)
+    ..addToken('semicolon', semicolon)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumBody(this);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    constants.accept(visitor);
+    members.accept(visitor);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (constants._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (members._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
     return null;
   }
 }
@@ -7197,6 +7484,14 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
+  /// The body of the enum declaration.
+  ///
+  /// Will become not `null` when [Feature.declaring_constructors] is
+  /// implemented, replaces [leftBracket], [constants], [semicolon], [members],
+  /// [rightBracket].
+  @experimental
+  EnumBody? get body;
+
   /// The enumeration constants being declared.
   NodeList<EnumConstantDeclaration> get constants;
 
@@ -7215,6 +7510,14 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
 
   /// The members declared by the enumeration.
   NodeList<ClassMember> get members;
+
+  /// The name of the enum, as an identifier with type parameters,
+  /// or a primary constructor.
+  ///
+  /// Will become not `null` when [Feature.declaring_constructors] is
+  /// implemented, replaces [name] and [typeParameters].
+  @experimental
+  ClassNamePart? get namePart;
 
   /// The right curly bracket.
   Token get rightBracket;
@@ -7314,6 +7617,10 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     this.members._initialize(this, members);
   }
 
+  @override
+  // TODO(scheglov): implement declaring constructors
+  EnumBodyImpl? get body => throw UnimplementedError();
+
   @generated
   @override
   Token get endToken {
@@ -7337,6 +7644,10 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   set implementsClause(ImplementsClauseImpl? implementsClause) {
     _implementsClause = _becomeParentOf(implementsClause);
   }
+
+  @override
+  // TODO(scheglov): implement declaring constructors
+  ClassNamePart? get namePart => throw UnimplementedError();
 
   @generated
   @override
@@ -8152,6 +8463,13 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
+  /// The body of the extension declaration.
+  ///
+  /// Will become not `null` when [Feature.declaring_constructors] is
+  /// implemented, replaces [leftBracket], [members], [rightBracket].
+  @experimental
+  BlockClassBody? get body;
+
   @override
   ExtensionFragment? get declaredFragment;
 
@@ -8253,6 +8571,10 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     _becomeParentOf(onClause);
     this.members._initialize(this, members);
   }
+
+  @override
+  // TODO(scheglov): implement declaring constructors
+  BlockClassBodyImpl? get body => throw UnimplementedError();
 
   @generated
   @override
@@ -8631,6 +8953,13 @@ abstract final class ExtensionTypeDeclaration
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
+  /// The body of the extension type declaration.
+  ///
+  /// Will become not `null` when [Feature.declaring_constructors] is
+  /// implemented, replaces [leftBracket], [members], [rightBracket].
+  @experimental
+  ClassBody? get body;
+
   /// The `const` keyword.
   Token? get constKeyword;
 
@@ -8648,6 +8977,14 @@ abstract final class ExtensionTypeDeclaration
 
   /// The members.
   NodeList<ClassMember> get members;
+
+  /// The name of the extension type, as an identifier with type parameters,
+  /// or a primary constructor.
+  ///
+  /// Will become not `null` when [Feature.declaring_constructors] is
+  /// implemented, replaces [name], [typeParameters], [representation].
+  @experimental
+  ClassNamePart? get namePart;
 
   /// The representation declaration.
   RepresentationDeclaration get representation;
@@ -8744,6 +9081,10 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     this.members._initialize(this, members);
   }
 
+  @override
+  // TODO(scheglov): implement declaring constructors
+  ClassBodyImpl? get body => throw UnimplementedError();
+
   @generated
   @override
   Token get endToken {
@@ -8767,6 +9108,10 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
   set implementsClause(ImplementsClauseImpl? implementsClause) {
     _implementsClause = _becomeParentOf(implementsClause);
   }
+
+  @override
+  // TODO(scheglov): implement declaring constructors
+  ClassNamePart? get namePart => throw UnimplementedError();
 
   @generated
   @override
@@ -16234,6 +16579,13 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
   /// The `base` keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
 
+  /// The body of the mixin declaration.
+  ///
+  /// Will become not `null` when [Feature.declaring_constructors] is
+  /// implemented, replaces [leftBracket], [members], [rightBracket].
+  @experimental
+  ClassBody? get body;
+
   @override
   MixinFragment? get declaredFragment;
 
@@ -16337,6 +16689,10 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     _becomeParentOf(implementsClause);
     this.members._initialize(this, members);
   }
+
+  @override
+  // TODO(scheglov): implement declaring constructors
+  ClassBodyImpl? get body => throw UnimplementedError();
 
   @generated
   @override
@@ -16920,6 +17276,87 @@ sealed class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
 
   @override
   Token get endToken => semicolon;
+}
+
+/// The type name with optional type parameters.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+abstract final class NameWithTypeParameters implements ClassNamePart {}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('typeName'),
+    GenerateNodeProperty('typeParameters'),
+  ],
+)
+final class NameWithTypeParametersImpl extends ClassNamePartImpl
+    implements NameWithTypeParameters {
+  @generated
+  @override
+  final Token typeName;
+
+  @generated
+  TypeParameterListImpl? _typeParameters;
+
+  @generated
+  NameWithTypeParametersImpl({
+    required this.typeName,
+    required TypeParameterListImpl? typeParameters,
+  }) : _typeParameters = typeParameters {
+    _becomeParentOf(typeParameters);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return typeName;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    if (typeParameters case var typeParameters?) {
+      return typeParameters.endToken;
+    }
+    return typeName;
+  }
+
+  @generated
+  @override
+  TypeParameterListImpl? get typeParameters => _typeParameters;
+
+  @generated
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('typeName', typeName)
+    ..addNode('typeParameters', typeParameters);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitNameWithTypeParameters(this);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    typeParameters?.accept(visitor);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    return null;
+  }
 }
 
 /// The "native" clause in an class declaration.
@@ -19374,6 +19811,215 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @override
   bool _extendsNullShorting(Expression descendant) =>
       identical(descendant, operand) && operator.type.isIncrementOperator;
+}
+
+/// The declaration of a primary constructor.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
+  /// The token for the `const` keyword, or `null` if the primary constructor
+  /// isn't a const constructor.
+  Token? get constKeyword;
+
+  /// The name of the primary constructor.
+  PrimaryConstructorName? get constructorName;
+
+  /// The formal parameters of the constructor, including declaring.
+  FormalParameterList get formalParameters;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('constKeyword'),
+    GenerateNodeProperty('typeName'),
+    GenerateNodeProperty('typeParameters'),
+    GenerateNodeProperty('constructorName'),
+    GenerateNodeProperty('formalParameters'),
+  ],
+)
+final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
+    implements PrimaryConstructorDeclaration {
+  @generated
+  @override
+  final Token? constKeyword;
+
+  @generated
+  @override
+  final Token typeName;
+
+  @generated
+  TypeParameterListImpl? _typeParameters;
+
+  @generated
+  PrimaryConstructorNameImpl? _constructorName;
+
+  @generated
+  FormalParameterListImpl _formalParameters;
+
+  @generated
+  PrimaryConstructorDeclarationImpl({
+    required this.constKeyword,
+    required this.typeName,
+    required TypeParameterListImpl? typeParameters,
+    required PrimaryConstructorNameImpl? constructorName,
+    required FormalParameterListImpl formalParameters,
+  }) : _typeParameters = typeParameters,
+       _constructorName = constructorName,
+       _formalParameters = formalParameters {
+    _becomeParentOf(typeParameters);
+    _becomeParentOf(constructorName);
+    _becomeParentOf(formalParameters);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    if (constKeyword case var constKeyword?) {
+      return constKeyword;
+    }
+    return typeName;
+  }
+
+  @generated
+  @override
+  PrimaryConstructorNameImpl? get constructorName => _constructorName;
+
+  @generated
+  set constructorName(PrimaryConstructorNameImpl? constructorName) {
+    _constructorName = _becomeParentOf(constructorName);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return formalParameters.endToken;
+  }
+
+  @generated
+  @override
+  FormalParameterListImpl get formalParameters => _formalParameters;
+
+  @generated
+  set formalParameters(FormalParameterListImpl formalParameters) {
+    _formalParameters = _becomeParentOf(formalParameters);
+  }
+
+  @generated
+  @override
+  TypeParameterListImpl? get typeParameters => _typeParameters;
+
+  @generated
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addToken('typeName', typeName)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('constructorName', constructorName)
+    ..addNode('formalParameters', formalParameters);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPrimaryConstructorDeclaration(this);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    typeParameters?.accept(visitor);
+    constructorName?.accept(visitor);
+    formalParameters.accept(visitor);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (constructorName case var constructorName?) {
+      if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
+        return constructorName;
+      }
+    }
+    if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
+      return formalParameters;
+    }
+    return null;
+  }
+}
+
+/// The name of a primary constructor.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+abstract final class PrimaryConstructorName implements AstNode {
+  /// The name of the primary constructor, can be `new`.
+  Token get name;
+
+  /// The period separating [name] from the previous token.
+  Token get period;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('period'),
+    GenerateNodeProperty('name'),
+  ],
+)
+final class PrimaryConstructorNameImpl extends AstNodeImpl
+    implements PrimaryConstructorName {
+  @generated
+  @override
+  final Token period;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  PrimaryConstructorNameImpl({required this.period, required this.name});
+
+  @generated
+  @override
+  Token get beginToken {
+    return period;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('period', period)
+    ..addToken('name', name);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPrimaryConstructorName(this);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
 }
 
 /// The access of a property of an object.
