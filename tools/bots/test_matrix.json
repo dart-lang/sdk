@@ -215,6 +215,17 @@
         "use-sdk": true
       }
     },
+    "wasm-unittest-asserts-(linux|mac)": {
+      "options": {
+        "builder-tag": "wasm",
+        "compiler": "dartk",
+        "enable-asserts": true,
+        "mode": "release",
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true
+      }
+    },
     "web-dev-unittest-asserts-(linux|win)": {
       "options": {
         "builder-tag": "ddc",
@@ -2663,11 +2674,20 @@
         },
         {
           "name": "dart2wasm unit tests",
+          "arguments": [
+            "-nwasm-unittest-asserts-linux",
+            "pkg/dart2wasm"
+          ],
+          "shards": 1,
+          "fileset": "dart2wasm_hostasserts"
+        },
+        {
+          "name": "dart2wasm dry run tests",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
             "pkg/dart2wasm/test/dry_run/dry_run_test.dart",
-            "-ndart2wasm-asserts-linux-chrome"
+            "-nwasm-unittest-asserts-linux"
           ]
         }
       ]
@@ -3111,7 +3131,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dart2wasm|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
           ],
           "shards": 3,
           "fileset": "vm"
@@ -3227,7 +3247,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dart2wasm|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
           ]
         }
       ]
