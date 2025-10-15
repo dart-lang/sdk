@@ -340,19 +340,21 @@ String? _getJsInteropName(ir.Constant constant) {
 }
 
 bool _isAnonymousJsInterop(ir.Constant constant) {
-  return constant is ir.InstanceConstant &&
-      constant.classNode.name == '_Anonymous' &&
-      (constant.classNode.enclosingLibrary.importUri == Uris.packageJS ||
-          constant.classNode.enclosingLibrary.importUri ==
-              Uris.dartJSAnnotations);
+  if (constant is ir.InstanceConstant &&
+      constant.classNode.name == '_Anonymous') {
+    final importUri = constant.classNode.enclosingLibrary.importUri;
+    return importUri == Uris.packageJS || importUri == Uris.dartJSInterop;
+  }
+  return false;
 }
 
 bool _isStaticInterop(ir.Constant constant) {
-  return constant is ir.InstanceConstant &&
-      constant.classNode.name == '_StaticInterop' &&
-      (constant.classNode.enclosingLibrary.importUri == Uris.packageJS ||
-          constant.classNode.enclosingLibrary.importUri ==
-              Uris.dartJSAnnotations);
+  if (constant is ir.InstanceConstant &&
+      constant.classNode.name == '_StaticInterop') {
+    final importUri = constant.classNode.enclosingLibrary.importUri;
+    return (importUri == Uris.packageJS || importUri == Uris.dartJSInterop);
+  }
+  return false;
 }
 
 class PragmaAnnotationData {
