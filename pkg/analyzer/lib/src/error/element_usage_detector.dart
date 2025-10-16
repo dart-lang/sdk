@@ -113,12 +113,34 @@ class ElementUsageDetector<TagInfo extends Object> {
       var invokeClass = invokeType.element;
       displayName = '${invokeClass.name}.${element.displayName}';
     }
+
+    // TODO(srawlins): Consider `node` being a `ConstructorDeclaration`, and use
+    // `ConstructorDeclaration.errorRange` here. This would stray from the API
+    // of passing a SyntacticEntity here.
+
     elementUsageReporter.report(
       errorEntity,
       displayName,
       tagInfo,
       isInSamePackage: _isLibraryInWorkspacePackage(element.library),
     );
+  }
+
+  void constructorDeclaration(ConstructorDeclaration node) {
+    // Check usage of any implicit super-constructor call.
+    // There is only an implicit super-constructor if:
+    // * this is not a factory constructor,
+    // * there is no redirecting constructor invocation, and
+    // * there is no explicit super constructor invocation.
+    if (node.factoryKeyword != null) return;
+    var hasConstructorInvocation = node.initializers.any(
+      (i) =>
+          i is SuperConstructorInvocation ||
+          i is RedirectingConstructorInvocation,
+    );
+    if (hasConstructorInvocation) return;
+
+    checkUsage(node.declaredFragment!.element.superConstructor, node);
   }
 
   void constructorName(ConstructorName node) {
