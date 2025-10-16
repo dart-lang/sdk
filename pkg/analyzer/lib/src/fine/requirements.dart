@@ -318,10 +318,16 @@ class InterfaceItemRequirements {
   final Map<LookupName, ManifestItemId?> implementedMethods;
   final Map<int, Map<LookupName, ManifestItemId?>> superMethods;
 
-  /// Set if [ClassElementImpl.allSubtypes] was invoked.
+  /// Whether [ClassElementImpl.allSubtypes] was requested.
+  bool allSubtypesRequested;
+
+  /// The recorded value of [ClassItem.allSubtypes].
   ManifestItemIdList? allSubtypes;
 
-  /// Set if [ClassElementImpl.directSubtypesOfSealed] was invoked.
+  /// Whether [ClassElementImpl.directSubtypesOfSealed] was requested.
+  bool directSubtypesOfSealedRequested;
+
+  /// The recorded value of [ClassItem.directSubtypesOfSealed].
   ManifestItemIdList? directSubtypesOfSealed;
 
   InterfaceItemRequirements({
@@ -332,7 +338,9 @@ class InterfaceItemRequirements {
     required this.methods,
     required this.implementedMethods,
     required this.superMethods,
+    required this.allSubtypesRequested,
     required this.allSubtypes,
+    required this.directSubtypesOfSealedRequested,
     required this.directSubtypesOfSealed,
   });
 
@@ -345,7 +353,9 @@ class InterfaceItemRequirements {
       methods: {},
       implementedMethods: {},
       superMethods: {},
+      allSubtypesRequested: false,
       allSubtypes: null,
+      directSubtypesOfSealedRequested: false,
       directSubtypesOfSealed: null,
     );
   }
@@ -362,7 +372,9 @@ class InterfaceItemRequirements {
         readKey: () => reader.readInt64(),
         readValue: () => reader.readNameToOptionalIdMap(),
       ),
+      allSubtypesRequested: reader.readBool(),
       allSubtypes: ManifestItemIdList.readOptional(reader),
+      directSubtypesOfSealedRequested: reader.readBool(),
       directSubtypesOfSealed: ManifestItemIdList.readOptional(reader),
     );
   }
@@ -379,7 +391,9 @@ class InterfaceItemRequirements {
       writeKey: (index) => writer.writeInt64(index),
       writeValue: (map) => writer.writeNameToIdMap(map),
     );
+    writer.writeBool(allSubtypesRequested);
     allSubtypes.writeOptional(writer);
+    writer.writeBool(directSubtypesOfSealedRequested);
     directSubtypesOfSealed.writeOptional(writer);
   }
 }
@@ -1566,8 +1580,9 @@ class RequirementsManifest {
           }
         }
 
-        if (interfaceRequirements.allSubtypes case var required?) {
+        if (interfaceRequirements.allSubtypesRequested) {
           interfaceItem as ClassItem;
+          var required = interfaceRequirements.allSubtypes;
           var actualIds = interfaceItem.allSubtypes;
           if (required != actualIds) {
             return InterfaceChildrenIdsMismatch(
@@ -1580,8 +1595,9 @@ class RequirementsManifest {
           }
         }
 
-        if (interfaceRequirements.directSubtypesOfSealed case var required?) {
+        if (interfaceRequirements.directSubtypesOfSealedRequested) {
           interfaceItem as ClassItem;
+          var required = interfaceRequirements.directSubtypesOfSealed;
           var actualIds = interfaceItem.directSubtypesOfSealed;
           if (required != actualIds) {
             return InterfaceChildrenIdsMismatch(
@@ -1643,7 +1659,8 @@ class RequirementsManifest {
     var item = itemRequirements.item as ClassItem;
     var requirements = itemRequirements.requirements;
 
-    requirements.allSubtypes ??= item.allSubtypes;
+    requirements.allSubtypesRequested = true;
+    requirements.allSubtypes = item.allSubtypes;
   }
 
   void record_classElement_directSubtypesOfSealed({
@@ -1661,7 +1678,8 @@ class RequirementsManifest {
     var item = itemRequirements.item as ClassItem;
     var requirements = itemRequirements.requirements;
 
-    requirements.directSubtypesOfSealed ??= item.directSubtypesOfSealed;
+    requirements.directSubtypesOfSealedRequested = true;
+    requirements.directSubtypesOfSealed = item.directSubtypesOfSealed;
   }
 
   void record_fieldElement_getter({

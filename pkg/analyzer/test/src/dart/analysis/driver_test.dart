@@ -6163,10 +6163,10 @@ void f(A a) {
           B: false
         interfaces
           A
-            allSubtypes: []
+            allSubtypes: <null>
             directSubtypesOfSealed: #M2
           B
-            allSubtypes: []
+            allSubtypes: <null>
 [status] idle
 [future] getErrors T1
   ErrorsResult #0
@@ -6227,10 +6227,10 @@ class C extends A {}
           B: false
         interfaces
           A
-            allSubtypes: []
+            allSubtypes: <null>
             directSubtypesOfSealed: #M2 #M8
           B
-            allSubtypes: []
+            allSubtypes: <null>
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -56054,6 +56054,7 @@ class extends A {}
       A: #M0
         flags: isFinal
         supertype: Object @ dart:core
+        allSubtypes: []
         interface: #M1
     exportMapId: #M2
     exportMap
@@ -56216,6 +56217,7 @@ class C {}
       B: #M1
         flags: isFinal
         supertype: A @ package:test/test.dart
+        allSubtypes: []
         interface: #M3
       C: #M4
         supertype: Object @ dart:core
@@ -56254,6 +56256,7 @@ final class D extends B {}
       D: #M7
         flags: isFinal
         supertype: B @ package:test/test.dart
+        allSubtypes: []
         interface: #M8
     exportMapId: #M9
     exportMap
@@ -68326,6 +68329,7 @@ class D {}
   }
 
   test_manifest_class_modifier_isFinal() async {
+    configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A {}
@@ -68340,12 +68344,20 @@ final class D {}
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        supertype: Object @ dart:core
         interface: #M1
       B: #M2
+        flags: isFinal
+        supertype: Object @ dart:core
+        allSubtypes: []
         interface: #M3
       C: #M4
+        supertype: Object @ dart:core
         interface: #M5
       D: #M6
+        flags: isFinal
+        supertype: Object @ dart:core
+        allSubtypes: []
         interface: #M7
     exportMapId: #M8
     exportMap
@@ -68366,12 +68378,20 @@ class D {}
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        supertype: Object @ dart:core
         interface: #M1
       B: #M2
+        flags: isFinal
+        supertype: Object @ dart:core
+        allSubtypes: []
         interface: #M3
       C: #M9
+        flags: isFinal
+        supertype: Object @ dart:core
+        allSubtypes: []
         interface: #M10
       D: #M11
+        supertype: Object @ dart:core
         interface: #M12
     exportMapId: #M13
     exportMap
@@ -68568,6 +68588,7 @@ class D {}
   }
 
   test_manifest_class_modifier_isSealed() async {
+    configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A {}
@@ -68582,12 +68603,22 @@ sealed class D {}
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        supertype: Object @ dart:core
         interface: #M1
       B: #M2
+        flags: isAbstract isSealed
+        supertype: Object @ dart:core
+        allSubtypes: []
+        directSubtypesOfSealed: []
         interface: #M3
       C: #M4
+        supertype: Object @ dart:core
         interface: #M5
       D: #M6
+        flags: isAbstract isSealed
+        supertype: Object @ dart:core
+        allSubtypes: []
+        directSubtypesOfSealed: []
         interface: #M7
     exportMapId: #M8
     exportMap
@@ -68608,12 +68639,22 @@ class D {}
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        supertype: Object @ dart:core
         interface: #M1
       B: #M2
+        flags: isAbstract isSealed
+        supertype: Object @ dart:core
+        allSubtypes: []
+        directSubtypesOfSealed: []
         interface: #M3
       C: #M9
+        flags: isAbstract isSealed
+        supertype: Object @ dart:core
+        allSubtypes: []
+        directSubtypesOfSealed: []
         interface: #M10
       D: #M11
+        supertype: Object @ dart:core
         interface: #M12
     exportMapId: #M13
     exportMap
