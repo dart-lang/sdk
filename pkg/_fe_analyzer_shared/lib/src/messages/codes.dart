@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// @docImport 'package:_fe_analyzer_shared/src/scanner/errors.dart';
+/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.dart';
 /// @docImport 'package:analyzer/src/fasta/ast_builder.dart';
 /// @docImport 'package:analyzer/src/fasta/error_converter.dart';
 /// @docImport 'package:analyzer/src/diagnostic/diagnostic_code_values.dart';
+/// @docImport 'package:analyzer/src/dart/scanner/translate_error_token.dart';
 library _fe_analyzer_shared.messages.codes;
 
 import 'dart:convert' show JsonEncoder, json;

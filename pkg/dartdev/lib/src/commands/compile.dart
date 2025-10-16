@@ -738,6 +738,8 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       --enable-bulk-memory
       --enable-threads
 
+      --no-inline=*<noInline>*
+
       --closed-world
       --traps-never-happen
       --type-unfinalizing
@@ -760,6 +762,8 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       --enable-sign-ext
       --enable-bulk-memory
       --enable-threads
+
+      --no-inline=*<noInline>*
 
       -Os
     '''); // end of binaryenFlagsDeferredLoading

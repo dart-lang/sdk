@@ -5919,12 +5919,6 @@ JsInteropDartJsInteropAnnotationForStaticInteropOnly:
   problemMessage: "The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes."
   correctionMessage: "Try making this class an extension type or marking it as '@staticInterop'."
 
-JsInteropDisallowedInteropLibraryInDart2Wasm:
-  parameters:
-    Name name: undocumented
-  problemMessage: "JS interop library '#name' can't be imported when compiling to Wasm."
-  correctionMessage: "Try using 'dart:js_interop' or 'dart:js_interop_unsafe' instead."
-
 JsInteropEnclosingClassJSAnnotation:
   parameters: none
   problemMessage: "Member has a JS interop annotation but the enclosing class does not."

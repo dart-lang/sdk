@@ -135,7 +135,7 @@ vars = {
   "core_rev": "5c3e2c38df268be2347f3aad30ced0147dd012bb", # b/444274553
   "dartdoc_rev": "98d03ad2cc341d1fb053e0addfc96ba35301976b",
   "ecosystem_rev": "f4fbac4de4a61c60193556e63e52b790ecc5e986",
-  "flute_rev": "d5adc4d6439572db5da71a9261b9bf0c7c96daa4",
+  "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
   "http_rev": "2c53fa3c558ec5d1dd9fce4360d435113dba11e5",
   "i18n_rev": "34d1832b7e65d9aef1f7f6a82c22f6e53476191c",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually

@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import '../serialize/serialize.dart';
+import '../serialize/printer.dart';
 import 'ir.dart';
 
 /// A logically const wasm module ready to encode. Created with `ModuleBuilder`.
@@ -232,5 +233,29 @@ class Module implements Serializable {
         [],
         sourceMapUrl,
       );
+  }
+
+  String printAsWat() {
+    final mp = ModulePrinter(this);
+
+    // Enqueue all types, tags, globals, functions thereby making the
+    // printed module contain most things we care about.
+    for (final type in types.defined) {
+      if (type is! FunctionType) {
+        mp.enqueueType(type);
+      }
+    }
+    for (final tag in [...tags.imported, ...tags.defined]) {
+      mp.enqueueTag(tag);
+    }
+
+    for (final global in [...globals.imported, ...globals.defined]) {
+      mp.enqueueGlobal(global);
+    }
+
+    for (final function in [...functions.imported, ...functions.defined]) {
+      mp.enqueueFunction(function);
+    }
+    return mp.print();
   }
 }

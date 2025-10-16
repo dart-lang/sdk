@@ -13,8 +13,9 @@ static method main() → void {
 library static_interop;
 import self as sta;
 import "dart:_js_annotations" as _js;
+import "dart:js_interop" as js_;
 import "dart:core" as core;
-import "dart:js_util" as js_;
+import "dart:js_util" as js_2;
 import "dart:_js_helper" as _js2;
 
 import "package:js/js.dart";
@@ -24,9 +25,9 @@ import "package:js/js.dart";
 class StaticJSClass extends core::Object {
   external static factory •() → sta::StaticJSClass;
   static synthetic method _#new#tearOff() → sta::StaticJSClass
-    return js_::_callConstructorUnchecked0<sta::StaticJSClass>(js_::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "JSClass"));
+    return js_2::_callConstructorUnchecked0<sta::StaticJSClass>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "JSClass"));
   static factory factory() → sta::StaticJSClass {
-    return js_::_callConstructorUnchecked0<sta::StaticJSClass>(js_::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "JSClass"));
+    return js_2::_callConstructorUnchecked0<sta::StaticJSClass>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "JSClass"));
   }
   static synthetic method _#factory#tearOff() → sta::StaticJSClass
     return sta::StaticJSClass::factory();
@@ -42,7 +43,7 @@ constants  {
   #C2 = _js::JS {name:#C1}
   #C3 = "JSClass"
   #C4 = _js::JS {name:#C3}
-  #C5 = _js::_StaticInterop {}
+  #C5 = js_::_StaticInterop {}
 }
 
 

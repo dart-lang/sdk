@@ -15,7 +15,6 @@ import 'package:front_end/src/api_prototype/codes.dart'
         codeDartFfiLibraryInDart2Wasm,
         codeJsInteropDartClassExtendsJSClass,
         codeJsInteropDartJsInteropAnnotationForStaticInteropOnly,
-        codeJsInteropDisallowedInteropLibraryInDart2Wasm,
         codeJsInteropEnclosingClassJSAnnotation,
         codeJsInteropEnclosingClassJSAnnotationContext,
         codeJsInteropExtensionTypeMemberNotInterop,
@@ -88,8 +87,7 @@ class JsInteropChecks extends RecursiveVisitor {
 
   final ExportChecker exportChecker;
   final bool isDart2Wasm;
-
-  final List<String> _disallowedInteropLibrariesInDart2Wasm;
+  final bool enableExperimentalFfi;
 
   /// Native tests to exclude from checks on external.
   // TODO(rileyporter): Use ExternalName from CFE to exclude native tests.
@@ -103,29 +101,7 @@ class JsInteropChecks extends RecursiveVisitor {
     RegExp(r'(?<!generated_)tests/lib/js'),
   ];
 
-  static final List<Pattern>
-  _allowedUseOfDart2WasmDisallowedInteropLibrariesTestPatterns = [
-    // Benchmarks.
-    RegExp(r'BigIntParsePrint/dart/native_version_javascript.dart'),
-    RegExp(r'JSInterop/dart/jsinterop_lib.dart'),
-    // Tests.
-    RegExp(r'(?<!generated_)tests/lib/js/export'),
-    // Negative lookahead to test the violation.
-    RegExp(
-      r'(?<!generated_)tests/lib/js/static_interop_test(?!/disallowed_interop_libraries_test.dart)',
-    ),
-    RegExp(r'(?<!generated_)tests/web/wasm/(?!ffi/).*'),
-    // Flutter tests.
-    RegExp(r'flutter/lib/web_ui/test'),
-  ];
-
-  // TODO(srujzs): Help migrate some of these away. Once we're done, we can
-  // remove `dart:*` interop libraries from the check as they can be moved out
-  // of `libraries.json`.
   static const allowedInteropLibrariesInDart2WasmPackages = [
-    // Both these packages re-export other interop libraries
-    'js',
-    'js_util',
     // Flutter/benchmarks.
     'flutter',
     'engine',
@@ -135,14 +111,6 @@ class JsInteropChecks extends RecursiveVisitor {
     'package_info_plus',
     'test',
     'url_launcher_web',
-  ];
-
-  /// Interop libraries that cannot be used in dart2wasm.
-  static const _disallowedInteropLibrariesInDart2WasmByDefault = [
-    'package:js/js.dart',
-    'package:js/js_util.dart',
-    'dart:js_util',
-    'dart:ffi',
   ];
 
   /// Libraries that use `external` to exclude from checks on external.
@@ -173,7 +141,7 @@ class JsInteropChecks extends RecursiveVisitor {
     this._reporter,
     this._nativeClasses, {
     this.isDart2Wasm = false,
-    bool enableExperimentalFfi = false,
+    this.enableExperimentalFfi = false,
   }) : exportChecker = ExportChecker(_reporter, _coreTypes.objectClass),
        _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
          'dart:js_interop',
@@ -185,11 +153,7 @@ class JsInteropChecks extends RecursiveVisitor {
        ),
        _staticTypeContext = StatefulStaticTypeContext.stacked(
          TypeEnvironment(_coreTypes, hierarchy),
-       ),
-       _disallowedInteropLibrariesInDart2Wasm = [
-         for (final entry in _disallowedInteropLibrariesInDart2WasmByDefault)
-           if (!(entry == 'dart:ffi' && enableExperimentalFfi)) entry,
-       ] {
+       ) {
     extensionIndex = ExtensionIndex(
       _coreTypes,
       _staticTypeContext.typeEnvironment,
@@ -625,34 +589,24 @@ class JsInteropChecks extends RecursiveVisitor {
   /// Check that [node] doesn't depend on any disallowed interop libraries in
   /// dart2wasm.
   ///
-  /// We allowlist `dart:*` libraries, select packages, and test patterns.
+  /// We allowlist `dart:*` libraries and select packages.
   void _checkDisallowedLibrariesForDart2Wasm(Library node) {
     final uri = node.importUri;
     for (final dependency in node.dependencies) {
       final dependencyUriString = dependency.targetLibrary.importUri.toString();
-      if (_disallowedInteropLibrariesInDart2Wasm.contains(
-        dependencyUriString,
-      )) {
+      if (!enableExperimentalFfi && dependencyUriString == 'dart:ffi') {
         // TODO(srujzs): While we allow these imports for all `dart:*`
         // libraries, we may want to restrict this further, as it may include
         // `dart:ui`.
         final allowedToImport =
             uri.isScheme('dart') ||
-            (uri.isScheme('package') &&
-                allowedInteropLibrariesInDart2WasmPackages.any(
-                  (pkg) => uri.pathSegments.first == pkg,
-                )) ||
-            _allowedUseOfDart2WasmDisallowedInteropLibrariesTestPatterns.any(
-              (pattern) => uri.path.contains(pattern),
-            );
+            uri.isScheme('package') &&
+                allowedInteropLibrariesInDart2WasmPackages.contains(
+                  uri.pathSegments.first,
+                );
         if (allowedToImport) return;
-        final message = dependencyUriString == 'dart:ffi'
-            ? codeDartFfiLibraryInDart2Wasm
-            : codeJsInteropDisallowedInteropLibraryInDart2Wasm.withArgumentsOld(
-                dependencyUriString,
-              );
         _reporter.report(
-          message,
+          codeDartFfiLibraryInDart2Wasm,
           dependency.fileOffset,
           dependencyUriString.length,
           node.fileUri,
@@ -683,9 +637,7 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _isAllowedTrustTypesUsage(Class cls) {
     final uri = cls.enclosingLibrary.importUri;
     return uri.isScheme('dart') && uri.path == 'ui' ||
-        _allowedTrustTypesTestPatterns.any(
-          (pattern) => uri.path.contains(pattern),
-        );
+        _allowedTrustTypesTestPatterns.any(uri.path.contains);
   }
 
   /// Check that JS interop class [node], that only has an @JS annotation, is
@@ -731,7 +683,7 @@ class JsInteropChecks extends RecursiveVisitor {
     final uri = member.enclosingLibrary.importUri;
     return uri.isScheme('dart') &&
             _pathsWithAllowedDartExternalUsage.contains(uri.path) ||
-        _allowedNativeTestPatterns.any((pattern) => uri.path.contains(pattern));
+        _allowedNativeTestPatterns.any(uri.path.contains);
   }
 
   /// Assumes given [member] is not JS interop, and reports an error if

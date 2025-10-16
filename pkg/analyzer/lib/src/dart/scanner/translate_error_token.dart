@@ -1,28 +1,25 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../base/errors.dart';
-import '../messages/codes.dart';
-import 'error_token.dart';
-import 'token.dart' show Token, TokenType;
-import 'token_constants.dart';
+import 'package:_fe_analyzer_shared/src/messages/codes.dart';
+import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show Token, TokenType;
+import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 
-part 'errors.g.dart';
-
-/**
- *  Translates the given error [token] into an analyzer error and reports it
- *  using [reportError].
- */
+/// Translates the given error [token] into an analyzer error and reports it
+/// using [reportError].
 void translateErrorToken(ErrorToken token, ReportError reportError) {
   int charOffset = token.charOffset;
-  // TODO(paulberry,ahe): why is endOffset sometimes null?
+  // TODO(paulberry): why is endOffset sometimes null?
   int endOffset = token.endOffset ?? charOffset;
-  void _makeError(ScannerErrorCode errorCode, List<Object>? arguments) {
+  void makeError(ScannerErrorCode errorCode, List<Object>? arguments) {
     if (_isAtEnd(token, charOffset)) {
       // Analyzer never generates an error message past the end of the input,
       // since such an error would not be visible in an editor.
-      // TODO(paulberry,ahe): would it make sense to replicate this behavior
+      // TODO(paulberry): would it make sense to replicate this behavior
       // in cfe, or move it elsewhere in analyzer?
       charOffset--;
     }
@@ -36,7 +33,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       return;
 
     case PseudoSharedCode.unterminatedStringLiteral:
-      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // TODO(paulberry): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.
       reportError(
         ScannerErrorCode.unterminatedStringLiteral,
@@ -46,7 +43,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       return;
 
     case PseudoSharedCode.unterminatedMultiLineComment:
-      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // TODO(paulberry): Fasta reports the error location as the entire
       // comment; analyzer expects the end of the comment.
       reportError(
         ScannerErrorCode.unterminatedMultiLineComment,
@@ -56,27 +53,27 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       return;
 
     case PseudoSharedCode.missingDigit:
-      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // TODO(paulberry): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
       charOffset = endOffset - 1;
-      return _makeError(ScannerErrorCode.missingDigit, null);
+      return makeError(ScannerErrorCode.missingDigit, null);
 
     case PseudoSharedCode.missingHexDigit:
-      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // TODO(paulberry): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
       charOffset = endOffset - 1;
-      return _makeError(ScannerErrorCode.missingHexDigit, null);
+      return makeError(ScannerErrorCode.missingHexDigit, null);
 
     case PseudoSharedCode.illegalCharacter:
       // We can safely assume `token.character` is non-`null` because this error
       // is only reported when there is a character associated with the token.
-      return _makeError(ScannerErrorCode.illegalCharacter, [token.character!]);
+      return makeError(ScannerErrorCode.illegalCharacter, [token.character!]);
 
     case PseudoSharedCode.unexpectedSeparatorInNumber:
-      return _makeError(ScannerErrorCode.unexpectedSeparatorInNumber, null);
+      return makeError(ScannerErrorCode.unexpectedSeparatorInNumber, null);
 
     case PseudoSharedCode.unsupportedOperator:
-      return _makeError(ScannerErrorCode.unsupportedOperator, [
+      return makeError(ScannerErrorCode.unsupportedOperator, [
         (token as UnsupportedOperator).token.lexeme,
       ]);
 
@@ -86,30 +83,26 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
         TokenType type = token.begin!.type;
         if (type == TokenType.OPEN_CURLY_BRACKET ||
             type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
-          return _makeError(ScannerErrorCode.expectedToken, ['}']);
+          return makeError(ScannerErrorCode.expectedToken, ['}']);
         }
         if (type == TokenType.OPEN_SQUARE_BRACKET) {
-          return _makeError(ScannerErrorCode.expectedToken, [']']);
+          return makeError(ScannerErrorCode.expectedToken, [']']);
         }
         if (type == TokenType.OPEN_PAREN) {
-          return _makeError(ScannerErrorCode.expectedToken, [')']);
+          return makeError(ScannerErrorCode.expectedToken, [')']);
         }
         if (type == TokenType.LT) {
-          return _makeError(ScannerErrorCode.expectedToken, ['>']);
+          return makeError(ScannerErrorCode.expectedToken, ['>']);
         }
       } else if (errorCode == codeUnexpectedDollarInString) {
-        return _makeError(ScannerErrorCode.missingIdentifier, null);
+        return makeError(ScannerErrorCode.missingIdentifier, null);
       }
-      throw new UnimplementedError(
-        '$errorCode "${errorCode.pseudoSharedCode}"',
-      );
+      throw UnimplementedError('$errorCode "${errorCode.pseudoSharedCode}"');
   }
 }
 
-/**
- * Determines whether the given [charOffset], which came from the non-EOF token
- * [token], represents the end of the input.
- */
+/// Determines whether the given [charOffset], which came from the non-EOF token
+/// [token], represents the end of the input.
 bool _isAtEnd(Token token, int charOffset) {
   while (true) {
     // Skip to the next token.
@@ -124,13 +117,12 @@ bool _isAtEnd(Token token, int charOffset) {
   }
 }
 
-/**
- * Used to report a scan error at the given offset.
- * The [errorCode] is the error code indicating the nature of the error.
- * The [arguments] are any arguments needed to complete the error message.
- */
-typedef ReportError(
-  ScannerErrorCode errorCode,
-  int offset,
-  List<Object>? arguments,
-);
+/// Used to report a scan error at the given offset.
+/// The [errorCode] is the error code indicating the nature of the error.
+/// The [arguments] are any arguments needed to complete the error message.
+typedef ReportError =
+    void Function(
+      ScannerErrorCode errorCode,
+      int offset,
+      List<Object>? arguments,
+    );

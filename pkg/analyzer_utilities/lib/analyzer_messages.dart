@@ -42,7 +42,7 @@ const List<ErrorClassInfo> errorClasses = [
     type: 'COMPILE_TIME_ERROR',
   ),
   GeneratedErrorClassInfo(
-    file: scannerErrorFile,
+    file: syntacticErrorsFile,
     name: 'ScannerErrorCode',
     type: 'SYNTACTIC_ERROR',
   ),
@@ -147,12 +147,6 @@ const optionCodesFile = GeneratedErrorCodeFile(
 const pubspecWarningCodeFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/pubspec/pubspec_warning_code.g.dart',
   parentLibrary: 'package:analyzer/src/pubspec/pubspec_warning_code.dart',
-);
-
-const scannerErrorFile = GeneratedErrorCodeFile(
-  path: '_fe_analyzer_shared/lib/src/scanner/errors.g.dart',
-  parentLibrary: 'package:_fe_analyzer_shared/src/scanner/errors.dart',
-  shouldUseExplicitNewOrConst: true,
 );
 
 const syntacticErrorsFile = GeneratedErrorCodeFile(

@@ -11,6 +11,7 @@ library;
 //
 import self as self;
 import "dart:_js_annotations" as _js;
+import "dart:js_interop" as js_;
 import "dart:core" as core;
 
 import "package:js/js.dart";
@@ -29,7 +30,7 @@ static method main() → dynamic {}
 constants  {
   #C1 = null
   #C2 = _js::JS {name:#C1}
-  #C3 = _js::_Anonymous {}
+  #C3 = js_::_Anonymous {}
 }
 
 

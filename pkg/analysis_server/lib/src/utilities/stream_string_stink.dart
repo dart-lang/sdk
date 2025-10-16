@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-/// A [StringSink] that writes into a StreamSink<String>.
+/// A [StringSink] that writes into a `StreamSink<String>`.
 class StreamStringSink implements StringSink {
   final StreamSink<String> _sink;
 

@@ -160,7 +160,6 @@ class WasmTarget extends Target {
         'dart:io',
         'dart:js_interop',
         'dart:js_interop_unsafe',
-        'dart:js_util',
         'dart:nativewrappers',
         'dart:typed_data',
       ];
@@ -180,7 +179,6 @@ class WasmTarget extends Target {
         'dart:collection',
         'dart:js_interop',
         'dart:js_interop_unsafe',
-        'dart:js_util',
         'dart:typed_data',
       ];
 
@@ -204,9 +202,6 @@ class WasmTarget extends Target {
 
     // Flutter's dart:ui is also package:ui (in test mode)
     if (importerString.startsWith('package:ui/')) return true;
-
-    // package:js can import dart:js_util & dart:_js_*
-    if (importerString.startsWith('package:js/')) return true;
 
     return false;
   }
@@ -283,10 +278,6 @@ class WasmTarget extends Target {
     }
 
     Set<Library> transitiveImportingJSInterop = {
-      ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-          component.libraries, Uri.parse("package:js/js.dart")),
-      ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-          component.libraries, Uri.parse("dart:_js_annotations")),
       ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
           component.libraries, Uri.parse("dart:js_interop")),
       ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
@@ -589,7 +580,7 @@ void _checkWasmImportExportPragmas(List<Library> libraries, CoreTypes coreTypes,
     if (importUri.isScheme('dart') ||
         (importUri.isScheme('package') &&
             JsInteropChecks.allowedInteropLibrariesInDart2WasmPackages
-                .any((pkg) => importUri.pathSegments.first == pkg))) {
+                .contains(importUri.pathSegments.first))) {
       continue;
     }
 

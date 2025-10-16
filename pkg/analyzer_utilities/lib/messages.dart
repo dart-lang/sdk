@@ -72,14 +72,17 @@ final RegExp placeholderPattern = RegExp(
 final SharedToAnalyzerErrorCodeTables sharedToAnalyzerErrorCodeTables =
     SharedToAnalyzerErrorCodeTables._(feAnalyzerSharedMessages);
 
-/// Convert a template string (which uses placeholders matching
-/// [placeholderPattern]) to an analyzer internal template string (which uses
+/// Converts a template to an analyzer internal template string (which uses
 /// placeholders like `{0}`).
-String convertTemplate(Map<String, int> placeholderToIndexMap, String entry) {
-  return entry.replaceAllMapped(
-    placeholderPattern,
-    (match) => '{${placeholderToIndexMap[match.group(0)!]}}',
-  );
+String convertTemplate(List<TemplatePart> template) {
+  return template
+      .map(
+        (part) => switch (part) {
+          TemplateLiteralPart(:var text) => text,
+          TemplateParameterPart(:var parameter) => '{${parameter.index}}',
+        },
+      )
+      .join();
 }
 
 /// Decodes a YAML object (in CFE style `messages.yaml` format) into a map from
@@ -310,7 +313,7 @@ abstract class ErrorCodeInfo {
 
   /// If the error code has an associated correctionMessage, the template for
   /// it.
-  final String? correctionMessage;
+  final List<TemplatePart>? correctionMessage;
 
   /// If non-null, the deprecation message for this error code.
   final String? deprecatedMessage;
@@ -328,7 +331,7 @@ abstract class ErrorCodeInfo {
   final bool isUnresolvedIdentifier;
 
   /// The problemMessage for the error code.
-  final String problemMessage;
+  final List<TemplatePart> problemMessage;
 
   /// If present, the SDK version this error code stopped being reported in.
   /// If not null, error codes will not be generated for this error.
@@ -362,39 +365,37 @@ abstract class ErrorCodeInfo {
     this.hasPublishedDocs,
     this.isUnresolvedIdentifier = false,
     this.sharedName,
-    required this.problemMessage,
-    this.correctionMessage,
+    required Object? problemMessageYaml,
+    required Object? correctionMessageYaml,
     this.deprecatedMessage,
     this.previousName,
     this.removedIn,
     required this.parameters,
     this.yamlNode,
-  }) {
-    for (var MapEntry(:key, :value) in {
-      'problemMessage': problemMessage,
-      'correctionMessage': correctionMessage,
-    }.entries) {
-      if (value == null) continue;
-      if (value.contains(oldPlaceholderPattern)) {
-        throw StateError(
-          '$key is ${json.encode(value)}, which contains an old-style analyzer '
-          'placeholder pattern. Please convert to #NAME format.',
-        );
-      }
-    }
-  }
+  }) : problemMessage =
+           _decodeMessage(
+             problemMessageYaml,
+             parameters: parameters,
+             kind: 'problemMessage',
+           ) ??
+           [],
+       correctionMessage = _decodeMessage(
+         correctionMessageYaml,
+         parameters: parameters,
+         kind: 'correctionMessage',
+       );
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
   ErrorCodeInfo.fromYaml(YamlMap yaml)
     : this(
         comment: yaml['comment'] as String?,
-        correctionMessage: _decodeMessage(yaml['correctionMessage']),
+        correctionMessageYaml: yaml['correctionMessage'],
         deprecatedMessage: yaml['deprecatedMessage'] as String?,
         documentation: yaml['documentation'] as String?,
         hasPublishedDocs: yaml['hasPublishedDocs'] as bool?,
         isUnresolvedIdentifier:
             yaml['isUnresolvedIdentifier'] as bool? ?? false,
-        problemMessage: _decodeMessage(yaml['problemMessage']) ?? '',
+        problemMessageYaml: yaml['problemMessage'],
         sharedName: yaml['sharedName'] as String?,
         removedIn: yaml['removedIn'] as String?,
         previousName: yaml['previousName'] as String?,
@@ -405,14 +406,6 @@ abstract class ErrorCodeInfo {
   /// If this error is no longer reported and
   /// its error codes should no longer be generated.
   bool get isRemoved => removedIn != null;
-
-  /// Given a messages.yaml entry, come up with a mapping from placeholder
-  /// patterns in its message strings to their corresponding indices.
-  Map<String, int> computePlaceholderToIndexMap() {
-    // Parameters are always explicitly specified, so the mapping is determined
-    // by the order in which they were specified.
-    return {for (var (index, name) in parameters.keys.indexed) '#$name': index};
-  }
 
   void outputConstantHeader(StringSink out) {
     out.write(toAnalyzerComments(indent: '  '));
@@ -433,10 +426,10 @@ abstract class ErrorCodeInfo {
   }) {
     var correctionMessage = this.correctionMessage;
     var parameters = this.parameters;
-    var usesParameters = [
-      problemMessage,
-      correctionMessage,
-    ].any((value) => value != null && value.contains(placeholderPattern));
+    var usesParameters = [problemMessage, correctionMessage].any(
+      (value) =>
+          value != null && value.any((part) => part is TemplateParameterPart),
+    );
     var constantName = diagnosticCode.toCamelCase();
     String className;
     String templateParameters = '';
@@ -487,17 +480,16 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
       '${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
     );
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
-    var placeholderToIndexMap = computePlaceholderToIndexMap();
-    var messageAsCode = convertTemplate(placeholderToIndexMap, problemMessage);
+    var messageAsCode = convertTemplate(problemMessage);
     var messageLines = _splitText(
       messageAsCode,
       maxWidth: maxWidth,
       firstLineWidth: maxWidth + 4,
     );
     constant.writeln('${messageLines.map(_encodeString).join('\n')},');
-    if (correctionMessage is String) {
+    if (correctionMessage != null) {
       constant.write('correctionMessage: ');
-      var code = convertTemplate(placeholderToIndexMap, correctionMessage);
+      var code = convertTemplate(correctionMessage);
       var codeLines = _splitText(code, maxWidth: maxWidth);
       constant.writeln('${codeLines.map(_encodeString).join('\n')},');
     }
@@ -581,7 +573,11 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     return jsonEncoded.replaceAll(r'$', r'\$');
   }
 
-  static String? _decodeMessage(Object? rawMessage) {
+  static List<TemplatePart>? _decodeMessage(
+    Object? rawMessage, {
+    required Map<String, ErrorCodeParameter> parameters,
+    required String kind,
+  }) {
     switch (rawMessage) {
       case null:
         return null;
@@ -589,7 +585,30 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
         // Remove trailing whitespace. This is necessary for templates defined
         // with `|` (verbatim) as they always contain a trailing newline that we
         // don't want.
-        return rawMessage.trimRight();
+        var text = rawMessage.trimRight();
+        if (text.contains(oldPlaceholderPattern)) {
+          throw StateError(
+            '$kind is ${json.encode(text)}, which contains an old-style '
+            'analyzer placeholder pattern. Please convert to #NAME format.',
+          );
+        }
+
+        var template = <TemplatePart>[];
+        var i = 0;
+        for (var match in placeholderPattern.allMatches(text)) {
+          var matchStart = match.start;
+          if (matchStart > i) {
+            template.add(TemplateLiteralPart(text.substring(i, matchStart)));
+          }
+          template.add(
+            TemplateParameterPart.fromMatch(match, parameters: parameters),
+          );
+          i = match.end;
+        }
+        if (text.length > i) {
+          template.add(TemplateLiteralPart(text.substring(i)));
+        }
+        return template;
       default:
         throw 'Bad message type: ${rawMessage.runtimeType}';
     }
@@ -602,6 +621,7 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     if (yaml == 'none') return const {};
     yaml as Map<Object?, Object?>;
     var result = <String, ErrorCodeParameter>{};
+    var index = 0;
     for (var MapEntry(:key, :value) in yaml.entries) {
       switch ((key as String).split(' ')) {
         case [var type, var name]:
@@ -609,8 +629,10 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
             throw StateError('Duplicate parameter name: $name');
           }
           result[name] = ErrorCodeParameter(
+            name: name,
             type: ErrorCodeParameterType.fromMessagesYamlName(type),
             comment: value as String,
+            index: index++,
           );
         default:
           throw StateError(
@@ -625,14 +647,18 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
 
 /// In-memory representation of a single key/value pair from the `parameters`
 /// map for an error code.
-///
-/// The name of the parameter is not included, since parameters are stored in a
-/// map from name to [ErrorCodeParameter].
 class ErrorCodeParameter {
+  final String name;
   final ErrorCodeParameterType type;
   final String comment;
+  final int index;
 
-  ErrorCodeParameter({required this.type, required this.comment});
+  ErrorCodeParameter({
+    required this.name,
+    required this.type,
+    required this.comment,
+    required this.index,
+  });
 }
 
 /// In-memory representation of the type of a single diagnostic code's
@@ -965,41 +991,6 @@ class NumericConversion implements Conversion {
   }
 }
 
-/// The result of parsing a [placeholderPattern] match in a template string.
-class ParsedPlaceholder {
-  /// The name of the template parameter.
-  ///
-  /// This is the identifier that immediately follows the `#`.
-  final String name;
-
-  /// The conversion specified in the placeholder, if any.
-  ///
-  /// If `null`, the default conversion for the parameter's type will be used.
-  final Conversion? conversionOverride;
-
-  /// Builds a [ParsedPlaceholder] from the given [match] of
-  /// [placeholderPattern].
-  factory ParsedPlaceholder.fromMatch(Match match) {
-    String name = match[1]!;
-
-    return ParsedPlaceholder._(
-      name: name,
-      conversionOverride: NumericConversion.from(match),
-    );
-  }
-
-  ParsedPlaceholder._({required this.name, required this.conversionOverride});
-
-  @override
-  int get hashCode => Object.hash(name, conversionOverride);
-
-  @override
-  bool operator ==(Object other) =>
-      other is ParsedPlaceholder &&
-      other.name == name &&
-      other.conversionOverride == conversionOverride;
-}
-
 /// In-memory representation of error code information obtained from the file
 /// `pkg/_fe_analyzer_shared/messages.yaml`.
 class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
@@ -1090,3 +1081,64 @@ class SimpleConversion implements Conversion {
   String toCode({required String name, required ErrorCodeParameterType type}) =>
       'conversions.$functionName($name)';
 }
+
+/// [TemplatePart] representing a literal string of characters, with no
+/// parameter substitutions.
+class TemplateLiteralPart implements TemplatePart {
+  /// The literal text.
+  final String text;
+
+  TemplateLiteralPart(this.text);
+}
+
+/// [TemplatePart] representing a parameter to be substituted into the
+/// diagnostic message.
+class TemplateParameterPart implements TemplatePart {
+  /// The parameter to be substituted.
+  final ErrorCodeParameter parameter;
+
+  /// The conversion to apply to the parameter.
+  ///
+  /// If `null`, the default conversion for the parameter's type will be used.
+  final Conversion? conversionOverride;
+
+  /// Builds a [TemplateParameterPart] from the given [match] of
+  /// [placeholderPattern].
+  factory TemplateParameterPart.fromMatch(
+    Match match, {
+    required Map<String, ErrorCodeParameter> parameters,
+  }) {
+    String name = match[1]!;
+    var parameter = parameters[name];
+    if (parameter == null) {
+      throw StateError(
+        'Placeholder ${json.encode(name)} not declared as a parameter',
+      );
+    }
+
+    return TemplateParameterPart._(
+      parameter: parameter,
+      conversionOverride: NumericConversion.from(match),
+    );
+  }
+
+  TemplateParameterPart._({
+    required this.parameter,
+    required this.conversionOverride,
+  });
+
+  @override
+  int get hashCode => Object.hash(parameter, conversionOverride);
+
+  @override
+  bool operator ==(Object other) =>
+      other is TemplateParameterPart &&
+      other.parameter == parameter &&
+      other.conversionOverride == conversionOverride;
+}
+
+/// A part of a parsed template string.
+///
+/// Each `problemMessage` and `correctionMessage` template string in a
+/// `messages.yaml` file is decoded into a list of [TemplatePart].
+sealed class TemplatePart {}

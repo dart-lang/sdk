@@ -49,8 +49,8 @@ class CodeFragmentParser {
   /// Parse the [content] into a list of accessors. Add the [delta] to translate
   /// from offsets within the content to offsets within the file.
   ///
-  /// <content> ::=
-  ///   <accessor> ('.' <accessor>)*
+  ///     <content> ::=
+  ///       <accessor> ('.' <accessor>)*
   List<Accessor>? parseAccessors(String content, int delta) {
     this.delta = delta;
     var scannedTokens = _CodeFragmentScanner(
@@ -98,8 +98,8 @@ class CodeFragmentParser {
   /// Parse the [content] into a condition. Add the [delta] to translate
   /// from offsets within the content to offsets within the file.
   ///
-  /// <content> ::=
-  ///   <logicalExpression>
+  ///     <content> ::=
+  ///       <logicalExpression>
   Expression? parseCondition(String content, int delta) {
     this.delta = delta;
     var scannedTokens = _CodeFragmentScanner(
@@ -176,8 +176,8 @@ class CodeFragmentParser {
 
   /// Parse an accessor.
   ///
-  /// <accessor> ::=
-  ///   <identifier> '[' (<integer> | <identifier>) ']'
+  ///     <accessor> ::=
+  ///       <identifier> '[' (<integer> | <identifier>) ']'
   Accessor? _parseAccessor() {
     var token = _expect(const [_TokenKind.identifier]);
     if (token == null) {
@@ -248,10 +248,10 @@ class CodeFragmentParser {
 
   /// Parse a logical expression.
   ///
-  /// <equalityExpression> ::=
-  ///   <primaryExpression> (<comparisonOperator> <primaryExpression>)?
-  /// <comparisonOperator> ::=
-  ///   '==' | '!='
+  ///     <equalityExpression> ::=
+  ///       <primaryExpression> (<comparisonOperator> <primaryExpression>)?
+  ///     <comparisonOperator> ::=
+  ///       '==' | '!='
   Expression? _parseEqualityExpression() {
     var expression = _parsePrimaryExpression();
     if (expression == null) {
@@ -277,8 +277,8 @@ class CodeFragmentParser {
 
   /// Parse a logical expression.
   ///
-  /// <logicalExpression> ::=
-  ///   <equalityExpression> ('&&' <equalityExpression>)*
+  ///     <logicalExpression> ::=
+  ///       <equalityExpression> ('&&' <equalityExpression>)*
   Expression? _parseLogicalAndExpression() {
     var leftOperand = _parseEqualityExpression();
     if (leftOperand == null) {
@@ -306,8 +306,8 @@ class CodeFragmentParser {
 
   /// Parse a logical expression.
   ///
-  /// <primaryExpression> ::=
-  ///   <identifier> | <string>
+  ///     <primaryExpression> ::=
+  ///       <identifier> | <string>
   Expression? _parsePrimaryExpression() {
     var token = _currentToken;
     if (token != null) {

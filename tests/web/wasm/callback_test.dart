@@ -4,11 +4,10 @@
 
 // dart2wasmOptions=--extra-compiler-option=--enable-experimental-wasm-interop
 
-import 'dart:js_interop' hide JS;
+import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
 import 'package:expect/expect.dart';
-import 'package:js/js.dart';
 
 @JS()
 external void eval(String code);
@@ -25,19 +24,18 @@ typedef SumTwoOptionalNonNullFun = String Function([String a, String b]);
 @staticInterop
 class DartFromJSCallbackHelper {
   external factory DartFromJSCallbackHelper.factory(
-    SumTwoPositionalFun sumTwoPositional,
-    SumOnePositionalAndOneOptionalFun sumOnePositionalOneOptional,
-    SumTwoOptionalFun sumTwoOptional,
-    SumOnePositionalAndOneOptionalNonNullFun
-    sumOnePositionalAndOneOptionalNonNull,
-    SumTwoOptionalNonNullFun sumTwoOptionalNonNull,
+    JSFunction sumTwoPositional,
+    JSFunction sumOnePositionalOneOptional,
+    JSFunction sumTwoOptional,
+    JSFunction sumOnePositionalAndOneOptionalNonNull,
+    JSFunction sumTwoOptionalNonNull,
   );
 }
 
 extension DartFromJSCallbackHelperMethods on DartFromJSCallbackHelper {
   external String doSum1();
   external String doSum2(String a, String b);
-  external String doSum3(Object summer);
+  external String doSum3(JSFunction summer);
 
   external String doSumOnePositionalAndOneOptionalA(String a);
   external String doSumOnePositionalAndOneOptionalB(String a, String b);
@@ -129,22 +127,18 @@ void staticInteropCallbackTest() {
   ''');
 
   final helper = DartFromJSCallbackHelper.factory(
-    allowInterop<SumTwoPositionalFun>(sumTwoPositional),
-    allowInterop<SumOnePositionalAndOneOptionalFun>(
-      sumOnePositionalAndOneOptional,
-    ),
-    allowInterop<SumTwoOptionalFun>(sumTwoOptional),
-    allowInterop<SumOnePositionalAndOneOptionalNonNullFun>(
-      sumOnePositionalAndOneOptionalNonNull,
-    ),
-    allowInterop<SumTwoOptionalNonNullFun>(sumTwoOptionalNonNull),
+    sumTwoPositional.toJS,
+    sumOnePositionalAndOneOptional.toJS,
+    sumTwoOptional.toJS,
+    sumOnePositionalAndOneOptionalNonNull.toJS,
+    sumTwoOptionalNonNull.toJS,
   );
 
   Expect.equals('hello world!', helper.doSum1());
   Expect.equals('foobar', helper.doSum2('foo', 'bar'));
   Expect.equals(
     'hello world!',
-    helper.doSum3(allowInterop<SumTwoPositionalFun>((a, b) => a + b)),
+    helper.doSum3(((String a, String b) => a + b).toJS),
   );
 
   Expect.equals('foobar', helper.doSumOnePositionalAndOneOptionalA('foo'));
@@ -216,7 +210,7 @@ class GenericTornOffClass<T, V> {
   }
 }
 
-void allowInteropCallbackTest() {
+void unsafeInteropCallbackTest() {
   eval(r'''
     globalThis.doSum1 = function(summer) {
       return summer('foo', 'bar');
@@ -298,9 +292,7 @@ void allowInteropCallbackTest() {
 
   // General
   {
-    final interopCallback = allowInterop<SumTwoPositionalFun>(
-      (a, b) => a + b,
-    ).toJS;
+    final interopCallback = ((String a, String b) => a + b).toJS;
     Expect.equals(
       'foobar',
       globalContext.callMethod('doSum1'.toJS, interopCallback).toString(),
@@ -321,9 +313,7 @@ void allowInteropCallbackTest() {
 
   // 1 nullable optional argument
   {
-    final interopCallback = allowInterop<SumOnePositionalAndOneOptionalFun>(
-      (a, [b]) => a + (b ?? 'bar'),
-    ).toJS;
+    final interopCallback = ((String a, [String? b]) => a + (b ?? 'bar')).toJS;
     globalContext['summer'] = interopCallback;
     Expect.equals(
       'foobar',
@@ -345,9 +335,8 @@ void allowInteropCallbackTest() {
 
   // All nullable optional arguments
   {
-    final interopCallback = allowInterop<SumTwoOptionalFun>(
-      ([a, b]) => (a ?? 'foo') + (b ?? 'bar'),
-    ).toJS;
+    final interopCallback =
+        (([String? a, String? b]) => (a ?? 'foo') + (b ?? 'bar')).toJS;
     globalContext['summer'] = interopCallback;
     Expect.equals(
       'foobar',
@@ -367,10 +356,7 @@ void allowInteropCallbackTest() {
 
   // 1 non-nullable optional argument
   {
-    final interopCallback =
-        allowInterop<SumOnePositionalAndOneOptionalNonNullFun>(
-          (a, [b = 'bar']) => a + b,
-        ).toJS;
+    final interopCallback = ((String a, [String b = 'bar']) => a + b).toJS;
     globalContext['summer'] = interopCallback;
     Expect.equals(
       'foobar',
@@ -392,9 +378,8 @@ void allowInteropCallbackTest() {
 
   // All non-nullable optional arguments
   {
-    final interopCallback = allowInterop<SumTwoOptionalNonNullFun>(
-      ([a = 'foo', b = 'bar']) => a + b,
-    ).toJS;
+    final interopCallback =
+        (([String a = 'foo', String b = 'bar']) => a + b).toJS;
     globalContext['summer'] = interopCallback;
     Expect.equals(
       'foobar',
@@ -416,7 +401,7 @@ void allowInteropCallbackTest() {
   // No args.
   {
     final t = TornOffClass();
-    final interopCallback = allowInterop<NoArgsFun>(t.noArgs).toJS;
+    final interopCallback = t.noArgs.toJS;
     Expect.equals(
       'foo'.toJS,
       globalContext.callMethod('tearOffNoArgs'.toJS, interopCallback),
@@ -426,7 +411,7 @@ void allowInteropCallbackTest() {
   // One arg.
   {
     final t = TornOffClass();
-    final interopCallback = allowInterop<OneArgFun>(t.oneArg).toJS;
+    final interopCallback = t.oneArg.toJS;
     Expect.equals(
       'foo'.toJS,
       globalContext.callMethod('tearOffOneArg'.toJS, interopCallback),
@@ -436,9 +421,7 @@ void allowInteropCallbackTest() {
   // One positional and one optional case A.
   {
     final t = TornOffClass();
-    final interopCallback = allowInterop<OnePositionalAndOneOptionalArgsFun>(
-      t.onePositionalAndOneOptionalArgs,
-    ).toJS;
+    final interopCallback = t.onePositionalAndOneOptionalArgs.toJS;
     Expect.equals(
       'foobar'.toJS,
       globalContext.callMethod(
@@ -451,9 +434,7 @@ void allowInteropCallbackTest() {
   // One positional and one optional case B.
   {
     final t = TornOffClass();
-    final interopCallback = allowInterop<OnePositionalAndOneOptionalArgsFun>(
-      t.onePositionalAndOneOptionalArgs,
-    ).toJS;
+    final interopCallback = t.onePositionalAndOneOptionalArgs.toJS;
     Expect.equals(
       'foobaz'.toJS,
       globalContext.callMethod(
@@ -466,9 +447,7 @@ void allowInteropCallbackTest() {
   // Two optional case A.
   {
     final t = TornOffClass();
-    final interopCallback = allowInterop<TwoOptionalArgsFun>(
-      t.twoOptionalArgs,
-    ).toJS;
+    final interopCallback = t.twoOptionalArgs.toJS;
     Expect.equals(
       'foo'.toJS,
       globalContext.callMethod('tearOffTwoOptionalArgsA'.toJS, interopCallback),
@@ -478,9 +457,7 @@ void allowInteropCallbackTest() {
   // Two optional case B.
   {
     final t = TornOffClass();
-    final interopCallback = allowInterop<TwoOptionalArgsFun>(
-      t.twoOptionalArgs,
-    ).toJS;
+    final interopCallback = t.twoOptionalArgs.toJS;
     Expect.equals(
       'foobaz'.toJS,
       globalContext.callMethod('tearOffTwoOptionalArgsB'.toJS, interopCallback),
@@ -491,7 +468,7 @@ void allowInteropCallbackTest() {
   // No args.
   {
     final t = GenericTornOffClass<double, String>();
-    final interopCallback = allowInterop<NoArgsFun>(t.noArgs).toJS;
+    final interopCallback = t.noArgs.toJS;
     Expect.equals(
       'foo'.toJS,
       globalContext.callMethod('tearOffGenericNoArgs'.toJS, interopCallback),
@@ -501,7 +478,7 @@ void allowInteropCallbackTest() {
   // One arg.
   {
     final t = GenericTornOffClass<double, String>();
-    final interopCallback = allowInterop<OneArgFunB>(t.oneArg).toJS;
+    final interopCallback = t.oneArg.toJS;
     Expect.equals(
       '1.0'.toJS,
       globalContext.callMethod('tearOffGenericOneArg'.toJS, interopCallback),
@@ -511,9 +488,7 @@ void allowInteropCallbackTest() {
   // One positional and one optional case A.
   {
     final t = GenericTornOffClass<double, String>();
-    final interopCallback = allowInterop<OnePositionalAndOneOptionalArgsFunB>(
-      t.onePositionalAndOneOptionalArgs,
-    ).toJS;
+    final interopCallback = t.onePositionalAndOneOptionalArgs.toJS;
     Expect.equals(
       '1.0 null'.toJS,
       globalContext.callMethod(
@@ -526,9 +501,7 @@ void allowInteropCallbackTest() {
   // One positional and one optional case B.
   {
     final t = GenericTornOffClass<double, String>();
-    final interopCallback = allowInterop<OnePositionalAndOneOptionalArgsFunB>(
-      t.onePositionalAndOneOptionalArgs,
-    ).toJS;
+    final interopCallback = t.onePositionalAndOneOptionalArgs.toJS;
     Expect.equals(
       '1.0 baz'.toJS,
       globalContext.callMethod(
@@ -541,9 +514,7 @@ void allowInteropCallbackTest() {
   // Two optional case A.
   {
     final t = GenericTornOffClass<double, String>();
-    final interopCallback = allowInterop<TwoOptionalArgsFunB>(
-      t.twoOptionalArgs,
-    ).toJS;
+    final interopCallback = t.twoOptionalArgs.toJS;
     Expect.equals(
       '1.0 null'.toJS,
       globalContext.callMethod(
@@ -556,9 +527,7 @@ void allowInteropCallbackTest() {
   // Two optional case B.
   {
     final t = GenericTornOffClass<double, String>();
-    final interopCallback = allowInterop<TwoOptionalArgsFunB>(
-      t.twoOptionalArgs,
-    ).toJS;
+    final interopCallback = t.twoOptionalArgs.toJS;
     Expect.equals(
       '1.0 baz'.toJS,
       globalContext.callMethod(
@@ -571,5 +540,5 @@ void allowInteropCallbackTest() {
 
 void main() {
   staticInteropCallbackTest();
-  allowInteropCallbackTest();
+  unsafeInteropCallbackTest();
 }

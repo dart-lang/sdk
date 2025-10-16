@@ -257,8 +257,20 @@ class FunctionCollector {
     if (target.isUncheckedEntryReference) {
       return "$memberName (unchecked entry)";
     }
+
+    final noInline =
+        translator.getPragma<bool>(member, "wasm:never-inline", true);
+
+    // We add "<noInline>" to the function name. When we invoke `wasm-opt` we
+    // then pass the `--no-inline=*<noInline>*` flag, which will prevent
+    // binaryen from inlining those functions.
+    //
+    // => Effectively we make `@pragma('wasm:never-inline')` work for binaryen
+    // as well.
+    final inlinePostfix = noInline == true ? ' <noInline>' : '';
+
     if (target.isBodyReference) {
-      return "$memberName (body)";
+      return "$memberName (body)$inlinePostfix";
     }
 
     if (memberName.endsWith('.')) {
@@ -283,11 +295,11 @@ class FunctionCollector {
     if (target.isInitializerReference) {
       return 'new $memberName (initializer)';
     } else if (target.isConstructorBodyReference) {
-      return 'new $memberName (constructor body)';
+      return 'new $memberName (constructor body)$inlinePostfix';
     } else if (member is Procedure && member.isFactory) {
       return 'new $memberName';
     } else {
-      return memberName;
+      return '$memberName$inlinePostfix';
     }
   }
 

@@ -1228,34 +1228,34 @@ abstract class CommonElements {
 class KCommonElements extends CommonElements {
   KCommonElements(super.dartTypes, super.env);
 
-  // From package:js
+  // From dart:js_interop
 
   late final ClassEntity? jsAnnotationClass1 = _findClassOrNull(
-    packageJsLibrary,
+    dartJsInteropLibrary,
     'JS',
   );
 
   late final ClassEntity? jsAnonymousClass1 = _findClassOrNull(
+    dartJsInteropLibrary,
+    '_Anonymous',
+  );
+
+  // From package:js
+
+  late final ClassEntity? jsAnnotationClass2 = _findClassOrNull(
+    packageJsLibrary,
+    'JS',
+  );
+
+  late final ClassEntity? jsAnonymousClass2 = _findClassOrNull(
     packageJsLibrary,
     '_Anonymous',
   );
 
   // From dart:_js_annotations
 
-  late final ClassEntity? jsAnnotationClass2 = _findClassOrNull(
-    dartJsAnnotationsLibrary,
-    'JS',
-  );
-
-  late final ClassEntity? jsAnonymousClass2 = _findClassOrNull(
-    dartJsAnnotationsLibrary,
-    '_Anonymous',
-  );
-
-  // From dart:js_interop
-
   late final ClassEntity? jsAnnotationClass3 = _findClassOrNull(
-    dartJsInteropLibrary,
+    dartJsAnnotationsLibrary,
     'JS',
   );
 
