@@ -1442,7 +1442,7 @@ abstract final class DartFixKind {
   static const removeInvocationMulti = FixKind(
     'dart.fix.remove.invocation.multi',
     DartFixKindPriority.inFile,
-    'Remove unnecessary invocations of {0} in file',
+    'Remove unnecessary invocations everywhere in file',
   );
   static const removeInitializer = FixKind(
     'dart.fix.remove.initializer',
