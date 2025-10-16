@@ -810,7 +810,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           }
         }
         // Suggest invocations.
-        declarationHelper().addConstructorNamesForType(type: type);
+        declarationHelper().addStaticMembersOfElement(
+          type.element,
+          onlyInvocations: true,
+        );
       }
     }
 

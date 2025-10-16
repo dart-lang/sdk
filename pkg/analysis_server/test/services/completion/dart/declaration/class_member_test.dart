@@ -101,6 +101,43 @@ suggestions
     kind: field
 ''');
   }
+
+  Future<void> test_prefixConstructor_staticMember() async {
+    identifierRegExp = RegExp(r'^name');
+    await computeSuggestions('''
+class A {
+  factory A.name();
+  static void nameMethod() {}
+  static Function get nameGetterFunction => () {};
+  static Function() get nameGetterFunctionType => () {};
+  static Function nameFieldFunction = () {};
+  static Function() nameFieldFunctionType = () {};
+
+  static int? nameFieldOther;
+  static int get nameGetterOther => 0;
+  void f() {
+    A.name^();
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  name
+    kind: constructorInvocation
+  nameFieldFunction
+    kind: field
+  nameFieldFunctionType
+    kind: field
+  nameGetterFunction
+    kind: getter
+  nameGetterFunctionType
+    kind: getter
+  nameMethod
+    kind: methodInvocation
+''');
+  }
 }
 
 @reflectiveTest
