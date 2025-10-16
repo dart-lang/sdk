@@ -402,7 +402,7 @@ class _StdSink implements IOSink {
       throw ArgumentError.value(
         lineTerminator,
         "lineTerminator",
-        r'invalid line terminator, must be one of "\r" or "\r\n"',
+        r'invalid line terminator, must be one of "\n" or "\r\n"',
       );
     }
   }
