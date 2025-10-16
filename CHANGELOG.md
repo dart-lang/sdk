@@ -8,7 +8,9 @@
 
 - dart2wasm no longer supports `dart:js_util`. Any code that imports
   `dart:js_util` will no longer compile with dart2wasm. Consequently, code that
-  depends on `package:js` will no longer compile with dart2wasm either.
+  depends on `package:js` will no longer compile with dart2wasm either. The name
+  `dart.library.js_util` is no longer a key in dart2wasm compilation
+  environments, including in conditional imports and exports.
   See [#61550][] for more details.
 
 [#61550]: https://github.com/dart-lang/sdk/issues/61550
