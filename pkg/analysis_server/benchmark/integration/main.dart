@@ -39,12 +39,12 @@ void main(List<String> rawArgs) {
     },
     onDone: () {
       subscription.cancel();
-      driver.stopServer(SHUTDOWN_TIMEOUT);
+      driver.stopServer(shutdownTimeout);
     },
     onError: (e, s) {
       subscription.cancel();
       logger.log(Level.SEVERE, '$e\n$s');
-      driver.stopServer(SHUTDOWN_TIMEOUT);
+      driver.stopServer(shutdownTimeout);
     },
   );
   driver.runComplete
@@ -63,7 +63,7 @@ const MAP_OPTION = 'map';
 
 /// The amount of time to give the server to respond to a shutdown request
 /// before forcibly terminating it.
-const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 25);
+const Duration shutdownTimeout = Duration(seconds: 25);
 
 const TMP_SRC_DIR_OPTION = 'tmpSrcDir';
 const VERBOSE_CMDLINE_OPTION = 'verbose';

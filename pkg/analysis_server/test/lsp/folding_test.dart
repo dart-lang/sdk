@@ -482,6 +482,30 @@ void f(int a) {
     }, requireAll: false);
   }
 
+  /// https://github.com/Dart-Code/Dart-Code/issues/5750
+  Future<void> test_switchStatement_nested_sameEndLine_lineFoldingOnly() async {
+    lineFoldingOnly = true;
+
+    var content = '''
+Future<void> f(int i) async {
+  switch (i) {/*[0*/
+    case 1:/*[1*/
+      print('something');
+      f(/*[2*/
+        1,
+      );/*2]*//*1]*/
+  }/*0]*/
+}
+''';
+
+    await computeRanges(content);
+    expectRanges({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+    }, requireAll: false);
+  }
+
   /// Even without lineFolding, try/catch/finally folding regions end
   /// on the last statement of each block (matching if/else) to avoid long
   /// lines when folded.

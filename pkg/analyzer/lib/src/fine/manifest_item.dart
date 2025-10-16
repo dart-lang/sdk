@@ -20,11 +20,11 @@ import 'package:pub_semver/pub_semver.dart';
 
 class ClassItem extends InterfaceItem<ClassElementImpl> {
   /// See [ClassElementImpl.allSubtypes] for details.
-  ManifestItemIdList allSubtypes;
+  ManifestItemIdList? allSubtypes;
 
   /// See [ClassElementImpl.directSubtypesOfSealed] for details.
-  /// If the class is not sealed, then empty.
-  ManifestItemIdList directSubtypesOfSealed;
+  /// If the class is not sealed, then `null`.
+  ManifestItemIdList? directSubtypesOfSealed;
 
   ClassItem({
     required super.id,
@@ -70,8 +70,8 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
         interface: ManifestInterface.empty(),
-        allSubtypes: ManifestItemIdList([]),
-        directSubtypesOfSealed: ManifestItemIdList([]),
+        allSubtypes: null,
+        directSubtypesOfSealed: null,
       );
     });
   }
@@ -94,8 +94,8 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
       interface: ManifestInterface.read(reader),
-      allSubtypes: ManifestItemIdList.read(reader),
-      directSubtypesOfSealed: ManifestItemIdList.read(reader),
+      allSubtypes: ManifestItemIdList.readOptional(reader),
+      directSubtypesOfSealed: ManifestItemIdList.readOptional(reader),
     );
   }
 
@@ -117,8 +117,8 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
   @override
   void write(BinaryWriter writer) {
     super.write(writer);
-    allSubtypes.write(writer);
-    directSubtypesOfSealed.write(writer);
+    allSubtypes.writeOptional(writer);
+    directSubtypesOfSealed.writeOptional(writer);
   }
 }
 

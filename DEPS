@@ -97,7 +97,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "1d2e23d5e55788091a51420ba3a9889d4efe7509",
-  "boringssl_rev": "bc81f389c45e0192251c4b29622cfd734ae7baf2",
+  "boringssl_rev": "2067eac9e25332fa983c3d5f1bd1b00fa4f467fc",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "0327830448901920f739259364c3f2f624df5a03",
@@ -134,9 +134,9 @@ vars = {
   "ai_rev": "a29274bb2f8a48434f6d9b44d29ee3bbabf669ba",
   "core_rev": "5c3e2c38df268be2347f3aad30ced0147dd012bb", # b/444274553
   "dartdoc_rev": "98d03ad2cc341d1fb053e0addfc96ba35301976b",
-  "ecosystem_rev": "f4fbac4de4a61c60193556e63e52b790ecc5e986",
+  "ecosystem_rev": "6a8746e70b315aceec7f81cae9bef8b67abb2453",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
-  "http_rev": "2c53fa3c558ec5d1dd9fce4360d435113dba11e5",
+  "http_rev": "2cb6c12966e18abc11a0217a8b613742849a29ea",
   "i18n_rev": "34d1832b7e65d9aef1f7f6a82c22f6e53476191c",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
@@ -147,10 +147,10 @@ vars = {
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "8083c8f24ffbca58cc0385add03c296b70636e7a",
-  "tools_rev": "adf3fe7853d2d41ed39ee615fc4dc1a97bf5034c",
+  "tools_rev": "f5920a2d58351931999279b405a4f16b3166311c",
   "vector_math_rev": "a7b7e9ccb931348dbfa669e0f8fea1bf97705b16",
   "web_rev": "816abcc1bf186f61c7e66e7f4c56d1554a61ab27",
-  "webdev_rev": "186bfe71c54a851afd2629c6445cd6a8e9516ee1",
+  "webdev_rev": "2517aa94c3ff5b51bbe432c9bd4da6ee4308a5bf",
   "webdriver_rev": "09104f459ed834d48b132f6b7734923b1fbcf2e9",
   "webkit_inspection_protocol_rev": "0f7685804d77ec02c6564d7ac1a6c8a2341c5bdf",
 

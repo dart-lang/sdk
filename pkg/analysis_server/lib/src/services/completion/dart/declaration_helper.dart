@@ -649,7 +649,10 @@ class DeclarationHelper {
   }
 
   /// Add any static members defined by the given [element].
-  void addStaticMembersOfElement(Element element) {
+  void addStaticMembersOfElement(
+    Element element, {
+    bool onlyInvocations = false,
+  }) {
     if (element is TypeAliasElement) {
       var aliasedType = element.aliasedType;
       if (aliasedType is InterfaceType) {
@@ -665,6 +668,7 @@ class DeclarationHelper {
           containingElement: element,
           fields: element.fields,
           methods: element.methods,
+          onlyInvocations: onlyInvocations,
         );
       case ExtensionElement():
         _addStaticMembers(
@@ -674,6 +678,7 @@ class DeclarationHelper {
           containingElement: element,
           fields: element.fields,
           methods: element.methods,
+          onlyInvocations: onlyInvocations,
         );
       case InterfaceElement():
         _addStaticMembers(
@@ -683,6 +688,7 @@ class DeclarationHelper {
           containingElement: element,
           fields: element.fields,
           methods: element.methods,
+          onlyInvocations: onlyInvocations,
         );
     }
   }
@@ -1475,11 +1481,15 @@ class DeclarationHelper {
     required Element containingElement,
     required List<FieldElement> fields,
     required List<MethodElement> methods,
+    required bool onlyInvocations,
   }) {
     for (var getter in getters) {
       if (getter.isStatic &&
           !getter.isSynthetic &&
-          getter.isVisibleIn(request.libraryElement)) {
+          getter.isVisibleIn(request.libraryElement) &&
+          (!onlyInvocations ||
+              getter.returnType is FunctionType ||
+              getter.returnType.isDartCoreFunction)) {
         _suggestProperty(accessor: getter);
       }
     }
@@ -1494,7 +1504,10 @@ class DeclarationHelper {
       if (field.isStatic &&
           (!field.isSynthetic ||
               (containingElement is EnumElement && field.name == 'values')) &&
-          field.isVisibleIn(request.libraryElement)) {
+          field.isVisibleIn(request.libraryElement) &&
+          (!onlyInvocations ||
+              field.type is FunctionType ||
+              field.type.isDartCoreFunction)) {
         if (field.isEnumConstant) {
           var enumElement = field.enclosingElement;
           var matcherScore = state.matcher.score(

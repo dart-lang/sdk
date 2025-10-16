@@ -10,6 +10,11 @@ import 'package:analysis_server/src/services/completion/postfix/postfix_completi
 
 /// The handler for the `edit.listPostfixCompletionTemplates` request.
 class EditListPostfixCompletionTemplatesHandler extends LegacyHandler {
+  static final _templateDescriptors = [
+    for (var kind in DartPostfixCompletion.allTemplates)
+      PostfixTemplateDescriptor(kind.name, kind.key, kind.example),
+  ];
+
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditListPostfixCompletionTemplatesHandler(
@@ -21,12 +26,6 @@ class EditListPostfixCompletionTemplatesHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var templates = DartPostfixCompletion.ALL_TEMPLATES
-        .map(
-          (PostfixCompletionKind kind) =>
-              PostfixTemplateDescriptor(kind.name, kind.key, kind.example),
-        )
-        .toList();
-    sendResult(EditListPostfixCompletionTemplatesResult(templates));
+    sendResult(EditListPostfixCompletionTemplatesResult(_templateDescriptors));
   }
 }

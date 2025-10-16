@@ -1016,6 +1016,15 @@ class LibraryManifestBuilder {
         builder.addList(idList.ids, addId);
       }
 
+      void addOptionalIdList(ManifestItemIdList? idList) {
+        if (idList != null) {
+          builder.addBool(true);
+          addIdList(idList);
+        } else {
+          builder.addBool(false);
+        }
+      }
+
       void addVersion(Version? version) {
         if (version != null) {
           builder.addBool(true);
@@ -1079,8 +1088,8 @@ class LibraryManifestBuilder {
               builder.addBool(item.hasNonFinalField);
               addId(item.interface.id);
               if (item is ClassItem) {
-                addIdList(item.allSubtypes);
-                addIdList(item.directSubtypesOfSealed);
+                addOptionalIdList(item.allSubtypes);
+                addOptionalIdList(item.directSubtypesOfSealed);
               }
             }
           }
@@ -1112,12 +1121,14 @@ class LibraryManifestBuilder {
         var classItem = declaredItems[classElement];
         if (classItem != null) {
           classItem as ClassItem;
-          var ids = (classElement.allSubtypes ?? [])
-              .map((type) => declaredItems[type.element])
-              .whereType<InterfaceItem>()
-              .map((item) => item.id)
-              .sorted();
-          classItem.allSubtypes = ManifestItemIdList(ids);
+          if (classElement.allSubtypes case var allSubtypes?) {
+            var ids = allSubtypes
+                .map((type) => declaredItems[type.element])
+                .whereType<InterfaceItem>()
+                .map((item) => item.id)
+                .sorted();
+            classItem.allSubtypes = ManifestItemIdList(ids);
+          }
         }
       }
     }
