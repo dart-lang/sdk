@@ -194,7 +194,7 @@ final moduleLoadingHelperTemplate = Template(r'''
         const module = await ((source instanceof Response)
             ? WebAssembly.compileStreaming(source, this.builtins)
             : WebAssembly.compile(source, this.builtins));
-        return await WebAssembly.instantiate(module, {
+        await WebAssembly.instantiate(module, {
           ...baseImports,
           ...additionalImports,
           <<JS_POLYFILL_IMPORT>>
@@ -210,7 +210,7 @@ final moduleLoadingHelperTemplate = Template(r'''
           const module = await ((source instanceof Response)
               ? WebAssembly.compileStreaming(source, this.builtins)
               : WebAssembly.compile(source, this.builtins));
-          return await WebAssembly.instantiate(module, {
+          await WebAssembly.instantiate(module, {
             ...baseImports,
             ...additionalImports,
             <<JS_POLYFILL_IMPORT>>
