@@ -81,7 +81,7 @@ VM_ARGS=()
 DART2WASM_ARGS=("--require-js-string-builtin")
 ADDITIONAL_BINARYEN_FLAGS=()
 DART_FILE=""
-WASM_FILE=""
+OUTPUT_FILE=""
 while [ $# -gt 0 ]; do
     case "$1" in
       --compile-benchmark=*)
@@ -176,7 +176,7 @@ while [ $# -gt 0 ]; do
 
     -o)
       shift
-      WASM_FILE="$1"
+      OUTPUT_FILE="$1"
       shift
       ;;
 
@@ -190,8 +190,8 @@ while [ $# -gt 0 ]; do
         DART_FILE="$1"
         shift
       else
-        if [ -z "$WASM_FILE" ]; then
-          WASM_FILE="$1"
+        if [ -z "$OUTPUT_FILE" ]; then
+          OUTPUT_FILE="$1"
           shift
         else
           echo "Unexpected argument $1"
@@ -203,10 +203,10 @@ while [ $# -gt 0 ]; do
 done
 
 if [ $GENERATE_SOURCE_MAP -eq 1 ]; then
-  BINARYEN_FLAGS+=("-ism" "${WASM_FILE}.map" "-osm" "${WASM_FILE}.map")
+  BINARYEN_FLAGS+=("-ism" "${OUTPUT_FILE}.map" "-osm" "${OUTPUT_FILE}.map")
 fi
 
-if [ -z "$DART_FILE" -o -z "$WASM_FILE" ]; then
+if [ -z "$DART_FILE" -o -z "$OUTPUT_FILE" ]; then
   echo "Expected <file.dart> <file.wasm>"
   exit 1
 fi
@@ -237,7 +237,7 @@ function measure_size() {
 }
 
 function run_if_binaryen_enabled() {
-  if [ $RUN_BINARYEN -eq 1 ]; then
+  if [ $RUN_BINARYEN -eq 1 ] && [[ $OUTPUT_FILE == *.wasm ]]; then
     $@
   fi
 }
@@ -247,9 +247,9 @@ COMPILER_GZIP_SIZE=0
 
 function run_compiler() {
   if [ $RUN_SRC -eq 1 ]; then
-    dart2wasm_command=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$LIBRARIES_JSON_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
+    dart2wasm_command=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$LIBRARIES_JSON_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$OUTPUT_FILE")
   else
-    dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
+    dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$OUTPUT_FILE")
   fi
 
   if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
@@ -257,18 +257,18 @@ function run_compiler() {
     COMPILER_TIME=$TIME
     COMPILER_MEMORY=$MEMORY
 
-    measure_size ${WASM_FILE%.wasm}.mjs
+    measure_size ${OUTPUT_FILE%.wasm}.mjs
     MJS_SIZE=$SIZE
     MJS_GZIP_SIZE=$GZIP_SIZE
 
     if [ $MULTI_MODULE -eq 1 ]; then
-      for WASM_FILE in "${WASM_FILE%.wasm}"*.wasm; do
-        measure_size $WASM_FILE
+      for OUTPUT_FILE in "${OUTPUT_FILE%.wasm}"*.wasm; do
+        measure_size $OUTPUT_FILE
         (( COMPILER_SIZE+=$SIZE ))
         (( COMPILER_GZIP_SIZE+=$GZIP_SIZE ))
       done
     else
-      measure_size $WASM_FILE
+      measure_size $OUTPUT_FILE
       COMPILER_SIZE=$SIZE
       COMPILER_GZIP_SIZE=$GZIP_SIZE
     fi
@@ -283,13 +283,13 @@ BINARYEN_SIZE=0
 BINARYEN_GZIP_SIZE=0
 
 function run_binaryen_single() {
-  binaryen_command=("$BINARYEN" "$@" "${ADDITIONAL_BINARYEN_FLAGS[@]}" "$WASM_FILE" -o "$WASM_FILE")
+  binaryen_command=("$BINARYEN" "$@" "${ADDITIONAL_BINARYEN_FLAGS[@]}" "$OUTPUT_FILE" -o "$OUTPUT_FILE")
   if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
     # If we're measuring run each binaryen command sequentially.
     measure ${binaryen_command[@]}
     BINARYEN_TIME=$(echo "$BINARYEN_TIME + $TIME" | bc)
     BINARYEN_MEMORY=$(($BINARYEN_MEMORY > $MEMORY ? $BINARYEN_MEMORY : $MEMORY ))
-    measure_size $WASM_FILE
+    measure_size $OUTPUT_FILE
     BINARYEN_SIZE=$(echo "$BINARYEN_SIZE + $SIZE" | bc)
     BINARYEN_GZIP_SIZE=$(echo "$BINARYEN_GZIP_SIZE + $GZIP_SIZE" | bc)
   else
@@ -301,7 +301,7 @@ function run_binaryen() {
   if [ $MULTI_MODULE -eq 1 ]; then
     # Iterate over all matching wasm files and optimize them concurrently in
     # different processes.
-    for WASM_FILE in "${WASM_FILE%.wasm}"*.wasm; do
+    for OUTPUT_FILE in "${OUTPUT_FILE%.wasm}"*.wasm; do
       run_binaryen_single "${BINARYEN_FLAGS_DEFERRED_LOADING[@]}"
     done
   else

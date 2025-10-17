@@ -8,7 +8,8 @@ import 'dart:typed_data';
 import 'package:path/path.dart' as path;
 import 'package:wasm_builder/wasm_builder.dart';
 
-import 'self_compile_test.dart' show withTempDir, run, expectEqualBytes;
+import 'self_compile_test.dart' show expectEqualBytes;
+import 'util.dart';
 
 Future main() async {
   if (!Platform.isLinux && !Platform.isMacOS) return;

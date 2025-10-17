@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 import 'package:front_end/src/api_unstable/vm.dart' show printDiagnosticMessage;
+import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
 
 import 'compile.dart';
@@ -18,6 +19,7 @@ typedef PrintError = void Function(String error);
 
 Future<int> generateWasm(WasmCompilerOptions options,
     {PrintError errorPrinter = print}) async {
+  options.validate();
   final translatorOptions = options.translatorOptions;
   if (translatorOptions.verbose) {
     print('Running dart compile wasm...');
@@ -75,7 +77,7 @@ Future<int> generateWasm(WasmCompilerOptions options,
       ? moduleNameToRelativeSourceMapUri
       : null;
 
-  CompilationResult result = await compileToModule(
+  CompilationResult result = await compile(
       options, StandardFileSystem.instance, relativeSourceMapUrlMapper,
       (message) {
     if (!options.dryRun) printDiagnosticMessage(message, errorPrinter);
@@ -109,26 +111,35 @@ Future<int> generateWasm(WasmCompilerOptions options,
     return 255;
   }
 
-  final writeFutures = <Future>[];
-  result.wasmModules.forEach((moduleName, moduleInfo) {
-    final (:moduleBytes, :sourceMap) = moduleInfo;
-    final File outFile = File(moduleNameToWasmOutputFile(moduleName));
-    outFile.parent.createSync(recursive: true);
-    writeFutures.add(outFile.writeAsBytes(moduleBytes));
+  switch (result) {
+    case CfeResult(:final component):
+      await File(options.outputFile)
+          .writeAsBytes(writeComponentToBytes(component));
+    case TfaResult(:final component):
+      await File(options.outputFile)
+          .writeAsBytes(writeComponentToBytes(component));
+    case CodegenResult(:final wasmModules, :final jsRuntime, :final supportJs):
+      final writeFutures = <Future>[];
+      wasmModules.forEach((moduleName, moduleInfo) {
+        final (:moduleBytes, :sourceMap) = moduleInfo;
+        final File outFile = File(moduleNameToWasmOutputFile(moduleName));
+        outFile.parent.createSync(recursive: true);
+        writeFutures.add(outFile.writeAsBytes(moduleBytes));
 
-    if (sourceMap != null) {
-      writeFutures.add(
-          File(moduleNameToSourceMapFile(moduleName)).writeAsString(sourceMap));
-    }
-  });
-  await Future.wait(writeFutures);
+        if (sourceMap != null) {
+          writeFutures.add(File(moduleNameToSourceMapFile(moduleName))
+              .writeAsString(sourceMap));
+        }
+      });
+      await Future.wait(writeFutures);
 
-  final jsFile = path.setExtension(options.outputFile, '.mjs');
-  final jsRuntime = result.jsRuntime;
-  await File(jsFile).writeAsString(jsRuntime);
+      final jsFile = path.setExtension(options.outputFile, '.mjs');
+      await File(jsFile).writeAsString(jsRuntime);
 
-  final supportJsFile = path.setExtension(options.outputFile, '.support.js');
-  await File(supportJsFile).writeAsString(result.supportJs);
+      final supportJsFile =
+          path.setExtension(options.outputFile, '.support.js');
+      await File(supportJsFile).writeAsString(supportJs);
+  }
 
   return 0;
 }

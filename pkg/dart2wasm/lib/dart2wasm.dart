@@ -27,6 +27,10 @@ final List<Option> options = [
   Flag("minify", (o, value) => o.translatorOptions.minify = value,
       defaultsTo: _d.translatorOptions.minify),
   Flag("dry-run", (o, value) => o.dryRun = value, defaultsTo: _d.dryRun),
+  StringMultiOption(
+      "phases",
+      (o, values) => o.phases = [...values.map(CompilerPhase.parse)]
+        ..sort((a, b) => a.index.compareTo(b.index))),
   Flag("polymorphic-specialization",
       (o, value) => o.translatorOptions.polymorphicSpecialization = value,
       defaultsTo: _d.translatorOptions.polymorphicSpecialization),

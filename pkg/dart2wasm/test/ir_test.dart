@@ -13,7 +13,7 @@ import 'package:wasm_builder/src/ir/ir.dart';
 import 'package:wasm_builder/src/serialize/deserializer.dart';
 import 'package:wasm_builder/src/serialize/printer.dart';
 
-import 'self_compile_test.dart' show withTempDir;
+import 'util.dart';
 
 void main(List<String> args) async {
   final result = argParser.parse(args);
