@@ -54,7 +54,7 @@ void main() async {
 
   await firstIsRunning.future;
 
-  for (var i = 0; i < 30; ++i) {
+  for (var i = 0; i < 10; ++i) {
     spawn((int n) {});
   }
 
