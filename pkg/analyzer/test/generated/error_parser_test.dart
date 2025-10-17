@@ -1286,9 +1286,8 @@ class Foo {
     createParser('void m(this.x);');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.fieldInitializerOutsideConstructor, 7, 4),
-    ]);
+    // Error is not reported during parsing.
+    listener.assertNoErrors();
   }
 
   void test_finalAndCovariant() {

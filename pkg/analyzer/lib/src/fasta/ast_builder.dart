@@ -16,7 +16,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         codeDirectiveAfterDeclaration,
         codeExpectedStatement,
         codeExternalLateField,
-        codeFieldInitializerOutsideConstructor,
         codeIllegalAssignmentToNonAssignable,
         codeInterpolationInUri,
         codeInvalidInitializer,
@@ -820,22 +819,6 @@ class AstBuilder extends StackListener {
     return null;
   }
 
-  void checkFieldFormalParameters(FormalParameterListImpl? parameterList) {
-    var parameters = parameterList?.parameters;
-    if (parameters != null) {
-      for (var parameter in parameters) {
-        if (parameter is FieldFormalParameterImpl) {
-          // This error is reported in the BodyBuilder.endFormalParameter.
-          handleRecoverableError(
-            codeFieldInitializerOutsideConstructor,
-            parameter.thisKeyword,
-            parameter.thisKeyword,
-          );
-        }
-      }
-    }
-  }
-
   // TODO(scheglov): We should not do this.
   // Ideally, we should not test parsing pieces of class, and instead parse
   // the whole unit, and extract pieces that we need to validate.
@@ -1416,7 +1399,6 @@ class AstBuilder extends StackListener {
       );
     }
 
-    checkFieldFormalParameters(formalParameters);
     _classLikeBuilder?.members.add(
       MethodDeclarationImpl(
         comment: comment,
@@ -2639,7 +2621,6 @@ class AstBuilder extends StackListener {
       pop(); // separator before constructor initializers
     }
     var parameters = pop() as FormalParameterListImpl;
-    checkFieldFormalParameters(parameters);
     var name = pop() as SimpleIdentifierImpl;
     var returnType = pop() as TypeAnnotationImpl?;
     var typeParameters = pop() as TypeParameterListImpl?;

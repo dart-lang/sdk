@@ -6363,45 +6363,6 @@ CompileTimeErrorCode:
     problemMessage: "The initializer type '#p0' can't be assigned to the field type '#p1' in a const constructor."
     correctionMessage: "Try using a subtype, or removing the 'const' keyword"
     hasPublishedDocs: true
-  FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
-    parameters: none
-    problemMessage: Initializing formal parameters can only be used in constructors.
-    correctionMessage: Try using a normal parameter.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an initializing formal
-      parameter is used in the parameter list for anything other than a
-      constructor.
-
-      #### Example
-
-      The following code produces this diagnostic because the initializing
-      formal parameter `this.x` is being used in the method `m`:
-
-      ```dart
-      class A {
-        int x = 0;
-
-        m([[!this.x!] = 0]) {}
-      }
-      ```
-
-      #### Common fixes
-
-      Replace the initializing formal parameter with a normal parameter and
-      assign the field within the body of the method:
-
-      ```dart
-      class A {
-        int x = 0;
-
-        m([int x = 0]) {
-          this.x = x;
-        }
-      }
-      ```
   FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR:
     parameters: none
     problemMessage: "The redirecting constructor can't have a field initializer."

@@ -754,7 +754,6 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   ParserErrorCode.factoryWithoutBody,
   ParserErrorCode.factoryWithInitializers,
   ParserErrorCode.fieldInitializedOutsideDeclaringClass,
-  ParserErrorCode.fieldInitializerOutsideConstructor,
   ParserErrorCode.finalAndCovariant,
   ParserErrorCode.finalAndCovariantLateWithInitializer,
   ParserErrorCode.finalAndVar,
@@ -1129,6 +1128,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
 ];
 
 final sharedAnalyzerCodes = <DiagnosticCode>[
+  CompileTimeErrorCode.fieldInitializerOutsideConstructor,
   ParserErrorCode.abstractClassMember,
   ParserErrorCode.abstractExternalField,
   ParserErrorCode.abstractFinalBaseClass,
@@ -1205,7 +1205,6 @@ final sharedAnalyzerCodes = <DiagnosticCode>[
   ParserErrorCode.extraneousModifierInPrimaryConstructor,
   ParserErrorCode.factoryTopLevelDeclaration,
   ParserErrorCode.fieldInitializedOutsideDeclaringClass,
-  ParserErrorCode.fieldInitializerOutsideConstructor,
   ParserErrorCode.finalAndCovariant,
   ParserErrorCode.finalAndCovariantLateWithInitializer,
   ParserErrorCode.finalAndVar,

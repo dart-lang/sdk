@@ -1044,16 +1044,6 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments fieldInitializerOutsideConstructor =
-      ParserErrorWithoutArguments(
-        'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
-        "Field formal parameters can only be used in a constructor.",
-        correctionMessage: "Try removing 'this.'.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
-
-  /// No parameters.
   static const ParserErrorWithoutArguments finalAndCovariant =
       ParserErrorWithoutArguments(
         'FINAL_AND_COVARIANT',

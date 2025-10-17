@@ -2722,8 +2722,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   fieldInitializerOutsideConstructor = CompileTimeErrorWithoutArguments(
     'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
-    "Initializing formal parameters can only be used in constructors.",
-    correctionMessage: "Try using a normal parameter.",
+    "Field formal parameters can only be used in a constructor.",
+    correctionMessage: "Try removing 'this.'.",
     hasPublishedDocs: true,
     expectedTypes: [],
   );
