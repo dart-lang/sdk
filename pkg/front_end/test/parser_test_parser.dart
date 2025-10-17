@@ -80,15 +80,6 @@ class TestParser extends Parser {
   }
 
   @override
-  Uri? get uri {
-    doPrint('uri()');
-    indent++;
-    var result = super.uri;
-    indent--;
-    return result;
-  }
-
-  @override
   TokenStreamRewriter get rewriter {
     doPrint('rewriter()');
     indent++;

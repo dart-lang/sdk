@@ -69,9 +69,6 @@ class ParserTestListener implements Listener {
   void seen(Token? token) {}
 
   @override
-  Uri? get uri => null;
-
-  @override
   void logEvent(String name) {
     doPrint(
       'logEvent('

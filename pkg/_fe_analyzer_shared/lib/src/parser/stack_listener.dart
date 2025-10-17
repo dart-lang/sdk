@@ -152,7 +152,6 @@ abstract class StackListener extends Listener with StackChecker {
   @override
   Object? lookupStack(int index) => stack[index];
 
-  @override
   Uri get uri;
 
   /// Returns `true` if the current file is part of a `dart:` library.
