@@ -3412,180 +3412,226 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   static LocatableDiagnostic _withArgumentsAlwaysDeclareReturnTypesOfFunctions({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(alwaysDeclareReturnTypesOfFunctions, [p0]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.alwaysDeclareReturnTypesOfFunctions,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAlwaysDeclareReturnTypesOfMethods({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(alwaysDeclareReturnTypesOfMethods, [p0]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.alwaysDeclareReturnTypesOfMethods,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAlwaysSpecifyTypesReplaceKeyword({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(alwaysSpecifyTypesReplaceKeyword, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.alwaysSpecifyTypesReplaceKeyword,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAlwaysSpecifyTypesSpecifyType({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(alwaysSpecifyTypesSpecifyType, [p0]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.alwaysSpecifyTypesSpecifyType,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAnalyzerPublicApiBadType({
     required String types,
   }) {
-    return LocatableDiagnosticImpl(analyzerPublicApiBadType, [types]);
+    return LocatableDiagnosticImpl(LinterLintCode.analyzerPublicApiBadType, [
+      types,
+    ]);
   }
 
   static LocatableDiagnostic
   _withArgumentsAnalyzerPublicApiExperimentalInconsistency({
     required String types,
   }) {
-    return LocatableDiagnosticImpl(analyzerPublicApiExperimentalInconsistency, [
-      types,
-    ]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.analyzerPublicApiExperimentalInconsistency,
+      [types],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsAnalyzerPublicApiExportsNonPublicName({
     required String elements,
   }) {
-    return LocatableDiagnosticImpl(analyzerPublicApiExportsNonPublicName, [
-      elements,
-    ]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.analyzerPublicApiExportsNonPublicName,
+      [elements],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAnnotateOverrides({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(annotateOverrides, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.annotateOverrides, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsAnnotateRedeclares({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(annotateRedeclares, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.annotateRedeclares, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsAvoidCatchingErrorsSubclass({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(avoidCatchingErrorsSubclass, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.avoidCatchingErrorsSubclass, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic
   _withArgumentsAvoidEqualsAndHashCodeOnMutableClasses({required Object p0}) {
-    return LocatableDiagnosticImpl(avoidEqualsAndHashCodeOnMutableClasses, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.avoidEqualsAndHashCodeOnMutableClasses,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAvoidEscapingInnerQuotes({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(avoidEscapingInnerQuotes, [p0, p1]);
+    return LocatableDiagnosticImpl(LinterLintCode.avoidEscapingInnerQuotes, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsAvoidRenamingMethodParameters({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(avoidRenamingMethodParameters, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.avoidRenamingMethodParameters,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAvoidShadowingTypeParameters({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(avoidShadowingTypeParameters, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.avoidShadowingTypeParameters,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsAvoidSingleCascadeInExpressionStatements({required Object p0}) {
-    return LocatableDiagnosticImpl(avoidSingleCascadeInExpressionStatements, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.avoidSingleCascadeInExpressionStatements,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsAvoidTypesAsParameterNamesFormalParameter({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(avoidTypesAsParameterNamesFormalParameter, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.avoidTypesAsParameterNamesFormalParameter,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsAvoidTypesAsParameterNamesTypeParameter({required Object p0}) {
-    return LocatableDiagnosticImpl(avoidTypesAsParameterNamesTypeParameter, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.avoidTypesAsParameterNamesTypeParameter,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAvoidUnusedConstructorParameters({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(avoidUnusedConstructorParameters, [p0]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.avoidUnusedConstructorParameters,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAwaitOnlyFutures({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(awaitOnlyFutures, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.awaitOnlyFutures, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsCamelCaseExtensions({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(camelCaseExtensions, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.camelCaseExtensions, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsCamelCaseTypes({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(camelCaseTypes, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.camelCaseTypes, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsCollectionMethodsUnrelatedType({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(collectionMethodsUnrelatedType, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.collectionMethodsUnrelatedType,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConditionalUriDoesNotExist({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(conditionalUriDoesNotExist, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.conditionalUriDoesNotExist, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsConstantIdentifierNames({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(constantIdentifierNames, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.constantIdentifierNames, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsControlFlowInFinally({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(controlFlowInFinally, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.controlFlowInFinally, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsCurlyBracesInFlowControlStructures({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(curlyBracesInFlowControlStructures, [p0]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.curlyBracesInFlowControlStructures,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDependOnReferencedPackages({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(dependOnReferencedPackages, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.dependOnReferencedPackages, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic
@@ -3594,7 +3640,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     required Object p1,
   }) {
     return LocatableDiagnosticImpl(
-      deprecatedMemberUseFromSamePackageWithMessage,
+      LinterLintCode.deprecatedMemberUseFromSamePackageWithMessage,
       [p0, p1],
     );
   }
@@ -3604,7 +3650,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     required Object p0,
   }) {
     return LocatableDiagnosticImpl(
-      deprecatedMemberUseFromSamePackageWithoutMessage,
+      LinterLintCode.deprecatedMemberUseFromSamePackageWithoutMessage,
       [p0],
     );
   }
@@ -3612,31 +3658,32 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   static LocatableDiagnostic _withArgumentsDirectivesOrderingDart({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(directivesOrderingDart, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.directivesOrderingDart, [p0]);
   }
 
   static LocatableDiagnostic
   _withArgumentsDirectivesOrderingPackageBeforeRelative({required Object p0}) {
-    return LocatableDiagnosticImpl(directivesOrderingPackageBeforeRelative, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.directivesOrderingPackageBeforeRelative,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsExhaustiveCases({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(exhaustiveCases, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.exhaustiveCases, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsFileNames({required Object p0}) {
-    return LocatableDiagnosticImpl(fileNames, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.fileNames, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsHashAndEquals({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(hashAndEquals, [p0, p1]);
+    return LocatableDiagnosticImpl(LinterLintCode.hashAndEquals, [p0, p1]);
   }
 
   static LocatableDiagnostic _withArgumentsImplicitReopen({
@@ -3645,7 +3692,12 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     required Object p2,
     required Object p3,
   }) {
-    return LocatableDiagnosticImpl(implicitReopen, [p0, p1, p2, p3]);
+    return LocatableDiagnosticImpl(LinterLintCode.implicitReopen, [
+      p0,
+      p1,
+      p2,
+      p3,
+    ]);
   }
 
   static LocatableDiagnostic
@@ -3654,7 +3706,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     required Object p1,
   }) {
     return LocatableDiagnosticImpl(
-      invalidRuntimeCheckWithJsInteropTypesDartAsJs,
+      LinterLintCode.invalidRuntimeCheckWithJsInteropTypesDartAsJs,
       [p0, p1],
     );
   }
@@ -3665,7 +3717,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     required Object p1,
   }) {
     return LocatableDiagnosticImpl(
-      invalidRuntimeCheckWithJsInteropTypesDartIsJs,
+      LinterLintCode.invalidRuntimeCheckWithJsInteropTypesDartIsJs,
       [p0, p1],
     );
   }
@@ -3676,7 +3728,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     required Object p1,
   }) {
     return LocatableDiagnosticImpl(
-      invalidRuntimeCheckWithJsInteropTypesJsAsDart,
+      LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsAsDart,
       [p0, p1],
     );
   }
@@ -3687,7 +3739,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     required Object p1,
   }) {
     return LocatableDiagnosticImpl(
-      invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs,
+      LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs,
       [p0, p1],
     );
   }
@@ -3698,7 +3750,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     required Object p1,
   }) {
     return LocatableDiagnosticImpl(
-      invalidRuntimeCheckWithJsInteropTypesJsIsDart,
+      LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsIsDart,
       [p0, p1],
     );
   }
@@ -3709,7 +3761,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     required Object p1,
   }) {
     return LocatableDiagnosticImpl(
-      invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs,
+      LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs,
       [p0, p1],
     );
   }
@@ -3720,186 +3772,213 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     required Object p1,
   }) {
     return LocatableDiagnosticImpl(
-      invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs,
+      LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs,
       [p0, p1],
     );
   }
 
   static LocatableDiagnostic _withArgumentsLibraryNames({required Object p0}) {
-    return LocatableDiagnosticImpl(libraryNames, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.libraryNames, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsLibraryPrefixes({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(libraryPrefixes, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.libraryPrefixes, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsMatchingSuperParameters({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(matchingSuperParameters, [p0, p1]);
+    return LocatableDiagnosticImpl(LinterLintCode.matchingSuperParameters, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsNoDuplicateCaseValues({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(noDuplicateCaseValues, [p0, p1]);
+    return LocatableDiagnosticImpl(LinterLintCode.noDuplicateCaseValues, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic
   _withArgumentsNoLeadingUnderscoresForLibraryPrefixes({required Object p0}) {
-    return LocatableDiagnosticImpl(noLeadingUnderscoresForLibraryPrefixes, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.noLeadingUnderscoresForLibraryPrefixes,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsNoLeadingUnderscoresForLocalIdentifiers({required Object p0}) {
-    return LocatableDiagnosticImpl(noLeadingUnderscoresForLocalIdentifiers, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.noLeadingUnderscoresForLocalIdentifiers,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNonConstantIdentifierNames({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(nonConstantIdentifierNames, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.nonConstantIdentifierNames, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsOneMemberAbstracts({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(oneMemberAbstracts, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.oneMemberAbstracts, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsOverriddenFields({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(overriddenFields, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.overriddenFields, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsPackageNames({required Object p0}) {
-    return LocatableDiagnosticImpl(packageNames, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.packageNames, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsPackagePrefixedLibraryNames({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(packagePrefixedLibraryNames, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.packagePrefixedLibraryNames, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsParameterAssignments({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(parameterAssignments, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.parameterAssignments, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsPreferFinalFields({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(preferFinalFields, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.preferFinalFields, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsPreferFinalInForEachVariable({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(preferFinalInForEachVariable, [p0]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.preferFinalInForEachVariable,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsPreferFinalParameters({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(preferFinalParameters, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.preferFinalParameters, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsPreferGenericFunctionTypeAliases({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(preferGenericFunctionTypeAliases, [p0]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.preferGenericFunctionTypeAliases,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsPreferInitializingFormals({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(preferInitializingFormals, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.preferInitializingFormals, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsPreferMixin({required Object p0}) {
-    return LocatableDiagnosticImpl(preferMixin, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.preferMixin, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsRecursiveGetters({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(recursiveGetters, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.recursiveGetters, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsSecurePubspecUrls({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(securePubspecUrls, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.securePubspecUrls, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsSizedBoxShrinkExpand({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(sizedBoxShrinkExpand, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.sizedBoxShrinkExpand, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsSortChildPropertiesLast({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(sortChildPropertiesLast, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.sortChildPropertiesLast, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic
   _withArgumentsStrictTopLevelInferenceReplaceKeyword({required Object p0}) {
-    return LocatableDiagnosticImpl(strictTopLevelInferenceReplaceKeyword, [p0]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.strictTopLevelInferenceReplaceKeyword,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsTestTypesInEquals({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(testTypesInEquals, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.testTypesInEquals, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsThrowInFinally({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(throwInFinally, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.throwInFinally, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnnecessaryIgnore({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unnecessaryIgnore, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.unnecessaryIgnore, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnnecessaryIgnoreFile({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unnecessaryIgnoreFile, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.unnecessaryIgnoreFile, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnnecessaryIgnoreName({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unnecessaryIgnoreName, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.unnecessaryIgnoreName, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnnecessaryIgnoreNameFile({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unnecessaryIgnoreNameFile, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.unnecessaryIgnoreNameFile, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUnreachableFromMain({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unreachableFromMain, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.unreachableFromMain, [p0]);
   }
 
   static LocatableDiagnostic
@@ -3907,10 +3986,10 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(unrelatedTypeEqualityChecksInExpression, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.unrelatedTypeEqualityChecksInExpression,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -3918,40 +3997,49 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(unrelatedTypeEqualityChecksInPattern, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.unrelatedTypeEqualityChecksInPattern,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUseFunctionTypeSyntaxForParameters({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(useFunctionTypeSyntaxForParameters, [p0]);
+    return LocatableDiagnosticImpl(
+      LinterLintCode.useFunctionTypeSyntaxForParameters,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUseIsEvenRatherThanModulo({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(useIsEvenRatherThanModulo, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.useIsEvenRatherThanModulo, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUseNamedConstants({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(useNamedConstants, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.useNamedConstants, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUseSuperParametersMultiple({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(useSuperParametersMultiple, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.useSuperParametersMultiple, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUseSuperParametersSingle({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(useSuperParametersSingle, [p0]);
+    return LocatableDiagnosticImpl(LinterLintCode.useSuperParametersSingle, [
+      p0,
+    ]);
   }
 }
 

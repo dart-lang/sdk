@@ -688,26 +688,29 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
 
   static LocatableDiagnostic
   _withArgumentsAbiSpecificIntegerMappingUnsupported({required String p0}) {
-    return LocatableDiagnosticImpl(abiSpecificIntegerMappingUnsupported, [p0]);
+    return LocatableDiagnosticImpl(
+      FfiCode.abiSpecificIntegerMappingUnsupported,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsArgumentMustBeAConstant({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(argumentMustBeAConstant, [p0]);
+    return LocatableDiagnosticImpl(FfiCode.argumentMustBeAConstant, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsCompoundImplementsFinalizable({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(compoundImplementsFinalizable, [p0]);
+    return LocatableDiagnosticImpl(FfiCode.compoundImplementsFinalizable, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsEmptyStruct({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(emptyStruct, [p0, p1]);
+    return LocatableDiagnosticImpl(FfiCode.emptyStruct, [p0, p1]);
   }
 
   static LocatableDiagnostic
@@ -715,10 +718,10 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
     required int p0,
     required int p1,
   }) {
-    return LocatableDiagnosticImpl(ffiNativeUnexpectedNumberOfParameters, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      FfiCode.ffiNativeUnexpectedNumberOfParameters,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -727,7 +730,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
     required int p1,
   }) {
     return LocatableDiagnosticImpl(
-      ffiNativeUnexpectedNumberOfParametersWithReceiver,
+      FfiCode.ffiNativeUnexpectedNumberOfParametersWithReceiver,
       [p0, p1],
     );
   }
@@ -735,39 +738,42 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static LocatableDiagnostic _withArgumentsGenericStructSubclass({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(genericStructSubclass, [p0]);
+    return LocatableDiagnosticImpl(FfiCode.genericStructSubclass, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidExceptionValue({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invalidExceptionValue, [p0]);
+    return LocatableDiagnosticImpl(FfiCode.invalidExceptionValue, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidFieldTypeInStruct({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invalidFieldTypeInStruct, [p0]);
+    return LocatableDiagnosticImpl(FfiCode.invalidFieldTypeInStruct, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsMissingAnnotationOnStructField({
     required DartType p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(missingAnnotationOnStructField, [p0, p1]);
+    return LocatableDiagnosticImpl(FfiCode.missingAnnotationOnStructField, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsMissingExceptionValue({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(missingExceptionValue, [p0]);
+    return LocatableDiagnosticImpl(FfiCode.missingExceptionValue, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsMustBeANativeFunctionType({
     required Object p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(mustBeANativeFunctionType, [p0, p1]);
+    return LocatableDiagnosticImpl(FfiCode.mustBeANativeFunctionType, [p0, p1]);
   }
 
   static LocatableDiagnostic _withArgumentsMustBeASubtype({
@@ -775,60 +781,70 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(mustBeASubtype, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(FfiCode.mustBeASubtype, [p0, p1, p2]);
   }
 
   static LocatableDiagnostic _withArgumentsMustReturnVoid({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(mustReturnVoid, [p0]);
+    return LocatableDiagnosticImpl(FfiCode.mustReturnVoid, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsNativeFieldInvalidType({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(nativeFieldInvalidType, [p0]);
+    return LocatableDiagnosticImpl(FfiCode.nativeFieldInvalidType, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsNonConstantTypeArgument({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(nonConstantTypeArgument, [p0]);
+    return LocatableDiagnosticImpl(FfiCode.nonConstantTypeArgument, [p0]);
   }
 
   static LocatableDiagnostic
   _withArgumentsNonNativeFunctionTypeArgumentToPointer({required DartType p0}) {
-    return LocatableDiagnosticImpl(nonNativeFunctionTypeArgumentToPointer, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      FfiCode.nonNativeFunctionTypeArgumentToPointer,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNonSizedTypeArgument({
     required String p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(nonSizedTypeArgument, [p0, p1]);
+    return LocatableDiagnosticImpl(FfiCode.nonSizedTypeArgument, [p0, p1]);
   }
 
   static LocatableDiagnostic _withArgumentsSubtypeOfStructClassInExtends({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(subtypeOfStructClassInExtends, [p0, p1]);
+    return LocatableDiagnosticImpl(FfiCode.subtypeOfStructClassInExtends, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsSubtypeOfStructClassInImplements({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(subtypeOfStructClassInImplements, [p0, p1]);
+    return LocatableDiagnosticImpl(FfiCode.subtypeOfStructClassInImplements, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsSubtypeOfStructClassInWith({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(subtypeOfStructClassInWith, [p0, p1]);
+    return LocatableDiagnosticImpl(FfiCode.subtypeOfStructClassInWith, [
+      p0,
+      p1,
+    ]);
   }
 }
 

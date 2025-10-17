@@ -150,13 +150,16 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   static LocatableDiagnostic _withArgumentsDeprecatedMemberUse({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(deprecatedMemberUse, [p0]);
+    return LocatableDiagnosticImpl(HintCode.deprecatedMemberUse, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedMemberUseFromSamePackage({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(deprecatedMemberUseFromSamePackage, [p0]);
+    return LocatableDiagnosticImpl(
+      HintCode.deprecatedMemberUseFromSamePackage,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -165,7 +168,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
     required Object p1,
   }) {
     return LocatableDiagnosticImpl(
-      deprecatedMemberUseFromSamePackageWithMessage,
+      HintCode.deprecatedMemberUseFromSamePackageWithMessage,
       [p0, p1],
     );
   }
@@ -174,14 +177,17 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(deprecatedMemberUseWithMessage, [p0, p1]);
+    return LocatableDiagnosticImpl(HintCode.deprecatedMemberUseWithMessage, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUnnecessaryImport({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(unnecessaryImport, [p0, p1]);
+    return LocatableDiagnosticImpl(HintCode.unnecessaryImport, [p0, p1]);
   }
 }
 

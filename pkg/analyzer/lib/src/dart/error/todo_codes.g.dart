@@ -97,19 +97,19 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   DiagnosticType get type => DiagnosticType.TODO;
 
   static LocatableDiagnostic _withArgumentsFixme({required String message}) {
-    return LocatableDiagnosticImpl(fixme, [message]);
+    return LocatableDiagnosticImpl(TodoCode.fixme, [message]);
   }
 
   static LocatableDiagnostic _withArgumentsHack({required String message}) {
-    return LocatableDiagnosticImpl(hack, [message]);
+    return LocatableDiagnosticImpl(TodoCode.hack, [message]);
   }
 
   static LocatableDiagnostic _withArgumentsTodo({required String message}) {
-    return LocatableDiagnosticImpl(todo, [message]);
+    return LocatableDiagnosticImpl(TodoCode.todo, [message]);
   }
 
   static LocatableDiagnostic _withArgumentsUndone({required String message}) {
-    return LocatableDiagnosticImpl(undone, [message]);
+    return LocatableDiagnosticImpl(TodoCode.undone, [message]);
   }
 }
 

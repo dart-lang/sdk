@@ -157,19 +157,28 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
 
   static LocatableDiagnostic
   _withArgumentsPermissionImpliesUnsupportedHardware({required Object p0}) {
-    return LocatableDiagnosticImpl(permissionImpliesUnsupportedHardware, [p0]);
+    return LocatableDiagnosticImpl(
+      ManifestWarningCode.permissionImpliesUnsupportedHardware,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUnsupportedChromeOsFeature({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(unsupportedChromeOsFeature, [p0]);
+    return LocatableDiagnosticImpl(
+      ManifestWarningCode.unsupportedChromeOsFeature,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUnsupportedChromeOsHardware({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(unsupportedChromeOsHardware, [p0]);
+    return LocatableDiagnosticImpl(
+      ManifestWarningCode.unsupportedChromeOsHardware,
+      [p0],
+    );
   }
 }
 

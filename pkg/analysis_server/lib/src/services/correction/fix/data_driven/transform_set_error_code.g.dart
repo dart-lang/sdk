@@ -313,37 +313,51 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(conflictingKey, [p0, p1]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.conflictingKey, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsIncompatibleElementKind({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(incompatibleElementKind, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      TransformSetErrorCode.incompatibleElementKind,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidChangeForKind({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(invalidChangeForKind, [p0, p1]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.invalidChangeForKind, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidCharacter({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(invalidCharacter, [p0]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.invalidCharacter, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidKey({required Object p0}) {
-    return LocatableDiagnosticImpl(invalidKey, [p0]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.invalidKey, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidParameterStyle({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(invalidParameterStyle, [p0]);
+    return LocatableDiagnosticImpl(
+      TransformSetErrorCode.invalidParameterStyle,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidValue({
@@ -351,65 +365,77 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p1,
     required Object p2,
   }) {
-    return LocatableDiagnosticImpl(invalidValue, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.invalidValue, [
+      p0,
+      p1,
+      p2,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidValueOneOf({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(invalidValueOneOf, [p0, p1]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.invalidValueOneOf, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsMissingKey({required Object p0}) {
-    return LocatableDiagnosticImpl(missingKey, [p0]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.missingKey, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsMissingOneOfMultipleKeys({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(missingOneOfMultipleKeys, [p0]);
+    return LocatableDiagnosticImpl(
+      TransformSetErrorCode.missingOneOfMultipleKeys,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMissingToken({required Object p0}) {
-    return LocatableDiagnosticImpl(missingToken, [p0]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.missingToken, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedVariable({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(undefinedVariable, [p0]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.undefinedVariable, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUnexpectedToken({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unexpectedToken, [p0]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.unexpectedToken, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnknownAccessor({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unknownAccessor, [p0]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.unknownAccessor, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnsupportedKey({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unsupportedKey, [p0]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.unsupportedKey, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsWrongToken({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(wrongToken, [p0, p1]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.wrongToken, [p0, p1]);
   }
 
   static LocatableDiagnostic _withArgumentsYamlSyntaxError({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(yamlSyntaxError, [p0]);
+    return LocatableDiagnosticImpl(TransformSetErrorCode.yamlSyntaxError, [p0]);
   }
 }
 
