@@ -1255,7 +1255,7 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.STRING, "'", 4),
     ]);
     expectedErrors.addAll([
-      new TestError(4, ScannerErrorCode.missingIdentifier, null),
+      new TestError(4, ParserErrorCode.missingIdentifier, null),
     ]);
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener("'\$x\$'", listener);
@@ -1273,7 +1273,7 @@ abstract class ScannerTestBase {
       new SyntheticStringToken(TokenType.IDENTIFIER, "", 2),
     ]);
     expectedErrors.addAll([
-      new TestError(2, ScannerErrorCode.missingIdentifier, null),
+      new TestError(2, ParserErrorCode.missingIdentifier, null),
     ]);
     expectedTokens.addAll([new StringToken(TokenType.STRING, "1'", 2)]);
     ErrorListener listener = new ErrorListener();

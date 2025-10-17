@@ -945,7 +945,6 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   ScannerErrorCode.illegalCharacter,
   ScannerErrorCode.missingDigit,
   ScannerErrorCode.missingHexDigit,
-  ScannerErrorCode.missingIdentifier,
   ScannerErrorCode.missingQuote,
   ScannerErrorCode.unableGetContent,
   ScannerErrorCode.unexpectedDollarInString,

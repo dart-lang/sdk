@@ -3418,8 +3418,6 @@ ScannerErrorCode.MISSING_DIGIT:
   status: noFix
 ScannerErrorCode.MISSING_HEX_DIGIT:
   status: noFix
-ScannerErrorCode.MISSING_IDENTIFIER:
-  status: noFix
 ScannerErrorCode.MISSING_QUOTE:
   status: noFix
 ScannerErrorCode.UNABLE_GET_CONTENT:

@@ -913,7 +913,7 @@ class Foo {
     var literal =
         parseExpression(
               "'\$x\$'",
-              errors: [expectedError(ScannerErrorCode.missingIdentifier, 4, 1)],
+              errors: [expectedError(ParserErrorCode.missingIdentifier, 4, 1)],
             )
             as StringLiteral;
     expectNotNullIfNoErrors(literal);
@@ -926,7 +926,7 @@ class Foo {
     var literal =
         parseExpression(
               "'\$\$foo'",
-              errors: [expectedError(ScannerErrorCode.missingIdentifier, 2, 1)],
+              errors: [expectedError(ParserErrorCode.missingIdentifier, 2, 1)],
             )
             as StringLiteral;
     expectNotNullIfNoErrors(literal);
@@ -1759,7 +1759,7 @@ class Wrong<T> {
     var literal =
         parseExpression(
               "'\$1'",
-              errors: [expectedError(ScannerErrorCode.missingIdentifier, 2, 1)],
+              errors: [expectedError(ParserErrorCode.missingIdentifier, 2, 1)],
             )
             as StringLiteral;
     expectNotNullIfNoErrors(literal);

@@ -96,7 +96,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
           return makeError(ScannerErrorCode.expectedToken, ['>']);
         }
       } else if (errorCode == codeUnexpectedDollarInString) {
-        return makeError(ScannerErrorCode.missingIdentifier, null);
+        return makeError(ParserErrorCode.missingIdentifier, null);
       }
       throw UnimplementedError('$errorCode "${errorCode.pseudoSharedCode}"');
   }

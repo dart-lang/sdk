@@ -2931,14 +2931,6 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ScannerErrorWithoutArguments missingIdentifier =
-      ScannerErrorWithoutArguments(
-        'MISSING_IDENTIFIER',
-        "Expected an identifier.",
-        expectedTypes: [],
-      );
-
-  /// No parameters.
   static const ScannerErrorWithoutArguments missingQuote =
       ScannerErrorWithoutArguments(
         'MISSING_QUOTE',

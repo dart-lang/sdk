@@ -22846,10 +22846,6 @@ ScannerErrorCode:
     parameters: none
     problemMessage: Hexadecimal digit expected.
     hasPublishedDocs: false
-  MISSING_IDENTIFIER:
-    parameters: none
-    problemMessage: Expected an identifier.
-    hasPublishedDocs: false
   MISSING_QUOTE:
     parameters: none
     problemMessage: Expected quote (' or ").
