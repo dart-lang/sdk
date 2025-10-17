@@ -1584,8 +1584,8 @@ void Function<A>(core.List<core.int> x) m() => null;
         expectedError(ParserErrorCode.expectedToken, 20, 1),
         expectedError(ParserErrorCode.constConstructorWithBody, 20, 1),
         expectedError(ParserErrorCode.expectedToken, 21, 1),
-        expectedError(ScannerErrorCode.expectedToken, 22, 1),
-        expectedError(ScannerErrorCode.expectedToken, 22, 1),
+        expectedError(ParserErrorCode.expectedToken, 22, 1),
+        expectedError(ParserErrorCode.expectedToken, 22, 1),
       ],
     );
     var classDeclaration = unit.declarations[0] as ClassDeclaration;

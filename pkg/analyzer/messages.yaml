@@ -22828,11 +22828,6 @@ ScannerErrorCode:
     parameters: none
     problemMessage: Unable to decode bytes as UTF-8.
     hasPublishedDocs: false
-  EXPECTED_TOKEN:
-    parameters:
-      String p0: the token that was expected but not found
-    problemMessage: Expected to find '#p0'.
-    hasPublishedDocs: false
   ILLEGAL_CHARACTER:
     parameters:
       Object p0: the illegal character

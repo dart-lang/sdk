@@ -3410,8 +3410,6 @@ PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY:
   status: needsEvaluation
 ScannerErrorCode.ENCODING:
   status: needsEvaluation
-ScannerErrorCode.EXPECTED_TOKEN:
-  status: noFix
 ScannerErrorCode.ILLEGAL_CHARACTER:
   status: noFix
 ScannerErrorCode.MISSING_DIGIT:

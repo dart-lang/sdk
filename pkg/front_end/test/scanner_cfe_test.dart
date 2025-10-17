@@ -283,8 +283,8 @@ class ScannerTest_Cfe extends ScannerTestBase {
     expect(openBrace.endToken, same(closeBrace));
     expect(openParen2.endToken, same(closeParen2));
     listener.assertErrors([
-      new TestError(6, ScannerErrorCode.expectedToken, [')']),
-      new TestError(7, ScannerErrorCode.expectedToken, [')']),
+      new TestError(6, ParserErrorCode.expectedToken, [')']),
+      new TestError(7, ParserErrorCode.expectedToken, [')']),
     ]);
   }
 
@@ -327,9 +327,9 @@ class ScannerTest_Cfe extends ScannerTestBase {
     expect(openBracket.endToken, same(closeBracket));
     expect(openParen.endToken, same(closeParen));
     listener.assertErrors([
-      new TestError(3, ScannerErrorCode.expectedToken, ['}']),
-      new TestError(3, ScannerErrorCode.expectedToken, [']']),
-      new TestError(3, ScannerErrorCode.expectedToken, [')']),
+      new TestError(3, ParserErrorCode.expectedToken, ['}']),
+      new TestError(3, ParserErrorCode.expectedToken, [']']),
+      new TestError(3, ParserErrorCode.expectedToken, [')']),
     ]);
   }
 }

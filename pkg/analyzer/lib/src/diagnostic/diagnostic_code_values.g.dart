@@ -941,7 +941,6 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   PubspecWarningCode.workspaceValueNotString,
   PubspecWarningCode.workspaceValueNotSubdirectory,
   ScannerErrorCode.encoding,
-  ScannerErrorCode.expectedToken,
   ScannerErrorCode.illegalCharacter,
   ScannerErrorCode.missingDigit,
   ScannerErrorCode.missingHexDigit,

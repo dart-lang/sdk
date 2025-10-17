@@ -347,7 +347,7 @@ class StatementCompletionProcessor {
           ParserErrorCode.expectedToken,
           partialMatch: "']'",
         ) ??
-        diagnosticMatching(ScannerErrorCode.expectedToken, partialMatch: "']'");
+        diagnosticMatching(ParserErrorCode.expectedToken, partialMatch: "']'");
     if (expr != null) {
       expr = expr.thisOrAncestorOfType<ListLiteral>();
       if (expr is ListLiteral) {
@@ -361,7 +361,6 @@ class StatementCompletionProcessor {
             _addInsertEdit(loc, ']');
           }
           _removeError(ParserErrorCode.expectedToken, partialMatch: "']'");
-          _removeError(ScannerErrorCode.expectedToken, partialMatch: "']'");
         }
       }
     }
@@ -921,9 +920,10 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_methodCall(AstNode node) {
-    var parenError =
-        _findDiagnostic(ParserErrorCode.expectedToken, partialMatch: "')'") ??
-        _findDiagnostic(ScannerErrorCode.expectedToken, partialMatch: "')'");
+    var parenError = _findDiagnostic(
+      ParserErrorCode.expectedToken,
+      partialMatch: "')'",
+    );
     if (parenError == null) {
       return false;
     }

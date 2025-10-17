@@ -1394,8 +1394,8 @@ class Foo {
     parseCompilationUnit(
       "void f(int Function(",
       errors: [
-        expectedError(ScannerErrorCode.expectedToken, 20, 1),
-        expectedError(ScannerErrorCode.expectedToken, 20, 1),
+        expectedError(ParserErrorCode.expectedToken, 20, 1),
+        expectedError(ParserErrorCode.expectedToken, 20, 1),
         expectedError(ParserErrorCode.missingFunctionBody, 20, 0),
       ],
     );
@@ -1746,7 +1746,7 @@ class Wrong<T> {
     parseCompilationUnit(
       r"main () { print('${x' '); }",
       errors: [
-        expectedError(ScannerErrorCode.expectedToken, 23, 1),
+        expectedError(ParserErrorCode.expectedToken, 23, 1),
         expectedError(ScannerErrorCode.unterminatedStringLiteral, 26, 1),
         expectedError(ParserErrorCode.expectedToken, 20, 3),
         expectedError(ParserErrorCode.expectedStringLiteral, 23, 1),
@@ -2152,7 +2152,7 @@ class Wrong<T> {
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
     listener.assertErrors([
-      expectedError(ScannerErrorCode.expectedToken, 14, 1),
+      expectedError(ParserErrorCode.expectedToken, 14, 1),
     ]);
   }
 
@@ -2504,9 +2504,7 @@ class Wrong<T> {
     createParser('(a, {b: 0)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrors([
-      expectedError(ScannerErrorCode.expectedToken, 9, 1),
-    ]);
+    listener.assertErrors([expectedError(ParserErrorCode.expectedToken, 9, 1)]);
   }
 
   void test_missingTerminatorForParameterGroup_optional() {
@@ -2514,7 +2512,7 @@ class Wrong<T> {
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
     listener.assertErrors([
-      expectedError(ScannerErrorCode.expectedToken, 10, 1),
+      expectedError(ParserErrorCode.expectedToken, 10, 1),
     ]);
   }
 
@@ -2934,10 +2932,10 @@ m() {
 ''',
       codes: [
         ScannerErrorCode.unterminatedStringLiteral,
-        ScannerErrorCode.expectedToken,
-        ScannerErrorCode.expectedToken,
-        ScannerErrorCode.expectedToken,
-        ScannerErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
         ParserErrorCode.expectedToken,
         ParserErrorCode.expectedToken,
       ],
@@ -3219,7 +3217,7 @@ void main() {
   var x = "''',
       errors: [
         expectedError(ScannerErrorCode.unterminatedStringLiteral, 24, 1),
-        expectedError(ScannerErrorCode.expectedToken, 25, 1),
+        expectedError(ParserErrorCode.expectedToken, 25, 1),
         expectedError(ParserErrorCode.expectedToken, 24, 1),
       ],
     );
@@ -3253,12 +3251,12 @@ void main() {
   var x = """''',
       codes: [
         ScannerErrorCode.unterminatedStringLiteral,
-        ScannerErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
         ParserErrorCode.expectedToken,
       ],
       errors: [
         expectedError(ScannerErrorCode.unterminatedStringLiteral, 24, 1),
-        expectedError(ScannerErrorCode.expectedToken, 30, 0),
+        expectedError(ParserErrorCode.expectedToken, 30, 0),
         expectedError(ParserErrorCode.expectedToken, 30, 0),
       ],
     );
@@ -3275,12 +3273,12 @@ void main() {
   var x = """"''',
       codes: [
         ScannerErrorCode.unterminatedStringLiteral,
-        ScannerErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
         ParserErrorCode.expectedToken,
       ],
       errors: [
         expectedError(ScannerErrorCode.unterminatedStringLiteral, 24, 1),
-        expectedError(ScannerErrorCode.expectedToken, 31, 0),
+        expectedError(ParserErrorCode.expectedToken, 31, 0),
         expectedError(ParserErrorCode.expectedToken, 31, 0),
       ],
     );
@@ -3297,12 +3295,12 @@ void main() {
   var x = """""''',
       codes: [
         ScannerErrorCode.unterminatedStringLiteral,
-        ScannerErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
         ParserErrorCode.expectedToken,
       ],
       errors: [
         expectedError(ScannerErrorCode.unterminatedStringLiteral, 28, 1),
-        expectedError(ScannerErrorCode.expectedToken, 32, 0),
+        expectedError(ParserErrorCode.expectedToken, 32, 0),
         expectedError(ParserErrorCode.expectedToken, 32, 0),
       ],
     );
@@ -3487,7 +3485,7 @@ void main() {
     // fasta scanner generates '(a, {b, c]})' where '}' is synthetic
     listener.assertErrors([
       expectedError(ParserErrorCode.expectedToken, 9, 1),
-      expectedError(ScannerErrorCode.expectedToken, 10, 1),
+      expectedError(ParserErrorCode.expectedToken, 10, 1),
     ]);
   }
 
@@ -3498,7 +3496,7 @@ void main() {
     // fasta scanner generates '(a, [b, c}])' where ']' is synthetic
     listener.assertErrors([
       expectedError(ParserErrorCode.expectedToken, 9, 1),
-      expectedError(ScannerErrorCode.expectedToken, 10, 1),
+      expectedError(ParserErrorCode.expectedToken, 10, 1),
     ]);
   }
 

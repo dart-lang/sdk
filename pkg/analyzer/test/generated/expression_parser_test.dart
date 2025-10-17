@@ -61,7 +61,7 @@ class ExpressionParserTest extends FastaParserTestCase {
         expectedError(ParserErrorCode.expectedTypeName, 4, 1),
         expectedError(ParserErrorCode.expectedIdentifierButGotKeyword, 7, 6),
         expectedError(ScannerErrorCode.unterminatedStringLiteral, 12, 1),
-        expectedError(ScannerErrorCode.expectedToken, 13, 1),
+        expectedError(ParserErrorCode.expectedToken, 13, 1),
       ],
     );
   }
@@ -86,7 +86,7 @@ class ExpressionParserTest extends FastaParserTestCase {
                 expectedError(ParserErrorCode.expectedTypeName, 1, 1),
                 expectedError(ParserErrorCode.expectedTypeName, 2, 1),
                 expectedError(ScannerErrorCode.unterminatedStringLiteral, 3, 1),
-                expectedError(ScannerErrorCode.expectedToken, 4, 1),
+                expectedError(ParserErrorCode.expectedToken, 4, 1),
               ],
             )
             as ListLiteral;

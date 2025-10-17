@@ -2891,18 +2891,6 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// String p0: the token that was expected but not found
-  static const ScannerErrorTemplate<
-    LocatableDiagnostic Function({required String p0})
-  >
-  expectedToken = ScannerErrorTemplate(
-    'EXPECTED_TOKEN',
-    "Expected to find '{0}'.",
-    withArguments: _withArgumentsExpectedToken,
-    expectedTypes: [ExpectedType.string],
-  );
-
-  /// Parameters:
   /// Object p0: the illegal character
   static const ScannerErrorTemplate<
     LocatableDiagnostic Function({required Object p0})
@@ -3021,10 +3009,6 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   @override
   DiagnosticType get type => DiagnosticType.SYNTACTIC_ERROR;
-
-  static LocatableDiagnostic _withArgumentsExpectedToken({required String p0}) {
-    return LocatableDiagnosticImpl(ScannerErrorCode.expectedToken, [p0]);
-  }
 
   static LocatableDiagnostic _withArgumentsIllegalCharacter({
     required Object p0,

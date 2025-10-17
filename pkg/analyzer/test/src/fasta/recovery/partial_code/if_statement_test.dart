@@ -22,7 +22,7 @@ class IfStatementTest extends PartialCodeTest {
         TestDescriptor(
           'leftParen',
           'if (',
-          [ParserErrorCode.missingIdentifier, ScannerErrorCode.expectedToken],
+          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
           "if (_s_)",
           failing: [
             'assert',
@@ -35,7 +35,7 @@ class IfStatementTest extends PartialCodeTest {
           ],
         ),
         TestDescriptor('condition', 'if (a', [
-          ScannerErrorCode.expectedToken,
+          ParserErrorCode.expectedToken,
         ], "if (a)"),
       ],
       PartialCodeTest.statementSuffixes,

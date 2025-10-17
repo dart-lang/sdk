@@ -34,7 +34,7 @@ class WhileStatementTest extends PartialCodeTest {
           'leftParen',
           'while (',
           [
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
             ParserErrorCode.missingIdentifier,
             ParserErrorCode.missingIdentifier,
             ParserErrorCode.expectedToken,
@@ -49,7 +49,7 @@ class WhileStatementTest extends PartialCodeTest {
           'condition',
           'while (a',
           [
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
             ParserErrorCode.missingIdentifier,
             ParserErrorCode.expectedToken,
           ],
@@ -77,7 +77,7 @@ class WhileStatementTest extends PartialCodeTest {
         TestDescriptor(
           'leftParen',
           'while (',
-          [ParserErrorCode.missingIdentifier, ScannerErrorCode.expectedToken],
+          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
           "while (_s_)",
           failing: [
             'assert',
@@ -94,7 +94,7 @@ class WhileStatementTest extends PartialCodeTest {
         TestDescriptor(
           'condition',
           'while (a',
-          [ScannerErrorCode.expectedToken],
+          [ParserErrorCode.expectedToken],
           "while (a)",
           failing: ['break', 'continue'],
         ),

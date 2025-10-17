@@ -23,7 +23,7 @@ class AnnotationTest extends PartialCodeTest {
       TestDescriptor(
         'leftParen',
         '@a(',
-        [ScannerErrorCode.expectedToken, ParserErrorCode.expectedExecutable],
+        [ParserErrorCode.expectedToken, ParserErrorCode.expectedExecutable],
         '@a()',
         expectedDiagnosticsInValidCode: [ParserErrorCode.expectedExecutable],
       ),
@@ -41,7 +41,7 @@ class AnnotationTest extends PartialCodeTest {
         TestDescriptor(
           'leftParen',
           '@a(',
-          [ScannerErrorCode.expectedToken],
+          [ParserErrorCode.expectedToken],
           '@a()',
           allFailing: true,
         ),
@@ -66,7 +66,7 @@ class AnnotationTest extends PartialCodeTest {
         TestDescriptor(
           'leftParen',
           '@a(',
-          [ScannerErrorCode.expectedToken, ParserErrorCode.expectedClassMember],
+          [ParserErrorCode.expectedToken, ParserErrorCode.expectedClassMember],
           '@a()',
           expectedDiagnosticsInValidCode: [ParserErrorCode.expectedClassMember],
         ),
@@ -88,7 +88,7 @@ class AnnotationTest extends PartialCodeTest {
         TestDescriptor(
           'leftParen',
           '@a(',
-          [ScannerErrorCode.expectedToken],
+          [ParserErrorCode.expectedToken],
           '@a()',
           allFailing: true,
         ),
@@ -120,7 +120,7 @@ class AnnotationTest extends PartialCodeTest {
           'leftParen',
           '@a(',
           [
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
             ParserErrorCode.expectedToken,
             ParserErrorCode.missingIdentifier,
           ],
@@ -197,7 +197,7 @@ class AnnotationTest extends PartialCodeTest {
           'leftParen',
           '@a(',
           [
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
             ParserErrorCode.expectedToken,
             ParserErrorCode.missingIdentifier,
           ],

@@ -84,16 +84,16 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
         TokenType type = token.begin!.type;
         if (type == TokenType.OPEN_CURLY_BRACKET ||
             type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
-          return makeError(ScannerErrorCode.expectedToken, ['}']);
+          return makeError(ParserErrorCode.expectedToken, ['}']);
         }
         if (type == TokenType.OPEN_SQUARE_BRACKET) {
-          return makeError(ScannerErrorCode.expectedToken, [']']);
+          return makeError(ParserErrorCode.expectedToken, [']']);
         }
         if (type == TokenType.OPEN_PAREN) {
-          return makeError(ScannerErrorCode.expectedToken, [')']);
+          return makeError(ParserErrorCode.expectedToken, [')']);
         }
         if (type == TokenType.LT) {
-          return makeError(ScannerErrorCode.expectedToken, ['>']);
+          return makeError(ParserErrorCode.expectedToken, ['>']);
         }
       } else if (errorCode == codeUnexpectedDollarInString) {
         return makeError(ParserErrorCode.missingIdentifier, null);

@@ -591,8 +591,8 @@ f() {
       [
         ParserErrorCode.expectedToken,
         ParserErrorCode.expectedToken,
-        ScannerErrorCode.expectedToken,
-        ScannerErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
         ScannerErrorCode.unterminatedStringLiteral,
         ScannerErrorCode.unterminatedStringLiteral,
       ],
@@ -797,7 +797,7 @@ class C {
       '''
 f({a: 0) {}
 ''',
-      [ScannerErrorCode.expectedToken],
+      [ParserErrorCode.expectedToken],
       '''
 f({a: 0}) {}
 ''',
@@ -809,7 +809,7 @@ f({a: 0}) {}
       '''
 f({a: 0]) {}
 ''',
-      [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
+      [ParserErrorCode.expectedToken, ParserErrorCode.expectedToken],
       '''
 f({a: 0}) {}
 ''',
@@ -845,7 +845,7 @@ f(a) {}
       '''
 f([a = 0}) {}
 ''',
-      [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
+      [ParserErrorCode.expectedToken, ParserErrorCode.expectedToken],
       '''
 f([a = 0]) {}
 ''',
@@ -858,7 +858,7 @@ f([a = 0]) {}
       '''
 f([a = 0) {}
 ''',
-      [ScannerErrorCode.expectedToken],
+      [ParserErrorCode.expectedToken],
       '''
 f([a = 0]) {}
 ''',
