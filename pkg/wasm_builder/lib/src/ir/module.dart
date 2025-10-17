@@ -119,7 +119,8 @@ class Module implements Serializable {
     SourceMapSection(sourceMapUrl).serialize(s);
   }
 
-  static Module deserialize(Deserializer d) {
+  static (Map<int, List<Deserializer>>, Map<String, List<Deserializer>>)
+      _deserializeTopLevel(Deserializer d) {
     final preamble = d.readBytes(8);
     if (preamble[0] != 0x00 ||
         preamble[1] != 0x61 ||
@@ -150,6 +151,12 @@ class Module implements Serializable {
         sections.putIfAbsent(id, () => []).add(deserializer);
       }
     }
+
+    return (sections, customSections);
+  }
+
+  static Module deserialize(Deserializer d) {
+    final (sections, customSections) = _deserializeTopLevel(d);
 
     final Module module = Module.uninitialized();
 
@@ -233,6 +240,14 @@ class Module implements Serializable {
         [],
         sourceMapUrl,
       );
+  }
+
+  /// Deserialize just the `sourceMapUrl` section of a module as a [Uri].
+  static Uri? deserializeSourceMapUrl(Deserializer d) {
+    final (sections, customSections) = _deserializeTopLevel(d);
+    final sourceMapUrl = SourceMapSection.deserialize(
+        customSections[SourceMapSection.customSectionName]?.single);
+    return sourceMapUrl;
   }
 
   String printAsWat() {
