@@ -3300,6 +3300,12 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitPatternAssignment(PatternAssignment node) => EXPRESSION;
+
+  @override
+  int visitVariableRead(VariableRead node) => PRIMARY;
+
+  @override
+  int visitVariableWrite(VariableWrite node) => EXPRESSION;
 }
 
 String procedureKindToString(ProcedureKind kind) {

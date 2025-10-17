@@ -131,6 +131,8 @@ mixin StandardBounds {
       case (InvalidType(), _):
       case (_, InvalidType()):
       case (AuxiliaryType(), _):
+      case (FunctionTypeParameterType(), _):
+      case (ClassTypeParameterType(), _):
         throw new UnsupportedError("moretop($s, $t)");
     }
   }
@@ -234,6 +236,8 @@ mixin StandardBounds {
       case (InvalidType(), _):
       case (_, InvalidType()):
       case (AuxiliaryType(), _):
+      case (FunctionTypeParameterType(), _):
+      case (ClassTypeParameterType(), _):
         throw new UnsupportedError("morebottom($s, $t)");
     }
   }
@@ -517,6 +521,20 @@ mixin StandardBounds {
       case (AuxiliaryType(), _):
       case (_, AuxiliaryType()):
         throw new StateError("Unsupported type combination: "
+            "getStandardUpperBoundInternal("
+            "${type1.runtimeType}, ${type2.runtimeType}"
+            ")");
+
+      case (FunctionTypeParameterType(), _):
+      case (_, FunctionTypeParameterType()):
+        throw new StateError("Unimplemented for type combination: "
+            "getStandardUpperBoundInternal("
+            "${type1.runtimeType}, ${type2.runtimeType}"
+            ")");
+
+      case (ClassTypeParameterType(), _):
+      case (_, ClassTypeParameterType()):
+        throw new StateError("Unimplemented for type combination: "
             "getStandardUpperBoundInternal("
             "${type1.runtimeType}, ${type2.runtimeType}"
             ")");
@@ -839,6 +857,20 @@ mixin StandardBounds {
       case (AuxiliaryType(), _):
       case (_, AuxiliaryType()):
         throw new StateError("Unsupported type combination: "
+            "getStandardUpperBoundInternal("
+            "${type1.runtimeType}, ${type2.runtimeType}"
+            ")");
+
+      case (FunctionTypeParameterType(), _):
+      case (_, FunctionTypeParameterType()):
+        throw new StateError("Unimplemented for type combination: "
+            "getStandardUpperBoundInternal("
+            "${type1.runtimeType}, ${type2.runtimeType}"
+            ")");
+
+      case (ClassTypeParameterType(), _):
+      case (_, ClassTypeParameterType()):
+        throw new StateError("Unimplemented for type combination: "
             "getStandardUpperBoundInternal("
             "${type1.runtimeType}, ${type2.runtimeType}"
             ")");

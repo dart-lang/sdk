@@ -82,7 +82,7 @@ class ExpressionStatement extends Statement {
   }
 }
 
-class Block extends Statement {
+class Block extends Statement implements ScopeProvider {
   final List<Statement> statements;
 
   /// End offset in the source file it comes from. Valid values are from 0 and
@@ -92,6 +92,9 @@ class Block extends Statement {
 
   @override
   List<int>? get fileOffsetsIfMultiple => [fileOffset, fileEndOffset];
+
+  @override
+  Scope? scope;
 
   Block(this.statements) {
     // Ensure statements is mutable.
@@ -526,13 +529,16 @@ class DoStatement extends Statement implements LoopStatement {
   }
 }
 
-class ForStatement extends Statement implements LoopStatement {
+class ForStatement extends Statement implements LoopStatement, ScopeProvider {
   final List<VariableDeclaration> variables; // May be empty, but not null.
   Expression? condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
 
   @override
   Statement body;
+
+  @override
+  Scope? scope;
 
   ForStatement(this.variables, this.condition, this.updates, this.body) {
     setParents(variables, this);
@@ -606,7 +612,7 @@ class ForStatement extends Statement implements LoopStatement {
   }
 }
 
-class ForInStatement extends Statement implements LoopStatement {
+class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   /// Offset in the source file it comes from.
   ///
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
@@ -623,6 +629,9 @@ class ForInStatement extends Statement implements LoopStatement {
   Statement body;
 
   bool isAsync; // True if this is an 'await for' loop.
+
+  @override
+  Scope? scope;
 
   ForInStatement(this.variable, this.iterable, this.body,
       {this.isAsync = false}) {
@@ -1169,11 +1178,14 @@ class TryCatch extends Statement {
   }
 }
 
-class Catch extends TreeNode {
+class Catch extends TreeNode implements ScopeProvider {
   DartType guard; // Not null, defaults to dynamic.
   VariableDeclaration? exception;
   VariableDeclaration? stackTrace;
   Statement body;
+
+  @override
+  Scope? scope;
 
   Catch(this.exception, this.body,
       {this.guard = const DynamicType(), this.stackTrace}) {
@@ -1808,9 +1820,62 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeFunctionNode(function, printer.getVariableName(variable));
+    printer.writeFunctionNode(
+        function, printer.getVariableDeclarationName(variable));
     if (function.body is ReturnStatement) {
       printer.write(';');
     }
+  }
+}
+
+/// The statement that marks the declaration of the variable in the source Dart
+/// program. If the [initializer] is `null`, the variable was declared without
+/// an initializer.
+class VariableInitialization extends Statement {
+  final ExpressionVariable variable;
+  final Expression? initializer;
+
+  VariableInitialization({required this.variable, required this.initializer});
+
+  @override
+  R accept<R>(StatementVisitor<R> v) {
+    // TODO(cstefantsova): Implement accept.
+    throw UnimplementedError();
+  }
+
+  @override
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) {
+    // TODO(cstefantsova): Implement accept1.
+    throw UnimplementedError();
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // TODO(cstefantsova): Implement transformChildren.
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // TODO(cstefantsova): Implement transformOrRemoveChildren.
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    // TODO(cstefantsova): Implement visitChildren.
+  }
+
+  @override
+  String toString() {
+    return "VariableInitialization(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write(printer.getVariableName(variable));
+    if (initializer case var initializer?) {
+      printer.write(' := ');
+      printer.writeExpression(initializer);
+    }
+    printer.write(';');
   }
 }

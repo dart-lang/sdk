@@ -148,6 +148,8 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'VariablePattern': {'variable': FieldRule(isDeclaration: true)},
   'PatternSwitchCase': {'jointVariables': FieldRule(isDeclaration: true)},
   'PatternSwitchStatement': {'cases': FieldRule(isDeclaration: true)},
+  'TypeVariable': {'parameter': FieldRule(isDeclaration: false)},
+  'ClassTypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
 };
 
 /// Data that determines exceptions to how fields are used.

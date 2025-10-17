@@ -585,6 +585,18 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitVariableRead(VariableRead node) {
+    visited.add(ExpressionKind.VariableRead);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitVariableWrite(VariableWrite node) {
+    visited.add(ExpressionKind.VariableWrite);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitSwitchExpression(SwitchExpression node) {
     visited.add(ExpressionKind.SwitchExpression);
     node.visitChildren(this);
@@ -957,6 +969,12 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitVariableInitialization(VariableInitialization node) {
+    visited.add(StatementKind.VariableInitialization);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     visited.add(NodeKind.SwitchExpressionCase);
     node.visitChildren(this);
@@ -971,6 +989,54 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitTypeParameter(TypeParameter node) {
     visited.add(NodeKind.TypeParameter);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitTypeVariable(TypeVariable node) {
+    visited.add(NodeKind.TypeVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitLocalVariable(LocalVariable node) {
+    visited.add(NodeKind.LocalVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitPositionalParameter(PositionalParameter node) {
+    visited.add(NodeKind.PositionalParameter);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitNamedParameter(NamedParameter node) {
+    visited.add(NodeKind.NamedParameter);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitThisVariable(ThisVariable node) {
+    visited.add(NodeKind.ThisVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitSyntheticVariable(SyntheticVariable node) {
+    visited.add(NodeKind.SyntheticVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitVariableContext(VariableContext node) {
+    visited.add(NodeKind.VariableContext);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitScope(Scope node) {
+    visited.add(NodeKind.Scope);
     node.visitChildren(this);
   }
 
@@ -1008,6 +1074,18 @@ class CoverageVisitor implements Visitor<void> {
   void visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
         "Unsupported auxiliary node $node (${node.runtimeType}).");
+  }
+
+  @override
+  void visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    visited.add(DartTypeKind.FunctionTypeParameterType);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitClassTypeParameterType(ClassTypeParameterType node) {
+    visited.add(DartTypeKind.ClassTypeParameterType);
+    node.visitChildren(this);
   }
 
   @override
@@ -1252,20 +1330,28 @@ enum NodeKind {
   Library,
   LibraryDependency,
   LibraryPart,
+  LocalVariable,
   MapLiteralEntry,
   MapPatternEntry,
   MapPatternRestEntry,
   Name,
   NamedExpression,
+  NamedParameter,
   NamedType,
   PatternGuard,
   PatternSwitchCase,
+  PositionalParameter,
+  Scope,
   StructuralParameter,
   Supertype,
   SwitchCase,
   SwitchExpressionCase,
+  SyntheticVariable,
+  ThisVariable,
   TypeParameter,
+  TypeVariable,
   Typedef,
+  VariableContext,
 }
 
 enum MemberKind {
@@ -1342,7 +1428,9 @@ enum ExpressionKind {
   TypeLiteral,
   TypedefTearOff,
   VariableGet,
+  VariableRead,
   VariableSet,
+  VariableWrite,
 }
 
 enum InitializerKind {
@@ -1396,14 +1484,17 @@ enum StatementKind {
   TryCatch,
   TryFinally,
   VariableDeclaration,
+  VariableInitialization,
   WhileStatement,
   YieldStatement,
 }
 
 enum DartTypeKind {
+  ClassTypeParameterType,
   DynamicType,
   ExtensionType,
   FunctionType,
+  FunctionTypeParameterType,
   FutureOrType,
   InterfaceType,
   IntersectionType,

@@ -948,6 +948,7 @@ distinct
 distinction
 distinguish
 distinguishes
+distinguishing
 divide
 division
 divisor
@@ -1084,6 +1085,7 @@ enumeration
 enumerations
 enums
 environment
+environments
 equal
 equalities
 equality
@@ -1129,6 +1131,7 @@ examined
 examining
 example
 examples
+exceed
 exceeded
 except
 exception
@@ -2953,6 +2956,7 @@ spending
 split
 splits
 splitter
+spot
 spread
 spreadable
 spreads
@@ -3461,6 +3465,7 @@ visiting
 visitor
 visitor's
 visual
+visually
 vm
 void
 vowel

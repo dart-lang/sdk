@@ -239,4 +239,18 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
     // NonNull(void) = void
     return null;
   }
+
+  @override
+  DartType? visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  DartType? visitClassTypeParameterType(ClassTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
 }

@@ -639,6 +639,20 @@ class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
     node.left.accept(this);
     node.right.accept(this);
   }
+
+  @override
+  void visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  void visitClassTypeParameterType(ClassTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
 }
 
 class _NullSubstitution extends Substitution {
@@ -927,6 +941,20 @@ class _InnerTypeSubstitutor extends _SubstitutorBase {
   @override
   DartType visitIntersectionType(IntersectionType node) {
     return node.left.accept(this);
+  }
+
+  @override
+  DartType visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  DartType visitClassTypeParameterType(ClassTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
   }
 }
 
@@ -1241,6 +1269,20 @@ abstract class _TypeSubstitutor extends _SubstitutorBase {
   DartType visitIntersectionType(IntersectionType node) {
     return node.left.accept(this);
   }
+
+  @override
+  DartType visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  DartType visitClassTypeParameterType(ClassTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
 }
 
 class FunctionTypeInstantiator implements DartTypeVisitor<DartType?> {
@@ -1506,6 +1548,20 @@ class FunctionTypeInstantiator implements DartTypeVisitor<DartType?> {
     }
     return null;
   }
+
+  @override
+  DartType? visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  DartType? visitClassTypeParameterType(ClassTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
 }
 
 class _OccurrenceVisitor extends FindTypeVisitor {
@@ -1635,6 +1691,16 @@ class _StructuralParameterOccurrenceVisitor implements FindTypeVisitor {
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {
+    return false;
+  }
+
+  @override
+  bool visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    return false;
+  }
+
+  @override
+  bool visitClassTypeParameterType(ClassTypeParameterType node) {
     return false;
   }
 
@@ -1790,6 +1856,12 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
   bool visitTypeParameterType(TypeParameterType node) => true;
 
   @override
+  bool visitFunctionTypeParameterType(FunctionTypeParameterType node) => true;
+
+  @override
+  bool visitClassTypeParameterType(ClassTypeParameterType node) => true;
+
+  @override
   bool visitStructuralParameterType(StructuralParameterType node) {
     return true;
   }
@@ -1870,6 +1942,20 @@ class _NullabilityConstructorUnwrapper implements DartTypeVisitor<DartType> {
   DartType visitTypeParameterType(TypeParameterType node) {
     return node
         .withDeclaredNullability(node.parameter.computeNullabilityFromBound());
+  }
+
+  @override
+  DartType visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  DartType visitClassTypeParameterType(ClassTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
   }
 
   @override
@@ -2200,6 +2286,20 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
 
   @override
   bool visitVoidType(VoidType node) => false;
+
+  @override
+  bool visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  bool visitClassTypeParameterType(ClassTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
 }
 
 /// Returns true if [type] is an application of the nullable type constructor.
