@@ -23344,7 +23344,7 @@ TransformSetErrorCode:
       Object p0: the missing key
     problemMessage: "The variable '#p0' isn't defined."
     hasPublishedDocs: false
-  unexpected_token:
+  unexpected_transform_set_token:
     parameters:
       Object p0: the token that was unexpectedly found
     problemMessage: "Didn't expect to find #p0."

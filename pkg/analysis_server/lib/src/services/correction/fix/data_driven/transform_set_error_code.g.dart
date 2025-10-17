@@ -215,10 +215,10 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const TransformSetErrorTemplate<
     LocatableDiagnostic Function({required Object p0})
   >
-  unexpectedToken = TransformSetErrorTemplate(
-    'unexpected_token',
+  unexpectedTransformSetToken = TransformSetErrorTemplate(
+    'unexpected_transform_set_token',
     "Didn't expect to find {0}.",
-    withArguments: _withArgumentsUnexpectedToken,
+    withArguments: _withArgumentsUnexpectedTransformSetToken,
     expectedTypes: [ExpectedType.object],
   );
 
@@ -407,10 +407,13 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
     ]);
   }
 
-  static LocatableDiagnostic _withArgumentsUnexpectedToken({
+  static LocatableDiagnostic _withArgumentsUnexpectedTransformSetToken({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.unexpectedToken, [p0]);
+    return LocatableDiagnosticImpl(
+      TransformSetErrorCode.unexpectedTransformSetToken,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUnknownAccessor({
