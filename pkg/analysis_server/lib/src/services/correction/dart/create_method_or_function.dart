@@ -146,7 +146,6 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   }) async {
     // build method source
     await builder.addDartFileEdit(targetFile, (builder) {
-      var eol = builder.eol;
       builder.addInsertion(insertOffset, (builder) {
         if (leadingEol) {
           builder.writeln();
@@ -175,7 +174,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
           builder.write(' async');
         }
         // close method
-        builder.write(' {$eol$prefix}');
+        builder.write(' {}');
         if (trailingEol) {
           builder.writeln();
         }

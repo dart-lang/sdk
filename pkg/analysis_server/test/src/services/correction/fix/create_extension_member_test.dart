@@ -815,6 +815,27 @@ extension on int {}
 ''');
   }
 
+  Future<void> test_ifNull() async {
+    await resolveTestCode('''
+extension E on Object {
+  int Function()? get _f => null;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+}
+''');
+    await assertHasFix('''
+extension E on Object {
+  int Function()? get _f => null;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+
+  int _defaultF() {}
+}
+''');
+  }
+
   Future<void> test_main_part() async {
     var partPath = join(testPackageLibPath, 'part.dart');
     newFile(partPath, '''
