@@ -20,6 +20,7 @@ void main(List<String> args) async {
   final help = result.flag('help');
   final write = result.flag('write');
   final runFromSource = result.flag('src');
+  final filter = result.option('filter');
 
   if (help) {
     print('Usage:\n${argParser.usage}');
@@ -31,8 +32,14 @@ void main(List<String> args) async {
     io.exit(1);
   }
 
+  final filterRegExp = filter != null ? RegExp(filter) : null;
+
   await withTempDir((String tempDir) async {
     for (final dartFilename in listIrTests()) {
+      if (filterRegExp != null && !filterRegExp.hasMatch(dartFilename)) {
+        continue;
+      }
+
       void failTest() {
         print('-> test "$dartFilename" failed\n');
         io.exitCode = 254;
@@ -43,7 +50,7 @@ void main(List<String> args) async {
       final wasmFile = File(path.join(
           tempDir, path.setExtension(path.basename(dartFilename), '.wasm')));
 
-      print('Testing $dartFilename');
+      print('\nTesting $dartFilename');
 
       final result = await Process.run('/usr/bin/env', [
         'bash',
@@ -62,12 +69,11 @@ void main(List<String> args) async {
         continue;
       }
 
-      print('Compiled to ${wasmFile.path}');
-
       final wasmBytes = wasmFile.readAsBytesSync();
       final wat =
           moduleToString(parseModule(wasmBytes), parseNameFilters(dartCode));
       if (write) {
+        print('-> Updated expectation file: ${watFile.path}');
         watFile.writeAsStringSync(wat);
         continue;
       }
@@ -92,6 +98,8 @@ final argParser = ArgParser()
   ..addFlag('help',
       abbr: 'h', defaultsTo: false, help: 'Prints available options.')
   ..addFlag('src', defaultsTo: false, help: 'Runs the compiler from source.')
+  ..addOption('filter',
+      abbr: 'f', help: 'Runs only tests that match the filter.')
   ..addFlag('write',
       abbr: 'w', defaultsTo: false, help: 'Writes new expectation files.');
 
