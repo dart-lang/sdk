@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart'
     show ScannerErrorCode;
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
@@ -208,7 +209,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     // places all error tokens at the head of the stream.
     while (token.type == TokenType.BAD_INPUT) {
       translateErrorToken(token as ErrorToken, (
-        ScannerErrorCode errorCode,
+        DiagnosticCode errorCode,
         int offset,
         List<Object>? arguments,
       ) {

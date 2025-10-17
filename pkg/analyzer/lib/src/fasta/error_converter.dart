@@ -402,7 +402,7 @@ class FastaErrorReporter {
   }
 
   void reportScannerError(
-    ScannerErrorCode errorCode,
+    DiagnosticCode errorCode,
     int offset,
     List<Object>? arguments,
   ) {

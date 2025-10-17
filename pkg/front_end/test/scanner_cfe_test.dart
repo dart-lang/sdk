@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart';
 import 'package:front_end/src/codes/cfe_codes.dart';
@@ -73,7 +74,7 @@ class ScannerTest_Cfe_UTF8 extends ScannerTest_Cfe {
     if (result.hasErrors) {
       while (token is ErrorToken) {
         translateErrorToken(token, (
-          ScannerErrorCode errorCode,
+          DiagnosticCode errorCode,
           int offset,
           List<Object>? arguments,
         ) {
@@ -141,7 +142,7 @@ class ScannerTest_Cfe extends ScannerTestBase {
     if (result.hasErrors) {
       while (token is ErrorToken) {
         translateErrorToken(token, (
-          ScannerErrorCode errorCode,
+          DiagnosticCode errorCode,
           int offset,
           List<Object>? arguments,
         ) {
