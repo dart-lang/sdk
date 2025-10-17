@@ -555,6 +555,27 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_ifNull() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function()? _f;
+
+  int Function() _defaultF;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+}
+''');
+  }
+
   Future<void> test_importType() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}

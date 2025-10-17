@@ -815,24 +815,6 @@ void main() {}
     );
   }, skip: isRunningOnIA32);
 
-  test('Compile wasm with wrong output filename', () async {
-    final p = project(mainSrc: 'void main() {}');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final result = await p.run(
-      [
-        'compile',
-        'wasm',
-        '-o',
-        'foo',
-        inFile,
-      ],
-    );
-
-    expect(result.stderr,
-        contains('Error: The output file "foo" does not end with ".wasm"'));
-    expect(result.exitCode, genericErrorExitCode);
-  }, skip: isRunningOnIA32);
-
   test('Compile wasm with error', () async {
     final p = project(mainSrc: '''
 void main() {

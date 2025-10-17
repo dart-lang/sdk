@@ -1213,9 +1213,184 @@ f(void Function(int)? x) {
     await _initializeAndVerifyTokensInRange(content, expected);
   }
 
+  Future<void> test_function_callMethod_invocation_extension() async {
+    var content = r'''
+extension on void Function() {
+  m() => [!call()!];
+}
+''';
+
+    var expected = <_Token>[
+      _Token('call', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_function_callMethod_propertyAccess() async {
+    var content = r'''
+extension on void Function()? {
+  m() => [!this?.call!];
+}
+''';
+
+    var expected = <_Token>[
+      _Token('this', SemanticTokenTypes.keyword),
+      _Token('call', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_function_callMethod_simpleIdentifier() async {
+    var content = r'''
+extension on void Function() {
+  m() {
+    [!call!];
+  }
+}
+''';
+
+    var expected = <_Token>[
+      _Token('call', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_function_callMethod_simpleIdentifier_argument() async {
+    var content = r'''
+extension on void Function() {
+  m(void Function() f) {
+    m([!call!]);
+  }
+}
+''';
+
+    var expected = <_Token>[
+      _Token('call', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_function_callMethod_simpleIdentifier_assignment() async {
+    var content = r'''
+extension on void Function() {
+  m() {
+    var a;
+    a = [!call!];
+  }
+}
+''';
+
+    var expected = <_Token>[
+      _Token('call', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void>
+  test_function_callMethod_simpleIdentifier_expressionFunctionBody() async {
+    var content = r'''
+extension on void Function() {
+  m() => [!call!];
+}
+''';
+
+    var expected = <_Token>[
+      _Token('call', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_function_callMethod_simpleIdentifier_return() async {
+    var content = r'''
+extension on void Function() {
+  m() {
+    return [!call!];
+  }
+}
+''';
+
+    var expected = <_Token>[
+      _Token('call', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void>
+  test_function_callMethod_simpleIdentifier_variableDeclaration() async {
+    var content = r'''
+extension on void Function() {
+  m() {
+    var _ = [!call!];
+  }
+}
+''';
+
+    var expected = <_Token>[
+      _Token('call', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
   Future<void> test_function_callMethod_tearOff() async {
     var content = r'''
 f(void Function(int) x) {
+  [!x.call!];
+}
+''';
+
+    var expected = [
+      _Token('x', SemanticTokenTypes.parameter),
+      _Token('call', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_functionType_callMethod_invocation_extension() async {
+    var content = r'''
+extension on Function {
+  m() => [!call()!];
+}
+''';
+
+    var expected = <_Token>[
+      _Token('call', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_functionType_callMethod_tearOff() async {
+    var content = r'''
+f(Function x) {
   [!x.call!];
 }
 ''';

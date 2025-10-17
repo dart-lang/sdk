@@ -644,14 +644,27 @@ abstract class ResolvedCorrectionProducer
         }
       }
     }
-    // `v + myFunction();`.
     if (parent is BinaryExpression) {
       var binary = parent;
       var method = binary.element;
+      // `v + myFunction();`.
       if (method != null) {
         if (binary.rightOperand == expression) {
           var parameters = method.formalParameters;
           return parameters.length == 1 ? parameters[0].type : null;
+        }
+      } else if (binary.operator.type == TokenType.QUESTION_QUESTION) {
+        // `v ?? myFunction();`.
+        // This handles when the expression is being assigned somewhere.
+        var type = inferUndefinedExpressionType(binary);
+        if (binary.rightOperand == expression) {
+          return type ?? binary.leftOperand.staticType;
+        } else if (binary.leftOperand == expression) {
+          type ??= binary.rightOperand.staticType;
+          return switch (type) {
+            TypeImpl type => type.withNullability(NullabilitySuffix.question),
+            _ => null,
+          };
         }
       }
     }

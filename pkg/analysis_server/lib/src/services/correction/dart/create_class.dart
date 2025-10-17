@@ -7,6 +7,7 @@ import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -178,6 +179,23 @@ class _CreateClass extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    Expression? expression;
+    if (_targetNode is Expression) {
+      expression = _targetNode;
+    } else if (_targetNode.parent case Expression parent) {
+      expression = parent;
+    }
+    if (expression != null) {
+      var fieldType = inferUndefinedExpressionType(expression);
+      if (fieldType is InvalidType) {
+        return;
+      }
+      if (fieldType != null &&
+          (!typeSystem.isAssignableTo(fieldType, typeProvider.typeType) ||
+              !typeSystem.isSubtypeOf(fieldType, typeProvider.objectType))) {
+        return;
+      }
+    }
     // prepare environment
     LibraryFragment targetUnit;
     var offset = -1;

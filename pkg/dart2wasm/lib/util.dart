@@ -6,6 +6,16 @@ import 'dart:convert';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
+import 'package:vm/metadata/inferred_type.dart'
+    show
+        InferredTypeMetadataRepository,
+        InferredReturnTypeMetadataRepository,
+        InferredArgTypeMetadataRepository;
+import 'package:vm/metadata/procedure_attributes.dart'
+    show ProcedureAttributesMetadataRepository;
+import 'package:vm/metadata/table_selector.dart'
+    show TableSelectorMetadataRepository;
 
 bool hasPragma(CoreTypes coreTypes, Annotatable node, String name) {
   return getPragma(coreTypes, node, name, defaultValue: '') != null;
@@ -67,3 +77,13 @@ List<int> _intToLittleEndianBytes(int i) {
 }
 
 String intToBase64(int i) => base64.encode(_intToLittleEndianBytes(i));
+
+Component createEmptyComponent() {
+  return Component()
+    ..addMetadataRepository(ProcedureAttributesMetadataRepository())
+    ..addMetadataRepository(TableSelectorMetadataRepository())
+    ..addMetadataRepository(DirectCallMetadataRepository())
+    ..addMetadataRepository(InferredTypeMetadataRepository())
+    ..addMetadataRepository(InferredReturnTypeMetadataRepository())
+    ..addMetadataRepository(InferredArgTypeMetadataRepository());
+}

@@ -302,6 +302,94 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_ifNull_LHS() async {
+    await resolveTestCode('''
+class A {
+  late int Function() _f;
+
+  void f() {
+    _defaultF ?? _f;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  late int Function() _f;
+
+  int Function()? get _defaultF => null;
+
+  void f() {
+    _defaultF ?? _f;
+  }
+}
+''');
+  }
+
+  Future<void> test_ifNull_LHS_return() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _defaultF ?? _f;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _defaultF ?? _f;
+  }
+
+  int Function()? get _defaultF => null;
+}
+''');
+  }
+
+  Future<void> test_ifNull_RHS() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+
+  void f() {
+    _f ?? _defaultF;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function()? _f;
+
+  int Function()? get _defaultF => null;
+
+  void f() {
+    _f ?? _defaultF;
+  }
+}
+''');
+  }
+
+  Future<void> test_ifNull_RHS_return() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+
+  int Function() get _defaultF => null;
+}
+''');
+  }
+
   Future<void> test_inExtensionGetter_class() async {
     await resolveTestCode('''
 class A {

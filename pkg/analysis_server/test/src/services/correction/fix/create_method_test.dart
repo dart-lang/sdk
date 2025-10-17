@@ -252,8 +252,7 @@ mixin M {
     useFunction(test);
   }
 
-  static int test(double a, String b) {
-  }
+  static int test(double a, String b) {}
 }
 
 useFunction(int g(double a, String b)) {}
@@ -277,8 +276,7 @@ void f(M m) {
 }
 
 mixin M {
-  int test(double a, String b) {
-  }
+  int test(double a, String b) {}
 }
 
 useFunction(int g(double a, String b)) {}
@@ -304,8 +302,7 @@ void foo(M a) {
 part of 'test.dart';
 
 mixin M {
-  void myUndefinedMethod() {
-  }
+  void myUndefinedMethod() {}
 }
 ''', target: partPath);
   }
@@ -329,8 +326,7 @@ void foo(M a) {
 part 'test.dart';
 
 mixin M {
-  void myUndefinedMethod() {
-  }
+  void myUndefinedMethod() {}
 }
 ''', target: mainPath);
   }
@@ -358,8 +354,7 @@ void foo(M a) {
 part of 'main.dart';
 
 mixin M {
-  void myUndefinedMethod() {
-  }
+  void myUndefinedMethod() {}
 }
 ''', target: part1Path);
   }
@@ -387,8 +382,7 @@ void test(E e) {
 enum E {
   e1,
   e2;
-  int bar() {
-  }
+  int bar() {}
 }
 
 void g(int Function() f) {}
@@ -416,8 +410,7 @@ void test() {
 enum E {
   e1,
   e2;
-  static int bar() {
-  }
+  static int bar() {}
 }
 
 void g(int Function() f) {}
@@ -441,8 +434,7 @@ void test(E e) {
 ''');
     await assertHasFix('''
 extension type E(int i) {
-  int bar() {
-  }
+  int bar() {}
 }
 
 void g(int Function() f) {}
@@ -466,8 +458,7 @@ void test() {
 ''');
     await assertHasFix('''
 extension type E(int i) {
-  static int bar() {
-  }
+  static int bar() {}
 }
 
 void g(int Function() f) {}
@@ -496,8 +487,7 @@ class C {
 
   void m2(int Function(int) f) {}
 
-  int m3(int p1) {
-  }
+  int m3(int p1) {}
 }
 ''');
   }
@@ -517,8 +507,7 @@ class A {
     useFunction(test);
   }
 
-  static int test(double a, String b) {
-  }
+  static int test(double a, String b) {}
 }
 useFunction(int g(double a, String b)) {}
 ''');
@@ -537,8 +526,7 @@ class A {
   var f;
   A() : f = useFunction(test);
 
-  static int test(double a, String b) {
-  }
+  static int test(double a, String b) {}
 }
 useFunction(int g(double a, String b)) {}
 ''');
@@ -562,8 +550,7 @@ class C {
 
   void m2(int Function() f) {}
 
-  int m3() {
-  }
+  int m3() {}
 }
 ''');
   }
@@ -587,8 +574,7 @@ class C {
 
   void m2(int Function(int) f) {}
 
-  int m3(int p1) {
-  }
+  int m3(int p1) {}
 }
 ''');
   }
@@ -612,8 +598,7 @@ class C {
 
   void m2(int Function(int) f) {}
 
-  int m3(int p1) {
-  }
+  int m3(int p1) {}
 }
 ''');
   }
@@ -636,8 +621,7 @@ class C {
 
   void m2((int Function(int),) f) {}
 
-  int m3(int p1) {
-  }
+  int m3(int p1) {}
 }
 ''');
   }
@@ -661,8 +645,7 @@ class C {
 
   void m2(({int Function(int) f}) f) {}
 
-  int m3(int p1) {
-  }
+  int m3(int p1) {}
 }
 ''');
   }
@@ -681,8 +664,7 @@ void f(A a) {
   useFunction(a.test);
 }
 class A {
-  int test(double a, String b) {
-  }
+  int test(double a, String b) {}
 }
 useFunction(int g(double a, String b)) {}
 ''');
@@ -705,10 +687,30 @@ void f(A a) {
 class A {
   m() {}
 
-  int test(double a, String b) {
-  }
+  int test(double a, String b) {}
 }
 useFunction(int g(double a, String b)) {}
+''');
+  }
+
+  Future<void> test_ifNull() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+
+  int _defaultF() {}
+}
 ''');
   }
 
@@ -722,8 +724,7 @@ class A {
 class A {
   ({bool Function() fn,}) m() => (fn: m2,);
 
-  bool m2() {
-  }
+  bool m2() {}
 }
 ''');
   }
@@ -738,8 +739,7 @@ class A {
 class A {
   (bool Function(),) m() => (m2,);
 
-  bool m2() {
-  }
+  bool m2() {}
 }
 ''');
   }
@@ -763,8 +763,7 @@ void f() async {
 Future<T> g<T>(Future<T> Function() foo) => foo();
 
 class C {
-  static Future<int> foo() async {
-  }
+  static Future<int> foo() async {}
 }
 ''');
   }
@@ -792,8 +791,7 @@ void f() async {
 Future<T> g<T>(Future<S> Function<S>() foo) => foo();
 
 class C {
-  static Future<S> foo<S>() async {
-  }
+  static Future<S> foo<S>() async {}
 }
 ''');
   }
@@ -821,8 +819,7 @@ void f() async {
 Future<T> g<T>(Future<S> Function<S extends num>() foo) => foo();
 
 class C {
-  static Future<S> foo<S extends num>() async {
-  }
+  static Future<S> foo<S extends num>() async {}
 }
 ''');
   }
@@ -850,8 +847,7 @@ void f() async {
 Future<T> g<T extends num>(Future<S> Function<S extends T>() foo) => foo();
 
 class C {
-  static Future<S> foo<S extends num>() async {
-  }
+  static Future<S> foo<S extends num>() async {}
 }
 ''');
   }
@@ -879,8 +875,7 @@ void f() async {
 Future<T> g<T>(Future<S> Function<S>() foo) => foo();
 
 class C<S> {
-  static Future<S> foo<S>() async {
-  }
+  static Future<S> foo<S>() async {}
 }
 ''');
   }
