@@ -4,6 +4,7 @@
 
 import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -219,7 +220,7 @@ void f() {
     await assertHasFix('''
 // Copyright header.
 
-// ignore_for_file: referenced_before_declaration, unused_local_variable
+// ignore_for_file: unused_local_variable, referenced_before_declaration
 
 // Some other header.
 
@@ -339,7 +340,7 @@ void f() {
 ''');
     await assertHasFix('''
 void f() {
-  // ignore: undefined_identifier, unused_local_variable
+  // ignore: unused_local_variable, undefined_identifier
   var a = b;
 }
 ''');
@@ -357,6 +358,22 @@ void f() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_unknown_error_code() async {
+    createAnalysisOptionsFile(lints: [LintNames.always_specify_types]);
+    await resolveTestCode('''
+void f() {
+  // ignore: unused_local_variable, some text
+  var a = 1;
+}
+''');
+    await assertHasFix('''
+void f() {
+  // ignore: always_specify_types, unused_local_variable, some text
+  var a = 1;
+}
+''');
   }
 
   Future<void> test_unusedCode() async {
