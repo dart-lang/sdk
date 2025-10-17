@@ -75,7 +75,6 @@ part of 'cfe_codes.dart';
     try {
       template = _TemplateCompiler(
         name: name,
-        isShared: errorCodeInfo is SharedErrorCodeInfo,
         errorCodeInfo: errorCodeInfo,
         pseudoSharedCodeValues: forFeAnalyzerShared
             ? pseudoSharedCodeValues
@@ -107,9 +106,7 @@ part of 'cfe_codes.dart';
   );
   sharedMessages.writeln('enum SharedCode {');
   for (var code in sharedToAnalyzerErrorCodeTables.sortedSharedErrors) {
-    sharedMessages.writeln(
-      '  ${sharedToAnalyzerErrorCodeTables.infoToFrontEndCode[code]},',
-    );
+    sharedMessages.writeln('  ${code.analyzerCode.camelCaseErrorName},');
   }
   sharedMessages.writeln('}');
 
@@ -131,7 +128,7 @@ String _newName({required Set<String> usedNames, required String nameHint}) {
 
 class _TemplateCompiler {
   final String name;
-  final bool isShared;
+  final CfeStyleErrorCodeInfo errorCodeInfo;
   final List<TemplatePart> problemMessage;
   final List<TemplatePart>? correctionMessage;
   final String? severity;
@@ -159,8 +156,7 @@ class _TemplateCompiler {
 
   _TemplateCompiler({
     required this.name,
-    required this.isShared,
-    required CfeStyleErrorCodeInfo errorCodeInfo,
+    required this.errorCodeInfo,
     required this.pseudoSharedCodeValues,
   }) : problemMessage = errorCodeInfo.problemMessage,
        correctionMessage = errorCodeInfo.correctionMessage,
@@ -175,7 +171,8 @@ class _TemplateCompiler {
       if (pseudoSharedCodeValues != null && pseudoSharedCode != null)
         'pseudoSharedCode: ${_encodePseudoSharedCode(pseudoSharedCode!)}',
       if (severity != null) 'severity: CfeSeverity.$severity',
-      if (isShared) 'sharedCode: SharedCode.$name',
+      if (errorCodeInfo case SharedErrorCodeInfo(:var analyzerCode))
+        'sharedCode: SharedCode.${analyzerCode.camelCaseErrorName}',
     ];
 
     String interpolatedProblemMessage = interpolate(problemMessage)!;
