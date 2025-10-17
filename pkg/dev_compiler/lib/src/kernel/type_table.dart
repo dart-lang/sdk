@@ -41,6 +41,9 @@ Set</* TypeParameter | StructuralParameter */ Object> freeTypeParameters(
         t.named.forEach((n) => find(n.type));
       case ExtensionType():
         find(t.extensionTypeErasure);
+      // ignore: unreachable_switch_case
+      case ExperimentalType():
+        throwUnsupportedExperimentalType(t);
       case AuxiliaryType():
         throwUnsupportedAuxiliaryType(t);
       case InvalidType():
@@ -121,6 +124,9 @@ String _typeString(DartType type, {bool flat = false}) {
       return 'Rec${nullability}Of$elements';
     case ExtensionType():
       return _typeString(type.extensionTypeErasure);
+    // ignore: unreachable_switch_case
+    case ExperimentalType():
+      throwUnsupportedExperimentalType(type);
     case AuxiliaryType():
       throwUnsupportedAuxiliaryType(type);
     case InvalidType():

@@ -273,6 +273,22 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   }
 
   @override
+  bool visitFunctionTypeParameterType(
+      FunctionTypeParameterType node, DartType other) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  bool visitClassTypeParameterType(
+      ClassTypeParameterType node, DartType other) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
   bool visitIntersectionType(IntersectionType node, DartType other) {
     if (other is IntersectionType) {
       return node.left.accept1(this, other.left) &&

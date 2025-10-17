@@ -1294,7 +1294,18 @@ class Types with StandardBounds {
 
       case (AuxiliaryType(), _):
       case (_, AuxiliaryType()):
-        throw "Unhandled type: ${t.runtimeType}";
+        throw "Unhandled type combination: "
+            "${s.runtimeType} ${t.runtimeType}";
+
+      case (FunctionTypeParameterType(), _):
+      case (_, FunctionTypeParameterType()):
+        throw "Unimplemented type combination: "
+            "${s.runtimeType} ${t.runtimeType}";
+
+      case (ClassTypeParameterType(), _):
+      case (_, ClassTypeParameterType()):
+        throw "Unimplemented type combination: "
+            "${s.runtimeType} ${t.runtimeType}";
     }
   }
 

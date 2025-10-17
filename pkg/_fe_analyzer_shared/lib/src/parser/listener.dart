@@ -323,10 +323,11 @@ class Listener implements UnescapeErrorListener {
     logEvent('PrimaryConstructor');
   }
 
-  /// Handle the end of a primary constructor declaration, currently only
-  /// occurring in extension type declarations. [constKeyword] is the 'const'
-  /// keyword, if present, in
+  /// Handle the end of a primary constructor declaration. [constKeyword] is the
+  /// 'const' keyword, if present, in
   ///
+  ///   class const Class() {}
+  ///   enum const Enum() {}
   ///   extension type const ExtensionType() {}
   ///
   /// Substructures:
@@ -336,13 +337,18 @@ class Listener implements UnescapeErrorListener {
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
+    bool forExtensionType,
   ) {
     logEvent('PrimaryConstructor');
   }
 
   /// Handle the omission of a primary constructor declaration. Currently only
   /// occurring in extension type declarations.
-  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {}
+  void handleNoPrimaryConstructor(
+    Token token,
+    Token? constKeyword,
+    bool forExtensionType,
+  ) {}
 
   void beginCombinators(Token token) {}
 
@@ -468,6 +474,12 @@ class Listener implements UnescapeErrorListener {
   ) {
     logEvent("EnumHeader");
   }
+
+  /// Handle the start of an enum body.
+  void beginEnumBody(Token token) {}
+
+  /// Handle the end of an enum body.
+  void endEnumBody(Token beginToken, Token endToken) {}
 
   /// Handle the enum element. Substructures:
   /// - Metadata
@@ -2633,17 +2645,16 @@ class Listener implements UnescapeErrorListener {
   /// The parser noticed a use of the experimental feature by the flag
   /// [experimentalFlag] that was not enabled, but was able to recover from it.
   /// The error should be reported and the code between the beginning of the
-  /// [startToken] and the end of the [endToken] should be highlighted. The
-  /// [startToken] and [endToken] can be the same token.
-  // TODO(jensj): Should `startToken` be renamed to `beginToken`?
+  /// [beginToken] and the end of the [endToken] should be highlighted. The
+  /// [beginToken] and [endToken] can be the same token.
   void handleExperimentNotEnabled(
     ExperimentalFlag experimentalFlag,
-    Token startToken,
+    Token beginToken,
     Token endToken,
   ) {
     handleRecoverableError(
       getExperimentNotEnabledMessage(experimentalFlag),
-      startToken,
+      beginToken,
       endToken,
     );
   }

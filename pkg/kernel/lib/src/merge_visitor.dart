@@ -427,4 +427,20 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     throw new UnsupportedError(
         "Unsupported auxiliary type ${a} (${a.runtimeType}).");
   }
+
+  @override
+  DartType? visitFunctionTypeParameterType(
+      FunctionTypeParameterType node, DartType arg) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  DartType? visitClassTypeParameterType(
+      ClassTypeParameterType node, DartType arg) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
 }

@@ -12,7 +12,12 @@ import 'type_algebra.dart';
 ///
 /// This class does not clone members. For that, use the
 /// [CloneVisitorWithMembers] and setup references properly.
-class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
+class CloneVisitorNotMembers
+    with
+        TreeVisitorExperimentExclusionMixin<TreeNode>,
+        ExpressionVisitorExperimentExclusionMixin<TreeNode>,
+        StatementVisitorExperimentExclusionMixin<TreeNode>
+    implements TreeVisitor<TreeNode> {
   final Map<VariableDeclaration, VariableDeclaration> _variables =
       <VariableDeclaration, VariableDeclaration>{};
   final Map<LabeledStatement, LabeledStatement> labels =

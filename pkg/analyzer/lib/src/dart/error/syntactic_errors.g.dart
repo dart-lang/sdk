@@ -308,6 +308,17 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// No parameters.
   static const ParserErrorWithoutArguments
+  constWithoutPrimaryConstructor = ParserErrorWithoutArguments(
+    'CONST_WITHOUT_PRIMARY_CONSTRUCTOR',
+    "'const' can only be used together with a primary constructor declaration.",
+    correctionMessage:
+        "Try removing the 'const' keyword or adding a primary constructor "
+        "declaration.",
+    expectedTypes: [],
+  );
+
+  /// No parameters.
+  static const ParserErrorWithoutArguments
   continueOutsideOfLoop = ParserErrorWithoutArguments(
     'CONTINUE_OUTSIDE_OF_LOOP',
     "A continue statement can't be used outside of a loop or switch statement.",

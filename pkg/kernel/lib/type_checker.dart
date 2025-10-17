@@ -1345,4 +1345,25 @@ class TypeCheckingVisitor
   void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     // TODO(johnniwinther): Implement this.
   }
+
+  @override
+  void visitVariableInitialization(VariableInitialization node) {
+    // TODO(cstefantsova): Implement visitVariableInitialization.
+    throw UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  DartType visitVariableRead(VariableRead node) {
+    // TODO(cstefantsova): Implement visitVariableRead.
+    throw UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  DartType visitVariableWrite(VariableWrite node) {
+    // TODO(cstefantsova): Implement visitVariableWrite.
+    throw UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
 }

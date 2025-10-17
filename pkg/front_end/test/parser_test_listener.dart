@@ -551,6 +551,7 @@ class ParserTestListener implements Listener {
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
+    bool forExtensionType,
   ) {
     indent--;
     seen(beginToken);
@@ -559,18 +560,24 @@ class ParserTestListener implements Listener {
       'endPrimaryConstructor('
       '$beginToken, '
       '$constKeyword, '
-      '$hasConstructorName)',
+      '$hasConstructorName, '
+      '$forExtensionType)',
     );
   }
 
   @override
-  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
+  void handleNoPrimaryConstructor(
+    Token token,
+    Token? constKeyword,
+    bool forExtensionType,
+  ) {
     seen(token);
     seen(constKeyword);
     doPrint(
       'handleNoPrimaryConstructor('
       '$token, '
-      '$constKeyword)',
+      '$constKeyword, '
+      '$forExtensionType)',
     );
   }
 
@@ -818,6 +825,28 @@ class ParserTestListener implements Listener {
       '$augmentToken, '
       '$enumKeyword, '
       '$leftBrace)',
+    );
+  }
+
+  @override
+  void beginEnumBody(Token token) {
+    seen(token);
+    doPrint(
+      'beginEnumBody('
+      '$token)',
+    );
+    indent++;
+  }
+
+  @override
+  void endEnumBody(Token beginToken, Token endToken) {
+    indent--;
+    seen(beginToken);
+    seen(endToken);
+    doPrint(
+      'endEnumBody('
+      '$beginToken, '
+      '$endToken)',
     );
   }
 
@@ -4622,15 +4651,15 @@ class ParserTestListener implements Listener {
   @override
   void handleExperimentNotEnabled(
     ExperimentalFlag experimentalFlag,
-    Token startToken,
+    Token beginToken,
     Token endToken,
   ) {
-    seen(startToken);
+    seen(beginToken);
     seen(endToken);
     doPrint(
       'handleExperimentNotEnabled('
       '$experimentalFlag, '
-      '$startToken, '
+      '$beginToken, '
       '$endToken)',
     );
   }

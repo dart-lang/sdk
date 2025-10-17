@@ -5,6 +5,14 @@
 import '../ast.dart';
 import 'coverage.dart';
 
+Map<T, int> _createPending<T>(Iterable<T> kinds,
+    [Set<T> experimentalKinds = const {}]) {
+  return <T, int>{
+    for (T kind in kinds)
+      if (!experimentalKinds.contains(kind)) kind: 0
+  };
+}
+
 /// Helper class used to generate ASTs that contain all different nodes.
 class NodeCreator {
   final Uri _uri;
@@ -69,22 +77,28 @@ class NodeCreator {
     Iterable<InitializerKind> initializers = InitializerKind.values,
     Iterable<MemberKind> members = MemberKind.values,
     Iterable<NodeKind> nodes = NodeKind.values,
-  })  : _pendingExpressions = new Map<ExpressionKind, int>.fromIterables(
-            expressions, new List<int>.filled(expressions.length, 0)),
-        _pendingStatements = new Map<StatementKind, int>.fromIterables(
-            statements, new List<int>.filled(statements.length, 0)),
-        _pendingDartTypes = new Map<DartTypeKind, int>.fromIterables(
-            dartTypes, new List<int>.filled(dartTypes.length, 0)),
-        _pendingConstants = new Map<ConstantKind, int>.fromIterables(
-            constants, new List<int>.filled(constants.length, 0)),
-        _pendingPatterns = new Map<PatternKind, int>.fromIterables(
-            patterns, new List<int>.filled(patterns.length, 0)),
-        _pendingInitializers = new Map<InitializerKind, int>.fromIterables(
-            initializers, new List<int>.filled(initializers.length, 0)),
-        _pendingMembers = new Map<MemberKind, int>.fromIterables(
-            members, new List<int>.filled(members.length, 0)),
-        _pendingNodes = new Map<NodeKind, int>.fromIterables(
-            nodes, new List<int>.filled(nodes.length, 0)),
+  })  : _pendingExpressions = _createPending<ExpressionKind>(expressions,
+            {ExpressionKind.VariableRead, ExpressionKind.VariableWrite}),
+        _pendingStatements = _createPending<StatementKind>(
+            statements, {StatementKind.VariableInitialization}),
+        _pendingDartTypes = _createPending<DartTypeKind>(dartTypes, {
+          DartTypeKind.FunctionTypeParameterType,
+          DartTypeKind.ClassTypeParameterType
+        }),
+        _pendingConstants = _createPending<ConstantKind>(constants),
+        _pendingPatterns = _createPending<PatternKind>(patterns),
+        _pendingInitializers = _createPending<InitializerKind>(initializers),
+        _pendingMembers = _createPending<MemberKind>(members),
+        _pendingNodes = _createPending<NodeKind>(nodes, {
+          NodeKind.LocalVariable,
+          NodeKind.PositionalParameter,
+          NodeKind.NamedParameter,
+          NodeKind.SyntheticVariable,
+          NodeKind.ThisVariable,
+          NodeKind.TypeVariable,
+          NodeKind.VariableContext,
+          NodeKind.Scope
+        }),
         _uri = Uri.parse('test:uri') {
     _createdKinds.addAll(_pendingExpressions.keys);
     _createdKinds.addAll(_pendingStatements.keys);
@@ -314,6 +328,14 @@ class NodeCreator {
         case NodeKind.PatternGuard:
         case NodeKind.PatternSwitchCase:
         case NodeKind.SwitchExpressionCase:
+        case NodeKind.LocalVariable:
+        case NodeKind.PositionalParameter:
+        case NodeKind.NamedParameter:
+        case NodeKind.SyntheticVariable:
+        case NodeKind.ThisVariable:
+        case NodeKind.TypeVariable:
+        case NodeKind.Scope:
+        case NodeKind.VariableContext:
           throw new UnimplementedError('Expected in body node $kind.');
         case NodeKind.Class:
           _needLibrary().addClass(node as Class);
@@ -1047,6 +1069,9 @@ class NodeCreator {
       case ExpressionKind.PatternAssignment:
         return new PatternAssignment(_createPattern(), _createExpression())
           ..fileOffset = _needFileOffset();
+      case ExpressionKind.VariableRead:
+      case ExpressionKind.VariableWrite:
+        throw new UnimplementedError("Unimplemented support for ${kind}.");
     }
   }
 
@@ -1344,6 +1369,8 @@ class NodeCreator {
               isFinal: true)
             ..fileOffset = _needFileOffset(),
         ]);
+      case StatementKind.VariableInitialization:
+        throw new UnimplementedError("Unimplemented support for ${kind}.");
     }
   }
 
@@ -1424,6 +1451,10 @@ class NodeCreator {
             _needExtensionTypeDeclaration(), Nullability.nonNullable);
       case DartTypeKind.VoidType:
         return VoidType();
+      case DartTypeKind.FunctionTypeParameterType:
+        throw new UnimplementedError("Unimplemented support for $kind.");
+      case DartTypeKind.ClassTypeParameterType:
+        throw new UnimplementedError("Unimplemented support for $kind.");
     }
   }
 
@@ -1815,6 +1846,15 @@ class NodeCreator {
             _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
             _createExpression())
           ..fileOffset = _needFileOffset();
+      case NodeKind.LocalVariable:
+      case NodeKind.PositionalParameter:
+      case NodeKind.NamedParameter:
+      case NodeKind.SyntheticVariable:
+      case NodeKind.ThisVariable:
+      case NodeKind.TypeVariable:
+      case NodeKind.Scope:
+      case NodeKind.VariableContext:
+        throw new UnimplementedError("Unimplemented support for kind $kind.");
     }
   }
 

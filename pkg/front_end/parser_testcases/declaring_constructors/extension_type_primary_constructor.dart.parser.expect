@@ -1,0 +1,15 @@
+extension type E() {}
+extension type const E() {}
+extension type E<T>() {}
+extension type const E<T>() {}
+extension type E<T>.named() {}
+extension type const E<T>.named() {}
+
+
+extension[KeywordToken] type[StringToken] E[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] E[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

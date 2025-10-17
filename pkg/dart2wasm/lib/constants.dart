@@ -211,6 +211,8 @@ class Constants {
       TypedefType() => throw 'Unexpected DartType: $type',
       AuxiliaryType() => throw 'Unexpected DartType: $type',
       InvalidType() => throw 'Unexpected DartType: $type',
+      // ignore: unreachable_switch_case
+      ExperimentalType() => throw 'Unexpected DartType: $type',
     };
   }
 

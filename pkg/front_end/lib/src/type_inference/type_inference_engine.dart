@@ -35,7 +35,9 @@ import 'type_schema_environment.dart';
 
 /// Visitor to check whether a given type mentions any of a class's type
 /// parameters in a non-covariant fashion.
-class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
+class IncludesTypeParametersNonCovariantly
+    with DartTypeVisitorExperimentExclusionMixin<bool>
+    implements DartTypeVisitor<bool> {
   Variance _variance;
 
   final List<TypeParameter> _typeParametersToSearchFor;

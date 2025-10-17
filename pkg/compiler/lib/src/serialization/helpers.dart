@@ -27,7 +27,12 @@ enum _FunctionNodeKind {
 enum _TypeParameterKind { cls, functionNode }
 
 class DartTypeNodeWriter
-    extends ir.DartTypeVisitor1<void, List<ir.StructuralParameter>> {
+    extends ir.DartTypeVisitor1<void, List<ir.StructuralParameter>>
+    with
+        ir.DartTypeVisitor1ExperimentExclusionMixin<
+          void,
+          List<ir.StructuralParameter>
+        > {
   final DataSinkWriter _sink;
 
   DartTypeNodeWriter(this._sink);

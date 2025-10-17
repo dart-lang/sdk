@@ -272,7 +272,10 @@ enum HotReloadBranchState {
 }
 
 class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
-    with OnceConstantVisitorDefaultMixin<js_ast.Expression>
+    with
+        OnceConstantVisitorDefaultMixin<js_ast.Expression>,
+        StatementVisitorExperimentExclusionMixin<js_ast.Statement>,
+        ExpressionVisitorExperimentExclusionMixin<js_ast.Expression>
     implements
         StatementVisitor<js_ast.Statement>,
         ExpressionVisitor<js_ast.Expression> {

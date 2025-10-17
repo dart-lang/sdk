@@ -34,6 +34,11 @@ class TypeBuilderComputer {
 }
 
 class _TypeBuilderComputerHelper
+    with
+        DartTypeVisitor1ExperimentExclusionMixin<
+          TypeBuilder,
+          Map<TypeParameter, DillNominalParameterBuilder>
+        >
     implements
         DartTypeVisitor1<
           TypeBuilder,

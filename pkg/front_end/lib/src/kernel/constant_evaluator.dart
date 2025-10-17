@@ -2454,7 +2454,9 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 }
 
-class ConstantEvaluator implements ExpressionVisitor<Constant> {
+class ConstantEvaluator
+    with ExpressionVisitorExperimentExclusionMixin<Constant>
+    implements ExpressionVisitor<Constant> {
   final DartLibrarySupport dartLibrarySupport;
   final ConstantsBackend backend;
   final NumberSemantics numberSemantics;
@@ -5930,7 +5932,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 }
 
-class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
+class StatementConstantEvaluator
+    with StatementVisitorExperimentExclusionMixin<ExecutionStatus>
+    implements StatementVisitor<ExecutionStatus> {
   ConstantEvaluator exprEvaluator;
 
   StatementConstantEvaluator(this.exprEvaluator);

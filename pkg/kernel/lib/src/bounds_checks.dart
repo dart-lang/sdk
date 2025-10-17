@@ -140,6 +140,13 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
   }
 
   @override
+  void visitClassTypeParameterType(ClassTypeParameterType node) {
+    if (typeParameters.contains(node.parameter)) {
+      occurred.add(node.parameter);
+    }
+  }
+
+  @override
   void visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
         "Unsupported auxiliary type ${node} (${node.runtimeType}).");
@@ -149,6 +156,13 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
   void visitStructuralParameterType(StructuralParameterType node) {
     // TODO(cstefantsova): Should we have an occurrence visitor for
     // [StructuralParameter] objects.
+  }
+
+  @override
+  void visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for ${node} (${node.runtimeType}).");
   }
 }
 
@@ -366,6 +380,10 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
       return const <TypeArgumentIssue>[];
     case AuxiliaryType():
       throw new StateError("AuxiliaryType");
+    case FunctionTypeParameterType():
+      throw new StateError("FunctionTypeParameterType");
+    case ClassTypeParameterType():
+      throw new StateError("ClassTypeParameterType");
     case InvalidType():
       // Assuming the error is reported elsewhere.
       throw const <TypeArgumentIssue>[];
@@ -899,6 +917,25 @@ class VarianceCalculator
           computedVariances) {
     return VarianceCalculationValue.calculatedUnrelated;
   }
+
+  @override
+  VarianceCalculationValue visitFunctionTypeParameterType(
+      FunctionTypeParameterType node,
+      Map<TypeParameter, Map<DartType, VarianceCalculationValue>> arg) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw UnimplementedError(
+        "Unimplemented support for FunctionTypeParameterType "
+        "${node} (${node.runtimeType}).");
+  }
+
+  @override
+  VarianceCalculationValue visitClassTypeParameterType(
+      ClassTypeParameterType node,
+      Map<TypeParameter, Map<DartType, VarianceCalculationValue>> arg) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw UnimplementedError("Unimplemented support for ClassTypeParameterType "
+        "${node} (${node.runtimeType}).");
+  }
 }
 
 bool isGenericFunctionTypeOrAlias(DartType type) {
@@ -1011,4 +1048,20 @@ class _HasGenericFunctionTypeAsTypeArgumentVisitor
 
   @override
   bool visitVoidType(VoidType node, bool isTypeArgument) => false;
+
+  @override
+  bool visitFunctionTypeParameterType(
+      FunctionTypeParameterType node, bool isTypeArgument) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for ${node} (${node.runtimeType}).");
+  }
+
+  @override
+  bool visitClassTypeParameterType(
+      ClassTypeParameterType node, bool isTypeArgument) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for ${node} (${node.runtimeType}).");
+  }
 }

@@ -140,7 +140,9 @@ ir.LibraryDependency? getDeferredImport(ir.TreeNode node) {
   return null;
 }
 
-class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
+class _FreeVariableVisitor
+    with ir.DartTypeVisitorExperimentExclusionMixin<bool>
+    implements ir.DartTypeVisitor<bool> {
   const _FreeVariableVisitor();
 
   bool visit(ir.DartType type) {

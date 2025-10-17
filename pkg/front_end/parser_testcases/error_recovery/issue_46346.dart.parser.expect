@@ -1,3 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
 class abstract {}
 class as {}
 class assert {}
@@ -7,7 +9,7 @@ class break {}
 class case {}
 class catch {}
 class class {}
-class const {}
+class const *synthetic*{}
 class continue {}
 class covariant {}
 class default {}
@@ -78,7 +80,7 @@ class[KeywordToken] break[KeywordToken] {[BeginToken]}[SimpleToken]
 class[KeywordToken] case[KeywordToken] {[BeginToken]}[SimpleToken]
 class[KeywordToken] catch[KeywordToken] {[BeginToken]}[SimpleToken]
 class[KeywordToken] class[KeywordToken] {[BeginToken]}[SimpleToken]
-class[KeywordToken] const[KeywordToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] const[KeywordToken] [SyntheticStringToken]{[BeginToken]}[SimpleToken]
 class[KeywordToken] continue[KeywordToken] {[BeginToken]}[SimpleToken]
 class[KeywordToken] covariant[KeywordToken] {[BeginToken]}[SimpleToken]
 class[KeywordToken] default[KeywordToken] {[BeginToken]}[SimpleToken]

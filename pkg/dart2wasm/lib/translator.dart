@@ -680,6 +680,8 @@ class Translator with KernelNodes {
       TypedefType() => throw 'unreachable, should be desugared by CFE',
       InvalidType() => throw 'unreachable, should be compile-time error',
       AuxiliaryType() => throw 'unreachable, unused by dart2wasm',
+      // ignore: unreachable_switch_case
+      ExperimentalType() => throw 'unreachable, experimental',
     })
         .withDeclaredNullability(nullability);
   }

@@ -1801,6 +1801,7 @@ class OutlineBuilder extends StackListenerImpl {
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
+    bool forExtensionType,
   ) {
     assert(
       checkState(beginToken, [
@@ -1822,6 +1823,16 @@ class OutlineBuilder extends StackListenerImpl {
       Identifier identifier = pop() as Identifier;
       nameOffset = charOffset = identifier.nameOffset;
       name = identifier.name;
+    }
+
+    if (!forExtensionType) {
+      reportIfNotEnabled(
+        libraryFeatures.declaringConstructors,
+        beginToken.charOffset,
+        noLength,
+      );
+      // TODO(johnniwinther): Support primary constructors in general.
+      return;
     }
 
     int? startOffset = constKeyword?.charOffset ?? nameOffset ?? formalsOffset;

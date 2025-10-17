@@ -4,7 +4,9 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
+class TypeTextVisitor
+    with ir.DartTypeVisitor1ExperimentExclusionMixin<void, StringBuffer>
+    implements ir.DartTypeVisitor1<void, StringBuffer> {
   const TypeTextVisitor();
 
   @override

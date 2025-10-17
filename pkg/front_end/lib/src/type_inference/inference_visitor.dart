@@ -26,7 +26,7 @@ import '../base/compiler_context.dart';
 import '../base/messages.dart';
 import '../base/problems.dart'
     as problems
-    show internalProblem, unhandled, unsupported;
+    show internalProblem, unhandled, unimplemented, unsupported;
 import '../base/uri_offset.dart';
 import '../builder/library_builder.dart';
 import '../dill/dill_library_builder.dart';
@@ -119,7 +119,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           VariableDeclaration,
           SharedTypeView
         >,
-        StackChecker
+        StackChecker,
+        ExpressionVisitor1ExperimentExclusionMixin<
+          ExpressionInferenceResult,
+          DartType
+        >,
+        StatementVisitorExperimentExclusionMixin<StatementInferenceResult>
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
         StatementVisitor<StatementInferenceResult>,
@@ -1095,6 +1100,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           return _isIncompatibleWithAwait(type.parameter.bound);
         case IntersectionType():
           return _isIncompatibleWithAwait(type.right);
+        case FunctionTypeParameterType():
+          // Coverage-ignore(suite): Not run.
+          return problems.unimplemented(
+            "_isIncompatibleWithAwait(FunctionTypeParameterType)",
+            -1,
+            fileUri,
+          );
+        case ClassTypeParameterType():
+          // Coverage-ignore(suite): Not run.
+          return problems.unimplemented(
+            "_isIncompatibleWithAwait(ClassTypeParameterType)",
+            -1,
+            fileUri,
+          );
         case DynamicType():
         case VoidType():
         case FutureOrType():

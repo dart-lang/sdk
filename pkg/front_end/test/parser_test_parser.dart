@@ -954,6 +954,7 @@ class TestParser extends Parser {
     Token token,
     Token beginToken,
     Token classKeyword,
+    Token? constToken,
     String className,
   ) {
     doPrint(
@@ -961,10 +962,17 @@ class TestParser extends Parser {
       '$token, '
       '$beginToken, '
       '$classKeyword, '
+      '$constToken, '
       '$className)',
     );
     indent++;
-    var result = super.parseClass(token, beginToken, classKeyword, className);
+    var result = super.parseClass(
+      token,
+      beginToken,
+      classKeyword,
+      constToken,
+      className,
+    );
     indent--;
     return result;
   }
@@ -1211,6 +1219,28 @@ class TestParser extends Parser {
       token,
       augmentToken,
       extensionKeyword,
+    );
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parsePrimaryConstructorOpt(
+    Token token,
+    Token? constKeyword,
+    bool forExtensionType,
+  ) {
+    doPrint(
+      'parsePrimaryConstructorOpt('
+      '$token, '
+      '$constKeyword, '
+      '$forExtensionType)',
+    );
+    indent++;
+    var result = super.parsePrimaryConstructorOpt(
+      token,
+      constKeyword,
+      forExtensionType,
     );
     indent--;
     return result;

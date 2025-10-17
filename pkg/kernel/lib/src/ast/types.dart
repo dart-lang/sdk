@@ -619,6 +619,26 @@ abstract class AuxiliaryType extends DartType {
       v.visitAuxiliaryType(this, arg);
 }
 
+/// The root of the sealed sub-hierarchy for all experimental [DartType]s.
+///
+/// The purpose of [ExperimentalType] is to be a stand-in in exhaustive switch
+/// statements and alike in the backend code. That way, the backends won't need
+/// an update whenever an experimental type (a subclass of [ExperimentalType])
+/// is added or removed in the CFE.
+sealed class ExperimentalType extends DartType {
+  const ExperimentalType();
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) {
+    throw new UnsupportedError("`ExperimentalType.accept` is unsupported.");
+  }
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    throw new UnsupportedError("`ExperimentalType.accept1` is unsupported.");
+  }
+}
+
 /// The type arising from invalid type annotations.
 ///
 /// Can usually be treated as 'dynamic', but should occasionally be handled
@@ -1956,11 +1976,12 @@ class IntersectionType extends DartType {
 }
 
 /// Reference to a type variable.
-class TypeParameterType extends DartType {
+class TypeParameterType extends DartType implements TypeParameterTypeInterface {
   /// The declared nullability of a type-parameter type.
   @override
   Nullability declaredNullability;
 
+  @override
   final TypeParameter parameter;
 
   TypeParameterType(this.parameter, this.declaredNullability);
@@ -2277,5 +2298,191 @@ class RecordType extends DartType implements SharedRecordType {
       printer.write("}");
     }
     printer.write(")");
+  }
+}
+
+/// Type variables of functions.
+///
+/// [TypeVariable] represents type variables of functions, such as top-level
+/// methods, static and instance methods, local declarations, and function
+/// expressions.
+class TypeVariable extends Variable {
+  @override
+  String? cosmeticName;
+
+  /// Function type parameter this [TypeVariable] is associated with.
+  final TypeParameter parameter;
+
+  TypeVariable({this.cosmeticName, required this.parameter});
+
+  @override
+  R accept<R>(TreeVisitor<R> v) {
+    // TODO(cstefantsova): Implement accept.
+    throw UnimplementedError();
+  }
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+    // TODO(cstefantsova): Implement accept1.
+    throw UnimplementedError();
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // TODO(cstefantsova): Implement transformChildren.
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // TODO(cstefantsova): Implement transformOrRemoveChildren.
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    // TODO(cstefantsova): Implement visitChildren.
+  }
+
+  /// Returns a possibly synthesized name for the nominal parameter, consistent
+  /// with the names used across all [toString] calls.
+  @override
+  String toString() {
+    return "TypeVariable(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeTypeParameterName(parameter);
+  }
+}
+
+/// The shared interface between all types referring type parameters.
+abstract class TypeParameterTypeInterface {
+  TypeParameter get parameter;
+}
+
+/// A type-parameter type referring to [TypeVariable] of a function.
+class FunctionTypeParameterType extends ExperimentalType
+    implements TypeParameterTypeInterface {
+  final TypeVariable variable;
+
+  @override
+  Nullability declaredNullability;
+
+  FunctionTypeParameterType(
+      {required this.variable, required this.declaredNullability});
+
+  @override
+  TypeParameter get parameter => variable.parameter;
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) {
+    // TODO(cstefantsova): Implement accept.
+    throw UnimplementedError();
+  }
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    // TODO(cstefantsova): Implement accept1.
+    throw UnimplementedError();
+  }
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    // TODO(cstefantsova): Implement equals.
+    throw UnimplementedError();
+  }
+
+  @override
+  // TODO(cstefantsova): Implement hasNonObjectMemberAccess.
+  bool get hasNonObjectMemberAccess => throw UnimplementedError();
+
+  @override
+  // TODO(cstefantsova): Implement nonTypeParameterBound.
+  DartType get nonTypeParameterBound => throw UnimplementedError();
+
+  @override
+  // TODO(cstefantsova): Implement nullability.
+  Nullability get nullability => throw UnimplementedError();
+
+  @override
+  void visitChildren(Visitor v) {
+    // TODO(cstefantsova): Implement visitChildren.
+  }
+
+  @override
+  DartType withDeclaredNullability(Nullability declaredNullability) {
+    // TODO(cstefantsova): Implement withDeclaredNullability.
+    throw UnimplementedError();
+  }
+
+  @override
+  String toString() {
+    return "FunctionTypeParameterType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeTypeParameterName(variable.parameter);
+    printer.writeNullability(declaredNullability);
+  }
+}
+
+/// A type-parameter type referring to [TypeParameter] of a class, mixin, or
+/// enum.
+///
+/// The generic class, mixin, or enum is accessible via [thisVariable].
+class ClassTypeParameterType extends ExperimentalType
+    implements TypeParameterTypeInterface {
+  final ThisVariable thisVariable;
+
+  @override
+  final TypeParameter parameter;
+
+  @override
+  Nullability declaredNullability;
+
+  ClassTypeParameterType(
+      {required this.thisVariable,
+      required this.parameter,
+      required this.declaredNullability});
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    // TODO: implement equals
+    throw UnimplementedError();
+  }
+
+  @override
+  // TODO: implement hasNonObjectMemberAccess
+  bool get hasNonObjectMemberAccess => throw UnimplementedError();
+
+  @override
+  // TODO: implement nonTypeParameterBound
+  DartType get nonTypeParameterBound => throw UnimplementedError();
+
+  @override
+  // TODO: implement nullability
+  Nullability get nullability => throw UnimplementedError();
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    // TODO: implement visitChildren
+  }
+
+  @override
+  DartType withDeclaredNullability(Nullability declaredNullability) {
+    // TODO: implement withDeclaredNullability
+    throw UnimplementedError();
+  }
+
+  @override
+  String toString() {
+    return "ClassTypeParameterType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeTypeParameterName(parameter);
+    printer.writeNullability(declaredNullability);
   }
 }

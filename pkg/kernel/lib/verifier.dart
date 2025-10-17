@@ -1925,4 +1925,18 @@ class AllowedTypes implements DartTypeVisitor<bool> {
 
   @override
   bool visitVoidType(VoidType node) => true;
+
+  @override
+  bool visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  bool visitClassTypeParameterType(ClassTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
 }

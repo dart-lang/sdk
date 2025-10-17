@@ -398,7 +398,7 @@ class Cascade extends InternalExpression {
       printer.newLine();
     }
     printer.write('} => ');
-    printer.write(printer.getVariableName(variable));
+    printer.write(printer.getVariableDeclarationName(variable));
   }
 }
 

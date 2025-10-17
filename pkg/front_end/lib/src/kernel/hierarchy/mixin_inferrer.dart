@@ -10,7 +10,7 @@ import 'package:kernel/type_algebra.dart';
 
 import '../../base/messages.dart'
     show Message, codeMixinInferenceNoMatchingClass;
-import '../../base/problems.dart' show unexpected, unsupported;
+import '../../base/problems.dart' show unexpected, unimplemented, unsupported;
 import '../../source/source_class_builder.dart';
 import '../../type_inference/type_schema.dart';
 
@@ -218,6 +218,15 @@ class BuilderMixinInferrer {
   // Coverage-ignore(suite): Not run.
   Never reportUnsupportedProblem(String operation) {
     return unsupported(
+      operation,
+      classBuilder.fileOffset,
+      classBuilder.fileUri,
+    );
+  }
+
+  // Coverage-ignore(suite): Not run.
+  Never reportUnimplementedProblem(String operation) {
+    return unimplemented(
       operation,
       classBuilder.fileOffset,
       classBuilder.fileUri,
@@ -447,6 +456,22 @@ class _MixinInferenceSolution {
         } else {
           return <TypeParameter, DartType>{};
         }
+      case FunctionTypeParameterType():
+        // Coverage-ignore(suite): Not run.
+        // Type variable types are currently an experiment aren't fully
+        // implemented.
+        return unsupportedErrorReporter.reportUnimplementedProblem(
+          "_MixinInferenceSolution._solveForEquality"
+          "(${type1.runtimeType}, ${type2.runtimeType})",
+        );
+      case ClassTypeParameterType():
+        // Coverage-ignore(suite): Not run.
+        // Class type parameter types are currently an experiment aren't fully
+        // implemented.
+        return unsupportedErrorReporter.reportUnimplementedProblem(
+          "_MixinInferenceSolution._solveForEquality"
+          "(${type1.runtimeType}, ${type2.runtimeType})",
+        );
       case RecordType():
         // Coverage-ignore(suite): Not run.
         if (type2 is! RecordType) {

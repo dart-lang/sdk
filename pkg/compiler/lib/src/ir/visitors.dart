@@ -43,7 +43,8 @@ class Stringifier extends ir.ExpressionVisitor<String?>
 }
 
 /// Visitor that converts kernel dart types into [DartType].
-class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
+class DartTypeConverter extends ir.DartTypeVisitor<DartType>
+    with ir.DartTypeVisitorExperimentExclusionMixin<DartType> {
   final IrToElementMap elementMap;
   final Map<ir.StructuralParameter, DartType> currentFunctionTypeParameters =
       <ir.StructuralParameter, DartType>{};

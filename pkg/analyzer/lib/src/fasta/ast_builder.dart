@@ -3030,6 +3030,7 @@ class AstBuilder extends StackListener {
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
+    bool forExtensionType,
   ) {
     var formalParameterList = pop() as FormalParameterListImpl?;
     if (formalParameterList == null) {
@@ -3046,6 +3047,17 @@ class AstBuilder extends StackListener {
         period: beginToken,
         name: nameIdentifier.token,
       );
+    }
+
+    if (!forExtensionType) {
+      if (!_featureSet.isEnabled(Feature.declaring_constructors)) {
+        _reportFeatureNotEnabled(
+          feature: Feature.declaring_constructors,
+          startToken: beginToken,
+        );
+      }
+      // TODO(scheglov): Support primary constructors in general.
+      return;
     }
 
     List<AnnotationImpl> fieldMetadata;
@@ -5352,10 +5364,18 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
-    push(constKeyword ?? const NullValue("Token"));
+  void handleNoPrimaryConstructor(
+    Token token,
+    Token? constKeyword,
+    bool forExtensionType,
+  ) {
+    if (forExtensionType) {
+      push(constKeyword ?? const NullValue("Token"));
 
-    push(const NullValue("RepresentationDeclarationImpl"));
+      push(const NullValue("RepresentationDeclarationImpl"));
+    } else {
+      // TODO(scheglov): Support primary constructors in general.
+    }
   }
 
   @override
