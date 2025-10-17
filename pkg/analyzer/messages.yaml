@@ -2113,12 +2113,17 @@ CompileTimeErrorCode:
         }
       }
       ```
-  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE:
     parameters: none
+    sharedName: RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
     problemMessage: "A record literal with exactly one positional field requires a trailing comma."
     correctionMessage: Try adding a trailing comma.
     hasPublishedDocs: true
-    comment: The documentation is in `front_end/message.yaml`.
+    comment: |-
+      This is similar to
+      ParserErrorCode.recordLiteralOnePositionalNoTrailingComma, but
+      it is reported at type analysis time, based on a type
+      incompatibility, rather than at parse time.
   SET_ELEMENT_FROM_DEFERRED_LIBRARY:
     parameters: none
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY

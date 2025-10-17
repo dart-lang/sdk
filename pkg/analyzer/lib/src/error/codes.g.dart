@@ -6105,18 +6105,23 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     expectedTypes: [ExpectedType.string],
   );
 
-  /// The documentation is in `front_end/message.yaml`.
+  /// This is similar to
+  /// ParserErrorCode.recordLiteralOnePositionalNoTrailingComma, but
+  /// it is reported at type analysis time, based on a type
+  /// incompatibility, rather than at parse time.
   ///
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
-  recordLiteralOnePositionalNoTrailingComma = CompileTimeErrorWithoutArguments(
-    'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
-    "A record literal with exactly one positional field requires a trailing "
-        "comma.",
-    correctionMessage: "Try adding a trailing comma.",
-    hasPublishedDocs: true,
-    expectedTypes: [],
-  );
+  recordLiteralOnePositionalNoTrailingCommaByType =
+      CompileTimeErrorWithoutArguments(
+        'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+        "A record literal with exactly one positional field requires a trailing "
+            "comma.",
+        correctionMessage: "Try adding a trailing comma.",
+        hasPublishedDocs: true,
+        uniqueName: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE',
+        expectedTypes: [],
+      );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments recursiveCompileTimeConstant =

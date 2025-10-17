@@ -466,7 +466,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   CompileTimeErrorCode.privateOptionalParameter,
   CompileTimeErrorCode.privateSetter,
   CompileTimeErrorCode.readPotentiallyUnassignedFinal,
-  CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
+  CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingCommaByType,
   CompileTimeErrorCode.recursiveCompileTimeConstant,
   CompileTimeErrorCode.recursiveConstantConstructor,
   CompileTimeErrorCode.recursiveConstructorRedirect,
