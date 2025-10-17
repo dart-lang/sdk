@@ -35,15 +35,10 @@ enum _DryRunErrorCode {
   noDartHtml(0),
   noDartJs(1),
   interopChecksError(2),
-  // Deprecated.
-  // ignore: unused_field
-  isTestValueError(3),
-  // Deprecated.
-  // ignore: unused_field
-  isTestTypeError(4),
-  // Deprecated.
-  // ignore: unused_field
-  isTestGenericTypeError(5),
+  // 3, 4, 5 are tombstones. Don't reuse!
+  // isTestValueError(3),
+  // isTestTypeError(4),
+  // isTestGenericTypeError(5),
   invalidRuntimeCheckWithJsInteropTypesDartAsJs(6),
   invalidRuntimeCheckWithJsInteropTypesDartIsJs(7),
   invalidRuntimeCheckWithJsInteropTypesJsAsDart(8),

@@ -224,10 +224,6 @@ class DeprecatedFunctionalityVerifier {
   }
 
   void _checkForDeprecatedOptionalSuperParameters(ConstructorDeclaration node) {
-    var interfaceElement = node.declaredFragment!.element.enclosingElement;
-    var superType = interfaceElement.supertype;
-    if (superType == null) return;
-
     var superConstructorInvocations = node.initializers
         .whereType<SuperConstructorInvocation>();
     if (superConstructorInvocations.length > 1) {
@@ -252,8 +248,7 @@ class DeprecatedFunctionalityVerifier {
       // The unnamed super-constructor will be invoked; report a warning for
       // each `@Deprecated.optional` parameter in that constructor without a
       // matching super-parameter.
-
-      if (superType.element.unnamedConstructor
+      if (node.declaredFragment!.element.superConstructor
           case var unnamedSuperConstructor?) {
         superConstructor = unnamedSuperConstructor;
       } else {
