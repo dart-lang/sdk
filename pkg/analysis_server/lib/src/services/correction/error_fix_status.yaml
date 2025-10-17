@@ -2671,6 +2671,11 @@ ParserErrorCode.CONST_FACTORY:
   status: hasFix
 ParserErrorCode.CONST_METHOD:
   status: hasFix
+ParserErrorCode.CONST_WITHOUT_PRIMARY_CONSTRUCTOR:
+  status: needsFix
+  notes: |-
+    Remove the keyword.
+    Add a primary constructor.
 ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE:
   status: needsFix
   notes: |-

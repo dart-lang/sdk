@@ -403,6 +403,16 @@ const MessageCode codeConstMethod = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codeConstWithoutPrimaryConstructor = const MessageCode(
+  "ConstWithoutPrimaryConstructor",
+  sharedCode: SharedCode.ConstWithoutPrimaryConstructor,
+  problemMessage:
+      """'const' can only be used together with a primary constructor declaration.""",
+  correctionMessage:
+      """Try removing the 'const' keyword or adding a primary constructor declaration.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstructorWithReturnType = const MessageCode(
   "ConstructorWithReturnType",
   sharedCode: SharedCode.ConstructorWithReturnType,
@@ -3234,6 +3244,7 @@ enum SharedCode {
   ConstClass,
   ConstFactory,
   ConstMethod,
+  ConstWithoutPrimaryConstructor,
   ContinueOutsideOfLoop,
   ContinueWithoutLabelInCase,
   CovariantAndStatic,

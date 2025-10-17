@@ -19,7 +19,7 @@ class EnumDeclarationTest extends PartialCodeTest {
         [ParserErrorCode.missingIdentifier, ParserErrorCode.missingEnumBody],
         'enum _s_ {}',
         expectedDiagnosticsInValidCode: [],
-        failing: ['functionNonVoid', 'getter'],
+        failing: ['const', 'functionNonVoid', 'getter'],
       ),
       TestDescriptor(
         'name',

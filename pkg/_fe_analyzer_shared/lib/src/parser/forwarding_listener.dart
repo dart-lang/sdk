@@ -930,6 +930,16 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginEnumBody(Token token) {
+    listener?.beginEnumBody(token);
+  }
+
+  @override
+  void endEnumBody(Token beginToken, Token endToken) {
+    listener?.endEnumBody(beginToken, endToken);
+  }
+
+  @override
   void endEnumFactoryMethod(
     Token beginToken,
     Token factoryKeyword,
@@ -2597,17 +2607,23 @@ class ForwardingListener implements Listener {
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
+    bool forExtensionType,
   ) {
     listener?.endPrimaryConstructor(
       beginToken,
       constKeyword,
       hasConstructorName,
+      forExtensionType,
     );
   }
 
   @override
-  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
-    listener?.handleNoPrimaryConstructor(token, constKeyword);
+  void handleNoPrimaryConstructor(
+    Token token,
+    Token? constKeyword,
+    bool forExtensionType,
+  ) {
+    listener?.handleNoPrimaryConstructor(token, constKeyword, forExtensionType);
   }
 
   @override

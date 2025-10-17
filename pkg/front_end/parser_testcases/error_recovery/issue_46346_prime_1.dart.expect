@@ -28,7 +28,11 @@ parser/error_recovery/issue_46346_prime_1:9:7: 'class' can't be used as an ident
 class class = A with B;
       ^^^^^
 
-parser/error_recovery/issue_46346_prime_1:10:7: 'const' can't be used as an identifier because it's a keyword.
+parser/error_recovery/issue_46346_prime_1:10:13: Expected an identifier, but got '='.
+class const = A with B;
+            ^
+
+parser/error_recovery/issue_46346_prime_1:10:7: 'const' can only be used together with a primary constructor declaration.
 class const = A with B;
       ^^^^^
 
@@ -388,10 +392,11 @@ beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)
   beginClassOrMixinOrNamedMixinApplicationPrelude(class)
-    handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'const' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: const}], const, const)
-    handleIdentifier(const, classOrMixinDeclaration)
+    handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got '='., Try inserting an identifier before '='., {lexeme: =}], =, =)
+    handleIdentifier(, classOrMixinDeclaration)
     handleNoTypeVariables(=)
-    beginNamedMixinApplication(class, null, null, null, null, null, null, null, null, const)
+    handleRecoverableError(ConstWithoutPrimaryConstructor, const, const)
+    beginNamedMixinApplication(class, null, null, null, null, null, null, null, null, )
       handleIdentifier(A, typeReference)
       handleNoTypeArguments(with)
       handleType(A, null)

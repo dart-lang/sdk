@@ -2054,3 +2054,10 @@ ExtensionTypeWith:
     extension type F(int i) {}
     extension type E(int i) with F {}
 
+ConstWithoutPrimaryConstructor:
+  parameters: none
+  problemMessage: "'const' can only be used together with a primary constructor declaration."
+  correctionMessage: "Try removing the 'const' keyword or adding a primary constructor declaration."
+  analyzerCode: ParserErrorCode.CONST_WITHOUT_PRIMARY_CONSTRUCTOR
+  script: |
+    class const C {}

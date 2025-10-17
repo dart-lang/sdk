@@ -2502,33 +2502,53 @@ class Parser {
     return ensureBlock(token, /* missingBlockKind = */ null).endGroup!;
   }
 
+  /// Parse the portion of a enum declaration after 'enum'.
+  ///
   /// ```
   /// enumType:
-  ///   metadata 'enum' id typeParameters? mixins? interfaces? '{'
-  ///      enumEntry (',' enumEntry)* (',')? (';'
-  ///      (metadata classMemberDefinition)*
-  ///      )?
-  ///   '}'
-  ///
-  /// enumEntry:
-  ///     metadata id argumentPart?
-  ///   | metadata id typeArguments? '.' id arguments
+  ///     :    'augment'? 'enum' classNamePart mixins? interfaces? '{'
+  ///          enumEntry (',' enumEntry)* ','?
+  ///          (';' (metadata memberDeclaration)*)?
+  ///          '}'
+  /// primaryConstructorNoConst
+  ///     :    typeIdentifier typeParameters?
+  ///          ('.' identifierOrNew)? declaringParameterList
+  ///     ;
+  /// classNamePart
+  ///     :    'const'? primaryConstructorNoConst
+  ///     |    typeWithParameters
+  ///     ;
+  /// typeWithParameters
+  ///     :    typeIdentifier typeParameters?
+  ///     ;
+  /// enumEntry
+  ///     :    metadata id argumentPart?
+  ///     |    metadata id typeArguments? '.' id arguments
   /// ```
   Token parseEnum(Token beginToken, Token? augmentToken, Token enumKeyword) {
     assert(enumKeyword.isA(Keyword.ENUM));
     listener.beginUncategorizedTopLevelDeclaration(enumKeyword);
-    Token token = ensureIdentifier(
-      enumKeyword,
-      IdentifierContext.enumDeclaration,
-    );
+    Token token = enumKeyword;
+    Token? constToken;
+    if (token.next!.isA(Keyword.CONST)) {
+      token = constToken = token.next!;
+    }
+    token = ensureIdentifier(token, IdentifierContext.enumDeclaration);
     String name = token.lexeme;
     listener.beginEnum(enumKeyword);
+    token = computeTypeParamOrArg(
+      token,
+      /* inDeclaration = */ true,
+      /* allowsVariance = */ true,
+    ).parseVariables(token, this);
+    token = parsePrimaryConstructorOpt(token, constToken, false);
     token = parseEnumHeaderOpt(token, enumKeyword);
     Token leftBrace = token.next!;
     int elementCount = 0;
     int memberCount = 0;
     if (leftBrace.isA(TokenType.OPEN_CURLY_BRACKET)) {
       listener.handleEnumHeader(augmentToken, enumKeyword, leftBrace);
+      listener.beginEnumBody(leftBrace);
       token = leftBrace;
       while (true) {
         Token next = token.next!;
@@ -2586,11 +2606,14 @@ class Parser {
         token = token.next!;
         assert(token.isEof || token.isA(TokenType.CLOSE_CURLY_BRACKET));
       }
+      listener.endEnumBody(leftBrace, token);
     } else {
       leftBrace = ensureBlock(token, BlockKind.enumDeclaration);
       listener.handleEnumHeader(augmentToken, enumKeyword, leftBrace);
+      listener.beginEnumBody(leftBrace);
       listener.handleEnumElements(token, elementCount);
       token = leftBrace.endGroup!;
+      listener.endEnumBody(leftBrace, token);
     }
     assert(token.isA(TokenType.CLOSE_CURLY_BRACKET));
     listener.endEnum(beginToken, enumKeyword, leftBrace, memberCount, token);
@@ -2598,11 +2621,6 @@ class Parser {
   }
 
   Token parseEnumHeaderOpt(Token token, Token enumKeyword) {
-    token = computeTypeParamOrArg(
-      token,
-      /* inDeclaration = */ true,
-      /* allowsVariance = */ true,
-    ).parseVariables(token, this);
     List<TokenType> lookForNext = const [
       TokenType.OPEN_CURLY_BRACKET,
       Keyword.WITH,
@@ -2827,11 +2845,16 @@ class Parser {
   ) {
     assert(classKeyword.isA(Keyword.CLASS));
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(beginToken);
+    Token token = classKeyword;
+    Token? constToken;
+    if (token.next!.isA(Keyword.CONST)) {
+      token = constToken = token.next!;
+    }
     Token name = ensureIdentifier(
-      classKeyword,
+      token,
       IdentifierContext.classOrMixinOrExtensionDeclaration,
     );
-    Token token = computeTypeParamOrArg(
+    token = computeTypeParamOrArg(
       name,
       /* inDeclaration = */ true,
       /* allowsVariance = */ true,
@@ -2855,8 +2878,13 @@ class Parser {
         }
       }
     }
-
     if (token.next!.isA(TokenType.EQ)) {
+      if (constToken != null) {
+        reportRecoverableError(
+          constToken,
+          codes.codeConstWithoutPrimaryConstructor,
+        );
+      }
       listener.beginNamedMixinApplication(
         beginToken,
         abstractToken,
@@ -2883,7 +2911,13 @@ class Parser {
         mixinToken,
         name,
       );
-      return parseClass(token, beginToken, classKeyword, name.lexeme);
+      return parseClass(
+        token,
+        beginToken,
+        classKeyword,
+        constToken,
+        name.lexeme,
+      );
     }
   }
 
@@ -2919,20 +2953,35 @@ class Parser {
   /// follows the end of the type parameters.
   ///
   /// ```
-  /// classDefinition:
-  ///   metadata abstract? 'class' identifier typeParameters?
-  ///       (superclass mixins?)? interfaces?
-  ///       '{' (metadata classMemberDefinition)* '}' |
-  ///   metadata abstract? 'class' mixinApplicationClass
-  /// ;
+  /// classDeclaration
+  ///     :    'augment'? (classModifiers | mixinClassModifiers)
+  ///          'class' classNamePart superclass? interfaces? classBody
+  ///     ;
+  /// primaryConstructorNoConst
+  ///     :    typeIdentifier typeParameters?
+  ///          ('.' identifierOrNew)? declaringParameterList
+  ///     ;
+  /// classNamePart
+  ///     :    'const'? primaryConstructorNoConst
+  ///     |    typeWithParameters
+  ///     ;
+  /// typeWithParameters
+  ///     :    typeIdentifier typeParameters?
+  ///     ;
   /// ```
   Token parseClass(
     Token token,
     Token beginToken,
     Token classKeyword,
+    Token? constToken,
     String className,
   ) {
     Token start = token;
+    token = parsePrimaryConstructorOpt(
+      token,
+      constToken,
+      /* forExtensionType = */ false,
+    );
     token = parseClassHeaderOpt(token, beginToken, classKeyword);
     if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
       // Recovery
@@ -3514,6 +3563,59 @@ class Parser {
     return token;
   }
 
+  Token parsePrimaryConstructorOpt(
+    Token token,
+    Token? constKeyword,
+    bool forExtensionType,
+  ) {
+    if (token.next!.isA(TokenType.OPEN_PAREN) ||
+        token.next!.isA(TokenType.PERIOD)) {
+      Token beginPrimaryConstructor = token.next!;
+      listener.beginPrimaryConstructor(beginPrimaryConstructor);
+      bool hasConstructorName = beginPrimaryConstructor.isA(TokenType.PERIOD);
+      if (hasConstructorName) {
+        token = ensureIdentifier(
+          beginPrimaryConstructor,
+          IdentifierContext.primaryConstructorDeclaration,
+        );
+      }
+      if (token.next!.isA(TokenType.OPEN_PAREN)) {
+        token = parseFormalParameters(token, MemberKind.PrimaryConstructor);
+      } else {
+        if (forExtensionType) {
+          reportRecoverableError(
+            token,
+            codes.codeMissingPrimaryConstructorParameters,
+          );
+        }
+        listener.handleNoFormalParameters(token, MemberKind.PrimaryConstructor);
+      }
+      listener.endPrimaryConstructor(
+        beginPrimaryConstructor,
+        constKeyword,
+        hasConstructorName,
+        forExtensionType,
+      );
+    } else {
+      if (forExtensionType) {
+        reportRecoverableError(token, codes.codeMissingPrimaryConstructor);
+      } else if (constKeyword != null) {
+        // TODO(johnniwinther): It should be possible to report if the
+        //  declaring constructors feature is not enabled here.
+        reportRecoverableError(
+          constKeyword,
+          codes.codeConstWithoutPrimaryConstructor,
+        );
+      }
+      listener.handleNoPrimaryConstructor(
+        token,
+        constKeyword,
+        forExtensionType,
+      );
+    }
+    return token;
+  }
+
   /// Parses an extension type declaration after
   ///
   ///    'extension' 'type'
@@ -3559,35 +3661,11 @@ class Parser {
       extensionKeyword,
       name,
     );
-    if (token.next!.isA(TokenType.OPEN_PAREN) ||
-        token.next!.isA(TokenType.PERIOD)) {
-      Token beginPrimaryConstructor = token.next!;
-      listener.beginPrimaryConstructor(beginPrimaryConstructor);
-      bool hasConstructorName = beginPrimaryConstructor.isA(TokenType.PERIOD);
-      if (hasConstructorName) {
-        token = ensureIdentifier(
-          beginPrimaryConstructor,
-          IdentifierContext.primaryConstructorDeclaration,
-        );
-      }
-      if (token.next!.isA(TokenType.OPEN_PAREN)) {
-        token = parseFormalParameters(token, MemberKind.PrimaryConstructor);
-      } else {
-        reportRecoverableError(
-          token,
-          codes.codeMissingPrimaryConstructorParameters,
-        );
-        listener.handleNoFormalParameters(token, MemberKind.PrimaryConstructor);
-      }
-      listener.endPrimaryConstructor(
-        beginPrimaryConstructor,
-        constKeyword,
-        hasConstructorName,
-      );
-    } else {
-      reportRecoverableError(token, codes.codeMissingPrimaryConstructor);
-      listener.handleNoPrimaryConstructor(token, constKeyword);
-    }
+    token = parsePrimaryConstructorOpt(
+      token,
+      constKeyword,
+      /* forExtensionType = */ true,
+    );
     Token start = token;
     token = parseClassOrMixinOrEnumImplementsOpt(token);
     if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
