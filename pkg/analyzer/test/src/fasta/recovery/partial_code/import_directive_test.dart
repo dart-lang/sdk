@@ -35,7 +35,7 @@ class ImportDirectivesTest extends PartialCodeTest {
         "import 'a.dart' if (",
         [
           ParserErrorCode.missingIdentifier,
-          ScannerErrorCode.expectedToken,
+          ParserErrorCode.expectedToken,
           ParserErrorCode.expectedStringLiteral,
           ParserErrorCode.expectedToken,
         ],
@@ -43,14 +43,14 @@ class ImportDirectivesTest extends PartialCodeTest {
         failing: ['functionNonVoid', 'getter', 'setter'],
       ),
       TestDescriptor('ifId', "import 'a.dart' if (b", [
-        ScannerErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
         ParserErrorCode.expectedToken,
         ParserErrorCode.expectedStringLiteral,
       ], "import 'a.dart' if (b) '';"),
       TestDescriptor('ifEquals', "import 'a.dart' if (b ==", [
         ParserErrorCode.expectedStringLiteral,
         ParserErrorCode.expectedToken,
-        ScannerErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
         ParserErrorCode.expectedStringLiteral,
       ], "import 'a.dart' if (b == '') '';"),
       TestDescriptor('ifCondition', "import 'a.dart' if (b)", [

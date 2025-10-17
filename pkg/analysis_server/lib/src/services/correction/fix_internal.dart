@@ -847,7 +847,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.obsoleteColonForDefaultValue: [
     ReplaceColonWithEquals.new,
   ],
-  CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma: [
+  CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingCommaByType: [
     AddTrailingComma.new,
   ],
   CompileTimeErrorCode.returnOfInvalidTypeFromClosure: [

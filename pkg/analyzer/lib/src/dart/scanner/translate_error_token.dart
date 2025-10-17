@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 
 /// Translates the given error [token] into an analyzer error and reports it
@@ -15,7 +16,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
   int charOffset = token.charOffset;
   // TODO(paulberry): why is endOffset sometimes null?
   int endOffset = token.endOffset ?? charOffset;
-  void makeError(ScannerErrorCode errorCode, List<Object>? arguments) {
+  void makeError(DiagnosticCode errorCode, List<Object>? arguments) {
     if (_isAtEnd(token, charOffset)) {
       // Analyzer never generates an error message past the end of the input,
       // since such an error would not be visible in an editor.
@@ -83,19 +84,19 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
         TokenType type = token.begin!.type;
         if (type == TokenType.OPEN_CURLY_BRACKET ||
             type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
-          return makeError(ScannerErrorCode.expectedToken, ['}']);
+          return makeError(ParserErrorCode.expectedToken, ['}']);
         }
         if (type == TokenType.OPEN_SQUARE_BRACKET) {
-          return makeError(ScannerErrorCode.expectedToken, [']']);
+          return makeError(ParserErrorCode.expectedToken, [']']);
         }
         if (type == TokenType.OPEN_PAREN) {
-          return makeError(ScannerErrorCode.expectedToken, [')']);
+          return makeError(ParserErrorCode.expectedToken, [')']);
         }
         if (type == TokenType.LT) {
-          return makeError(ScannerErrorCode.expectedToken, ['>']);
+          return makeError(ParserErrorCode.expectedToken, ['>']);
         }
       } else if (errorCode == codeUnexpectedDollarInString) {
-        return makeError(ScannerErrorCode.missingIdentifier, null);
+        return makeError(ParserErrorCode.missingIdentifier, null);
       }
       throw UnimplementedError('$errorCode "${errorCode.pseudoSharedCode}"');
   }
@@ -122,7 +123,7 @@ bool _isAtEnd(Token token, int charOffset) {
 /// The [arguments] are any arguments needed to complete the error message.
 typedef ReportError =
     void Function(
-      ScannerErrorCode errorCode,
+      DiagnosticCode errorCode,
       int offset,
       List<Object>? arguments,
     );

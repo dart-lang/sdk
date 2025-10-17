@@ -63,7 +63,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
       TestDescriptor(
         'partialBody',
         'extension E on String {',
-        [ScannerErrorCode.expectedToken],
+        [ParserErrorCode.expectedToken],
         'extension E on String {}',
         failing: [
           'class',

@@ -1597,8 +1597,8 @@ Function<A>(core.List<core.int> x) m() => null;
         expectedError(ParserErrorCode.missingIdentifier, 19, 1),
         expectedError(ParserErrorCode.missingIdentifier, 20, 1),
         expectedError(ParserErrorCode.expectedToken, 22, 1),
-        expectedError(ScannerErrorCode.expectedToken, 23, 1),
-        expectedError(ScannerErrorCode.expectedToken, 23, 1),
+        expectedError(ParserErrorCode.expectedToken, 23, 1),
+        expectedError(ParserErrorCode.expectedToken, 23, 1),
       ],
     );
     var typeAlias = unit.declarations[0] as GenericTypeAlias;

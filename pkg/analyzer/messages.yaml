@@ -2113,12 +2113,17 @@ CompileTimeErrorCode:
         }
       }
       ```
-  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE:
     parameters: none
+    sharedName: RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
     problemMessage: "A record literal with exactly one positional field requires a trailing comma."
     correctionMessage: Try adding a trailing comma.
     hasPublishedDocs: true
-    comment: The documentation is in `front_end/message.yaml`.
+    comment: |-
+      This is similar to
+      ParserErrorCode.recordLiteralOnePositionalNoTrailingComma, but
+      it is reported at type analysis time, based on a type
+      incompatibility, rather than at parse time.
   SET_ELEMENT_FROM_DEFERRED_LIBRARY:
     parameters: none
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
@@ -6363,45 +6368,6 @@ CompileTimeErrorCode:
     problemMessage: "The initializer type '#p0' can't be assigned to the field type '#p1' in a const constructor."
     correctionMessage: "Try using a subtype, or removing the 'const' keyword"
     hasPublishedDocs: true
-  FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
-    parameters: none
-    problemMessage: Initializing formal parameters can only be used in constructors.
-    correctionMessage: Try using a normal parameter.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an initializing formal
-      parameter is used in the parameter list for anything other than a
-      constructor.
-
-      #### Example
-
-      The following code produces this diagnostic because the initializing
-      formal parameter `this.x` is being used in the method `m`:
-
-      ```dart
-      class A {
-        int x = 0;
-
-        m([[!this.x!] = 0]) {}
-      }
-      ```
-
-      #### Common fixes
-
-      Replace the initializing formal parameter with a normal parameter and
-      assign the field within the body of the method:
-
-      ```dart
-      class A {
-        int x = 0;
-
-        m([int x = 0]) {
-          this.x = x;
-        }
-      }
-      ```
   FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR:
     parameters: none
     problemMessage: "The redirecting constructor can't have a field initializer."
@@ -22867,11 +22833,6 @@ ScannerErrorCode:
     parameters: none
     problemMessage: Unable to decode bytes as UTF-8.
     hasPublishedDocs: false
-  EXPECTED_TOKEN:
-    parameters:
-      String p0: the token that was expected but not found
-    problemMessage: Expected to find '#p0'.
-    hasPublishedDocs: false
   ILLEGAL_CHARACTER:
     parameters:
       Object p0: the illegal character
@@ -22884,10 +22845,6 @@ ScannerErrorCode:
   MISSING_HEX_DIGIT:
     parameters: none
     problemMessage: Hexadecimal digit expected.
-    hasPublishedDocs: false
-  MISSING_IDENTIFIER:
-    parameters: none
-    problemMessage: Expected an identifier.
     hasPublishedDocs: false
   MISSING_QUOTE:
     parameters: none
@@ -23383,7 +23340,7 @@ TransformSetErrorCode:
       Object p0: the missing key
     problemMessage: "The variable '#p0' isn't defined."
     hasPublishedDocs: false
-  unexpected_token:
+  unexpected_transform_set_token:
     parameters:
       Object p0: the token that was unexpectedly found
     problemMessage: "Didn't expect to find #p0."

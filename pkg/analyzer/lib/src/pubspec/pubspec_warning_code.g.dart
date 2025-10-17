@@ -347,71 +347,84 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   static LocatableDiagnostic _withArgumentsAssetDirectoryDoesNotExist({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(assetDirectoryDoesNotExist, [p0]);
+    return LocatableDiagnosticImpl(
+      PubspecWarningCode.assetDirectoryDoesNotExist,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAssetDoesNotExist({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(assetDoesNotExist, [p0]);
+    return LocatableDiagnosticImpl(PubspecWarningCode.assetDoesNotExist, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsDependenciesFieldNotMap({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(dependenciesFieldNotMap, [p0]);
+    return LocatableDiagnosticImpl(PubspecWarningCode.dependenciesFieldNotMap, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedField({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(deprecatedField, [p0]);
+    return LocatableDiagnosticImpl(PubspecWarningCode.deprecatedField, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidDependency({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invalidDependency, [p0]);
+    return LocatableDiagnosticImpl(PubspecWarningCode.invalidDependency, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsMissingDependency({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(missingDependency, [p0]);
+    return LocatableDiagnosticImpl(PubspecWarningCode.missingDependency, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsPathDoesNotExist({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(pathDoesNotExist, [p0]);
+    return LocatableDiagnosticImpl(PubspecWarningCode.pathDoesNotExist, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsPathNotPosix({required String p0}) {
-    return LocatableDiagnosticImpl(pathNotPosix, [p0]);
+    return LocatableDiagnosticImpl(PubspecWarningCode.pathNotPosix, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsPathPubspecDoesNotExist({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(pathPubspecDoesNotExist, [p0]);
+    return LocatableDiagnosticImpl(PubspecWarningCode.pathPubspecDoesNotExist, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUnknownPlatform({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unknownPlatform, [p0]);
+    return LocatableDiagnosticImpl(PubspecWarningCode.unknownPlatform, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnnecessaryDevDependency({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(unnecessaryDevDependency, [p0]);
+    return LocatableDiagnosticImpl(
+      PubspecWarningCode.unnecessaryDevDependency,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsWorkspaceValueNotSubdirectory({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(workspaceValueNotSubdirectory, [p0]);
+    return LocatableDiagnosticImpl(
+      PubspecWarningCode.workspaceValueNotSubdirectory,
+      [p0],
+    );
   }
 }
 

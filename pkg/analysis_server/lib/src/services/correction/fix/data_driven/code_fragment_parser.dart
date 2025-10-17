@@ -119,7 +119,7 @@ class CodeFragmentParser {
       diagnosticReporter.atOffset(
         offset: token.offset + delta,
         length: token.length,
-        diagnosticCode: TransformSetErrorCode.unexpectedToken,
+        diagnosticCode: TransformSetErrorCode.unexpectedTransformSetToken,
         arguments: [token.kind.displayName],
       );
       return null;

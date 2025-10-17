@@ -88,11 +88,14 @@ class AnalysisOptionsErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p2,
     required Object p3,
   }) {
-    return LocatableDiagnosticImpl(includedFileParseError, [p0, p1, p2, p3]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsErrorCode.includedFileParseError,
+      [p0, p1, p2, p3],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsParseError({required Object p0}) {
-    return LocatableDiagnosticImpl(parseError, [p0]);
+    return LocatableDiagnosticImpl(AnalysisOptionsErrorCode.parseError, [p0]);
   }
 }
 
@@ -599,7 +602,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   static LocatableDiagnostic _withArgumentsAnalysisOptionDeprecated({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(analysisOptionDeprecated, [p0]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.analysisOptionDeprecated,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -607,27 +613,34 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(analysisOptionDeprecatedWithReplacement, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.analysisOptionDeprecatedWithReplacement,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedLint({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(deprecatedLint, [p0]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.deprecatedLint, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedLintWithReplacement({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(deprecatedLintWithReplacement, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.deprecatedLintWithReplacement,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDuplicateRule({required String p0}) {
-    return LocatableDiagnosticImpl(duplicateRule, [p0]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.duplicateRule, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsIncludedFileWarning({
@@ -636,7 +649,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required Object p2,
     required Object p3,
   }) {
-    return LocatableDiagnosticImpl(includedFileWarning, [p0, p1, p2, p3]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.includedFileWarning,
+      [p0, p1, p2, p3],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsIncludeFileNotFound({
@@ -644,21 +660,30 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required Object p1,
     required Object p2,
   }) {
-    return LocatableDiagnosticImpl(includeFileNotFound, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.includeFileNotFound,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsIncompatibleLint({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(incompatibleLint, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.incompatibleLint,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsIncompatibleLintFiles({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(incompatibleLintFiles, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.incompatibleLintFiles,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsIncompatibleLintIncluded({
@@ -667,46 +692,66 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required int p2,
     required String p3,
   }) {
-    return LocatableDiagnosticImpl(incompatibleLintIncluded, [p0, p1, p2, p3]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.incompatibleLintIncluded,
+      [p0, p1, p2, p3],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidOption({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(invalidOption, [p0, p1]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.invalidOption, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidSectionFormat({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invalidSectionFormat, [p0]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.invalidSectionFormat,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMultiplePlugins({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(multiplePlugins, [p0]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.multiplePlugins, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsPluginsInInnerOptions({
     required String contextRoot,
   }) {
-    return LocatableDiagnosticImpl(pluginsInInnerOptions, [contextRoot]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.pluginsInInnerOptions,
+      [contextRoot],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsRecursiveIncludeFile({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(recursiveIncludeFile, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.recursiveIncludeFile,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsRemovedLint({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(removedLint, [p0, p1]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.removedLint, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsReplacedLint({
@@ -714,17 +759,26 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(replacedLint, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.replacedLint, [
+      p0,
+      p1,
+      p2,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedLint({required String p0}) {
-    return LocatableDiagnosticImpl(undefinedLint, [p0]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.undefinedLint, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUnrecognizedErrorCode({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(unrecognizedErrorCode, [p0]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.unrecognizedErrorCode,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUnsupportedOptionWithLegalValue({
@@ -732,11 +786,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(unsupportedOptionWithLegalValue, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.unsupportedOptionWithLegalValue,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUnsupportedOptionWithLegalValues({
@@ -744,18 +797,20 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(unsupportedOptionWithLegalValues, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUnsupportedOptionWithoutValues({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(unsupportedOptionWithoutValues, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.unsupportedOptionWithoutValues,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUnsupportedValue({
@@ -763,7 +818,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required Object p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(unsupportedValue, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.unsupportedValue,
+      [p0, p1, p2],
+    );
   }
 }
 

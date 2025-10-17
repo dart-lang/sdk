@@ -460,7 +460,8 @@ abstract class ErrorCodeInfo {
       memberAccumulator.staticMethods[withArgumentsName] =
           '''
 static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
-  return ${newIfNeeded}LocatableDiagnosticImpl($constantName, [$argumentNames]);
+  return ${newIfNeeded}LocatableDiagnosticImpl(
+    ${errorClassInfo.name}.$constantName, [$argumentNames]);
 }''';
     } else {
       // Parameters are not present so generate a "withoutArguments" constant.

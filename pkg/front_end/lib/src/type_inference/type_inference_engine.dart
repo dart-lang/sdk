@@ -184,8 +184,11 @@ abstract class TypeInferenceEngine {
   final Map<DartType, DartType> typeCacheLegacy =
       new Map<DartType, DartType>.identity();
 
-  /// Creates a type inferrer for use inside of a method body declared in a file
-  /// with the given [uri].
+  /// Creates a type inferrer for use inside in the library of [libraryBuilder]
+  /// in a compilation unit with the given [extensionScope].
+  ///
+  /// This [thisType] is used as the static type of `this` expressions. If
+  /// `null`, `this` expressions are not supported.
   TypeInferrer createTypeInferrer({
     required InterfaceType? thisType,
     required SourceLibraryBuilder libraryBuilder,

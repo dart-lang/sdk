@@ -271,8 +271,6 @@ import 'util.dart'
 class Parser {
   Listener listener;
 
-  Uri? get uri => listener.uri;
-
   bool mayParseFunctionExpressions = true;
 
   /// Represents parser state: what asynchronous syntax is allowed in the

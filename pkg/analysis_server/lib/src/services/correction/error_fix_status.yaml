@@ -1386,7 +1386,7 @@ CompileTimeErrorCode.PRIVATE_SETTER:
   status: noFix
 CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL:
   status: noFix
-CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE:
   status: hasFix
 CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR:
   status: noFix
@@ -2882,10 +2882,6 @@ ParserErrorCode.FACTORY_WITHOUT_BODY:
   status: noFix
 ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS:
   status: noFix
-ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove `this.`.
 ParserErrorCode.FINAL_AND_COVARIANT:
   status: needsFix
   notes: |-
@@ -3414,15 +3410,11 @@ PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY:
   status: needsEvaluation
 ScannerErrorCode.ENCODING:
   status: needsEvaluation
-ScannerErrorCode.EXPECTED_TOKEN:
-  status: noFix
 ScannerErrorCode.ILLEGAL_CHARACTER:
   status: noFix
 ScannerErrorCode.MISSING_DIGIT:
   status: noFix
 ScannerErrorCode.MISSING_HEX_DIGIT:
-  status: noFix
-ScannerErrorCode.MISSING_IDENTIFIER:
   status: noFix
 ScannerErrorCode.MISSING_QUOTE:
   status: noFix

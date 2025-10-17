@@ -138,7 +138,8 @@ mixin ErrorDetectionHelpers {
         )) {
           diagnosticReporter.atNode(
             expression,
-            CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
+            CompileTimeErrorCode
+                .recordLiteralOnePositionalNoTrailingCommaByType,
           );
           return;
         }

@@ -14,9 +14,6 @@ class ForwardingListener implements Listener {
   ForwardingListener([this.listener]);
 
   @override
-  Uri? get uri => listener?.uri;
-
-  @override
   void beginArguments(Token token) {
     listener?.beginArguments(token);
   }

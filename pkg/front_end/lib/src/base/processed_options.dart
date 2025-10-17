@@ -585,7 +585,7 @@ class ProcessedOptions {
     return _additionalDillComponents!;
   }
 
-  /// Helper to load a .dill file from [uri] using the existing [nameRoot].
+  /// Helper to load a .dill file from [fileUri] using the existing [nameRoot].
   Component loadComponent(
     Uint8List bytes,
     CanonicalName? nameRoot, {

@@ -38,7 +38,7 @@ class EnumDeclarationTest extends PartialCodeTest {
       TestDescriptor(
         'leftBrace',
         'enum E {',
-        [ParserErrorCode.missingIdentifier, ScannerErrorCode.expectedToken],
+        [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
         'enum E {_s_}',
         failing: [
           'eof' /* tested separately below */,
@@ -55,7 +55,7 @@ class EnumDeclarationTest extends PartialCodeTest {
         [
           ParserErrorCode.missingIdentifier,
           ParserErrorCode.missingIdentifier,
-          ScannerErrorCode.expectedToken,
+          ParserErrorCode.expectedToken,
         ],
         'enum E {_s_,_s_}',
         failing: [
@@ -68,11 +68,11 @@ class EnumDeclarationTest extends PartialCodeTest {
         ],
       ),
       TestDescriptor('value', 'enum E {a', [
-        ScannerErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
       ], 'enum E {a}'),
       TestDescriptor('commaValue', 'enum E {,a', [
         ParserErrorCode.missingIdentifier,
-        ScannerErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
       ], 'enum E {_s_, a}'),
       TestDescriptor('commaRightBrace', 'enum E {,}', [
         ParserErrorCode.missingIdentifier,
@@ -85,13 +85,13 @@ class EnumDeclarationTest extends PartialCodeTest {
       TestDescriptor(
         'leftBrace',
         'enum E {',
-        [ScannerErrorCode.expectedToken],
+        [ParserErrorCode.expectedToken],
         'enum E {}',
         expectedDiagnosticsInValidCode: [],
       ),
       TestDescriptor('comma', 'enum E {,', [
         ParserErrorCode.missingIdentifier,
-        ScannerErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
       ], 'enum E {_s_}'),
     ], []);
   }

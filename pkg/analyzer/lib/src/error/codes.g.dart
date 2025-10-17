@@ -2722,8 +2722,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   fieldInitializerOutsideConstructor = CompileTimeErrorWithoutArguments(
     'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
-    "Initializing formal parameters can only be used in constructors.",
-    correctionMessage: "Try using a normal parameter.",
+    "Field formal parameters can only be used in a constructor.",
+    correctionMessage: "Try removing 'this.'.",
     hasPublishedDocs: true,
     expectedTypes: [],
   );
@@ -6105,18 +6105,23 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     expectedTypes: [ExpectedType.string],
   );
 
-  /// The documentation is in `front_end/message.yaml`.
+  /// This is similar to
+  /// ParserErrorCode.recordLiteralOnePositionalNoTrailingComma, but
+  /// it is reported at type analysis time, based on a type
+  /// incompatibility, rather than at parse time.
   ///
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
-  recordLiteralOnePositionalNoTrailingComma = CompileTimeErrorWithoutArguments(
-    'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
-    "A record literal with exactly one positional field requires a trailing "
-        "comma.",
-    correctionMessage: "Try adding a trailing comma.",
-    hasPublishedDocs: true,
-    expectedTypes: [],
-  );
+  recordLiteralOnePositionalNoTrailingCommaByType =
+      CompileTimeErrorWithoutArguments(
+        'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+        "A record literal with exactly one positional field requires a trailing "
+            "comma.",
+        correctionMessage: "Try adding a trailing comma.",
+        hasPublishedDocs: true,
+        uniqueName: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE',
+        expectedTypes: [],
+      );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments recursiveCompileTimeConstant =
@@ -8082,10 +8087,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String memberKind,
     required String name,
   }) {
-    return LocatableDiagnosticImpl(abstractSuperMemberReference, [
-      memberKind,
-      name,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.abstractSuperMemberReference,
+      [memberKind, name],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAmbiguousExport({
@@ -8093,7 +8098,11 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Uri p1,
     required Uri p2,
   }) {
-    return LocatableDiagnosticImpl(ambiguousExport, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.ambiguousExport, [
+      p0,
+      p1,
+      p2,
+    ]);
   }
 
   static LocatableDiagnostic
@@ -8101,10 +8110,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(ambiguousExtensionMemberAccessThreeOrMore, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.ambiguousExtensionMemberAccessThreeOrMore,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAmbiguousExtensionMemberAccessTwo({
@@ -8112,18 +8121,20 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Element p1,
     required Element p2,
   }) {
-    return LocatableDiagnosticImpl(ambiguousExtensionMemberAccessTwo, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAmbiguousImport({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(ambiguousImport, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.ambiguousImport, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsArgumentTypeNotAssignable({
@@ -8131,38 +8142,55 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(argumentTypeNotAssignable, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.argumentTypeNotAssignable,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAssignmentToFinal({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(assignmentToFinal, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.assignmentToFinal, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsAssignmentToFinalLocal({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(assignmentToFinalLocal, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.assignmentToFinalLocal,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAssignmentToFinalNoSetter({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(assignmentToFinalNoSetter, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.assignmentToFinalNoSetter,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAugmentationModifierExtra({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(augmentationModifierExtra, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.augmentationModifierExtra,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAugmentationModifierMissing({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(augmentationModifierMissing, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.augmentationModifierMissing,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -8170,86 +8198,118 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(augmentationOfDifferentDeclarationKind, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAugmentedExpressionNotOperator({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(augmentedExpressionNotOperator, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.augmentedExpressionNotOperator,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsBaseClassImplementedOutsideOfLibrary({
     required String implementedClassName,
   }) {
-    return LocatableDiagnosticImpl(baseClassImplementedOutsideOfLibrary, [
-      implementedClassName,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
+      [implementedClassName],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsBaseMixinImplementedOutsideOfLibrary({
     required String implementedMixinName,
   }) {
-    return LocatableDiagnosticImpl(baseMixinImplementedOutsideOfLibrary, [
-      implementedMixinName,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
+      [implementedMixinName],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsBodyMightCompleteNormally({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(bodyMightCompleteNormally, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.bodyMightCompleteNormally,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsBuiltInIdentifierAsExtensionName({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(builtInIdentifierAsExtensionName, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.builtInIdentifierAsExtensionName,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsBuiltInIdentifierAsExtensionTypeName({required String p0}) {
-    return LocatableDiagnosticImpl(builtInIdentifierAsExtensionTypeName, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.builtInIdentifierAsExtensionTypeName,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsBuiltInIdentifierAsPrefixName({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(builtInIdentifierAsPrefixName, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.builtInIdentifierAsPrefixName,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsBuiltInIdentifierAsType({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(builtInIdentifierAsType, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.builtInIdentifierAsType,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsBuiltInIdentifierAsTypedefName({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(builtInIdentifierAsTypedefName, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.builtInIdentifierAsTypedefName,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsBuiltInIdentifierAsTypeName({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(builtInIdentifierAsTypeName, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.builtInIdentifierAsTypeName,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsBuiltInIdentifierAsTypeParameterName({required String p0}) {
-    return LocatableDiagnosticImpl(builtInIdentifierAsTypeParameterName, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.builtInIdentifierAsTypeParameterName,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsCaseExpressionTypeImplementsEquals({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(caseExpressionTypeImplementsEquals, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.caseExpressionTypeImplementsEquals,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -8258,27 +8318,29 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p1,
   }) {
     return LocatableDiagnosticImpl(
-      caseExpressionTypeIsNotSwitchExpressionSubtype,
+      CompileTimeErrorCode.caseExpressionTypeIsNotSwitchExpressionSubtype,
       [p0, p1],
     );
   }
 
   static LocatableDiagnostic _withArgumentsCastToNonType({required String p0}) {
-    return LocatableDiagnosticImpl(castToNonType, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.castToNonType, [p0]);
   }
 
   static LocatableDiagnostic
   _withArgumentsClassInstantiationAccessToInstanceMember({required String p0}) {
-    return LocatableDiagnosticImpl(classInstantiationAccessToInstanceMember, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.classInstantiationAccessToInstanceMember,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsClassInstantiationAccessToStaticMember({required String p0}) {
-    return LocatableDiagnosticImpl(classInstantiationAccessToStaticMember, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.classInstantiationAccessToStaticMember,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -8286,43 +8348,58 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(classInstantiationAccessToUnknownMember, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.classInstantiationAccessToUnknownMember,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsClassUsedAsMixin({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(classUsedAsMixin, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.classUsedAsMixin, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsConcreteClassWithAbstractMember({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(concreteClassWithAbstractMember, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.concreteClassWithAbstractMember,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsConflictingConstructorAndStaticField({required String p0}) {
-    return LocatableDiagnosticImpl(conflictingConstructorAndStaticField, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingConstructorAndStaticField,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsConflictingConstructorAndStaticGetter({required String p0}) {
-    return LocatableDiagnosticImpl(conflictingConstructorAndStaticGetter, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingConstructorAndStaticGetter,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsConflictingConstructorAndStaticMethod({required String p0}) {
-    return LocatableDiagnosticImpl(conflictingConstructorAndStaticMethod, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingConstructorAndStaticMethod,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsConflictingConstructorAndStaticSetter({required String p0}) {
-    return LocatableDiagnosticImpl(conflictingConstructorAndStaticSetter, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingConstructorAndStaticSetter,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConflictingFieldAndMethod({
@@ -8330,7 +8407,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(conflictingFieldAndMethod, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingFieldAndMethod,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConflictingGenericInterfaces({
@@ -8339,12 +8419,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p2,
     required String p3,
   }) {
-    return LocatableDiagnosticImpl(conflictingGenericInterfaces, [
-      p0,
-      p1,
-      p2,
-      p3,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingGenericInterfaces,
+      [p0, p1, p2, p3],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConflictingInheritedMethodAndSetter({
@@ -8352,11 +8430,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(conflictingInheritedMethodAndSetter, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingInheritedMethodAndSetter,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConflictingMethodAndField({
@@ -8364,7 +8441,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(conflictingMethodAndField, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingMethodAndField,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConflictingStaticAndInstance({
@@ -8372,51 +8452,71 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(conflictingStaticAndInstance, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingStaticAndInstance,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConflictingTypeVariableAndClass({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(conflictingTypeVariableAndClass, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingTypeVariableAndClass,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConflictingTypeVariableAndEnum({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(conflictingTypeVariableAndEnum, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingTypeVariableAndEnum,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConflictingTypeVariableAndExtension({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(conflictingTypeVariableAndExtension, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingTypeVariableAndExtension,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsConflictingTypeVariableAndExtensionType({required String p0}) {
-    return LocatableDiagnosticImpl(conflictingTypeVariableAndExtensionType, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingTypeVariableAndExtensionType,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsConflictingTypeVariableAndMemberClass({required String p0}) {
-    return LocatableDiagnosticImpl(conflictingTypeVariableAndMemberClass, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingTypeVariableAndMemberClass,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsConflictingTypeVariableAndMemberEnum({required String p0}) {
-    return LocatableDiagnosticImpl(conflictingTypeVariableAndMemberEnum, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingTypeVariableAndMemberEnum,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsConflictingTypeVariableAndMemberExtension({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(conflictingTypeVariableAndMemberExtension, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingTypeVariableAndMemberExtension,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -8424,20 +8524,26 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(
-      conflictingTypeVariableAndMemberExtensionType,
+      CompileTimeErrorCode.conflictingTypeVariableAndMemberExtensionType,
       [p0],
     );
   }
 
   static LocatableDiagnostic
   _withArgumentsConflictingTypeVariableAndMemberMixin({required String p0}) {
-    return LocatableDiagnosticImpl(conflictingTypeVariableAndMemberMixin, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingTypeVariableAndMemberMixin,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConflictingTypeVariableAndMixin({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(conflictingTypeVariableAndMixin, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.conflictingTypeVariableAndMixin,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConstConstructorFieldTypeMismatch({
@@ -8445,18 +8551,20 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p1,
     required Object p2,
   }) {
-    return LocatableDiagnosticImpl(constConstructorFieldTypeMismatch, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.constConstructorFieldTypeMismatch,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConstConstructorParamTypeMismatch({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(constConstructorParamTypeMismatch, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.constConstructorParamTypeMismatch,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -8464,7 +8572,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(
-      constConstructorWithFieldInitializedByNonConst,
+      CompileTimeErrorCode.constConstructorWithFieldInitializedByNonConst,
       [p0],
     );
   }
@@ -8472,221 +8580,313 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static LocatableDiagnostic _withArgumentsConstConstructorWithMixinWithField({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(constConstructorWithMixinWithField, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.constConstructorWithMixinWithField,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConstConstructorWithMixinWithFields({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(constConstructorWithMixinWithFields, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.constConstructorWithMixinWithFields,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConstConstructorWithNonConstSuper({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(constConstructorWithNonConstSuper, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.constConstructorWithNonConstSuper,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsConstEvalAssertionFailureWithMessage({required Object p0}) {
-    return LocatableDiagnosticImpl(constEvalAssertionFailureWithMessage, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.constEvalAssertionFailureWithMessage,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConstEvalPropertyAccess({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(constEvalPropertyAccess, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.constEvalPropertyAccess,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConstFieldInitializerNotAssignable({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(constFieldInitializerNotAssignable, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.constFieldInitializerNotAssignable,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConstMapKeyNotPrimitiveEquality({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(constMapKeyNotPrimitiveEquality, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.constMapKeyNotPrimitiveEquality,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConstNotInitialized({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(constNotInitialized, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.constNotInitialized, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsConstSetElementNotPrimitiveEquality({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(constSetElementNotPrimitiveEquality, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.constSetElementNotPrimitiveEquality,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsConstWithNonType({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(constWithNonType, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.constWithNonType, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsConstWithUndefinedConstructor({
     required Object p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(constWithUndefinedConstructor, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.constWithUndefinedConstructor,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsConstWithUndefinedConstructorDefault({required String p0}) {
-    return LocatableDiagnosticImpl(constWithUndefinedConstructorDefault, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.constWithUndefinedConstructorDefault,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsCouldNotInfer({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(couldNotInfer, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.couldNotInfer, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic
   _withArgumentsDefinitelyUnassignedLateLocalVariable({required String p0}) {
-    return LocatableDiagnosticImpl(definitelyUnassignedLateLocalVariable, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDotShorthandUndefinedGetter({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(dotShorthandUndefinedGetter, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.dotShorthandUndefinedGetter,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDotShorthandUndefinedInvocation({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(dotShorthandUndefinedInvocation, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.dotShorthandUndefinedInvocation,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDuplicateConstructorName({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(duplicateConstructorName, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.duplicateConstructorName,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDuplicateDefinition({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(duplicateDefinition, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.duplicateDefinition, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsDuplicateFieldFormalParameter({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(duplicateFieldFormalParameter, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.duplicateFieldFormalParameter,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDuplicateFieldName({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(duplicateFieldName, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.duplicateFieldName, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsDuplicateNamedArgument({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(duplicateNamedArgument, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.duplicateNamedArgument,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDuplicatePart({required Uri p0}) {
-    return LocatableDiagnosticImpl(duplicatePart, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.duplicatePart, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsDuplicatePatternAssignmentVariable({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(duplicatePatternAssignmentVariable, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.duplicatePatternAssignmentVariable,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDuplicatePatternField({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(duplicatePatternField, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.duplicatePatternField, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsDuplicateVariablePattern({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(duplicateVariablePattern, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.duplicateVariablePattern,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsEnumWithAbstractMember({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(enumWithAbstractMember, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.enumWithAbstractMember,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsExpectedOneListPatternTypeArguments({
     required int p0,
   }) {
-    return LocatableDiagnosticImpl(expectedOneListPatternTypeArguments, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.expectedOneListPatternTypeArguments,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsExpectedOneListTypeArguments({
     required int p0,
   }) {
-    return LocatableDiagnosticImpl(expectedOneListTypeArguments, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.expectedOneListTypeArguments,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsExpectedOneSetTypeArguments({
     required int p0,
   }) {
-    return LocatableDiagnosticImpl(expectedOneSetTypeArguments, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.expectedOneSetTypeArguments,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsExpectedTwoMapPatternTypeArguments({
     required int p0,
   }) {
-    return LocatableDiagnosticImpl(expectedTwoMapPatternTypeArguments, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.expectedTwoMapPatternTypeArguments,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsExpectedTwoMapTypeArguments({
     required int p0,
   }) {
-    return LocatableDiagnosticImpl(expectedTwoMapTypeArguments, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.expectedTwoMapTypeArguments,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsExportInternalLibrary({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(exportInternalLibrary, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.exportInternalLibrary, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsExportOfNonLibrary({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(exportOfNonLibrary, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.exportOfNonLibrary, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsExtendsDisallowedClass({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(extendsDisallowedClass, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.extendsDisallowedClass,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsExtensionAsExpression({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(extensionAsExpression, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.extensionAsExpression, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic
   _withArgumentsExtensionConflictingStaticAndInstance({required String p0}) {
-    return LocatableDiagnosticImpl(extensionConflictingStaticAndInstance, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.extensionConflictingStaticAndInstance,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -8694,25 +8894,28 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(extensionOverrideArgumentNotAssignable, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsExtensionTypeImplementsDisallowedType({required DartType p0}) {
-    return LocatableDiagnosticImpl(extensionTypeImplementsDisallowedType, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsExtensionTypeImplementsNotSupertype({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(extensionTypeImplementsNotSupertype, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.extensionTypeImplementsNotSupertype,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -8723,7 +8926,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p3,
   }) {
     return LocatableDiagnosticImpl(
-      extensionTypeImplementsRepresentationNotSupertype,
+      CompileTimeErrorCode.extensionTypeImplementsRepresentationNotSupertype,
       [p0, p1, p2, p3],
     );
   }
@@ -8733,24 +8936,30 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(extensionTypeInheritedMemberConflict, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.extensionTypeInheritedMemberConflict,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsExtensionTypeWithAbstractMember({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(extensionTypeWithAbstractMember, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.extensionTypeWithAbstractMember,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsExtraPositionalArguments({
     required int p0,
     required int p1,
   }) {
-    return LocatableDiagnosticImpl(extraPositionalArguments, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.extraPositionalArguments,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -8758,24 +8967,28 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required int p0,
     required int p1,
   }) {
-    return LocatableDiagnosticImpl(extraPositionalArgumentsCouldBeNamed, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsFieldInitializedByMultipleInitializers({required String p0}) {
-    return LocatableDiagnosticImpl(fieldInitializedByMultipleInitializers, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.fieldInitializedByMultipleInitializers,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsFieldInitializerNotAssignable({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(fieldInitializerNotAssignable, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.fieldInitializerNotAssignable,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -8783,21 +8996,27 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(fieldInitializingFormalNotAssignable, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.fieldInitializingFormalNotAssignable,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsFinalClassExtendedOutsideOfLibrary({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(finalClassExtendedOutsideOfLibrary, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsFinalClassImplementedOutsideOfLibrary({required String p0}) {
-    return LocatableDiagnosticImpl(finalClassImplementedOutsideOfLibrary, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -8805,7 +9024,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(
-      finalClassUsedAsMixinConstraintOutsideOfLibrary,
+      CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
       [p0],
     );
   }
@@ -8815,7 +9034,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(
-      finalInitializedInDeclarationAndConstructor,
+      CompileTimeErrorCode.finalInitializedInDeclarationAndConstructor,
       [p0],
     );
   }
@@ -8823,20 +9042,28 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static LocatableDiagnostic _withArgumentsFinalNotInitialized({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(finalNotInitialized, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.finalNotInitialized, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsFinalNotInitializedConstructor1({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(finalNotInitializedConstructor1, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.finalNotInitializedConstructor1,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsFinalNotInitializedConstructor2({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(finalNotInitializedConstructor2, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.finalNotInitializedConstructor2,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsFinalNotInitializedConstructor3Plus({
@@ -8844,11 +9071,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required int p2,
   }) {
-    return LocatableDiagnosticImpl(finalNotInitializedConstructor3Plus, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.finalNotInitializedConstructor3Plus,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsForInOfInvalidElementType({
@@ -8856,14 +9082,20 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required DartType p2,
   }) {
-    return LocatableDiagnosticImpl(forInOfInvalidElementType, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.forInOfInvalidElementType,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsForInOfInvalidType({
     required DartType p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(forInOfInvalidType, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.forInOfInvalidType, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsGetterNotAssignableSetterTypes({
@@ -8872,12 +9104,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p2,
     required Object p3,
   }) {
-    return LocatableDiagnosticImpl(getterNotAssignableSetterTypes, [
-      p0,
-      p1,
-      p2,
-      p3,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.getterNotAssignableSetterTypes,
+      [p0, p1, p2, p3],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsGetterNotSubtypeSetterTypes({
@@ -8886,17 +9116,18 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p2,
     required Object p3,
   }) {
-    return LocatableDiagnosticImpl(getterNotSubtypeSetterTypes, [
-      p0,
-      p1,
-      p2,
-      p3,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.getterNotSubtypeSetterTypes,
+      [p0, p1, p2, p3],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsIllegalConcreteEnumMemberDeclaration({required String p0}) {
-    return LocatableDiagnosticImpl(illegalConcreteEnumMemberDeclaration, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -8904,81 +9135,108 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(illegalConcreteEnumMemberInheritance, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.illegalConcreteEnumMemberInheritance,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsIllegalEnumValuesInheritance({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(illegalEnumValuesInheritance, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.illegalEnumValuesInheritance,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsIllegalLanguageVersionOverride({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(illegalLanguageVersionOverride, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.illegalLanguageVersionOverride,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsImplementsDisallowedClass({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(implementsDisallowedClass, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.implementsDisallowedClass,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsImplementsRepeated({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(implementsRepeated, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.implementsRepeated, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsImplementsSuperClass({
     required Element p0,
   }) {
-    return LocatableDiagnosticImpl(implementsSuperClass, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.implementsSuperClass, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic
   _withArgumentsImplicitSuperInitializerMissingArguments({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(implicitSuperInitializerMissingArguments, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.implicitSuperInitializerMissingArguments,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsImplicitThisReferenceInInitializer({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(implicitThisReferenceInInitializer, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.implicitThisReferenceInInitializer,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsImportInternalLibrary({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(importInternalLibrary, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.importInternalLibrary, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsImportOfNonLibrary({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(importOfNonLibrary, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.importOfNonLibrary, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInconsistentCaseExpressionTypes({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(inconsistentCaseExpressionTypes, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.inconsistentCaseExpressionTypes,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInconsistentInheritance({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(inconsistentInheritance, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.inconsistentInheritance,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -8987,33 +9245,44 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(inconsistentInheritanceGetterAndMethod, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsInconsistentPatternVariableLogicalOr({required String p0}) {
-    return LocatableDiagnosticImpl(inconsistentPatternVariableLogicalOr, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.inconsistentPatternVariableLogicalOr,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInitializerForNonExistentField({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(initializerForNonExistentField, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.initializerForNonExistentField,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInitializerForStaticField({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(initializerForStaticField, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.initializerForStaticField,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsInitializingFormalForNonExistentField({required String p0}) {
-    return LocatableDiagnosticImpl(initializingFormalForNonExistentField, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.initializingFormalForNonExistentField,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInstanceAccessToStaticMember({
@@ -9022,12 +9291,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p2,
     required String p3,
   }) {
-    return LocatableDiagnosticImpl(instanceAccessToStaticMember, [
-      p0,
-      p1,
-      p2,
-      p3,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.instanceAccessToStaticMember,
+      [p0, p1, p2, p3],
+    );
   }
 
   static LocatableDiagnostic
@@ -9036,7 +9303,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p1,
   }) {
     return LocatableDiagnosticImpl(
-      instanceAccessToStaticMemberOfUnnamedExtension,
+      CompileTimeErrorCode.instanceAccessToStaticMemberOfUnnamedExtension,
       [p0, p1],
     );
   }
@@ -9045,27 +9312,37 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(integerLiteralImpreciseAsDouble, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.integerLiteralImpreciseAsDouble,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsIntegerLiteralOutOfRange({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(integerLiteralOutOfRange, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.integerLiteralOutOfRange,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsInterfaceClassExtendedOutsideOfLibrary({required String p0}) {
-    return LocatableDiagnosticImpl(interfaceClassExtendedOutsideOfLibrary, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.interfaceClassExtendedOutsideOfLibrary,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidAssignment({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(invalidAssignment, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidAssignment, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidCastFunction({
@@ -9073,14 +9350,21 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p1,
     required Object p2,
   }) {
-    return LocatableDiagnosticImpl(invalidCastFunction, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidCastFunction, [
+      p0,
+      p1,
+      p2,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidCastFunctionExpr({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(invalidCastFunctionExpr, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.invalidCastFunctionExpr,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidCastLiteral({
@@ -9088,28 +9372,41 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p1,
     required Object p2,
   }) {
-    return LocatableDiagnosticImpl(invalidCastLiteral, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidCastLiteral, [
+      p0,
+      p1,
+      p2,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidCastLiteralList({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(invalidCastLiteralList, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.invalidCastLiteralList,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidCastLiteralMap({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(invalidCastLiteralMap, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidCastLiteralMap, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidCastLiteralSet({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(invalidCastLiteralSet, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidCastLiteralSet, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidCastMethod({
@@ -9117,14 +9414,21 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p1,
     required Object p2,
   }) {
-    return LocatableDiagnosticImpl(invalidCastMethod, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidCastMethod, [
+      p0,
+      p1,
+      p2,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidCastNewExpr({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(invalidCastNewExpr, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidCastNewExpr, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidImplementationOverride({
@@ -9134,13 +9438,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p3,
     required Object p4,
   }) {
-    return LocatableDiagnosticImpl(invalidImplementationOverride, [
-      p0,
-      p1,
-      p2,
-      p3,
-      p4,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.invalidImplementationOverride,
+      [p0, p1, p2, p3, p4],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidImplementationOverrideSetter({
@@ -9150,19 +9451,19 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p3,
     required Object p4,
   }) {
-    return LocatableDiagnosticImpl(invalidImplementationOverrideSetter, [
-      p0,
-      p1,
-      p2,
-      p3,
-      p4,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.invalidImplementationOverrideSetter,
+      [p0, p1, p2, p3, p4],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidModifierOnConstructor({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invalidModifierOnConstructor, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.invalidModifierOnConstructor,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidOverride({
@@ -9172,7 +9473,13 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p3,
     required DartType p4,
   }) {
-    return LocatableDiagnosticImpl(invalidOverride, [p0, p1, p2, p3, p4]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidOverride, [
+      p0,
+      p1,
+      p2,
+      p3,
+      p4,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidOverrideSetter({
@@ -9182,60 +9489,86 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p3,
     required Object p4,
   }) {
-    return LocatableDiagnosticImpl(invalidOverrideSetter, [p0, p1, p2, p3, p4]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidOverrideSetter, [
+      p0,
+      p1,
+      p2,
+      p3,
+      p4,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidTypeArgumentInConstList({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(invalidTypeArgumentInConstList, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.invalidTypeArgumentInConstList,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidTypeArgumentInConstMap({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(invalidTypeArgumentInConstMap, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.invalidTypeArgumentInConstMap,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidTypeArgumentInConstSet({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invalidTypeArgumentInConstSet, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.invalidTypeArgumentInConstSet,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidUri({required String p0}) {
-    return LocatableDiagnosticImpl(invalidUri, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidUri, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsInvocationOfExtensionWithoutCall({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invocationOfExtensionWithoutCall, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.invocationOfExtensionWithoutCall,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvocationOfNonFunction({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invocationOfNonFunction, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.invocationOfNonFunction,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsLabelInOuterScope({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(labelInOuterScope, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.labelInOuterScope, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsLabelUndefined({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(labelUndefined, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.labelUndefined, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsListElementTypeNotAssignable({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(listElementTypeNotAssignable, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.listElementTypeNotAssignable,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -9243,34 +9576,40 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(listElementTypeNotAssignableNullability, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.listElementTypeNotAssignableNullability,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMapKeyTypeNotAssignable({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(mapKeyTypeNotAssignable, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.mapKeyTypeNotAssignable,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMapKeyTypeNotAssignableNullability({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(mapKeyTypeNotAssignableNullability, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.mapKeyTypeNotAssignableNullability,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMapValueTypeNotAssignable({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(mapValueTypeNotAssignable, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.mapValueTypeNotAssignable,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -9278,43 +9617,55 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(mapValueTypeNotAssignableNullability, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.mapValueTypeNotAssignableNullability,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMissingDartLibrary({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(missingDartLibrary, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.missingDartLibrary, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsMissingDefaultValueForParameter({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(missingDefaultValueForParameter, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.missingDefaultValueForParameter,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsMissingDefaultValueForParameterPositional({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(missingDefaultValueForParameterPositional, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.missingDefaultValueForParameterPositional,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMissingRequiredArgument({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(missingRequiredArgument, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.missingRequiredArgument,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMissingVariablePattern({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(missingVariablePattern, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.missingVariablePattern,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -9324,7 +9675,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p2,
   }) {
     return LocatableDiagnosticImpl(
-      mixinApplicationConcreteSuperInvokedMemberType,
+      CompileTimeErrorCode.mixinApplicationConcreteSuperInvokedMemberType,
       [p0, p1, p2],
     );
   }
@@ -9334,7 +9685,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(
-      mixinApplicationNoConcreteSuperInvokedMember,
+      CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
       [p0],
     );
   }
@@ -9344,7 +9695,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(
-      mixinApplicationNoConcreteSuperInvokedSetter,
+      CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedSetter,
       [p0],
     );
   }
@@ -9355,102 +9706,135 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p1,
     required DartType p2,
   }) {
-    return LocatableDiagnosticImpl(mixinApplicationNotImplementedInterface, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsMixinClassDeclarationExtendsNotObject({required String p0}) {
-    return LocatableDiagnosticImpl(mixinClassDeclarationExtendsNotObject, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMixinClassDeclaresConstructor({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(mixinClassDeclaresConstructor, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.mixinClassDeclaresConstructor,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMixinInheritsFromNotObject({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(mixinInheritsFromNotObject, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.mixinInheritsFromNotObject,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMixinOfDisallowedClass({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(mixinOfDisallowedClass, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.mixinOfDisallowedClass,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMixinsSuperClass({
     required Element p0,
   }) {
-    return LocatableDiagnosticImpl(mixinsSuperClass, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.mixinsSuperClass, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsMixinSubtypeOfBaseIsNotBase({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(mixinSubtypeOfBaseIsNotBase, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMixinSubtypeOfFinalIsNotBase({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(mixinSubtypeOfFinalIsNotBase, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsMixinSuperClassConstraintDisallowedClass({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(mixinSuperClassConstraintDisallowedClass, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.mixinSuperClassConstraintDisallowedClass,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNewWithNonType({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(newWithNonType, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.newWithNonType, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsNewWithUndefinedConstructor({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(newWithUndefinedConstructor, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.newWithUndefinedConstructor,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNewWithUndefinedConstructorDefault({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(newWithUndefinedConstructorDefault, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.newWithUndefinedConstructorDefault,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNoCombinedSuperSignature({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(noCombinedSuperSignature, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.noCombinedSuperSignature,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNoDefaultSuperConstructorExplicit({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(noDefaultSuperConstructorExplicit, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.noDefaultSuperConstructorExplicit,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNoDefaultSuperConstructorImplicit({
     required DartType p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(noDefaultSuperConstructorImplicit, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.noDefaultSuperConstructorImplicit,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -9458,10 +9842,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(noGenerativeConstructorsInSuperclass, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.noGenerativeConstructorsInSuperclass,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -9473,7 +9857,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required int p4,
   }) {
     return LocatableDiagnosticImpl(
-      nonAbstractClassInheritsAbstractMemberFivePlus,
+      CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFivePlus,
       [p0, p1, p2, p3, p4],
     );
   }
@@ -9485,21 +9869,20 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p2,
     required String p3,
   }) {
-    return LocatableDiagnosticImpl(nonAbstractClassInheritsAbstractMemberFour, [
-      p0,
-      p1,
-      p2,
-      p3,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFour,
+      [p0, p1, p2, p3],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsNonAbstractClassInheritsAbstractMemberOne({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(nonAbstractClassInheritsAbstractMemberOne, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -9509,7 +9892,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p2,
   }) {
     return LocatableDiagnosticImpl(
-      nonAbstractClassInheritsAbstractMemberThree,
+      CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberThree,
       [p0, p1, p2],
     );
   }
@@ -9519,16 +9902,16 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(nonAbstractClassInheritsAbstractMemberTwo, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberTwo,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNonBoolOperand({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(nonBoolOperand, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.nonBoolOperand, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsNonExhaustiveSwitchExpression({
@@ -9536,7 +9919,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(nonExhaustiveSwitchExpression, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.nonExhaustiveSwitchExpression,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNonExhaustiveSwitchStatement({
@@ -9544,13 +9930,19 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(nonExhaustiveSwitchStatement, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.nonExhaustiveSwitchStatement,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNonGenerativeConstructor({
     required Element p0,
   }) {
-    return LocatableDiagnosticImpl(nonGenerativeConstructor, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.nonGenerativeConstructor,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNonGenerativeImplicitConstructor({
@@ -9558,23 +9950,26 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required Element p2,
   }) {
-    return LocatableDiagnosticImpl(nonGenerativeImplicitConstructor, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.nonGenerativeImplicitConstructor,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNonTypeAsTypeArgument({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(nonTypeAsTypeArgument, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.nonTypeAsTypeArgument, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsNonTypeInCatchClause({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(nonTypeInCatchClause, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.nonTypeInCatchClause, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic
@@ -9582,19 +9977,21 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(
-      notAssignedPotentiallyNonNullableLocalVariable,
+      CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
       [p0],
     );
   }
 
   static LocatableDiagnostic _withArgumentsNotAType({required String p0}) {
-    return LocatableDiagnosticImpl(notAType, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.notAType, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsNotBinaryOperator({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(notBinaryOperator, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.notBinaryOperator, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic
@@ -9603,35 +10000,36 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required int p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(notEnoughPositionalArgumentsNamePlural, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsNotEnoughPositionalArgumentsNameSingular({required String p0}) {
-    return LocatableDiagnosticImpl(notEnoughPositionalArgumentsNameSingular, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNotEnoughPositionalArgumentsPlural({
     required int p0,
     required int p1,
   }) {
-    return LocatableDiagnosticImpl(notEnoughPositionalArgumentsPlural, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.notEnoughPositionalArgumentsPlural,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsNotInitializedNonNullableInstanceField({required String p0}) {
-    return LocatableDiagnosticImpl(notInitializedNonNullableInstanceField, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.notInitializedNonNullableInstanceField,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -9639,7 +10037,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(
-      notInitializedNonNullableInstanceFieldConstructor,
+      CompileTimeErrorCode.notInitializedNonNullableInstanceFieldConstructor,
       [p0],
     );
   }
@@ -9647,28 +10045,36 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static LocatableDiagnostic _withArgumentsNotInitializedNonNullableVariable({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(notInitializedNonNullableVariable, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.notInitializedNonNullableVariable,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsOnRepeated({required String p0}) {
-    return LocatableDiagnosticImpl(onRepeated, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.onRepeated, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsPartOfDifferentLibrary({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(partOfDifferentLibrary, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.partOfDifferentLibrary,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsPartOfNonPart({required String p0}) {
-    return LocatableDiagnosticImpl(partOfNonPart, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.partOfNonPart, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsPartOfUnnamedLibrary({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(partOfUnnamedLibrary, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.partOfUnnamedLibrary, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic
@@ -9676,10 +10082,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(patternTypeMismatchInIrrefutableContext, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -9687,43 +10093,55 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(
-      patternVariableSharedCaseScopeDifferentFinalityOrType,
+      CompileTimeErrorCode
+          .patternVariableSharedCaseScopeDifferentFinalityOrType,
       [p0],
     );
   }
 
   static LocatableDiagnostic
   _withArgumentsPatternVariableSharedCaseScopeHasLabel({required String p0}) {
-    return LocatableDiagnosticImpl(patternVariableSharedCaseScopeHasLabel, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.patternVariableSharedCaseScopeHasLabel,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsPatternVariableSharedCaseScopeNotAllCases({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(patternVariableSharedCaseScopeNotAllCases, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsPrefixCollidesWithTopLevelMember({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(prefixCollidesWithTopLevelMember, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsPrefixIdentifierNotFollowedByDot({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(prefixIdentifierNotFollowedByDot, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.prefixIdentifierNotFollowedByDot,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsPrefixShadowedByLocalDeclaration({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(prefixShadowedByLocalDeclaration, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsPrivateCollisionInMixinApplication({
@@ -9731,52 +10149,67 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(privateCollisionInMixinApplication, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.privateCollisionInMixinApplication,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsPrivateSetter({required String p0}) {
-    return LocatableDiagnosticImpl(privateSetter, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.privateSetter, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsReadPotentiallyUnassignedFinal({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(readPotentiallyUnassignedFinal, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.readPotentiallyUnassignedFinal,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritance({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(recursiveInterfaceInheritance, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.recursiveInterfaceInheritance,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsRecursiveInterfaceInheritanceExtends({required String p0}) {
-    return LocatableDiagnosticImpl(recursiveInterfaceInheritanceExtends, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.recursiveInterfaceInheritanceExtends,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsRecursiveInterfaceInheritanceImplements({required String p0}) {
-    return LocatableDiagnosticImpl(recursiveInterfaceInheritanceImplements, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.recursiveInterfaceInheritanceImplements,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritanceOn({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(recursiveInterfaceInheritanceOn, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.recursiveInterfaceInheritanceOn,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritanceWith({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(recursiveInterfaceInheritanceWith, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.recursiveInterfaceInheritanceWith,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -9784,53 +10217,67 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(redirectGenerativeToMissingConstructor, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.redirectGenerativeToMissingConstructor,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsRedirectToAbstractClassConstructor({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(redirectToAbstractClassConstructor, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.redirectToAbstractClassConstructor,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsRedirectToInvalidFunctionType({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(redirectToInvalidFunctionType, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.redirectToInvalidFunctionType,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsRedirectToInvalidReturnType({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(redirectToInvalidReturnType, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.redirectToInvalidReturnType,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsRedirectToMissingConstructor({
     required String p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(redirectToMissingConstructor, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.redirectToMissingConstructor,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsRedirectToNonClass({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(redirectToNonClass, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.redirectToNonClass, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsReferencedBeforeDeclaration({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(referencedBeforeDeclaration, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.referencedBeforeDeclaration,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -9839,18 +10286,20 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(relationalPatternOperandTypeNotAssignable, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.relationalPatternOperandTypeNotAssignable,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromClosure({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(returnOfInvalidTypeFromClosure, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.returnOfInvalidTypeFromClosure,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromConstructor({
@@ -9858,11 +10307,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(returnOfInvalidTypeFromConstructor, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.returnOfInvalidTypeFromConstructor,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromFunction({
@@ -9870,11 +10318,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(returnOfInvalidTypeFromFunction, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.returnOfInvalidTypeFromFunction,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromMethod({
@@ -9882,20 +10329,29 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(returnOfInvalidTypeFromMethod, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.returnOfInvalidTypeFromMethod,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsSealedClassSubtypeOutsideOfLibrary({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(sealedClassSubtypeOutsideOfLibrary, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsSetElementTypeNotAssignable({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(setElementTypeNotAssignable, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.setElementTypeNotAssignable,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -9903,26 +10359,29 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(setElementTypeNotAssignableNullability, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.setElementTypeNotAssignableNullability,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsStaticAccessToInstanceMember({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(staticAccessToInstanceMember, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.staticAccessToInstanceMember,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(subtypeOfBaseIsNotBaseFinalOrSealed, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -9930,10 +10389,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(subtypeOfFinalIsNotBaseFinalOrSealed, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -9942,7 +10401,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p1,
   }) {
     return LocatableDiagnosticImpl(
-      superFormalParameterTypeIsNotSubtypeOfAssociated,
+      CompileTimeErrorCode.superFormalParameterTypeIsNotSubtypeOfAssociated,
       [p0, p1],
     );
   }
@@ -9950,26 +10409,37 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static LocatableDiagnostic _withArgumentsSuperInvocationNotLast({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(superInvocationNotLast, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.superInvocationNotLast,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsThrowOfInvalidType({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(throwOfInvalidType, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.throwOfInvalidType, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsTopLevelCycle({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(topLevelCycle, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.topLevelCycle, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsTypeAnnotationDeferredClass({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(typeAnnotationDeferredClass, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.typeAnnotationDeferredClass,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsTypeArgumentNotMatchingBounds({
@@ -9977,233 +10447,317 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required DartType p2,
   }) {
-    return LocatableDiagnosticImpl(typeArgumentNotMatchingBounds, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsTypeParameterSupertypeOfItsBound({
     required String p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(typeParameterSupertypeOfItsBound, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.typeParameterSupertypeOfItsBound,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsTypeTestWithNonType({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(typeTestWithNonType, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.typeTestWithNonType, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsTypeTestWithUndefinedName({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(typeTestWithUndefinedName, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.typeTestWithUndefinedName,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsUncheckedMethodInvocationOfNullableValue({required String p0}) {
-    return LocatableDiagnosticImpl(uncheckedMethodInvocationOfNullableValue, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsUncheckedOperatorInvocationOfNullableValue({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(uncheckedOperatorInvocationOfNullableValue, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsUncheckedPropertyAccessOfNullableValue({required String p0}) {
-    return LocatableDiagnosticImpl(uncheckedPropertyAccessOfNullableValue, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedAnnotation({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(undefinedAnnotation, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedAnnotation, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedClass({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(undefinedClass, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedClass, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedClassBoolean({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(undefinedClassBoolean, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedClassBoolean, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedConstructorInInitializer({
     required DartType p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedConstructorInInitializer, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.undefinedConstructorInInitializer,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsUndefinedConstructorInInitializerDefault({required Object p0}) {
-    return LocatableDiagnosticImpl(undefinedConstructorInInitializerDefault, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.undefinedConstructorInInitializerDefault,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedEnumConstant({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedEnumConstant, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedEnumConstant, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedEnumConstructorNamed({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(undefinedEnumConstructorNamed, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.undefinedEnumConstructorNamed,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedExtensionGetter({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedExtensionGetter, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.undefinedExtensionGetter,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedExtensionMethod({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedExtensionMethod, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.undefinedExtensionMethod,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedExtensionOperator({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedExtensionOperator, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.undefinedExtensionOperator,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedExtensionSetter({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedExtensionSetter, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.undefinedExtensionSetter,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedFunction({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(undefinedFunction, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedFunction, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedGetter({
     required String p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedGetter, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedGetter, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedGetterOnFunctionType({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedGetterOnFunctionType, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.undefinedGetterOnFunctionType,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedIdentifier({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(undefinedIdentifier, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedIdentifier, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedMethod({
     required String p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedMethod, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedMethod, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedMethodOnFunctionType({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedMethodOnFunctionType, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.undefinedMethodOnFunctionType,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedNamedParameter({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(undefinedNamedParameter, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.undefinedNamedParameter,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedOperator({
     required String p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedOperator, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedOperator, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedPrefixedName({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedPrefixedName, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedPrefixedName, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedSetter({
     required String p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedSetter, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedSetter, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedSetterOnFunctionType({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedSetterOnFunctionType, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.undefinedSetterOnFunctionType,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedSuperGetter({
     required String p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedSuperGetter, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedSuperGetter, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedSuperMethod({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedSuperMethod, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedSuperMethod, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedSuperOperator({
     required String p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedSuperOperator, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.undefinedSuperOperator,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedSuperSetter({
     required String p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedSuperSetter, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedSuperSetter, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic
   _withArgumentsUnqualifiedReferenceToNonLocalStaticMember({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(unqualifiedReferenceToNonLocalStaticMember, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.unqualifiedReferenceToNonLocalStaticMember,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -10211,7 +10765,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(
-      unqualifiedReferenceToStaticMemberOfExtendedType,
+      CompileTimeErrorCode.unqualifiedReferenceToStaticMemberOfExtendedType,
       [p0],
     );
   }
@@ -10219,20 +10773,26 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static LocatableDiagnostic _withArgumentsUriDoesNotExist({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(uriDoesNotExist, [p0]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.uriDoesNotExist, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUriHasNotBeenGenerated({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(uriHasNotBeenGenerated, [p0]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.uriHasNotBeenGenerated,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsVariableTypeMismatch({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(variableTypeMismatch, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.variableTypeMismatch, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic
@@ -10243,7 +10803,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p3,
   }) {
     return LocatableDiagnosticImpl(
-      wrongExplicitTypeParameterVarianceInSuperinterface,
+      CompileTimeErrorCode.wrongExplicitTypeParameterVarianceInSuperinterface,
       [p0, p1, p2, p3],
     );
   }
@@ -10253,18 +10813,18 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required int p1,
     required int p2,
   }) {
-    return LocatableDiagnosticImpl(wrongNumberOfParametersForOperator, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.wrongNumberOfParametersForOperator,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsWrongNumberOfParametersForOperatorMinus({required int p0}) {
-    return LocatableDiagnosticImpl(wrongNumberOfParametersForOperatorMinus, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.wrongNumberOfParametersForOperatorMinus,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsWrongNumberOfTypeArguments({
@@ -10272,7 +10832,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required int p1,
     required int p2,
   }) {
-    return LocatableDiagnosticImpl(wrongNumberOfTypeArguments, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.wrongNumberOfTypeArguments,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic
@@ -10281,7 +10844,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required int p1,
   }) {
     return LocatableDiagnosticImpl(
-      wrongNumberOfTypeArgumentsAnonymousFunction,
+      CompileTimeErrorCode.wrongNumberOfTypeArgumentsAnonymousFunction,
       [p0, p1],
     );
   }
@@ -10291,10 +10854,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(wrongNumberOfTypeArgumentsConstructor, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
@@ -10303,7 +10866,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
   }) {
     return LocatableDiagnosticImpl(
-      wrongNumberOfTypeArgumentsDotShorthandConstructor,
+      CompileTimeErrorCode.wrongNumberOfTypeArgumentsDotShorthandConstructor,
       [p0, p1],
     );
   }
@@ -10312,7 +10875,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required int p0,
     required int p1,
   }) {
-    return LocatableDiagnosticImpl(wrongNumberOfTypeArgumentsEnum, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.wrongNumberOfTypeArgumentsEnum,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsExtension({
@@ -10320,11 +10886,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required int p1,
     required int p2,
   }) {
-    return LocatableDiagnosticImpl(wrongNumberOfTypeArgumentsExtension, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsFunction({
@@ -10332,11 +10897,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required int p1,
     required int p2,
   }) {
-    return LocatableDiagnosticImpl(wrongNumberOfTypeArgumentsFunction, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsMethod({
@@ -10344,11 +10908,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required int p1,
     required int p2,
   }) {
-    return LocatableDiagnosticImpl(wrongNumberOfTypeArgumentsMethod, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic
@@ -10356,10 +10919,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(wrongTypeParameterVarianceInSuperinterface, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsWrongTypeParameterVariancePosition({
@@ -10367,25 +10930,30 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p1,
     required Object p2,
   }) {
-    return LocatableDiagnosticImpl(wrongTypeParameterVariancePosition, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.wrongTypeParameterVariancePosition,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsYieldEachOfInvalidType({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(yieldEachOfInvalidType, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      CompileTimeErrorCode.yieldEachOfInvalidType,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsYieldOfInvalidType({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(yieldOfInvalidType, [p0, p1]);
+    return LocatableDiagnosticImpl(CompileTimeErrorCode.yieldOfInvalidType, [
+      p0,
+      p1,
+    ]);
   }
 }
 
@@ -10576,7 +11144,10 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(invalidNullAwareOperator, [p0, p1]);
+    return LocatableDiagnosticImpl(StaticWarningCode.invalidNullAwareOperator, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic
@@ -10584,16 +11155,19 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(invalidNullAwareOperatorAfterShortCircuit, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      StaticWarningCode.invalidNullAwareOperatorAfterShortCircuit,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMissingEnumConstantInSwitch({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(missingEnumConstantInSwitch, [p0]);
+    return LocatableDiagnosticImpl(
+      StaticWarningCode.missingEnumConstantInSwitch,
+      [p0],
+    );
   }
 }
 
@@ -12910,34 +13484,42 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(argumentTypeNotAssignableToErrorHandler, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.argumentTypeNotAssignableToErrorHandler,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsAssignmentOfDoNotStore({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(assignmentOfDoNotStore, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.assignmentOfDoNotStore, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsBodyMightCompleteNormallyCatchError({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(bodyMightCompleteNormallyCatchError, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.bodyMightCompleteNormallyCatchError,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsBodyMightCompleteNormallyNullable({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(bodyMightCompleteNormallyNullable, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.bodyMightCompleteNormallyNullable,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsCastFromNullableAlwaysFails({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(castFromNullableAlwaysFails, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.castFromNullableAlwaysFails, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic
@@ -12945,66 +13527,76 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(constantPatternNeverMatchesValueType, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.constantPatternNeverMatchesValueType,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDeadCodeOnCatchSubtype({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(deadCodeOnCatchSubtype, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.deadCodeOnCatchSubtype, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedExportUse({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(deprecatedExportUse, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.deprecatedExportUse, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedExtend({
     required Object typeName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedExtend, [typeName]);
+    return LocatableDiagnosticImpl(WarningCode.deprecatedExtend, [typeName]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedImplement({
     required Object typeName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedImplement, [typeName]);
+    return LocatableDiagnosticImpl(WarningCode.deprecatedImplement, [typeName]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedInstantiate({
     required Object typeName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedInstantiate, [typeName]);
+    return LocatableDiagnosticImpl(WarningCode.deprecatedInstantiate, [
+      typeName,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedMixin({
     required Object typeName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedMixin, [typeName]);
+    return LocatableDiagnosticImpl(WarningCode.deprecatedMixin, [typeName]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedOptional({
     required Object parameterName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedOptional, [parameterName]);
+    return LocatableDiagnosticImpl(WarningCode.deprecatedOptional, [
+      parameterName,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedSubclass({
     required Object typeName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedSubclass, [typeName]);
+    return LocatableDiagnosticImpl(WarningCode.deprecatedSubclass, [typeName]);
   }
 
   static LocatableDiagnostic _withArgumentsDocDirectiveArgumentWrongFormat({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(docDirectiveArgumentWrongFormat, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      WarningCode.docDirectiveArgumentWrongFormat,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDocDirectiveHasExtraArguments({
@@ -13012,7 +13604,11 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required int p1,
     required int p2,
   }) {
-    return LocatableDiagnosticImpl(docDirectiveHasExtraArguments, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(WarningCode.docDirectiveHasExtraArguments, [
+      p0,
+      p1,
+      p2,
+    ]);
   }
 
   static LocatableDiagnostic
@@ -13020,29 +13616,36 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(docDirectiveHasUnexpectedNamedArgument, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.docDirectiveHasUnexpectedNamedArgument,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDocDirectiveMissingClosingTag({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(docDirectiveMissingClosingTag, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.docDirectiveMissingClosingTag, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsDocDirectiveMissingOneArgument({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(docDirectiveMissingOneArgument, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.docDirectiveMissingOneArgument, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsDocDirectiveMissingOpeningTag({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(docDirectiveMissingOpeningTag, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.docDirectiveMissingOpeningTag, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsDocDirectiveMissingThreeArguments({
@@ -13051,12 +13654,10 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p2,
     required String p3,
   }) {
-    return LocatableDiagnosticImpl(docDirectiveMissingThreeArguments, [
-      p0,
-      p1,
-      p2,
-      p3,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.docDirectiveMissingThreeArguments,
+      [p0, p1, p2, p3],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDocDirectiveMissingTwoArguments({
@@ -13064,83 +13665,106 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(docDirectiveMissingTwoArguments, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.docDirectiveMissingTwoArguments,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDocDirectiveUnknown({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(docDirectiveUnknown, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.docDirectiveUnknown, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsDuplicateIgnore({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(duplicateIgnore, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.duplicateIgnore, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsExperimentalMemberUse({
     required String member,
   }) {
-    return LocatableDiagnosticImpl(experimentalMemberUse, [member]);
+    return LocatableDiagnosticImpl(WarningCode.experimentalMemberUse, [member]);
   }
 
   static LocatableDiagnostic _withArgumentsInferenceFailureOnCollectionLiteral({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(inferenceFailureOnCollectionLiteral, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.inferenceFailureOnCollectionLiteral,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsInferenceFailureOnFunctionInvocation({required String p0}) {
-    return LocatableDiagnosticImpl(inferenceFailureOnFunctionInvocation, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.inferenceFailureOnFunctionInvocation,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsInferenceFailureOnFunctionReturnType({required String p0}) {
-    return LocatableDiagnosticImpl(inferenceFailureOnFunctionReturnType, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.inferenceFailureOnFunctionReturnType,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInferenceFailureOnGenericInvocation({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(inferenceFailureOnGenericInvocation, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.inferenceFailureOnGenericInvocation,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInferenceFailureOnInstanceCreation({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(inferenceFailureOnInstanceCreation, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.inferenceFailureOnInstanceCreation,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsInferenceFailureOnUninitializedVariable({required String p0}) {
-    return LocatableDiagnosticImpl(inferenceFailureOnUninitializedVariable, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.inferenceFailureOnUninitializedVariable,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInferenceFailureOnUntypedParameter({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(inferenceFailureOnUntypedParameter, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.inferenceFailureOnUntypedParameter,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidAnnotationTarget({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(invalidAnnotationTarget, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.invalidAnnotationTarget, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidExportOfInternalElement({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invalidExportOfInternalElement, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.invalidExportOfInternalElement, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic
@@ -13148,22 +13772,22 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(invalidExportOfInternalElementIndirectly, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.invalidExportOfInternalElementIndirectly,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidFactoryMethodDecl({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invalidFactoryMethodDecl, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.invalidFactoryMethodDecl, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidFactoryMethodImpl({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invalidFactoryMethodImpl, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.invalidFactoryMethodImpl, [p0]);
   }
 
   static LocatableDiagnostic
@@ -13171,43 +13795,54 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(invalidLanguageVersionOverrideGreater, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.invalidLanguageVersionOverrideGreater,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidOverrideOfNonVirtualMember({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(invalidOverrideOfNonVirtualMember, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      WarningCode.invalidOverrideOfNonVirtualMember,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidUseOfDoNotSubmitMember({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invalidUseOfDoNotSubmitMember, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.invalidUseOfDoNotSubmitMember, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidUseOfInternalMember({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invalidUseOfInternalMember, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.invalidUseOfInternalMember, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidUseOfProtectedMember({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(invalidUseOfProtectedMember, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.invalidUseOfProtectedMember, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic
   _withArgumentsInvalidUseOfVisibleForOverridingMember({required String p0}) {
-    return LocatableDiagnosticImpl(invalidUseOfVisibleForOverridingMember, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.invalidUseOfVisibleForOverridingMember,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -13215,42 +13850,48 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required Uri p1,
   }) {
-    return LocatableDiagnosticImpl(invalidUseOfVisibleForTemplateMember, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.invalidUseOfVisibleForTemplateMember,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidUseOfVisibleForTestingMember({
     required String p0,
     required Uri p1,
   }) {
-    return LocatableDiagnosticImpl(invalidUseOfVisibleForTestingMember, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.invalidUseOfVisibleForTestingMember,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidVisibilityAnnotation({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(invalidVisibilityAnnotation, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.invalidVisibilityAnnotation, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidWidgetPreviewPrivateArgument({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(invalidWidgetPreviewPrivateArgument, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.invalidWidgetPreviewPrivateArgument,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsMissingOverrideOfMustBeOverriddenOne({required String p0}) {
-    return LocatableDiagnosticImpl(missingOverrideOfMustBeOverriddenOne, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.missingOverrideOfMustBeOverriddenOne,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -13259,11 +13900,10 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(missingOverrideOfMustBeOverriddenThreePlus, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.missingOverrideOfMustBeOverriddenThreePlus,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic
@@ -13271,85 +13911,104 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(missingOverrideOfMustBeOverriddenTwo, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.missingOverrideOfMustBeOverriddenTwo,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMissingRequiredParam({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(missingRequiredParam, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.missingRequiredParam, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsMissingRequiredParamWithDetails({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(missingRequiredParamWithDetails, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      WarningCode.missingRequiredParamWithDetails,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMixinOnSealedClass({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(mixinOnSealedClass, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.mixinOnSealedClass, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsMustBeImmutable({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(mustBeImmutable, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.mustBeImmutable, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsMustCallSuper({required String p0}) {
-    return LocatableDiagnosticImpl(mustCallSuper, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.mustCallSuper, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsNonConstArgumentForConstParameter({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(nonConstArgumentForConstParameter, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.nonConstArgumentForConstParameter,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNonConstCallToLiteralConstructor({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(nonConstCallToLiteralConstructor, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.nonConstCallToLiteralConstructor,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
   _withArgumentsNonConstCallToLiteralConstructorUsingNew({required String p0}) {
-    return LocatableDiagnosticImpl(nonConstCallToLiteralConstructorUsingNew, [
-      p0,
-    ]);
+    return LocatableDiagnosticImpl(
+      WarningCode.nonConstCallToLiteralConstructorUsingNew,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsNullArgumentToNonNullType({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(nullArgumentToNonNullType, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.nullArgumentToNonNullType, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsPatternNeverMatchesValueType({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(patternNeverMatchesValueType, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.patternNeverMatchesValueType, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsRedeclareOnNonRedeclaringMember({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(redeclareOnNonRedeclaringMember, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.redeclareOnNonRedeclaringMember,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsRemovedLintUse({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(removedLintUse, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.removedLintUse, [p0, p1]);
   }
 
   static LocatableDiagnostic _withArgumentsReplacedLintUse({
@@ -13357,155 +14016,175 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required Object p1,
     required Object p2,
   }) {
-    return LocatableDiagnosticImpl(replacedLintUse, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(WarningCode.replacedLintUse, [p0, p1, p2]);
   }
 
   static LocatableDiagnostic _withArgumentsReturnOfDoNotStore({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(returnOfDoNotStore, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.returnOfDoNotStore, [p0, p1]);
   }
 
   static LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromCatchError({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(returnOfInvalidTypeFromCatchError, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      WarningCode.returnOfInvalidTypeFromCatchError,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsReturnTypeInvalidForCatchError({
     required DartType p0,
     required DartType p1,
   }) {
-    return LocatableDiagnosticImpl(returnTypeInvalidForCatchError, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.returnTypeInvalidForCatchError, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsSdkVersionSince({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(sdkVersionSince, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.sdkVersionSince, [p0, p1]);
   }
 
   static LocatableDiagnostic _withArgumentsStrictRawType({
     required DartType p0,
   }) {
-    return LocatableDiagnosticImpl(strictRawType, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.strictRawType, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsSubtypeOfSealedClass({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(subtypeOfSealedClass, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.subtypeOfSealedClass, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsTextDirectionCodePointInComment({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(textDirectionCodePointInComment, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.textDirectionCodePointInComment,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsTextDirectionCodePointInLiteral({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(textDirectionCodePointInLiteral, [p0]);
+    return LocatableDiagnosticImpl(
+      WarningCode.textDirectionCodePointInLiteral,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedHiddenName({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedHiddenName, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.undefinedHiddenName, [p0, p1]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedReferencedParameter({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedReferencedParameter, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.undefinedReferencedParameter, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedShownName({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(undefinedShownName, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.undefinedShownName, [p0, p1]);
   }
 
   static LocatableDiagnostic _withArgumentsUnignorableIgnore({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unignorableIgnore, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.unignorableIgnore, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnnecessaryQuestionMark({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(unnecessaryQuestionMark, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.unnecessaryQuestionMark, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnusedCatchClause({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unusedCatchClause, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.unusedCatchClause, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnusedCatchStack({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unusedCatchStack, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.unusedCatchStack, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnusedElement({required Object p0}) {
-    return LocatableDiagnosticImpl(unusedElement, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.unusedElement, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnusedElementParameter({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unusedElementParameter, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.unusedElementParameter, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnusedField({required Object p0}) {
-    return LocatableDiagnosticImpl(unusedField, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.unusedField, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnusedImport({required String p0}) {
-    return LocatableDiagnosticImpl(unusedImport, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.unusedImport, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnusedLabel({required String p0}) {
-    return LocatableDiagnosticImpl(unusedLabel, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.unusedLabel, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnusedLocalVariable({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unusedLocalVariable, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.unusedLocalVariable, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnusedResult({required String p0}) {
-    return LocatableDiagnosticImpl(unusedResult, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.unusedResult, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnusedResultWithMessage({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(unusedResultWithMessage, [p0, p1]);
+    return LocatableDiagnosticImpl(WarningCode.unusedResultWithMessage, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUnusedShownName({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(unusedShownName, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.unusedShownName, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUriDoesNotExistInDocImport({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(uriDoesNotExistInDocImport, [p0]);
+    return LocatableDiagnosticImpl(WarningCode.uriDoesNotExistInDocImport, [
+      p0,
+    ]);
   }
 }
 

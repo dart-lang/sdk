@@ -4245,7 +4245,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ScannerErrorCode.expectedToken, 59, 1)],
+      errors: [error(ParserErrorCode.expectedToken, 59, 1)],
     );
     var node = findNode.switchStatement('switch').members.single;
     assertParsedNodeText(node, r'''
@@ -5409,7 +5409,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ScannerErrorCode.expectedToken, 50, 1)],
+      errors: [error(ParserErrorCode.expectedToken, 50, 1)],
     );
     var node = findNode.switchStatement('switch').members.single;
     assertParsedNodeText(node, r'''
@@ -6830,7 +6830,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ScannerErrorCode.expectedToken, 71, 1)],
+      errors: [error(ParserErrorCode.expectedToken, 71, 1)],
     );
     var node = findNode.switchStatement('switch').members.single;
     assertParsedNodeText(node, r'''
@@ -10673,7 +10673,7 @@ main() {
       errors: [
         error(ParserErrorCode.expectedToken, 11, 3),
         error(ParserErrorCode.missingIdentifier, 19, 1),
-        error(ScannerErrorCode.expectedToken, 24, 1),
+        error(ParserErrorCode.expectedToken, 24, 1),
       ],
     );
   }

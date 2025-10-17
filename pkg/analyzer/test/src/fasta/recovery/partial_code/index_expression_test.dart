@@ -43,7 +43,7 @@ class IndexStatementTest extends PartialCodeTest {
           'intList[',
           [
             ParserErrorCode.missingIdentifier,
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
             ParserErrorCode.expectedToken,
             ParserErrorCode.expectedToken,
           ],
@@ -63,7 +63,7 @@ class IndexStatementTest extends PartialCodeTest {
           'identifier',
           'intList[x',
           [
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
             ParserErrorCode.expectedToken,
             ParserErrorCode.expectedToken,
           ],

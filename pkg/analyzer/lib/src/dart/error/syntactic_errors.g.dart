@@ -1044,16 +1044,6 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments fieldInitializerOutsideConstructor =
-      ParserErrorWithoutArguments(
-        'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
-        "Field formal parameters can only be used in a constructor.",
-        correctionMessage: "Try removing 'this.'.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
-
-  /// No parameters.
   static const ParserErrorWithoutArguments finalAndCovariant =
       ParserErrorWithoutArguments(
         'FINAL_AND_COVARIANT',
@@ -2722,106 +2712,142 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
     required String string,
     required String string2,
   }) {
-    return LocatableDiagnosticImpl(binaryOperatorWrittenOut, [string, string2]);
+    return LocatableDiagnosticImpl(ParserErrorCode.binaryOperatorWrittenOut, [
+      string,
+      string2,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsConflictingModifiers({
     required String string,
     required String string2,
   }) {
-    return LocatableDiagnosticImpl(conflictingModifiers, [string, string2]);
+    return LocatableDiagnosticImpl(ParserErrorCode.conflictingModifiers, [
+      string,
+      string2,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsExpectedInstead({
     required String string,
   }) {
-    return LocatableDiagnosticImpl(expectedInstead, [string]);
+    return LocatableDiagnosticImpl(ParserErrorCode.expectedInstead, [string]);
   }
 
   static LocatableDiagnostic _withArgumentsExpectedToken({required String p0}) {
-    return LocatableDiagnosticImpl(expectedToken, [p0]);
+    return LocatableDiagnosticImpl(ParserErrorCode.expectedToken, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsExperimentNotEnabled({
     required String string,
     required String string2,
   }) {
-    return LocatableDiagnosticImpl(experimentNotEnabled, [string, string2]);
+    return LocatableDiagnosticImpl(ParserErrorCode.experimentNotEnabled, [
+      string,
+      string2,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsExperimentNotEnabledOffByDefault({
     required String string,
   }) {
-    return LocatableDiagnosticImpl(experimentNotEnabledOffByDefault, [string]);
+    return LocatableDiagnosticImpl(
+      ParserErrorCode.experimentNotEnabledOffByDefault,
+      [string],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidCodePoint({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invalidCodePoint, [p0]);
+    return LocatableDiagnosticImpl(ParserErrorCode.invalidCodePoint, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidOperatorForSuper({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(invalidOperatorForSuper, [p0]);
+    return LocatableDiagnosticImpl(ParserErrorCode.invalidOperatorForSuper, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsMissingTerminatorForParameterGroup({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(missingTerminatorForParameterGroup, [p0]);
+    return LocatableDiagnosticImpl(
+      ParserErrorCode.missingTerminatorForParameterGroup,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsModifierOutOfOrder({
     required String string,
     required String string2,
   }) {
-    return LocatableDiagnosticImpl(modifierOutOfOrder, [string, string2]);
+    return LocatableDiagnosticImpl(ParserErrorCode.modifierOutOfOrder, [
+      string,
+      string2,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsMultipleClauses({
     required String string,
     required String string2,
   }) {
-    return LocatableDiagnosticImpl(multipleClauses, [string, string2]);
+    return LocatableDiagnosticImpl(ParserErrorCode.multipleClauses, [
+      string,
+      string2,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsMultipleVariablesInForEach({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(multipleVariablesInForEach, [p0]);
+    return LocatableDiagnosticImpl(ParserErrorCode.multipleVariablesInForEach, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsNonUserDefinableOperator({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(nonUserDefinableOperator, [p0]);
+    return LocatableDiagnosticImpl(ParserErrorCode.nonUserDefinableOperator, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsOutOfOrderClauses({
     required String string,
     required String string2,
   }) {
-    return LocatableDiagnosticImpl(outOfOrderClauses, [string, string2]);
+    return LocatableDiagnosticImpl(ParserErrorCode.outOfOrderClauses, [
+      string,
+      string2,
+    ]);
   }
 
   static LocatableDiagnostic
   _withArgumentsUnexpectedTerminatorForParameterGroup({required Object p0}) {
-    return LocatableDiagnosticImpl(unexpectedTerminatorForParameterGroup, [p0]);
+    return LocatableDiagnosticImpl(
+      ParserErrorCode.unexpectedTerminatorForParameterGroup,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUnexpectedToken({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(unexpectedToken, [p0]);
+    return LocatableDiagnosticImpl(ParserErrorCode.unexpectedToken, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsWrongTerminatorForParameterGroup({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(wrongTerminatorForParameterGroup, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      ParserErrorCode.wrongTerminatorForParameterGroup,
+      [p0, p1],
+    );
   }
 }
 
@@ -2865,18 +2891,6 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// String p0: the token that was expected but not found
-  static const ScannerErrorTemplate<
-    LocatableDiagnostic Function({required String p0})
-  >
-  expectedToken = ScannerErrorTemplate(
-    'EXPECTED_TOKEN',
-    "Expected to find '{0}'.",
-    withArguments: _withArgumentsExpectedToken,
-    expectedTypes: [ExpectedType.string],
-  );
-
-  /// Parameters:
   /// Object p0: the illegal character
   static const ScannerErrorTemplate<
     LocatableDiagnostic Function({required Object p0})
@@ -2901,14 +2915,6 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
       ScannerErrorWithoutArguments(
         'MISSING_HEX_DIGIT',
         "Hexadecimal digit expected.",
-        expectedTypes: [],
-      );
-
-  /// No parameters.
-  static const ScannerErrorWithoutArguments missingIdentifier =
-      ScannerErrorWithoutArguments(
-        'MISSING_IDENTIFIER',
-        "Expected an identifier.",
         expectedTypes: [],
       );
 
@@ -3004,26 +3010,22 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
   @override
   DiagnosticType get type => DiagnosticType.SYNTACTIC_ERROR;
 
-  static LocatableDiagnostic _withArgumentsExpectedToken({required String p0}) {
-    return LocatableDiagnosticImpl(expectedToken, [p0]);
-  }
-
   static LocatableDiagnostic _withArgumentsIllegalCharacter({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(illegalCharacter, [p0]);
+    return LocatableDiagnosticImpl(ScannerErrorCode.illegalCharacter, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnableGetContent({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(unableGetContent, [p0]);
+    return LocatableDiagnosticImpl(ScannerErrorCode.unableGetContent, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsUnsupportedOperator({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(unsupportedOperator, [p0]);
+    return LocatableDiagnosticImpl(ScannerErrorCode.unsupportedOperator, [p0]);
   }
 }
 

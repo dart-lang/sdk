@@ -37,7 +37,7 @@ class DoStatementTest extends PartialCodeTest {
           'leftBrace',
           'do {',
           [
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
             ParserErrorCode.expectedToken,
             ParserErrorCode.missingIdentifier,
             ParserErrorCode.expectedToken,
@@ -69,7 +69,7 @@ class DoStatementTest extends PartialCodeTest {
           [
             ParserErrorCode.missingIdentifier,
             ParserErrorCode.expectedToken,
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "do {} while (_s_);",
           failing: [
@@ -84,7 +84,7 @@ class DoStatementTest extends PartialCodeTest {
         ),
         TestDescriptor('condition', 'do {} while (a', [
           ParserErrorCode.expectedToken,
-          ScannerErrorCode.expectedToken,
+          ParserErrorCode.expectedToken,
         ], "do {} while (a);"),
         TestDescriptor('rightParen', 'do {} while (a)', [
           ParserErrorCode.expectedToken,

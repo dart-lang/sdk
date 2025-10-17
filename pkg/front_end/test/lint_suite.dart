@@ -201,7 +201,6 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
 class LintListener extends Listener {
   List<String> problems = <String>[];
   late final LintTestDescription description;
-  @override
   late final Uri uri;
 
   void onProblem(int offset, int squigglyLength, String message) {

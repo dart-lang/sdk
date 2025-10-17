@@ -2463,10 +2463,6 @@ class ParserASTListener extends AbstractParserAstListener {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Uri get uri => throw new UnimplementedError();
-
-  @override
   void logEvent(String name) {
     throw new UnimplementedError();
   }

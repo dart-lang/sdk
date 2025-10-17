@@ -3219,6 +3219,7 @@ enum PseudoSharedCode {
 
 /// Enum containing analyzer error codes referenced by [Code.sharedCode].
 enum SharedCode {
+  FieldInitializerOutsideConstructor,
   AbstractClassMember,
   AbstractExternalField,
   AbstractFinalBaseClass,
@@ -3295,7 +3296,6 @@ enum SharedCode {
   ExtraneousModifierInPrimaryConstructor,
   FactoryTopLevelDeclaration,
   FieldInitializedOutsideDeclaringClass,
-  FieldInitializerOutsideConstructor,
   FinalAndCovariant,
   FinalAndCovariantLateWithInitializer,
   FinalAndVar,

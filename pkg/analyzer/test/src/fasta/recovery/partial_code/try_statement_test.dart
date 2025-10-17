@@ -77,7 +77,7 @@ class TryStatementTest extends PartialCodeTest {
           'catch_leftParen',
           'try {} catch (',
           [
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
             ParserErrorCode.catchSyntax,
             ParserErrorCode.expectedCatchClauseBody,
           ],
@@ -90,7 +90,7 @@ class TryStatementTest extends PartialCodeTest {
           [
             ParserErrorCode.catchSyntax,
             ParserErrorCode.expectedCatchClauseBody,
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "try {} catch (e) {}",
           failing: ['eof', 'block'],
@@ -101,7 +101,7 @@ class TryStatementTest extends PartialCodeTest {
           [
             ParserErrorCode.catchSyntax,
             ParserErrorCode.expectedCatchClauseBody,
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "try {} catch (e, _s_) {}",
           failing: ['block', 'labeled', 'localFunctionNonVoid'],
@@ -114,7 +114,7 @@ class TryStatementTest extends PartialCodeTest {
             // because in this situation there are not any extra parameters.
             ParserErrorCode.catchSyntaxExtraParameters,
             ParserErrorCode.expectedCatchClauseBody,
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "try {} catch (e, s) {}",
           failing: ['eof', 'block'],
@@ -145,7 +145,7 @@ class TryStatementTest extends PartialCodeTest {
           [
             ParserErrorCode.catchSyntax,
             ParserErrorCode.expectedCatchClauseBody,
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "try {} on A catch (_s_) {}",
           failing: ['block', 'labeled', 'localFunctionNonVoid'],
@@ -156,7 +156,7 @@ class TryStatementTest extends PartialCodeTest {
           [
             ParserErrorCode.catchSyntax,
             ParserErrorCode.expectedCatchClauseBody,
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "try {} on A catch (e) {}",
           failing: ['eof', 'block'],
@@ -167,7 +167,7 @@ class TryStatementTest extends PartialCodeTest {
           [
             ParserErrorCode.catchSyntax,
             ParserErrorCode.expectedCatchClauseBody,
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "try {} on A catch (e, _s_) {}",
           failing: ['block', 'labeled', 'localFunctionNonVoid'],
@@ -180,7 +180,7 @@ class TryStatementTest extends PartialCodeTest {
             // because in this situation there are not any extra parameters.
             ParserErrorCode.catchSyntaxExtraParameters,
             ParserErrorCode.expectedCatchClauseBody,
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "try {} on A catch (e, s) {}",
           failing: ['eof', 'block'],
