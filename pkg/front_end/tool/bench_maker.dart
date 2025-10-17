@@ -28,7 +28,9 @@ Iterable<String> nameGenerator() sync* {
   }
 }
 
-class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
+class BenchMaker
+    with DartTypeVisitor1ExperimentExclusionMixin<void, StringBuffer>
+    implements DartTypeVisitor1<void, StringBuffer> {
   final List<Object> checks = <Object>[];
 
   final Map<TreeNode, String> nodeNames = <TreeNode, String>{};

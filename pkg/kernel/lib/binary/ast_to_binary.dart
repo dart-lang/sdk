@@ -15,7 +15,13 @@ import 'tag.dart';
 ///
 /// A [BinaryPrinter] can be used to write one file and must then be
 /// discarded.
-class BinaryPrinter implements Visitor<void>, BinarySink {
+class BinaryPrinter
+    with
+        TreeVisitorExperimentExclusionMixin<void>,
+        DartTypeVisitorExperimentExclusionMixin<void>,
+        StatementVisitorExperimentExclusionMixin<void>,
+        ExpressionVisitorExperimentExclusionMixin<void>
+    implements Visitor<void>, BinarySink {
   final VariableIndexer Function() _newVariableIndexer;
   VariableIndexer? _variableIndexer;
   LabelIndexer? _labelIndexer;

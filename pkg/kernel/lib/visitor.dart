@@ -2602,3 +2602,74 @@ mixin StatementVisitor1DefaultMixin<R, A> implements StatementVisitor1<R, A> {
   R visitFunctionDeclaration(FunctionDeclaration node, A arg) =>
       defaultStatement(node, arg);
 }
+
+/// [DartTypeVisitorExperimentExclusionMixin] is intended to reduce the effects
+/// of CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin DartTypeVisitorExperimentExclusionMixin<R>
+    implements DartTypeVisitor<R> {}
+
+/// [DartTypeVisitor1ExperimentExclusionMixin] is intended to reduce the effects
+/// of CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin DartTypeVisitor1ExperimentExclusionMixin<R, A>
+    implements DartTypeVisitor1<R, A> {}
+
+/// [ExpressionVisitorExperimentExclusionMixin] is intended to reduce the
+/// effects of CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin ExpressionVisitorExperimentExclusionMixin<R>
+    implements ExpressionVisitor<R> {}
+
+/// [ExpressionVisitor1ExperimentExclusionMixin] is intended to reduce the
+/// effects of CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin ExpressionVisitor1ExperimentExclusionMixin<R, A>
+    implements ExpressionVisitor1<R, A> {}
+
+/// [StatementVisitorExperimentExclusionMixin] is intended to reduce the effects
+/// of CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin StatementVisitorExperimentExclusionMixin<R>
+    implements StatementVisitor<R> {}
+
+/// [StatementVisitor1ExperimentExclusionMixin] is intended to reduce the
+/// effects of CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin StatementVisitor1ExperimentExclusionMixin<R, A>
+    implements StatementVisitor1<R, A> {}
+
+/// [TreeVisitorExperimentExclusionMixin] is intended to reduce the effects of
+/// CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin TreeVisitorExperimentExclusionMixin<R> implements TreeVisitor<R> {}
+
+/// [TreeVisitor1ExperimentExclusionMixin] is intended to reduce the effects of
+/// CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin TreeVisitor1ExperimentExclusionMixin<R, A>
+    implements TreeVisitor1<R, A> {}

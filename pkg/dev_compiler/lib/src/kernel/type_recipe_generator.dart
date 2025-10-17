@@ -263,7 +263,8 @@ class TypeRecipeGenerator {
 /// [TypeRecipeGenerator] and all interactions with it should be through that
 /// class. It contains state that needs to be correctly set before visiting a
 /// type to produce valid recipes in a given type environment context.
-class _TypeRecipeVisitor extends DartTypeVisitor<String> {
+class _TypeRecipeVisitor extends DartTypeVisitor<String>
+    with DartTypeVisitorExperimentExclusionMixin<String> {
   /// The type environment to evaluate recipes in.
   ///
   /// Part of the state that should be set before visiting a type.

@@ -52,8 +52,15 @@ abstract class CodeGenerator {
 /// produced type is not a subtype of the expected type.
 abstract class AstCodeGenerator
     extends ExpressionVisitor1<w.ValueType, w.ValueType>
-    with ExpressionVisitor1DefaultMixin<w.ValueType, w.ValueType>
-    implements InitializerVisitor<void>, StatementVisitor<void>, CodeGenerator {
+    with
+        ExpressionVisitor1DefaultMixin<w.ValueType, w.ValueType>,
+        ExpressionVisitor1ExperimentExclusionMixin<w.ValueType,
+            w.ValueType>,
+        StatementVisitorExperimentExclusionMixin<void>
+    implements
+        InitializerVisitor<void>,
+        StatementVisitor<void>,
+        CodeGenerator {
   final Translator translator;
   final w.FunctionType functionType;
   final Member enclosingMember;

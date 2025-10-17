@@ -869,7 +869,9 @@ bool computeIsAlwaysExhaustiveType(DartType type, CoreTypes coreTypes) {
   return type.accept1(const ExhaustiveDartTypeVisitor(), coreTypes);
 }
 
-class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
+class ExhaustiveDartTypeVisitor
+    with DartTypeVisitor1ExperimentExclusionMixin<bool, CoreTypes>
+    implements DartTypeVisitor1<bool, CoreTypes> {
   const ExhaustiveDartTypeVisitor();
 
   @override

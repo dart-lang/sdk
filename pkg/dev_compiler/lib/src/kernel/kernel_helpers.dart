@@ -19,6 +19,11 @@ Never throwUnsupportedAuxiliaryType(AuxiliaryType type) =>
       'Unsupported auxiliary type $type (${type.runtimeType}).',
     );
 
+Never throwUnsupportedExperimentalType(ExperimentalType type) =>
+    throw UnsupportedError(
+      'Unsupported experimental type $type (${type.runtimeType}).',
+    );
+
 Constructor? unnamedConstructor(Class c) =>
     c.constructors.firstWhereOrNull((c) => c.name.text == '');
 

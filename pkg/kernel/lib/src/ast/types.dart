@@ -619,6 +619,26 @@ abstract class AuxiliaryType extends DartType {
       v.visitAuxiliaryType(this, arg);
 }
 
+/// The root of the sealed sub-hierarchy for all experimental [DartType]s.
+///
+/// The purpose of [ExperimentalType] is to be a stand-in in exhaustive switch
+/// statements and alike in the backend code. That way, the backends won't need
+/// an update whenever an experimental type (a subclass of [ExperimentalType])
+/// is added or removed in the CFE.
+sealed class ExperimentalType extends DartType {
+  const ExperimentalType();
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) {
+    throw new UnsupportedError("`ExperimentalType.accept` is unsupported.");
+  }
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    throw new UnsupportedError("`ExperimentalType.accept1` is unsupported.");
+  }
+}
+
 /// The type arising from invalid type annotations.
 ///
 /// Can usually be treated as 'dynamic', but should occasionally be handled

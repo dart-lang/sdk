@@ -119,7 +119,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           VariableDeclaration,
           SharedTypeView
         >,
-        StackChecker
+        StackChecker,
+        ExpressionVisitor1ExperimentExclusionMixin<
+          ExpressionInferenceResult,
+          DartType
+        >,
+        StatementVisitorExperimentExclusionMixin<StatementInferenceResult>
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
         StatementVisitor<StatementInferenceResult>,
