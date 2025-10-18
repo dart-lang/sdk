@@ -1036,15 +1036,12 @@ class SharedToAnalyzerErrorCodeTables {
   /// error code.
   final Map<AnalyzerCode, SharedErrorCodeInfo> analyzerCodeToInfo = {};
 
-  /// Map whose keys are the shared errors for which analyzer errors should be
-  /// automatically generated, and whose values are the front end error name.
-  final Map<SharedErrorCodeInfo, String> infoToFrontEndCode = {};
-
   /// List of shared errors for which analyzer errors should be automatically
   /// generated, sorted by analyzer code.
   final List<SharedErrorCodeInfo> sortedSharedErrors = [];
 
   SharedToAnalyzerErrorCodeTables._(Map<String, SharedErrorCodeInfo> messages) {
+    var infoToFrontEndCode = <SharedErrorCodeInfo, String>{};
     for (var entry in messages.entries) {
       var errorCodeInfo = entry.value;
       var frontEndCode = entry.key;
@@ -1059,7 +1056,7 @@ class SharedToAnalyzerErrorCodeTables {
       }
       analyzerCodeToInfo[analyzerCode] = errorCodeInfo;
     }
-    sortedSharedErrors.sortBy((e) => e.analyzerCode);
+    sortedSharedErrors.sortBy((e) => e.analyzerCode.camelCaseErrorName);
   }
 }
 
