@@ -258,13 +258,6 @@ abstract final class Annotation implements AstNode {
   /// annotation couldn't be resolved.
   Element? get element;
 
-  /// The element associated with this annotation.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this
-  /// annotation couldn't be resolved.
-  @Deprecated('Use element instead')
-  Element? get element2;
-
   /// The element annotation representing this annotation in the element model,
   /// or `null` if the AST hasn't been resolved.
   ElementAnnotation? get elementAnnotation;
@@ -382,12 +375,6 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   set element(Element? value) {
     _element = value;
-  }
-
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 {
-    return element;
   }
 
   @generated
@@ -1028,9 +1015,6 @@ abstract final class AssignedVariablePattern implements VariablePattern {
   /// In valid code this is either a [LocalVariableElement] or a
   /// [FormalParameterElement].
   Element? get element;
-
-  @Deprecated('Use element instead')
-  Element? get element2;
 }
 
 @GenerateNodeImpl(
@@ -1049,10 +1033,6 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   Token get beginToken {
     return name;
   }
-
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 => element;
 
   @generated
   @override
@@ -1111,11 +1091,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 ///        [Expression] operator [Expression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AssignmentExpression
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
-        MethodReferenceExpression,
-        CompoundAssignmentExpression {
+    implements MethodReferenceExpression, CompoundAssignmentExpression {
   /// The expression used to compute the left hand side.
   Expression get leftHandSide;
 
@@ -2238,11 +2214,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
 ///        '[ ' expression '] '
 ///      | identifier
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class CascadeExpression
-    implements
-        Expression,
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression {
+abstract final class CascadeExpression implements Expression {
   /// The cascade sections sharing the common target.
   NodeList<Expression> get cascadeSections;
 
@@ -2826,18 +2798,6 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 /// An 'exception' or 'stackTrace' parameter in [CatchClause].
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CatchClauseParameter extends AstNode {
-  /// The declared element.
-  ///
-  /// Returns `null` if the AST hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  LocalVariableElement? get declaredElement;
-
-  /// The declared element.
-  ///
-  /// Returns `null` if the AST hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  LocalVariableElement? get declaredElement2;
-
   /// The declared fragment.
   ///
   /// Returns `null` if the AST hasn't been resolved.
@@ -2864,18 +2824,6 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   @override
   Token get beginToken {
     return name;
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement {
-    return declaredFragment?.element;
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement2 {
-    return declaredElement;
   }
 
   @generated
@@ -3032,10 +2980,6 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   /// The left curly bracket.
   Token get leftBracket;
 
-  /// The `macro` keyword, or `null` if the keyword was absent.
-  @Deprecated('Support for macros was removed')
-  Token? get macroKeyword;
-
   /// The members defined by the class.
   NodeList<ClassMember> get members;
 
@@ -3073,7 +3017,6 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('abstractKeyword'),
-    GenerateNodeProperty('macroKeyword'),
     GenerateNodeProperty('sealedKeyword'),
     GenerateNodeProperty('baseKeyword'),
     GenerateNodeProperty('interfaceKeyword'),
@@ -3101,10 +3044,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   @generated
   @override
   final Token? abstractKeyword;
-
-  @generated
-  @override
-  final Token? macroKeyword;
 
   @generated
   @override
@@ -3166,7 +3105,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.metadata,
     required this.augmentKeyword,
     required this.abstractKeyword,
-    required this.macroKeyword,
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
@@ -3222,9 +3160,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     }
     if (abstractKeyword case var abstractKeyword?) {
       return abstractKeyword;
-    }
-    if (macroKeyword case var macroKeyword?) {
-      return macroKeyword;
     }
     if (sealedKeyword case var sealedKeyword?) {
       return sealedKeyword;
@@ -3289,7 +3224,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('abstractKeyword', abstractKeyword)
-    ..addToken('macroKeyword', macroKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('baseKeyword', baseKeyword)
     ..addToken('interfaceKeyword', interfaceKeyword)
@@ -4210,20 +4144,6 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// used for navigation.
   Element? get readElement;
 
-  /// The element that is used to read the value.
-  ///
-  /// Returns `null` if this node isn't a compound assignment, if the AST
-  /// structure hasn't been resolved, or if the target couldn't be resolved.
-  ///
-  /// In valid code this element can be a [LocalVariableElement], a
-  /// [FormalParameterElement], or a [GetterElement].
-  ///
-  /// In invalid code this element is `null`. For example, in `int += 2`. In
-  /// such cases, for recovery purposes, [writeElement] is filled, and can be
-  /// used for navigation.
-  @Deprecated('Use readElement instead')
-  Element? get readElement2;
-
   /// The type of the value read with the [readElement], or `null` if this node
   /// isn't a compound assignment.
   ///
@@ -4248,24 +4168,6 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// [readElement] and [writeElement] could be non-`null`.
   Element? get writeElement;
 
-  /// The element that is used to write the result.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved, or if the target
-  /// couldn't be resolved.
-  ///
-  /// In valid code this is a [LocalVariableElement], [FormalParameterElement],
-  /// or a [SetterElement].
-  ///
-  /// In invalid code, for recovery, we might use other elements, for example a
-  /// [GetterElement] `myGetter = 0` even though the getter can't be used to set
-  /// a value. We do this to help the user to navigate to the getter, and maybe
-  /// add the corresponding setter.
-  ///
-  /// If this node is a compound assignment, such as `x += y`, both
-  /// [readElement] and [writeElement] could be non-`null`.
-  @Deprecated('Use writeElement instead')
-  Element? get writeElement2;
-
   /// The type of the target of the assignment.
   ///
   /// The types of assigned values must be subtypes of this type.
@@ -4287,14 +4189,6 @@ base mixin CompoundAssignmentExpressionImpl
 
   @override
   TypeImpl? writeType;
-
-  @Deprecated('Use readElement instead')
-  @override
-  Element? get readElement2 => readElement;
-
-  @Deprecated('Use writeElement instead')
-  @override
-  Element? get writeElement2 => writeElement;
 }
 
 /// A conditional expression.
@@ -5740,20 +5634,6 @@ sealed class DeclarationImpl extends AnnotatedNodeImpl implements Declaration {
 ///        [Annotation] finalConstVarOrType [SimpleIdentifier]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DeclaredIdentifier implements Declaration {
-  /// The element associated with this declaration.
-  ///
-  /// Returns `null` if either this node corresponds to a list of declarations
-  /// or if the AST structure hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  LocalVariableElement? get declaredElement;
-
-  /// The element associated with this declaration.
-  ///
-  /// Returns `null` if either this node corresponds to a list of declarations
-  /// or if the AST structure hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  LocalVariableElement? get declaredElement2;
-
   @override
   LocalVariableFragment? get declaredFragment;
 
@@ -5810,18 +5690,6 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
     required this.name,
   }) : _type = type {
     _becomeParentOf(type);
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement {
-    return declaredFragment?.element;
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement2 {
-    return declaredElement;
   }
 
   @generated
@@ -5896,18 +5764,6 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class DeclaredVariablePattern implements VariablePattern {
-  /// The element declared by this declaration.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  BindPatternVariableElement? get declaredElement;
-
-  /// The element declared by this declaration.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  BindPatternVariableElement? get declaredElement2;
-
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
@@ -5959,18 +5815,6 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
       return type.beginToken;
     }
     return name;
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  BindPatternVariableElementImpl? get declaredElement {
-    return declaredFragment?.element;
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  BindPatternVariableElementImpl? get declaredElement2 {
-    return declaredElement;
   }
 
   @generated
@@ -7357,13 +7201,6 @@ abstract final class EnumConstantDeclaration implements Declaration {
   /// constructor couldn't be resolved.
   ConstructorElement? get constructorElement;
 
-  /// The constructor that's invoked by this enum constant.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved, or if the
-  /// constructor couldn't be resolved.
-  @Deprecated('Use constructorElement instead')
-  ConstructorElement? get constructorElement2;
-
   @override
   FieldFragment? get declaredFragment;
 
@@ -7416,10 +7253,6 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   set arguments(EnumConstantArgumentsImpl? arguments) {
     _arguments = _becomeParentOf(arguments);
   }
-
-  @Deprecated('Use constructorElement instead')
-  @override
-  InternalConstructorElement? get constructorElement2 => constructorElement;
 
   @generated
   @override
@@ -8758,10 +8591,6 @@ abstract final class ExtensionOverride implements Expression {
   /// The extension that resolution will use to resolve member references.
   ExtensionElement get element;
 
-  /// The extension that resolution will use to resolve member references.
-  @Deprecated('Use element instead')
-  ExtensionElement get element2;
-
   /// The actual type extended by this override, produced by applying
   /// [typeArgumentTypes] to the generic type extended by the extension, or
   /// `null` if the AST structure hasn't been resolved.
@@ -8854,10 +8683,6 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     }
     return name;
   }
-
-  @Deprecated('Use element instead')
-  @override
-  ExtensionElementImpl get element2 => element;
 
   @generated
   @override
@@ -10963,18 +10788,6 @@ sealed class FunctionBody implements AstNode {
   ///
   /// Throws an exception if resolution hasn't been performed.
   bool isPotentiallyMutatedInScope(VariableElement variable);
-
-  /// If [variable] is a local variable or parameter declared anywhere within
-  /// the top level function or method containing this [FunctionBody], return a
-  /// boolean indicating whether [variable] is potentially mutated within the
-  /// scope of its declaration.
-  ///
-  /// If [variable] isn't a local variable or parameter declared within the top
-  /// level function or method containing this [FunctionBody], return `false`.
-  ///
-  /// Throws an exception if resolution hasn't been performed.
-  @Deprecated('Use isPotentiallyMutatedInScope instead')
-  bool isPotentiallyMutatedInScope2(VariableElement variable);
 }
 
 sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
@@ -11008,12 +10821,6 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
       throw StateError('Resolution has not been performed');
     }
     return localVariableInfo!.potentiallyMutatedInScope.contains(variable);
-  }
-
-  @Deprecated('Use isPotentiallyMutatedInScope instead')
-  @override
-  bool isPotentiallyMutatedInScope2(VariableElement variable) {
-    return isPotentiallyMutatedInScope(variable);
   }
 
   /// Dispatch this function body to the resolver, imposing [imposedType] as the
@@ -11447,10 +11254,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
 ///        [Expression] [TypeArgumentList]? [ArgumentList]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionExpressionInvocation
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
-        InvocationExpression {
+    implements InvocationExpression {
   /// The element associated with the function being invoked based on static
   /// type information.
   ///
@@ -13522,12 +13326,6 @@ abstract final class ImportPrefixReference implements AstNode {
   /// Usually a [PrefixElement], but can be anything in invalid code.
   Element? get element;
 
-  /// The element to which [name] is resolved.
-  ///
-  /// Usually a [PrefixElement], but can be anything in invalid code.
-  @Deprecated('Use element instead')
-  Element? get element2;
-
   /// The name of the referenced import prefix.
   Token get name;
 
@@ -13563,10 +13361,6 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
     return name;
   }
 
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 => element;
-
   @generated
   @override
   Token get endToken {
@@ -13600,11 +13394,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
 ///    indexExpression ::=
 ///        [Expression] '[' [Expression] ']'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class IndexExpression
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
-        MethodReferenceExpression {
+abstract final class IndexExpression implements MethodReferenceExpression {
   /// The expression used to compute the index.
   Expression get index;
 
@@ -14835,22 +14625,11 @@ abstract final class LibraryDirective implements Directive {
   /// directive couldn't be resolved.
   LibraryElement? get element;
 
-  /// The element associated with this directive.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this
-  /// directive couldn't be resolved.
-  @Deprecated('Use element instead')
-  LibraryElement? get element2;
-
   /// The token representing the `library` keyword.
   Token get libraryKeyword;
 
   /// The name of the library being defined.
   LibraryIdentifier? get name;
-
-  /// The name of the library being defined.
-  @Deprecated('Use name instead')
-  LibraryIdentifier? get name2;
 
   /// The semicolon terminating the directive.
   Token get semicolon;
@@ -14890,10 +14669,6 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     _becomeParentOf(name);
   }
 
-  @Deprecated('Use element instead')
-  @override
-  LibraryElementImpl? get element2 => element;
-
   @generated
   @override
   Token get endToken {
@@ -14914,10 +14689,6 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   set name(LibraryIdentifierImpl? name) {
     _name = _becomeParentOf(name);
   }
-
-  @Deprecated('Use name instead')
-  @override
-  LibraryIdentifierImpl? get name2 => name;
 
   @generated
   @override
@@ -16323,11 +16094,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 ///        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]?
 ///        [ArgumentList]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class MethodInvocation
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
-        InvocationExpression {
+abstract final class MethodInvocation implements InvocationExpression {
   /// Whether this expression is cascaded.
   ///
   /// If it is, then the target of this expression isn't stored locally but is
@@ -16912,13 +16679,6 @@ abstract final class NamedExpression implements Expression {
   /// parameter with the same name as this expression.
   FormalParameterElement? get element;
 
-  /// The element representing the parameter being named by this expression.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if there's no
-  /// parameter with the same name as this expression.
-  @Deprecated('Use element instead')
-  FormalParameterElement? get element2;
-
   /// The expression with which the name is associated.
   Expression get expression;
 
@@ -16959,12 +16719,6 @@ final class NamedExpressionImpl extends ExpressionImpl
   @override
   InternalFormalParameterElement? get element {
     return _name.label.element?.ifTypeOrNull();
-  }
-
-  @Deprecated('Use element instead')
-  @override
-  InternalFormalParameterElement? get element2 {
-    return element;
   }
 
   @generated
@@ -17045,16 +16799,6 @@ abstract final class NamedType implements TypeAnnotation {
   /// type name, such as for `void`.
   Element? get element;
 
-  /// The element of [name] considering [importPrefix].
-  ///
-  /// This could be a [ClassElement], [TypeAliasElement], or other type defining
-  /// element.
-  ///
-  /// Returns `null` if [name] can't be resolved, or there's no element for the
-  /// type name, such as for `void`.
-  @Deprecated('Use element instead')
-  Element? get element2;
-
   /// The optional import prefix before [name].
   ImportPrefixReference? get importPrefix;
 
@@ -17068,10 +16812,6 @@ abstract final class NamedType implements TypeAnnotation {
 
   /// The name of the type.
   Token get name;
-
-  /// The name of the type.
-  @Deprecated('Use name instead')
-  Token get name2;
 
   /// The type being named, or `null` if the AST structure hasn't been resolved,
   /// or if this is part of a [ConstructorReference].
@@ -17133,10 +16873,6 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     return name;
   }
 
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 => element;
-
   @generated
   @override
   Token get endToken {
@@ -17173,10 +16909,6 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @override
   bool get isSynthetic => name.isSynthetic && typeArguments == null;
-
-  @Deprecated('Use name instead')
-  @override
-  Token get name2 => name;
 
   @generated
   @override
@@ -18169,14 +17901,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   }
 }
 
-/// Abstract interface for expressions that may participate in null-shorting.
-///
-/// This is an analyzer-internal interface that was exposed through the public
-/// API by mistake. It is deprecated and will be removed in analyzer version
-/// 9.0.0.
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-@Deprecated('No longer supported.')
-abstract final class NullShortableExpression implements Expression {
+base mixin NullShortableExpressionImpl implements Expression {
   /// The expression that terminates any null shorting that might occur in this
   /// expression.
   ///
@@ -18192,15 +17917,6 @@ abstract final class NullShortableExpression implements Expression {
   /// Calling [nullShortingTermination] on any of these subexpressions yields
   /// the expression `a?.b[c] = d`, indicating that the null-shorting induced by
   /// the `?.` causes the rest of the subexpression `a?.b[c] = d` to be skipped.
-  @Deprecated('No longer supported.')
-  Expression get nullShortingTermination;
-}
-
-base mixin NullShortableExpressionImpl
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression {
-  @override
   Expression get nullShortingTermination {
     var result = this;
     while (true) {
@@ -18617,10 +18333,6 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 ///        [Annotation] 'part' [StringLiteral] ';'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PartDirective implements UriBasedDirective {
-  /// The configurations that control which file is actually included.
-  @Deprecated('Removed from the specification')
-  NodeList<Configuration> get configurations;
-
   /// Information about this part directive.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
@@ -18661,12 +18373,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     required super.uri,
     required this.semicolon,
   });
-
-  @Deprecated('Removed from the specification')
-  @override
-  NodeListImpl<ConfigurationImpl> get configurations {
-    return NodeListImpl._().._initialize(this, null);
-  }
 
   @generated
   @override
@@ -18994,15 +18700,6 @@ abstract final class PatternField implements AstNode {
   /// inside [RecordPattern]s.
   Element? get element;
 
-  /// The element referenced by [effectiveName].
-  ///
-  /// Returns `null` if the AST structure is not resolved yet.
-  ///
-  /// Returns non-`null` inside valid [ObjectPattern]s; always returns `null`
-  /// inside [RecordPattern]s.
-  @Deprecated('Use element instead')
-  Element? get element2;
-
   /// The name of the field, or `null` if the field is a positional field.
   PatternFieldName? get name;
 
@@ -19054,10 +18751,6 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
     }
     return null;
   }
-
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 => element;
 
   @generated
   @override
@@ -19414,8 +19107,6 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
 abstract final class PostfixExpression
     implements
         Expression,
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
         MethodReferenceExpression,
         CompoundAssignmentExpression {
   /// The element associated with the operator based on the static type of the
@@ -19690,8 +19381,6 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 abstract final class PrefixExpression
     implements
         Expression,
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
         MethodReferenceExpression,
         CompoundAssignmentExpression {
   /// The element associated with the operator based on the static type of the
@@ -20031,11 +19720,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
 ///    propertyAccess ::=
 ///        [Expression] '.' [SimpleIdentifier]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class PropertyAccess
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
-        CommentReferableExpression {
+abstract final class PropertyAccess implements CommentReferableExpression {
   /// Whether this expression is cascaded.
   ///
   /// If it is, then the target of this expression isn't stored locally but is
@@ -21035,13 +20720,6 @@ abstract final class RelationalPattern implements DartPattern {
   /// operator couldn't be resolved.
   MethodElement? get element;
 
-  /// The element of the [operator] for the matched type.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if the
-  /// operator couldn't be resolved.
-  @Deprecated('Use element instead')
-  MethodElement? get element2;
-
   /// The expression used to compute the operand.
   Expression get operand;
 
@@ -21080,10 +20758,6 @@ final class RelationalPatternImpl extends DartPatternImpl
   Token get beginToken {
     return operator;
   }
-
-  @Deprecated('Use element instead')
-  @override
-  MethodElement? get element2 => element;
 
   @generated
   @override
@@ -25260,20 +24934,6 @@ class UriValidationCode {
 //  that these two kinds of variables can be distinguished.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class VariableDeclaration implements Declaration {
-  /// The element declared by this declaration.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this node
-  /// represents the declaration of a top-level variable or a field.
-  @Deprecated('Use declaredFragment instead')
-  LocalVariableElement? get declaredElement;
-
-  /// The element declared by this declaration.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this node
-  /// represents the declaration of a top-level variable or a field.
-  @Deprecated('Use declaredFragment instead')
-  LocalVariableElement? get declaredElement2;
-
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this node
@@ -25343,18 +25003,6 @@ final class VariableDeclarationImpl extends DeclarationImpl
     required ExpressionImpl? initializer,
   }) : _initializer = initializer {
     _becomeParentOf(initializer);
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement {
-    return declaredFragment?.element.ifTypeOrNull<LocalVariableElementImpl>();
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement2 {
-    return declaredElement;
   }
 
   /// This overridden implementation of [documentationComment] looks in the

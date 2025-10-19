@@ -26,10 +26,6 @@ class UnknownInferredType extends TypeImpl implements SharedUnknownType {
   @override
   Element? get element => null;
 
-  @Deprecated('Use element instead')
-  @override
-  Element? get element3 => element;
-
   @override
   int get hashCode => 1;
 

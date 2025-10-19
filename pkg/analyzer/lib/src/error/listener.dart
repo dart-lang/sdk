@@ -175,7 +175,6 @@ class DiagnosticReporter {
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     // TODO(brianwilkerson): Consider extending this method to take any
     //  declaration and compute the correct range for the name of that
@@ -204,7 +203,6 @@ class DiagnosticReporter {
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     var nonSynthetic = element.nonSynthetic;
     return atOffset(
@@ -213,8 +211,6 @@ class DiagnosticReporter {
       length: nonSynthetic.name?.length ?? 0,
       arguments: arguments,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
   }
 
@@ -229,7 +225,6 @@ class DiagnosticReporter {
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     return atOffset(
       diagnosticCode: diagnosticCode,
@@ -237,8 +232,6 @@ class DiagnosticReporter {
       length: entity.length,
       arguments: arguments,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
   }
 
@@ -253,7 +246,6 @@ class DiagnosticReporter {
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     return atOffset(
       diagnosticCode: diagnosticCode,
@@ -261,13 +253,10 @@ class DiagnosticReporter {
       length: node.length,
       arguments: arguments,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
   }
 
-  /// Reports a diagnostic with the given [diagnosticCode] (or [errorCode],
-  /// deprecated) and [arguments].
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
   ///
   /// The location of the diagnostic is specified by the given [offset] and
   /// [length].
@@ -277,21 +266,10 @@ class DiagnosticReporter {
   Diagnostic atOffset({
     required int offset,
     required int length,
-    @Deprecated("Use 'diagnosticCode' instead") DiagnosticCode? errorCode,
-    DiagnosticCode? diagnosticCode,
+    required DiagnosticCode diagnosticCode,
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
-    if ((errorCode == null && diagnosticCode == null) ||
-        (errorCode != null && diagnosticCode != null)) {
-      throw ArgumentError(
-        "Exactly one of 'errorCode' (deprecated) and 'diagnosticCode' should be given",
-      );
-    }
-
-    diagnosticCode ??= errorCode!;
-
     if (arguments != null) {
       var invalid = arguments
           .whereNotType<String>()
@@ -313,8 +291,6 @@ class DiagnosticReporter {
       diagnosticCode: diagnosticCode,
       arguments: arguments ?? const [],
       contextMessages: contextMessages ?? [],
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
     reportError(diagnostic);
     return diagnostic;
@@ -331,7 +307,6 @@ class DiagnosticReporter {
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     return atOffset(
       diagnosticCode: diagnosticCode,
@@ -339,8 +314,6 @@ class DiagnosticReporter {
       length: span.length,
       arguments: arguments,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
   }
 
@@ -355,7 +328,6 @@ class DiagnosticReporter {
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     return atOffset(
       diagnosticCode: diagnosticCode,
@@ -363,8 +335,6 @@ class DiagnosticReporter {
       length: token.length,
       arguments: arguments,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
   }
 
@@ -382,7 +352,6 @@ class DiagnosticReporter {
     required DiagnosticCode diagnosticCode,
     required List<Object> arguments,
     required List<DiagnosticMessage> contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     contextMessages.addAll(
       convertTypeNames(
@@ -399,8 +368,6 @@ class DiagnosticReporter {
       diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use
-      data: data,
     );
   }
 }

@@ -701,18 +701,6 @@ class TypeSystemImpl implements TypeSystem {
     );
   }
 
-  @Deprecated('Use instantiateInterfaceToBounds instead')
-  @override
-  InterfaceTypeImpl instantiateInterfaceToBounds2({
-    required covariant InterfaceElementImpl element,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return instantiateInterfaceToBounds(
-      element: element,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   /// Given a [DartType] [type] and a list of types
   /// [typeArguments], instantiate the type formals with the
   /// provided actuals.  If [type] is not a parameterized type,
@@ -740,18 +728,6 @@ class TypeSystemImpl implements TypeSystem {
     var typeArguments = _defaultTypeArguments(typeParameters);
     return element.instantiateImpl(
       typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
-  @Deprecated('Use instantiateTypeAliasToBounds instead')
-  @override
-  TypeImpl instantiateTypeAliasToBounds2({
-    required covariant TypeAliasElementImpl element,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return instantiateTypeAliasToBounds(
-      element: element,
       nullabilitySuffix: nullabilitySuffix,
     );
   }

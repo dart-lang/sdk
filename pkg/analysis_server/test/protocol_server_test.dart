@@ -364,9 +364,6 @@ class MockDiagnostic implements engine.Diagnostic {
   String? get correctionMessage => _correctionMessage;
 
   @override
-  Object? get data => throw UnimplementedError();
-
-  @override
   engine.DiagnosticCode get diagnosticCode => _diagnosticCode!;
 
   @override

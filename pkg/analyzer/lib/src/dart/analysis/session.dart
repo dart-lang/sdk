@@ -104,12 +104,6 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  @Deprecated('Use getParsedLibraryByElement instead')
-  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element) {
-    return getParsedLibraryByElement(element);
-  }
-
-  @override
   SomeParsedUnitResult getParsedUnit(String path) {
     checkConsistency();
     return _driver.parseFileSync(path);
@@ -132,14 +126,6 @@ class AnalysisSessionImpl implements AnalysisSession {
     }
 
     return await _driver.getResolvedLibraryByUri(element.uri);
-  }
-
-  @override
-  @Deprecated('Use getResolvedLibraryByElement instead')
-  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
-    LibraryElement element,
-  ) {
-    return getResolvedLibraryByElement(element);
   }
 
   @override

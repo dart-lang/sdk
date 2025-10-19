@@ -1,3 +1,20 @@
+## 9.0.0-dev
+* Remove deprecated field `Diagnostic.data`.
+* In the method `DiagnosticReporter.atOffset` and the constructors
+  `Diagnostic.tmp` and `Diagnostic.forValues`, remove the deprecated named
+  parameter `errorCode`, and make the named parameter `diagnosticCode`
+  non-nullable and required.
+* Remove deprecated `DiagnosticReporter.atOffset` named parameter, `errorCode`.
+* Remove deprecated `BooleanErrorListener`.
+* Remove deprecated `RecordingErrorListener`.
+* Remove deprecated `AnalysisErrorListener.NULL_LISTENER`.
+* Remove deprecated `AstNodeExtension`.
+* Remove deprecated `NullShortableExpression`.
+* Remove deprecated getters and methods from AST and element model.
+* Remove deprecated `PartDirective.configurations`.
+* Remove deprecated `TypeDefiningElement`.
+* Remove deprecated `TypeAliasElement.aliasedElement`.
+
 ## 8.4.0
 * Add the `experimental_member_use` warning, which warns about any reference to
   a declaration annotated with `@experimental`.

@@ -71,10 +71,6 @@ class Diagnostic {
   /// being reported. The list will be empty if there are no such messages.
   final List<DiagnosticMessage> contextMessages;
 
-  /// Data associated with this diagnostic, specific for [diagnosticCode].
-  @Deprecated('Use an expando instead')
-  final Object? data;
-
   /// A description of how to fix the problem, or `null` if there is no such
   /// description.
   final String? correctionMessage;
@@ -89,15 +85,11 @@ class Diagnostic {
     required this.source,
     required int offset,
     required int length,
-    DiagnosticCode? diagnosticCode,
-    @Deprecated("Pass a value for 'diagnosticCode' instead")
-    DiagnosticCode? errorCode,
+    required this.diagnosticCode,
     required String message,
     this.correctionMessage,
     this.contextMessages = const [],
-    @Deprecated('Use an expando instead') this.data,
-  }) : diagnosticCode = _useNonNullCodeBetween(diagnosticCode, errorCode),
-       problemMessage = new DiagnosticMessageImpl(
+  }) : problemMessage = new DiagnosticMessageImpl(
          filePath: source.fullName,
          length: length,
          message: message,
@@ -109,31 +101,27 @@ class Diagnostic {
   ///
   /// The diagnostic is associated with the given [source] and is located at the
   /// given [offset] with the given [length]. The diagnostic will have the given
-  /// [errorCode] and the list of [arguments] will be used to complete the
+  /// [diagnosticCode] and the list of [arguments] will be used to complete the
   /// message and correction. If any [contextMessages] are provided, they will
   /// be recorded with the diagnostic.
   factory Diagnostic.tmp({
     required Source source,
     required int offset,
     required int length,
-    DiagnosticCode? diagnosticCode,
-    @Deprecated("Pass a value for 'diagnosticCode' instead")
-    DiagnosticCode? errorCode,
+    required DiagnosticCode diagnosticCode,
     List<Object?> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
-    @Deprecated('Use an expando instead') Object? data,
   }) {
-    DiagnosticCode code = _useNonNullCodeBetween(diagnosticCode, errorCode);
     assert(
-      arguments.length == code.numParameters,
-      'Message $code requires ${code.numParameters} '
-      'argument${code.numParameters == 1 ? '' : 's'}, but '
+      arguments.length == diagnosticCode.numParameters,
+      'Message $diagnosticCode requires ${diagnosticCode.numParameters} '
+      'argument${diagnosticCode.numParameters == 1 ? '' : 's'}, but '
       '${arguments.length} '
       'argument${arguments.length == 1 ? ' was' : 's were'} '
       'provided',
     );
-    String message = formatList(code.problemMessage, arguments);
-    String? correctionTemplate = code.correctionMessage;
+    String message = formatList(diagnosticCode.problemMessage, arguments);
+    String? correctionTemplate = diagnosticCode.correctionMessage;
     String? correctionMessage;
     if (correctionTemplate != null) {
       correctionMessage = formatList(correctionTemplate, arguments);
@@ -143,12 +131,10 @@ class Diagnostic {
       source: source,
       offset: offset,
       length: length,
-      diagnosticCode: code,
+      diagnosticCode: diagnosticCode,
       message: message,
       correctionMessage: correctionMessage,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
   }
 
@@ -232,19 +218,6 @@ class Diagnostic {
     buffer.write("): ");
     buffer.write(message);
     return buffer.toString();
-  }
-
-  /// The non-`null` [DiagnosticCode] value between the two parameters.
-  static DiagnosticCode _useNonNullCodeBetween(
-    DiagnosticCode? diagnosticCode,
-    DiagnosticCode? errorCode,
-  ) {
-    if ((diagnosticCode == null) == (errorCode == null)) {
-      throw new ArgumentError(
-        "Exactly one of 'diagnosticCode' and 'errorCode' may be passed",
-      );
-    }
-    return diagnosticCode ?? errorCode!;
   }
 }
 
