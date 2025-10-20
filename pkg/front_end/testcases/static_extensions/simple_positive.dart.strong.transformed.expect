@@ -6,33 +6,43 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  static get foo() → core::String
-    return "A.foo";
-  static set baz(core::num value) → void {
-    throw "A.baz=";
+  static get classGetter() → core::String
+    return "A.classGetter";
+  static set classSetter(core::num value) → void {
+    throw "A.classSetter=";
   }
+  static method classMethod() → core::String
+    return "A.classMethod";
 }
 extension E on self::A {
-  static get foo = get self::E|foo;
-  static get bar = get self::E|bar;
-  static set baz = set self::E|baz;
-  static set quux = set self::E|quux;
+  static get classGetter = get self::E|classGetter;
+  static get extensionGetter = get self::E|extensionGetter;
+  static set classSetter = set self::E|classSetter;
+  static set extensionSetter = set self::E|extensionSetter;
+  static method classMethod = self::E|classMethod;
+  static method extensionMethod = self::E|extensionMethod;
 }
-static extension-member get E|foo() → core::String
-  return "E.foo";
-static extension-member get E|bar() → core::String
-  return "E.bar";
-static extension-member set E|baz(core::num value) → void {}
-static extension-member set E|quux(core::bool value) → void {}
+static extension-member get E|classGetter() → core::String
+  return "E.classGetter";
+static extension-member get E|extensionGetter() → core::String
+  return "E.extensionGetter";
+static extension-member set E|classSetter(core::num value) → void {}
+static extension-member set E|extensionSetter(core::bool value) → void {}
+static extension-member method E|classMethod() → core::String
+  return "E.classMethod";
+static extension-member method E|extensionMethod() → core::String
+  return "E.extensionMethod";
 static method main() → dynamic {
-  self::expectEqual(self::A::foo, "A.foo");
-  self::expectEqual(self::E|bar, "E.bar");
+  self::expectEqual(self::A::classGetter, "A.classGetter");
+  self::expectEqual(self::E|extensionGetter, "E.extensionGetter");
   self::expectThrows(() → Null {
-    self::A::baz = 0;
+    self::A::classSetter = 0;
   });
   self::expectDoesntThrow(() → Null {
-    self::E|quux = false;
+    self::E|extensionSetter = false;
   });
+  self::expectEqual(self::A::classMethod(), "A.classMethod");
+  self::expectEqual(self::E|extensionMethod(), "E.extensionMethod");
 }
 static method expectEqual(dynamic a, dynamic b) → dynamic {
   if(!(a =={core::Object::==}{(core::Object) → core::bool} b)) {

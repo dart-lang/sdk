@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.55 Use `typeWithParameters` consistently, simplify primary constructor
+// rule.
+//
 // v0.54 Simplify members.
 //
 // v0.53 Support declaring constructors.
@@ -426,13 +429,13 @@ classDeclaration
     |    classModifiers MIXIN? CLASS mixinApplicationClass
     ;
 
-primaryConstructorNoConst
-    :    typeIdentifier typeParameters?
-         ('.' identifierOrNew)? declaringParameterList
+primaryConstructor
+    :    CONST? typeWithParameters ('.' identifierOrNew)?
+         declaringParameterList
     ;
 
 classNamePart
-    :    CONST? primaryConstructorNoConst
+    :    primaryConstructor
     |    typeWithParameters
     ;
 

@@ -5,24 +5,32 @@ import "dart:core" as core;
 class A extends core::Object {
   synthetic constructor •() → self::A
     ;
-  static get foo() → core::String
+  static get classGetter() → core::String
     ;
-  static set baz(core::num value) → void
+  static set classSetter(core::num value) → void
+    ;
+  static method classMethod() → core::String
     ;
 }
 extension E on self::A {
-  static get foo = get self::E|foo;
-  static get bar = get self::E|bar;
-  static set baz = set self::E|baz;
-  static set quux = set self::E|quux;
+  static get classGetter = get self::E|classGetter;
+  static get extensionGetter = get self::E|extensionGetter;
+  static set classSetter = set self::E|classSetter;
+  static set extensionSetter = set self::E|extensionSetter;
+  static method classMethod = self::E|classMethod;
+  static method extensionMethod = self::E|extensionMethod;
 }
-static extension-member get E|foo() → core::String
+static extension-member get E|classGetter() → core::String
   ;
-static extension-member get E|bar() → core::String
+static extension-member get E|extensionGetter() → core::String
   ;
-static extension-member set E|baz(core::num value) → void
+static extension-member set E|classSetter(core::num value) → void
   ;
-static extension-member set E|quux(core::bool value) → void
+static extension-member set E|extensionSetter(core::bool value) → void
+  ;
+static extension-member method E|classMethod() → core::String
+  ;
+static extension-member method E|extensionMethod() → core::String
   ;
 static method main() → dynamic
   ;

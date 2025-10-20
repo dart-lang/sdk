@@ -4112,7 +4112,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     Constness constness, {
     required bool inImplicitCreationContext,
   }) {
-    return _helper.resolveAndBuildConstructorInvocation(
+    return switch (_helper.resolveAndBuildConstructorInvocation(
       declaration,
       nameToken,
       nameLastToken,
@@ -4122,7 +4122,14 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       offsetForToken(nameToken),
       constness,
       unresolvedKind: UnresolvedKind.Constructor,
-    );
+    )) {
+      SuccessfulConstructorResolutionResult(:var constructorInvocation) =>
+        constructorInvocation,
+      ErroneousConstructorResolutionResult(:var errorExpression) =>
+        errorExpression,
+      UnresolvedConstructorResolutionResult unresolvedResult =>
+        unresolvedResult.buildErrorExpression(),
+    };
   }
 
   @override
@@ -4531,7 +4538,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             );
           }
         } else {
-          return _helper.resolveAndBuildConstructorInvocation(
+          switch (_helper.resolveAndBuildConstructorInvocation(
             declarationBuilder,
             send.token,
             send.token,
@@ -4545,7 +4552,46 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             unresolvedKind: isNullAware
                 ? UnresolvedKind.Method
                 : UnresolvedKind.Member,
-          );
+          )) {
+            case SuccessfulConstructorResolutionResult(
+              :var constructorInvocation,
+            ):
+              return constructorInvocation;
+            case ErroneousConstructorResolutionResult(
+              // Coverage-ignore(suite): Not run.
+              :var errorExpression,
+            ):
+              return errorExpression;
+            case UnresolvedConstructorResolutionResult unresolvedResult:
+              MemberLookupResult? memberLookupResult =
+                  _helper.libraryFeatures.staticExtensions.isEnabled
+                  ? _findStaticExtensionMember(name)
+                  : null;
+              if (memberLookupResult != null) {
+                if (memberLookupResult.isInvalidLookup) {
+                  // Coverage-ignore-block(suite): Not run.
+                  generator = new UnresolvedNameGenerator(
+                    _helper,
+                    send.token,
+                    name,
+                    unresolvedReadKind: UnresolvedKind.Member,
+                    errorHasBeenReported: true,
+                  );
+                } else {
+                  generator = new StaticAccessGenerator.fromBuilder(
+                    _helper,
+                    name,
+                    send.token,
+                    memberLookupResult.getable,
+                    memberLookupResult.setable,
+                    typeOffset: fileOffset,
+                    isNullAware: isNullAware,
+                  );
+                }
+              } else {
+                return unresolvedResult.buildErrorExpression();
+              }
+          }
         }
       } else {
         Builder? getable = result.getable;
@@ -4644,7 +4690,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
       );
     } else {
-      return _helper.resolveAndBuildConstructorInvocation(
+      return switch (_helper.resolveAndBuildConstructorInvocation(
         declaration,
         token,
         token,
@@ -4655,7 +4701,14 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         Constness.implicit,
         isTypeArgumentsInForest: isTypeArgumentsInForest,
         unresolvedKind: UnresolvedKind.Constructor,
-      );
+      )) {
+        SuccessfulConstructorResolutionResult(:var constructorInvocation) =>
+          constructorInvocation,
+        ErroneousConstructorResolutionResult(:var errorExpression) =>
+          errorExpression,
+        UnresolvedConstructorResolutionResult unresolvedResult =>
+          unresolvedResult.buildErrorExpression(),
+      };
     }
   }
 

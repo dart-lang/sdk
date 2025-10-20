@@ -6543,7 +6543,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  Expression resolveAndBuildConstructorInvocation(
+  ConstructorResolutionResult resolveAndBuildConstructorInvocation(
     TypeDeclarationBuilder? typeDeclarationBuilder,
     Token nameToken,
     Token nameLastToken,
@@ -6576,15 +6576,17 @@ class BodyBuilderImpl extends StackListenerImpl
       if (typeArguments != null &&
           numberOfTypeParameters != numberOfTypeArguments) {
         // TODO(eernst): Use position of type arguments, not nameToken.
-        return evaluateArgumentsBefore(
-          arguments,
-          buildProblem(
-            message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
-              numberOfTypeParameters,
+        return new ErroneousConstructorResolutionResult(
+          errorExpression: evaluateArgumentsBefore(
+            arguments,
+            buildProblem(
+              message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
+                numberOfTypeParameters,
+              ),
+              fileUri: uri,
+              fileOffset: charOffset,
+              length: noLength,
             ),
-            fileUri: uri,
-            fileOffset: charOffset,
-            length: noLength,
           ),
         );
       }
@@ -6624,14 +6626,16 @@ class BodyBuilderImpl extends StackListenerImpl
                 MemberBuilder? constructorBuilder = result.getable!;
                 if (constructorBuilder is ConstructorBuilder) {
                   if (typeDeclarationBuilder.isAbstract) {
-                    return evaluateArgumentsBefore(
-                      arguments,
-                      buildAbstractClassInstantiationError(
-                        cfe.codeAbstractClassInstantiation.withArgumentsOld(
+                    return new ErroneousConstructorResolutionResult(
+                      errorExpression: evaluateArgumentsBefore(
+                        arguments,
+                        buildAbstractClassInstantiationError(
+                          cfe.codeAbstractClassInstantiation.withArgumentsOld(
+                            typeDeclarationBuilder.name,
+                          ),
                           typeDeclarationBuilder.name,
+                          nameToken.charOffset,
                         ),
-                        typeDeclarationBuilder.name,
-                        nameToken.charOffset,
                       ),
                     );
                   }
@@ -6643,22 +6647,27 @@ class BodyBuilderImpl extends StackListenerImpl
               if (target is Constructor ||
                   (target is Procedure &&
                       target.kind == ProcedureKind.Factory)) {
-                return buildConstructorInvocation(
-                  target!,
-                  arguments,
-                  constness: constness,
-                  typeAliasBuilder: aliasBuilder,
-                  fileOffset: nameToken.charOffset,
-                  charLength: nameToken.length,
+                return new SuccessfulConstructorResolutionResult(
+                  buildConstructorInvocation(
+                    target!,
+                    arguments,
+                    constness: constness,
+                    typeAliasBuilder: aliasBuilder,
+                    fileOffset: nameToken.charOffset,
+                    charLength: nameToken.length,
+                  ),
                 );
               } else {
                 if (message != null) {
-                  return buildProblemFromLocatedMessage(message);
+                  return new ErroneousConstructorResolutionResult(
+                    errorExpression: buildProblemFromLocatedMessage(message),
+                  );
                 } else {
-                  return buildUnresolvedError(
-                    errorName,
-                    nameLastToken.charOffset,
-                    kind: UnresolvedKind.Constructor,
+                  return new UnresolvedConstructorResolutionResult(
+                    helper: this,
+                    errorName: errorName,
+                    charOffset: nameLastToken.charOffset,
+                    unresolvedKind: unresolvedKind,
                   );
                 }
               }
@@ -6684,36 +6693,43 @@ class BodyBuilderImpl extends StackListenerImpl
                   // Coverage-ignore(suite): Not run.
                   constructorBuilder is FactoryBuilder) {
                 Member target = constructorBuilder.invokeTarget!;
-                return buildConstructorInvocation(
-                  target,
-                  arguments,
-                  constness: constness,
-                  typeAliasBuilder: aliasBuilder,
-                  fileOffset: nameToken.charOffset,
-                  charLength: nameToken.length,
+                return new SuccessfulConstructorResolutionResult(
+                  buildConstructorInvocation(
+                    target,
+                    arguments,
+                    constness: constness,
+                    typeAliasBuilder: aliasBuilder,
+                    fileOffset: nameToken.charOffset,
+                    charLength: nameToken.length,
+                  ),
                 );
               }
               if (message != null) {
                 // Coverage-ignore-block(suite): Not run.
-                return buildProblemFromLocatedMessage(message);
+                return new ErroneousConstructorResolutionResult(
+                  errorExpression: buildProblemFromLocatedMessage(message),
+                );
               } else {
-                return buildUnresolvedError(
-                  errorName,
-                  nameLastToken.charOffset,
-                  kind: UnresolvedKind.Constructor,
+                return new UnresolvedConstructorResolutionResult(
+                  helper: this,
+                  errorName: errorName,
+                  charOffset: nameLastToken.charOffset,
+                  unresolvedKind: unresolvedKind,
                 );
               }
             case InvalidBuilder():
               // Coverage-ignore(suite): Not run.
               LocatedMessage message = typeDeclarationBuilder.message;
               // Coverage-ignore(suite): Not run.
-              return evaluateArgumentsBefore(
-                arguments,
-                buildProblem(
-                  message: message.messageObject,
-                  fileUri: uri,
-                  fileOffset: nameToken.charOffset,
-                  length: nameToken.lexeme.length,
+              return new ErroneousConstructorResolutionResult(
+                errorExpression: evaluateArgumentsBefore(
+                  arguments,
+                  buildProblem(
+                    message: message.messageObject,
+                    fileUri: uri,
+                    fileOffset: nameToken.charOffset,
+                    length: nameToken.lexeme.length,
+                  ),
                 ),
               );
             case TypeAliasBuilder():
@@ -6726,10 +6742,11 @@ class BodyBuilderImpl extends StackListenerImpl
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             case null:
-              return buildUnresolvedError(
-                errorName,
-                nameLastToken.charOffset,
-                kind: UnresolvedKind.Constructor,
+              return new UnresolvedConstructorResolutionResult(
+                helper: this,
+                errorName: errorName,
+                charOffset: nameLastToken.charOffset,
+                unresolvedKind: unresolvedKind,
               );
           }
         } else {
@@ -6744,16 +6761,18 @@ class BodyBuilderImpl extends StackListenerImpl
                 // Coverage-ignore-block(suite): Not run.
                 // TODO(eernst): This is a wrong number of type arguments,
                 // occurring indirectly (in an alias of an alias, etc.).
-                return evaluateArgumentsBefore(
-                  arguments,
-                  buildProblem(
-                    message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
-                      numberOfTypeParameters,
+                return new ErroneousConstructorResolutionResult(
+                  errorExpression: evaluateArgumentsBefore(
+                    arguments,
+                    buildProblem(
+                      message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
+                        numberOfTypeParameters,
+                      ),
+                      fileUri: uri,
+                      fileOffset: nameToken.charOffset,
+                      length: nameToken.length,
+                      errorHasBeenReported: true,
                     ),
-                    fileUri: uri,
-                    fileOffset: nameToken.charOffset,
-                    length: nameToken.length,
-                    errorHasBeenReported: true,
                   ),
                 );
               }
@@ -6821,15 +6840,17 @@ class BodyBuilderImpl extends StackListenerImpl
             if (numberOfTypeParameters != typeArgumentBuilders.length) {
               // Coverage-ignore-block(suite): Not run.
               // TODO(eernst): Use position of type arguments, not nameToken.
-              return evaluateArgumentsBefore(
-                arguments,
-                buildProblem(
-                  message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
-                    numberOfTypeParameters,
+              return new ErroneousConstructorResolutionResult(
+                errorExpression: evaluateArgumentsBefore(
+                  arguments,
+                  buildProblem(
+                    message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
+                      numberOfTypeParameters,
+                    ),
+                    fileUri: uri,
+                    fileOffset: nameToken.charOffset,
+                    length: nameToken.length,
                   ),
-                  fileUri: uri,
-                  fileOffset: nameToken.charOffset,
-                  length: nameToken.length,
                 ),
               );
             }
@@ -6839,16 +6860,18 @@ class BodyBuilderImpl extends StackListenerImpl
               // Coverage-ignore-block(suite): Not run.
               // TODO(eernst): This is a wrong number of type arguments,
               // occurring indirectly (in an alias of an alias, etc.).
-              return evaluateArgumentsBefore(
-                arguments,
-                buildProblem(
-                  message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
-                    numberOfTypeParameters,
+              return new ErroneousConstructorResolutionResult(
+                errorExpression: evaluateArgumentsBefore(
+                  arguments,
+                  buildProblem(
+                    message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
+                      numberOfTypeParameters,
+                    ),
+                    fileUri: uri,
+                    fileOffset: nameToken.charOffset,
+                    length: nameToken.length,
+                    errorHasBeenReported: true,
                   ),
-                  fileUri: uri,
-                  fileOffset: nameToken.charOffset,
-                  length: nameToken.length,
-                  errorHasBeenReported: true,
                 ),
               );
             }
@@ -6934,14 +6957,16 @@ class BodyBuilderImpl extends StackListenerImpl
           // Not found. Reported below.
         } else if (constructorBuilder is ConstructorBuilder) {
           if (typeDeclarationBuilder.isAbstract) {
-            return evaluateArgumentsBefore(
-              arguments,
-              buildAbstractClassInstantiationError(
-                cfe.codeAbstractClassInstantiation.withArgumentsOld(
+            return new ErroneousConstructorResolutionResult(
+              errorExpression: evaluateArgumentsBefore(
+                arguments,
+                buildAbstractClassInstantiationError(
+                  cfe.codeAbstractClassInstantiation.withArgumentsOld(
+                    typeDeclarationBuilder.name,
+                  ),
                   typeDeclarationBuilder.name,
+                  nameToken.charOffset,
                 ),
-                typeDeclarationBuilder.name,
-                nameToken.charOffset,
               ),
             );
           }
@@ -6953,11 +6978,13 @@ class BodyBuilderImpl extends StackListenerImpl
             !(libraryFeatures.enhancedEnums.isEnabled &&
                 target is Procedure &&
                 target.kind == ProcedureKind.Factory)) {
-          return buildProblem(
-            message: cfe.codeEnumInstantiation,
-            fileUri: uri,
-            fileOffset: nameToken.charOffset,
-            length: nameToken.length,
+          return new ErroneousConstructorResolutionResult(
+            errorExpression: buildProblem(
+              message: cfe.codeEnumInstantiation,
+              fileUri: uri,
+              fileOffset: nameToken.charOffset,
+              length: nameToken.length,
+            ),
           );
         }
         if (target is Constructor ||
@@ -6972,7 +6999,7 @@ class BodyBuilderImpl extends StackListenerImpl
             charLength: nameToken.length,
             typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?,
           );
-          return invocation;
+          return new SuccessfulConstructorResolutionResult(invocation);
         } else {
           errorName ??= debugName(typeDeclarationBuilder.name, name);
         }
@@ -6997,26 +7024,30 @@ class BodyBuilderImpl extends StackListenerImpl
           target = constructorBuilder.invokeTarget;
         }
         if (target != null) {
-          return buildConstructorInvocation(
-            target,
-            arguments,
-            constness: constness,
-            fileOffset: nameToken.charOffset,
-            charLength: nameToken.length,
-            typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?,
+          return new SuccessfulConstructorResolutionResult(
+            buildConstructorInvocation(
+              target,
+              arguments,
+              constness: constness,
+              fileOffset: nameToken.charOffset,
+              charLength: nameToken.length,
+              typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?,
+            ),
           );
         } else {
           errorName ??= debugName(typeDeclarationBuilder.name, name);
         }
       case InvalidBuilder():
         LocatedMessage message = typeDeclarationBuilder.message;
-        return evaluateArgumentsBefore(
-          arguments,
-          buildProblem(
-            message: message.messageObject,
-            fileUri: uri,
-            fileOffset: nameToken.charOffset,
-            length: nameToken.lexeme.length,
+        return new ErroneousConstructorResolutionResult(
+          errorExpression: evaluateArgumentsBefore(
+            arguments,
+            buildProblem(
+              message: message.messageObject,
+              fileUri: uri,
+              fileOffset: nameToken.charOffset,
+              length: nameToken.lexeme.length,
+            ),
           ),
         );
       case TypeAliasBuilder():
@@ -7031,12 +7062,15 @@ class BodyBuilderImpl extends StackListenerImpl
         );
     }
     if (message != null) {
-      return buildProblemFromLocatedMessage(message);
+      return new ErroneousConstructorResolutionResult(
+        errorExpression: buildProblemFromLocatedMessage(message),
+      );
     } else {
-      return buildUnresolvedError(
-        errorName,
-        nameLastToken.charOffset,
-        kind: unresolvedKind,
+      return new UnresolvedConstructorResolutionResult(
+        helper: this,
+        errorName: errorName,
+        charOffset: nameLastToken.charOffset,
+        unresolvedKind: unresolvedKind,
       );
     }
   }

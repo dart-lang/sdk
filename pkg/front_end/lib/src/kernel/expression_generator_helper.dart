@@ -174,7 +174,7 @@ abstract class ExpressionGeneratorHelper {
     bool isImplicitCall = false,
   });
 
-  Expression resolveAndBuildConstructorInvocation(
+  ConstructorResolutionResult resolveAndBuildConstructorInvocation(
     TypeDeclarationBuilder type,
     Token nameToken,
     Token nameLastToken,
@@ -319,3 +319,56 @@ bool isProperRenameForTypeDeclaration(
 }
 
 enum UnresolvedKind { Unknown, Member, Method, Getter, Setter, Constructor }
+
+/// Result of [ExpressionGeneratorHelper.resolveAndBuildConstructorInvocation].
+///
+/// [ConstructorResolutionResult] is the root of the sealed hierarchy of
+/// results, which then branches into the successful, the unresolved, and the
+/// erroneous cases.
+sealed class ConstructorResolutionResult {}
+
+class SuccessfulConstructorResolutionResult
+    extends ConstructorResolutionResult {
+  final Expression constructorInvocation;
+
+  SuccessfulConstructorResolutionResult(this.constructorInvocation);
+}
+
+/// Erroneous case of [ConstructorResolutionResult].
+class ErroneousConstructorResolutionResult extends ConstructorResolutionResult {
+  /// The expression signaling the error, typically an [InvalidExpression].
+  final Expression errorExpression;
+
+  ErroneousConstructorResolutionResult({required this.errorExpression});
+}
+
+/// Unresolved case of [UnresolvedConstructorResolutionResult].
+class UnresolvedConstructorResolutionResult
+    extends ConstructorResolutionResult {
+  final ExpressionGeneratorHelper _helper;
+  final String errorName;
+  final int charOffset;
+  final UnresolvedKind unresolvedKind;
+
+  UnresolvedConstructorResolutionResult({
+    required this.errorName,
+    required this.charOffset,
+    required ExpressionGeneratorHelper helper,
+    this.unresolvedKind = UnresolvedKind.Constructor,
+  }) : _helper = helper;
+
+  /// Constructs the expression signaling the unresolved error.
+  ///
+  /// The construction of the expression signaling the error is delayed from
+  /// the moment of invoking the constructor of
+  /// [UnresolvedConstructorResolutionResult], to allow for other resolution
+  /// mechanisms to make their attempts, and only if they are also unsuccessful,
+  /// build and signal the unresolved error.
+  Expression buildErrorExpression() {
+    return _helper.buildUnresolvedError(
+      errorName,
+      charOffset,
+      kind: unresolvedKind,
+    );
+  }
+}
