@@ -6465,7 +6465,6 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       metadata: metadata,
       augmentKeyword: augmentKeyword,
       abstractKeyword: abstractKeyword,
-      macroKeyword: macroKeyword,
       sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,

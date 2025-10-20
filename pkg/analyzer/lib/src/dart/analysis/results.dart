@@ -170,11 +170,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
   }
 }
 
-class ElementDeclarationResultImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package
-        ElementDeclarationResult,
-        FragmentDeclarationResult {
+class ElementDeclarationResultImpl implements FragmentDeclarationResult {
   @override
   final Fragment fragment;
 
@@ -281,10 +277,6 @@ class LibraryElementResultImpl implements LibraryElementResult {
   final LibraryElementImpl element;
 
   LibraryElementResultImpl(this.element);
-
-  @override
-  @Deprecated('Use element instead')
-  LibraryElement get element2 => element;
 }
 
 class MissingSdkLibraryResultImpl implements MissingSdkLibraryResult {
@@ -300,12 +292,6 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   final List<ParsedUnitResult> units;
 
   ParsedLibraryResultImpl({required super.session, required this.units});
-
-  @Deprecated('Use getFragmentDeclaration() instead')
-  @override
-  ElementDeclarationResultImpl? getElementDeclaration2(Fragment fragment) {
-    return getFragmentDeclaration(fragment);
-  }
 
   @override
   ElementDeclarationResultImpl? getFragmentDeclaration(Fragment fragment) {
@@ -436,17 +422,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   });
 
   @override
-  @Deprecated('Use element instead')
-  LibraryElement get element2 => element;
-
-  @override
   TypeProviderImpl get typeProvider => element.typeProvider;
-
-  @Deprecated('Use getFragmentDeclaration() instead')
-  @override
-  ElementDeclarationResultImpl? getElementDeclaration2(Fragment fragment) {
-    return getFragmentDeclaration(fragment);
-  }
 
   @override
   ElementDeclarationResultImpl? getFragmentDeclaration(Fragment fragment) {
@@ -521,10 +497,6 @@ class ResolvedUnitResultImpl extends FileResultImpl
   LibraryElementImpl get libraryElement {
     return libraryFragment.element;
   }
-
-  @override
-  @Deprecated('Use libraryElement instead')
-  LibraryElement get libraryElement2 => libraryElement;
 
   @override
   LibraryFragmentImpl get libraryFragment => unit.declaredFragment!;

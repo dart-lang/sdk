@@ -9,23 +9,13 @@ import 'package:analyzer/src/error/listener.dart';
 
 export 'package:analyzer/src/error/listener.dart' show DiagnosticReporter;
 
-@Deprecated("Use 'BooleanDiagnosticListener' instead")
-typedef BooleanErrorListener = BooleanDiagnosticListener;
-
 @Deprecated("Use 'DiagnosticReporter' instead")
 typedef ErrorReporter = DiagnosticReporter;
-
-@Deprecated("Use 'RecordingDiagnosticListener' instead")
-typedef RecorderingErrorListener = RecordingDiagnosticListener;
 
 /// An object that listens for [Diagnostic]s being produced by the analysis
 /// engine.
 @Deprecated("Use 'DiagnosticListener' instead")
 abstract class AnalysisErrorListener implements DiagnosticOrErrorListener {
-  /// A diagnostic listener that ignores diagnostics that are reported to it.
-  @Deprecated("Use 'DiagnosticListener.nullListener' instead")
-  static const AnalysisErrorListener NULL_LISTENER = _NullErrorListener();
-
   /// This method is invoked when a [diagnostic] has been found by the analysis
   /// engine.
   void onError(Diagnostic diagnostic);
@@ -107,20 +97,6 @@ class _NullDiagnosticListener implements DiagnosticListener {
 
   @override
   void onDiagnostic(Diagnostic diagnostic) {
-    // Ignore diagnostics.
-  }
-}
-
-// ignore: deprecated_member_use_from_same_package
-/// An [AnalysisErrorListener] that ignores everything.
-class _NullErrorListener
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        AnalysisErrorListener {
-  const _NullErrorListener();
-
-  @override
-  void onError(Diagnostic diagnostic) {
     // Ignore diagnostics.
   }
 }

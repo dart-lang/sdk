@@ -32,11 +32,6 @@ class AnalysisSessionHelper {
     return null;
   }
 
-  @Deprecated('Use [getClass] instead.')
-  Future<ClassElement?> getClass2(String libraryUri, String className) async {
-    return await getClass(libraryUri, className);
-  }
-
   /// Return the [EnumElement] with the given [className] that is exported
   /// from the library with the given [libraryUri], or `null` if the library
   /// does not export a class with such name.

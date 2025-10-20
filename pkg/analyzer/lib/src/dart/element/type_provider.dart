@@ -163,12 +163,6 @@ class TypeProviderImpl extends TypeProviderBase {
     return _boolElement ??= _getClassElement(_coreLibrary, 'bool');
   }
 
-  @Deprecated('Use boolElement instead')
-  @override
-  ClassElementImpl get boolElement2 {
-    return boolElement;
-  }
-
   @override
   InterfaceTypeImpl get boolType {
     boolElement; // record requirement
@@ -203,12 +197,6 @@ class TypeProviderImpl extends TypeProviderBase {
     return _doubleElement ??= _getClassElement(_coreLibrary, "double");
   }
 
-  @Deprecated('Use doubleElement instead')
-  @override
-  ClassElementImpl get doubleElement2 {
-    return doubleElement;
-  }
-
   @override
   InterfaceTypeImpl get doubleType {
     doubleElement; // record requirement
@@ -236,12 +224,6 @@ class TypeProviderImpl extends TypeProviderBase {
       _enumElement = _getClassElement(_coreLibrary, 'Enum');
     }
     return _enumElement;
-  }
-
-  @Deprecated('Use enumElement instead.')
-  @override
-  ClassElementImpl? get enumElement2 {
-    return enumElement;
   }
 
   @override
@@ -289,12 +271,6 @@ class TypeProviderImpl extends TypeProviderBase {
     return _futureElement ??= _getClassElement(_asyncLibrary, 'Future');
   }
 
-  @Deprecated('Use futureElement instead.')
-  @override
-  ClassElementImpl get futureElement2 {
-    return futureElement;
-  }
-
   @override
   InterfaceTypeImpl get futureNullType {
     futureElement; // record requirement
@@ -310,12 +286,6 @@ class TypeProviderImpl extends TypeProviderBase {
     return _futureOrElement ??= _getClassElement(_asyncLibrary, 'FutureOr');
   }
 
-  @Deprecated('Use futureOrElement instead.')
-  @override
-  ClassElementImpl get futureOrElement2 {
-    return futureOrElement;
-  }
-
   @override
   InterfaceTypeImpl get futureOrNullType {
     futureOrElement; // record requirement
@@ -329,12 +299,6 @@ class TypeProviderImpl extends TypeProviderBase {
   ClassElementImpl get intElement {
     _coreLibrary.recordGetDeclaredClass('int');
     return _intElement ??= _getClassElement(_coreLibrary, "int");
-  }
-
-  @Deprecated('Use intElement instead.')
-  @override
-  ClassElementImpl get intElement2 {
-    return intElement;
   }
 
   @override
@@ -368,12 +332,6 @@ class TypeProviderImpl extends TypeProviderBase {
     return _iterableElement ??= _getClassElement(_coreLibrary, 'Iterable');
   }
 
-  @Deprecated('Use iterableElement instead')
-  @override
-  ClassElementImpl get iterableElement2 {
-    return iterableElement;
-  }
-
   @override
   InterfaceTypeImpl get iterableObjectType {
     iterableElement; // record requirement
@@ -390,22 +348,10 @@ class TypeProviderImpl extends TypeProviderBase {
     return _listElement ??= _getClassElement(_coreLibrary, 'List');
   }
 
-  @Deprecated('Use listElement instead')
-  @override
-  ClassElementImpl get listElement2 {
-    return listElement;
-  }
-
   @override
   ClassElementImpl get mapElement {
     _coreLibrary.recordGetDeclaredClass('Map');
     return _mapElement ??= _getClassElement(_coreLibrary, 'Map');
-  }
-
-  @Deprecated('Use mapElement instead')
-  @override
-  ClassElementImpl get mapElement2 {
-    return mapElement;
   }
 
   @override
@@ -427,12 +373,6 @@ class TypeProviderImpl extends TypeProviderBase {
     return _nullElement ??= _getClassElement(_coreLibrary, 'Null');
   }
 
-  @Deprecated('Use nullElement instead')
-  @override
-  ClassElementImpl get nullElement2 {
-    return nullElement;
-  }
-
   @override
   InterfaceTypeImpl get nullType {
     nullElement; // record requirement
@@ -446,12 +386,6 @@ class TypeProviderImpl extends TypeProviderBase {
   ClassElementImpl get numElement {
     _coreLibrary.recordGetDeclaredClass('num');
     return _numElement ??= _getClassElement(_coreLibrary, 'num');
-  }
-
-  @Deprecated('Use numElement instead')
-  @override
-  ClassElementImpl get numElement2 {
-    return numElement;
   }
 
   @override
@@ -474,12 +408,6 @@ class TypeProviderImpl extends TypeProviderBase {
   ClassElementImpl get objectElement {
     _coreLibrary.recordGetDeclaredClass('Object');
     return _objectElement ??= _getClassElement(_coreLibrary, 'Object');
-  }
-
-  @Deprecated('Use objectElement instead')
-  @override
-  ClassElementImpl get objectElement2 {
-    return objectElement;
   }
 
   @override
@@ -506,12 +434,6 @@ class TypeProviderImpl extends TypeProviderBase {
     return _recordElement ??= _getClassElement(_coreLibrary, 'Record');
   }
 
-  @Deprecated('Use recordElement instead')
-  @override
-  ClassElementImpl get recordElement2 {
-    return recordElement;
-  }
-
   @override
   InterfaceTypeImpl get recordType {
     recordElement; // record requirement
@@ -525,12 +447,6 @@ class TypeProviderImpl extends TypeProviderBase {
   ClassElementImpl get setElement {
     _coreLibrary.recordGetDeclaredClass('Set');
     return _setElement ??= _getClassElement(_coreLibrary, 'Set');
-  }
-
-  @Deprecated('Use setElement instead')
-  @override
-  ClassElementImpl get setElement2 {
-    return setElement;
   }
 
   ClassElementImpl get stackTraceElement {
@@ -562,22 +478,10 @@ class TypeProviderImpl extends TypeProviderBase {
     return _streamElement ??= _getClassElement(_asyncLibrary, 'Stream');
   }
 
-  @Deprecated('Use streamElement instead')
-  @override
-  ClassElementImpl get streamElement2 {
-    return streamElement;
-  }
-
   @override
   ClassElementImpl get stringElement {
     _coreLibrary.recordGetDeclaredClass('String');
     return _stringElement ??= _getClassElement(_coreLibrary, 'String');
-  }
-
-  @Deprecated('Use stringElement instead')
-  @override
-  ClassElementImpl get stringElement2 {
-    return stringElement;
   }
 
   @override
@@ -593,12 +497,6 @@ class TypeProviderImpl extends TypeProviderBase {
   ClassElementImpl get symbolElement {
     _coreLibrary.recordGetDeclaredClass('Symbol');
     return _symbolElement ??= _getClassElement(_coreLibrary, 'Symbol');
-  }
-
-  @Deprecated('Use symbolElement instead')
-  @override
-  ClassElementImpl get symbolElement2 {
-    return symbolElement;
   }
 
   @override
@@ -652,12 +550,6 @@ class TypeProviderImpl extends TypeProviderBase {
       return ofLibrary != null && ofLibrary.contains(name);
     }
     return false;
-  }
-
-  @Deprecated('Use isNonSubtypableClass instead')
-  @override
-  bool isNonSubtypableClass2(InterfaceElement element) {
-    return isNonSubtypableClass(element);
   }
 
   @override

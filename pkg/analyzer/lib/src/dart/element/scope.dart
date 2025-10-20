@@ -767,14 +767,6 @@ class ScopeLookupResultImpl extends ScopeLookupResult {
   final Element? setter;
 
   ScopeLookupResultImpl({required this.getter, required this.setter});
-
-  @Deprecated('Use getter instead')
-  @override
-  Element? get getter2 => getter;
-
-  @Deprecated('Use getter instead')
-  @override
-  Element? get setter2 => setter;
 }
 
 class TypeParameterScope extends EnclosedScope {

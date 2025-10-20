@@ -52,9 +52,6 @@ class MockDiagnostic implements Diagnostic {
   String? get correctionMessage => null;
 
   @override
-  Object? get data => throw UnimplementedError();
-
-  @override
   MockErrorCode get errorCode => diagnosticCode;
 
   @override
