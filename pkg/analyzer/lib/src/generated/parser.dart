@@ -10,6 +10,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart'
+    show ExperimentalFeaturesStatus;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -45,8 +47,7 @@ class Parser {
        ) {
     fastaParser = fasta.Parser(
       astBuilder,
-      allowPatterns: featureSet.isEnabled(Feature.patterns),
-      enableFeatureEnhancedParts: featureSet.isEnabled(Feature.enhanced_parts),
+      experimentalFeatures: ExperimentalFeaturesStatus(featureSet),
     );
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;

@@ -533,15 +533,15 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   sb.writeln('});');
 
   sb.write('''
-  const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags 
-     = {
+  ExperimentalFlag fromSharedExperimentalFlag(shared.ExperimentalFlag flag) 
+     => switch (flag) {
   ''');
   for (String key in keys) {
     String category = _getFeatureCategory(features[key]!);
     if (!_isLanguageFeature(category)) continue;
 
     sb.writeln('''
-    shared.ExperimentalFlag.${keyToIdentifier(key)}:
+    shared.ExperimentalFlag.${keyToIdentifier(key)} =>
     ExperimentalFlag.${keyToIdentifier(key)},''');
   }
   sb.write('''

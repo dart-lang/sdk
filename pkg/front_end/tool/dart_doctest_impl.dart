@@ -11,6 +11,8 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart' as codes;
 import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart'
     show AsyncModifier;
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
     show NullListener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
@@ -742,6 +744,7 @@ List<Test> extractTestsFromComment(
     final Parser parser = new Parser(
       listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      experimentalFeatures: const DefaultExperimentalFeatures(),
     );
     parser.asyncState = AsyncModifier.Async;
 

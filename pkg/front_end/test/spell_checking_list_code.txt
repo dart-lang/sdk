@@ -225,6 +225,7 @@ caller's
 callers
 callsite
 came
+camel
 canary
 canonicalizer
 canonicalizing
@@ -991,6 +992,7 @@ jvm
 k
 kallentu
 kb
+kebab
 kernel's
 keyed
 kick
@@ -1735,6 +1737,7 @@ slowing
 smi
 smith
 sn
+snake
 socket
 sockets
 soft

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared;
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    as parser;
 import 'package:kernel/default_language_version.dart'
     show defaultLanguageVersion;
 import 'package:kernel/kernel.dart' show Version;
@@ -283,4 +285,26 @@ class LibraryFeature extends ExperimentalFeature {
     this.enabledVersion,
     this.isEnabled,
   ) : super(flag);
+}
+
+class LibraryExperimentalFeatures implements parser.ExperimentalFeatures {
+  final LibraryFeatures _libraryFeatures;
+
+  LibraryExperimentalFeatures(this._libraryFeatures);
+
+  @override
+  bool isExperimentEnabled(shared.ExperimentalFlag flag) {
+    return _libraryFeatures.fromSharedExperimentalFlags(flag).isEnabled;
+  }
+}
+
+class ExperimentalFeaturesFromVersion implements parser.ExperimentalFeatures {
+  final Version _version;
+
+  ExperimentalFeaturesFromVersion(this._version);
+
+  @override
+  bool isExperimentEnabled(shared.ExperimentalFlag flag) {
+    return _version >= fromSharedExperimentalFlag(flag).enabledVersion;
+  }
 }

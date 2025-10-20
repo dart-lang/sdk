@@ -8,6 +8,7 @@ library;
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/io.dart'
     show readBytesFromFileSync;
@@ -176,6 +177,7 @@ Set<String> extractDirectiveUris(Uint8List contents) {
   new TopLevelParser(
     listener,
     useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
   ).parseUnit(tokenize(contents).tokens);
   return new Set<String>()
     ..addAll(listener.imports.map((directive) => directive.uri!))
@@ -213,6 +215,7 @@ void parseFull(Uri uri, Uint8List source) {
   Parser parser = new Parser(
     new _PartialAstBuilder(uri, lineInfo),
     useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
   );
   parser.parseUnit(result.tokens);
 }

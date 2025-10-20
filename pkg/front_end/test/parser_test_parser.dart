@@ -13,7 +13,7 @@ import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 import 'package:_fe_analyzer_shared/src/parser/member_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
-    show ConstantPatternContext, Parser;
+    show ConstantPatternContext, ExperimentalFeatures, Parser;
 import 'package:_fe_analyzer_shared/src/parser/parser_impl.dart'
     show AwaitOrYieldContext, ForPartsContext, PatternContext;
 import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
@@ -36,13 +36,11 @@ class TestParser extends Parser {
   TestParser(
     Listener listener,
     this.trace, {
-    required bool allowPatterns,
-    required bool enableEnhancedParts,
+    required ExperimentalFeatures experimentalFeatures,
   }) : super(
          listener,
          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-         allowPatterns: allowPatterns,
-         enableFeatureEnhancedParts: enableEnhancedParts,
+         experimentalFeatures: experimentalFeatures,
        );
 
   String createTrace() {

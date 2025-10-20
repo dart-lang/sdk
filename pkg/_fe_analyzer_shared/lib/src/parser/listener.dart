@@ -47,7 +47,7 @@ abstract class UnescapeErrorListener {
 ///
 /// Events starting with `handle` are used when isn't possible to have a begin
 /// event.
-class Listener implements UnescapeErrorListener {
+abstract class Listener implements UnescapeErrorListener {
   void logEvent(String name) {}
 
   void beginArguments(Token token) {}

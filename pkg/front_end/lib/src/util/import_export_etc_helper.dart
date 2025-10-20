@@ -11,12 +11,7 @@ import 'parser_ast_helper.dart';
 FileInfoHelper getFileInfoHelper(Uint8List rawBytes) {
   ImportExportPartLibraryHelperVisitor visitor =
       new ImportExportPartLibraryHelperVisitor();
-  getAST(
-    rawBytes,
-    enableTripleShift: true,
-    includeBody: false,
-    includeComments: false,
-  ).accept(visitor);
+  getAST(rawBytes, includeBody: false, includeComments: false).accept(visitor);
   return visitor.fileInfo;
 }
 

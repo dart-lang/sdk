@@ -6,6 +6,8 @@ import 'dart:async' show Completer;
 import 'dart:convert' show JsonEncoder;
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show ExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:front_end/src/base/name_space.dart';
@@ -1185,17 +1187,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               /* this is effectively what the constant evaluator does */
               context.options.globalFeatures.tripleShift.isEnabled,
         );
-        bool enablePatterns =
-            builder.languageVersion >= ExperimentalFlag.patterns.enabledVersion;
-        bool enableEnhancedParts =
-            builder.languageVersion >=
-            ExperimentalFlag.enhancedParts.enabledVersion;
+        ExperimentalFeatures experimentalFeatures =
+            new ExperimentalFeaturesFromVersion(builder.languageVersion);
         String? before = textualOutline(
           previousSource,
           scannerConfiguration,
           performModelling: true,
-          enablePatterns: enablePatterns,
-          enableEnhancedParts: enableEnhancedParts,
+          experimentalFeatures: experimentalFeatures,
         );
         if (before == null) {
           // Coverage-ignore-block(suite): Not run.
@@ -1211,8 +1209,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             await entity.readAsBytes(),
             scannerConfiguration,
             performModelling: true,
-            enablePatterns: enablePatterns,
-            enableEnhancedParts: enableEnhancedParts,
+            experimentalFeatures: experimentalFeatures,
           );
         }
         if (before != now) {

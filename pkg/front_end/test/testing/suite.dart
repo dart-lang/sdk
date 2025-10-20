@@ -6,6 +6,8 @@ import 'dart:convert' show jsonDecode, utf8;
 import 'dart:io' show Directory, File, Platform;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show ExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show LanguageVersionToken, Token;
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
@@ -22,7 +24,11 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     show ConstantEvaluator, ErrorReporter;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show AllowedExperimentalFlags, ExperimentalFlag, LibraryFeatures;
+    show
+        AllowedExperimentalFlags,
+        ExperimentalFlag,
+        LibraryFeatures,
+        LibraryExperimentalFeatures;
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
@@ -1390,7 +1396,7 @@ part of "${newEntryUri}";
         );
         fuzzAstVisitorSorter = new FuzzAstVisitorSorter(
           orgData,
-          libFeatures.patterns.isEnabled,
+          new LibraryExperimentalFeatures(libFeatures),
         );
       } on FormatException catch (e, st) {
         // UTF-16-LE formatted test crashes `utf8.decode(bytes)` --- catch that
@@ -1566,7 +1572,7 @@ part of "${newEntryUri}";
         );
         fuzzAstVisitorSorter = new FuzzAstVisitorSorter(
           orgData,
-          libFeatures.patterns.isEnabled,
+          new LibraryExperimentalFeatures(libFeatures),
         );
       } on FormatException catch (e, st) {
         // UTF-16-LE formatted test crashes `utf8.decode(bytes)` --- catch that
@@ -1855,15 +1861,15 @@ enum FuzzOriginalType {
 class FuzzAstVisitorSorter extends IgnoreSomeForCompatibilityAstVisitor {
   final Uint8List bytes;
   final String asString;
-  final bool allowPatterns;
+  final ExperimentalFeatures experimentalFeatures;
 
-  FuzzAstVisitorSorter(this.bytes, this.allowPatterns)
+  FuzzAstVisitorSorter(this.bytes, this.experimentalFeatures)
     : asString = utf8.decode(bytes) {
     CompilationUnitEnd ast = getAST(
       bytes,
       includeBody: false,
       includeComments: true,
-      allowPatterns: allowPatterns,
+      experimentalFeatures: experimentalFeatures,
     );
     ast.accept(this);
 

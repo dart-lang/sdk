@@ -68,6 +68,7 @@ import 'declaration_kind.dart' show DeclarationHeaderKind, DeclarationKind;
 
 import 'directive_context.dart';
 
+import 'experimental_features.dart';
 import 'formal_parameter_kind.dart' show FormalParameterKind;
 
 import 'forwarding_listener.dart' show ForwardingListener, NullListener;
@@ -312,14 +313,17 @@ class Parser {
   // implicit create expression without the special casing.
   final bool useImplicitCreationExpression;
 
-  /// Indicates whether pattern parsing is enabled.
+  /// The experiments currently enabled.
   ///
-  /// This ensures that we don't regress non-pattern functionality while pattern
-  /// parsing logic is being developed.  Eventually we will want to turn this
-  /// functionality on permanently, and leave it to the client to report an
-  /// appropriate error if a pattern is used while patterns are not enabled.
-  /// TODO(paulberry): remove this flag when appropriate.
-  final bool allowPatterns;
+  /// For performance, values used within the parser should be cached in fields,
+  /// similar to [isPatternsFeatureEnabled].
+  final ExperimentalFeatures experimentalFeatures;
+
+  /// `true` if the 'patterns' feature is enabled.
+  final bool isPatternsFeatureEnabled;
+
+  /// `true` if the 'enhanced-parts' feature is enabled.
+  final bool _isEnhancedPartsFeatureEnabled;
 
   /// Indicates whether the last pattern parsed is allowed inside unary
   /// patterns.  This is set by [parsePrimaryPattern] and [parsePattern].
@@ -328,9 +332,6 @@ class Parser {
   /// remove this boolean and instead return a record (Token, bool) from the
   /// [parsePrimaryPattern] and [parsePattern].
   bool isLastPatternAllowedInsideUnaryPattern = false;
-
-  /// Whether the `enhanced-parts` feature is enabled.
-  final bool enableFeatureEnhancedParts;
 
   /// Whether the parser is allowed to shortcut certain [parseExpression] calls.
   ///
@@ -341,9 +342,12 @@ class Parser {
   Parser(
     this.listener, {
     this.useImplicitCreationExpression = true,
-    this.allowPatterns = false,
-    this.enableFeatureEnhancedParts = false,
-  }) : assert(listener != null); // ignore:unnecessary_null_comparison
+    required this.experimentalFeatures,
+  }) : isPatternsFeatureEnabled = experimentalFeatures.isExperimentEnabled(
+         ExperimentalFlag.patterns,
+       ),
+       _isEnhancedPartsFeatureEnabled = experimentalFeatures
+           .isExperimentEnabled(ExperimentalFlag.enhancedParts);
 
   /// Executes [callback]; however if `this` is the `TestParser` (from
   /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
@@ -403,7 +407,7 @@ class Parser {
     listener.beginCompilationUnit(token);
     int count = 0;
     DirectiveContext directiveState = new DirectiveContext(
-      enableFeatureEnhancedParts: enableFeatureEnhancedParts,
+      isEnhancedPartsFeatureEnabled: _isEnhancedPartsFeatureEnabled,
     );
     token = syntheticPreviousToken(token);
     if (identical(token.next!.type, TokenType.SCRIPT_TAG)) {
@@ -451,7 +455,7 @@ class Parser {
     listener.beginCompilationUnit(token);
     int count = 0;
     DirectiveContext directiveState = new DirectiveContext(
-      enableFeatureEnhancedParts: enableFeatureEnhancedParts,
+      isEnhancedPartsFeatureEnabled: _isEnhancedPartsFeatureEnabled,
     );
     token = syntheticPreviousToken(token);
     while (!token.next!.isEof) {
@@ -6288,7 +6292,8 @@ class Parser {
     final String? value = token.next!.stringValue;
     if (identical(value, '{')) {
       // The scanner ensures that `{` always has a closing `}`.
-      if (allowPatterns && token.next!.endGroup!.next!.isA(TokenType.EQ)) {
+      if (isPatternsFeatureEnabled &&
+          token.next!.endGroup!.next!.isA(TokenType.EQ)) {
         // Expression statement beginning with a pattern assignment
         return parseExpressionStatement(token);
       } else {
@@ -6518,7 +6523,7 @@ class Parser {
         listener.handleIdentifier(token, IdentifierContext.expression);
       }
     } else {
-      if (allowPatterns && looksLikeOuterPatternEquals(token)) {
+      if (isPatternsFeatureEnabled && looksLikeOuterPatternEquals(token)) {
         token = parsePatternAssignment(token);
       } else {
         token = token.next!.isA(Keyword.THROW)
@@ -7587,7 +7592,7 @@ class Parser {
         // Fall through to the recovery code.
       } else if (identical(value, "assert")) {
         return parseAssert(token, Assert.Expression);
-      } else if (allowPatterns && identical(value, "switch")) {
+      } else if (isPatternsFeatureEnabled && identical(value, "switch")) {
         return parseSwitchExpression(token);
       } else if (next.isIdentifier) {
         if (constantPatternContext ==
@@ -7803,7 +7808,7 @@ class Parser {
     BeginToken begin = token as BeginToken;
     token = parseExpression(token);
     Token next = token.next!;
-    if (allowPatterns && next.isA(Keyword.CASE)) {
+    if (isPatternsFeatureEnabled && next.isA(Keyword.CASE)) {
       Token case_ = token = next;
       token = parsePattern(token, PatternContext.matching);
       next = token.next!;
@@ -9320,7 +9325,7 @@ class Parser {
     TypeInfo? typeInfo, [
     ForPartsContext? forPartsContext,
   ]) {
-    if (allowPatterns &&
+    if (isPatternsFeatureEnabled &&
         varFinalOrConst != null &&
         (varFinalOrConst.isA(Keyword.VAR) ||
             varFinalOrConst.isA(Keyword.FINAL))) {
@@ -9571,7 +9576,10 @@ class Parser {
     Token ifToken = token.next!;
     assert(ifToken.isA(Keyword.IF));
     listener.beginIfStatement(ifToken);
-    token = ensureParenthesizedCondition(ifToken, allowCase: allowPatterns);
+    token = ensureParenthesizedCondition(
+      ifToken,
+      allowCase: isPatternsFeatureEnabled,
+    );
     Token thenBeginToken = token.next!;
     listener.beginThenStatement(thenBeginToken);
     token = parseStatement(token);
@@ -10392,7 +10400,7 @@ class Parser {
             );
           }
           listener.beginCaseExpression(caseKeyword);
-          if (allowPatterns) {
+          if (isPatternsFeatureEnabled) {
             token = parsePattern(caseKeyword, PatternContext.matching);
           } else {
             token = parseExpression(caseKeyword);
