@@ -1648,6 +1648,8 @@ class LibraryManifestPrinter extends ManifestPrinter {
                   sink.writelnWithIndent('$index = formalParameter $rawIndex');
                 case ManifestAstElementKind.importPrefix:
                   sink.writelnWithIndent('$index = importPrefix');
+                case ManifestAstElementKind.methodOfUnnamedExtension:
+                  sink.writelnWithIndent('$index = methodOfUnnamedExtension');
                 case ManifestAstElementKind.typeParameter:
                   sink.writelnWithIndent('$index = typeParameter $rawIndex');
                 case ManifestAstElementKind.regular:

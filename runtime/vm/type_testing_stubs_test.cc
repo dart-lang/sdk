@@ -72,6 +72,9 @@ static void GenerateInvokeTTSStub(compiler::Assembler* assembler) {
   };
 
   __ EnterDartFrame(0);
+  if (FLAG_target_thread_sanitizer) {
+    __ TsanFuncEntry();
+  }
 
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
     if (((1 << i) & kDartAvailableCpuRegs) == 0) continue;
@@ -181,6 +184,9 @@ static void GenerateInvokeTTSStub(compiler::Assembler* assembler) {
 
   // Set the return from the stub to be null.
   __ LoadObject(CallingConventions::kReturnReg, Object::null_object());
+  if (FLAG_target_thread_sanitizer) {
+    __ TsanFuncExit();
+  }
   __ LeaveDartFrame();
   __ Ret();
 }

@@ -621,6 +621,16 @@ foo(Object pair) {
     await testContents(contents);
   }
 
+  Future<void> test_functionTypeCall_nothing() async {
+    // https://github.com/dart-lang/sdk/issues/61319
+    var contents = '''
+void f() {
+  f.cal^l();
+}
+''';
+    await testContents(contents, expectNoResults: true);
+  }
+
   Future<void> test_importPrefix() async {
     var contents = '''
 import 'dart:math' as [!math!];

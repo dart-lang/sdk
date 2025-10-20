@@ -22,6 +22,7 @@ enum ManifestAstElementKind {
   dynamic_,
   formalParameter,
   importPrefix,
+  methodOfUnnamedExtension,
   never_,
   typeParameter,
   regular,
@@ -458,8 +459,13 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
         kind = ManifestAstElementKind.importPrefix;
         rawIndex = 0;
       default:
-        kind = ManifestAstElementKind.regular;
-        rawIndex = map[element] ??= map.length;
+        if (element.isMethodOfUnnamedExtension) {
+          kind = ManifestAstElementKind.methodOfUnnamedExtension;
+          rawIndex = 0;
+        } else {
+          kind = ManifestAstElementKind.regular;
+          rawIndex = map[element] ??= map.length;
+        }
     }
 
     var index = kind.encodeRawIndex(rawIndex);
@@ -468,8 +474,10 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
     // We resolve `a` in `const b = a;` as a getter. But during constant
     // evaluation we will access the corresponding constant variable for
     // its initializer. So, we also depend on the variable.
-    if (element is GetterElementImpl) {
-      _addElement(element.variable);
+    if (kind == ManifestAstElementKind.regular) {
+      if (element is GetterElementImpl) {
+        _addElement(element.variable);
+      }
     }
   }
 }
@@ -504,5 +512,18 @@ extension ManifestNodeOrNullExtension on ManifestNode? {
 
   void writeOptional(BinaryWriter writer) {
     writer.writeOptionalObject(this, (it) => it.write(writer));
+  }
+}
+
+extension _ElementExtension on Element? {
+  bool get isMethodOfUnnamedExtension {
+    var self = this;
+    return self is ExecutableElement &&
+        self.enclosingElement.isUnnamedExtension;
+  }
+
+  bool get isUnnamedExtension {
+    var self = this;
+    return self is ExtensionElement && self.name == null;
   }
 }

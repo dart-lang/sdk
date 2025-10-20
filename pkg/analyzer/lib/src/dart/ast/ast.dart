@@ -1110,7 +1110,7 @@ abstract final class AssignmentExpression
   ],
 )
 final class AssignmentExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
+    with CompoundAssignmentExpressionImpl
     implements AssignmentExpression {
   @generated
   ExpressionImpl _leftHandSide;
@@ -1176,9 +1176,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     ..addToken('operator', operator)
     ..addNode('rightHandSide', rightHandSide);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => parent;
-
   /// The parameter element representing the parameter to which the value of the
   /// right operand is bound, or `null` if the AST structure is not resolved or
   /// the function being invoked is not known based on static type information.
@@ -1235,10 +1232,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     }
     return null;
   }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, _leftHandSide);
 }
 
 /// A node in the AST structure for a Dart program.
@@ -2232,7 +2225,6 @@ abstract final class CascadeExpression implements Expression {
   ],
 )
 final class CascadeExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl
     implements CascadeExpression {
   @generated
   ExpressionImpl _target;
@@ -2288,9 +2280,6 @@ final class CascadeExpressionImpl extends ExpressionImpl
     ..addNode('target', target)
     ..addNodeList('cascadeSections', cascadeSections);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => null;
-
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCascadeExpression(this);
@@ -2319,13 +2308,6 @@ final class CascadeExpressionImpl extends ExpressionImpl
       return result;
     }
     return null;
-  }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) {
-    // Null shorting that occurs in a cascade section does not extend to the
-    // full cascade expression.
-    return false;
   }
 }
 
@@ -11275,7 +11257,6 @@ abstract final class FunctionExpressionInvocation
   ],
 )
 final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
-    with NullShortableExpressionImpl
     implements RewrittenMethodInvocationImpl, FunctionExpressionInvocation {
   @generated
   ExpressionImpl _function;
@@ -11323,9 +11304,6 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     ..addNode('typeArguments', typeArguments)
     ..addNode('argumentList', argumentList);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => parent;
-
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -11361,10 +11339,6 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     }
     return null;
   }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, _function);
 }
 
 /// An expression representing a reference to a function, possibly with type
@@ -13468,7 +13442,7 @@ abstract final class IndexExpression implements MethodReferenceExpression {
   ],
 )
 final class IndexExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl, DotShorthandMixin
+    with DotShorthandMixin
     implements IndexExpression {
   @generated
   ExpressionImpl? _target;
@@ -13601,9 +13575,6 @@ final class IndexExpressionImpl extends ExpressionImpl
     ..addNode('index', index)
     ..addToken('rightBracket', rightBracket);
 
-  @override
-  AstNode get _nullShortingExtensionCandidate => parent!;
-
   /// The parameter element representing the parameter to which the value of the
   /// index expression is bound, or `null` if the AST structure is not resolved,
   /// or the function being invoked is not known based on static type
@@ -13684,10 +13655,6 @@ final class IndexExpressionImpl extends ExpressionImpl
     }
     return null;
   }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, _target);
 }
 
 /// An instance creation expression.
@@ -16141,7 +16108,7 @@ abstract final class MethodInvocation implements InvocationExpression {
   ],
 )
 final class MethodInvocationImpl extends InvocationExpressionImpl
-    with NullShortableExpressionImpl, DotShorthandMixin
+    with DotShorthandMixin
     implements MethodInvocation {
   @generated
   ExpressionImpl? _target;
@@ -16272,9 +16239,6 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     ..addNode('typeArguments', typeArguments)
     ..addNode('argumentList', argumentList);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => parent;
-
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodInvocation(this);
@@ -16315,10 +16279,6 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     }
     return null;
   }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, _target);
 }
 
 /// An expression that implicitly makes reference to a method.
@@ -17901,47 +17861,6 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   }
 }
 
-base mixin NullShortableExpressionImpl implements Expression {
-  /// The expression that terminates any null shorting that might occur in this
-  /// expression.
-  ///
-  /// This might be called regardless of whether this expression is itself
-  /// null-aware.
-  ///
-  /// For example, the statement `a?.b[c] = d;` contains the following
-  /// null-shortable subexpressions:
-  /// - `a?.b`
-  /// - `a?.b[c]`
-  /// - `a?.b[c] = d`
-  ///
-  /// Calling [nullShortingTermination] on any of these subexpressions yields
-  /// the expression `a?.b[c] = d`, indicating that the null-shorting induced by
-  /// the `?.` causes the rest of the subexpression `a?.b[c] = d` to be skipped.
-  Expression get nullShortingTermination {
-    var result = this;
-    while (true) {
-      var parent = result._nullShortingExtensionCandidate;
-      if (parent is NullShortableExpressionImpl &&
-          parent._extendsNullShorting(result)) {
-        result = parent;
-      } else {
-        return result;
-      }
-    }
-  }
-
-  /// The ancestor of this node to which null-shorting might be extended.
-  ///
-  /// Usually this is just the node's parent, however if `this` is the base of
-  /// a cascade section, it's the cascade expression itself, which might be a
-  /// more distant ancestor.
-  AstNode? get _nullShortingExtensionCandidate;
-
-  /// Whether the effect of any null-shorting within [descendant] (which should
-  /// be a descendant of `this`) should extend to include `this`.
-  bool _extendsNullShorting(Expression descendant);
-}
-
 /// An object pattern.
 ///
 ///    objectPattern ::=
@@ -19129,10 +19048,7 @@ abstract final class PostfixExpression
   ],
 )
 final class PostfixExpressionImpl extends ExpressionImpl
-    with
-        NullShortableExpressionImpl,
-        CompoundAssignmentExpressionImpl,
-        DotShorthandMixin
+    with CompoundAssignmentExpressionImpl, DotShorthandMixin
     implements PostfixExpression {
   @generated
   ExpressionImpl _operand;
@@ -19182,9 +19098,6 @@ final class PostfixExpressionImpl extends ExpressionImpl
     ..addNode('operand', operand)
     ..addToken('operator', operator);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => parent;
-
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` ff the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
@@ -19225,10 +19138,6 @@ final class PostfixExpressionImpl extends ExpressionImpl
     }
     return null;
   }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, operand);
 }
 
 /// An identifier that is prefixed or an access to an object property where the
@@ -19403,7 +19312,7 @@ abstract final class PrefixExpression
   ],
 )
 final class PrefixExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
+    with CompoundAssignmentExpressionImpl
     implements PrefixExpression {
   @generated
   @override
@@ -19453,9 +19362,6 @@ final class PrefixExpressionImpl extends ExpressionImpl
     ..addToken('operator', operator)
     ..addNode('operand', operand);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => parent;
-
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` if the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
@@ -19496,10 +19402,6 @@ final class PrefixExpressionImpl extends ExpressionImpl
     }
     return null;
   }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, operand) && operator.type.isIncrementOperator;
 }
 
 /// The declaration of a primary constructor.
@@ -19759,7 +19661,7 @@ abstract final class PropertyAccess implements CommentReferableExpression {
   ],
 )
 final class PropertyAccessImpl extends CommentReferableExpressionImpl
-    with NullShortableExpressionImpl, DotShorthandMixin
+    with DotShorthandMixin
     implements PropertyAccess {
   @generated
   ExpressionImpl? _target;
@@ -19862,9 +19764,6 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     ..addToken('operator', operator)
     ..addNode('propertyName', propertyName);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => parent;
-
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
@@ -19895,10 +19794,6 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     }
     return null;
   }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, _target);
 }
 
 /// A record literal.

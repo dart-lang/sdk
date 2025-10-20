@@ -73292,7 +73292,7 @@ const b = 0 + a;
             [0] (dart:core, instanceMethod, num, +) #M2
           elementIndexList
             0 = null
-            6 = element 0
+            7 = element 0
     exportMapId: #M3
     exportMap
       b: #M0
@@ -73330,9 +73330,9 @@ const b = 0 + a;
             [1] (package:test/test.dart, topLevelVariable, a) <null>
             [2] (dart:core, instanceMethod, num, +) #M2
           elementIndexList
-            6 = element 0
-            22 = element 1
-            38 = element 2
+            7 = element 0
+            23 = element 1
+            39 = element 2
     exportMapId: #M8
     exportMap
       a: #M4
@@ -73378,9 +73378,9 @@ const b = 1 + a;
             [1] (package:test/test.dart, topLevelVariable, a) <null>
             [2] (dart:core, instanceMethod, num, +) #M4
           elementIndexList
-            6 = element 0
-            22 = element 1
-            38 = element 2
+            7 = element 0
+            23 = element 1
+            39 = element 2
     exportMapId: #M5
     exportMap
       a: #M0
@@ -73408,7 +73408,7 @@ const b = 1 + a;
             [0] (dart:core, instanceMethod, num, +) #M4
           elementIndexList
             0 = null
-            6 = element 0
+            7 = element 0
     exportMapId: #M8
     exportMap
       b: #M6
@@ -73791,6 +73791,232 @@ const b = 0 as int;
     );
   }
 
+  test_manifest_constInitializer_extensionNamed_operator_unaryMinus() async {
+    configuration.withElementManifests = true;
+
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E on Object {
+  int operator -() => 0;
+}
+''');
+
+    // We use invalid constant expression, but it should not crash.
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart';
+const a = -'' + 1;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredExtensions
+      E: #M0
+        extendedType: Object @ dart:core
+        declaredMethods
+          unary-: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: int @ dart:core
+    exportMapId: #M2
+    exportMap
+      E: #M0
+    exportedExtensions: #M0
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredGetters
+      a: #M3
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M4
+        flags: hasImplicitType hasInitializer isConst isStatic
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: -''+1
+          tokenLengthList: [1, 2, 1, 1]
+          elements
+            [0] (package:test/a.dart, instanceMethod, E, unary-) #M1
+            [1] (dart:core, instanceMethod, num, +) #M5
+          elementIndexList
+            7 = element 0
+            23 = element 1
+    exportMapId: #M6
+    exportMap
+      a: #M3
+''',
+      updatedCode: r'''
+import 'a.dart';
+const a = -'' + 2;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H2
+    declaredGetters
+      a: #M3
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M7
+        flags: hasImplicitType hasInitializer isConst isStatic
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: -''+2
+          tokenLengthList: [1, 2, 1, 1]
+          elements
+            [0] (package:test/a.dart, instanceMethod, E, unary-) #M1
+            [1] (dart:core, instanceMethod, num, +) #M5
+          elementIndexList
+            7 = element 0
+            23 = element 1
+    exportMapId: #M6
+    exportMap
+      a: #M3
+''',
+    );
+  }
+
+  test_manifest_constInitializer_extensionUnnamed_getter_length() async {
+    configuration.withElementManifests = true;
+
+    // We use invalid constant expression, but it should not crash.
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension on Object {
+  int get length => 0;
+}
+const b = 0.length + 1;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredGetters
+      b: #M0
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+    declaredVariables
+      b: #M1
+        flags: hasImplicitType hasInitializer isConst isStatic
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0.length+1
+          tokenLengthList: [1, 1, 6, 1, 1]
+          elements
+            [0] (dart:core, instanceMethod, num, +) #M2
+          elementIndexList
+            4 = methodOfUnnamedExtension
+            7 = element 0
+    exportMapId: #M3
+    exportMap
+      b: #M0
+''',
+      updatedCode: r'''
+extension on Object {
+  int get length => 0;
+}
+const b = 0.length + 2;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredGetters
+      b: #M0
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+    declaredVariables
+      b: #M4
+        flags: hasImplicitType hasInitializer isConst isStatic
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0.length+2
+          tokenLengthList: [1, 1, 6, 1, 1]
+          elements
+            [0] (dart:core, instanceMethod, num, +) #M2
+          elementIndexList
+            4 = methodOfUnnamedExtension
+            7 = element 0
+    exportMapId: #M3
+    exportMap
+      b: #M0
+''',
+    );
+  }
+
+  test_manifest_constInitializer_extensionUnnamed_operator_unaryMinus() async {
+    configuration.withElementManifests = true;
+
+    // We use invalid constant expression, but it should not crash.
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension on Object {
+  int operator -() => 0;
+}
+const a = -'' + 1;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredGetters
+      a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M1
+        flags: hasImplicitType hasInitializer isConst isStatic
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: -''+1
+          tokenLengthList: [1, 2, 1, 1]
+          elements
+            [0] (dart:core, instanceMethod, num, +) #M2
+          elementIndexList
+            4 = methodOfUnnamedExtension
+            7 = element 0
+    exportMapId: #M3
+    exportMap
+      a: #M0
+''',
+      updatedCode: r'''
+extension on Object {
+  int operator -() => 0;
+}
+const a = -'' + 2;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredGetters
+      a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M4
+        flags: hasImplicitType hasInitializer isConst isStatic
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: -''+2
+          tokenLengthList: [1, 2, 1, 1]
+          elements
+            [0] (dart:core, instanceMethod, num, +) #M2
+          elementIndexList
+            4 = methodOfUnnamedExtension
+            7 = element 0
+    exportMapId: #M3
+    exportMap
+      a: #M0
+''',
+    );
+  }
+
   test_manifest_constInitializer_identifier_addIdentifier() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
@@ -73926,7 +74152,7 @@ const a = 0 as core.int;
             [0] (dart:core, class_, int) #M2
           elementIndexList
             3 = importPrefix
-            6 = element 0
+            7 = element 0
     exportMapId: #M3
     exportMap
       a: #M0
@@ -73958,7 +74184,7 @@ const b = 0;
             [0] (dart:core, class_, int) #M2
           elementIndexList
             3 = importPrefix
-            6 = element 0
+            7 = element 0
       b: #M5
         flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
@@ -74448,7 +74674,7 @@ const a = identical(0, 1);
           elements
             [0] (dart:core, topLevelFunction, identical) #M2
           elementIndexList
-            6 = element 0
+            7 = element 0
     exportMapId: #M3
     exportMap
       a: #M0
@@ -74478,7 +74704,7 @@ const b = 0;
           elements
             [0] (dart:core, topLevelFunction, identical) #M2
           elementIndexList
-            6 = element 0
+            7 = element 0
       b: #M5
         flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
@@ -74560,7 +74786,7 @@ const x = foo;
           tokenBuffer: foo
           tokenLengthList: [3]
           elementIndexList
-            7 = multiplyDefined
+            8 = multiplyDefined
     exportMapId: #M8
     exportMap
       x: #M6
@@ -74591,7 +74817,7 @@ class A {}
           tokenBuffer: foo
           tokenLengthList: [3]
           elementIndexList
-            7 = multiplyDefined
+            8 = multiplyDefined
     exportMapId: #M11
     exportMap
       A: #M9
@@ -75063,9 +75289,9 @@ const d = prefix.A.b;
             [2] (package:test/a.dart, instanceField, A, a) #M1
           elementIndexList
             3 = importPrefix
-            6 = element 0
-            22 = element 1
-            38 = element 2
+            7 = element 0
+            23 = element 1
+            39 = element 2
       d: #M10
         flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
@@ -75078,9 +75304,9 @@ const d = prefix.A.b;
             [2] (package:test/a.dart, instanceField, A, b) #M2
           elementIndexList
             3 = importPrefix
-            6 = element 0
-            22 = element 1
-            38 = element 2
+            7 = element 0
+            23 = element 1
+            39 = element 2
     exportMapId: #M11
     exportMap
       c: #M7
@@ -75155,9 +75381,9 @@ class A {
             [2] (package:test/a.dart, instanceField, A, a) #M1
           elementIndexList
             3 = importPrefix
-            6 = element 0
-            22 = element 1
-            38 = element 2
+            7 = element 0
+            23 = element 1
+            39 = element 2
       d: #M13
         flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
@@ -75170,9 +75396,9 @@ class A {
             [2] (package:test/a.dart, instanceField, A, b) #M12
           elementIndexList
             3 = importPrefix
-            6 = element 0
-            22 = element 1
-            38 = element 2
+            7 = element 0
+            23 = element 1
+            39 = element 2
     exportMapId: #M11
     exportMap
       c: #M7
@@ -75797,7 +76023,7 @@ const x = A;
           elements
             [0] (package:test/a.dart, typeAlias, A) #M0
           elementIndexList
-            6 = element 0
+            7 = element 0
     exportMapId: #M4
     exportMap
       x: #M2
@@ -75828,7 +76054,7 @@ const y = double;
           elements
             [0] (package:test/a.dart, typeAlias, A) #M0
           elementIndexList
-            6 = element 0
+            7 = element 0
       y: #M6
         flags: hasImplicitType hasInitializer isConst isStatic
         type: Type @ dart:core
@@ -75838,7 +76064,7 @@ const y = double;
           elements
             [0] (dart:core, class_, double) #M7
           elementIndexList
-            6 = element 0
+            7 = element 0
     exportMapId: #M8
     exportMap
       x: #M2

@@ -95,7 +95,7 @@ namespace dart {
 
 #define LEAF_RUNTIME_ENTRY_LIST(V)                                             \
   V(intptr_t, DeoptimizeCopyFrame, uword, uword)                               \
-  V(void, DeoptimizeFillFrame, uword)                                          \
+  V(intptr_t, DeoptimizeFillFrame, uword)                                      \
   V(void, StoreBufferBlockProcess, Thread*)                                    \
   V(void, OldMarkingStackBlockProcess, Thread*)                                \
   V(void, NewMarkingStackBlockProcess, Thread*)                                \

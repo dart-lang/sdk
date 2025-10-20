@@ -421,6 +421,7 @@ package:analyzer/dart/analysis/features.dart:
     set_literals (static getter: ExperimentalFeature)
     sound_flow_analysis (static getter: ExperimentalFeature)
     spread_collections (static getter: ExperimentalFeature)
+    static_extensions (static getter: ExperimentalFeature)
     super_parameters (static getter: ExperimentalFeature)
     triple_shift (static getter: ExperimentalFeature)
     unnamedLibraries (static getter: ExperimentalFeature)

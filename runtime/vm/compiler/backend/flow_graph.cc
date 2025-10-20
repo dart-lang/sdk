@@ -2716,15 +2716,18 @@ void FlowGraph::AddTsanInstrumentation() {
             store->index_scale(), store->class_id(), store->source());
         InsertBefore(store, tsan_write, /*env=*/nullptr, kEffect);
         needs_entry_exit = true;
-      } else if (current->CanCallDart() || current->MayThrow()) {
+      } else if (current->CanCallDart() || current->MayThrow() ||
+                 current->IsBox() || current->IsBoxLanes()) {
+        // Box instructions enter the runtime on allocation slow path, and might
+        // throw OutOfMemory.
+        needs_entry_exit = true;
+      } else if (current->CanDeoptimize() && !FLAG_precompiled_mode) {
+        // TSAN stack rebalancing at deopt after DLRT_DeoptimizeFillFrame
+        // assumes the optimized code has a frame.
         needs_entry_exit = true;
       }
     }
   }
-
-  // TSAN can't symbolize JIT functions anyway, so don't bother with this
-  // overhead.
-  if (!FLAG_precompiled_mode) return;
 
   if (!needs_entry_exit) return;
 
@@ -2736,16 +2739,14 @@ void FlowGraph::AddTsanInstrumentation() {
           TsanFuncEntryExitInstr::kEntry, block->source());
       InsertAfter(block, tsan_entry, /*env=*/nullptr, kEffect);
     }
-    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      Instruction* current = it.Current();
-      if ((current->IsDartReturn() &&
-           !parsed_function_.function().IsAsyncFunction() &&
-           !parsed_function_.function().IsAsyncGenerator()) ||
-          current->IsTailCall()) {
-        auto* tsan_exit = new (Z) TsanFuncEntryExitInstr(
-            TsanFuncEntryExitInstr::kExit, current->source());
-        InsertBefore(current, tsan_exit, /*env=*/nullptr, kEffect);
-      }
+    Instruction* last = block->last_instruction();
+    if ((last->IsDartReturn() &&
+         !parsed_function_.function().IsAsyncFunction() &&
+         !parsed_function_.function().IsAsyncGenerator()) ||
+        last->IsTailCall() || last->IsNativeReturn()) {
+      auto* tsan_exit = new (Z)
+          TsanFuncEntryExitInstr(TsanFuncEntryExitInstr::kExit, last->source());
+      InsertBefore(last, tsan_exit, /*env=*/nullptr, kEffect);
     }
   }
 }

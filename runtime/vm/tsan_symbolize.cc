@@ -4,6 +4,7 @@
 
 #include "vm/tsan_symbolize.h"
 
+#include "include/dart_api.h"
 #include "platform/atomic.h"
 #include "platform/thread_sanitizer.h"
 #include "vm/code_descriptors.h"
@@ -36,86 +37,95 @@ static void WriteString(GrowableArray<uint8_t>& out, const char* str) {
 }
 
 void RegisterTsanSymbolize(const Code& code) {
-  if (!code.IsFunctionCode()) {
-    // TODO(rmacnak): Do something for stubs?
-    return;
-  }
-
-  const CodeSourceMap& map = CodeSourceMap::Handle(code.code_source_map());
-  RELEASE_ASSERT(!map.IsNull());
-  const Array& functions = Array::Handle(code.inlined_id_to_function());
-  Function& function = Function::Handle(code.function());
-  Script& script = Script::Handle(function.script());
-  String& url = String::Handle(script.url());
-  GrowableArray<Function*> function_stack(8);
-  GrowableArray<TokenPosition> token_positions(8);
-  function_stack.Add(&Function::Handle(function.ptr()));
-  token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
-
   GrowableArray<uint8_t> out(256);
-  out.Add(OP_PUSH_FUNCTION);
-  WriteString(out, function.QualifiedUserVisibleNameCString());
-  WriteString(out, url.ToCString());
 
-  NoSafepointScope no_safepoint;
-  ReadStream stream(map.Data(), map.Length());
-  while (stream.PendingBytes() > 0) {
-    int32_t arg;
-    switch (CodeSourceMapOps::Read(&stream, &arg)) {
-      case CodeSourceMapOps::kChangePosition: {
-        const TokenPosition& old_token = token_positions.Last();
-        token_positions.Last() = TokenPosition::Deserialize(
-            Utils::AddWithWrapAround(arg, old_token.Serialize()));
+  if (code.IsFunctionCode()) {
+    const CodeSourceMap& map = CodeSourceMap::Handle(code.code_source_map());
+    RELEASE_ASSERT(!map.IsNull());
+    const Array& functions = Array::Handle(code.inlined_id_to_function());
+    Function& function = Function::Handle(code.function());
+    Script& script = Script::Handle(function.script());
+    String& url = String::Handle(script.url());
+    GrowableArray<Function*> function_stack(8);
+    GrowableArray<TokenPosition> token_positions(8);
+    function_stack.Add(&Function::Handle(function.ptr()));
+    token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
 
-        TokenPosition pos = token_positions.Last();
-        if (pos.IsNoSource()) {
-          pos = function_stack.Last()->token_pos();
+    out.Add(OP_PUSH_FUNCTION);
+    WriteString(out, function.QualifiedUserVisibleNameCString());
+    WriteString(out, url.ToCString());
+
+    NoSafepointScope no_safepoint;
+    ReadStream stream(map.Data(), map.Length());
+    while (stream.PendingBytes() > 0) {
+      int32_t arg;
+      switch (CodeSourceMapOps::Read(&stream, &arg)) {
+        case CodeSourceMapOps::kChangePosition: {
+          const TokenPosition& old_token = token_positions.Last();
+          token_positions.Last() = TokenPosition::Deserialize(
+              Utils::AddWithWrapAround(arg, old_token.Serialize()));
+
+          TokenPosition pos = token_positions.Last();
+          if (pos.IsNoSource()) {
+            pos = function_stack.Last()->token_pos();
+          }
+
+          intptr_t line = -1;
+          intptr_t column = -1;
+          script = function_stack.Last()->script();
+          script.GetTokenLocation(pos, &line, &column);
+
+          out.Add(OP_CHANGE_POSITION);
+          out.Add((line >> 0) & 0xFF);
+          out.Add((line >> 8) & 0xFF);
+          out.Add((column >> 0) & 0xFF);
+          out.Add((column >> 8) & 0xFF);
+          break;
         }
+        case CodeSourceMapOps::kAdvancePC: {
+          out.Add(OP_ADVANCE_PC);
+          out.Add((arg >> 0) & 0xFF);
+          out.Add((arg >> 8) & 0xFF);
+          out.Add((arg >> 16) & 0xFF);
+          out.Add((arg >> 24) & 0xFF);
+          break;
+        }
+        case CodeSourceMapOps::kPushFunction: {
+          function ^= functions.At(arg);
+          function_stack.Add(&Function::Handle(function.ptr()));
+          token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
 
-        intptr_t line = -1;
-        intptr_t column = -1;
-        script = function_stack.Last()->script();
-        script.GetTokenLocation(pos, &line, &column);
-
-        out.Add(OP_CHANGE_POSITION);
-        out.Add((line >> 0) & 0xFF);
-        out.Add((line >> 8) & 0xFF);
-        out.Add((column >> 0) & 0xFF);
-        out.Add((column >> 8) & 0xFF);
-        break;
+          out.Add(OP_PUSH_FUNCTION);
+          WriteString(out, function.QualifiedUserVisibleNameCString());
+          script = function_stack.Last()->script();
+          url = script.url();
+          WriteString(out, url.ToCString());
+          break;
+        }
+        case CodeSourceMapOps::kPopFunction: {
+          function_stack.RemoveLast();
+          token_positions.RemoveLast();
+          out.Add(OP_POP_FUNCTION);
+          break;
+        }
+        case CodeSourceMapOps::kNullCheck: {
+          break;
+        }
+        default:
+          UNREACHABLE();
       }
-      case CodeSourceMapOps::kAdvancePC: {
-        out.Add(OP_ADVANCE_PC);
-        out.Add((arg >> 0) & 0xFF);
-        out.Add((arg >> 8) & 0xFF);
-        out.Add((arg >> 16) & 0xFF);
-        out.Add((arg >> 24) & 0xFF);
-        break;
-      }
-      case CodeSourceMapOps::kPushFunction: {
-        function ^= functions.At(arg);
-        function_stack.Add(&Function::Handle(function.ptr()));
-        token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
-
-        out.Add(OP_PUSH_FUNCTION);
-        WriteString(out, function.QualifiedUserVisibleNameCString());
-        script = function_stack.Last()->script();
-        url = script.url();
-        WriteString(out, url.ToCString());
-        break;
-      }
-      case CodeSourceMapOps::kPopFunction: {
-        function_stack.RemoveLast();
-        token_positions.RemoveLast();
-        out.Add(OP_POP_FUNCTION);
-        break;
-      }
-      case CodeSourceMapOps::kNullCheck: {
-        break;
-      }
-      default:
-        UNREACHABLE();
     }
+  } else {
+    out.Add(OP_PUSH_FUNCTION);
+    WriteString(out, code.Name());
+    WriteString(out, "stub");
+
+    int32_t arg = code.Size();
+    out.Add(OP_ADVANCE_PC);
+    out.Add((arg >> 0) & 0xFF);
+    out.Add((arg >> 8) & 0xFF);
+    out.Add((arg >> 16) & 0xFF);
+    out.Add((arg >> 24) & 0xFF);
   }
   out.Add(OP_STOP);
 
@@ -143,9 +153,8 @@ typedef void (*AddFrame)(void* ctxt,
 // then symbolize using our normal PC descriptors, etc, but this function must
 // not call any function that has been instrumented by TSAN or it might deadlock
 // during __tsan_func_entry.
-extern "C" NO_SANITIZE_THREAD DISABLE_SANITIZER_INSTRUMENTATION void
+DART_EXPORT NO_SANITIZE_THREAD DISABLE_SANITIZER_INSTRUMENTATION void
 __tsan_symbolize_external_ex(uintptr_t pc, AddFrame add_frame, void* ctxt) {
-  constexpr uintptr_t kExternalPCBit = 1ULL << 60;
   const uword lookup_pc = pc & ~kExternalPCBit;
 
   for (TsanLineNumberProgram* lnp = head.load(std::memory_order_acquire);
@@ -203,19 +212,6 @@ __tsan_symbolize_external_ex(uintptr_t pc, AddFrame add_frame, void* ctxt) {
             uint32_t disp = a | (b << 8) | (c << 16) | (d << 24);
             lnp_pc += disp;
             if (lookup_pc <= lnp_pc) {
-#if 0
-              char s[17];
-              s[16] = 0;
-              for (intptr_t k = 0; k < 16; k++) {
-                s[k] = "0123456789abcdef"[lookup_pc >> ((15 - k) << 2)) & 0xFF];
-              }
-              add_frame(ctxt, "lookup_pc", s, 0, 0);
-              for (intptr_t k = 0; k < 16; k++) {
-                s[k] = "0123456789abcdef"[lnp_pc >> ((15 - k) << 2)) & 0xFF];
-              }
-              add_frame(ctxt, "lnp_pc", s, 0, 0);
-#endif
-
               for (intptr_t i = depth - 1; i >= 0; i--) {
                 add_frame(ctxt, names[i], files[i], lines[i], columns[i]);
               }
@@ -233,7 +229,20 @@ __tsan_symbolize_external_ex(uintptr_t pc, AddFrame add_frame, void* ctxt) {
       UNREACHABLE();
     }
   }
-  add_frame(ctxt, "dart-code-lookup-failed", nullptr, 0, 0);
+
+  // TSAN doesn't fall back to reporting the PC if we provide no frame or a
+  // frame with a null location.
+  char pc_string[17];
+  for (intptr_t i = 0; i < 16; i++) {
+    pc_string[i] = "0123456789abcdef"[(lookup_pc >> ((15 - i) << 2)) & 0xF];
+  }
+  pc_string[16] = 0;
+
+  if (lookup_pc == 42) {
+    add_frame(ctxt, "dart-deoptimized-code", pc_string, 0, 0);
+  } else {
+    add_frame(ctxt, "dart-code-lookup-failed", pc_string, 0, 0);
+  }
 }
 #else
 void RegisterTsanSymbolize(const Code& code) {}

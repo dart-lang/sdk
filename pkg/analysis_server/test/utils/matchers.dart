@@ -8,5 +8,10 @@ import 'package:test/test.dart';
 /// Returns a matcher that checks that the input matches [expected] after
 /// newlines have been normalized to the current platforms (only in
 /// [expected]).
-Matcher equalsNormalized(String expected) =>
-    equals(normalizeNewlinesForPlatform(expected));
+Matcher equalsNormalized(Object? expected) {
+  return switch (expected) {
+    String() => equals(normalizeNewlinesForPlatform(expected)),
+    List<String>() => equals(expected.map(normalizeNewlinesForPlatform)),
+    _ => throw UnimplementedError("Can't normalize a ${expected.runtimeType}"),
+  };
+}

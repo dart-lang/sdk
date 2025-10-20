@@ -1925,6 +1925,9 @@ void Simulator::InterpretMISCMEM(Instr instr) {
   switch (instr.funct3()) {
     case FENCE:
       memory_.FlushAll();
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wtsan"
+#endif
       std::atomic_thread_fence(std::memory_order_acq_rel);
       break;
     case FENCEI:
