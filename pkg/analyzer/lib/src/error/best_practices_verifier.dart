@@ -320,10 +320,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       v.constructorDeclaration(node);
     }
 
-    // TODO(srawlins): Use _elementUsageFrontierDetectors to detect
-    // `@Deprecated` or `@experimental` parameters in a redirecting factory
-    // constructor.
-
     _deprecatedFunctionalityVerifier.constructorDeclaration(node);
 
     try {
@@ -366,6 +362,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     for (var v in _elementUsageFrontierDetectors) {
       v.pushElement(node.declaredFragment!.element);
+    }
+
+    for (var v in _elementUsageFrontierDetectors) {
+      v.formalParameter(node);
     }
 
     try {
@@ -858,6 +858,25 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _checkForDuplications(node);
     super.visitSetOrMapLiteral(node);
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    for (var v in _elementUsageFrontierDetectors) {
+      v.pushElement(node.declaredFragment!.element);
+    }
+
+    for (var v in _elementUsageFrontierDetectors) {
+      v.formalParameter(node);
+    }
+
+    try {
+      super.visitSimpleFormalParameter(node);
+    } finally {
+      for (var v in _elementUsageFrontierDetectors) {
+        v.popElement();
+      }
+    }
   }
 
   @override

@@ -1894,6 +1894,107 @@ class B extends A {
     );
   }
 
+  test_redirectedConstructor_fromFactoryConstructor() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  @deprecated
+  B();
+}
+''',
+      code: r'''
+class A {
+  factory A.two() = B;
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 59, 1)],
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated int? p]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([int? p]) = B;
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 56, 6)],
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_deprecatedFunctionTypedParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated void p()?]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([@deprecated void p()?]) = B;
+}
+''',
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_deprecatedParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated int? p]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([@deprecated int? p]) = B;
+}
+''',
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_functionTypedParameter() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated void p()?]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([void p()?]) = B;
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 56, 9)],
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_named() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B({@deprecated int? p});
+}
+''',
+      code: r'''
+class A {
+  factory A.two({int? p}) = B;
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 56, 6)],
+    );
+  }
+
   test_redirectingConstructorInvocation_namedParameter() async {
     await assertNoErrorsInCode(r'''
 class A {
