@@ -4,7 +4,6 @@
 
 #include "vm/tsan_symbolize.h"
 
-#include "include/dart_api.h"
 #include "platform/atomic.h"
 #include "platform/thread_sanitizer.h"
 #include "vm/code_descriptors.h"
@@ -153,7 +152,8 @@ typedef void (*AddFrame)(void* ctxt,
 // then symbolize using our normal PC descriptors, etc, but this function must
 // not call any function that has been instrumented by TSAN or it might deadlock
 // during __tsan_func_entry.
-DART_EXPORT NO_SANITIZE_THREAD DISABLE_SANITIZER_INSTRUMENTATION void
+extern "C" __attribute__((visibility("default")))
+__attribute((used)) NO_SANITIZE_THREAD DISABLE_SANITIZER_INSTRUMENTATION void
 __tsan_symbolize_external_ex(uintptr_t pc, AddFrame add_frame, void* ctxt) {
   const uword lookup_pc = pc & ~kExternalPCBit;
 
