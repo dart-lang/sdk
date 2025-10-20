@@ -4575,19 +4575,16 @@ package:analyzer/error/error.dart:
     == (method: bool Function(Object))
   AnalysisError (type alias for Diagnostic, deprecated)
 package:analyzer/error/listener.dart:
-  AnalysisErrorListener (class extends Object implements DiagnosticOrErrorListener, deprecated):
-    new (constructor: AnalysisErrorListener Function())
-    onError (method: void Function(Diagnostic))
-  BooleanDiagnosticListener (class extends Object implements AnalysisErrorListener, DiagnosticListener):
+  BooleanDiagnosticListener (class extends Object implements DiagnosticListener):
     new (constructor: BooleanDiagnosticListener Function())
     errorReported (getter: bool)
     onDiagnostic (method: void Function(Diagnostic))
-    onError (method: void Function(Diagnostic))
+    onError (method: void Function(Diagnostic), deprecated)
   DiagnosticListener (class extends Object implements DiagnosticOrErrorListener):
     nullListener (static getter: DiagnosticListener)
     new (constructor: DiagnosticListener Function())
     onDiagnostic (method: void Function(Diagnostic))
-  DiagnosticOrErrorListener (class extends Object, sealed (immediate subtypes: AnalysisErrorListener, DiagnosticListener))
+  DiagnosticOrErrorListener (class extends Object, sealed (immediate subtypes: DiagnosticListener), deprecated)
   DiagnosticReporter (class extends Object):
     new (constructor: DiagnosticReporter Function(DiagnosticOrErrorListener, Source))
     lockLevel (getter: int)
@@ -4601,13 +4598,11 @@ package:analyzer/error/listener.dart:
     atSourceSpan (method: Diagnostic Function(SourceSpan, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages}))
     atToken (method: Diagnostic Function(Token, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages}))
     reportError (method: void Function(Diagnostic))
-  RecordingDiagnosticListener (class extends Object implements AnalysisErrorListener, DiagnosticListener):
+  RecordingDiagnosticListener (class extends Object implements DiagnosticListener):
     new (constructor: RecordingDiagnosticListener Function())
     diagnostics (getter: List<Diagnostic>)
-    errors (getter: List<Diagnostic>, deprecated)
-    getErrorsForSource (method: List<Diagnostic> Function(Source), deprecated)
     onDiagnostic (method: void Function(Diagnostic))
-    onError (method: void Function(Diagnostic))
+    onError (method: void Function(Diagnostic), deprecated)
   DiagnosticOrErrorListenerExtension (extension on DiagnosticOrErrorListener):
     onDiagnostic (method: void Function(Diagnostic))
   ErrorReporter (type alias for DiagnosticReporter, deprecated)
