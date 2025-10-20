@@ -14,6 +14,9 @@
 * Remove deprecated `PartDirective.configurations`.
 * Remove deprecated `TypeDefiningElement`.
 * Remove deprecated `TypeAliasElement.aliasedElement`.
+* Remove deprecated `ErrorCode`.
+* Remove deprecated `ErrorSeverity`.
+* Remove deprecated `ErrorType`.
 
 ## 8.4.0
 * Add the `experimental_member_use` warning, which warns about any reference to
