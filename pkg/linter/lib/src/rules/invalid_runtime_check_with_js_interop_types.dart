@@ -22,7 +22,6 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 
 import '../analyzer.dart';
 
-const String _dartJsAnnotationsUri = 'dart:_js_annotations';
 const String _dartJsInteropUri = 'dart:js_interop';
 const String _dartJsUri = 'dart:js';
 
@@ -118,7 +117,7 @@ DartType? _jsTypeForStaticInterop(InterfaceType type) {
       hasJS = true;
       dartJsInterop = annotationElement.library;
     } else if (annotationElement is GetterElement &&
-        annotationElement.isFromLibrary(_dartJsAnnotationsUri) &&
+        annotationElement.isFromLibrary(_dartJsInteropUri) &&
         annotationElement.name == 'staticInterop') {
       hasStaticInterop = true;
     }
