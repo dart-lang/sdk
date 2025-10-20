@@ -255,7 +255,7 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
   return false;
 }
 
-void DeoptContext::FillDestFrame() {
+intptr_t DeoptContext::FillDestFrame() {
   const Code& code = Code::Handle(code_);
   const TypedData& deopt_info = TypedData::Handle(deopt_info_);
 
@@ -294,6 +294,7 @@ void DeoptContext::FillDestFrame() {
   }
 
   // Populate stack frames.
+  intptr_t frame_count = 0;
   for (intptr_t to_index = frame_size - 1, from_index = len - 1; to_index >= 0;
        to_index--, from_index--) {
     intptr_t* to_addr = GetDestFrameAddressAt(to_index);
@@ -302,6 +303,9 @@ void DeoptContext::FillDestFrame() {
       instr->Execute(this, to_addr);
     } else {
       *reinterpret_cast<ObjectPtr*>(to_addr) = Object::null();
+    }
+    if (instr->kind() == DeoptInstr::kRetAddress) {
+      frame_count++;
     }
   }
 
@@ -312,6 +316,8 @@ void DeoptContext::FillDestFrame() {
                 deopt_instructions[i + (len - frame_size)]->ToCString());
     }
   }
+
+  return frame_count;
 }
 
 static void FillDeferredSlots(DeoptContext* deopt_context,

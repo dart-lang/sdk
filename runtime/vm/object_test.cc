@@ -7975,6 +7975,9 @@ FutureOr<T?> bar<T>() { return null; }
 
 static void GenerateInvokeInstantiateTAVStub(compiler::Assembler* assembler) {
   __ EnterDartFrame(0);
+  if (FLAG_target_thread_sanitizer) {
+    __ TsanFuncEntry();
+  }
 
   // Load the arguments into the right stub calling convention registers.
   const intptr_t uninstantiated_offset =
@@ -7996,6 +7999,9 @@ static void GenerateInvokeInstantiateTAVStub(compiler::Assembler* assembler) {
   // Set the return from the stub.
   __ MoveRegister(CallingConventions::kReturnReg,
                   InstantiationABI::kResultTypeArgumentsReg);
+  if (FLAG_target_thread_sanitizer) {
+    __ TsanFuncExit();
+  }
   __ LeaveDartFrame();
   __ Ret();
 }

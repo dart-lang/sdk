@@ -261,6 +261,16 @@ void FlowGraphCompiler::EmitFrameEntry() {
     __ Comment("Enter frame");
     __ EnterDartFrame(StackSize() * kWordSize);
   }
+  if (FLAG_target_thread_sanitizer && !is_optimizing()) {
+    bool uses_args_desc = parsed_function().has_arg_desc_var();
+    if (uses_args_desc) {
+      __ MoveRegister(CALLEE_SAVED_TEMP, ARGS_DESC_REG);
+    }
+    __ TsanFuncEntry(/*preserve_registers=*/false);
+    if (uses_args_desc) {
+      __ MoveRegister(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
+    }
+  }
 }
 
 const InstructionSource& PrologueSource() {
@@ -340,6 +350,9 @@ void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
   ASSERT(!stub.IsNull());
   if (CanPcRelativeCall(stub)) {
     if (flow_graph().graph_entry()->NeedsFrame()) {
+      if (FLAG_target_thread_sanitizer && !is_optimizing()) {
+        __ TsanFuncExit();
+      }
       __ LeaveDartFrame();
     }
     __ GenerateUnRelocatedPcRelativeTailCall();
@@ -350,6 +363,9 @@ void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
   } else {
     __ LoadObject(CODE_REG, stub);
     if (flow_graph().graph_entry()->NeedsFrame()) {
+      if (FLAG_target_thread_sanitizer && !is_optimizing()) {
+        __ TsanFuncExit();
+      }
       __ LeaveDartFrame();
     }
     __ jmp(compiler::FieldAddress(

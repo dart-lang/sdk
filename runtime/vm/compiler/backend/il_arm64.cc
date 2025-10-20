@@ -540,6 +540,12 @@ void DartReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
+  if (FLAG_target_thread_sanitizer && !compiler->is_optimizing()) {
+    RELEASE_ASSERT(locs()->in(0).IsRegister());
+    __ MoveRegister(CALLEE_SAVED_TEMP, locs()->in(0).reg());
+    __ TsanFuncExit(/*preserve_registers=*/false);
+    __ MoveRegister(locs()->in(0).reg(), CALLEE_SAVED_TEMP);
+  }
 #if defined(DEBUG)
   compiler::Label stack_ok;
   __ Comment("Stack Check");
@@ -2393,7 +2399,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       __ PushPair(value_reg, field_reg);
       ASSERT(!compiler->is_optimizing());  // No deopt info needed.
-      __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
+      __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2, /*tsan_enter_exit=*/false);
       __ Drop(2);  // Drop the field and the value.
     } else {
       __ b(fail);
@@ -2498,7 +2504,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       __ PushPair(value_reg, field_reg);
       ASSERT(!compiler->is_optimizing());  // No deopt info needed.
-      __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
+      __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2, /*tsan_enter_exit=*/false);
       __ Drop(2);  // Drop the field and the value.
     } else {
       __ b(deopt, NE);
@@ -2928,7 +2934,7 @@ class CheckStackOverflowSlowPath
         ASSERT(__ constant_pool_allowed());
         __ set_constant_pool_allowed(false);
         __ EnterDartFrame(0);
-        if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+        if (FLAG_target_thread_sanitizer) {
           __ TsanFuncEntry();
         }
       }
@@ -2955,7 +2961,7 @@ class CheckStackOverflowSlowPath
                                      instruction()->deopt_id(),
                                      instruction()->source());
       if (!has_frame) {
-        if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+        if (FLAG_target_thread_sanitizer) {
           __ TsanFuncExit();
         }
         __ LeaveDartFrame();
@@ -3788,7 +3794,7 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(__ constant_pool_allowed());
       __ set_constant_pool_allowed(false);
       __ EnterDartFrame(0);
-      if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+      if (FLAG_target_thread_sanitizer) {
         __ TsanFuncEntry();
       }
     }
@@ -3805,7 +3811,7 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                                locs(), DeoptId::kNone, extended_env);
     if (!has_frame) {
-      if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+      if (FLAG_target_thread_sanitizer) {
         __ TsanFuncExit();
       }
       __ LeaveDartFrame();

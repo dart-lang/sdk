@@ -175,6 +175,9 @@ dart/unobfuscated_static_symbols_test: Pass, Slow # Test includes creating sever
 dart/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
 dart/v8_snapshot_profile_writer_test: SkipSlow
 
+[ $sanitizer != tsan ]
+dart/tsan/*: SkipByDesign
+
 [ $system == android ]
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # On android this test does not work due to not being able to identify library uri.
 dart/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
@@ -402,9 +405,6 @@ dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # uses spawnUri.
 dart/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
-
-[ $runtime != dart_precompiled || $sanitizer != tsan ]
-dart/tsan/*: SkipByDesign
 
 [ $runtime != dart_precompiled || $sanitizer != msan && $sanitizer != tsan ]
 dart/sanitizer_compatibility_test: SkipByDesign

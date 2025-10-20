@@ -4474,7 +4474,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(DeoptimizeCopyFrame, 2, DLRT_DeoptimizeCopyFrame);
 
 // The stack has been adjusted to fit all values for unoptimized frame.
 // Fill the unoptimized frame.
-extern "C" void DLRT_DeoptimizeFillFrame(uword last_fp) {
+extern "C" intptr_t DLRT_DeoptimizeFillFrame(uword last_fp) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Thread* thread = Thread::Current();
   StackZone zone(thread);
@@ -4504,10 +4504,15 @@ extern "C" void DLRT_DeoptimizeFillFrame(uword last_fp) {
 #endif
 
   deopt_context->set_dest_frame(caller_frame);
-  deopt_context->FillDestFrame();
-
+  intptr_t frame_count = deopt_context->FillDestFrame();
+  ASSERT(frame_count > 0);
+  if (FLAG_trace_deoptimization) {
+    THR_Print("Deopt created %" Pd " frames\n", frame_count);
+  }
+  return frame_count;
 #else
   UNREACHABLE();
+  return 0;
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
 DEFINE_LEAF_RUNTIME_ENTRY(DeoptimizeFillFrame, 1, DLRT_DeoptimizeFillFrame);
@@ -5301,11 +5306,11 @@ extern "C" void __tsan_func_exit() {
 #else
 #define CASE(x)                                                                \
   extern "C" NO_SANITIZE_THREAD DISABLE_SANITIZER_INSTRUMENTATION void         \
-  jit_tsan_##x(void* addr) {                                                   \
+  dart_tsan_##x(void* addr) {                                                  \
     __tsan_##x##_pc(                                                           \
         addr, reinterpret_cast<void*>(                                         \
                   reinterpret_cast<uintptr_t>(__builtin_return_address(0)) |   \
-                  (1ULL << 60)));                                              \
+                  kExternalPCBit));                                            \
   }
 
 CASE(read1)
@@ -5319,6 +5324,11 @@ CASE(write4)
 CASE(write8)
 CASE(write16)
 #undef CASE
+extern "C" NO_SANITIZE_THREAD DISABLE_SANITIZER_INSTRUMENTATION void
+dart_tsan_func_entry(void* pc) {
+  __tsan_func_entry(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(pc) |
+                                            kExternalPCBit));
+}
 #endif
 
 // These runtime entries are defined even when not using MSAN / TSAN to keep
@@ -5330,16 +5340,17 @@ DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Store, 3, __tsan_atomic32_store);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Load, 2, __tsan_atomic64_load);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Store, 3, __tsan_atomic64_store);
 #if defined(USING_THREAD_SANITIZER) && !defined(DART_PRECOMPILED_RUNTIME)
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead1, 1, jit_tsan_read1);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead2, 1, jit_tsan_read2);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead4, 1, jit_tsan_read4);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead8, 1, jit_tsan_read8);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead16, 1, jit_tsan_read16);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite1, 1, jit_tsan_write1);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite2, 1, jit_tsan_write2);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite4, 1, jit_tsan_write4);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite8, 1, jit_tsan_write8);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite16, 1, jit_tsan_write16);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead1, 1, dart_tsan_read1);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead2, 1, dart_tsan_read2);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead4, 1, dart_tsan_read4);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead8, 1, dart_tsan_read8);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead16, 1, dart_tsan_read16);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite1, 1, dart_tsan_write1);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite2, 1, dart_tsan_write2);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite4, 1, dart_tsan_write4);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite8, 1, dart_tsan_write8);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite16, 1, dart_tsan_write16);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanFuncEntry, 1, dart_tsan_func_entry);
 #else
 DEFINE_LEAF_RUNTIME_ENTRY(TsanRead1, 1, __tsan_read1);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanRead2, 1, __tsan_read2);
@@ -5351,8 +5362,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite2, 1, __tsan_write2);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite4, 1, __tsan_write4);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite8, 1, __tsan_write8);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite16, 1, __tsan_write16);
-#endif
 DEFINE_LEAF_RUNTIME_ENTRY(TsanFuncEntry, 1, __tsan_func_entry);
+#endif
 DEFINE_LEAF_RUNTIME_ENTRY(TsanFuncExit, 0, __tsan_func_exit);
 
 }  // namespace dart

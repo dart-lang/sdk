@@ -354,7 +354,6 @@ void Assembler::TsanStoreRelease(Register src,
 }
 
 void Assembler::TsanFuncEntry(bool preserve_registers) {
-  Comment("TsanFuncEntry");
   LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
   ldr(R0, Address(FP, target::frame_layout.saved_caller_fp_from_fp *
                           target::kWordSize));
@@ -364,7 +363,6 @@ void Assembler::TsanFuncEntry(bool preserve_registers) {
 }
 
 void Assembler::TsanFuncExit(bool preserve_registers) {
-  Comment("TsanFuncExit");
   LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
   rt.Call(kTsanFuncExitRuntimeEntry, /*argument_count=*/0);
 }
@@ -1801,16 +1799,14 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   ASSERT(!entry.is_leaf());
   // Argument count is not checked here, but in the runtime entry for a more
   // informative error message.
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
-      tsan_enter_exit) {
+  if (FLAG_target_thread_sanitizer && tsan_enter_exit) {
     TsanFuncEntry(/*preserve_registers=*/false);
   }
   ldr(R5, compiler::Address(THR, entry.OffsetFromThread()));
   LoadImmediate(R4, argument_count);
   Comment("Runtime call: %s", entry.name());
   Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
-      tsan_enter_exit) {
+  if (FLAG_target_thread_sanitizer && tsan_enter_exit) {
     TsanFuncExit(/*preserve_registers=*/false);
   }
 }

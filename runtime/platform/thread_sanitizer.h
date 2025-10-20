@@ -71,4 +71,6 @@ extern "C" void __tsan_func_exit();
 #define DO_IF_NOT_TSAN(CODE) CODE
 #endif
 
+constexpr uintptr_t kExternalPCBit = 1ULL << 60;
+
 #endif  // RUNTIME_PLATFORM_THREAD_SANITIZER_H_
