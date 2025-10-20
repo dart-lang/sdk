@@ -1,6 +1,7 @@
 class A {
-  static String get foo => "A.foo";
-  static void set baz(num value) {}
+  static String classMethod() => "A.classMethod";
+  static String get classGetter => "A.classGetter";
+  static void set classSetter(num value) {}
 }
 
 expectDoesntThrow(Function() f) {}
@@ -10,10 +11,12 @@ expectEqual(a, b) {}
 expectThrows(Function() f) {}
 
 extension E on A {
-  static String get bar => "E.bar";
-  static String get foo => "E.foo";
-  static void set baz(num value) {}
-  static void set quux(bool value) {}
+  static String classMethod() => "E.classMethod";
+  static String extensionMethod() => "E.extensionMethod";
+  static String get classGetter => "E.classGetter";
+  static String get extensionGetter => "E.extensionGetter";
+  static void set classSetter(num value) {}
+  static void set extensionSetter(bool value) {}
 }
 
 main() {}

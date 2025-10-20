@@ -22,7 +22,7 @@ import 'package:front_end/src/codes/cfe_codes.dart' as cfe show codeUnspecified;
 import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilderImpl;
 import 'package:front_end/src/kernel/constness.dart' show Constness;
 import 'package:front_end/src/kernel/expression_generator_helper.dart'
-    show UnresolvedKind;
+    show ConstructorResolutionResult, UnresolvedKind;
 import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/kernel/kernel_target.dart' show BuildResult;
 import 'package:front_end/src/util/import_export_etc_helper.dart';
@@ -242,7 +242,7 @@ mixin BodyBuilderTestMixin on BodyBuilderImpl {
   };
 
   @override
-  Expression resolveAndBuildConstructorInvocation(
+  ConstructorResolutionResult resolveAndBuildConstructorInvocation(
     TypeDeclarationBuilder? type,
     Token nameToken,
     Token nameLastToken,
