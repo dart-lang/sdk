@@ -207,13 +207,13 @@ import 'package:somepackage/other.dart';
   Future<void> _assertErrorsInCodeInFile(
     String path,
     String content,
-    List<ExpectedError> expectedErrors,
+    List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     var file = newFile(path, content);
     result = await resolveFile(file);
 
     var diagnosticListener = GatheringDiagnosticListener();
     diagnosticListener.addAll(result.diagnostics);
-    diagnosticListener.assertErrors(expectedErrors);
+    diagnosticListener.assertErrors(expectedDiagnostics);
   }
 }

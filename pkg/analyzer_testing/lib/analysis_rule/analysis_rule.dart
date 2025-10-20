@@ -24,15 +24,23 @@ ExpectedContextMessage contextMessage(
   File file,
   int offset,
   int length, {
-  String? text,
+  @Deprecated('Use textContains instead') String? text,
   List<Pattern> textContains = const [],
-}) => ExpectedContextMessage(
-  file,
-  offset,
-  length,
-  text: text,
-  textContains: textContains,
-);
+}) {
+  assert(
+    text == null || textContains.isEmpty,
+    'Use only one of text or textContains',
+  );
+  if (text != null) {
+    textContains = [text];
+  }
+  return ExpectedContextMessage(
+    file,
+    offset,
+    length,
+    textContains: textContains,
+  );
+}
 
 /// Returns an [ExpectedDiagnostic] with the given arguments.
 ///
@@ -41,17 +49,27 @@ ExpectedDiagnostic error(
   DiagnosticCode code,
   int offset,
   int length, {
-  Pattern? messageContains,
+  @Deprecated('Use messageContainsAll instead') Pattern? messageContains,
+  List<Pattern> messageContainsAll = const [],
   Pattern? correctionContains,
   List<ExpectedContextMessage>? contextMessages,
-}) => ExpectedError(
-  code,
-  offset,
-  length,
-  messageContains: messageContains,
-  correctionContains: correctionContains,
-  contextMessages: contextMessages,
-);
+}) {
+  assert(
+    messageContains == null || messageContainsAll.isEmpty,
+    'Use only one of messageContains or messageContainsAll',
+  );
+  if (messageContains != null) {
+    messageContainsAll = [messageContains];
+  }
+  return ExpectedError(
+    code,
+    offset,
+    length,
+    messageContainsAll: messageContainsAll,
+    correctionContains: correctionContains,
+    contextMessages: contextMessages,
+  );
+}
 
 /// A base class for analysis rule tests that use test_reflective_loader.
 abstract class AnalysisRuleTest extends PubPackageResolutionTest {
@@ -112,18 +130,28 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
   ExpectedDiagnostic lint(
     int offset,
     int length, {
-    Pattern? messageContains,
     Pattern? correctionContains,
+    @Deprecated('Use messageContainsAll instead') Pattern? messageContains,
+    List<Pattern> messageContainsAll = const [],
     String? name,
     List<ExpectedContextMessage>? contextMessages,
-  }) => ExpectedLint(
-    name ?? analysisRule,
-    offset,
-    length,
-    messageContains: messageContains,
-    correctionContains: correctionContains,
-    contextMessages: contextMessages,
-  );
+  }) {
+    assert(
+      messageContains == null || messageContainsAll.isEmpty,
+      'Use only one of messageContains or messageContainsAll',
+    );
+    if (messageContains != null) {
+      messageContainsAll = [messageContains];
+    }
+    return ExpectedLint(
+      name ?? analysisRule,
+      offset,
+      length,
+      messageContainsAll: messageContainsAll,
+      correctionContains: correctionContains,
+      contextMessages: contextMessages,
+    );
+  }
 
   @mustCallSuper
   @override

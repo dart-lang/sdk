@@ -457,14 +457,18 @@ class B = Object with A {}''',
   void test_conditionalExpression_super() {
     parseExpression(
       'x ? super : z',
-      errors: [expectedError(ParserErrorCode.missingAssignableSelector, 4, 5)],
+      diagnostics: [
+        expectedError(ParserErrorCode.missingAssignableSelector, 4, 5),
+      ],
     );
   }
 
   void test_conditionalExpression_super2() {
     parseExpression(
       'x ? z : super',
-      errors: [expectedError(ParserErrorCode.missingAssignableSelector, 8, 5)],
+      diagnostics: [
+        expectedError(ParserErrorCode.missingAssignableSelector, 8, 5),
+      ],
     );
   }
 
@@ -558,7 +562,9 @@ class B = Object with A {}''',
   void test_equalityExpression_superRHS() {
     parseExpression(
       "1 == super",
-      errors: [expectedError(ParserErrorCode.missingAssignableSelector, 5, 5)],
+      diagnostics: [
+        expectedError(ParserErrorCode.missingAssignableSelector, 5, 5),
+      ],
     );
   }
 
@@ -736,7 +742,7 @@ class B = Object with A {}''',
   void test_incomplete_functionExpression() {
     var expression = parseExpression(
       "() a => null",
-      errors: [expectedError(ParserErrorCode.unexpectedToken, 3, 1)],
+      diagnostics: [expectedError(ParserErrorCode.unexpectedToken, 3, 1)],
     );
     var functionExpression = expression as FunctionExpression;
     expect(functionExpression.parameters!.parameters, hasLength(0));
@@ -745,7 +751,7 @@ class B = Object with A {}''',
   void test_incomplete_functionExpression2() {
     var expression = parseExpression(
       "() a {}",
-      errors: [expectedError(ParserErrorCode.unexpectedToken, 3, 1)],
+      diagnostics: [expectedError(ParserErrorCode.unexpectedToken, 3, 1)],
     );
     var functionExpression = expression as FunctionExpression;
     expect(functionExpression.parameters!.parameters, hasLength(0));
@@ -762,7 +768,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   });
   return result;
 }''',
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.expectedToken, 12, 24),
         expectedError(ParserErrorCode.missingFunctionParameters, 0, 3),
       ],
@@ -779,7 +785,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   void test_incomplete_topLevelVariable() {
     CompilationUnit unit = parseCompilationUnit(
       "String",
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.missingConstFinalVarOrType, 0, 6),
         expectedError(ParserErrorCode.expectedToken, 0, 6),
       ],
@@ -1095,7 +1101,7 @@ class C {
 class C {
   final List<int f;
 }''',
-      errors: [expectedError(ParserErrorCode.expectedToken, 23, 3)],
+      diagnostics: [expectedError(ParserErrorCode.expectedToken, 23, 3)],
     );
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
@@ -1125,7 +1131,7 @@ class C {
       r'''
 class C<K {
 }''',
-      errors: [expectedError(ParserErrorCode.expectedToken, 8, 1)],
+      diagnostics: [expectedError(ParserErrorCode.expectedToken, 8, 1)],
     );
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
@@ -1145,7 +1151,7 @@ class C<K {
       r'''
 class C<K extends L<T> {
 }''',
-      errors: [expectedError(ParserErrorCode.expectedToken, 21, 1)],
+      diagnostics: [expectedError(ParserErrorCode.expectedToken, 21, 1)],
     );
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
@@ -1165,7 +1171,7 @@ class C<K extends L<T> {
       r'''
 class C<K extends L<T {
 }''',
-      errors: [expectedError(ParserErrorCode.expectedToken, 20, 1)],
+      diagnostics: [expectedError(ParserErrorCode.expectedToken, 20, 1)],
     );
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
@@ -1208,7 +1214,7 @@ class C<K extends L<T {
 class C {
   G<int double> g;
 }''',
-      errors: [expectedError(ParserErrorCode.expectedToken, 18, 6)],
+      diagnostics: [expectedError(ParserErrorCode.expectedToken, 18, 6)],
     );
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
@@ -1225,7 +1231,7 @@ class C {
   void test_invalidTypeParameters_super() {
     parseCompilationUnit(
       'class C<X super Y> {}',
-      errors: [expectedError(ParserErrorCode.expectedToken, 8, 1)],
+      diagnostics: [expectedError(ParserErrorCode.expectedToken, 8, 1)],
     );
   }
 
@@ -1259,7 +1265,7 @@ class C {
   void test_issue_34610_get() {
     var unit = parseCompilationUnit(
       'class C { get C.named => null; }',
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.getterConstructor, 10, 3),
         expectedError(ParserErrorCode.missingMethodParameters, 14, 1),
       ],
@@ -1273,7 +1279,9 @@ class C {
   void test_issue_34610_initializers() {
     var unit = parseCompilationUnit(
       'class C { C.named : super(); }',
-      errors: [expectedError(ParserErrorCode.missingMethodParameters, 10, 1)],
+      diagnostics: [
+        expectedError(ParserErrorCode.missingMethodParameters, 10, 1),
+      ],
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
     var constructor = declaration.members[0] as ConstructorDeclaration;
@@ -1285,7 +1293,9 @@ class C {
   void test_issue_34610_missing_param() {
     var unit = parseCompilationUnit(
       'class C { C => null; }',
-      errors: [expectedError(ParserErrorCode.missingMethodParameters, 10, 1)],
+      diagnostics: [
+        expectedError(ParserErrorCode.missingMethodParameters, 10, 1),
+      ],
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
     var constructor = declaration.members[0] as ConstructorDeclaration;
@@ -1297,7 +1307,9 @@ class C {
   void test_issue_34610_named_missing_param() {
     var unit = parseCompilationUnit(
       'class C { C.named => null; }',
-      errors: [expectedError(ParserErrorCode.missingMethodParameters, 10, 1)],
+      diagnostics: [
+        expectedError(ParserErrorCode.missingMethodParameters, 10, 1),
+      ],
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
     var constructor = declaration.members[0] as ConstructorDeclaration;
@@ -1309,7 +1321,7 @@ class C {
   void test_issue_34610_set() {
     var unit = parseCompilationUnit(
       'class C { set C.named => null; }',
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.setterConstructor, 10, 3),
         expectedError(ParserErrorCode.missingMethodParameters, 14, 1),
       ],
@@ -1452,7 +1464,7 @@ class C {
   void test_method_missingBody() {
     parseCompilationUnit(
       "class C { b() }",
-      errors: [expectedError(ParserErrorCode.missingFunctionBody, 14, 1)],
+      diagnostics: [expectedError(ParserErrorCode.missingFunctionBody, 14, 1)],
     );
   }
 
@@ -1460,7 +1472,7 @@ class C {
     var expression =
         parseExpression(
               "f(x: 1 y: 2)",
-              errors: [expectedError(ParserErrorCode.expectedToken, 7, 1)],
+              diagnostics: [expectedError(ParserErrorCode.expectedToken, 7, 1)],
             )
             as MethodInvocation;
     NodeList<Expression> arguments = expression.argumentList.arguments;
@@ -1482,7 +1494,9 @@ class C {
   int length {}
   void foo() {}
 }''',
-      errors: [expectedError(ParserErrorCode.missingMethodParameters, 16, 6)],
+      diagnostics: [
+        expectedError(ParserErrorCode.missingMethodParameters, 16, 6),
+      ],
     );
     expect(unit, isNotNull);
     ClassDeclaration classDeclaration =
@@ -1619,7 +1633,7 @@ class C {
   void test_namedParameterOutsideGroup() {
     CompilationUnit unit = parseCompilationUnit(
       'class A { b(c: 0, Foo d: 0, e){} }',
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.namedParameterOutsideGroup, 13, 1),
         expectedError(ParserErrorCode.namedParameterOutsideGroup, 23, 1),
       ],
@@ -1638,7 +1652,7 @@ class C {
   void test_nonStringLiteralUri_import() {
     parseCompilationUnit(
       "import dart:io; class C {}",
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.expectedToken, 0, 6),
         expectedError(ParserErrorCode.expectedStringLiteral, 7, 4),
         expectedError(ParserErrorCode.missingConstFinalVarOrType, 7, 4),
@@ -1663,7 +1677,9 @@ class C {
         parsePrimaryExpression(
               '?a',
               expectedEndOffset: 0,
-              errors: [expectedError(ParserErrorCode.missingIdentifier, 0, 1)],
+              diagnostics: [
+                expectedError(ParserErrorCode.missingIdentifier, 0, 1),
+              ],
             )
             as SimpleIdentifier;
     expectNotNullIfNoErrors(expression);

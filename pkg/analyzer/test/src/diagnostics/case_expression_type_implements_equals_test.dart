@@ -5,7 +5,6 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -71,10 +70,10 @@ void f(e) {
   }
 
   test_classInstance_implements() async {
-    List<ExpectedError> expectedErrors;
+    List<ExpectedDiagnostic> expectedDiagnostics;
     switch (_variant) {
       case _Variants.nullSafe:
-        expectedErrors = [
+        expectedDiagnostics = [
           error(
             CompileTimeErrorCode.caseExpressionTypeImplementsEquals,
             150,
@@ -82,7 +81,7 @@ void f(e) {
           ),
         ];
       case _Variants.patterns:
-        expectedErrors = [];
+        expectedDiagnostics = [];
     }
 
     await assertErrorsInCode(r'''
@@ -102,7 +101,7 @@ void f(e) {
       break;
   }
 }
-''', expectedErrors);
+''', expectedDiagnostics);
   }
 
   test_int() async {

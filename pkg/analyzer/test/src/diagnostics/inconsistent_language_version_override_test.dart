@@ -5,7 +5,6 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -29,7 +28,7 @@ part 'b.dart';
 // @dart = 3.2
 part of 'a.dart';
 ''',
-      libraryErrors: [error(_errorCode, 20, 8)],
+      libraryDiagnostics: [error(_errorCode, 20, 8)],
     );
   }
 
@@ -43,7 +42,7 @@ part 'b.dart';
 // @dart = 3.2
 part of 'a.dart';
 ''',
-      libraryErrors: [],
+      libraryDiagnostics: [],
     );
   }
 
@@ -55,7 +54,7 @@ part 'b.dart';
       partContent: r'''
 part of 'a.dart';
 ''',
-      libraryErrors: [],
+      libraryDiagnostics: [],
     );
   }
 
@@ -68,17 +67,17 @@ part 'b.dart';
 // @dart = 3.1
 part of 'a.dart';
 ''',
-      libraryErrors: [error(_errorCode, 5, 8)],
+      libraryDiagnostics: [error(_errorCode, 5, 8)],
     );
   }
 
   Future<void> _checkLibraryAndPart({
     required String libraryContent,
     required String partContent,
-    required List<ExpectedError> libraryErrors,
+    required List<ExpectedDiagnostic> libraryDiagnostics,
   }) async {
     var a = newFile('$testPackageLibPath/a.dart', libraryContent);
     newFile('$testPackageLibPath/b.dart', partContent);
-    await assertErrorsInFile2(a, libraryErrors);
+    await assertErrorsInFile2(a, libraryDiagnostics);
   }
 }

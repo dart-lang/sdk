@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:collection/collection.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -86,13 +83,16 @@ class A {
   int get _foo => 0;
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 
 class B extends A {
   set _foo(String _) {}
 }
-''', _filterGetterSetterTypeErrors([error(WarningCode.unusedElement, 44, 4)]));
+''',
+      [error(WarningCode.unusedElement, 44, 4)],
+    );
   }
 
   test_class_instance_private_interfaces() async {
@@ -137,13 +137,16 @@ class A {
   set _foo(String _) {}
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 
 class B extends A {
   int get _foo => 0;
 }
-''', _filterGetterSetterTypeErrors([error(WarningCode.unusedElement, 48, 4)]));
+''',
+      [error(WarningCode.unusedElement, 48, 4)],
+    );
   }
 
   test_class_instance_sameClass() async {
@@ -408,17 +411,5 @@ set foo(int v) {}
 final int foo = 0;
 set foo(String v) {}
 ''');
-  }
-
-  List<ExpectedError> _filterGetterSetterTypeErrors(
-    List<ExpectedError> expectedErrors,
-  ) {
-    if (experiments.contains(Feature.getter_setter_error.enableString)) {
-      return expectedErrors.whereNot((error) {
-        return error.code == CompileTimeErrorCode.getterNotSubtypeSetterTypes;
-      }).toList();
-    } else {
-      return expectedErrors;
-    }
   }
 }

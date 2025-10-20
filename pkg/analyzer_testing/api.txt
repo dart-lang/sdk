@@ -1,13 +1,13 @@
 package:analyzer_testing/analysis_rule/analysis_rule.dart:
-  contextMessage (function: ExpectedContextMessage Function(File, int, int, {String? text, List<Pattern> textContains}))
-  error (function: ExpectedDiagnostic Function(DiagnosticCode, int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, Pattern? messageContains}))
+  contextMessage (function: ExpectedContextMessage Function(File, int, int, {deprecated String? text, List<Pattern> textContains}))
+  error (function: ExpectedDiagnostic Function(DiagnosticCode, int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, deprecated Pattern? messageContains, List<Pattern> messageContainsAll}))
   AnalysisRuleTest (class extends PubPackageResolutionTest):
     new (constructor: AnalysisRuleTest Function())
     analysisRule (getter: String)
     assertNoPubspecDiagnostics (method: Future<void> Function(String))
     assertPubspecDiagnostics (method: Future<void> Function(String, List<ExpectedDiagnostic>))
     correctionMessage (method: String Function(List<Diagnostic>))
-    lint (method: ExpectedDiagnostic Function(int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, Pattern? messageContains, String? name}))
+    lint (method: ExpectedDiagnostic Function(int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, deprecated Pattern? messageContains, List<Pattern> messageContainsAll, String? name}))
     setUp (method: void Function())
     unexpectedMessage (method: String Function(List<Diagnostic>))
 package:analyzer_testing/experiments/experiments.dart:

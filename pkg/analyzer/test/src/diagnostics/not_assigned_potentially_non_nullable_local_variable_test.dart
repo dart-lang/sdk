@@ -5,7 +5,6 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -1726,7 +1725,7 @@ void f() {
     );
   }
 
-  ExpectedError _notAssignedError(int offset, int length) {
+  ExpectedDiagnostic _notAssignedError(int offset, int length) {
     return error(
       CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
       offset,

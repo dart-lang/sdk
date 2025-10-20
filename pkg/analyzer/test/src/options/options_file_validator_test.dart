@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -642,7 +643,7 @@ class OptionsProviderTest with ResourceProviderMixin {
 
   void assertErrorsInList(
     List<Diagnostic> diagnostics,
-    List<ExpectedError> expectedErrors,
+    List<ExpectedDiagnostic> expectedErrors,
   ) {
     GatheringDiagnosticListener diagnosticListener =
         GatheringDiagnosticListener();
@@ -672,19 +673,25 @@ class OptionsProviderTest with ResourceProviderMixin {
     int offset,
     int length, {
     Pattern? correctionContains,
+    // TODO(FMorschel): refactor the uses of this to prefer `messageContains`
     String? text,
     List<Pattern> messageContains = const [],
     List<ExpectedContextMessage> contextMessages =
         const <ExpectedContextMessage>[],
-  }) => ExpectedError(
-    code,
-    offset,
-    length,
-    correctionContains: correctionContains,
-    message: text,
-    messageContains: messageContains,
-    expectedContextMessages: contextMessages,
-  );
+  }) {
+    assert(
+      text == null || messageContains.isEmpty,
+      'Only use one of text or messageContains',
+    );
+    return ExpectedError(
+      code,
+      offset,
+      length,
+      correctionContains: correctionContains,
+      messageContainsAll: text != null ? [text] : messageContains,
+      contextMessages: contextMessages,
+    );
+  }
 
   void setUp() {
     sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);

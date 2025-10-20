@@ -8,7 +8,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -203,7 +202,7 @@ class DeprecatedMemberUse_PackageConfigWorkspaceTest
   String get externalLibUri => 'package:aaa/a.dart';
 
   Future<void> assertErrorsInCode2(
-    List<ExpectedError> expectedErrors, {
+    List<ExpectedDiagnostic> expectedDiagnostics, {
     required String externalCode,
     required String code,
   }) async {
@@ -212,7 +211,7 @@ class DeprecatedMemberUse_PackageConfigWorkspaceTest
     await assertErrorsInCode('''
 import '$externalLibUri';
 $code
-''', expectedErrors);
+''', expectedDiagnostics);
   }
 
   Future<void> assertNoErrorsInCode2({
