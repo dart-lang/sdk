@@ -18,6 +18,7 @@ linter:
   rules:
     - always_declare_return_types
     - avoid_dynamic_calls
+    - deprecated_member_use_from_same_package
     - no_default_cases
     - unnecessary_ignore
     - unnecessary_statements

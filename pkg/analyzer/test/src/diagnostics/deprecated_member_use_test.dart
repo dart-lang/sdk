@@ -594,12 +594,9 @@ export 'package:aaa/a.dart';
 library a;
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 export 'lib2.dart';
-''',
-      [error(HintCode.deprecatedMemberUseFromSamePackage, 0, 19)],
-    );
+''');
   }
 
   test_extensionOverride() async {
@@ -1313,16 +1310,13 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 import 'lib2.dart';
 
 void f(A a) {
   a.foo();
 }
-''',
-      [error(HintCode.deprecatedMemberUseFromSamePackage, 39, 3)],
-    );
+''');
   }
 
   test_methodInvocation_inDeprecatedConstructor() async {
@@ -1902,15 +1896,12 @@ class B extends A {
   }
 
   test_redirectingConstructorInvocation_namedParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 class A {
   A({@deprecated int a = 0}) {}
   A.named() : this(a: 0);
 }
-''',
-      [error(HintCode.deprecatedMemberUseFromSamePackage, 61, 1)],
-    );
+''');
   }
 
   test_setterInvocation() async {

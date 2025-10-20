@@ -26,6 +26,7 @@ linter:
   rules:
     - avoid_bool_literals_in_conditional_expressions
     - avoid_redundant_argument_values
+    - deprecated_member_use_from_same_package
     - flutter_style_todos
     - no_literal_bool_comparisons
     - prefer_single_quotes

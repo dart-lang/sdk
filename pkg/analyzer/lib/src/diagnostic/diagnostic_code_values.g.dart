@@ -642,8 +642,6 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   FfiCode.variableLengthArrayNotLast,
   HintCode.deprecatedColonForDefaultValue,
   HintCode.deprecatedMemberUse,
-  HintCode.deprecatedMemberUseFromSamePackage,
-  HintCode.deprecatedMemberUseFromSamePackageWithMessage,
   HintCode.deprecatedMemberUseWithMessage,
   HintCode.importDeferredLibraryWithLoadFunction,
   HintCode.unnecessaryImport,

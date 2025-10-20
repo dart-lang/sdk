@@ -53,12 +53,6 @@ final completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
 
 final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
   _diagnosticCode(WarningCode.deadCode): [lsp.DiagnosticTag.Unnecessary],
-  _diagnosticCode(HintCode.deprecatedMemberUseFromSamePackage): [
-    lsp.DiagnosticTag.Deprecated,
-  ],
-  _diagnosticCode(HintCode.deprecatedMemberUseFromSamePackageWithMessage): [
-    lsp.DiagnosticTag.Deprecated,
-  ],
   _diagnosticCode(HintCode.deprecatedMemberUse): [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package': [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package_with_message': [

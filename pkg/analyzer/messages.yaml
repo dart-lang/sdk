@@ -21137,47 +21137,6 @@ HintCode:
     problemMessage: "'#p0' is deprecated and shouldn't be used. #p1"
     correctionMessage: Try replacing the use of the deprecated member with the replacement.
     hasPublishedDocs: true
-  DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE:
-    parameters:
-      String p0: the name of the member
-    problemMessage: "'#p0' is deprecated and shouldn't be used."
-    correctionMessage: Try replacing the use of the deprecated member with the replacement.
-    hasPublishedDocs: true
-    comment: |-
-      This code is deprecated in favor of the
-      'deprecated_member_from_same_package' lint rule, and will be removed.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a deprecated library member or
-      class member is used in the same package in which it's declared.
-
-      #### Example
-
-      The following code produces this diagnostic because `x` is deprecated:
-
-      ```dart
-      @deprecated
-      var x = 0;
-      var y = [!x!];
-      ```
-
-      #### Common fixes
-
-      The fix depends on what's been deprecated and what the replacement is. The
-      documentation for deprecated declarations should indicate what code to use
-      in place of the deprecated code.
-  DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE:
-    parameters:
-      Object p0: the name of the member
-      Object p1: message details
-    sharedName: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-    problemMessage: "'#p0' is deprecated and shouldn't be used. #p1"
-    correctionMessage: Try replacing the use of the deprecated member with the replacement.
-    hasPublishedDocs: true
-    comment: |-
-      This code is deprecated in favor of the
-      'deprecated_member_from_same_package' lint rule, and will be removed.
   DIVISION_OPTIMIZATION:
     parameters: none
     removedIn: "3.5"

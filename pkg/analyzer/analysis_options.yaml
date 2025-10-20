@@ -55,6 +55,7 @@ linter:
     - avoid_redundant_argument_values
     - avoid_unused_constructor_parameters
     - comment_references
+    - deprecated_member_use_from_same_package
     - discarded_futures
     - flutter_style_todos
     - no_literal_bool_comparisons

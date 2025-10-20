@@ -28,6 +28,7 @@ linter:
     - cancel_subscriptions
     - cast_nullable_to_non_nullable
     - comment_references
+    - deprecated_member_use_from_same_package
     - directives_ordering
     - discarded_futures
     - flutter_style_todos
