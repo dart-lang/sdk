@@ -5,6 +5,7 @@
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -52,9 +53,8 @@ class PluginIsolateTest with ResourceProviderMixin, _ContextRoot {
   }
 
   void test_addContextRoot() {
-    var contextRoot1 = _newContextRoot('/pkg1');
     var optionsFile = getFile('/pkg1/analysis_options.yaml');
-    contextRoot1.optionsFile = optionsFile;
+    var contextRoot1 = _newContextRoot('/pkg1', optionsFile: optionsFile);
     var session = PluginSession(pluginIsolate);
     var channel = TestServerCommunicationChannel(session);
     pluginIsolate.currentSession = session;
@@ -325,12 +325,13 @@ class TestServerCommunicationChannel implements ServerCommunicationChannel {
 }
 
 mixin _ContextRoot on ResourceProviderMixin {
-  ContextRootImpl _newContextRoot(String rootPath) {
+  ContextRootImpl _newContextRoot(String rootPath, {File? optionsFile}) {
     rootPath = convertPath(rootPath);
     return ContextRootImpl(
       resourceProvider,
       resourceProvider.getFolder(rootPath),
       BasicWorkspace.find(resourceProvider, Packages.empty, rootPath),
+      optionsFile: optionsFile,
     );
   }
 }

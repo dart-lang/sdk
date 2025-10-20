@@ -364,14 +364,18 @@ class ContextLocatorImpl {
   }) {
     optionsFile ??= _findDefaultOptionsFile(workspace);
 
-    var root = ContextRootImpl(resourceProvider, rootFolder, workspace);
-    root.packagesFile = packagesFile;
-    root.optionsFile = optionsFile;
+    var root = ContextRootImpl(
+      resourceProvider,
+      rootFolder,
+      workspace,
+      optionsFile: optionsFile,
+      packagesFile: packagesFile,
+    );
     if (optionsFile != null) {
       root.optionsFileMap[rootFolder] = optionsFile;
     }
 
-    root.excludedGlobs = _getExcludedGlobs(optionsFile, workspace);
+    root.excludedGlobs.addAll(_getExcludedGlobs(optionsFile, workspace));
     roots.add(root);
     return root;
   }
@@ -446,13 +450,11 @@ class ContextLocatorImpl {
         packagesFile: rootPackagesFile,
         buildGnFile: buildGnFile,
       );
-      var root = ContextRootImpl(resourceProvider, folder, workspace);
-      root.packagesFile = rootPackagesFile;
       // Check for analysis options file in the parent directories, from
       // root folder to the containing root folder. Pick the one closest
       // to the root.
       if (localOptionsFile == null) {
-        var parentFolder = root.root.parent;
+        var parentFolder = folder.parent;
         while (parentFolder != containingRoot.root) {
           localOptionsFile = parentFolder.existingAnalysisOptionsYamlFile;
           if (localOptionsFile != null) {
@@ -461,14 +463,20 @@ class ContextLocatorImpl {
           parentFolder = parentFolder.parent;
         }
       }
-      root.optionsFile = localOptionsFile ?? containingRoot.optionsFile;
+      var root = ContextRootImpl(
+        resourceProvider,
+        folder,
+        workspace,
+        optionsFile: localOptionsFile ?? containingRoot.optionsFile,
+        packagesFile: rootPackagesFile,
+      );
       root.included.add(folder);
       containingRoot.excluded.add(folder);
       roots.add(root);
       containingRoot = root;
       containingRootEnabledLegacyPlugins = localEnabledPlugins;
       excludedGlobs = _getExcludedGlobs(root.optionsFile, workspace);
-      root.excludedGlobs = excludedGlobs;
+      root.excludedGlobs.addAll(excludedGlobs);
       usedThisRoot = false;
     }
 

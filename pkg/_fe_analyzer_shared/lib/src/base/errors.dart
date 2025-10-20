@@ -35,23 +35,6 @@ String formatList(String pattern, List<Object?>? arguments) {
   });
 }
 
-/// A diagnostic code associated with an `AnalysisError`.
-///
-/// Generally, messages should follow the [Guide for Writing
-/// Diagnostics](https://github.com/dart-lang/sdk/blob/main/pkg/front_end/lib/src/base/diagnostics.md).
-@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-@Deprecated("Use 'DiagnosticCode' instead.")
-typedef ErrorCode = DiagnosticCode;
-
-/// The severity of a [DiagnosticCode].
-@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-@Deprecated("Use 'DiagnosticSeverity' instead.")
-typedef ErrorSeverity = DiagnosticSeverity;
-
-@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-@Deprecated("Use 'DiagnosticType' instead.")
-typedef ErrorType = DiagnosticType;
-
 /// A diagnostic, as defined by the [Diagnostic Design Guidelines][guidelines]:
 ///
 /// > An indication of a specific problem at a specific location within the

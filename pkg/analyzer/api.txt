@@ -4573,9 +4573,6 @@ package:analyzer/error/error.dart:
     url (getter: String?)
     == (method: bool Function(Object))
   AnalysisError (type alias for Diagnostic, deprecated)
-  ErrorCode (type alias for DiagnosticCode, deprecated)
-  ErrorSeverity (type alias for DiagnosticSeverity, deprecated)
-  ErrorType (type alias for DiagnosticType, deprecated)
 package:analyzer/error/listener.dart:
   AnalysisErrorListener (class extends Object implements DiagnosticOrErrorListener, deprecated):
     new (constructor: AnalysisErrorListener Function())
