@@ -91,7 +91,7 @@ abstract class Feature {
   /// Feature information for spread collections.
   static final spread_collections = ExperimentalFeatures.spread_collections;
 
-  // Feature information for sealed classes.
+  /// Feature information for sealed classes.
   static final sealed_class = ExperimentalFeatures.sealed_class;
 
   /// Feature information for set literals.
@@ -99,6 +99,9 @@ abstract class Feature {
 
   /// Feature information for sound flow analysis.
   static final sound_flow_analysis = ExperimentalFeatures.sound_flow_analysis;
+
+  /// Feature information for static extensions.
+  static final static_extensions = ExperimentalFeatures.static_extensions;
 
   /// Feature information for super parameters.
   static final super_parameters = ExperimentalFeatures.super_parameters;
