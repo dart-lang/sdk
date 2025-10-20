@@ -56922,6 +56922,67 @@ class A {
     );
   }
 
+  test_manifest_class_constructor_initializers_isConst_fieldInitializer_notSerializable() async {
+    // We use invalid constant expression, but it should not crash.
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int foo;
+  const A.named() : foo = (() => 0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredConstructors
+          named: #M3
+        interface: #M4
+          map
+            foo: #M2
+          implemented
+            foo: #M2
+    exportMapId: #M5
+    exportMap
+      A: #M0
+''',
+      updatedCode: r'''
+class A {
+  final int foo;
+  const A.named() : foo = (() => 1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredConstructors
+          named: #M3
+        interface: #M4
+          map
+            foo: #M2
+          implemented
+            foo: #M2
+    exportMapId: #M5
+    exportMap
+      A: #M0
+''',
+    );
+  }
+
   test_manifest_class_constructor_initializers_isConst_fieldInitializer_value() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
