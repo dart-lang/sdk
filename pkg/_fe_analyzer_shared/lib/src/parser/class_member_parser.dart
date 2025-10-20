@@ -19,8 +19,7 @@ class ClassMemberParser extends Parser {
   ClassMemberParser(
     super.listener, {
     super.useImplicitCreationExpression,
-    super.allowPatterns,
-    super.enableFeatureEnhancedParts,
+    required super.experimentalFeatures,
   });
 
   @override
@@ -45,9 +44,8 @@ class ClassMemberParser extends Parser {
     // feature together with a no-op listener instead.
     this.skipParser ??= new Parser(
       new ErrorDelegationListener(listener),
+      experimentalFeatures: experimentalFeatures,
       useImplicitCreationExpression: useImplicitCreationExpression,
-      allowPatterns: allowPatterns,
-      enableFeatureEnhancedParts: enableFeatureEnhancedParts,
     );
     Parser skipParser = this.skipParser!;
     skipParser.mayParseFunctionExpressions = mayParseFunctionExpressions;

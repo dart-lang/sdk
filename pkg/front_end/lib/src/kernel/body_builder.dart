@@ -1282,8 +1282,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     if (!token.isEof) {
       token = parser.parseInitializers(token);
@@ -1298,8 +1297,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     Token endToken = parser.parseExpression(
       parser.syntheticPreviousToken(token),
@@ -1319,8 +1317,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     Token endToken = parser.parseMetadata(parser.syntheticPreviousToken(token));
     assert(checkState(token, [ValueKinds.Expression]));
@@ -1333,8 +1330,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     token = parser.parseArgumentsRest(token);
     ArgumentsImpl arguments = pop() as ArgumentsImpl;
@@ -11011,8 +11007,7 @@ class BodyBuilderImpl extends StackListenerImpl
       Parser parser = new Parser(
         this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled,
-        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+        experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
       );
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
@@ -11044,8 +11039,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     token = parser.parseFormalParametersOpt(
       parser.syntheticPreviousToken(token),
@@ -11071,8 +11065,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     if (metadata != null) {
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
@@ -11126,8 +11119,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
     assert(checkState(null, [ValueKinds.AnnotationList]));
@@ -11145,8 +11137,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     if (isTopLevel) {
       token = parser.parseTopLevelMember(metadata ?? token);
@@ -11231,9 +11222,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts:
-          libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
 
     if (formals != null) {

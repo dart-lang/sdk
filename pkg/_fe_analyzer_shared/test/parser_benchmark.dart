@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser_impl.dart';
@@ -66,7 +67,10 @@ void main(List<String> args) {
   int lengthProcessed = countTokens;
 
   for (int i = 0; i < iterations; i++) {
-    Parser parser = new Parser(listener, allowPatterns: true);
+    Parser parser = new Parser(
+      listener,
+      experimentalFeatures: const DefaultExperimentalFeatures(),
+    );
     Token after = parser.parseUnit(scanResult.tokens);
     if (!after.isEof) {
       throw "parsed returned before eof?!?";

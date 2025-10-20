@@ -39,7 +39,6 @@ void canParseTopLevelIshOfAllFrontendFiles() {
           data,
           includeBody: true,
           includeComments: true,
-          enableTripleShift: true,
         );
         splitIntoChunks(ast, data);
         for (ParserAstNode child in ast.children!) {

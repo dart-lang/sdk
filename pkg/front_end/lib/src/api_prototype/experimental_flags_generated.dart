@@ -1332,56 +1332,63 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
         "json": {ExperimentalFlag.enhancedParts, ExperimentalFlag.macros},
       },
     );
-const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
-  shared.ExperimentalFlag.augmentations: ExperimentalFlag.augmentations,
-  shared.ExperimentalFlag.classModifiers: ExperimentalFlag.classModifiers,
-  shared.ExperimentalFlag.constFunctions: ExperimentalFlag.constFunctions,
-  shared.ExperimentalFlag.constantUpdate2018:
-      ExperimentalFlag.constantUpdate2018,
-  shared.ExperimentalFlag.constructorTearoffs:
-      ExperimentalFlag.constructorTearoffs,
-  shared.ExperimentalFlag.controlFlowCollections:
-      ExperimentalFlag.controlFlowCollections,
-  shared.ExperimentalFlag.dataAssets: ExperimentalFlag.dataAssets,
-  shared.ExperimentalFlag.declaringConstructors:
-      ExperimentalFlag.declaringConstructors,
-  shared.ExperimentalFlag.digitSeparators: ExperimentalFlag.digitSeparators,
-  shared.ExperimentalFlag.dotShorthands: ExperimentalFlag.dotShorthands,
-  shared.ExperimentalFlag.enhancedEnums: ExperimentalFlag.enhancedEnums,
-  shared.ExperimentalFlag.enhancedParts: ExperimentalFlag.enhancedParts,
-  shared.ExperimentalFlag.extensionMethods: ExperimentalFlag.extensionMethods,
-  shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
-  shared.ExperimentalFlag.getterSetterError: ExperimentalFlag.getterSetterError,
-  shared.ExperimentalFlag.inferenceUpdate1: ExperimentalFlag.inferenceUpdate1,
-  shared.ExperimentalFlag.inferenceUpdate2: ExperimentalFlag.inferenceUpdate2,
-  shared.ExperimentalFlag.inferenceUpdate3: ExperimentalFlag.inferenceUpdate3,
-  shared.ExperimentalFlag.inferenceUpdate4: ExperimentalFlag.inferenceUpdate4,
-  shared.ExperimentalFlag.inferenceUsingBounds:
-      ExperimentalFlag.inferenceUsingBounds,
-  shared.ExperimentalFlag.inlineClass: ExperimentalFlag.inlineClass,
-  shared.ExperimentalFlag.macros: ExperimentalFlag.macros,
-  shared.ExperimentalFlag.namedArgumentsAnywhere:
-      ExperimentalFlag.namedArgumentsAnywhere,
-  shared.ExperimentalFlag.nativeAssets: ExperimentalFlag.nativeAssets,
-  shared.ExperimentalFlag.nonNullable: ExperimentalFlag.nonNullable,
-  shared.ExperimentalFlag.nonfunctionTypeAliases:
-      ExperimentalFlag.nonfunctionTypeAliases,
-  shared.ExperimentalFlag.nullAwareElements: ExperimentalFlag.nullAwareElements,
-  shared.ExperimentalFlag.patterns: ExperimentalFlag.patterns,
-  shared.ExperimentalFlag.privateNamedParameters:
-      ExperimentalFlag.privateNamedParameters,
-  shared.ExperimentalFlag.recordUse: ExperimentalFlag.recordUse,
-  shared.ExperimentalFlag.records: ExperimentalFlag.records,
-  shared.ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass,
-  shared.ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals,
-  shared.ExperimentalFlag.soundFlowAnalysis: ExperimentalFlag.soundFlowAnalysis,
-  shared.ExperimentalFlag.spreadCollections: ExperimentalFlag.spreadCollections,
-  shared.ExperimentalFlag.staticExtensions: ExperimentalFlag.staticExtensions,
-  shared.ExperimentalFlag.superParameters: ExperimentalFlag.superParameters,
-  shared.ExperimentalFlag.testExperiment: ExperimentalFlag.testExperiment,
-  shared.ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift,
-  shared.ExperimentalFlag.unnamedLibraries: ExperimentalFlag.unnamedLibraries,
-  shared.ExperimentalFlag.unquotedImports: ExperimentalFlag.unquotedImports,
-  shared.ExperimentalFlag.variance: ExperimentalFlag.variance,
-  shared.ExperimentalFlag.wildcardVariables: ExperimentalFlag.wildcardVariables,
+ExperimentalFlag fromSharedExperimentalFlag(
+  shared.ExperimentalFlag flag,
+) => switch (flag) {
+  shared.ExperimentalFlag.augmentations => ExperimentalFlag.augmentations,
+  shared.ExperimentalFlag.classModifiers => ExperimentalFlag.classModifiers,
+  shared.ExperimentalFlag.constFunctions => ExperimentalFlag.constFunctions,
+  shared.ExperimentalFlag.constantUpdate2018 =>
+    ExperimentalFlag.constantUpdate2018,
+  shared.ExperimentalFlag.constructorTearoffs =>
+    ExperimentalFlag.constructorTearoffs,
+  shared.ExperimentalFlag.controlFlowCollections =>
+    ExperimentalFlag.controlFlowCollections,
+  shared.ExperimentalFlag.dataAssets => ExperimentalFlag.dataAssets,
+  shared.ExperimentalFlag.declaringConstructors =>
+    ExperimentalFlag.declaringConstructors,
+  shared.ExperimentalFlag.digitSeparators => ExperimentalFlag.digitSeparators,
+  shared.ExperimentalFlag.dotShorthands => ExperimentalFlag.dotShorthands,
+  shared.ExperimentalFlag.enhancedEnums => ExperimentalFlag.enhancedEnums,
+  shared.ExperimentalFlag.enhancedParts => ExperimentalFlag.enhancedParts,
+  shared.ExperimentalFlag.extensionMethods => ExperimentalFlag.extensionMethods,
+  shared.ExperimentalFlag.genericMetadata => ExperimentalFlag.genericMetadata,
+  shared.ExperimentalFlag.getterSetterError =>
+    ExperimentalFlag.getterSetterError,
+  shared.ExperimentalFlag.inferenceUpdate1 => ExperimentalFlag.inferenceUpdate1,
+  shared.ExperimentalFlag.inferenceUpdate2 => ExperimentalFlag.inferenceUpdate2,
+  shared.ExperimentalFlag.inferenceUpdate3 => ExperimentalFlag.inferenceUpdate3,
+  shared.ExperimentalFlag.inferenceUpdate4 => ExperimentalFlag.inferenceUpdate4,
+  shared.ExperimentalFlag.inferenceUsingBounds =>
+    ExperimentalFlag.inferenceUsingBounds,
+  shared.ExperimentalFlag.inlineClass => ExperimentalFlag.inlineClass,
+  shared.ExperimentalFlag.macros => ExperimentalFlag.macros,
+  shared.ExperimentalFlag.namedArgumentsAnywhere =>
+    ExperimentalFlag.namedArgumentsAnywhere,
+  shared.ExperimentalFlag.nativeAssets => ExperimentalFlag.nativeAssets,
+  shared.ExperimentalFlag.nonNullable => ExperimentalFlag.nonNullable,
+  shared.ExperimentalFlag.nonfunctionTypeAliases =>
+    ExperimentalFlag.nonfunctionTypeAliases,
+  shared.ExperimentalFlag.nullAwareElements =>
+    ExperimentalFlag.nullAwareElements,
+  shared.ExperimentalFlag.patterns => ExperimentalFlag.patterns,
+  shared.ExperimentalFlag.privateNamedParameters =>
+    ExperimentalFlag.privateNamedParameters,
+  shared.ExperimentalFlag.recordUse => ExperimentalFlag.recordUse,
+  shared.ExperimentalFlag.records => ExperimentalFlag.records,
+  shared.ExperimentalFlag.sealedClass => ExperimentalFlag.sealedClass,
+  shared.ExperimentalFlag.setLiterals => ExperimentalFlag.setLiterals,
+  shared.ExperimentalFlag.soundFlowAnalysis =>
+    ExperimentalFlag.soundFlowAnalysis,
+  shared.ExperimentalFlag.spreadCollections =>
+    ExperimentalFlag.spreadCollections,
+  shared.ExperimentalFlag.staticExtensions => ExperimentalFlag.staticExtensions,
+  shared.ExperimentalFlag.superParameters => ExperimentalFlag.superParameters,
+  shared.ExperimentalFlag.testExperiment => ExperimentalFlag.testExperiment,
+  shared.ExperimentalFlag.tripleShift => ExperimentalFlag.tripleShift,
+  shared.ExperimentalFlag.unnamedLibraries => ExperimentalFlag.unnamedLibraries,
+  shared.ExperimentalFlag.unquotedImports => ExperimentalFlag.unquotedImports,
+  shared.ExperimentalFlag.variance => ExperimentalFlag.variance,
+  shared.ExperimentalFlag.wildcardVariables =>
+    ExperimentalFlag.wildcardVariables,
 };

@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
@@ -51,8 +52,10 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 import 'package:_fe_analyzer_shared/src/parser/member_kind.dart';
-import 'package:_fe_analyzer_shared/src/parser/parser.dart' show ConstantPatternContext, Parser;
-import 'package:_fe_analyzer_shared/src/parser/parser_impl.dart' show AwaitOrYieldContext, ForPartsContext, PatternContext;
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show ConstantPatternContext, ExperimentalFeatures, Parser;
+import 'package:_fe_analyzer_shared/src/parser/parser_impl.dart'
+    show AwaitOrYieldContext, ForPartsContext, PatternContext;
 import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
 import 'package:_fe_analyzer_shared/src/parser/type_info.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
@@ -71,11 +74,10 @@ class TestParser extends Parser {
   bool _inhibitPrinting = false;
 
   TestParser(Listener listener, this.trace,
-      {required bool allowPatterns, required bool enableEnhancedParts})
+      {required ExperimentalFeatures experimentalFeatures})
       : super(listener,
             useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-            allowPatterns: allowPatterns,
-            enableFeatureEnhancedParts: enableEnhancedParts);
+            experimentalFeatures: experimentalFeatures);
 
   String createTrace() {
     List<String> traceLines = StackTrace.current.toString().split("\n");
@@ -113,7 +115,10 @@ class TestParser extends Parser {
 """);
 
   ParserCreatorListener listener = new ParserCreatorListener(out);
-  ClassMemberParser parser = new ClassMemberParser(listener);
+  ClassMemberParser parser = new ClassMemberParser(
+    listener,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
+  );
   parser.parseUnit(firstToken);
 
   out.writeln("}");

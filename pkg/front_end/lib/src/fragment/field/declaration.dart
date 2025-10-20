@@ -431,6 +431,7 @@ class RegularFieldDeclaration
         libraryBuilder.importUri,
         fileUri,
         scope,
+        libraryBuilder.libraryFeatures,
       );
     }
     return (

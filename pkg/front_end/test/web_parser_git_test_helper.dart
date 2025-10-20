@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
     show ForwardingListener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
@@ -31,7 +33,10 @@ void main(List<String> args) {
   );
   Token firstToken = scanner.tokenize();
   ForwardingListener listener = new ForwardingListener();
-  Parser parser = new Parser(listener);
+  Parser parser = new Parser(
+    listener,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
+  );
   parser.parseUnit(firstToken);
   print("--- End of parsing ---");
 }

@@ -138,8 +138,6 @@ class BulkFixProcessor {
     CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension: [DataDriven.new],
     CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod: [DataDriven.new],
     HintCode.deprecatedMemberUse: [DataDriven.new],
-    HintCode.deprecatedMemberUseFromSamePackage: [DataDriven.new],
-    HintCode.deprecatedMemberUseFromSamePackageWithMessage: [DataDriven.new],
     HintCode.deprecatedMemberUseWithMessage: [DataDriven.new],
     WarningCode.deprecatedExportUse: [DataDriven.new],
     WarningCode.overrideOnNonOverridingMethod: [DataDriven.new],

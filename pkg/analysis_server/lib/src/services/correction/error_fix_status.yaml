@@ -1842,14 +1842,6 @@ HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE:
   status: hasFix
 HintCode.DEPRECATED_MEMBER_USE:
   status: hasFix
-HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE:
-  status: needsFix
-  notes: |-
-    Should probably be able to use `DataDriven`.
-HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE:
-  status: needsFix
-  notes: |-
-    Should probably be able to use `DataDriven`.
 HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE:
   status: hasFix
 HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:

@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/metadata/type_annotations.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:kernel/ast.dart';
 
+import '../../api_prototype/experimental_flags.dart';
 import '../../base/loader.dart';
 import '../../base/scope.dart';
 import '../../builder/builder.dart';
@@ -48,7 +49,8 @@ shared.Expression parseAnnotation(
   Token atToken,
   Uri importUri,
   Uri fileUri,
-  LookupScope scope, {
+  LookupScope scope,
+  LibraryFeatures libraryFeatures, {
   bool delayLookupForTesting = false,
 }) {
   return shared.parseAnnotation(
@@ -56,6 +58,7 @@ shared.Expression parseAnnotation(
     fileUri,
     new AnnotationScope(scope),
     new References(loader),
+    new LibraryExperimentalFeatures(libraryFeatures),
     isDartLibrary: _isDartLibrary(importUri, fileUri),
     delayLookupForTesting: delayLookupForTesting,
   );
@@ -75,7 +78,8 @@ shared.Expression parseFieldInitializer(
   Token initializerToken,
   Uri importUri,
   Uri fileUri,
-  LookupScope scope, {
+  LookupScope scope,
+  LibraryFeatures libraryFeatures, {
   bool delayLookupForTesting = false,
 }) {
   return shared.parseExpression(
@@ -83,6 +87,7 @@ shared.Expression parseFieldInitializer(
     fileUri,
     new AnnotationScope(scope),
     new References(loader),
+    new LibraryExperimentalFeatures(libraryFeatures),
     isDartLibrary: _isDartLibrary(importUri, fileUri),
     delayLookupForTesting: delayLookupForTesting,
   );

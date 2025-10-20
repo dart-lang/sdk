@@ -44,42 +44,6 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
     expectedTypes: [ExpectedType.string],
   );
 
-  /// This code is deprecated in favor of the
-  /// 'deprecated_member_from_same_package' lint rule, and will be removed.
-  ///
-  /// Parameters:
-  /// String p0: the name of the member
-  static const HintTemplate<LocatableDiagnostic Function({required String p0})>
-  deprecatedMemberUseFromSamePackage = HintTemplate(
-    'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
-    "'{0}' is deprecated and shouldn't be used.",
-    correctionMessage:
-        "Try replacing the use of the deprecated member with the replacement.",
-    hasPublishedDocs: true,
-    withArguments: _withArgumentsDeprecatedMemberUseFromSamePackage,
-    expectedTypes: [ExpectedType.string],
-  );
-
-  /// This code is deprecated in favor of the
-  /// 'deprecated_member_from_same_package' lint rule, and will be removed.
-  ///
-  /// Parameters:
-  /// Object p0: the name of the member
-  /// Object p1: message details
-  static const HintTemplate<
-    LocatableDiagnostic Function({required Object p0, required Object p1})
-  >
-  deprecatedMemberUseFromSamePackageWithMessage = HintTemplate(
-    'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
-    "'{0}' is deprecated and shouldn't be used. {1}",
-    correctionMessage:
-        "Try replacing the use of the deprecated member with the replacement.",
-    hasPublishedDocs: true,
-    uniqueName: 'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE',
-    withArguments: _withArgumentsDeprecatedMemberUseFromSamePackageWithMessage,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
-
   /// Parameters:
   /// String p0: the name of the member
   /// String p1: message details
@@ -151,26 +115,6 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(HintCode.deprecatedMemberUse, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDeprecatedMemberUseFromSamePackage({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      HintCode.deprecatedMemberUseFromSamePackage,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsDeprecatedMemberUseFromSamePackageWithMessage({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      HintCode.deprecatedMemberUseFromSamePackageWithMessage,
-      [p0, p1],
-    );
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedMemberUseWithMessage({

@@ -171,7 +171,7 @@ const transformSetErrorCodeFile = GeneratedErrorCodeFile(
 
 /// Decoded messages from the analyzer's `messages.yaml` file.
 final Map<AnalyzerCode, AnalyzerErrorCodeInfo> analyzerMessages =
-    _loadAnalyzerMessages();
+    _analyzerAndLintMessages.analyzerMessages;
 
 /// The path to the `analyzer` package.
 final String analyzerPkgPath = normalize(
@@ -183,7 +183,13 @@ final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
 
 /// Decoded messages from the linter's `messages.yaml` file.
 final Map<AnalyzerCode, AnalyzerErrorCodeInfo> lintMessages =
-    _loadLintMessages();
+    _analyzerAndLintMessages.lintMessages;
+
+final ({
+  Map<AnalyzerCode, AnalyzerErrorCodeInfo> analyzerMessages,
+  Map<AnalyzerCode, AnalyzerErrorCodeInfo> lintMessages,
+})
+_analyzerAndLintMessages = _loadAnalyzerAndLintMessages();
 
 /// Decodes a YAML object (obtained from a `messages.yaml` file) into a map.
 Map<AnalyzerCode, AnalyzerErrorCodeInfo> decodeAnalyzerMessagesYaml(
@@ -266,13 +272,39 @@ Map<AnalyzerCode, AnalyzerErrorCodeInfo> decodeAnalyzerMessagesYaml(
   return result;
 }
 
-/// Loads analyzer messages from the analyzer's `messages.yaml` file.
-Map<AnalyzerCode, AnalyzerErrorCodeInfo> _loadAnalyzerMessages() =>
-    decodeAnalyzerMessagesYaml(analyzerPkgPath);
+/// Loads analyzer and lint messages from their respective `messages.yaml`
+/// files, and performs consistency checks on them.
+({
+  Map<AnalyzerCode, AnalyzerErrorCodeInfo> analyzerMessages,
+  Map<AnalyzerCode, AnalyzerErrorCodeInfo> lintMessages,
+})
+_loadAnalyzerAndLintMessages() {
+  var analyzerMessages = decodeAnalyzerMessagesYaml(analyzerPkgPath);
+  var lintMessages = decodeAnalyzerMessagesYaml(linterPkgPath);
 
-/// Loads linter messages from the linter's `messages.yaml` file.
-Map<AnalyzerCode, AnalyzerErrorCodeInfo> _loadLintMessages() =>
-    decodeAnalyzerMessagesYaml(linterPkgPath);
+  // Check for duplicate codes.
+  var camelCaseNameToCodes = <String, List<String>>{};
+  for (var codeMap in [analyzerMessages, lintMessages]) {
+    for (var analyzerCode in codeMap.keys) {
+      (camelCaseNameToCodes[analyzerCode.camelCaseErrorName] ??= []).add(
+        analyzerCode.toString(),
+      );
+    }
+  }
+  for (var MapEntry(:key, :value) in feAnalyzerSharedMessages.entries) {
+    (camelCaseNameToCodes[value.analyzerCode.camelCaseErrorName] ??= []).add(
+      '$key (shared)',
+    );
+  }
+  for (var MapEntry(:key, :value) in camelCaseNameToCodes.entries) {
+    if (value.length > 1) {
+      throw 'Analyzer error name $key used for multiple diagnostics: '
+          '${value.join(', ')}';
+    }
+  }
+
+  return (analyzerMessages: analyzerMessages, lintMessages: lintMessages);
+}
 
 /// An [AnalyzerErrorCodeInfo] which is an alias for another, for incremental
 /// deprecation purposes.

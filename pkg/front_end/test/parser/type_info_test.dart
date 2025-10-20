@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/type_info.dart';
 import 'package:_fe_analyzer_shared/src/parser/type_info_impl.dart';
@@ -118,6 +119,7 @@ class NoTypeInfoTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
       const TypeMatcher<SyntheticStringToken>(),
@@ -140,6 +142,7 @@ class NoTypeInfoTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
       const TypeMatcher<SyntheticStringToken>(),
@@ -162,6 +165,7 @@ class NoTypeInfoTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
       start,
@@ -180,6 +184,7 @@ class NoTypeInfoTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
       start,
@@ -231,6 +236,7 @@ class VoidTypeInfoTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
       start.next,
@@ -253,6 +259,7 @@ class VoidTypeInfoTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
       start.next,
@@ -271,6 +278,7 @@ class VoidTypeInfoTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
       start.next,
@@ -289,6 +297,7 @@ class VoidTypeInfoTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
       start.next,
@@ -347,6 +356,7 @@ class PrefixedTypeInfoTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
     );
@@ -358,6 +368,7 @@ class PrefixedTypeInfoTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
     );
@@ -369,6 +380,7 @@ class PrefixedTypeInfoTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
     );
@@ -380,6 +392,7 @@ class PrefixedTypeInfoTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
     );
@@ -432,21 +445,51 @@ class SimpleNullableTypeTest {
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleNullableType.ensureTypeNotVoid(start, new Parser(listener)),
+      simpleNullableType.ensureTypeNotVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleNullableType.ensureTypeOrVoid(start, new Parser(listener)),
+      simpleNullableType.ensureTypeOrVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleNullableType.parseTypeNotVoid(start, new Parser(listener)),
+      simpleNullableType.parseTypeNotVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
 
     listener = new TypeInfoListener();
-    assertResult(simpleNullableType.parseType(start, new Parser(listener)));
+    assertResult(
+      simpleNullableType.parseType(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
+    );
   }
 }
 
@@ -492,7 +535,11 @@ class SimpleNullableTypeWith1ArgumentTest {
     assertResult(
       simpleNullableTypeWith1Argument.ensureTypeNotVoid(
         start,
-        new Parser(listener),
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
       ),
     );
 
@@ -500,7 +547,11 @@ class SimpleNullableTypeWith1ArgumentTest {
     assertResult(
       simpleNullableTypeWith1Argument.ensureTypeOrVoid(
         start,
-        new Parser(listener),
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
       ),
     );
 
@@ -508,13 +559,24 @@ class SimpleNullableTypeWith1ArgumentTest {
     assertResult(
       simpleNullableTypeWith1Argument.parseTypeNotVoid(
         start,
-        new Parser(listener),
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
       ),
     );
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleNullableTypeWith1Argument.parseType(start, new Parser(listener)),
+      simpleNullableTypeWith1Argument.parseType(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
   }
 }
@@ -570,16 +632,52 @@ class SimpleTypeTest {
     }
 
     listener = new TypeInfoListener();
-    assertResult(simpleType.ensureTypeNotVoid(start, new Parser(listener)));
+    assertResult(
+      simpleType.ensureTypeNotVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
+    );
 
     listener = new TypeInfoListener();
-    assertResult(simpleType.ensureTypeOrVoid(start, new Parser(listener)));
+    assertResult(
+      simpleType.ensureTypeOrVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
+    );
 
     listener = new TypeInfoListener();
-    assertResult(simpleType.parseTypeNotVoid(start, new Parser(listener)));
+    assertResult(
+      simpleType.parseTypeNotVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
+    );
 
     listener = new TypeInfoListener();
-    assertResult(simpleType.parseType(start, new Parser(listener)));
+    assertResult(
+      simpleType.parseType(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
+    );
   }
 }
 
@@ -649,22 +747,50 @@ class SimpleTypeWith1ArgumentTest {
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleTypeWith1Argument.ensureTypeNotVoid(start, new Parser(listener)),
+      simpleTypeWith1Argument.ensureTypeNotVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleTypeWith1Argument.ensureTypeOrVoid(start, new Parser(listener)),
+      simpleTypeWith1Argument.ensureTypeOrVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleTypeWith1Argument.parseTypeNotVoid(start, new Parser(listener)),
+      simpleTypeWith1Argument.parseTypeNotVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleTypeWith1Argument.parseType(start, new Parser(listener)),
+      simpleTypeWith1Argument.parseType(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
   }
 
@@ -701,23 +827,48 @@ class SimpleTypeWith1ArgumentTest {
     assertResult(
       simpleTypeWith1ArgumentGtEq.ensureTypeNotVoid(
         start,
-        new Parser(listener),
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
       ),
     );
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleTypeWith1ArgumentGtEq.ensureTypeOrVoid(start, new Parser(listener)),
+      simpleTypeWith1ArgumentGtEq.ensureTypeOrVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleTypeWith1ArgumentGtEq.parseTypeNotVoid(start, new Parser(listener)),
+      simpleTypeWith1ArgumentGtEq.parseTypeNotVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleTypeWith1ArgumentGtEq.parseType(start, new Parser(listener)),
+      simpleTypeWith1ArgumentGtEq.parseType(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
   }
 
@@ -753,23 +904,48 @@ class SimpleTypeWith1ArgumentTest {
     assertResult(
       simpleTypeWith1ArgumentGtGt.ensureTypeNotVoid(
         start,
-        new Parser(listener),
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
       ),
     );
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleTypeWith1ArgumentGtGt.ensureTypeOrVoid(start, new Parser(listener)),
+      simpleTypeWith1ArgumentGtGt.ensureTypeOrVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleTypeWith1ArgumentGtGt.parseTypeNotVoid(start, new Parser(listener)),
+      simpleTypeWith1ArgumentGtGt.parseTypeNotVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
 
     listener = new TypeInfoListener();
     assertResult(
-      simpleTypeWith1ArgumentGtGt.parseType(start, new Parser(listener)),
+      simpleTypeWith1ArgumentGtGt.parseType(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
     );
   }
 }
@@ -1808,6 +1984,7 @@ class NoTypeParamOrArgTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
       start,
@@ -1827,6 +2004,7 @@ class NoTypeParamOrArgTest {
         new Parser(
           listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
         ),
       ),
       start,
@@ -1921,6 +2099,7 @@ class SimpleTypeParamOrArgTest {
       new Parser(
         listener,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        experimentalFeatures: const DefaultExperimentalFeatures(),
       ),
     );
     validateTokens(start);
@@ -1968,6 +2147,7 @@ class SimpleTypeParamOrArgTest {
       new Parser(
         listener,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        experimentalFeatures: const DefaultExperimentalFeatures(),
       ),
     );
     validateTokens(start);
@@ -3067,6 +3247,7 @@ ComplexTypeInfo computeComplex(
     new Parser(
       listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      experimentalFeatures: const DefaultExperimentalFeatures(),
     ),
   );
 
@@ -3113,6 +3294,7 @@ void expectComplexTypeArg(
   Parser parser = new Parser(
     listener,
     useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
   );
   Token actualEnd = typeVarInfo.parseArguments(start, parser);
   validateTokens(start);
@@ -3162,6 +3344,7 @@ void expectComplexTypeParam(
   Parser parser = new Parser(
     listener,
     useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
   );
   Token actualEnd = typeVarInfo.parseVariables(start, parser);
   validateTokens(start);

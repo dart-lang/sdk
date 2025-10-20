@@ -17,8 +17,6 @@ void main() {
 class DeprecatedMemberUseFromSamePackageTest extends LintRuleTest {
   @override
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
-    HintCode.deprecatedMemberUseFromSamePackage,
-    HintCode.deprecatedMemberUseFromSamePackageWithMessage,
     WarningCode.unusedLocalVariable,
   ];
 

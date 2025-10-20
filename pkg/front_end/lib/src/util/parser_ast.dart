@@ -5,7 +5,9 @@
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart'
     show UnescapeErrorListener;
@@ -26,14 +28,15 @@ CompilationUnitEnd getAST(
   Uint8List rawBytes, {
   bool includeBody = true,
   bool includeComments = false,
-  bool enableTripleShift = false,
-  bool allowPatterns = false,
-  bool enableEnhancedParts = false,
+  ExperimentalFeatures experimentalFeatures =
+      const DefaultExperimentalFeatures(),
   List<Token>? languageVersionsSeen,
   List<int>? lineStarts,
 }) {
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-    enableTripleShift: enableTripleShift,
+    enableTripleShift: experimentalFeatures.isExperimentEnabled(
+      ExperimentalFlag.tripleShift,
+    ),
   );
 
   ScannerResult scanResult = scan(
@@ -61,15 +64,13 @@ CompilationUnitEnd getAST(
     parser = new Parser(
       listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: allowPatterns,
-      enableFeatureEnhancedParts: enableEnhancedParts,
+      experimentalFeatures: experimentalFeatures,
     );
   } else {
     parser = new ClassMemberParser(
       listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: allowPatterns,
-      enableFeatureEnhancedParts: enableEnhancedParts,
+      experimentalFeatures: experimentalFeatures,
     );
   }
   parser.parseUnit(firstToken);

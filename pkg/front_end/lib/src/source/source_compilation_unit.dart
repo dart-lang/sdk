@@ -629,8 +629,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
     new ClassMemberParser(
       listener,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     ).parseUnit(tokens);
   }
 

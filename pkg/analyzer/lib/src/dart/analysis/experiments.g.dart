@@ -67,6 +67,82 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.wildcard_variables: ExperimentalFeatures.wildcard_variables,
 };
 
+/// Returns the [Feature] corresponding to the shared experimental [flag].
+Feature fromSharedExperimentalFlags(
+  shared.ExperimentalFlag flag,
+) => switch (flag) {
+  shared.ExperimentalFlag.augmentations => ExperimentalFeatures.augmentations,
+  shared.ExperimentalFlag.classModifiers =>
+    ExperimentalFeatures.class_modifiers,
+  shared.ExperimentalFlag.constFunctions =>
+    ExperimentalFeatures.const_functions,
+  shared.ExperimentalFlag.constantUpdate2018 =>
+    ExperimentalFeatures.constant_update_2018,
+  shared.ExperimentalFlag.constructorTearoffs =>
+    ExperimentalFeatures.constructor_tearoffs,
+  shared.ExperimentalFlag.controlFlowCollections =>
+    ExperimentalFeatures.control_flow_collections,
+  shared.ExperimentalFlag.dataAssets => ExperimentalFeatures.data_assets,
+  shared.ExperimentalFlag.declaringConstructors =>
+    ExperimentalFeatures.declaring_constructors,
+  shared.ExperimentalFlag.digitSeparators =>
+    ExperimentalFeatures.digit_separators,
+  shared.ExperimentalFlag.dotShorthands => ExperimentalFeatures.dot_shorthands,
+  shared.ExperimentalFlag.enhancedEnums => ExperimentalFeatures.enhanced_enums,
+  shared.ExperimentalFlag.enhancedParts => ExperimentalFeatures.enhanced_parts,
+  shared.ExperimentalFlag.extensionMethods =>
+    ExperimentalFeatures.extension_methods,
+  shared.ExperimentalFlag.genericMetadata =>
+    ExperimentalFeatures.generic_metadata,
+  shared.ExperimentalFlag.getterSetterError =>
+    ExperimentalFeatures.getter_setter_error,
+  shared.ExperimentalFlag.inferenceUpdate1 =>
+    ExperimentalFeatures.inference_update_1,
+  shared.ExperimentalFlag.inferenceUpdate2 =>
+    ExperimentalFeatures.inference_update_2,
+  shared.ExperimentalFlag.inferenceUpdate3 =>
+    ExperimentalFeatures.inference_update_3,
+  shared.ExperimentalFlag.inferenceUpdate4 =>
+    ExperimentalFeatures.inference_update_4,
+  shared.ExperimentalFlag.inferenceUsingBounds =>
+    ExperimentalFeatures.inference_using_bounds,
+  shared.ExperimentalFlag.inlineClass => ExperimentalFeatures.inline_class,
+  shared.ExperimentalFlag.macros => ExperimentalFeatures.macros,
+  shared.ExperimentalFlag.namedArgumentsAnywhere =>
+    ExperimentalFeatures.named_arguments_anywhere,
+  shared.ExperimentalFlag.nativeAssets => ExperimentalFeatures.native_assets,
+  shared.ExperimentalFlag.nonNullable => ExperimentalFeatures.non_nullable,
+  shared.ExperimentalFlag.nonfunctionTypeAliases =>
+    ExperimentalFeatures.nonfunction_type_aliases,
+  shared.ExperimentalFlag.nullAwareElements =>
+    ExperimentalFeatures.null_aware_elements,
+  shared.ExperimentalFlag.patterns => ExperimentalFeatures.patterns,
+  shared.ExperimentalFlag.privateNamedParameters =>
+    ExperimentalFeatures.private_named_parameters,
+  shared.ExperimentalFlag.recordUse => ExperimentalFeatures.record_use,
+  shared.ExperimentalFlag.records => ExperimentalFeatures.records,
+  shared.ExperimentalFlag.sealedClass => ExperimentalFeatures.sealed_class,
+  shared.ExperimentalFlag.setLiterals => ExperimentalFeatures.set_literals,
+  shared.ExperimentalFlag.soundFlowAnalysis =>
+    ExperimentalFeatures.sound_flow_analysis,
+  shared.ExperimentalFlag.spreadCollections =>
+    ExperimentalFeatures.spread_collections,
+  shared.ExperimentalFlag.staticExtensions =>
+    ExperimentalFeatures.static_extensions,
+  shared.ExperimentalFlag.superParameters =>
+    ExperimentalFeatures.super_parameters,
+  shared.ExperimentalFlag.testExperiment =>
+    ExperimentalFeatures.test_experiment,
+  shared.ExperimentalFlag.tripleShift => ExperimentalFeatures.triple_shift,
+  shared.ExperimentalFlag.unnamedLibraries =>
+    ExperimentalFeatures.unnamed_libraries,
+  shared.ExperimentalFlag.unquotedImports =>
+    ExperimentalFeatures.unquoted_imports,
+  shared.ExperimentalFlag.variance => ExperimentalFeatures.variance,
+  shared.ExperimentalFlag.wildcardVariables =>
+    ExperimentalFeatures.wildcard_variables,
+};
+
 /// Constant strings for enabling each of the currently known experimental
 /// flags.
 class EnableString {

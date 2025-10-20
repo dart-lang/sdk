@@ -114,10 +114,7 @@ void dep(DeprecatedFields e) {
   }
 }
 ''',
-      [
-        lint(449, 10),
-        error(HintCode.deprecatedMemberUseFromSamePackage, 599, 6),
-      ],
+      [lint(449, 10)],
     );
   }
 
