@@ -252,3 +252,6 @@ wildcard_variables/class_type_parameters: semiFuzzFailureOnForceRebuildBodies # 
 wildcard_variables/initializing_formals: RuntimeError # Expected
 wildcard_variables/local_var_no_shadowing: semiFuzzFailureOnForceRebuildBodies # Expected
 wildcard_variables/top_level_function_no_shadow: semiFuzzFailureOnForceRebuildBodies # Expected
+
+# Temporarily unimplemented binary serialization, see https://github.com/dart-lang/sdk/issues/61765
+closure_context_lowering/local_functions: ExpectationFileMismatchSerialized

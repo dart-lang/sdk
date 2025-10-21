@@ -352,11 +352,17 @@ class LibraryManifestBuilder {
   /// change. So, it is enough to record that supertype constructors into
   /// the manifest.
   void _addClassTypeAliasConstructors() {
+    var librarySet = libraryElements.toSet();
     var hasConstructors = <ClassElementImpl>{};
     var inheritedMap = <ConstructorElementImpl, ManifestItemId>{};
 
     void addForElement(ClassElementImpl element) {
       if (!element.isMixinApplication) {
+        return;
+      }
+
+      // Skip external libraries, already done.
+      if (!librarySet.contains(element.library)) {
         return;
       }
 

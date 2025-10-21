@@ -21,6 +21,8 @@ class Flags {
       "--force-no-explicit-getter-calls";
   static const String forceConstructorTearOffLowering =
       "--force-constructor-tear-off-lowering";
+  static const String forceClosureContextLowering =
+      "--force-closure-context-lowering";
 
   static const String target = "--target";
 
@@ -114,6 +116,10 @@ class Options {
       defaultValue: null,
       noArgValue: ConstructorTearOffLowering.all,
     ),
+  );
+  static const Option<bool> forceClosureContextLowering = const Option(
+    Flags.forceClosureContextLowering,
+    const BoolValue(false),
   );
   static const Option<bool> help = const Option(
     Flags.help,

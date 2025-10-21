@@ -749,8 +749,12 @@ class TestTargetFlags extends TargetFlags {
       this.forceNoExplicitGetterCallsForTesting,
       this.forceConstructorTearOffLoweringForTesting,
       this.supportedDartLibraries = const {},
-      this.unsupportedDartLibraries = const {}})
-      : super(trackWidgetCreation: trackWidgetCreation);
+      this.unsupportedDartLibraries = const {},
+      bool? isClosureContextLoweringEnabled})
+      : super(
+            trackWidgetCreation: trackWidgetCreation,
+            isClosureContextLoweringEnabled:
+                isClosureContextLoweringEnabled ?? false);
 }
 
 mixin TestTargetMixin on Target {

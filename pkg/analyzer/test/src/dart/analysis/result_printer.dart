@@ -241,8 +241,12 @@ class BundleRequirementsPrinter extends ManifestPrinter {
           sink.writelnWithIndent('hasNonFinalField: $value');
         }
         _writelnIdListIfNotNull(
-          'allConstructors',
-          requirements.allConstructors,
+          'allDeclaredConstructors',
+          requirements.allDeclaredConstructors,
+        );
+        _writelnIdListIfNotNull(
+          'allInheritedConstructors',
+          requirements.allInheritedConstructors,
         );
         if (requirements.allSubtypesRequested) {
           _writelnIdListOrNull('allSubtypes', requirements.allSubtypes);

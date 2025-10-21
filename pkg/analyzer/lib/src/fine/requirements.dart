@@ -308,7 +308,10 @@ class InterfaceItemRequirements {
   bool? hasNonFinalField;
 
   /// Set if [InterfaceElementImpl.constructors] is invoked.
-  ManifestItemIdList? allConstructors;
+  ManifestItemIdList? allDeclaredConstructors;
+
+  /// Set if [InterfaceElementImpl.constructors] is invoked.
+  ManifestItemIdList? allInheritedConstructors;
 
   /// Requested with [InterfaceElementImpl.getNamedConstructor].
   final Map<LookupName, ManifestItemId?> requestedConstructors;
@@ -333,7 +336,8 @@ class InterfaceItemRequirements {
   InterfaceItemRequirements({
     required this.interfaceId,
     required this.hasNonFinalField,
-    required this.allConstructors,
+    required this.allDeclaredConstructors,
+    required this.allInheritedConstructors,
     required this.requestedConstructors,
     required this.methods,
     required this.implementedMethods,
@@ -348,7 +352,8 @@ class InterfaceItemRequirements {
     return InterfaceItemRequirements(
       interfaceId: null,
       hasNonFinalField: null,
-      allConstructors: null,
+      allDeclaredConstructors: null,
+      allInheritedConstructors: null,
       requestedConstructors: {},
       methods: {},
       implementedMethods: {},
@@ -364,7 +369,8 @@ class InterfaceItemRequirements {
     return InterfaceItemRequirements(
       interfaceId: ManifestItemId.readOptional(reader),
       hasNonFinalField: reader.readOptionalBool(),
-      allConstructors: ManifestItemIdList.readOptional(reader),
+      allDeclaredConstructors: ManifestItemIdList.readOptional(reader),
+      allInheritedConstructors: ManifestItemIdList.readOptional(reader),
       requestedConstructors: reader.readNameToOptionalIdMap(),
       methods: reader.readNameToOptionalIdMap(),
       implementedMethods: reader.readNameToOptionalIdMap(),
@@ -382,7 +388,8 @@ class InterfaceItemRequirements {
   void write(BinaryWriter writer) {
     interfaceId.writeOptional(writer);
     writer.writeOptionalBool(hasNonFinalField);
-    allConstructors.writeOptional(writer);
+    allDeclaredConstructors.writeOptional(writer);
+    allInheritedConstructors.writeOptional(writer);
     writer.writeNameToIdMap(requestedConstructors);
     writer.writeNameToIdMap(methods);
     writer.writeNameToIdMap(implementedMethods);
@@ -1502,14 +1509,27 @@ class RequirementsManifest {
           }
         }
 
-        if (interfaceRequirements.allConstructors case var required?) {
+        if (interfaceRequirements.allDeclaredConstructors case var required?) {
           var actualItems = interfaceItem.declaredConstructors.values;
           var actualIds = actualItems.map((item) => item.id);
           if (!required.equalToIterable(actualIds)) {
             return InterfaceChildrenIdsMismatch(
               libraryUri: libraryUri,
               interfaceName: interfaceName,
-              childrenPropertyName: 'constructors',
+              childrenPropertyName: 'declaredConstructors',
+              expectedIds: required,
+              actualIds: ManifestItemIdList(actualIds.toList()),
+            );
+          }
+        }
+
+        if (interfaceRequirements.allInheritedConstructors case var required?) {
+          var actualIds = interfaceItem.inheritedConstructors.values;
+          if (!required.equalToIterable(actualIds)) {
+            return InterfaceChildrenIdsMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              childrenPropertyName: 'inheritedConstructors',
               expectedIds: required,
               actualIds: ManifestItemIdList(actualIds.toList()),
             );
@@ -1771,8 +1791,12 @@ class RequirementsManifest {
     var item = itemRequirements.item;
     var requirements = itemRequirements.requirements;
 
-    requirements.allConstructors ??= ManifestItemIdList(
+    requirements.allDeclaredConstructors ??= ManifestItemIdList(
       item.declaredConstructors.values.map((item) => item.id).toList(),
+    );
+
+    requirements.allInheritedConstructors ??= ManifestItemIdList(
+      item.inheritedConstructors.values.toList(),
     );
   }
 
