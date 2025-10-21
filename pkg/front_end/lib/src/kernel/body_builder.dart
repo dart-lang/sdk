@@ -411,6 +411,15 @@ class BodyBuilderImpl extends StackListenerImpl
       libraryBuilder.importUri.isScheme("dart") ||
       uri.isScheme("org-dartlang-sdk");
 
+  bool get isClosureContextLoweringEnabled {
+    return libraryBuilder
+        .loader
+        .target
+        .backendTarget
+        .flags
+        .isClosureContextLoweringEnabled;
+  }
+
   @override
   Message reportFeatureNotEnabled(
     LibraryFeature feature,
@@ -7701,6 +7710,11 @@ class BodyBuilderImpl extends StackListenerImpl
       body,
       token.charOffset,
     );
+
+    if (isClosureContextLoweringEnabled) {
+      // TODO(cstefantsova): Add function parameters to the scope.
+      function.scope = new Scope([])..fileOffset = function.fileOffset;
+    }
 
     if (declaration is FunctionDeclaration) {
       VariableDeclaration variable = declaration.variable;

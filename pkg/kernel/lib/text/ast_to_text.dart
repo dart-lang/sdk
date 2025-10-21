@@ -782,6 +782,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       }
       writeWord('*/');
     }
+    if (function.scope case Scope scope?) {
+      writeScope(scope);
+    }
     Statement? body = function.body;
     if (body != null) {
       writeFunctionBody(body, terminateLine: terminateLine);
@@ -1084,6 +1087,24 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         writeSpace();
       }
     }
+  }
+
+  void writeScope(Scope scope, {String separator = ','}) {
+    writeWord('/* scope=');
+    bool isFirst = true;
+    for (VariableContext context in scope.contexts) {
+      if (isFirst) {
+        isFirst = false;
+      } else {
+        writeComma(separator);
+      }
+      writeVariableContext(context);
+    }
+    writeWord('*/');
+  }
+
+  void writeVariableContext(VariableContext context, {String separator = ','}) {
+    // TODO(cstefantsova): Implement writeVariableContext.
   }
 
   @override

@@ -30,6 +30,7 @@ const List<Option> folderOptionsSpecification = [
   Options.forceStaticFieldLowering,
   Options.forceNoExplicitGetterCalls,
   Options.forceConstructorTearOffLowering,
+  Options.forceClosureContextLowering,
   Options.noDefines,
   noVerifyCmd,
   Options.target,
@@ -56,6 +57,7 @@ class SuiteFolderOptions {
       Map<String, String>? defines = {};
       String target = "vm";
       bool showOffsets = false;
+      bool forceClosureContextLowering = false;
       if (directory.uri == baseUri) {
         folderOptions = new FolderOptions(
           {},
@@ -69,6 +71,7 @@ class SuiteFolderOptions {
           noVerify: noVerify,
           target: target,
           showOffsets: showOffsets,
+          forceClosureContextLowering: forceClosureContextLowering,
         );
       } else {
         File optionsFile = new File.fromUri(
@@ -101,6 +104,8 @@ class SuiteFolderOptions {
           forceConstructorTearOffLowering = Options
               .forceConstructorTearOffLowering
               .read(parsedOptions);
+          forceClosureContextLowering = Options.forceClosureContextLowering
+              .read(parsedOptions);
           defines = parsedOptions.defines;
           showOffsets = Options.showOffsets.read(parsedOptions);
           if (Options.noDefines.read(parsedOptions)) {
@@ -129,6 +134,7 @@ class SuiteFolderOptions {
             target: target,
             overwriteCurrentSdkVersion: overwriteCurrentSdkVersionArgument,
             showOffsets: showOffsets,
+            forceClosureContextLowering: forceClosureContextLowering,
           );
         } else {
           folderOptions = _computeFolderOptions(directory.parent);
@@ -185,6 +191,7 @@ class FolderOptions {
   final String target;
   final String? overwriteCurrentSdkVersion;
   final bool showOffsets;
+  final bool forceClosureContextLowering;
 
   FolderOptions(
     this._explicitExperimentalFlags, {
@@ -200,6 +207,7 @@ class FolderOptions {
     // can be null
     this.overwriteCurrentSdkVersion,
     this.showOffsets = false,
+    this.forceClosureContextLowering = false,
   }) : assert(
          // no this doesn't make any sense but left to underline
          // that this is allowed to be null!
