@@ -6527,7 +6527,8 @@ class B extends A {}
             allDeclaredMethods: []
         interfaces
           A
-            allConstructors: #M6
+            allDeclaredConstructors: #M6
+            allInheritedConstructors: []
             requestedConstructors
               new: #M6
 [status] idle
@@ -6638,7 +6639,8 @@ class A {
             allDeclaredMethods: []
         interfaces
           A
-            allConstructors: #M6
+            allDeclaredConstructors: #M6
+            allInheritedConstructors: []
             requestedConstructors
               new: #M6
 [status] idle
@@ -6720,7 +6722,8 @@ class B extends A {}
             allDeclaredMethods: []
         interfaces
           A
-            allConstructors: #M6
+            allDeclaredConstructors: #M6
+            allInheritedConstructors: []
             requestedConstructors
               new: #M6
 [status] idle
@@ -6810,7 +6813,8 @@ class A {
             allDeclaredMethods: []
         interfaces
           A
-            allConstructors: #M6
+            allDeclaredConstructors: #M6
+            allInheritedConstructors: []
             requestedConstructors
               new: #M6
 [status] idle
@@ -7514,7 +7518,8 @@ class B extends A {}
             allDeclaredMethods: []
         interfaces
           A
-            allConstructors: #M9
+            allDeclaredConstructors: #M9
+            allInheritedConstructors: []
             requestedConstructors
               new: #M9
 [status] idle
@@ -7631,7 +7636,8 @@ class A {
             allDeclaredMethods: []
         interfaces
           A
-            allConstructors: #M9
+            allDeclaredConstructors: #M9
+            allInheritedConstructors: []
             requestedConstructors
               new: #M9
 [status] idle
@@ -9961,7 +9967,8 @@ class B extends A {}
             allDeclaredMethods: #M2 #M1
         interfaces
           A
-            allConstructors: #M8
+            allDeclaredConstructors: #M8
+            allInheritedConstructors: []
             requestedConstructors
               new: #M8
 [status] idle
@@ -10073,7 +10080,8 @@ class A {
             allDeclaredMethods: #M10 #M1
         interfaces
           A
-            allConstructors: #M8
+            allDeclaredConstructors: #M8
+            allInheritedConstructors: []
             requestedConstructors
               new: #M8
 [status] idle
@@ -10212,7 +10220,8 @@ class X extends C {}
             allDeclaredMethods: []
         interfaces
           C
-            allConstructors: #M13
+            allDeclaredConstructors: #M13
+            allInheritedConstructors: []
             requestedConstructors
               new: #M13
 [status] idle
@@ -10353,7 +10362,8 @@ class C extends A implements B {}
             allDeclaredMethods: []
         interfaces
           C
-            allConstructors: #M13
+            allDeclaredConstructors: #M13
+            allInheritedConstructors: []
             requestedConstructors
               new: #M13
 [status] idle
@@ -16740,7 +16750,8 @@ import 'a.dart';
           A: false
         interfaces
           A
-            allConstructors: #M5
+            allDeclaredConstructors: #M5
+            allInheritedConstructors: []
 [status] idle
 [future] getErrors T1
   ErrorsResult #0
@@ -16776,7 +16787,7 @@ class A {
   interfaceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    childrenPropertyName: constructors
+    childrenPropertyName: declaredConstructors
     expectedIds: #M5
     actualIds: #M6
 [operation] analyzeFile
@@ -16796,7 +16807,8 @@ class A {
           A: false
         interfaces
           A
-            allConstructors: #M6
+            allDeclaredConstructors: #M6
+            allInheritedConstructors: []
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -16873,7 +16885,8 @@ import 'a.dart';
           A: false
         interfaces
           A
-            allConstructors: #M2 #M1
+            allDeclaredConstructors: #M2 #M1
+            allInheritedConstructors: []
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -16911,7 +16924,7 @@ class A {
   interfaceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    childrenPropertyName: constructors
+    childrenPropertyName: declaredConstructors
     expectedIds: #M2 #M1
     actualIds: #M2 #M7
 [operation] analyzeFile
@@ -16938,7 +16951,8 @@ class A {
           A: false
         interfaces
           A
-            allConstructors: #M2 #M7
+            allDeclaredConstructors: #M2 #M7
+            allInheritedConstructors: []
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -17828,7 +17842,8 @@ class B extends A {
             allDeclaredMethods: []
         interfaces
           A
-            allConstructors: #M1
+            allDeclaredConstructors: #M1
+            allInheritedConstructors: []
             requestedConstructors
               named: #M1
 [status] idle
@@ -17898,7 +17913,7 @@ class A {
   interfaceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    childrenPropertyName: constructors
+    childrenPropertyName: declaredConstructors
     expectedIds: #M1
     actualIds: #M9
 [operation] analyzeFile
@@ -17926,7 +17941,8 @@ class A {
             allDeclaredMethods: []
         interfaces
           A
-            allConstructors: #M9
+            allDeclaredConstructors: #M9
+            allInheritedConstructors: []
             requestedConstructors
               named: #M9
 [status] idle
@@ -19161,7 +19177,8 @@ import 'a.dart';
           A: false
         interfaces
           A
-            allConstructors: #M2 #M1
+            allDeclaredConstructors: #M2 #M1
+            allInheritedConstructors: []
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -19199,7 +19216,7 @@ class A {
   interfaceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    childrenPropertyName: constructors
+    childrenPropertyName: declaredConstructors
     expectedIds: #M2 #M1
     actualIds: #M7 #M1
 [operation] analyzeFile
@@ -19226,7 +19243,8 @@ class A {
           A: false
         interfaces
           A
-            allConstructors: #M7 #M1
+            allDeclaredConstructors: #M7 #M1
+            allInheritedConstructors: []
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -19709,6 +19727,145 @@ class B = A with M;
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_classTypeAlias_namedConstructor_add_getConstructors() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var B = state.singleUnit.scopeInterfaceElement('B');
+      B.constructors;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.foo();
+}
+class B = A with M;
+mixin M {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo: #M1
+        interface: #M2
+      B: #M3
+        inheritedConstructors
+          foo: #M1
+        interface: #M4
+    declaredMixins
+      M: #M5
+        interface: #M6
+    exportMapId: #M7
+    exportMap
+      A: #M0
+      B: #M3
+      M: #M5
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    exportMapId: #M8
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M9
+        exportMapId: #M7
+        exportMap
+          B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
+        interfaces
+          B
+            allDeclaredConstructors: []
+            allInheritedConstructors: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.foo();
+  A.bar();
+}
+class B = A with M;
+mixin M {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          bar: #M10
+          foo: #M1
+        interface: #M2
+      B: #M3
+        inheritedConstructors
+          bar: #M10
+          foo: #M1
+        interface: #M4
+    declaredMixins
+      M: #M5
+        interface: #M6
+    exportMapId: #M7
+    exportMap
+      A: #M0
+      B: #M3
+      M: #M5
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  interfaceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: B
+    childrenPropertyName: inheritedConstructors
+    expectedIds: #M1
+    actualIds: #M1 #M10
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M9
+        exportMapId: #M7
+        exportMap
+          B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
+        interfaces
+          B
+            allDeclaredConstructors: []
+            allInheritedConstructors: #M1 #M10
+[status] idle
 ''',
     );
   }
@@ -30379,7 +30536,8 @@ import 'a.dart';
           A: false
         interfaces
           A
-            allConstructors: #M4 #M3
+            allDeclaredConstructors: #M4 #M3
+            allInheritedConstructors: []
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -30424,7 +30582,7 @@ extension type A(int it) {
   interfaceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    childrenPropertyName: constructors
+    childrenPropertyName: declaredConstructors
     expectedIds: #M4 #M3
     actualIds: #M4 #M9
 [operation] analyzeFile
@@ -30451,7 +30609,8 @@ extension type A(int it) {
           A: false
         interfaces
           A
-            allConstructors: #M4 #M9
+            allDeclaredConstructors: #M4 #M9
+            allInheritedConstructors: []
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -31671,7 +31830,8 @@ import 'a.dart';
           A: false
         interfaces
           A
-            allConstructors: #M4 #M3
+            allDeclaredConstructors: #M4 #M3
+            allInheritedConstructors: []
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -31742,7 +31902,8 @@ extension type A(double it) {
           A: false
         interfaces
           A
-            allConstructors: #M13 #M12
+            allDeclaredConstructors: #M13 #M12
+            allInheritedConstructors: []
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -72194,6 +72355,119 @@ class X2 = X1 with M;
       M: #M7
       X1: #M3
       X2: #M5
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_constructors_add_externalLibrary() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A.foo();
+}
+class B = A with M1;
+mixin M1 {}
+''');
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart';
+class C = B with M2;
+mixin M2 {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo: #M1
+        interface: #M2
+      B: #M3
+        inheritedConstructors
+          foo: #M1
+        interface: #M4
+    declaredMixins
+      M1: #M5
+        interface: #M6
+    exportMapId: #M7
+    exportMap
+      A: #M0
+      B: #M3
+      M1: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      C: #M8
+        inheritedConstructors
+          foo: #M1
+        interface: #M9
+    declaredMixins
+      M2: #M10
+        interface: #M11
+    exportMapId: #M12
+    exportMap
+      C: #M8
+      M2: #M10
+''',
+      updatedCodeFile: a,
+      updatedCode: r'''
+class A {
+  A.foo();
+  A.bar();
+}
+class B = A with M1;
+mixin M1 {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          bar: #M13
+          foo: #M1
+        interface: #M2
+      B: #M3
+        inheritedConstructors
+          bar: #M13
+          foo: #M1
+        interface: #M4
+    declaredMixins
+      M1: #M5
+        interface: #M6
+    exportMapId: #M7
+    exportMap
+      A: #M0
+      B: #M3
+      M1: #M5
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  interfaceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: B
+    childrenPropertyName: inheritedConstructors
+    expectedIds: #M1
+    actualIds: #M1 #M13
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H3
+    declaredClasses
+      C: #M8
+        inheritedConstructors
+          bar: #M13
+          foo: #M1
+        interface: #M9
+    declaredMixins
+      M2: #M10
+        interface: #M11
+    exportMapId: #M12
+    exportMap
+      C: #M8
+      M2: #M10
 ''',
     );
   }
