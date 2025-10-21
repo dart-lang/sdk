@@ -196,7 +196,8 @@ void foo() {
       );
     });
 
-    test('returns short errors for evaluation in "watch" context', () async {
+    test('returns short errors for evaluation in "watch" context (rpc error)',
+        () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
@@ -205,6 +206,8 @@ void foo() {
       final topFrameId = await client.getTopFrameId(stop.threadId!);
       expectResponseError(
         client.evaluate(
+          // This expression fails with an RPC error (expression compilation)
+          // so will be handled as a failed request in the DAP handler.
           '1 + "a"',
           frameId: topFrameId,
           context: 'watch',
@@ -213,6 +216,26 @@ void foo() {
           "A value of type 'String' can't be assigned "
           "to a variable of type 'num'.",
         ),
+      );
+    });
+
+    test('returns short errors for evaluation in "watch" context (ErrorRef)',
+        () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+      expectResponseError(
+        client.evaluate(
+          // This expression compiles but returns an ErrorRef which must be
+          // handled specifically in the DAP handler.
+          'DateTime.now().ye',
+          frameId: topFrameId,
+          context: 'watch',
+        ),
+        equals("Class 'DateTime' has no instance getter 'ye'."),
       );
     });
 

@@ -1929,11 +1929,54 @@ void Assembler::PopRegister(Register r) {
 }
 
 void Assembler::PushRegisters(const RegisterSet& registers) {
-  UNIMPLEMENTED();
+  const intptr_t xmm_regs_count = registers.FpuRegisterCount();
+  if (xmm_regs_count > 0) {
+    subl(ESP, compiler::Immediate(xmm_regs_count * kFpuRegisterSize));
+    // Store XMM registers with the lowest register number at the lowest
+    // address.
+    intptr_t offset = 0;
+    for (intptr_t i = 0; i < kNumberOfXmmRegisters; ++i) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(i);
+      if (registers.ContainsFpuRegister(xmm_reg)) {
+        movups(Address(ESP, offset), xmm_reg);
+        offset += kFpuRegisterSize;
+      }
+    }
+    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
+  }
+
+  // The order in which the registers are pushed must match the order
+  // in which the registers are encoded in the safe point's stack map.
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+    Register reg = static_cast<Register>(i);
+    if (registers.ContainsRegister(reg)) {
+      pushl(reg);
+    }
+  }
 }
 
 void Assembler::PopRegisters(const RegisterSet& registers) {
-  UNIMPLEMENTED();
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    Register reg = static_cast<Register>(i);
+    if (registers.ContainsRegister(reg)) {
+      popl(reg);
+    }
+  }
+
+  const intptr_t xmm_regs_count = registers.FpuRegisterCount();
+  if (xmm_regs_count > 0) {
+    // XMM registers have the lowest register number at the lowest address.
+    intptr_t offset = 0;
+    for (intptr_t i = 0; i < kNumberOfXmmRegisters; ++i) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(i);
+      if (registers.ContainsFpuRegister(xmm_reg)) {
+        movups(xmm_reg, Address(ESP, offset));
+        offset += kFpuRegisterSize;
+      }
+    }
+    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
+    addl(ESP, compiler::Immediate(offset));
+  }
 }
 
 void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
@@ -2610,9 +2653,8 @@ void Assembler::TransitionNativeToGenerated(Register scratch,
        compiler::Immediate(0));
 }
 
-static constexpr intptr_t kNumberOfVolatileCpuRegisters = 3;
-static const Register volatile_cpu_registers[kNumberOfVolatileCpuRegisters] = {
-    EAX, ECX, EDX};
+static const RegisterSet kRuntimeCallSavedRegisters(kDartVolatileCpuRegs,
+                                                    kDartVolatileFpuRegs);
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count,
@@ -2635,21 +2677,7 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
   __ EnterFrame(0);
 
   if (preserve_registers_) {
-    // Preserve volatile CPU registers.
-    for (intptr_t i = 0; i < kNumberOfVolatileCpuRegisters; i++) {
-      __ pushl(volatile_cpu_registers[i]);
-    }
-
-    // Preserve all XMM registers.
-    __ subl(ESP, Immediate(kNumberOfXmmRegisters * kFpuRegisterSize));
-    // Store XMM registers with the lowest register number at the lowest
-    // address.
-    intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-      __ movups(Address(ESP, offset), xmm_reg);
-      offset += kFpuRegisterSize;
-    }
+    __ PushRegisters(kRuntimeCallSavedRegisters);
   } else {
     // These registers must always be preserved.
     COMPILE_ASSERT(IsCalleeSavedRegister(THR));
@@ -2674,25 +2702,9 @@ LeafRuntimeScope::~LeafRuntimeScope() {
     // ESP might have been modified to reserve space for arguments
     // and ensure proper alignment of the stack frame.
     // We need to restore it before restoring registers.
-    const intptr_t kPushedRegistersSize =
-        kNumberOfVolatileCpuRegisters * target::kWordSize +
-        kNumberOfXmmRegisters * kFpuRegisterSize;
-    __ leal(ESP, Address(EBP, -kPushedRegistersSize));
+    __ leal(ESP, Address(EBP, -kRuntimeCallSavedRegisters.SpillSize()));
 
-    // Restore all XMM registers.
-    // XMM registers have the lowest register number at the lowest address.
-    intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-      __ movups(xmm_reg, Address(ESP, offset));
-      offset += kFpuRegisterSize;
-    }
-    __ addl(ESP, Immediate(offset));
-
-    // Restore volatile CPU registers.
-    for (intptr_t i = kNumberOfVolatileCpuRegisters - 1; i >= 0; i--) {
-      __ popl(volatile_cpu_registers[i]);
-    }
+    __ PopRegisters(kRuntimeCallSavedRegisters);
   }
 
   __ leave();

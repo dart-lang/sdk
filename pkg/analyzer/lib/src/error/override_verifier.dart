@@ -87,11 +87,18 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   /// Return `true` if the [member] overrides a member from a superinterface.
   bool _isOverride(ExecutableElement member) {
     var currentClass = _currentClass?.firstFragment;
-    if (currentClass != null) {
-      var name = Name.forElement(member)!;
-      return currentClass.element.getOverridden(name) != null;
-    } else {
+    if (currentClass == null) {
       return false;
     }
+
+    var name = Name.forElement(member);
+
+    // We get `null` if the element does not have name.
+    // This was already a parse error, avoid the warning.
+    if (name == null) {
+      return true;
+    }
+
+    return currentClass.element.getOverridden(name) != null;
   }
 }

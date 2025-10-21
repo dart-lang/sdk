@@ -15,4 +15,5 @@ main() => flagFuzz(
     "pkg/compiler/lib/src/util/memory_compiler.dart",
     output,
   ],
+  "wasm",
 );
