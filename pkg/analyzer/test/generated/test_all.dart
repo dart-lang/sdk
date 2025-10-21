@@ -8,7 +8,6 @@ import 'all_the_rest_test.dart' as all_the_rest;
 import 'class_member_parser_test.dart' as class_member_parser;
 import 'collection_literal_parser_test.dart' as collection_literal_parser;
 import 'complex_parser_test.dart' as complex_parser;
-import 'declaring_constructor_parser_test.dart' as declaring_constructor_parser;
 import 'error_parser_test.dart' as error_parser;
 import 'expression_parser_test.dart' as expression_parser;
 import 'extension_methods_parser_test.dart' as extension_methods_parser;
@@ -48,7 +47,6 @@ main() {
     class_member_parser.main();
     collection_literal_parser.main();
     complex_parser.main();
-    declaring_constructor_parser.main();
     error_parser.main();
     expression_parser.main();
     extension_methods_parser.main();

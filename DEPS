@@ -141,16 +141,16 @@ vars = {
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "3ec573500f743d4a1393f7802143aef50fec0a47", # rolled manually while native assets are experimental
-  "protobuf_rev": "14bbd0bd7ff9b7e322ff4e85bd243f6905170b92",
+  "protobuf_rev": "78cf7432a6b1a0771042a1931047cf7c15d931c6",
   "pub_rev": "f7f1891e2de3d795532f45ec214f88ac912ffcd6", # rolled manually
   "shelf_rev": "710b8cef08f69acf176c807eaf274dfb8656fde0",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "8083c8f24ffbca58cc0385add03c296b70636e7a",
-  "tools_rev": "f5920a2d58351931999279b405a4f16b3166311c",
+  "tools_rev": "d0941a357a297610f012114d4da06fcccebe6c5c",
   "vector_math_rev": "a7b7e9ccb931348dbfa669e0f8fea1bf97705b16",
-  "web_rev": "816abcc1bf186f61c7e66e7f4c56d1554a61ab27",
-  "webdev_rev": "2517aa94c3ff5b51bbe432c9bd4da6ee4308a5bf",
+  "web_rev": "5a7d0be70a258252b95bac6b900f26d6dae4d433",
+  "webdev_rev": "82b385574a65e6025f970ce204365851dbbc1ac1",
   "webdriver_rev": "09104f459ed834d48b132f6b7734923b1fbcf2e9",
   "webkit_inspection_protocol_rev": "0f7685804d77ec02c6564d7ac1a6c8a2341c5bdf",
 

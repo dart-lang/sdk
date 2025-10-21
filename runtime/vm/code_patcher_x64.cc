@@ -221,7 +221,9 @@ class InstanceCall : public UnoptimizedCall {
 #endif  // DEBUG
   }
 
-  ObjectPtr data() const { return object_pool_.ObjectAt(argument_index()); }
+  ObjectPtr data() const {
+    return object_pool_.ObjectAt<std::memory_order_acquire>(argument_index());
+  }
   void set_data(const Object& data) const {
     ASSERT(data.IsArray() || data.IsICData() || data.IsMegamorphicCache());
     object_pool_.SetObjectAt<std::memory_order_release>(argument_index(), data);
@@ -295,7 +297,7 @@ class SwitchableCallBase : public ValueObject {
   intptr_t target_index() const { return target_index_; }
 
   ObjectPtr data() const {
-    return object_pool_.ObjectAt<std::memory_order_relaxed>(data_index());
+    return object_pool_.ObjectAt<std::memory_order_acquire>(data_index());
   }
 
   void SetDataRelease(const Object& data) const {

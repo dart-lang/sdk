@@ -15,6 +15,7 @@ import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -1831,6 +1832,14 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   }
 }
 
+/// Stub of [BlockClassBodyImpl], used to pass to the [ExtensionDeclarationImpl]
+/// constructor, but it never returned through the API.
+// TODO(scheglov): Remove together with [useDeclaringConstructorsAst].
+final class BlockClassBodyImplStub implements BlockClassBodyImpl {
+  @override
+  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+}
+
 /// A function body that consists of a block of statements.
 ///
 ///    blockFunctionBody ::=
@@ -2909,7 +2918,16 @@ class ChildEntity {
 @experimental
 sealed class ClassBody implements AstNode {}
 
-sealed class ClassBodyImpl extends AstNodeImpl implements ClassBody {}
+abstract final class ClassBodyImpl extends AstNodeImpl implements ClassBody {}
+
+/// Stub of [ClassBodyImpl], used to pass to the [ClassDeclarationImpl] or
+/// [ExtensionTypeDeclarationImpl] constructor, but it never returned through
+/// the API.
+// TODO(scheglov): Remove together with [useDeclaringConstructorsAst].
+final class ClassBodyImplStub implements ClassBodyImpl {
+  @override
+  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+}
 
 /// The declaration of a class.
 ///
@@ -2934,10 +2952,9 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
 
   /// The body of the class declaration.
   ///
-  /// Will become not `null` when [Feature.declaring_constructors] is
-  /// implemented, replaces [leftBracket], [members], [rightBracket].
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `false`.
   @experimental
-  ClassBody? get body;
+  ClassBody get body;
 
   /// The token representing the `class` keyword.
   Token get classKeyword;
@@ -2960,27 +2977,38 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   Token? get interfaceKeyword;
 
   /// The left curly bracket.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   Token get leftBracket;
 
   /// The members defined by the class.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   NodeList<ClassMember> get members;
 
   /// The `mixin` keyword, or `null` if the keyword was absent.
   Token? get mixinKeyword;
 
+  /// The name of the class.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
+  @override
+  Token get name;
+
   /// The name of the class, as an identifier with type parameters, or
   /// a primary constructor.
   ///
-  /// Will become not `null` when [Feature.declaring_constructors] is
-  /// implemented, replaces [name].
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `false`.
   @experimental
-  ClassNamePart? get namePart;
+  ClassNamePart get namePart;
 
   /// The native clause for this class, or `null` if the class doesn't have a
   /// native clause.
   NativeClause? get nativeClause;
 
   /// The right curly bracket.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   Token get rightBracket;
 
   /// The `sealed` keyword, or `null` if the keyword was absent.
@@ -2988,6 +3016,8 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
 
   /// The type parameters for the class, or `null` if the class doesn't have any
   /// type parameters.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   TypeParameterList? get typeParameters;
 
   /// The `with` clause for the class, or `null` if the class doesn't have a
@@ -3005,12 +3035,14 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
     GenerateNodeProperty('finalKeyword'),
     GenerateNodeProperty('mixinKeyword'),
     GenerateNodeProperty('classKeyword'),
+    GenerateNodeProperty('namePart'),
     GenerateNodeProperty('name', isSuper: true),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('extendsClause'),
     GenerateNodeProperty('withClause'),
     GenerateNodeProperty('implementsClause'),
     GenerateNodeProperty('nativeClause'),
+    GenerateNodeProperty('body'),
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty('members'),
     GenerateNodeProperty('rightBracket'),
@@ -3052,9 +3084,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token classKeyword;
 
   @generated
-  TypeParameterListImpl? _typeParameters;
-
-  @generated
   ExtendsClauseImpl? _extendsClause;
 
   @generated
@@ -3066,22 +3095,28 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   @generated
   NativeClauseImpl? _nativeClause;
 
-  @generated
-  @override
-  final Token leftBracket;
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final ClassNamePartImpl _namePart;
 
-  @generated
-  @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  TypeParameterListImpl? _typeParameters;
 
-  @generated
-  @override
-  final Token rightBracket;
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final ClassBodyImpl _body;
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final Token _leftBracket;
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final Token _rightBracket;
 
   @override
   ClassFragmentImpl? declaredFragment;
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   ClassDeclarationImpl({
     required super.comment,
     required super.metadata,
@@ -3094,34 +3129,59 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.mixinKeyword,
     required this.classKeyword,
     required super.name,
+    required ClassNamePartImpl namePart,
     required TypeParameterListImpl? typeParameters,
     required ExtendsClauseImpl? extendsClause,
     required WithClauseImpl? withClause,
     required ImplementsClauseImpl? implementsClause,
     required NativeClauseImpl? nativeClause,
-    required this.leftBracket,
+    required ClassBodyImpl body,
+    required Token leftBracket,
     required List<ClassMemberImpl> members,
-    required this.rightBracket,
-  }) : _typeParameters = typeParameters,
+    required Token rightBracket,
+  }) : _namePart = namePart,
+       _typeParameters = typeParameters,
        _extendsClause = extendsClause,
        _withClause = withClause,
        _implementsClause = implementsClause,
-       _nativeClause = nativeClause {
-    _becomeParentOf(typeParameters);
+       _nativeClause = nativeClause,
+       _body = body,
+       _leftBracket = leftBracket,
+       _rightBracket = rightBracket {
+    if (useDeclaringConstructorsAst) {
+      _becomeParentOf(namePart);
+    } else {
+      _becomeParentOf(typeParameters);
+    }
     _becomeParentOf(extendsClause);
     _becomeParentOf(withClause);
     _becomeParentOf(implementsClause);
     _becomeParentOf(nativeClause);
-    this.members._initialize(this, members);
+    if (useDeclaringConstructorsAst) {
+      _becomeParentOf(body);
+      assert(identical(typeParameters, namePart.typeParameters));
+    } else {
+      _members._initialize(this, members);
+      assert(namePart is ClassNamePartImplStub);
+      assert(body is ClassBodyImplStub);
+    }
   }
 
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  // TODO(scheglov): implement declaring constructors
-  ClassBodyImpl? get body => throw UnimplementedError();
+  ClassBodyImpl get body {
+    if (!useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = true');
+    }
+    return _body;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   Token get endToken {
+    if (useDeclaringConstructorsAst) {
+      return body.endToken;
+    }
     return rightBracket;
   }
 
@@ -3170,9 +3230,41 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     _implementsClause = _becomeParentOf(implementsClause);
   }
 
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  // TODO(scheglov): implement declaring constructors
-  ClassNamePart? get namePart => throw UnimplementedError();
+  Token get leftBracket {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _leftBracket;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  NodeListImpl<ClassMemberImpl> get members {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _members;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  Token get name {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return super.name;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  ClassNamePartImpl get namePart {
+    if (!useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = true');
+    }
+    return _namePart;
+  }
 
   @generated
   @override
@@ -3183,11 +3275,25 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     _nativeClause = _becomeParentOf(nativeClause);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  TypeParameterListImpl? get typeParameters => _typeParameters;
+  Token get rightBracket {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _rightBracket;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  TypeParameterListImpl? get typeParameters {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _typeParameters;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   set typeParameters(TypeParameterListImpl? typeParameters) {
     _typeParameters = _becomeParentOf(typeParameters);
   }
@@ -3201,52 +3307,84 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     _withClause = _becomeParentOf(withClause);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('abstractKeyword', abstractKeyword)
-    ..addToken('sealedKeyword', sealedKeyword)
-    ..addToken('baseKeyword', baseKeyword)
-    ..addToken('interfaceKeyword', interfaceKeyword)
-    ..addToken('finalKeyword', finalKeyword)
-    ..addToken('mixinKeyword', mixinKeyword)
-    ..addToken('classKeyword', classKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('extendsClause', extendsClause)
-    ..addNode('withClause', withClause)
-    ..addNode('implementsClause', implementsClause)
-    ..addNode('nativeClause', nativeClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities {
+    var result = super._childEntities
+      ..addToken('augmentKeyword', augmentKeyword)
+      ..addToken('abstractKeyword', abstractKeyword)
+      ..addToken('sealedKeyword', sealedKeyword)
+      ..addToken('baseKeyword', baseKeyword)
+      ..addToken('interfaceKeyword', interfaceKeyword)
+      ..addToken('finalKeyword', finalKeyword)
+      ..addToken('mixinKeyword', mixinKeyword)
+      ..addToken('classKeyword', classKeyword);
+
+    if (useDeclaringConstructorsAst) {
+      result.addNode('namePart', namePart);
+    } else {
+      result
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters);
+    }
+
+    result
+      ..addNode('extendsClause', extendsClause)
+      ..addNode('withClause', withClause)
+      ..addNode('implementsClause', implementsClause)
+      ..addNode('nativeClause', nativeClause);
+
+    if (useDeclaringConstructorsAst) {
+      result.addNode('body', body);
+    } else {
+      result
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('members', members)
+        ..addToken('rightBracket', rightBracket);
+    }
+
+    return result;
+  }
 
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassDeclaration(this);
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    typeParameters?.accept(visitor);
+    if (useDeclaringConstructorsAst) {
+      namePart.accept(visitor);
+    } else {
+      typeParameters?.accept(visitor);
+    }
     extendsClause?.accept(visitor);
     withClause?.accept(visitor);
     implementsClause?.accept(visitor);
     nativeClause?.accept(visitor);
-    members.accept(visitor);
+    if (useDeclaringConstructorsAst) {
+      body.accept(visitor);
+    } else {
+      members.accept(visitor);
+    }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
+    if (useDeclaringConstructorsAst) {
+      if (namePart._containsOffset(rangeOffset, rangeEnd)) {
+        return namePart;
+      }
+    } else {
+      if (typeParameters case var typeParameters?) {
+        if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+          return typeParameters;
+        }
       }
     }
     if (extendsClause case var extendsClause?) {
@@ -3269,9 +3407,15 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
         return nativeClause;
       }
     }
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
+    if (useDeclaringConstructorsAst) {
+      if (body._containsOffset(rangeOffset, rangeEnd)) {
+        return body;
+      }
+    } else {
+      if (members._elementContainingRange(rangeOffset, rangeEnd)
+          case var result?) {
+        return result;
+      }
     }
     return null;
   }
@@ -3301,7 +3445,18 @@ sealed class ClassNamePart implements AstNode {
   TypeParameterList? get typeParameters;
 }
 
-sealed class ClassNamePartImpl extends AstNodeImpl implements ClassNamePart {}
+sealed class ClassNamePartImpl extends AstNodeImpl implements ClassNamePart {
+  @override
+  TypeParameterListImpl? get typeParameters;
+}
+
+/// Stub of [ClassNamePartImpl], used to pass to the [ClassDeclarationImpl]
+/// constructor, but it never returned through the API.
+// TODO(scheglov): Remove together with [useDeclaringConstructorsAst].
+final class ClassNamePartImplStub implements ClassNamePartImpl {
+  @override
+  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+}
 
 /// A class type alias.
 ///
@@ -7031,6 +7186,14 @@ final class EnumBodyImpl extends ClassBodyImpl implements EnumBody {
   }
 }
 
+/// Stub of [EnumBodyImpl], used to pass to the [EnumDeclarationImpl]
+/// constructor, but it is never returned through the API.
+// TODO(scheglov): Remove together with [useDeclaringConstructorsAst].
+final class EnumBodyImplStub implements EnumBodyImpl {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// The arguments part of an enum constant.
 ///
 ///    enumConstantArguments ::=
@@ -7301,13 +7464,13 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
 
   /// The body of the enum declaration.
   ///
-  /// Will become not `null` when [Feature.declaring_constructors] is
-  /// implemented, replaces [leftBracket], [constants], [semicolon], [members],
-  /// [rightBracket].
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `false`.
   @experimental
-  EnumBody? get body;
+  EnumBody get body;
 
   /// The enumeration constants being declared.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   NodeList<EnumConstantDeclaration> get constants;
 
   @override
@@ -7321,27 +7484,42 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
   ImplementsClause? get implementsClause;
 
   /// The left curly bracket.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   Token get leftBracket;
 
   /// The members declared by the enumeration.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   NodeList<ClassMember> get members;
+
+  /// The name of the enum.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
+  @override
+  Token get name;
 
   /// The name of the enum, as an identifier with type parameters,
   /// or a primary constructor.
   ///
-  /// Will become not `null` when [Feature.declaring_constructors] is
-  /// implemented, replaces [name] and [typeParameters].
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `false`.
   @experimental
-  ClassNamePart? get namePart;
+  ClassNamePart get namePart;
 
   /// The right curly bracket.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   Token get rightBracket;
 
   /// The optional semicolon after the last constant.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   Token? get semicolon;
 
   /// The type parameters for the enumeration, or `null` if the enumeration
   /// doesn't have any type parameters.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   TypeParameterList? get typeParameters;
 
   /// The `with` clause for the enumeration, or `null` if the enumeration
@@ -7353,10 +7531,12 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('enumKeyword'),
+    GenerateNodeProperty('namePart'),
     GenerateNodeProperty('name', isSuper: true),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('withClause'),
     GenerateNodeProperty('implementsClause'),
+    GenerateNodeProperty('body'),
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty('constants'),
     GenerateNodeProperty('semicolon'),
@@ -7376,69 +7556,105 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token enumKeyword;
 
   @generated
-  TypeParameterListImpl? _typeParameters;
-
-  @generated
   WithClauseImpl? _withClause;
 
   @generated
   ImplementsClauseImpl? _implementsClause;
 
-  @generated
-  @override
-  final Token leftBracket;
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final ClassNamePartImpl _namePart;
 
-  @generated
-  @override
-  final NodeListImpl<EnumConstantDeclarationImpl> constants = NodeListImpl._();
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  TypeParameterListImpl? _typeParameters;
 
-  @generated
-  @override
-  final Token? semicolon;
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  EnumBodyImpl _body;
 
-  @generated
-  @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final Token _leftBracket;
 
-  @generated
-  @override
-  final Token rightBracket;
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final NodeListImpl<EnumConstantDeclarationImpl> _constants = NodeListImpl._();
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final Token? _semicolon;
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final Token _rightBracket;
 
   @override
   EnumFragmentImpl? declaredFragment;
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   EnumDeclarationImpl({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
     required this.enumKeyword,
     required super.name,
+    required ClassNamePartImpl namePart,
     required TypeParameterListImpl? typeParameters,
     required WithClauseImpl? withClause,
     required ImplementsClauseImpl? implementsClause,
-    required this.leftBracket,
+    required EnumBodyImpl body,
+    required Token leftBracket,
     required List<EnumConstantDeclarationImpl> constants,
-    required this.semicolon,
+    required Token? semicolon,
     required List<ClassMemberImpl> members,
-    required this.rightBracket,
-  }) : _typeParameters = typeParameters,
+    required Token rightBracket,
+  }) : _namePart = namePart,
+       _typeParameters = typeParameters,
        _withClause = withClause,
-       _implementsClause = implementsClause {
-    _becomeParentOf(typeParameters);
+       _implementsClause = implementsClause,
+       _body = body,
+       _leftBracket = leftBracket,
+       _semicolon = semicolon,
+       _rightBracket = rightBracket {
+    if (useDeclaringConstructorsAst) {
+      _becomeParentOf(namePart);
+    } else {
+      _becomeParentOf(typeParameters);
+    }
     _becomeParentOf(withClause);
     _becomeParentOf(implementsClause);
-    this.constants._initialize(this, constants);
-    this.members._initialize(this, members);
+    if (useDeclaringConstructorsAst) {
+      _body = _becomeParentOf(body);
+      assert(identical(typeParameters, namePart.typeParameters));
+    } else {
+      _constants._initialize(this, constants);
+      _members._initialize(this, members);
+      assert(namePart is ClassNamePartImplStub);
+      assert(body is EnumBodyImplStub);
+    }
   }
 
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  // TODO(scheglov): implement declaring constructors
-  EnumBodyImpl? get body => throw UnimplementedError();
+  EnumBodyImpl get body {
+    if (!useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = true');
+    }
+    return _body;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  NodeListImpl<EnumConstantDeclarationImpl> get constants {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _constants;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   Token get endToken {
+    if (useDeclaringConstructorsAst) {
+      return body.endToken;
+    }
     return rightBracket;
   }
 
@@ -7460,15 +7676,70 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     _implementsClause = _becomeParentOf(implementsClause);
   }
 
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  // TODO(scheglov): implement declaring constructors
-  ClassNamePart? get namePart => throw UnimplementedError();
+  Token get leftBracket {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _leftBracket;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  TypeParameterListImpl? get typeParameters => _typeParameters;
+  NodeListImpl<ClassMemberImpl> get members {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _members;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  Token get name {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return super.name;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  ClassNamePartImpl get namePart {
+    if (!useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = true');
+    }
+    return _namePart;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  Token get rightBracket {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _rightBracket;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  Token? get semicolon {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _semicolon;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  TypeParameterListImpl? get typeParameters {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _typeParameters;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   set typeParameters(TypeParameterListImpl? typeParameters) {
     _typeParameters = _becomeParentOf(typeParameters);
   }
@@ -7482,45 +7753,76 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     _withClause = _becomeParentOf(withClause);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('enumKeyword', enumKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('withClause', withClause)
-    ..addNode('implementsClause', implementsClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('constants', constants)
-    ..addToken('semicolon', semicolon)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities {
+    var result = super._childEntities
+      ..addToken('augmentKeyword', augmentKeyword)
+      ..addToken('enumKeyword', enumKeyword);
+
+    if (useDeclaringConstructorsAst) {
+      result.addNode('namePart', namePart);
+    } else {
+      result
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters);
+    }
+
+    result
+      ..addNode('withClause', withClause)
+      ..addNode('implementsClause', implementsClause);
+
+    if (useDeclaringConstructorsAst) {
+      result.addNode('body', body);
+    } else {
+      result
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('constants', constants)
+        ..addToken('semicolon', semicolon)
+        ..addNodeList('members', members)
+        ..addToken('rightBracket', rightBracket);
+    }
+    return result;
+  }
 
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumDeclaration(this);
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    typeParameters?.accept(visitor);
+    if (useDeclaringConstructorsAst) {
+      namePart.accept(visitor);
+    } else {
+      typeParameters?.accept(visitor);
+    }
     withClause?.accept(visitor);
     implementsClause?.accept(visitor);
-    constants.accept(visitor);
-    members.accept(visitor);
+    if (useDeclaringConstructorsAst) {
+      body.accept(visitor);
+    } else {
+      constants.accept(visitor);
+      members.accept(visitor);
+    }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
+    if (useDeclaringConstructorsAst) {
+      if (namePart._containsOffset(rangeOffset, rangeEnd)) {
+        return namePart;
+      }
+    } else {
+      if (typeParameters case var typeParameters?) {
+        if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+          return typeParameters;
+        }
       }
     }
     if (withClause case var withClause?) {
@@ -7533,13 +7835,19 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
         return implementsClause;
       }
     }
-    if (constants._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
-    }
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
+    if (useDeclaringConstructorsAst) {
+      if (body._containsOffset(rangeOffset, rangeEnd)) {
+        return body;
+      }
+    } else {
+      if (_constants._elementContainingRange(rangeOffset, rangeEnd)
+          case var result?) {
+        return result;
+      }
+      if (_members._elementContainingRange(rangeOffset, rangeEnd)
+          case var result?) {
+        return result;
+      }
     }
     return null;
   }
@@ -8280,8 +8588,7 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
 
   /// The body of the extension declaration.
   ///
-  /// Will become not `null` when [Feature.declaring_constructors] is
-  /// implemented, replaces [leftBracket], [members], [rightBracket].
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `false`.
   @experimental
   BlockClassBody? get body;
 
@@ -8292,9 +8599,13 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   Token get extensionKeyword;
 
   /// The left curly bracket.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   Token get leftBracket;
 
   /// The members being added to the extended class.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   NodeList<ClassMember> get members;
 
   /// The name of the extension, or `null` if the extension doesn't have a name.
@@ -8304,6 +8615,8 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   ExtensionOnClause? get onClause;
 
   /// The right curly bracket.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   Token get rightBracket;
 
   /// The token representing the `type` keyword.
@@ -8311,6 +8624,8 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
 
   /// The type parameters for the extension, or `null` if the extension doesn't
   /// have any type parameters.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   TypeParameterList? get typeParameters;
 }
 
@@ -8322,6 +8637,7 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
     GenerateNodeProperty('name'),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('onClause'),
+    GenerateNodeProperty('body'),
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty('members'),
     GenerateNodeProperty('rightBracket'),
@@ -8352,22 +8668,22 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   ExtensionOnClauseImpl? _onClause;
 
-  @generated
-  @override
-  final Token leftBracket;
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final BlockClassBodyImpl _body;
 
-  @generated
-  @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final Token _leftBracket;
 
-  @generated
-  @override
-  final Token rightBracket;
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final Token _rightBracket;
 
   @override
   ExtensionFragmentImpl? declaredFragment;
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   ExtensionDeclarationImpl({
     required super.comment,
     required super.metadata,
@@ -8377,24 +8693,41 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     required this.name,
     required TypeParameterListImpl? typeParameters,
     required ExtensionOnClauseImpl? onClause,
-    required this.leftBracket,
+    required BlockClassBodyImpl body,
+    required Token leftBracket,
     required List<ClassMemberImpl> members,
-    required this.rightBracket,
+    required Token rightBracket,
   }) : _typeParameters = typeParameters,
-       _onClause = onClause {
+       _onClause = onClause,
+       _body = body,
+       _leftBracket = leftBracket,
+       _rightBracket = rightBracket {
     _becomeParentOf(typeParameters);
     _becomeParentOf(onClause);
-    this.members._initialize(this, members);
+    if (useDeclaringConstructorsAst) {
+      _becomeParentOf(body);
+    } else {
+      _members._initialize(this, members);
+      assert(body is BlockClassBodyImplStub);
+    }
   }
 
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  // TODO(scheglov): implement declaring constructors
-  BlockClassBodyImpl? get body => throw UnimplementedError();
+  BlockClassBodyImpl get body {
+    if (!useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = true');
+    }
+    return _body;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   Token get endToken {
-    return rightBracket;
+    if (useDeclaringConstructorsAst) {
+      return body.endToken;
+    }
+    return _rightBracket;
   }
 
   @generated
@@ -8406,6 +8739,24 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     return extensionKeyword;
   }
 
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  Token get leftBracket {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _leftBracket;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  NodeListImpl<ClassMemberImpl> get members {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _members;
+  }
+
   @generated
   @override
   ExtensionOnClauseImpl? get onClause => _onClause;
@@ -8413,6 +8764,15 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   set onClause(ExtensionOnClauseImpl? onClause) {
     _onClause = _becomeParentOf(onClause);
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  Token get rightBracket {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _rightBracket;
   }
 
   @generated
@@ -8424,34 +8784,46 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     _typeParameters = _becomeParentOf(typeParameters);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('extensionKeyword', extensionKeyword)
-    ..addToken('typeKeyword', typeKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('onClause', onClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities {
+    var result = super._childEntities
+      ..addToken('augmentKeyword', augmentKeyword)
+      ..addToken('extensionKeyword', extensionKeyword)
+      ..addToken('typeKeyword', typeKeyword)
+      ..addToken('name', name)
+      ..addNode('typeParameters', typeParameters)
+      ..addNode('onClause', onClause);
+    if (useDeclaringConstructorsAst) {
+      result.addNode('body', body);
+    } else {
+      result
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('members', members)
+        ..addToken('rightBracket', rightBracket);
+    }
+    return result;
+  }
 
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitExtensionDeclaration(this);
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     typeParameters?.accept(visitor);
     onClause?.accept(visitor);
-    members.accept(visitor);
+    if (useDeclaringConstructorsAst) {
+      body.accept(visitor);
+    } else {
+      members.accept(visitor);
+    }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -8467,9 +8839,15 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
         return onClause;
       }
     }
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
+    if (useDeclaringConstructorsAst) {
+      if (body._containsOffset(rangeOffset, rangeEnd)) {
+        return body;
+      }
+    } else {
+      if (_members._elementContainingRange(rangeOffset, rangeEnd)
+          case var result?) {
+        return result;
+      }
     }
     return null;
   }
@@ -8762,12 +9140,13 @@ abstract final class ExtensionTypeDeclaration
 
   /// The body of the extension type declaration.
   ///
-  /// Will become not `null` when [Feature.declaring_constructors] is
-  /// implemented, replaces [leftBracket], [members], [rightBracket].
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `false`.
   @experimental
-  ClassBody? get body;
+  ClassBody get body;
 
   /// The `const` keyword.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   Token? get constKeyword;
 
   @override
@@ -8780,29 +9159,47 @@ abstract final class ExtensionTypeDeclaration
   ImplementsClause? get implementsClause;
 
   /// The left curly bracket.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   Token get leftBracket;
 
   /// The members.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   NodeList<ClassMember> get members;
+
+  /// The name of the extension type.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
+  @override
+  Token get name;
 
   /// The name of the extension type, as an identifier with type parameters,
   /// or a primary constructor.
   ///
   /// Will become not `null` when [Feature.declaring_constructors] is
   /// implemented, replaces [name], [typeParameters], [representation].
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `false`.
   @experimental
-  ClassNamePart? get namePart;
+  ClassNamePart get namePart;
 
   /// The representation declaration.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   RepresentationDeclaration get representation;
 
   /// The right curly bracket.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   Token get rightBracket;
 
   /// The `type` keyword.
   Token get typeKeyword;
 
   /// The type parameters.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   TypeParameterList? get typeParameters;
 }
 
@@ -8811,11 +9208,13 @@ abstract final class ExtensionTypeDeclaration
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('extensionKeyword'),
     GenerateNodeProperty('typeKeyword'),
+    GenerateNodeProperty('namePart'),
     GenerateNodeProperty('constKeyword'),
     GenerateNodeProperty('name', isSuper: true),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('representation'),
     GenerateNodeProperty('implementsClause'),
+    GenerateNodeProperty('body'),
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty('members'),
     GenerateNodeProperty('rightBracket'),
@@ -8837,64 +9236,102 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token typeKeyword;
 
   @generated
-  @override
-  final Token? constKeyword;
-
-  @generated
-  TypeParameterListImpl? _typeParameters;
-
-  @generated
-  RepresentationDeclarationImpl _representation;
-
-  @generated
   ImplementsClauseImpl? _implementsClause;
 
-  @generated
-  @override
-  final Token leftBracket;
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  ClassNamePartImpl _namePart;
 
-  @generated
-  @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final Token? _constKeyword;
 
-  @generated
-  @override
-  final Token rightBracket;
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  TypeParameterListImpl? _typeParameters;
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final RepresentationDeclarationImpl _representation;
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final ClassBodyImpl _body;
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final Token _leftBracket;
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final Token _rightBracket;
 
   @override
   ExtensionTypeFragmentImpl? declaredFragment;
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   ExtensionTypeDeclarationImpl({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
     required this.extensionKeyword,
     required this.typeKeyword,
-    required this.constKeyword,
+    required Token? constKeyword,
     required super.name,
+    required ClassNamePartImpl namePart,
     required TypeParameterListImpl? typeParameters,
     required RepresentationDeclarationImpl representation,
     required ImplementsClauseImpl? implementsClause,
-    required this.leftBracket,
+    required ClassBodyImpl body,
+    required Token leftBracket,
     required List<ClassMemberImpl> members,
-    required this.rightBracket,
-  }) : _typeParameters = typeParameters,
+    required Token rightBracket,
+  }) : _constKeyword = constKeyword,
+       _namePart = namePart,
+       _typeParameters = typeParameters,
        _representation = representation,
-       _implementsClause = implementsClause {
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(representation);
+       _implementsClause = implementsClause,
+       _body = body,
+       _leftBracket = leftBracket,
+       _rightBracket = rightBracket {
+    if (useDeclaringConstructorsAst) {
+      _becomeParentOf(namePart);
+    } else {
+      _becomeParentOf(typeParameters);
+      _becomeParentOf(representation);
+    }
     _becomeParentOf(implementsClause);
-    this.members._initialize(this, members);
+    if (useDeclaringConstructorsAst) {
+      _becomeParentOf(body);
+      assert(identical(typeParameters, namePart.typeParameters));
+      assert(representation is RepresentationDeclarationImplStub);
+    } else {
+      _members._initialize(this, members);
+      assert(namePart is ClassNamePartImplStub);
+      assert(body is ClassBodyImplStub);
+    }
   }
 
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  // TODO(scheglov): implement declaring constructors
-  ClassBodyImpl? get body => throw UnimplementedError();
+  ClassBodyImpl get body {
+    if (!useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = true');
+    }
+    return _body;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  Token? get constKeyword {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _constKeyword;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   Token get endToken {
+    if (useDeclaringConstructorsAst) {
+      return body.endToken;
+    }
     return rightBracket;
   }
 
@@ -8916,80 +9353,168 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     _implementsClause = _becomeParentOf(implementsClause);
   }
 
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  // TODO(scheglov): implement declaring constructors
-  ClassNamePart? get namePart => throw UnimplementedError();
-
-  @generated
-  @override
-  RepresentationDeclarationImpl get representation => _representation;
-
-  @generated
-  set representation(RepresentationDeclarationImpl representation) {
-    _representation = _becomeParentOf(representation);
+  Token get leftBracket {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _leftBracket;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  TypeParameterListImpl? get typeParameters => _typeParameters;
+  NodeListImpl<ClassMemberImpl> get members {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _members;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  Token get name {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return super.name;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  ClassNamePartImpl get namePart {
+    if (!useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = true');
+    }
+    return _namePart;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  set namePart(ClassNamePartImpl namePart) {
+    _namePart = _becomeParentOf(namePart);
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  RepresentationDeclarationImpl get representation {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _representation;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  Token get rightBracket {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _rightBracket;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  TypeParameterListImpl? get typeParameters {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _typeParameters;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   set typeParameters(TypeParameterListImpl? typeParameters) {
     _typeParameters = _becomeParentOf(typeParameters);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('extensionKeyword', extensionKeyword)
-    ..addToken('typeKeyword', typeKeyword)
-    ..addToken('constKeyword', constKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('representation', representation)
-    ..addNode('implementsClause', implementsClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities {
+    var result = super._childEntities
+      ..addToken('augmentKeyword', augmentKeyword)
+      ..addToken('extensionKeyword', extensionKeyword)
+      ..addToken('typeKeyword', typeKeyword);
+
+    if (useDeclaringConstructorsAst) {
+      result.addNode('namePart', namePart);
+    } else {
+      result
+        ..addToken('constKeyword', constKeyword)
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters)
+        ..addNode('representation', representation);
+    }
+
+    result.addNode('implementsClause', implementsClause);
+
+    if (useDeclaringConstructorsAst) {
+      result.addNode('body', body);
+    } else {
+      result
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('members', members)
+        ..addToken('rightBracket', rightBracket);
+    }
+
+    return result;
+  }
 
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitExtensionTypeDeclaration(this);
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    typeParameters?.accept(visitor);
-    representation.accept(visitor);
+    if (useDeclaringConstructorsAst) {
+      namePart.accept(visitor);
+    } else {
+      typeParameters?.accept(visitor);
+      representation.accept(visitor);
+    }
     implementsClause?.accept(visitor);
-    members.accept(visitor);
+    if (useDeclaringConstructorsAst) {
+      body.accept(visitor);
+    } else {
+      members.accept(visitor);
+    }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
+    if (useDeclaringConstructorsAst) {
+      if (namePart._containsOffset(rangeOffset, rangeEnd)) {
+        return namePart;
       }
-    }
-    if (representation._containsOffset(rangeOffset, rangeEnd)) {
-      return representation;
+    } else {
+      if (typeParameters case var typeParameters?) {
+        if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+          return typeParameters;
+        }
+      }
+      if (representation._containsOffset(rangeOffset, rangeEnd)) {
+        return representation;
+      }
     }
     if (implementsClause case var implementsClause?) {
       if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
         return implementsClause;
       }
     }
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
+    if (useDeclaringConstructorsAst) {
+      if (body._containsOffset(rangeOffset, rangeEnd)) {
+        return body;
+      }
+    } else {
+      if (members._elementContainingRange(rangeOffset, rangeEnd)
+          case var result?) {
+        return result;
+      }
     }
     return null;
   }
@@ -16308,10 +16833,12 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
 
   /// The body of the mixin declaration.
   ///
-  /// Will become not `null` when [Feature.declaring_constructors] is
-  /// implemented, replaces [leftBracket], [members], [rightBracket].
+  /// Replaces [leftBracket], [members], [rightBracket] when
+  /// [useDeclaringConstructorsAst] is `true`.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `false`.
   @experimental
-  ClassBody? get body;
+  ClassBody get body;
 
   @override
   MixinFragment? get declaredFragment;
@@ -16321,9 +16848,13 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
   ImplementsClause? get implementsClause;
 
   /// The left curly bracket.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   Token get leftBracket;
 
   /// The members defined by the mixin.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   NodeList<ClassMember> get members;
 
   /// The token representing the `mixin` keyword.
@@ -16334,6 +16865,8 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
   MixinOnClause? get onClause;
 
   /// The right curly bracket.
+  ///
+  /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `true`.
   Token get rightBracket;
 
   /// The type parameters for the mixin, or `null` if the mixin doesn't have any
@@ -16350,6 +16883,7 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('onClause'),
     GenerateNodeProperty('implementsClause'),
+    GenerateNodeProperty('body'),
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty('members'),
     GenerateNodeProperty('rightBracket'),
@@ -16379,22 +16913,22 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   @generated
   ImplementsClauseImpl? _implementsClause;
 
-  @generated
-  @override
-  final Token leftBracket;
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final ClassBodyImpl _body;
 
-  @generated
-  @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final Token _leftBracket;
 
-  @generated
-  @override
-  final Token rightBracket;
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  final Token _rightBracket;
 
   @override
   MixinFragmentImpl? declaredFragment;
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   MixinDeclarationImpl({
     required super.comment,
     required super.metadata,
@@ -16405,25 +16939,41 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required TypeParameterListImpl? typeParameters,
     required MixinOnClauseImpl? onClause,
     required ImplementsClauseImpl? implementsClause,
-    required this.leftBracket,
+    required ClassBodyImpl body,
+    required Token leftBracket,
     required List<ClassMemberImpl> members,
-    required this.rightBracket,
+    required Token rightBracket,
   }) : _typeParameters = typeParameters,
        _onClause = onClause,
-       _implementsClause = implementsClause {
+       _implementsClause = implementsClause,
+       _body = body,
+       _leftBracket = leftBracket,
+       _rightBracket = rightBracket {
     _becomeParentOf(typeParameters);
     _becomeParentOf(onClause);
     _becomeParentOf(implementsClause);
-    this.members._initialize(this, members);
+    if (useDeclaringConstructorsAst) {
+      _becomeParentOf(body);
+    } else {
+      _members._initialize(this, members);
+    }
   }
 
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  // TODO(scheglov): implement declaring constructors
-  ClassBodyImpl? get body => throw UnimplementedError();
+  ClassBodyImpl get body {
+    if (!useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = true');
+    }
+    return _body;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   Token get endToken {
+    if (useDeclaringConstructorsAst) {
+      return body.endToken;
+    }
     return rightBracket;
   }
 
@@ -16448,6 +16998,24 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     _implementsClause = _becomeParentOf(implementsClause);
   }
 
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  Token get leftBracket {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _leftBracket;
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  NodeListImpl<ClassMemberImpl> get members {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _members;
+  }
+
   @generated
   @override
   MixinOnClauseImpl? get onClause => _onClause;
@@ -16455,6 +17023,15 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   @generated
   set onClause(MixinOnClauseImpl? onClause) {
     _onClause = _becomeParentOf(onClause);
+  }
+
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
+  @override
+  Token get rightBracket {
+    if (useDeclaringConstructorsAst) {
+      throw UnsupportedError('Requires useDeclaringConstructorsAst = false');
+    }
+    return _rightBracket;
   }
 
   @generated
@@ -16466,35 +17043,47 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     _typeParameters = _becomeParentOf(typeParameters);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('baseKeyword', baseKeyword)
-    ..addToken('mixinKeyword', mixinKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('onClause', onClause)
-    ..addNode('implementsClause', implementsClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities {
+    var result = super._childEntities
+      ..addToken('augmentKeyword', augmentKeyword)
+      ..addToken('baseKeyword', baseKeyword)
+      ..addToken('mixinKeyword', mixinKeyword)
+      ..addToken('name', name)
+      ..addNode('typeParameters', typeParameters)
+      ..addNode('onClause', onClause)
+      ..addNode('implementsClause', implementsClause);
+    if (useDeclaringConstructorsAst) {
+      result.addNode('body', body);
+    } else {
+      result
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('members', members)
+        ..addToken('rightBracket', rightBracket);
+    }
+    return result;
+  }
 
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinDeclaration(this);
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     typeParameters?.accept(visitor);
     onClause?.accept(visitor);
     implementsClause?.accept(visitor);
-    members.accept(visitor);
+    if (useDeclaringConstructorsAst) {
+      body.accept(visitor);
+    } else {
+      members.accept(visitor);
+    }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -16515,9 +17104,15 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
         return implementsClause;
       }
     }
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
+    if (useDeclaringConstructorsAst) {
+      if (body._containsOffset(rangeOffset, rangeEnd)) {
+        return body;
+      }
+    } else {
+      if (members._elementContainingRange(rangeOffset, rangeEnd)
+          case var result?) {
+        return result;
+      }
     }
     return null;
   }
@@ -20946,6 +21541,16 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
     }
     return null;
   }
+}
+
+/// Stub of [RepresentationDeclarationImpl], used to pass to the
+/// [ExtensionTypeDeclarationImpl] constructor, but it never returned through
+/// the API.
+// TODO(scheglov): Remove together with [useDeclaringConstructorsAst].
+final class RepresentationDeclarationImplStub
+    implements RepresentationDeclarationImpl {
+  @override
+  noSuchMethod(invocation) => super.noSuchMethod(invocation);
 }
 
 /// A rest pattern element.

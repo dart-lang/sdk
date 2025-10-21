@@ -86,7 +86,6 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
   final WasmCompilerOptions options;
   final WasmTarget kernelTarget;
   final CoreTypes coreTypes;
-  final Map<String, Map<String, String>> loadIdMap = {};
   late final ModuleOutputData moduleOutputData;
 
   DeferredLoadingModuleStrategy(
@@ -95,7 +94,7 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
   @override
   void prepareComponent() {
     if (options.loadsIdsUri != null) {
-      component.accept(_DeferredLoadingLoadIdTransformer(coreTypes, loadIdMap));
+      component.accept(_DeferredLoadingLoadIdTransformer(component, coreTypes));
     }
   }
 
@@ -142,8 +141,7 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
       moduleMap[enclosingLibrary] = outputMapping;
     });
 
-    await _initDeferredImports(
-        component, coreTypes, options, loadIdMap, moduleMap);
+    await _initDeferredImports(component, coreTypes, options, moduleMap);
 
     moduleOutputData =
         ModuleOutputData([mainModule, ...rootSetToModule.values]);
@@ -229,7 +227,6 @@ class StressTestModuleStrategy extends ModuleStrategy {
   final WasmTarget kernelTarget;
   final ClassHierarchy classHierarchy;
   final WasmCompilerOptions options;
-  final Map<String, Map<String, String>> loadIdMap = {};
   late final ModuleOutputData moduleOutputData;
 
   /// We load all 'dart:*' libraries since just doing the deferred load of modules
@@ -287,7 +284,7 @@ class StressTestModuleStrategy extends ModuleStrategy {
         [invokeMain.enclosingLibrary], classHierarchy, coreTypes);
 
     if (options.loadsIdsUri != null) {
-      component.accept(_DeferredLoadingLoadIdTransformer(coreTypes, loadIdMap));
+      component.accept(_DeferredLoadingLoadIdTransformer(component, coreTypes));
     }
   }
 
@@ -310,7 +307,7 @@ class StressTestModuleStrategy extends ModuleStrategy {
       importMap[importName] = [module];
     }
 
-    await _initDeferredImports(component, coreTypes, options, loadIdMap,
+    await _initDeferredImports(component, coreTypes, options,
         {coreTypes.index.getLibrary('dart:_internal'): importMap});
 
     moduleOutputData = ModuleOutputData([mainModule, ...modules]);
@@ -324,13 +321,11 @@ Future<void> _initDeferredImports(
     Component component,
     CoreTypes coreTypes,
     WasmCompilerOptions options,
-    Map<String, Map<String, String>> loadIdMap,
     Map<Library, Map<String, List<ModuleMetadata>>> moduleMap) async {
   if (options.loadsIdsUri == null) {
     _initDeferredImportsPrefix(component, coreTypes, options, moduleMap);
   } else {
-    await _initDeferredImportsLoadIds(
-        component, coreTypes, options, loadIdMap, moduleMap);
+    await _initDeferredImportsLoadIds(component, coreTypes, options, moduleMap);
   }
 }
 
@@ -377,34 +372,38 @@ Future<void> _initDeferredImportsLoadIds(
     Component component,
     CoreTypes coreTypes,
     WasmCompilerOptions options,
-    Map<String, Map<String, String>> loadIdMap,
     Map<Library, Map<String, List<ModuleMetadata>>> moduleMap) async {
-  await (File.fromUri(options.loadsIdsUri!)..createSync()).writeAsString(
-      _generateDeferredMapJson(component.mainMethod!.enclosingLibrary.importUri,
-          moduleMap, loadIdMap));
+  final file = File.fromUri(options.loadsIdsUri!);
+  await file.create(recursive: true);
+  await file.writeAsString(
+    _generateDeferredMapJson(
+        component, component.mainMethod!.enclosingLibrary.importUri, moduleMap),
+  );
 }
 
-String _generateDeferredMapJson(
-    Uri rootLibraryUri,
-    Map<Library, Map<String, List<ModuleMetadata>>> moduleMap,
-    Map<String, Map<String, String>> loadIds) {
+String _generateDeferredMapJson(Component component, Uri rootLibraryUri,
+    Map<Library, Map<String, List<ModuleMetadata>>> moduleMap) {
+  final loadIdRepo =
+      component.metadata[LoadIdRepository._tag] as LoadIdRepository;
   final output = <String, dynamic>{};
-  moduleMap.forEach((library, imports) {
+  loadIdRepo.mapping.forEach((dep, loadId) {
+    final loadIdStr = '$loadId';
+    final prefix = dep.name!;
+    final library = dep.enclosingLibrary;
+    final modules = moduleMap[library]?[prefix];
+
+    // Can be null if the library or import was tree-shaken by TFA.
+    if (modules == null) return;
+
     final libOutput =
-        output[relativizeUri(rootLibraryUri, library.importUri, false)] = {};
-    libOutput['name'] = library.name ?? '<unnamed>';
-    final libImports = libOutput['imports'] = <String, List<String>>{};
-    final libPrefixMappings =
-        libOutput['importPrefixToLoadId'] = <String, String>{};
-    final prefixLoadIds = loadIds['${library.importUri}']!;
-    imports.forEach((prefix, modules) {
-      final loadId = prefixLoadIds[prefix]!;
-      final prefixImports = libImports[loadId] = <String>[];
-      libPrefixMappings[prefix] = loadId;
-      for (final module in modules) {
-        prefixImports.add(module.moduleName);
-      }
-    });
+        output[relativizeUri(rootLibraryUri, library.importUri, false)] ??= {
+      'name': library.name ?? '<unnamed>',
+      'imports': <String, List<String>>{},
+      'importPrefixToLoadId': <String, String>{},
+    };
+
+    libOutput['imports']![loadIdStr] = [...modules.map((m) => m.moduleName)];
+    libOutput['importPrefixToLoadId'][prefix] = loadIdStr;
   });
 
   return const JsonEncoder.withIndent('  ').convert(output);
@@ -415,10 +414,11 @@ class _DeferredLoadingLoadIdTransformer extends Transformer {
   final Procedure? _checkLibraryIsLoaded;
   final Procedure _loadLibraryFromLoadId;
   final Procedure _checkLibraryIsLoadedFromLoadId;
-  final Map<String, Map<String, String>> loadIdCollector;
-  int loadIdCounter = 1;
+  final LoadIdRepository _loadIdRepository = LoadIdRepository();
+  Map<String, int> _libraryLoadIds = {};
+  int _loadIdCounter = 1;
 
-  _DeferredLoadingLoadIdTransformer(CoreTypes coreTypes, this.loadIdCollector)
+  _DeferredLoadingLoadIdTransformer(Component component, CoreTypes coreTypes)
       : _loadLibrary = coreTypes.index.tryGetProcedure(
             'dart:_internal', LibraryIndex.topLevel, 'loadLibrary'),
         _checkLibraryIsLoaded = coreTypes.index.tryGetProcedure(
@@ -426,21 +426,57 @@ class _DeferredLoadingLoadIdTransformer extends Transformer {
         _loadLibraryFromLoadId = coreTypes.index
             .getTopLevelProcedure('dart:_internal', 'loadLibraryFromLoadId'),
         _checkLibraryIsLoadedFromLoadId = coreTypes.index.getTopLevelProcedure(
-            'dart:_internal', 'checkLibraryIsLoadedFromLoadId');
+            'dart:_internal', 'checkLibraryIsLoadedFromLoadId') {
+    component.addMetadataRepository(_loadIdRepository);
+  }
+
+  @override
+  TreeNode visitLibrary(Library node) {
+    // Assign a load ID to each deferred import.
+    _libraryLoadIds = {};
+    for (final dep in node.dependencies) {
+      if (!dep.isDeferred) continue;
+      final loadId = _loadIdCounter++;
+      _loadIdRepository.mapping[dep] = loadId;
+      _libraryLoadIds[dep.name!] = loadId;
+    }
+
+    // Don't visit this library if there are no deferred imports.
+    return _libraryLoadIds.isEmpty ? node : super.visitLibrary(node);
+  }
 
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
     if (node.target != _loadLibrary && node.target != _checkLibraryIsLoaded) {
       return super.visitStaticInvocation(node);
     }
-    final [libraryName as StringLiteral, importPrefix as StringLiteral] =
-        node.arguments.positional;
-    final loadId = (loadIdCollector[libraryName.value] ??=
-        {})[importPrefix.value] ??= '${loadIdCounter++}';
+    final [_, importPrefix as StringLiteral] = node.arguments.positional;
+    final loadId = '${_libraryLoadIds[importPrefix.value]!}';
     return StaticInvocation(
         node.target == _loadLibrary
             ? _loadLibraryFromLoadId
             : _checkLibraryIsLoadedFromLoadId,
         Arguments([StringLiteral(loadId)]));
+  }
+}
+
+/// Contains load IDs for each deferred [LibraryDependency] in the component.
+class LoadIdRepository extends MetadataRepository<int> {
+  static const String _tag = 'dart2wasm.loadIds';
+
+  @override
+  final Map<LibraryDependency, int> mapping = {};
+
+  @override
+  int readFromBinary(Node node, BinarySource source) {
+    return source.readUInt30();
+  }
+
+  @override
+  String get tag => _tag;
+
+  @override
+  void writeToBinary(int metadata, Node node, BinarySink sink) {
+    sink.writeUInt30(metadata);
   }
 }

@@ -55,6 +55,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -836,6 +837,7 @@ class AstBuilder extends StackListener {
       mixinKeyword: null,
       classKeyword: Token(Keyword.CLASS, 0),
       name: StringToken(TokenType.STRING, className, -1),
+      primaryConstructorBuilder: null,
       typeParameters: null,
       extendsClause: null,
       withClause: null,
@@ -3019,106 +3021,123 @@ class AstBuilder extends StackListener {
       formalParameterList = _syntheticFormalParameterList(extensionTypeName);
     }
 
-    var leftParenthesis = formalParameterList.leftParenthesis;
+    if (forExtensionType) {
+      var leftParenthesis = formalParameterList.leftParenthesis;
 
-    RepresentationConstructorNameImpl? constructorName;
-    if (hasConstructorName) {
-      var nameIdentifier = pop() as SimpleIdentifierImpl;
-      constructorName = RepresentationConstructorNameImpl(
-        period: beginToken,
-        name: nameIdentifier.token,
+      RepresentationConstructorNameImpl? constructorName;
+      if (hasConstructorName) {
+        var nameIdentifier = pop() as SimpleIdentifierImpl;
+        constructorName = RepresentationConstructorNameImpl(
+          period: beginToken,
+          name: nameIdentifier.token,
+        );
+      }
+
+      List<AnnotationImpl> fieldMetadata;
+      TypeAnnotationImpl fieldType;
+      Token fieldName;
+      var firstFormalParameter = formalParameterList.parameters.firstOrNull;
+      if (firstFormalParameter is SimpleFormalParameterImpl) {
+        fieldMetadata = firstFormalParameter.metadata;
+        switch (firstFormalParameter.type) {
+          case var formalParameterType?:
+            fieldType = formalParameterType;
+          case null:
+            diagnosticReporter.diagnosticReporter?.atToken(
+              leftParenthesis.next!,
+              ParserErrorCode.expectedRepresentationType,
+            );
+            var typeNameToken = parser.rewriter.insertSyntheticIdentifier(
+              leftParenthesis,
+            );
+            fieldType = NamedTypeImpl(
+              importPrefix: null,
+              name: typeNameToken,
+              typeArguments: null,
+              question: null,
+            );
+        }
+        if (firstFormalParameter.keyword case var keyword?) {
+          if (keyword.keyword != Keyword.CONST) {
+            diagnosticReporter.diagnosticReporter?.atToken(
+              keyword,
+              ParserErrorCode.representationFieldModifier,
+            );
+          }
+        }
+        fieldName = firstFormalParameter.name!;
+        // Check for multiple fields.
+        var maybeComma = firstFormalParameter.endToken.next;
+        if (maybeComma != null && maybeComma.type == TokenType.COMMA) {
+          if (formalParameterList.parameters.length == 1) {
+            diagnosticReporter.diagnosticReporter?.atToken(
+              maybeComma,
+              ParserErrorCode.representationFieldTrailingComma,
+            );
+          } else {
+            diagnosticReporter.diagnosticReporter?.atToken(
+              maybeComma,
+              ParserErrorCode.multipleRepresentationFields,
+            );
+          }
+        }
+      } else {
+        diagnosticReporter.diagnosticReporter?.atToken(
+          leftParenthesis.next!,
+          ParserErrorCode.expectedRepresentationField,
+        );
+        fieldMetadata = [];
+        var typeNameToken = parser.rewriter.insertSyntheticIdentifier(
+          leftParenthesis,
+        );
+        fieldType = NamedTypeImpl(
+          importPrefix: null,
+          name: typeNameToken,
+          typeArguments: null,
+          question: null,
+        );
+        fieldName = parser.rewriter.insertSyntheticIdentifier(typeNameToken);
+      }
+
+      push(constKeyword ?? const NullValue("Token"));
+
+      push(
+        RepresentationDeclarationImpl(
+          constructorName: constructorName,
+          leftParenthesis: leftParenthesis,
+          fieldMetadata: fieldMetadata,
+          fieldType: fieldType,
+          fieldName: fieldName,
+          rightParenthesis: formalParameterList.rightParenthesis,
+        ),
       );
-    }
-
-    if (!forExtensionType) {
+    } else {
       if (!_featureSet.isEnabled(Feature.declaring_constructors)) {
         _reportFeatureNotEnabled(
           feature: Feature.declaring_constructors,
           startToken: beginToken,
         );
       }
-      // TODO(scheglov): Support primary constructors in general.
+
+      PrimaryConstructorNameImpl? constructorName;
+      if (hasConstructorName) {
+        var nameIdentifier = pop() as SimpleIdentifierImpl;
+        constructorName = PrimaryConstructorNameImpl(
+          period: beginToken,
+          name: nameIdentifier.token,
+        );
+      }
+
+      push(
+        _PrimaryConstructorBuilder(
+          constKeyword: constKeyword,
+          constructorName: constructorName,
+          formalParameterList: formalParameterList,
+        ),
+      );
+
       return;
     }
-
-    List<AnnotationImpl> fieldMetadata;
-    TypeAnnotationImpl fieldType;
-    Token fieldName;
-    var firstFormalParameter = formalParameterList.parameters.firstOrNull;
-    if (firstFormalParameter is SimpleFormalParameterImpl) {
-      fieldMetadata = firstFormalParameter.metadata;
-      switch (firstFormalParameter.type) {
-        case var formalParameterType?:
-          fieldType = formalParameterType;
-        case null:
-          diagnosticReporter.diagnosticReporter?.atToken(
-            leftParenthesis.next!,
-            ParserErrorCode.expectedRepresentationType,
-          );
-          var typeNameToken = parser.rewriter.insertSyntheticIdentifier(
-            leftParenthesis,
-          );
-          fieldType = NamedTypeImpl(
-            importPrefix: null,
-            name: typeNameToken,
-            typeArguments: null,
-            question: null,
-          );
-      }
-      if (firstFormalParameter.keyword case var keyword?) {
-        if (keyword.keyword != Keyword.CONST) {
-          diagnosticReporter.diagnosticReporter?.atToken(
-            keyword,
-            ParserErrorCode.representationFieldModifier,
-          );
-        }
-      }
-      fieldName = firstFormalParameter.name!;
-      // Check for multiple fields.
-      var maybeComma = firstFormalParameter.endToken.next;
-      if (maybeComma != null && maybeComma.type == TokenType.COMMA) {
-        if (formalParameterList.parameters.length == 1) {
-          diagnosticReporter.diagnosticReporter?.atToken(
-            maybeComma,
-            ParserErrorCode.representationFieldTrailingComma,
-          );
-        } else {
-          diagnosticReporter.diagnosticReporter?.atToken(
-            maybeComma,
-            ParserErrorCode.multipleRepresentationFields,
-          );
-        }
-      }
-    } else {
-      diagnosticReporter.diagnosticReporter?.atToken(
-        leftParenthesis.next!,
-        ParserErrorCode.expectedRepresentationField,
-      );
-      fieldMetadata = [];
-      var typeNameToken = parser.rewriter.insertSyntheticIdentifier(
-        leftParenthesis,
-      );
-      fieldType = NamedTypeImpl(
-        importPrefix: null,
-        name: typeNameToken,
-        typeArguments: null,
-        question: null,
-      );
-      fieldName = parser.rewriter.insertSyntheticIdentifier(typeNameToken);
-    }
-
-    push(constKeyword ?? const NullValue("Token"));
-
-    push(
-      RepresentationDeclarationImpl(
-        constructorName: constructorName,
-        leftParenthesis: leftParenthesis,
-        fieldMetadata: fieldMetadata,
-        fieldType: fieldType,
-        fieldName: fieldName,
-        rightParenthesis: formalParameterList.rightParenthesis,
-      ),
-    );
   }
 
   @override
@@ -4167,6 +4186,8 @@ class AstBuilder extends StackListener {
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
     var withClause = pop(NullValues.WithClause) as WithClauseImpl?;
     var extendsClause = pop(NullValues.ExtendsClause) as ExtendsClauseImpl?;
+    var primaryConstructorBuilder =
+        pop(NullValues.PrimaryConstructor) as _PrimaryConstructorBuilder?;
     var mixinKeyword = pop(NullValues.Token) as Token?;
     var augmentKeyword = pop(NullValues.Token) as Token?;
     var finalKeyword = pop(NullValues.Token) as Token?;
@@ -4195,6 +4216,7 @@ class AstBuilder extends StackListener {
       mixinKeyword: mixinKeyword,
       classKeyword: classKeyword,
       name: name.token,
+      primaryConstructorBuilder: primaryConstructorBuilder,
       typeParameters: typeParameters,
       extendsClause: extendsClause,
       withClause: withClause,
@@ -4449,6 +4471,8 @@ class AstBuilder extends StackListener {
     var implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
     var withClause = pop(NullValues.WithClause) as WithClauseImpl?;
+    var primaryConstructorBuilder =
+        pop(NullValues.PrimaryConstructor) as _PrimaryConstructorBuilder?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
     var metadata = pop() as List<AnnotationImpl>?;
@@ -4476,6 +4500,7 @@ class AstBuilder extends StackListener {
       enumKeyword: enumKeyword,
       name: name.token,
       typeParameters: typeParameters,
+      primaryConstructorBuilder: primaryConstructorBuilder,
       withClause: withClause,
       implementsClause: implementsClause,
       leftBracket: leftBrace,
@@ -5355,7 +5380,7 @@ class AstBuilder extends StackListener {
 
       push(const NullValue("RepresentationDeclarationImpl"));
     } else {
-      // TODO(scheglov): Support primary constructors in general.
+      push(NullValues.PrimaryConstructor);
     }
   }
 
@@ -6431,6 +6456,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? finalKeyword;
   final Token? mixinKeyword;
   final Token classKeyword;
+  final _PrimaryConstructorBuilder? primaryConstructorBuilder;
   final Token name;
   ExtendsClauseImpl? extendsClause;
   WithClauseImpl? withClause;
@@ -6452,6 +6478,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.finalKeyword,
     required this.mixinKeyword,
     required this.classKeyword,
+    required this.primaryConstructorBuilder,
     required this.name,
     required this.extendsClause,
     required this.withClause,
@@ -6460,6 +6487,17 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   });
 
   ClassDeclarationImpl build() {
+    ClassBodyImpl body;
+    if (useDeclaringConstructorsAst) {
+      body = BlockClassBodyImpl(
+        leftBracket: leftBracket,
+        members: members,
+        rightBracket: rightBracket,
+      );
+    } else {
+      body = ClassBodyImplStub();
+    }
+
     return ClassDeclarationImpl(
       comment: comment,
       metadata: metadata,
@@ -6472,11 +6510,16 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       mixinKeyword: mixinKeyword,
       classKeyword: classKeyword,
       name: name,
+      namePart: buildClassNamePart(
+        typeName: name,
+        primaryConstructorBuilder: primaryConstructorBuilder,
+      ),
       typeParameters: typeParameters,
       extendsClause: extendsClause,
       withClause: withClause,
       implementsClause: implementsClause,
       nativeClause: nativeClause,
+      body: body,
       leftBracket: leftBracket,
       members: members,
       rightBracket: rightBracket,
@@ -6500,6 +6543,27 @@ class _ClassLikeDeclarationBuilder {
     required this.leftBracket,
     required this.rightBracket,
   });
+
+  ClassNamePartImpl buildClassNamePart({
+    required Token typeName,
+    required _PrimaryConstructorBuilder? primaryConstructorBuilder,
+  }) {
+    if (useDeclaringConstructorsAst) {
+      if (primaryConstructorBuilder case var builder?) {
+        return builder.build(
+          typeName: typeName,
+          typeParameters: typeParameters,
+        );
+      } else {
+        return NameWithTypeParametersImpl(
+          typeName: typeName,
+          typeParameters: typeParameters,
+        );
+      }
+    } else {
+      return ClassNamePartImplStub();
+    }
+  }
 }
 
 class _ConstructorNameWithInvalidTypeArgs {
@@ -6512,6 +6576,7 @@ class _ConstructorNameWithInvalidTypeArgs {
 class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
   final Token enumKeyword;
+  final _PrimaryConstructorBuilder? primaryConstructorBuilder;
   final Token name;
   final WithClauseImpl? withClause;
   final ImplementsClauseImpl? implementsClause;
@@ -6526,6 +6591,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.rightBracket,
     required this.augmentKeyword,
     required this.enumKeyword,
+    required this.primaryConstructorBuilder,
     required this.name,
     required this.withClause,
     required this.implementsClause,
@@ -6533,15 +6599,33 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   });
 
   EnumDeclarationImpl build() {
+    EnumBodyImpl body;
+    if (useDeclaringConstructorsAst) {
+      body = EnumBodyImpl(
+        leftBracket: leftBracket,
+        constants: constants,
+        semicolon: semicolon,
+        members: members,
+        rightBracket: rightBracket,
+      );
+    } else {
+      body = EnumBodyImplStub();
+    }
+
     return EnumDeclarationImpl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
       enumKeyword: enumKeyword,
+      namePart: buildClassNamePart(
+        typeName: name,
+        primaryConstructorBuilder: primaryConstructorBuilder,
+      ),
       name: name,
       typeParameters: typeParameters,
       withClause: withClause,
       implementsClause: implementsClause,
+      body: body,
       leftBracket: leftBracket,
       constants: constants,
       semicolon: semicolon,
@@ -6571,6 +6655,17 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required Token? typeKeyword,
     required ExtensionOnClauseImpl? onClause,
   }) {
+    BlockClassBodyImpl body;
+    if (useDeclaringConstructorsAst) {
+      body = BlockClassBodyImpl(
+        leftBracket: leftBracket,
+        members: members,
+        rightBracket: rightBracket,
+      );
+    } else {
+      body = BlockClassBodyImplStub();
+    }
+
     return ExtensionDeclarationImpl(
       comment: comment,
       metadata: metadata,
@@ -6580,6 +6675,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       name: name,
       typeParameters: typeParameters,
       onClause: onClause,
+      body: body,
       leftBracket: leftBracket,
       members: members,
       rightBracket: rightBracket,
@@ -6609,17 +6705,70 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required RepresentationDeclarationImpl representation,
     required ImplementsClauseImpl? implementsClause,
   }) {
+    ClassBodyImpl body;
+    if (useDeclaringConstructorsAst) {
+      body = BlockClassBodyImpl(
+        leftBracket: leftBracket,
+        members: members,
+        rightBracket: rightBracket,
+      );
+    } else {
+      body = ClassBodyImplStub();
+    }
+
+    ClassNamePartImpl namePartOrStub;
+    if (useDeclaringConstructorsAst) {
+      PrimaryConstructorNameImpl? primaryConstructorName;
+      if (representation.constructorName case var representationName?) {
+        primaryConstructorName = PrimaryConstructorNameImpl(
+          period: representationName.period,
+          name: representationName.name,
+        );
+      }
+      var primaryConstructorBuilder = _PrimaryConstructorBuilder(
+        constKeyword: constKeyword,
+        constructorName: primaryConstructorName,
+        formalParameterList: FormalParameterListImpl(
+          leftParenthesis: representation.leftParenthesis,
+          parameters: [
+            SimpleFormalParameterImpl(
+              comment: null,
+              metadata: representation.fieldMetadata,
+              covariantKeyword: null,
+              requiredKeyword: null,
+              keyword: null,
+              type: representation.fieldType,
+              name: representation.fieldName,
+            ),
+          ],
+          leftDelimiter: null,
+          rightDelimiter: null,
+          rightParenthesis: representation.rightParenthesis,
+        ),
+      );
+      namePartOrStub = buildClassNamePart(
+        typeName: name,
+        primaryConstructorBuilder: primaryConstructorBuilder,
+      );
+    } else {
+      namePartOrStub = ClassNamePartImplStub();
+    }
+
     return ExtensionTypeDeclarationImpl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
       extensionKeyword: extensionKeyword,
       typeKeyword: typeKeyword,
+      namePart: namePartOrStub,
       constKeyword: constKeyword,
       name: name,
       typeParameters: typeParameters,
-      representation: representation,
+      representation: useDeclaringConstructorsAst
+          ? RepresentationDeclarationImplStub()
+          : representation,
       implementsClause: implementsClause,
+      body: body,
       leftBracket: leftBracket,
       members: members,
       rightBracket: rightBracket,
@@ -6650,6 +6799,17 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   });
 
   MixinDeclarationImpl build() {
+    ClassBodyImpl body;
+    if (useDeclaringConstructorsAst) {
+      body = BlockClassBodyImpl(
+        leftBracket: leftBracket,
+        members: members,
+        rightBracket: rightBracket,
+      );
+    } else {
+      body = ClassBodyImplStub();
+    }
+
     return MixinDeclarationImpl(
       comment: comment,
       metadata: metadata,
@@ -6660,6 +6820,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       typeParameters: typeParameters,
       onClause: onClause,
       implementsClause: implementsClause,
+      body: body,
       leftBracket: leftBracket,
       members: members,
       rightBracket: rightBracket,
@@ -6770,6 +6931,31 @@ class _ParenthesizedCondition {
   );
 
   Token get rightParenthesis => leftParenthesis.endGroup!;
+}
+
+class _PrimaryConstructorBuilder {
+  final Token? constKeyword;
+  final PrimaryConstructorNameImpl? constructorName;
+  final FormalParameterListImpl formalParameterList;
+
+  _PrimaryConstructorBuilder({
+    required this.constKeyword,
+    required this.constructorName,
+    required this.formalParameterList,
+  });
+
+  PrimaryConstructorDeclarationImpl build({
+    required Token typeName,
+    required TypeParameterListImpl? typeParameters,
+  }) {
+    return PrimaryConstructorDeclarationImpl(
+      constKeyword: constKeyword,
+      typeName: typeName,
+      typeParameters: typeParameters,
+      constructorName: constructorName,
+      formalParameters: formalParameterList,
+    );
+  }
 }
 
 /// Data structure placed on stack to represent the redirected constructor.
