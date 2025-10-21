@@ -1423,6 +1423,12 @@ abstract mixin class VMKernelCompilerMixin {
           return Path('$tempDir/out.dll').toNativePath();
       }
     }
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.machODylib) {
+      return Path('$tempDir/libout.dylib').toNativePath();
+    }
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.elf) {
+      return Path('$tempDir/libout.so').toNativePath();
+    }
     return Path('$tempDir/out.aotsnapshot').toNativePath();
   }
 
