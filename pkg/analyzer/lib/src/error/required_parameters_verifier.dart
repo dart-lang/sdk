@@ -144,7 +144,11 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
     for (FormalParameterElement parameter in parameters) {
       if (parameter.isRequiredNamed) {
-        String parameterName = parameter.name!;
+        var parameterName = parameter.name;
+        if (parameterName == null) {
+          continue;
+        }
+
         if (!_containsNamedExpression(
           enclosingConstructor,
           arguments,

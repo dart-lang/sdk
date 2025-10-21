@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -89,6 +90,29 @@ main() {
   new C(a: 2);
 }
 ''');
+  }
+
+  test_constructor_fieldFormal_missingName() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A({required this.})
+}
+
+void f() {
+  A();
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.initializingFormalForNonExistentField,
+          15,
+          14,
+        ),
+        error(ParserErrorCode.missingIdentifier, 29, 1),
+        error(ParserErrorCode.missingFunctionBody, 32, 1),
+      ],
+    );
   }
 
   test_constructor_missingArgument() async {
