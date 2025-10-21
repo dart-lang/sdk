@@ -45,6 +45,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
           case ConstructorFieldInitializerImpl(:var expression):
             var replacement = replaceNotSerializableNode(expression);
             initializer.expression = replacement;
+            AstNodeImpl.linkNodeTokens(initializer);
           case RedirectingConstructorInvocationImpl(:var argumentList):
             _sanitizeArguments(argumentList.arguments);
           case SuperConstructorInvocationImpl(:var argumentList):

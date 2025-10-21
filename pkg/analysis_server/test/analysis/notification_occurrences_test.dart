@@ -646,6 +646,15 @@ void foo() {}
 ''');
   }
 
+  Future<void> test_prefix_null() async {
+    // Note, we use `core` just to have some prefix.
+    // The actual check is no crash on unresolved `prefix`.
+    await assertOccurrences(kind: ElementKind.PREFIX, '''
+import 'dart:core' as /*[0*/core/*0]*/;
+void f(prefix.A? _, /*[1*/core.int/*1]*/ _) {}
+''');
+  }
+
   Future<void> test_prefix_wildcard() async {
     // Ensure no crash.
     await assertOccurrences(kind: ElementKind.PREFIX, '''

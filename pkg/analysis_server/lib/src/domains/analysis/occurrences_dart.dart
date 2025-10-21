@@ -250,7 +250,9 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    _addOccurrence(node.element!, node.name);
+    if (node.element case var element?) {
+      _addOccurrence(element, node.name);
+    }
 
     super.visitImportPrefixReference(node);
   }

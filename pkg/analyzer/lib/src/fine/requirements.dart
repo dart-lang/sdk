@@ -501,6 +501,14 @@ class LibraryExportRequirements {
 
         var exportedIds = <LookupName, ManifestItemId>{};
         for (var entry in exportMap.entries) {
+          var element = entry.value;
+
+          // Skip elements that exist in nowhere.
+          var elementLibrary = element.library;
+          if (elementLibrary == null) {
+            continue;
+          }
+
           var lookupName = entry.key.asLookupName;
           if (declaredTopNames.contains(lookupName)) {
             continue;

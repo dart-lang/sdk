@@ -22665,6 +22665,94 @@ class A2 {}
     );
   }
 
+  test_dependency_export_dynamic() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+export 'dart:core' show int, dynamic, Never;
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        interface: #M1
+    exportMapId: #M2
+    exportMap
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    exportMapId: #M3
+    exportMap
+      int: #M4
+    reExportMap
+      int: #M4
+    exportedLibraryUris: dart:core
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          dart:core
+            combinators
+              show Never, dynamic, int
+            int: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M5
+        exportMapId: #M2
+        exportMap
+          Never: <null>
+          Never=: <null>
+          dynamic: <null>
+          dynamic=: <null>
+          int: <null>
+          int=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      B: #M6
+        interface: #M7
+    exportMapId: #M8
+    exportMap
+      B: #M6
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_export_enum() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 enum E {v}
@@ -56910,6 +56998,67 @@ class A {
           foo: #M2
         declaredConstructors
           named: #M6
+        interface: #M4
+          map
+            foo: #M2
+          implemented
+            foo: #M2
+    exportMapId: #M5
+    exportMap
+      A: #M0
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_fieldInitializer_notSerializable() async {
+    // We use invalid constant expression, but it should not crash.
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int foo;
+  const A.named() : foo = (() => 0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredConstructors
+          named: #M3
+        interface: #M4
+          map
+            foo: #M2
+          implemented
+            foo: #M2
+    exportMapId: #M5
+    exportMap
+      A: #M0
+''',
+      updatedCode: r'''
+class A {
+  final int foo;
+  const A.named() : foo = (() => 1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredConstructors
+          named: #M3
         interface: #M4
           map
             foo: #M2
