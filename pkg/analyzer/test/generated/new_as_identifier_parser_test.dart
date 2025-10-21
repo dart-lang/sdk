@@ -28,7 +28,7 @@ class C {
   C() : this.new = null;
 }
 ''',
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.missingAssignmentInInitializer, 18, 4),
         expectedError(ParserErrorCode.missingIdentifier, 23, 3),
         expectedError(ParserErrorCode.missingFunctionBody, 23, 3),
@@ -315,7 +315,7 @@ class C {
 }
 ''',
       featureSet: FeatureSets.language_2_13,
-      errors: [expectedError(ParserErrorCode.experimentNotEnabled, 14, 3)],
+      diagnostics: [expectedError(ParserErrorCode.experimentNotEnabled, 14, 3)],
     );
     var classDeclaration = unit.declarations.single as ClassDeclaration;
     var constructorDeclaration =

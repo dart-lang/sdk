@@ -26,6 +26,7 @@ import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart' show NonExistingSource;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 
@@ -50,8 +51,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   /// Caller must first invoke [createParser].
   analyzer.Parser get parser;
 
-  /// Assert that the number and codes of errors occurred during parsing is the
-  /// same as the [expectedCodes].
+  /// Assert that the number and codes of diagnostics occurred during parsing is
+  /// the same as the [expectedCodes].
   void assertErrorsWithCodes(List<DiagnosticCode> expectedCodes);
 
   /// Asserts that no errors occurred during parsing.
@@ -72,7 +73,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
     FeatureSet featureSet,
   });
 
-  ExpectedError expectedError(DiagnosticCode code, int offset, int length);
+  ExpectedDiagnostic expectedError(DiagnosticCode code, int offset, int length);
 
   void expectNotNullIfNoErrors(Object result);
 
@@ -104,7 +105,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   CompilationUnit parseCompilationUnit(
     String source, {
     List<DiagnosticCode> codes,
-    List<ExpectedError> errors,
+    List<ExpectedDiagnostic> diagnostics,
   });
 
   ConditionalExpression parseConditionalExpression(String code);
@@ -132,7 +133,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   Expression parseExpression(
     String source, {
     List<DiagnosticCode> codes,
-    List<ExpectedError> errors,
+    List<ExpectedDiagnostic> diagnostics,
     int expectedEndOffset,
   });
 
@@ -150,7 +151,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
     String code, {
     bool inFunctionType = false,
     List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
-    List<ExpectedError> errors,
+    List<ExpectedError> diagnostics,
   });
 
   /// Parses a single top level member of a compilation unit (other than a
@@ -205,7 +206,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   Expression parsePrimaryExpression(
     String code, {
     int expectedEndOffset,
-    List<ExpectedError> errors,
+    List<ExpectedDiagnostic> diagnostics,
   });
 
   Expression parseRelationalExpression(String code);
@@ -260,14 +261,14 @@ class FastaParserTestCase
 
   void assertErrors({
     List<DiagnosticCode>? codes,
-    List<ExpectedError>? errors,
+    List<ExpectedDiagnostic>? diagnostics,
   }) {
     if (codes != null) {
       if (!identical(codes, NO_ERROR_COMPARISON)) {
         assertErrorsWithCodes(codes);
       }
-    } else if (errors != null) {
-      listener.assertErrors(errors);
+    } else if (diagnostics != null) {
+      listener.assertErrors(diagnostics);
     } else {
       assertNoErrors();
     }
@@ -409,7 +410,7 @@ class FastaParserTestCase
   CompilationUnitImpl parseCompilationUnit(
     String content, {
     List<DiagnosticCode>? codes,
-    List<ExpectedError>? errors,
+    List<ExpectedDiagnostic>? diagnostics,
     FeatureSet? featureSet,
   }) {
     GatheringDiagnosticListener listener = GatheringDiagnosticListener();
@@ -419,8 +420,8 @@ class FastaParserTestCase
     // Assert and return result
     if (codes != null) {
       listener.assertErrorsWithCodes(codes);
-    } else if (errors != null) {
-      listener.assertErrors(errors);
+    } else if (diagnostics != null) {
+      listener.assertErrors(diagnostics);
     } else {
       listener.assertNoErrors();
     }
@@ -528,7 +529,7 @@ class FastaParserTestCase
   Expression parseExpression(
     String source, {
     List<DiagnosticCode>? codes,
-    List<ExpectedError>? errors,
+    List<ExpectedDiagnostic>? diagnostics,
     int? expectedEndOffset,
     bool inAsync = false,
     FeatureSet? featureSet,
@@ -542,7 +543,7 @@ class FastaParserTestCase
       parserProxy.fastaParser.asyncState = AsyncModifier.Async;
     }
     Expression result = parserProxy.parseExpression2();
-    assertErrors(codes: codes, errors: errors);
+    assertErrors(codes: codes, diagnostics: diagnostics);
     return result;
   }
 
@@ -588,7 +589,7 @@ class FastaParserTestCase
     String code, {
     bool inFunctionType = false,
     List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
-    List<ExpectedError>? errors,
+    List<ExpectedError>? diagnostics,
     FeatureSet? featureSet,
   }) {
     createParser(code, featureSet: featureSet);
@@ -596,8 +597,8 @@ class FastaParserTestCase
       inFunctionType: inFunctionType,
     );
     assertErrors(
-      codes: errors != null ? null : diagnosticCodes,
-      errors: errors,
+      codes: diagnostics != null ? null : diagnosticCodes,
+      diagnostics: diagnostics,
     );
     return result;
   }
@@ -719,11 +720,11 @@ class FastaParserTestCase
   Expression parsePrimaryExpression(
     String code, {
     int? expectedEndOffset,
-    List<ExpectedError>? errors,
+    List<ExpectedDiagnostic>? diagnostics,
   }) {
     createParser(code, expectedEndOffset: expectedEndOffset);
     Expression result = parserProxy.parsePrimaryExpression();
-    assertErrors(errors: errors);
+    assertErrors(diagnostics: diagnostics);
     return result;
   }
 
@@ -1243,7 +1244,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   CompilationUnit parseCompilationUnit(
     String content, {
     List<DiagnosticCode>? codes,
-    List<ExpectedError>? errors,
+    List<ExpectedDiagnostic>? diagnostics,
   }) {
     Source source = TestSource();
     GatheringDiagnosticListener listener = GatheringDiagnosticListener();
@@ -1276,8 +1277,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     expect(unit, isNotNull);
     if (codes != null) {
       listener.assertErrorsWithCodes(codes);
-    } else if (errors != null) {
-      listener.assertErrors(errors);
+    } else if (diagnostics != null) {
+      listener.assertErrors(diagnostics);
     } else {
       listener.assertNoErrors();
     }
@@ -1287,7 +1288,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   /// Parse the given [content] as a compilation unit.
   CompilationUnit parseCompilationUnit2(
     String content, {
-    DiagnosticOrErrorListener listener = DiagnosticListener.nullListener,
+    DiagnosticListener listener = DiagnosticListener.nullListener,
   }) {
     Source source = NonExistingSource.unknown;
 
@@ -1360,13 +1361,13 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
   /// Parse the given [source] as an expression. If a list of error [codes] is
   /// provided, then assert that the produced errors matches the list.
-  /// Otherwise, if a list of [errors] is provided, the assert that the produced
+  /// Otherwise, if a list of [diagnostics] is provided, the assert that the produced
   /// errors matches the list. Otherwise, assert that there are no errors.
   @override
   Expression parseExpression(
     String source, {
     List<DiagnosticCode>? codes,
-    List<ExpectedError>? errors,
+    List<ExpectedDiagnostic>? diagnostics,
     int? expectedEndOffset,
   }) {
     createParser(source, expectedEndOffset: expectedEndOffset);
@@ -1374,8 +1375,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     expectNotNullIfNoErrors(expression);
     if (codes != null) {
       listener.assertErrorsWithCodes(codes);
-    } else if (errors != null) {
-      listener.assertErrors(errors);
+    } else if (diagnostics != null) {
+      listener.assertErrors(diagnostics);
     } else {
       assertNoErrors();
     }
@@ -1424,14 +1425,14 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     String code, {
     bool inFunctionType = false,
     List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
-    List<ExpectedError>? errors,
+    List<ExpectedError>? diagnostics,
   }) {
     createParser(code);
     FormalParameterList list = parser.parseFormalParameterList(
       inFunctionType: inFunctionType,
     );
-    if (errors != null) {
-      diagnosticCodes = errors.map((e) => e.code).toList();
+    if (diagnostics != null) {
+      diagnosticCodes = diagnostics.map((e) => e.code).toList();
     }
     assertErrorsWithCodes(diagnosticCodes);
     return list;
@@ -1566,12 +1567,12 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   Expression parsePrimaryExpression(
     String code, {
     int? expectedEndOffset,
-    List<ExpectedError>? errors,
+    List<ExpectedDiagnostic>? diagnostics,
   }) {
     createParser(code);
     var expression = parser.parsePrimaryExpression();
-    if (errors != null) {
-      listener.assertErrors(errors);
+    if (diagnostics != null) {
+      listener.assertErrors(diagnostics);
     }
     return expression;
   }
@@ -1689,15 +1690,19 @@ mixin ParserTestHelpers {
     List<Pattern> messageContains = const [],
     List<ExpectedContextMessage> contextMessages =
         const <ExpectedContextMessage>[],
-  }) => ExpectedError(
-    code,
-    offset,
-    length,
-    correctionContains: correctionContains,
-    message: text,
-    messageContains: messageContains,
-    expectedContextMessages: contextMessages,
-  );
+  }) {
+    if (text != null) {
+      messageContains = [text];
+    }
+    return ExpectedError(
+      code,
+      offset,
+      length,
+      correctionContains: correctionContains,
+      messageContainsAll: messageContains,
+      contextMessages: contextMessages,
+    );
+  }
 
   void expectCommentText(Comment? comment, String expectedText) {
     comment!;

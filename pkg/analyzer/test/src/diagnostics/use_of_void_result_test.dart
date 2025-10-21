@@ -5,7 +5,6 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -236,7 +235,7 @@ f(void x) {
   x!;
 }
 ''',
-      [ExpectedError(CompileTimeErrorCode.useOfVoidResult, 14, 2)],
+      [error(CompileTimeErrorCode.useOfVoidResult, 14, 2)],
     );
 
     assertType(findNode.postfix('x!'), 'void');

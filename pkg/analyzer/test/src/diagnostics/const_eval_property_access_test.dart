@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -34,12 +34,13 @@ const a = const A();
           29,
           9,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               lib,
               46,
               5,
-              text:
-                  "The error is in the field initializer of 'A', and occurs here.",
+              textContains: [
+                "The error is in the field initializer of 'A', and occurs here.",
+              ],
             ),
           ],
         ),
@@ -79,12 +80,13 @@ class RequiresNonEmptyList {
           16,
           31,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               138,
               14,
-              text:
-                  "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here.",
+              textContains: [
+                "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here.",
+              ],
             ),
           ],
         ),

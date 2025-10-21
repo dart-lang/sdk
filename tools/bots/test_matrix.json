@@ -337,12 +337,17 @@
     "vm-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
     "vm-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
     "vm-ubsan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-aot-asan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-aot-(asan|lsan|tsan|ubsan)-mac-(debug|product|release)-(x64|arm64|simarm64)": {
+      "options": {
+        "gen-snapshot-format": "macho-dylib"
+      }
+    },
+    "vm-aot-asan-(linux|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-aot-lsan-linux-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
@@ -352,12 +357,12 @@
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
+    "vm-aot-tsan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-aot-ubsan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-aot-ubsan-(linux|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }

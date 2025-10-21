@@ -79,7 +79,7 @@ class TopLevelParserTest extends FastaParserTestCase {
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expect(member, isNotNull);
     assertErrors(
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.expectedTypeName, 12, 2),
         expectedError(ParserErrorCode.expectedToken, 13, 1),
         expectedError(ParserErrorCode.missingIdentifier, 14, 0),
@@ -439,7 +439,7 @@ class A native 'something' {
   void test_parseClassDeclaration_typeParameters_extends_void() {
     parseCompilationUnit(
       'class C<T extends void>{}',
-      errors: [expectedError(ParserErrorCode.expectedTypeName, 18, 4)],
+      diagnostics: [expectedError(ParserErrorCode.expectedTypeName, 18, 4)],
     );
   }
 
@@ -1732,7 +1732,7 @@ enum E {
         parseFullCompilationUnitMember() as GenericTypeAlias;
     expect(alias, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.missingIdentifier, 11, 1)],
+      diagnostics: [expectedError(ParserErrorCode.missingIdentifier, 11, 1)],
     );
     expect(alias.name, isNotNull);
     expect(alias.name.lexeme, 'F');
@@ -1750,7 +1750,7 @@ enum E {
         parseFullCompilationUnitMember() as GenericTypeAlias;
     expect(alias, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.missingIdentifier, 10, 2)],
+      diagnostics: [expectedError(ParserErrorCode.missingIdentifier, 10, 2)],
     );
     expect(alias.name, isNotNull);
     expect(alias.name.lexeme, 'F');
@@ -1768,7 +1768,7 @@ enum E {
         parseFullCompilationUnitMember() as GenericTypeAlias;
     expect(alias, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.missingIdentifier, 10, 1)],
+      diagnostics: [expectedError(ParserErrorCode.missingIdentifier, 10, 1)],
     );
     expect(alias.name, isNotNull);
     expect(alias.name.lexeme, 'F');
@@ -2144,7 +2144,7 @@ mixin A {
   void test_parseTopLevelVariable_external_late() {
     var unit = parseCompilationUnit(
       'external late int? i;',
-      errors: [expectedError(ParserErrorCode.externalLateField, 0, 8)],
+      diagnostics: [expectedError(ParserErrorCode.externalLateField, 0, 8)],
     );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     expect(declaration.externalKeyword, isNotNull);
@@ -2153,7 +2153,7 @@ mixin A {
   void test_parseTopLevelVariable_external_late_final() {
     var unit = parseCompilationUnit(
       'external late final int? i;',
-      errors: [expectedError(ParserErrorCode.externalLateField, 0, 8)],
+      diagnostics: [expectedError(ParserErrorCode.externalLateField, 0, 8)],
     );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     expect(declaration.externalKeyword, isNotNull);
@@ -2162,7 +2162,7 @@ mixin A {
   void test_parseTopLevelVariable_final_late() {
     var unit = parseCompilationUnit(
       'final late a;',
-      errors: [expectedError(ParserErrorCode.modifierOutOfOrder, 6, 4)],
+      diagnostics: [expectedError(ParserErrorCode.modifierOutOfOrder, 6, 4)],
     );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
@@ -2174,7 +2174,9 @@ mixin A {
   void test_parseTopLevelVariable_late() {
     var unit = parseCompilationUnit(
       'late a;',
-      errors: [expectedError(ParserErrorCode.missingConstFinalVarOrType, 5, 1)],
+      diagnostics: [
+        expectedError(ParserErrorCode.missingConstFinalVarOrType, 5, 1),
+      ],
     );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
@@ -2195,7 +2197,9 @@ mixin A {
   void test_parseTopLevelVariable_late_init() {
     var unit = parseCompilationUnit(
       'late a = 0;',
-      errors: [expectedError(ParserErrorCode.missingConstFinalVarOrType, 5, 1)],
+      diagnostics: [
+        expectedError(ParserErrorCode.missingConstFinalVarOrType, 5, 1),
+      ],
     );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;

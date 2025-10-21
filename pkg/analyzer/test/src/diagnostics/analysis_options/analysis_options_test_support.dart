@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -27,7 +28,7 @@ abstract class AbstractAnalysisOptionsTest
 
   Future<void> assertErrorsInCode(
     String code,
-    List<ExpectedError> expectedErrors,
+    List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     analysisOptionsFile.writeAsStringSync(code);
     var diagnostics = analyzeAnalysisOptions(
@@ -40,7 +41,7 @@ abstract class AbstractAnalysisOptionsTest
     );
     var diagnosticListener = GatheringDiagnosticListener();
     diagnosticListener.addAll(diagnostics);
-    diagnosticListener.assertErrors(expectedErrors);
+    diagnosticListener.assertErrors(expectedDiagnostics);
   }
 
   Future<void> assertNoErrorsInCode(String code) async =>
@@ -60,9 +61,8 @@ abstract class AbstractAnalysisOptionsTest
     offset,
     length,
     correctionContains: correctionContains,
-    message: text,
-    messageContains: messageContains,
-    expectedContextMessages: contextMessages,
+    messageContainsAll: messageContains,
+    contextMessages: contextMessages,
   );
 
   void setUp() {

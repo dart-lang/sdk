@@ -8,7 +8,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -203,7 +202,7 @@ class DeprecatedMemberUse_PackageConfigWorkspaceTest
   String get externalLibUri => 'package:aaa/a.dart';
 
   Future<void> assertErrorsInCode2(
-    List<ExpectedError> expectedErrors, {
+    List<ExpectedDiagnostic> expectedDiagnostics, {
     required String externalCode,
     required String code,
   }) async {
@@ -212,7 +211,7 @@ class DeprecatedMemberUse_PackageConfigWorkspaceTest
     await assertErrorsInCode('''
 import '$externalLibUri';
 $code
-''', expectedErrors);
+''', expectedDiagnostics);
   }
 
   Future<void> assertNoErrorsInCode2({
@@ -1892,6 +1891,107 @@ class B extends A {
 }
 ''',
       [error(HintCode.deprecatedMemberUse, 74, 3)],
+    );
+  }
+
+  test_redirectedConstructor_fromFactoryConstructor() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  @deprecated
+  B();
+}
+''',
+      code: r'''
+class A {
+  factory A.two() = B;
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 59, 1)],
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated int? p]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([int? p]) = B;
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 56, 6)],
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_deprecatedFunctionTypedParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated void p()?]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([@deprecated void p()?]) = B;
+}
+''',
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_deprecatedParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated int? p]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([@deprecated int? p]) = B;
+}
+''',
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_functionTypedParameter() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated void p()?]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([void p()?]) = B;
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 56, 9)],
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_named() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B({@deprecated int? p});
+}
+''',
+      code: r'''
+class A {
+  factory A.two({int? p}) = B;
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 56, 6)],
     );
   }
 

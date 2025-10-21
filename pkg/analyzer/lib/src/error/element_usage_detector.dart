@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/workspace/workspace.dart';
+import 'package:collection/collection.dart';
 
 /// Algorithm for detecting usages of a set of elements.
 class ElementUsageDetector<TagInfo extends Object> {
@@ -163,6 +164,37 @@ class ElementUsageDetector<TagInfo extends Object> {
 
   void extensionOverride(ExtensionOverride node) {
     checkUsage(node.element, node);
+  }
+
+  void formalParameter(FormalParameter node) {
+    if (node.parent case DefaultFormalParameter defaultFormalParameter) {
+      node = defaultFormalParameter;
+    }
+    var parent = node.parent;
+    if (parent is! FormalParameterList) return;
+    if (parent.parent case ConstructorDeclaration constructor) {
+      if (constructor.redirectedConstructor?.element
+          case var redirectedConstructor?) {
+        if (node.isNamed) {
+          var redirectedParameter = redirectedConstructor.formalParameters
+              .firstWhereOrNull(
+                (p) => p.isNamed && p.name == node.name?.lexeme,
+              );
+          checkUsage(redirectedParameter, node);
+        } else {
+          // Positional.
+          var position = parent.parameters.indexOf(node);
+          if (position < 0) return;
+          if (position >= redirectedConstructor.formalParameters.length) {
+            return;
+          }
+          var redirectedParameter =
+              redirectedConstructor.formalParameters[position];
+          if (!redirectedParameter.isPositional) return;
+          checkUsage(redirectedParameter, node);
+        }
+      }
+    }
   }
 
   void functionExpressionInvocation(FunctionExpressionInvocation node) {

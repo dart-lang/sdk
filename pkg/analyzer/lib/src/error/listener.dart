@@ -144,6 +144,7 @@ Expected types: $expectedTypes''');
 @AnalyzerPublicApi(message: 'Exported by package:analyzer/error/listener.dart')
 class DiagnosticReporter {
   /// The diagnostic listener to which diagnostics are reported.
+  // ignore: deprecated_member_use_from_same_package
   final DiagnosticOrErrorListener _diagnosticListener;
 
   /// The source to be used when reporting diagnostics.

@@ -17,6 +17,12 @@
 * Remove deprecated `ErrorCode`.
 * Remove deprecated `ErrorSeverity`.
 * Remove deprecated `ErrorType`.
+* Remove deprecated `AnalysisErrorListener`.
+* Remove deprecated `RecordingDiagnosticListener.errors`.
+* Remove deprecated `RecordingDiagnosticListener.getErrorForSource`.
+* Deprecate `BooleanDiagnosticListener.onError` in favor of `.onDiagnostic`.
+* Deprecate `RecordingDiagnosticListener.onError` in favor of `.onDiagnostic`.
+* Deprecate `DiagnosticOrErrorListener` in favor of `DiagnosticListener`.
 
 ## 8.4.0
 * Add the `experimental_member_use` warning, which warns about any reference to

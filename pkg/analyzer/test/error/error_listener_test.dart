@@ -9,19 +9,19 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RecordingErrorListenerTest);
+    defineReflectiveTests(RecordingDiagnosticListenerTest);
   });
 }
 
 @reflectiveTest
-class RecordingErrorListenerTest {
+class RecordingDiagnosticListenerTest {
   test_orderedAsReported() {
     var listener = RecordingDiagnosticListener();
-    listener.onError(_MockDiagnostic(expectedIndex: 0, hashCode: 1));
-    listener.onError(_MockDiagnostic(expectedIndex: 1, hashCode: 10));
-    listener.onError(_MockDiagnostic(expectedIndex: 2, hashCode: -50));
-    listener.onError(_MockDiagnostic(expectedIndex: 3, hashCode: 20));
-    listener.onError(_MockDiagnostic(expectedIndex: 4, hashCode: 1));
+    listener.onDiagnostic(_MockDiagnostic(expectedIndex: 0, hashCode: 1));
+    listener.onDiagnostic(_MockDiagnostic(expectedIndex: 1, hashCode: 10));
+    listener.onDiagnostic(_MockDiagnostic(expectedIndex: 2, hashCode: -50));
+    listener.onDiagnostic(_MockDiagnostic(expectedIndex: 3, hashCode: 20));
+    listener.onDiagnostic(_MockDiagnostic(expectedIndex: 4, hashCode: 1));
 
     // Expect the errors are returned in the order they are reported, and not
     // affected by their hashcodes.

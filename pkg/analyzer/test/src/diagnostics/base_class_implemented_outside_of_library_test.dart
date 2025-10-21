@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -50,19 +50,20 @@ sealed class B extends A {}
 base class C implements B {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
           69,
           1,
           text:
               "The class 'A' can't be implemented outside of its library because it's a base class.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               a,
               11,
               1,
-              text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -84,19 +85,20 @@ sealed class B extends A {}
 class C implements B {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
           64,
           1,
           text:
               "The class 'A' can't be implemented outside of its library because it's a base class.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               a,
               11,
               1,
-              text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -183,19 +185,20 @@ mixin M {}
 base class C = Object with M implements B;
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
           96,
           1,
           text:
               "The class 'A' can't be implemented outside of its library because it's a base class.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               a,
               11,
               1,
-              text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),

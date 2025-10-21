@@ -37,7 +37,7 @@ void f() {
   A(foo: 0);
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -59,7 +59,7 @@ void f() {
   A(42);
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 2)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 2)],
     );
   }
 
@@ -82,7 +82,7 @@ void f() {
   A<int>.named();
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 40, 5)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 40, 5)],
     );
   }
 
@@ -105,7 +105,7 @@ void f() {
   A<int>.named;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 40, 5)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 40, 5)],
     );
   }
 
@@ -128,7 +128,7 @@ void f() {
   A<int>();
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 33, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 33, 1)],
     );
   }
 
@@ -152,7 +152,7 @@ void f(A a) {
   a.foo;
 }
 ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(WarningCode.sdkVersionSince, 40, 3),
         error(WarningCode.sdkVersionSince, 49, 3),
       ],
@@ -179,7 +179,7 @@ void f(A a) {
   a.foo += 0;
 }
 ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(WarningCode.sdkVersionSince, 40, 3),
         error(WarningCode.sdkVersionSince, 54, 3),
       ],
@@ -206,7 +206,7 @@ void f(A a) {
   a.foo = 0;
 }
 ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(WarningCode.sdkVersionSince, 40, 3),
         error(WarningCode.sdkVersionSince, 53, 3),
       ],
@@ -233,7 +233,7 @@ void f(A a) {
   a.foo;
 }
 ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(WarningCode.sdkVersionSince, 40, 3),
         error(WarningCode.sdkVersionSince, 49, 3),
       ],
@@ -261,7 +261,7 @@ void f(A a) {
   a.foo += 0;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -285,7 +285,7 @@ void f(A a) {
   a.foo += 0;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -309,7 +309,7 @@ void f(A a) {
   a.foo += 0;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -332,7 +332,7 @@ void f(A a) {
   a[0];
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 37, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 37, 1)],
     );
   }
 
@@ -355,7 +355,7 @@ void f(A a) {
   a[0] = 0;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 37, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 37, 1)],
     );
   }
 
@@ -376,7 +376,7 @@ void f() {
   foo.A<int>();
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 44, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 44, 1)],
     );
   }
 
@@ -397,7 +397,7 @@ void f() {
   A<int>();
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 33, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 33, 1)],
     );
   }
 
@@ -420,7 +420,7 @@ void f(A a) {
   a();
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 37, 2)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 37, 2)],
     );
   }
 
@@ -444,7 +444,7 @@ void f() {
   foo(0, bar: 1);
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 40, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 40, 3)],
     );
   }
 
@@ -468,7 +468,7 @@ void f() {
   foo(0, 42);
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 40, 2)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 40, 2)],
     );
   }
 
@@ -491,7 +491,7 @@ void f(A a) {
   a.foo();
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -514,7 +514,7 @@ void f(A a) {
   a.foo;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 3)],
     );
 
     var node = findNode.prefixed('.foo');
@@ -553,7 +553,7 @@ void f(A a) {
   (a).foo;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 40, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 40, 3)],
     );
 
     var node = findNode.propertyAccess('.foo');
@@ -596,7 +596,7 @@ void f(A a) {
   a.foo = 0;
 }
 ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(WarningCode.sdkVersionSince, 40, 3),
         error(WarningCode.sdkVersionSince, 53, 3),
       ],
@@ -618,7 +618,7 @@ import 'dart:foo' as foo;
 
 void f(foo.A<int> a) {}
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 1)],
     );
   }
 
@@ -637,7 +637,7 @@ import 'dart:foo';
 
 void f(A<int> a) {}
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -686,7 +686,7 @@ import 'dart:foo';
 
 void f(A a) {}
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -765,7 +765,7 @@ import 'dart:foo';
 
 void f(A a) {}
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -789,7 +789,7 @@ void f() {
   E.v2;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 2)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 2)],
     );
   }
 
@@ -811,7 +811,7 @@ void f(Enum e) {
   e.index;
 }
 ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(WarningCode.sdkVersionSince, 7, 4),
         error(WarningCode.sdkVersionSince, 21, 5),
       ],
@@ -832,7 +832,7 @@ void f() {
   myEnum.index;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 5)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 5)],
     );
   }
 
@@ -853,7 +853,7 @@ import 'dart:foo';
 
 void f(E a) {}
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -876,7 +876,7 @@ void f() {
   0.foo;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -899,7 +899,7 @@ void f() {
   E(0).foo();
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -922,7 +922,7 @@ void f() {
   0.foo();
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -945,7 +945,7 @@ void f() {
   0.foo();
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -968,7 +968,7 @@ void f() {
   0.foo = 1;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -987,7 +987,7 @@ import 'dart:foo';
 
 void f(X a) {}
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -1006,7 +1006,7 @@ import 'dart:foo';
 
 void f(X a) {}
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -1025,7 +1025,7 @@ import 'dart:foo';
 
 void f(M<int> a) {}
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -1046,7 +1046,7 @@ void f() {
   foo.bar();
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 44, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 44, 3)],
     );
   }
 
@@ -1067,7 +1067,7 @@ void f() {
   foo();
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 33, 3)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 33, 3)],
     );
   }
 
@@ -1088,7 +1088,7 @@ void f() {
   foo.v;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 44, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 44, 1)],
     );
   }
 
@@ -1109,7 +1109,7 @@ void f() {
   v;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionSince, 33, 1)],
+      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 33, 1)],
     );
   }
 

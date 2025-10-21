@@ -75,7 +75,7 @@ class B extends A {
         lint(
           57,
           1,
-          messageContains: "Parameter 'y' could be a super parameter.",
+          messageContainsAll: ["Parameter 'y' could be a super parameter."],
         ),
       ],
     );
@@ -96,7 +96,7 @@ class B extends A {
         lint(
           67,
           1,
-          messageContains: "Parameter 'y' could be a super parameter.",
+          messageContainsAll: ["Parameter 'y' could be a super parameter."],
         ),
       ],
     );

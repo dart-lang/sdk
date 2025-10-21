@@ -15,7 +15,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../src/dart/resolution/context_collection_resolution.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
-import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -937,7 +936,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<T> mk<T>(FutureOr<T> x) => null;
     Future<int> test() => mk(new Future<int>.value(42));
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 60, 4),
       ],
     );
@@ -952,7 +951,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<T> mk<T>(FutureOr<T> x) => null;
     FutureOr<int> test() => mk(new Future<int>.value(42));
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 60, 4),
       ],
     );
@@ -967,7 +966,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<T> mk<T>(FutureOr<T> x) => null;
     Future<int> test() => mk(new Future.value(42));
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 60, 4),
       ],
     );
@@ -985,7 +984,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<T> mk<T>(FutureOr<T> x) => null;
     FutureOr<int> test() => mk(new Future.value(42));
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 60, 4),
       ],
     );
@@ -1003,7 +1002,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<T> mk<T>(FutureOr<T> x) => null;
     FutureOr<num> test() => mk(new Future.value(42));
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 60, 4),
       ],
     );
@@ -1021,7 +1020,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     T mk<T>(T x) => null;
     FutureOr<int> test() => mk(new Future.value(42));
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 42, 4),
       ],
     );
@@ -1039,7 +1038,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       T mk<T extends Future<int>>(T x) => null;
       FutureOr<int> test() => mk(new Future.value(42));
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 64, 4),
       ],
     );
@@ -1059,7 +1058,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     T mk<T extends Future<Object>>(T x) => null;
     FutureOr<int> test() => mk(new Future.value(42));
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 65, 4),
       ],
     );
@@ -1077,7 +1076,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     List<T> mk<T>(T x) => null;
     FutureOr<List<int>> test() => mk(3);
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 48, 4),
       ],
     );
@@ -1099,7 +1098,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       r'''
     dynamic test(FutureOr<int> x) => x.abs();
     ''',
-      expectedErrors: [error(CompileTimeErrorCode.undefinedMethod, 61, 3)],
+      expectedDiagnostics: [error(CompileTimeErrorCode.undefinedMethod, 61, 3)],
     );
     _isInvalidType(invoke.typeOrThrow);
   }
@@ -1110,7 +1109,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       r'''
     dynamic test(FutureOr<int> x) => x.then((x) => x);
     ''',
-      expectedErrors: [error(CompileTimeErrorCode.undefinedMethod, 61, 4)],
+      expectedDiagnostics: [error(CompileTimeErrorCode.undefinedMethod, 61, 4)],
     );
     _isInvalidType(invoke.typeOrThrow);
   }
@@ -1121,7 +1120,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       r'''
     dynamic test(FutureOr<dynamic> x) => x.abs();
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(
           CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           65,
@@ -1139,7 +1138,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<int> f;
     test() => f.then((int x) {});
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.notInitializedNonNullableVariable, 79, 1),
       ],
     );
@@ -1156,7 +1155,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<int> f;
     test() => f.then((int x) {return;});
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.notInitializedNonNullableVariable, 79, 1),
       ],
     );
@@ -1173,7 +1172,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<int> f;
     test() => f.then((int x) {return null;});
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.notInitializedNonNullableVariable, 79, 1),
       ],
     );
@@ -1191,7 +1190,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<T> mk<T>(FutureOr<T> x) => null;
     dynamic test() => mk(new Future<int>.value(42));
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 60, 4),
       ],
     );
@@ -1206,7 +1205,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     T mk<T extends Future<Object>>(FutureOr<T> x) => null;
     dynamic test() => mk(new Future<int>.value(42));
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 75, 4),
       ],
     );
@@ -1220,7 +1219,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<int> f;
     test() => f.then<Null>((int x) {});
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.notInitializedNonNullableVariable, 79, 1),
       ],
     );
@@ -1237,7 +1236,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<int> f;
     test() => f.then<Null>((int x) {return;});
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.notInitializedNonNullableVariable, 79, 1),
       ],
     );
@@ -1254,7 +1253,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<int> f;
     test() => f.then<Null>((int x) { return null;});
     ''',
-      expectedErrors: [
+      expectedDiagnostics: [
         error(CompileTimeErrorCode.notInitializedNonNullableVariable, 79, 1),
       ],
     );
@@ -3356,12 +3355,12 @@ class B<T2, U2> {
 
   /// Helper method for testing `FutureOr<T>`.
   ///
-  /// Validates that [code] produces [expectedErrors]. It should define a
+  /// Validates that [code] produces [expectedDiagnostics]. It should define a
   /// function "test", whose body is an expression that invokes a method.
   /// Returns that invocation.
   Future<MethodInvocation> _testFutureOr(
     String code, {
-    List<ExpectedError> expectedErrors = const [],
+    List<ExpectedDiagnostic> expectedDiagnostics = const [],
   }) async {
     var fullCode =
         """
@@ -3369,7 +3368,7 @@ import "dart:async";
 
 $code
 """;
-    await assertErrorsInCode(fullCode, expectedErrors);
+    await assertErrorsInCode(fullCode, expectedDiagnostics);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     var body = test.functionExpression.body as ExpressionFunctionBody;
@@ -5609,9 +5608,9 @@ main() {
 
   Future<void> _objectMethodOnFunctions_helper2(
     String code,
-    List<ExpectedError> expectedErrors,
+    List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
-    await assertErrorsInCode(code, expectedErrors);
+    await assertErrorsInCode(code, expectedDiagnostics);
     _assertLocalVarType('t0', "String");
     _assertLocalVarType('t1', "String Function()");
     _assertLocalVarType('t2', "int");

@@ -48,7 +48,7 @@ class Scanner {
 
   /// The diagnostic listener that will be informed of any diagnostics that are
   /// found during the scan.
-  final DiagnosticOrErrorListener _diagnosticListener;
+  final DiagnosticListener _diagnosticListener;
 
   /// If the file has [fasta.LanguageVersionToken], it is allowed to use the
   /// language version greater than the one specified in the package config.
@@ -71,7 +71,7 @@ class Scanner {
   factory Scanner(
     Source source,
     CharacterReader reader,
-    DiagnosticOrErrorListener diagnosticListener,
+    DiagnosticListener diagnosticListener,
   ) => Scanner.fasta(
     source,
     diagnosticListener,
@@ -81,7 +81,7 @@ class Scanner {
 
   factory Scanner.fasta(
     Source source,
-    DiagnosticOrErrorListener diagnosticListener, {
+    DiagnosticListener diagnosticListener, {
     String? contents,
     int offset = -1,
   }) {

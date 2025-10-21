@@ -5,7 +5,6 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -40,10 +39,10 @@ mixin CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases
   _Variant get _variant;
 
   test_notSubtype_hasEqEq() async {
-    List<ExpectedError> expectedErrors;
+    List<ExpectedDiagnostic> expectedDiagnosticss;
     switch (_variant) {
       case _Variant.nullSafe:
-        expectedErrors = [
+        expectedDiagnosticss = [
           error(
             CompileTimeErrorCode.caseExpressionTypeIsNotSwitchExpressionSubtype,
             180,
@@ -66,7 +65,7 @@ mixin CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases
           ),
         ];
       case _Variant.patterns:
-        expectedErrors = [];
+        expectedDiagnosticss = [];
     }
 
     await assertErrorsInCode('''
@@ -90,14 +89,14 @@ void f(A e) {
       break;
   }
 }
-''', expectedErrors);
+''', expectedDiagnosticss);
   }
 
   test_notSubtype_primitiveEquality() async {
-    List<ExpectedError> expectedErrors;
+    List<ExpectedDiagnostic> expectedDiagnostics;
     switch (_variant) {
       case _Variant.nullSafe:
-        expectedErrors = [
+        expectedDiagnostics = [
           error(
             CompileTimeErrorCode.caseExpressionTypeIsNotSwitchExpressionSubtype,
             145,
@@ -110,7 +109,7 @@ void f(A e) {
           ),
         ];
       case _Variant.patterns:
-        expectedErrors = [
+        expectedDiagnostics = [
           error(WarningCode.constantPatternNeverMatchesValueType, 145, 2),
           error(WarningCode.constantPatternNeverMatchesValueType, 171, 10),
         ];
@@ -136,7 +135,7 @@ void f(A e) {
       break;
   }
 }
-''', expectedErrors);
+''', expectedDiagnostics);
   }
 
   test_subtype() async {

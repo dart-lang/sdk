@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -184,12 +184,13 @@ var b = const B();
           77,
           9,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               47,
               7,
-              text:
-                  "The error is in the field initializer of 'B', and occurs here.",
+              textContains: [
+                "The error is in the field initializer of 'B', and occurs here.",
+              ],
             ),
           ],
         ),

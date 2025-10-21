@@ -1500,6 +1500,21 @@ final MockSdkLibrary _LIB_JS_ANNOTATIONS = MockSdkLibrary('_js_annotations', [
   MockSdkLibraryUnit('js/_js_annotations.dart', '''
 library _js_annotations;
 
+export 'dart:js_interop' show staticInterop;
+
+class JS {
+  final String? name;
+  const JS([this.name]);
+}
+'''),
+]);
+
+final MockSdkLibrary _LIB_JS_INTEROP = MockSdkLibrary('js_interop', [
+  MockSdkLibraryUnit('js/js_interop.dart', '''
+library;
+
+import 'dart:typed_data';
+
 class JS {
   final String? name;
   const JS([this.name]);
@@ -1510,21 +1525,6 @@ class _StaticInterop {
 }
 
 const _StaticInterop staticInterop = _StaticInterop();
-'''),
-]);
-
-final MockSdkLibrary _LIB_JS_INTEROP = MockSdkLibrary('js_interop', [
-  MockSdkLibraryUnit('js/js_interop.dart', '''
-library;
-
-import 'dart:typed_data';
-
-export 'dart:_js_annotations' show staticInterop;
-
-class JS {
-  final String? name;
-  const JS([this.name]);
-}
 
 extension type JSAny._(Object _) implements Object {}
 

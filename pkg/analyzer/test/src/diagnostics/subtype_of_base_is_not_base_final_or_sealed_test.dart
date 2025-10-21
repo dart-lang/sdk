@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -23,7 +23,7 @@ base class A {}
 class B extends A {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           22,
           1,
@@ -42,7 +42,7 @@ base class B extends A {}
 class C extends A {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           48,
           1,
@@ -64,7 +64,7 @@ import 'a.dart';
 class B extends A {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           23,
           1,
@@ -91,7 +91,7 @@ import 'a.dart';
 abstract class B extends A {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           32,
           1,
@@ -109,7 +109,7 @@ base class A {}
 class B implements A {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           22,
           1,
@@ -131,14 +131,18 @@ import 'a.dart';
 class B implements A {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           23,
           1,
           text:
               "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         ),
-        error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 36, 1),
+        this.error(
+          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
+          36,
+          1,
+        ),
       ],
     );
   }
@@ -159,14 +163,18 @@ import 'a.dart';
 abstract class B implements A {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           32,
           1,
           text:
               "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'LinkedListEntry' is 'base'.",
         ),
-        error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 45, 1),
+        this.error(
+          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
+          45,
+          1,
+        ),
       ],
     );
   }
@@ -179,19 +187,20 @@ sealed class B extends A {}
 class C extends B {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           50,
           1,
           text:
               "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               11,
               1,
-              text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -208,19 +217,20 @@ sealed class C extends B implements A {}
 class D extends C {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           84,
           1,
           text:
               "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               11,
               1,
-              text:
-                  "The type 'C' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'C' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -237,19 +247,20 @@ sealed class C extends B with A {}
 class D extends C {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           78,
           1,
           text:
               "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               11,
               1,
-              text:
-                  "The type 'C' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'C' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -266,19 +277,20 @@ sealed class C extends B {}
 class D extends C {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           78,
           1,
           text:
               "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               11,
               1,
-              text:
-                  "The type 'C' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'C' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -298,19 +310,20 @@ sealed class B extends A {}
 class C extends B {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           51,
           1,
           text:
               "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               a,
               11,
               1,
-              text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -326,19 +339,20 @@ sealed class B extends A {}
 base class A {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           6,
           1,
           text:
               "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               60,
               1,
-              text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -354,19 +368,20 @@ sealed class B implements A {}
 class C implements B {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           53,
           1,
           text:
               "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               11,
               1,
-              text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -382,7 +397,7 @@ mixin B {}
 class C = Object with B implements A;
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           33,
           1,
@@ -401,7 +416,7 @@ mixin B {}
 interface class C = Object with B implements A;
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           43,
           1,
@@ -421,19 +436,20 @@ mixin B {}
 class C = Object with B implements AA;
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           62,
           1,
           text:
               "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               11,
               1,
-              text:
-                  "The type 'AA' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'AA' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -450,19 +466,20 @@ mixin B {}
 interface class C = Object with B implements AA;
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           72,
           1,
           text:
               "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               11,
               1,
-              text:
-                  "The type 'AA' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'AA' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -478,19 +495,20 @@ sealed class B with A {}
 class C extends B {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           53,
           1,
           text:
               "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               17,
               1,
-              text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -510,19 +528,20 @@ sealed class B with A {}
 class C extends B {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           48,
           1,
           text:
               "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               a,
               17,
               1,
-              text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -537,7 +556,7 @@ base mixin class A {}
 class B with A {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           28,
           1,
@@ -559,7 +578,7 @@ import 'a.dart';
 class B with A {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           23,
           1,

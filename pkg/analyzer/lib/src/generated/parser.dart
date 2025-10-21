@@ -32,7 +32,7 @@ class Parser {
 
   Parser(
     Source source,
-    DiagnosticOrErrorListener diagnosticListener, {
+    DiagnosticListener diagnosticListener, {
     required FeatureSet featureSet,
     bool allowNativeClause = true,
     required LibraryLanguageVersion languageVersion,

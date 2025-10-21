@@ -7,142 +7,13 @@ import 'dart:convert';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:test/test.dart';
-
-/// A description of a message that is expected to be reported with an error.
-class ExpectedContextMessage {
-  /// The path of the file with which the message is associated.
-  final File file;
-
-  /// The offset of the beginning of the error's region.
-  final int offset;
-
-  /// The offset of the beginning of the error's region.
-  final int length;
-
-  /// The message text for the error.
-  final String? text;
-
-  /// A list of patterns that should be contained in the message test; empty if
-  /// the message contents should not be checked.
-  final List<Pattern> textContains;
-
-  ExpectedContextMessage(
-    this.file,
-    this.offset,
-    this.length, {
-    this.text,
-    this.textContains = const [],
-  });
-
-  /// Return `true` if the [message] matches this description of what it's
-  /// expected to be.
-  bool matches(DiagnosticMessage message) {
-    if (message.filePath != file.path) {
-      return false;
-    }
-
-    if (message.offset != offset) {
-      return false;
-    }
-
-    if (message.length != length) {
-      return false;
-    }
-
-    var messageText = message.messageText(includeUrl: true);
-    if (text != null && messageText != text) {
-      return false;
-    }
-
-    for (var pattern in textContains) {
-      if (!messageText.contains(pattern)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-}
-
-/// A description of an error that is expected to be reported.
-class ExpectedError {
-  /// An empty array of error descriptors used when no errors are expected.
-  static List<ExpectedError> NO_ERRORS = <ExpectedError>[];
-
-  /// The diagnostic code associated with the error.
-  final DiagnosticCode code;
-
-  // A pattern that should be contained in the error's correction message, or
-  // `null` if the correction message contents should not be checked.
-  final Pattern? correctionContains;
-
-  /// The offset of the beginning of the error's region.
-  final int offset;
-
-  /// The offset of the beginning of the error's region.
-  final int length;
-
-  /// The message text of the error or `null` if the message should not be checked.
-  final String? message;
-
-  /// A list of patterns that should be contained in the error message; empty if
-  /// the message contents should not be checked.
-  final List<Pattern> messageContains;
-
-  /// The list of context messages that are expected to be associated with the
-  /// error.
-  final List<ExpectedContextMessage> expectedContextMessages;
-
-  /// Initialize a newly created error description.
-  ExpectedError(
-    this.code,
-    this.offset,
-    this.length, {
-    this.correctionContains,
-    this.message,
-    this.messageContains = const [],
-    this.expectedContextMessages = const <ExpectedContextMessage>[],
-  });
-
-  /// Return `true` if the [error] matches this description of what it's
-  /// expected to be.
-  bool matches(Diagnostic error) {
-    if (error.offset != offset ||
-        error.length != length ||
-        error.diagnosticCode != code) {
-      return false;
-    }
-    if (message != null && error.message != message) {
-      return false;
-    }
-    for (var pattern in messageContains) {
-      if (!error.message.contains(pattern)) {
-        return false;
-      }
-    }
-    if (correctionContains != null &&
-        !(error.correctionMessage ?? '').contains(correctionContains!)) {
-      return false;
-    }
-    List<DiagnosticMessage> contextMessages = error.contextMessages.toList();
-    if (contextMessages.length != expectedContextMessages.length) {
-      return false;
-    }
-    for (int i = 0; i < expectedContextMessages.length; i++) {
-      if (!expectedContextMessages[i].matches(contextMessages[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-}
 
 /// A diagnostic listener that collects all of the diagnostics passed to it for
 /// later examination.
@@ -180,14 +51,14 @@ class GatheringDiagnosticListener implements DiagnosticListener {
   }
 
   /// Assert that the number of errors that have been gathered matches the
-  /// number of [expectedErrors] and that they have the expected error codes and
+  /// number of [expectedDiagnostics] and that they have the expected error codes and
   /// locations. The order in which the errors were gathered is ignored.
-  void assertErrors(List<ExpectedError> expectedErrors) {
+  void assertErrors(List<ExpectedDiagnostic> expectedDiagnostics) {
     //
     // Match actual errors to expected errors.
     //
     List<Diagnostic> unmatchedActual = diagnostics.toList();
-    List<ExpectedError> unmatchedExpected = expectedErrors.toList();
+    List<ExpectedDiagnostic> unmatchedExpected = expectedDiagnostics.toList();
     int actualIndex = 0;
     while (actualIndex < unmatchedActual.length) {
       bool matchFound = false;
@@ -213,16 +84,26 @@ class GatheringDiagnosticListener implements DiagnosticListener {
     StringBuffer buffer = StringBuffer();
     if (unmatchedExpected.isNotEmpty) {
       buffer.writeln('Expected but did not find:');
-      for (ExpectedError expected in unmatchedExpected) {
+      for (ExpectedDiagnostic expected in unmatchedExpected) {
         buffer.write('  ');
-        buffer.write(expected.code);
+        switch (expected) {
+          case ExpectedError(:var code):
+            buffer.write(code.constantName);
+          case ExpectedLint(:var lintName):
+            buffer.write(lintName);
+          case _:
+            buffer.write(expected.diagnosticMatcher);
+        }
         buffer.write(' [');
         buffer.write(expected.offset);
         buffer.write(', ');
         buffer.write(expected.length);
-        if (expected.message != null) {
-          buffer.write(', message: ');
-          buffer.write(json.encode(expected.message));
+        if (expected.messageContains.isNotEmpty) {
+          buffer.write(', messageContains: ');
+          for (var pattern in expected.messageContains) {
+            buffer.write(pattern);
+            buffer.write(', ');
+          }
         }
         if (expected.messageContains.isNotEmpty) {
           buffer.write(', messageContains: ');
@@ -236,10 +117,11 @@ class GatheringDiagnosticListener implements DiagnosticListener {
           buffer.write(', correctionContains: ');
           buffer.write(json.encode(expected.correctionContains.toString()));
         }
-        if (expected.expectedContextMessages.isNotEmpty) {
+        if (expected.contextMessages
+            case List(:var isNotEmpty) && var contextMessages when isNotEmpty) {
           buffer.write(', contextMessages: [');
-          for (var i = 0; i < expected.expectedContextMessages.length; i++) {
-            var contextMessage = expected.expectedContextMessages[i];
+          for (var i = 0; i < contextMessages.length; i++) {
+            var contextMessage = contextMessages[i];
             if (i > 0) {
               buffer.write(', ');
             }
@@ -485,7 +367,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
 
   /// Assert that no errors have been gathered.
   void assertNoErrors() {
-    assertErrors(ExpectedError.NO_ERRORS);
+    assertErrors(const []);
   }
 
   /// Return the line information associated with the given [source], or `null`

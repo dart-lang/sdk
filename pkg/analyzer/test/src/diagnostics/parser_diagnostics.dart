@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
@@ -41,18 +42,22 @@ class ParserDiagnosticsTest {
     int offset,
     int length, {
     Pattern? correctionContains,
+    // TODO(FMorschel): refactor the uses of this to prefer `messageContains`
     String? text,
     List<Pattern> messageContains = const [],
     List<ExpectedContextMessage> contextMessages = const [],
   }) {
+    assert(
+      text == null || messageContains.isEmpty,
+      'Only use one of text or messageContains',
+    );
     return ExpectedError(
       code,
       offset,
       length,
       correctionContains: correctionContains,
-      message: text,
-      messageContains: messageContains,
-      expectedContextMessages: contextMessages,
+      messageContainsAll: text != null ? [text] : messageContains,
+      contextMessages: contextMessages,
     );
   }
 
@@ -94,10 +99,10 @@ extension ParseStringResultExtension on ParseStringResult {
     return FindNode(content, unit);
   }
 
-  void assertErrors(List<ExpectedError> expectedErrors) {
+  void assertErrors(List<ExpectedDiagnostic> expectedDiagnostics) {
     var diagnosticListener = GatheringDiagnosticListener();
     diagnosticListener.addAll(errors);
-    diagnosticListener.assertErrors(expectedErrors);
+    diagnosticListener.assertErrors(expectedDiagnostics);
   }
 
   void assertNoErrors() {
