@@ -171,6 +171,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
+  bool visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    return _nodeExits(node.argumentList);
+  }
+
+  @override
   bool visitDotShorthandInvocation(DotShorthandInvocation node) {
     var element = node.memberName.element;
     if (_elementExits(element)) {
