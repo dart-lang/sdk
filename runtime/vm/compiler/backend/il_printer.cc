@@ -1520,7 +1520,7 @@ void TryEntryInstr::PrintTo(BaseTextBuffer* f) const {
     for (intptr_t i = 0; i < phis()->length(); ++i) {
       if ((*phis())[i] == nullptr) continue;
       f->AddString("\n      ");
-      (*phis())[i] -> PrintTo(f);
+      (*phis())[i]->PrintTo(f);
     }
     f->AddString("\n}");
   }
