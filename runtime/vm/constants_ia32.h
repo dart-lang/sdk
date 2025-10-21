@@ -393,11 +393,12 @@ constexpr int kStoreBufferWrapperSize = 11;
 
 const RegList kAbiPreservedCpuRegs = (1 << EDI) | (1 << ESI) | (1 << EBX);
 
+const RegList kAbiVolatileFpuRegs = kAllFpuRegistersList;
+
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
-
-const RegList kAbiVolatileFpuRegs = kAllFpuRegistersList;
+const RegList kDartVolatileFpuRegs = kAbiVolatileFpuRegs & ~(1 << FpuTMP);
 
 #undef R
 

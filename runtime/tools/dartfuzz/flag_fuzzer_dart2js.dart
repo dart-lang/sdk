@@ -16,4 +16,5 @@ main() => flagFuzz(
     "--no-source-maps", // Otherwise output includes path
     "pkg/compiler/lib/src/util/memory_compiler.dart",
   ],
+  "js",
 );

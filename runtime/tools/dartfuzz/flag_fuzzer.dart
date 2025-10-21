@@ -159,10 +159,14 @@ taskEnd() {
   }
 }
 
-test(List<String> Function(String) createDartCommand, int taskIndex) async {
+test(
+  List<String> Function(String) createDartCommand,
+  int taskIndex,
+  String extension,
+) async {
   taskStart();
 
-  var dartCommand = createDartCommand("out/dartfuzz/$taskIndex.js");
+  var dartCommand = createDartCommand("out/dartfuzz/$taskIndex.$extension");
   var dartScript = dartCommand[0];
   var dartArguments = dartCommand.getRange(1, dartCommand.length).toList();
 
@@ -177,7 +181,11 @@ test(List<String> Function(String) createDartCommand, int taskIndex) async {
         dartScript,
         ...dartArguments,
       ],
-      ["diff", "out/dartfuzz/expected.js", "out/dartfuzz/$taskIndex.js"],
+      [
+        "diff",
+        "out/dartfuzz/expected.$extension",
+        "out/dartfuzz/$taskIndex.$extension",
+      ],
     ];
   } else {
     // AOT
@@ -203,7 +211,11 @@ test(List<String> Function(String) createDartCommand, int taskIndex) async {
         "out/dartfuzz/$taskIndex.elf",
         ...dartArguments,
       ],
-      ["diff", "out/dartfuzz/expected.js", "out/dartfuzz/$taskIndex.js"],
+      [
+        "diff",
+        "out/dartfuzz/expected.$extension",
+        "out/dartfuzz/$taskIndex.$extension",
+      ],
     ];
   }
 
@@ -254,19 +266,26 @@ test(List<String> Function(String) createDartCommand, int taskIndex) async {
   taskEnd();
 }
 
-shard(List<String> Function(String) createDartCommand, int shardIndex) async {
+shard(
+  List<String> Function(String) createDartCommand,
+  int shardIndex,
+  String extension,
+) async {
   while (!remainingTimeout.isNegative) {
-    await test(createDartCommand, shardIndex);
+    await test(createDartCommand, shardIndex, extension);
   }
 }
 
-flagFuzz(List<String> Function(String) createDartCommand) async {
+flagFuzz(
+  List<String> Function(String) createDartCommand,
+  String extension,
+) async {
   stopwatch.start();
 
   await Directory("out/dartfuzz").create();
 
   var executable = "out/ReleaseX64/dart";
-  var arguments = createDartCommand("out/dartfuzz/expected.js");
+  var arguments = createDartCommand("out/dartfuzz/expected.$extension");
   var processResult = await Process.run(executable, arguments);
   if (processResult.exitCode != 0) {
     print("=== FAILURE ===");
@@ -280,6 +299,6 @@ flagFuzz(List<String> Function(String) createDartCommand) async {
   }
 
   for (var i = 0; i < Platform.numberOfProcessors; i++) {
-    shard(createDartCommand, i);
+    shard(createDartCommand, i, extension);
   }
 }

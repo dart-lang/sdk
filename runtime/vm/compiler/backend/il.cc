@@ -1246,7 +1246,7 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
 ConstantInstr* GraphEntryInstr::constant_null() {
   ASSERT(initial_definitions()->length() > 0);
   for (intptr_t i = 0; i < initial_definitions()->length(); ++i) {
-    ConstantInstr* defn = (*initial_definitions())[i] -> AsConstant();
+    ConstantInstr* defn = (*initial_definitions())[i]->AsConstant();
     if (defn != nullptr && defn->value().IsNull()) return defn;
   }
   UNREACHABLE();
