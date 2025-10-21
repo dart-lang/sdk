@@ -405,7 +405,7 @@ void CallPattern::SetTargetCode(const Code& target) const {
 }
 
 ObjectPtr ICCallPattern::Data() const {
-  return object_pool_.ObjectAt(data_pool_index_);
+  return object_pool_.ObjectAt<std::memory_order_acquire>(data_pool_index_);
 }
 
 void ICCallPattern::SetData(const Object& data) const {
@@ -428,7 +428,7 @@ SwitchableCallPatternBase::SwitchableCallPatternBase(
     : object_pool_(object_pool), data_pool_index_(-1), target_pool_index_(-1) {}
 
 ObjectPtr SwitchableCallPatternBase::data() const {
-  return object_pool_.ObjectAt<std::memory_order_relaxed>(data_pool_index_);
+  return object_pool_.ObjectAt<std::memory_order_acquire>(data_pool_index_);
 }
 
 void SwitchableCallPatternBase::SetDataRelease(const Object& data) const {
