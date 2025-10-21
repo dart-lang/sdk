@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -156,6 +157,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitBlockClassBody(BlockClassBody node) {
+    _sink.writeln('BlockClassBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     _sink.writeln('BlockFunctionBody');
     _sink.withIndent(() {
@@ -227,6 +236,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    if (useDeclaringConstructorsAst) {
+      expect(() => node.name, throwsUnsupportedError);
+      expect(() => node.typeParameters, throwsUnsupportedError);
+      expect(() => node.leftBracket, throwsUnsupportedError);
+      expect(() => node.members, throwsUnsupportedError);
+      expect(() => node.rightBracket, throwsUnsupportedError);
+    } else {
+      expect(() => node.namePart, throwsUnsupportedError);
+      expect(() => node.body, throwsUnsupportedError);
+    }
+
     _sink.writeln('ClassDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -502,6 +522,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitEnumBody(EnumBody node) {
+    _sink.writeln('EnumBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitEnumConstantArguments(EnumConstantArguments node) {
     _checkChildrenEntitiesLinking(node);
     _sink.writeln('EnumConstantArguments');
@@ -525,6 +553,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
+    if (useDeclaringConstructorsAst) {
+      expect(() => node.name, throwsUnsupportedError);
+      expect(() => node.typeParameters, throwsUnsupportedError);
+      expect(() => node.leftBracket, throwsUnsupportedError);
+      expect(() => node.constants, throwsUnsupportedError);
+      expect(() => node.semicolon, throwsUnsupportedError);
+      expect(() => node.members, throwsUnsupportedError);
+      expect(() => node.rightBracket, throwsUnsupportedError);
+    } else {
+      expect(() => node.namePart, throwsUnsupportedError);
+      expect(() => node.body, throwsUnsupportedError);
+    }
+
     _sink.writeln('EnumDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -569,6 +610,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
+    if (useDeclaringConstructorsAst) {
+      expect(() => node.leftBracket, throwsUnsupportedError);
+      expect(() => node.members, throwsUnsupportedError);
+      expect(() => node.rightBracket, throwsUnsupportedError);
+    } else {
+      expect(() => node.body, throwsUnsupportedError);
+    }
+
     _sink.writeln('ExtensionDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -598,6 +647,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    if (useDeclaringConstructorsAst) {
+      expect(() => node.name, throwsUnsupportedError);
+      expect(() => node.representation, throwsUnsupportedError);
+      expect(() => node.constKeyword, throwsUnsupportedError);
+      expect(() => node.typeParameters, throwsUnsupportedError);
+      expect(() => node.leftBracket, throwsUnsupportedError);
+      expect(() => node.members, throwsUnsupportedError);
+      expect(() => node.rightBracket, throwsUnsupportedError);
+    } else {
+      expect(() => node.namePart, throwsUnsupportedError);
+      expect(() => node.body, throwsUnsupportedError);
+    }
+
     _sink.writeln('ExtensionTypeDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1041,6 +1103,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    if (useDeclaringConstructorsAst) {
+      expect(() => node.leftBracket, throwsUnsupportedError);
+      expect(() => node.members, throwsUnsupportedError);
+      expect(() => node.rightBracket, throwsUnsupportedError);
+    } else {
+      expect(() => node.body, throwsUnsupportedError);
+    }
+
     _sink.writeln('MixinDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1082,6 +1152,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element);
       _writeType('type', node.type);
+    });
+  }
+
+  @override
+  void visitNameWithTypeParameters(NameWithTypeParameters node) {
+    _sink.writeln('NameWithTypeParameters');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1258,6 +1336,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       }
       _writeElement('element', node.element);
       _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    _sink.writeln('PrimaryConstructorDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
+    _sink.writeln('PrimaryConstructorName');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
     });
   }
 

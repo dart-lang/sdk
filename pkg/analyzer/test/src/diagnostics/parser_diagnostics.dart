@@ -12,6 +12,7 @@ import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
 import '../../generated/test_support.dart';
+import '../../util/diff.dart';
 import '../../util/element_printer.dart';
 import '../../util/feature_sets.dart';
 import '../dart/resolution/node_text_expectations.dart';
@@ -31,10 +32,10 @@ class ParserDiagnosticsTest {
       withTokenPreviousNext: withTokenPreviousNext,
     );
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   ExpectedError error(
@@ -67,6 +68,14 @@ class ParserDiagnosticsTest {
       featureSet: FeatureSets.latestWithExperiments,
       throwIfDiagnostics: false,
     );
+  }
+
+  void setUp() {
+    useDeclaringConstructorsAst = false;
+  }
+
+  void tearDown() {
+    useDeclaringConstructorsAst = false;
   }
 
   String _parsedNodeText(
