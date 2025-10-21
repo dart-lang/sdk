@@ -957,6 +957,39 @@ class ExitDetectorResolvedStatementTest_Language219
 ///
 /// See [ExitDetectorParsedStatementTest] for tests that do not require the AST to be resolved.
 mixin ExitDetectorResolvedStatementTestCases on PubPackageResolutionTest {
+  test_dotShorthandInvocation_argumentThrows() async {
+    await _assertNthStatementExits(r'''
+class C {
+  static C create(int _) => C();
+}
+void f() {
+  C _ = .create(throw 42);
+}
+''', 0);
+  }
+
+  test_dotShorthandInvocation_methodReturnsNever() async {
+    await _assertNthStatementExits(r'''
+class C {
+  static Never create() => throw 42;
+}
+void f() {
+  C _ = .create();
+}
+''', 0);
+  }
+
+  test_dotShorthandInvocation_noExit() async {
+    await _assertNthStatementDoesNotExit(r'''
+class C {
+  static C create(int _) => C();
+}
+void f() {
+  C _ = .create(0);
+}
+''', 0);
+  }
+
   test_forStatement_implicitTrue_breakWithLabel() async {
     await _assertNthStatementDoesNotExit(r'''
 void f() {
