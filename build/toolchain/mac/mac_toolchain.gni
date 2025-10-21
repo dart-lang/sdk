@@ -63,6 +63,7 @@ template("mac_toolchain") {
     cxx = invoker.cxx
     ar = invoker.ar
     ld = invoker.ld
+    dsymutil = invoker.dsymutil
     nm = invoker.nm
 
     # Make these apply to all tools below.
@@ -190,6 +191,7 @@ template("mac_toolchain") {
       exename = "{{target_output_name}}{{output_extension}}"
       outfile = "{{root_out_dir}}/$exename"
       rspfile = "$outfile.rsp"
+      dsymdir = "$outfile.dSYM"
       symfile = "$outfile.sym"
 
       if (defined(invoker.strip)) {
@@ -197,6 +199,8 @@ template("mac_toolchain") {
       }
 
       commands = [ "$ld $sysroot_flags $toolchain_flags {{ldflags}} -Xlinker -rpath -Xlinker @executable_path/Frameworks -o $outfile -Wl,-filelist,$rspfile {{solibs}} {{libs}} {{frameworks}}" ]
+
+      commands += [ "$dsymutil -o $dsymdir $outfile" ]
 
       symbolizer_script =
           rebase_path("//runtime/tools/dart_profiler_symbols.py")
