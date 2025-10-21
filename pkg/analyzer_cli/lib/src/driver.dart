@@ -626,6 +626,7 @@ class _AnalysisContextProvider {
       sdkPath: _commandLineOptions!.dartSdkPath,
       updateAnalysisOptions4: _updateAnalysisOptions,
       fileContentCache: _fileContentCache,
+      withFineDependencies: true,
     );
     _toDispose.add(_collection!);
 
