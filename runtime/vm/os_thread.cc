@@ -7,6 +7,7 @@
 #include "platform/address_sanitizer.h"
 #include "platform/atomic.h"
 #include "platform/memory_sanitizer.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/thread_interrupter.h"
@@ -51,6 +52,20 @@ OSThread::OSThread()
   }
 
   stack_headroom_ = CalculateHeadroom(stack_base_ - stack_limit_);
+
+#if defined(USING_THREAD_SANITIZER)
+  // The Mac default stack size of 8 MB results in TSAN's stack recording
+  // overflowing in some tests before Dart reaches regular stack overflow.
+  // Clamp the stack size used by Dart so we hit a Dart stack overflow
+  // exception before corrupting TSAN. This is only relevant in run_vm_tests,
+  // which runs Dart on the main thread. The standalone embedder runs even the
+  // main isolate on thread pool workers, which the VM created with a smaller
+  // stack size.
+  const size_t kMaxDartStackSize = GetMaxStackSize();
+  if (stack_base_ - stack_limit_ - stack_headroom_ > kMaxDartStackSize) {
+    stack_headroom_ = stack_base_ - stack_limit_ - kMaxDartStackSize;
+  }
+#endif
 
   ASSERT(stack_base_ != 0);
   ASSERT(stack_limit_ != 0);
