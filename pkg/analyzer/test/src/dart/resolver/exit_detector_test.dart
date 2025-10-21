@@ -108,6 +108,10 @@ class ExitDetectorForCodeAsUiTest extends ParseBase {
     _assertFalse('[if (c) throw 42 else 0]');
   }
 
+  test_nullAwareElement() async {
+    _assertFalse('[?0]');
+  }
+
   void _assertFalse(String expressionCode) {
     _assertHasReturn(expressionCode, false);
   }

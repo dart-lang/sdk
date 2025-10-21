@@ -476,6 +476,11 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
+  bool? visitNullAwareElement(NullAwareElement node) {
+    return _nodeExits(node.value);
+  }
+
+  @override
   bool visitParenthesizedExpression(ParenthesizedExpression node) =>
       node.expression.accept(this)!;
 
