@@ -63,10 +63,10 @@ typedef _StreamEventHandler<T> = FutureOr<void> Function(T data);
 const _noResult = null;
 
 /// Pattern for extracting useful error messages from an evaluation exception.
-final _evalErrorMessagePattern = RegExp('Error: (.*)');
+final _evalErrorMessagePattern = RegExp('Error: (.+)');
 
 /// Pattern for extracting useful error messages from an unhandled exception.
-final _exceptionMessagePattern = RegExp('Unhandled exception:\n(.*)');
+final _exceptionMessagePattern = RegExp('Unhandled exception:\n(.+)');
 
 /// Pattern for a trailing semicolon.
 final _trailingSemicolonPattern = RegExp(r';$');
@@ -1124,26 +1124,24 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         result = await vmEvaluate(thread, library.id!, expression);
       }
     } catch (e) {
-      final rawMessage = '$e';
-
-      // Error messages can be quite verbose and don't fit well into a
-      // single-line watch window. For example:
+      // Expression compilation errors may result in exceptions here (failed
+      // RCP requests) rather than a returned vm.ErrorRef:
       //
       //    evaluateInFrame: (113) Expression compilation error
       //    org-dartlang-debug:synthetic_debug_expression:1:5: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
       //    1 + "a"
       //        ^
-      //
-      // So in the case of a Watch context, try to extract the useful message.
-      if (args.context == 'watch') {
-        throw DebugAdapterException(extractEvaluationErrorMessage(rawMessage));
-      }
-
-      throw DebugAdapterException(rawMessage);
+      _throwEvalError(args, '$e');
     }
 
     if (result is vm.ErrorRef) {
-      throw DebugAdapterException(result.message ?? '<error ref>');
+      // Some kinds of errors will return ErrorRefs:
+      //
+      // Unhandled exception:
+      // NoSuchMethodError: Class 'DateTime' has no instance getter 'ye'.
+      // Receiver: Instance of 'DateTime'
+      // Tried calling: ye
+      _throwEvalError(args, result.message ?? '<error ref>');
     } else if (result is vm.Sentinel) {
       throw DebugAdapterException(result.valueAsString ?? '<collected>');
     } else if (result is vm.InstanceRef && thread != null) {
@@ -1181,6 +1179,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         'Unknown evaluation response type: ${result?.runtimeType}',
       );
     }
+  }
+
+  /// Throws a [DebugAdapterException] for an expression evaluation error.
+  ///
+  /// For some contexts, parts of the error message may be extracted resulting
+  /// in a shorter message (for example to provide less noise in a Watch
+  /// window).
+  Never _throwEvalError(EvaluateArguments args, String message) {
+    if (args.context == 'watch') {
+      message = extractEvaluationErrorMessage(message);
+    }
+
+    throw DebugAdapterException(message);
   }
 
   /// Tries to extract the useful part from an evaluation exception message.
