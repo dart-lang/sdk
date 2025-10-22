@@ -2229,30 +2229,6 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
   }
 }
 
-bool FlowGraphCompiler::GenerateSubtypeRangeCheck(Register class_id_reg,
-                                                  const Class& type_class,
-                                                  compiler::Label* is_subtype) {
-  HierarchyInfo* hi = Thread::Current()->hierarchy_info();
-  if (hi != nullptr) {
-    const CidRangeVector& ranges =
-        hi->SubtypeRangesForClass(type_class,
-                                  /*include_abstract=*/false,
-                                  /*exclude_null=*/false);
-    if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
-      GenerateCidRangesCheck(assembler(), class_id_reg, ranges, is_subtype);
-      return true;
-    }
-  }
-
-  // We don't have cid-ranges for subclasses, so we'll just test against the
-  // class directly if it's non-abstract.
-  if (!type_class.is_abstract()) {
-    __ CompareImmediate(class_id_reg, type_class.id());
-    __ BranchIf(EQUAL, is_subtype);
-  }
-  return false;
-}
-
 bool FlowGraphCompiler::GenerateCidRangesCheck(
     compiler::Assembler* assembler,
     Register class_id_reg,
@@ -2612,9 +2588,26 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 
   // Fast case for cid-range based checks.
   // Warning: This code destroys the contents of [kScratchReg], so this should
-  // be the last check in this method. It returns whether the checks were
-  // exhaustive, so we negate it to indicate whether we'll fall through.
-  return !GenerateSubtypeRangeCheck(kScratchReg, type_class, is_instance_lbl);
+  // be the last check in this method.
+  if (auto const hi = thread()->hierarchy_info()) {
+    const CidRangeVector& ranges =
+        hi->SubtypeRangesForClass(type_class,
+                                  /*include_abstract=*/false,
+                                  /*exclude_null=*/false);
+    if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
+      GenerateCidRangesCheck(assembler(), kScratchReg, ranges, is_instance_lbl);
+      // Fall through if subtype range checks are not exhaustive for [type].
+      return !hi->CanUseSubtypeRangeCheckFor(type);
+    }
+  }
+
+  // We don't have cid-ranges for subclasses, so we'll just test against the
+  // class directly if it's non-abstract.
+  if (!type_class.is_abstract()) {
+    __ CompareImmediate(kScratchReg, type_class.id());
+    __ BranchIf(EQUAL, is_instance_lbl);
+  }
+  return true;
 }
 
 // Generates inlined check if 'type' is a type parameter or type itself.

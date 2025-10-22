@@ -5,7 +5,7 @@
 // SharedOptions=--enable-experiment=declaring-constructors
 
 // Tests that declaring constructors with optional parameters cannot have
-// non-constant default values.
+// non-constant default values in a header declaring constructor.
 
 int f() => 0;
 
@@ -19,9 +19,4 @@ enum E([int x = f()]) {
   // [analyzer] unspecified
   // [cfe] unspecified
   e;
-}
-
-main() {
-  C();
-  E.e;
 }

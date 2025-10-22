@@ -34,7 +34,7 @@ enum EnumConst {
 // Initializing parameters.
 class CInitParameters {
   late int y;
-  this(final int x, this.y);
+  this(this.y);
 }
 
 // Super parameters.
@@ -49,9 +49,9 @@ class CNamedParameters {
 }
 
 enum EnumNamedParameters {
-  e(x: 1, y: 2);
+  e(x: 2, y: 3), f(y: 3);
 
-  this({final int x = 1, required var int y});
+  const this({final int x = 1, required var int y});
 }
 
 // Optional parameters.
@@ -60,9 +60,9 @@ class COptionalParameters {
 }
 
 enum EnumOptionalParameters {
-  e(1, 2);
+  e(3, 4), f(3), g();
 
-  this([final int x = 1, var int y = 2]);
+  const this([final int x = 1, var int y = 2]);
 }
 
 // TODO(kallentu): Add tests for the type being inferred from the default value.
@@ -85,8 +85,7 @@ void main() {
 
   Expect.equals(1, const EnumConst.e.x);
 
-  Expect.equals(1, CInitParameters(1, 2).x);
-  Expect.equals(2, CInitParameters(1, 2).y);
+  Expect.equals(1, CInitParameters(1).y);
 
   Expect.equals(1, CSuperParameters(1, 2).x);
   Expect.equals(2, CSuperParameters(1, 2).y);
@@ -94,12 +93,18 @@ void main() {
   Expect.equals(1, CNamedParameters(y: 2).x);
   Expect.equals(2, CNamedParameters(y: 2).y);
 
-  Expect.equals(1, const EnumNamedParameters.e.x);
-  Expect.equals(2, const EnumNamedParameters.e.y);
+  Expect.equals(2, const EnumNamedParameters.e.x);
+  Expect.equals(3, const EnumNamedParameters.e.y);
+  Expect.equals(1, const EnumNamedParameters.f.x);
+  Expect.equals(3, const EnumNamedParameters.f.y);
 
   Expect.equals(1, COptionalParameters().x);
   Expect.equals(2, COptionalParameters().y);
 
-  Expect.equals(1, const EnumOptionalParameters.e.x);
-  Expect.equals(2, const EnumOptionalParameters.e.y);
+  Expect.equals(3, const EnumOptionalParameters.e.x);
+  Expect.equals(4, const EnumOptionalParameters.e.y);
+  Expect.equals(3, const EnumOptionalParameters.f.x);
+  Expect.equals(2, const EnumOptionalParameters.f.y);
+  Expect.equals(1, const EnumOptionalParameters.g.x);
+  Expect.equals(2, const EnumOptionalParameters.g.y);
 }

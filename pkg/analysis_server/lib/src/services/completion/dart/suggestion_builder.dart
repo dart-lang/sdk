@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
+import 'package:analysis_server/src/handler/legacy/completion_utils.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
@@ -1440,29 +1441,14 @@ class SuggestionBuilder {
     bool? hasNamedParameters;
     CompletionDefaultArgumentList? defaultArgumentList;
     if (element is ExecutableElement && element is! PropertyAccessorElement) {
-      parameterNames = element.formalParameters.map((parameter) {
-        return parameter.displayName;
-      }).toList();
-      parameterTypes = element.formalParameters.map((
-        FormalParameterElement parameter,
-      ) {
-        return parameter.type.getDisplayString();
-      }).toList();
-
-      var requiredParameters = element.formalParameters.where(
-        (FormalParameterElement param) => param.isRequiredPositional,
-      );
-      requiredParameterCount = requiredParameters.length;
-
-      var namedParameters = element.formalParameters.where(
-        (FormalParameterElement param) => param.isNamed,
-      );
-      hasNamedParameters = namedParameters.isNotEmpty;
-
-      defaultArgumentList = computeCompletionDefaultArgumentList(
-        element,
-        requiredParameters,
-        namedParameters,
+      (
+        :parameterNames,
+        :parameterTypes,
+        :requiredParameterCount,
+        :hasNamedParameters,
+        :defaultArgumentList,
+      ) = createParametersCompletionData(
+        element.formalParameters,
       );
     }
 

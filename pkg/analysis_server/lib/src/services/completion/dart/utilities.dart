@@ -88,7 +88,6 @@ String buildClosureParameters(
 /// Compute default argument list text and ranges based on the given
 /// [requiredParams] and [namedParams].
 CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
-  Element element,
   Iterable<FormalParameterElement> requiredParams,
   Iterable<FormalParameterElement> namedParams,
 ) {

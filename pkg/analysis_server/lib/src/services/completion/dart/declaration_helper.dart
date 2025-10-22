@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/completion/dart/visibility_tracker.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -398,8 +399,8 @@ class DeclarationHelper {
           includeSetters: true,
         ),
       );
-    } else if (type is FunctionType) {
-      _suggestFunctionCall();
+    } else if (type case FunctionType functionType) {
+      _suggestFunctionCall(functionType);
       _addMembersOfDartCoreObject();
     } else if (type is DynamicType) {
       _addMembersOfDartCoreObject();
@@ -1187,7 +1188,21 @@ class DeclarationHelper {
     }
     if ((type.isDartCoreFunction && !onlySuper) ||
         type.allSupertypes.any((type) => type.isDartCoreFunction)) {
-      _suggestFunctionCall(); // from builder
+      FunctionType functionType;
+      if (type case FunctionType function) {
+        functionType = function;
+      } else if (type.allSupertypes.whereType<FunctionType>().firstOrNull
+          case var function?) {
+        functionType = function;
+      } else {
+        functionType = FunctionTypeImpl(
+          typeParameters: const [],
+          parameters: const [],
+          returnType: DynamicTypeImpl.instance,
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      }
+      _suggestFunctionCall(functionType); // from builder
     }
     // Add members from extensions. Members from extensions accessible in the
     // same library as the completion location are suggested in this pass.
@@ -1392,20 +1407,21 @@ class DeclarationHelper {
       }
     }
     var thisType = element.thisType;
-    if (thisType is InterfaceType) {
-      _addExtensionMembers(
-        type: thisType,
-        excludedGetters: {},
-        includeMethods: true,
-        includeSetters: true,
-      );
-    } else if (thisType is RecordType) {
+    _addExtensionMembers(
+      type: thisType,
+      excludedGetters: {},
+      includeMethods: true,
+      includeSetters: true,
+    );
+    if (thisType is RecordType) {
       _addFieldsOfRecordType(
         type: thisType,
         excludedFields: {},
         isKeywordNeeded: false,
         isTypeNeeded: false,
       );
+    } else if (thisType is FunctionType) {
+      _suggestFunctionCall(thisType);
     }
   }
 
@@ -1998,10 +2014,26 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the method `call` defined on the class `Function`.
-  void _suggestFunctionCall() {
+  void _suggestFunctionCall(
+    FunctionType type, {
+    ExecutableElement? element,
+    Keyword? keyword,
+    bool addTypeAnnotation = false,
+  }) {
     var matcherScore = state.matcher.score('call');
     if (matcherScore != -1) {
-      collector.addSuggestion(FunctionCall(matcherScore: matcherScore));
+      collector.addSuggestion(
+        FunctionCall(
+          matcherScore: matcherScore,
+          type: type,
+          replacementRange: state.request.replacementRange,
+          importData: null,
+          kind: _executableSuggestionKind,
+          element: element,
+          addTypeAnnotation: addTypeAnnotation,
+          keyword: keyword,
+        ),
+      );
     }
   }
 
