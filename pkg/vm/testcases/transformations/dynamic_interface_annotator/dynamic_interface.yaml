@@ -10,7 +10,8 @@ callable:
   - library: 'lib3.dart'
     class: ['A', 'B']
   - library: 'lib4.dart'
-  - library: 'prefix/lib*'
+  - library: 'prefix/lib1.dart'
+  - library: 'prefix/lib2.dart'
 
 extendable:
   - library: 'lib1.dart'

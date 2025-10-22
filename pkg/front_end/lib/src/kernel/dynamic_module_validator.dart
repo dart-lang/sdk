@@ -157,21 +157,6 @@ class DynamicInterfaceSpecification {
     }
 
     final String librarySpec = yamlMap['library'] as String;
-    if (librarySpec.endsWith('*')) {
-      // Coverage-ignore-block(suite): Not run.
-      _verifyKeys(yamlMap, const {'library'});
-      final String prefix = baseUri
-          .resolve(librarySpec.substring(0, librarySpec.length - 1))
-          .toString();
-      final List<Library> libs = component.libraries
-          .where((lib) => lib.importUri.toString().startsWith(prefix))
-          .toList();
-      if (libs.isEmpty) {
-        throw 'No libraries found for pattern "$librarySpec"';
-      }
-      result.addAll(libs);
-      return;
-    }
     final String libraryUri = baseUri.resolve(librarySpec).toString();
 
     if (yamlMap.containsKey('class')) {
