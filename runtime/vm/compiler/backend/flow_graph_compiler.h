@@ -683,13 +683,6 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateListTypeCheck(Register kClassIdReg,
                              compiler::Label* is_instance_lbl);
 
-  // Returns true if no further checks are necessary but the code coming after
-  // the emitted code here is still required do a runtime call (for the negative
-  // case of throwing an exception).
-  bool GenerateSubtypeRangeCheck(Register class_id_reg,
-                                 const Class& type_class,
-                                 compiler::Label* is_subtype_lbl);
-
   // We test up to 4 different cid ranges, if we would need to test more in
   // order to get a definite answer we fall back to the old mechanism (namely
   // of going into the subtyping cache)
