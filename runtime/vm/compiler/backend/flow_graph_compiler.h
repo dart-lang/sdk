@@ -385,6 +385,8 @@ class ThrowIfValueCantBeSharedSlowPath : public ThrowErrorSlowPathCode {
   Register value() const { return value_; }
 };
 
+enum class TypeTestOutcome { kConclusive, kNotConclusive };
+
 class FlowGraphCompiler : public ValueObject {
  private:
   class BlockInfo : public ZoneAllocated {
@@ -1068,7 +1070,7 @@ class FlowGraphCompiler : public ValueObject {
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 
-  bool GenerateInstantiatedTypeNoArgumentsTest(
+  TypeTestOutcome GenerateInstantiatedTypeNoArgumentsTest(
       const InstructionSource& source,
       const AbstractType& dst_type,
       compiler::Label* is_instance_lbl,

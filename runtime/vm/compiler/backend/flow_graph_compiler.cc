@@ -2373,9 +2373,9 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateInlineInstanceof(
           source, type, is_instance_lbl, is_not_instance_lbl);
       // Fall through to runtime call.
     }
-    const bool has_fall_through = GenerateInstantiatedTypeNoArgumentsTest(
+    const auto type_test_outcome = GenerateInstantiatedTypeNoArgumentsTest(
         source, type, is_instance_lbl, is_not_instance_lbl);
-    if (has_fall_through) {
+    if (type_test_outcome == TypeTestOutcome::kNotConclusive) {
       // If test non-conclusive so far, try the inlined type-test cache.
       // 'type' is known at compile time.
       return GenerateSubtype1TestCacheLookup(
@@ -2525,13 +2525,14 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
 
 // Generates quick and subtype cache tests for an instantiated non-generic type.
 // Jumps to 'is_instance' or 'is_not_instance' respectively, if any generated
-// check is conclusive. Returns whether the code will fall through for further
-// type checking because the checks are not exhaustive.
+// check is conclusive. Returns TypeTestOutcome::kNotConclusive if the code
+// will fall through for further type checking because the checks are not
+// exhaustive.
 //
 // See [GenerateInlineInstanceof] for calling convention.
 //
 // Uses kScratchReg, so this implementation cannot be shared with IA32.
-bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
+TypeTestOutcome FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     const InstructionSource& source,
     const AbstractType& type,
     compiler::Label* is_instance_lbl,
@@ -2560,30 +2561,32 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ CompareImmediate(kScratchReg, kBoolCid);
     __ BranchIf(EQUAL, is_instance_lbl);
     __ Jump(is_not_instance_lbl);
-    return false;
+    return TypeTestOutcome::kConclusive;
   }
   // Custom checking for numbers (Smi, Mint and Double).
   // Note that instance is not Smi (checked above).
   if (type.IsNumberType() || type.IsIntType() || type.IsDoubleType()) {
     GenerateNumberTypeCheck(kScratchReg, type, is_instance_lbl,
                             is_not_instance_lbl);
-    return false;
+    return TypeTestOutcome::kConclusive;
   }
   if (type.IsStringType()) {
     GenerateStringTypeCheck(kScratchReg, is_instance_lbl, is_not_instance_lbl);
-    return false;
+    return TypeTestOutcome::kConclusive;
   }
   if (type.IsDartFunctionType()) {
     // Check if instance is a closure.
     __ CompareImmediate(kScratchReg, kClosureCid);
     __ BranchIf(EQUAL, is_instance_lbl);
-    return true;
+    __ Jump(is_not_instance_lbl);
+    return TypeTestOutcome::kConclusive;
   }
   if (type.IsDartRecordType()) {
     // Check if instance is a record.
     __ CompareImmediate(kScratchReg, kRecordCid);
     __ BranchIf(EQUAL, is_instance_lbl);
-    return true;
+    __ Jump(is_not_instance_lbl);
+    return TypeTestOutcome::kConclusive;
   }
 
   // Fast case for cid-range based checks.
@@ -2597,7 +2600,9 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
       GenerateCidRangesCheck(assembler(), kScratchReg, ranges, is_instance_lbl);
       // Fall through if subtype range checks are not exhaustive for [type].
-      return !hi->CanUseSubtypeRangeCheckFor(type);
+      return hi->CanUseSubtypeRangeCheckFor(type)
+                 ? TypeTestOutcome::kConclusive
+                 : TypeTestOutcome::kNotConclusive;
     }
   }
 
@@ -2607,7 +2612,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ CompareImmediate(kScratchReg, type_class.id());
     __ BranchIf(EQUAL, is_instance_lbl);
   }
-  return true;
+  return TypeTestOutcome::kNotConclusive;
 }
 
 // Generates inlined check if 'type' is a type parameter or type itself.
