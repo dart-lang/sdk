@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // A declaring body constructor can have a body and an initializer list as well
-// as initializing formals and super parameters, just like other constructors in
-// the body.
+// as initializing formals, just like other constructors in the body.
 
 // SharedOptions=--enable-experiment=declaring-constructors
 
@@ -20,16 +19,17 @@ class C2 {
 }
 
 class C3 extends C1 {
+  // Will override the `x` instance variable in `C1`.
   this(final int x) : super(x + 1);
 }
 
-class C3 extends C1 {
+class C4 extends C1 {
   int y;
-  this(final int x) : y = x, assert(x > 0), super(x + 1);
+  this(int z) : y = z, assert(z > 0), super(z + 1);
 }
 
-extension type Ext1{
-  this(final int x)  : assert(x > 0);
+extension type Ext1 {
+  this(final int x) : assert(x > 0);
 }
 
 enum Enum1 {
@@ -52,6 +52,9 @@ void main() {
   Expect.equals(1, C2(1).x);
 
   Expect.equals(1, C3(1).x);
+
+  Expect.equals(2, C4(1).x);
+  Expect.equals(1, C4(1).y);
 
   Expect.equals(1, Ext1(1).x);
 

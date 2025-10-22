@@ -20,12 +20,13 @@ class C2(final int x) {
 }
 
 class C3(final int x) extends C1 {
+  // Will override the `x` instance variable in `C1`.
   this : super(x + 1);
 }
 
-class C3(final int x) extends C1 {
+class C4(int z) extends C1 {
   int y;
-  this : y = x, assert(x > 0), super(x + 1);
+  this : y = z, assert(z > 0), super(z + 1);
 }
 
 extension type Ext1(final int x) {
@@ -52,6 +53,9 @@ void main() {
   Expect.equals(1, C2(1).x);
 
   Expect.equals(1, C3(1).x);
+
+  Expect.equals(2, C4(1).x);
+  Expect.equals(1, C4(1).y);
 
   Expect.equals(1, Ext1(1).x);
 

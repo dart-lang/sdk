@@ -4,8 +4,8 @@
 
 // SharedOptions=--enable-experiment=declaring-constructors
 
-// Declaring constructors with optional parameters can have default values, but
-// they must be constant.
+// Tests that declaring constructors with optional parameters cannot have
+// non-constant default values in a body declaring constructor.
 
 int f() => 0;
 
