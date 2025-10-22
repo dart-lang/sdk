@@ -123,6 +123,24 @@ instead.
   Dart SDK for ia32 anymore (support to execute the `dartvm` for ia32
   architecture is retained).
 
+#### Dart MCP Server
+
+- The Dart MCP server now has additional tools:
+
+  This release introduces a suite of new tools for interacting with Flutter
+  applications, including support for flutter_driver commands like screenshot,
+  as well as tools for `list_devices`, `launch_app`, `get_app_logs`,
+  `list_running_apps` and performing a `hot_restart`. The `pub` MCP tool has
+  been enhanced with support for the `pub outdated` command, and both `pub add`
+  and `pub remove` now accept multiple packages.
+
+- And some bug fixes:
+
+  Key fixes include providing the full widget tree instead of a summary for
+  better widget discovery and improved error reporting for tools that handle
+  multiple paths. Additionally, this version adds more detailed logging for failed
+  app launches and fixes a bug in hot_reload.
+
 ### Libraries
 
 #### `dart:async`
