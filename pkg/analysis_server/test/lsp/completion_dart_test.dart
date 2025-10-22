@@ -700,6 +700,110 @@ class Foo {
     );
   }
 
+  Future<void> test_functionType_callMember_identifierQualified() async {
+    content = '''
+extension on void Function(int i) {
+  void Function(int i) get g2 => this.cal^;
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'call',
+      labelDetail: ' (…) → void',
+      labelDescription: null,
+      filterText: null,
+      detail: '(int i) → void',
+    );
+  }
+
+  Future<void> test_functionType_callMember_identifierUnqualified() async {
+    content = '''
+extension on void Function(int i) {
+  void Function(int i) get g1 => cal^;
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'call',
+      labelDetail: ' (…) → void',
+      labelDescription: null,
+      filterText: null,
+      detail: '(int i) → void',
+    );
+  }
+
+  Future<void> test_functionType_callMember_invocationQualified() async {
+    content = '''
+extension on void Function(int i) {
+  void m2() {
+    this.cal^;
+  }
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'call',
+      labelDetail: '(…) → void',
+      labelDescription: null,
+      filterText: null,
+      detail: '(int i) → void',
+    );
+  }
+
+  Future<void> test_functionType_callMember_invocationUnqualified() async {
+    content = '''
+extension on void Function(int i) {
+  void m() {
+    cal^;
+  }
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'call',
+      labelDetail: '(…) → void',
+      labelDescription: null,
+      filterText: null,
+      detail: '(int i) → void',
+    );
+  }
+
+  Future<void> test_functionType_callMember_parameters() async {
+    content = '''
+void Function(int i) get g3 => g3.cal^;
+''';
+
+    await expectLabel(
+      content,
+      label: 'call',
+      labelDetail: ' (…) → void',
+      labelDescription: null,
+      filterText: null,
+      detail: '(int i) → void',
+    );
+  }
+
+  Future<void> test_functionType_callMember_returnType() async {
+    content = '''
+String m3() {
+  m3.cal^;
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'call',
+      labelDetail: '() → String',
+      labelDescription: null,
+      filterText: null,
+      detail: '() → String',
+    );
+  }
+
   Future<void> test_imported_function_returnType_args() async {
     newFile(fileAPath, '''
 String a(String a, {String b}) {}

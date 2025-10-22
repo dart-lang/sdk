@@ -125,6 +125,39 @@ suggestions
 ''');
   }
 
+  Future<void> test_inMethod_functionType_callMethod() async {
+    allowedIdentifiers = {'call'};
+    await computeSuggestions('''
+extension E on void Function(int) {foo() {  ca^;}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  call
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_inMethod_functionType_otherExtensionMembers() async {
+    allowedIdentifiers = {'method'};
+    await computeSuggestions('''
+extension E on void Function(int) {
+  method() {}
+}
+extension F on void Function(int) {
+  bar() {  me^;}
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  method
+    kind: methodInvocation
+''');
+  }
+
   Future<void> test_inMethod_namedRecordFields() async {
     allowedIdentifiers = {'value1'};
     await computeSuggestions('''
@@ -182,6 +215,25 @@ suggestions
     kind: identifier
   $2
     kind: identifier
+''');
+  }
+
+  Future<void> test_inMethod_record_otherExtensionMembers() async {
+    allowedIdentifiers = {'method'};
+    await computeSuggestions('''
+extension E on ({int value1,}) {
+  method() {}
+}
+extension F on ({int value1,}) {
+  bar() {  me^;}
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  method
+    kind: methodInvocation
 ''');
   }
 }

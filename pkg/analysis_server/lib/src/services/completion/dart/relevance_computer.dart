@@ -121,6 +121,7 @@ class RelevanceComputer {
     switch (suggestion) {
       case TypedSuggestionCompletionMixin():
         return switch (suggestion) {
+          FunctionCall() => Relevance.callFunction,
           MethodSuggestion() => _computeMethodRelevance(
             suggestion.element,
             suggestion.inheritanceDistance(featureComputer),
@@ -219,8 +220,6 @@ class RelevanceComputer {
         }
       case FormalParameterSuggestion():
         return _computeFormalParameterRelevance(suggestion);
-      case FunctionCall():
-        return Relevance.callFunction;
       case IdentifierSuggestion():
         return 500;
       case ImportPrefixSuggestion():
