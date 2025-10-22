@@ -1,0 +1,38 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/declaring_parameter_pre_feature.dart:6:20: Error: This requires the experimental 'declaring-constructors' language feature to be enabled.
+// Try passing the '--enable-experiment=declaring-constructors' command line option.
+// extension type ET1(var int a) {}
+//                    ^^^
+//
+// pkg/front_end/testcases/general/declaring_parameter_pre_feature.dart:8:30: Error: Representation fields can't have modifiers.
+// extension type ET2(final int a) {}
+//                              ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type ET1(core::int a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(core::int a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::int a) → self::ET1% /* erasure=core::int, declared=! */ {
+  lowered final self::ET1% /* erasure=core::int, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int a) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(a);
+static extension-type-member method ET2|constructor#(final core::int a) → self::ET2% /* erasure=core::int, declared=! */ {
+  lowered final self::ET2% /* erasure=core::int, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core::int a) → self::ET2% /* erasure=core::int, declared=! */
+  return self::ET2|constructor#(a);

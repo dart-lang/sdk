@@ -1111,6 +1111,7 @@ class ForwardingListener implements Listener {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,
@@ -1121,6 +1122,7 @@ class ForwardingListener implements Listener {
     MemberKind memberKind,
   ) {
     listener?.endFormalParameter(
+      varOrFinal,
       thisKeyword,
       superKeyword,
       periodAfterThisOrSuper,

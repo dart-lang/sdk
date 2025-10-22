@@ -2891,6 +2891,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,

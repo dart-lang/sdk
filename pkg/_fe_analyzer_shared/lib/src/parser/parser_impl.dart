@@ -325,6 +325,9 @@ class Parser {
   /// `true` if the 'enhanced-parts' feature is enabled.
   final bool _isEnhancedPartsFeatureEnabled;
 
+  /// `true` if the 'declaring-constructors' feature is enabled.
+  final bool _isDeclaringConstructorsFeatureEnabled;
+
   /// Indicates whether the last pattern parsed is allowed inside unary
   /// patterns.  This is set by [parsePrimaryPattern] and [parsePattern].
   ///
@@ -347,7 +350,9 @@ class Parser {
          ExperimentalFlag.patterns,
        ),
        _isEnhancedPartsFeatureEnabled = experimentalFeatures
-           .isExperimentEnabled(ExperimentalFlag.enhancedParts);
+           .isExperimentEnabled(ExperimentalFlag.enhancedParts),
+       _isDeclaringConstructorsFeatureEnabled = experimentalFeatures
+           .isExperimentEnabled(ExperimentalFlag.declaringConstructors);
 
   /// Executes [callback]; however if `this` is the `TestParser` (from
   /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
@@ -2220,10 +2225,26 @@ class Parser {
       token = next.endGroup!;
       next = token.next!;
     }
-    if (typeInfo != noType &&
-        varFinalOrConst != null &&
-        varFinalOrConst.isA(Keyword.VAR)) {
-      reportRecoverableError(varFinalOrConst, codes.codeTypeAfterVar);
+    Token? varOrFinal;
+    if (varFinalOrConst != null) {
+      if (varFinalOrConst.isA(Keyword.VAR)) {
+        varOrFinal = varFinalOrConst;
+        if (typeInfo != noType) {
+          if (memberKind != MemberKind.PrimaryConstructor) {
+            reportRecoverableError(varFinalOrConst, codes.codeTypeAfterVar);
+          } else {
+            if (!_isDeclaringConstructorsFeatureEnabled) {
+              reportExperimentNotEnabled(
+                ExperimentalFlag.declaringConstructors,
+                varOrFinal,
+                varOrFinal,
+              );
+            }
+          }
+        }
+      } else if (varFinalOrConst.isA(Keyword.FINAL)) {
+        varOrFinal = varFinalOrConst;
+      }
     }
 
     Token? endInlineFunctionType;
@@ -2312,6 +2333,7 @@ class Parser {
       listener.handleFormalParameterWithoutValue(next);
     }
     listener.endFormalParameter(
+      varOrFinal,
       thisKeyword,
       superKeyword,
       periodAfterThisOrSuper,

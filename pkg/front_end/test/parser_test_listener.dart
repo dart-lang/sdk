@@ -1036,6 +1036,7 @@ class ParserTestListener implements Listener {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,
@@ -1046,6 +1047,7 @@ class ParserTestListener implements Listener {
     MemberKind memberKind,
   ) {
     indent--;
+    seen(varOrFinal);
     seen(thisKeyword);
     seen(superKeyword);
     seen(periodAfterThisOrSuper);
@@ -1054,6 +1056,7 @@ class ParserTestListener implements Listener {
     seen(initializerEnd);
     doPrint(
       'endFormalParameter('
+      '$varOrFinal, '
       '$thisKeyword, '
       '$superKeyword, '
       '$periodAfterThisOrSuper, '
