@@ -1,0 +1,11 @@
+extension type ET1(int i) {}
+
+extension type ET2(var int i) {}
+
+extension type ET3(final int i) {}
+
+extension type ET4(i) {}
+
+extension type ET5(var i) {}
+
+extension type ET6(final i) {}

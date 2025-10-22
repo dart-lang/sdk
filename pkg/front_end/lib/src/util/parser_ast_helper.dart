@@ -921,6 +921,7 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,
@@ -932,6 +933,7 @@ abstract class AbstractParserAstListener implements Listener {
   ) {
     FormalParameterEnd data = new FormalParameterEnd(
       ParserAstType.END,
+      varOrFinal: varOrFinal,
       thisKeyword: thisKeyword,
       superKeyword: superKeyword,
       periodAfterThisOrSuper: periodAfterThisOrSuper,
@@ -5666,6 +5668,7 @@ class FormalParameterBegin extends ParserAstNode {
 }
 
 class FormalParameterEnd extends ParserAstNode {
+  final Token? varOrFinal;
   final Token? thisKeyword;
   final Token? superKeyword;
   final Token? periodAfterThisOrSuper;
@@ -5677,6 +5680,7 @@ class FormalParameterEnd extends ParserAstNode {
 
   FormalParameterEnd(
     ParserAstType type, {
+    this.varOrFinal,
     this.thisKeyword,
     this.superKeyword,
     this.periodAfterThisOrSuper,
@@ -5689,6 +5693,7 @@ class FormalParameterEnd extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+    "varOrFinal": varOrFinal,
     "thisKeyword": thisKeyword,
     "superKeyword": superKeyword,
     "periodAfterThisOrSuper": periodAfterThisOrSuper,

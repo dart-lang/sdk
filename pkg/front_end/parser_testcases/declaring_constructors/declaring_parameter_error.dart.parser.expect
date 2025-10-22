@@ -1,0 +1,63 @@
+m(var a b) {}
+
+class C {
+C(var a b) {}
+}
+
+class C(covariant a) {}
+class C(covariant a b) {}
+class C(covariant var a) {}
+class C(covariant final a) {}
+class C(covariant var a b) {}
+class C(covariant final a b) {}
+
+enum E(covariant a) {}
+enum E(covariant a b) {}
+enum E(covariant var a) {}
+enum E(covariant final a) {}
+enum E(covariant var a b) {}
+enum E(covariant final a b) {}
+
+extension type ET(int i) {
+ET(var a b) {}
+}
+
+extension type ET(covariant a) {}
+extension type ET(covariant a b) {}
+extension type ET(covariant var a) {}
+extension type ET(covariant final a) {}
+extension type ET(covariant var a b) {}
+extension type ET(covariant final a b) {}
+
+
+m[StringToken]([BeginToken]var[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]([BeginToken]var[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken]([BeginToken]covariant[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]covariant[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]covariant[KeywordToken] var[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]covariant[KeywordToken] final[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]covariant[KeywordToken] var[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]covariant[KeywordToken] final[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+enum[KeywordToken] E[StringToken]([BeginToken]covariant[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]([BeginToken]covariant[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]([BeginToken]covariant[KeywordToken] var[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]([BeginToken]covariant[KeywordToken] final[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]([BeginToken]covariant[KeywordToken] var[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]([BeginToken]covariant[KeywordToken] final[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]
+ET[StringToken]([BeginToken]var[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]covariant[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]covariant[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]covariant[KeywordToken] var[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]covariant[KeywordToken] final[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]covariant[KeywordToken] var[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]covariant[KeywordToken] final[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

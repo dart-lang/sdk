@@ -3528,6 +3528,7 @@ class TypeInfoListener implements Listener {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,

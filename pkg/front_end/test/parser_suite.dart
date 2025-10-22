@@ -347,10 +347,13 @@ class TestDescriptionExperimentalFeatures extends DefaultExperimentalFeatures {
   @override
   bool isExperimentEnabled(shared.ExperimentalFlag flag) {
     return switch (flag) {
+      // TODO(johnniwinther): Use 'folder.options' for this instead.
       shared.ExperimentalFlag.patterns => shouldAllowPatterns(shortName),
       shared.ExperimentalFlag.enhancedParts => shouldAllowEnhancedParts(
         shortName,
       ),
+      shared.ExperimentalFlag.declaringConstructors =>
+        shouldAllowDeclaringConstructors(shortName),
       _ => super.isExperimentEnabled(flag),
     };
   }
@@ -558,6 +561,11 @@ bool shouldAllowPatterns(String shortName) {
 bool shouldAllowEnhancedParts(String shortName) {
   String firstDir = shortName.split("/")[0];
   return firstDir == "enhanced_parts";
+}
+
+bool shouldAllowDeclaringConstructors(String shortName) {
+  String firstDir = shortName.split("/")[0];
+  return firstDir == "declaring_constructors";
 }
 
 Token scanRawBytes(
