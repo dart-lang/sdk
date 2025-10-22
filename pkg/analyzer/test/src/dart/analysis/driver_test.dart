@@ -16330,6 +16330,619 @@ class C {}
     );
   }
 
+  test_dependency_class_it_conflict_fix() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      A: #M0
+      A=: #M0
+    exportMapId: #M1
+    exportMap
+      A: #M0
+      A=: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredFunctions
+      foo: #M2
+    exportMapId: #M3
+    exportMap
+      foo: #M2
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M1
+        exportMap
+          A: #M0
+          A=: #M0
+        reExportDeprecatedOnly
+          A: false
+          A=: false
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportMapId: #M1
+        exportMap
+          A: #M0
+          A=: #M0
+        reExportDeprecatedOnly
+          A: false
+          A=: false
+[status] idle
+''',
+      updatedA: r'''
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      A: #M5
+        interface: #M6
+    exportMapId: #M7
+    exportMap
+      A: #M5
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H3
+    declaredFunctions
+      foo: #M8
+    exportMapId: #M9
+    exportMap
+      foo: #M8
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M7
+        exportMap
+          A: #M5
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportMapId: #M7
+        exportMap
+          A: #M5
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_it_conflict_introduce() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        interface: #M1
+    exportMapId: #M2
+    exportMap
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredFunctions
+      foo: #M3
+    exportMapId: #M4
+    exportMap
+      foo: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M2
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M5
+        exportMapId: #M2
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+''',
+      updatedA: r'''
+class A {}
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredConflicts
+      A: #M6
+      A=: #M6
+    exportMapId: #M7
+    exportMap
+      A: #M6
+      A=: #M6
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H3
+    declaredFunctions
+      foo: #M8
+    exportMapId: #M9
+    exportMap
+      foo: #M8
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M7
+        exportMap
+          A: #M6
+          A=: #M6
+        reExportDeprecatedOnly
+          A: false
+          A=: false
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M5
+        exportMapId: #M7
+        exportMap
+          A: #M6
+          A=: #M6
+        reExportDeprecatedOnly
+          A: false
+          A=: false
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_it_conflict_keep() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      A: #M0
+      A=: #M0
+    exportMapId: #M1
+    exportMap
+      A: #M0
+      A=: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredFunctions
+      foo: #M2
+    exportMapId: #M3
+    exportMap
+      foo: #M2
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M1
+        exportMap
+          A: #M0
+          A=: #M0
+        reExportDeprecatedOnly
+          A: false
+          A=: false
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportMapId: #M1
+        exportMap
+          A: #M0
+          A=: #M0
+        reExportDeprecatedOnly
+          A: false
+          A=: false
+[status] idle
+''',
+      updatedA: r'''
+class A {}
+class A {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredConflicts
+      A: #M5
+      A=: #M5
+    declaredClasses
+      B: #M6
+        interface: #M7
+    exportMapId: #M8
+    exportMap
+      A: #M5
+      A=: #M5
+      B: #M6
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H3
+    declaredFunctions
+      foo: #M9
+    exportMapId: #M10
+    exportMap
+      foo: #M9
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M8
+        exportMap
+          A: #M5
+          A=: #M5
+        reExportDeprecatedOnly
+          A: false
+          A=: false
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportMapId: #M8
+        exportMap
+          A: #M5
+          A=: #M5
+        reExportDeprecatedOnly
+          A: false
+          A=: false
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_it_extension_fix() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension E on int {
+  void foo() {}
+}
+extension E on int {
+  void foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  0.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      E: #M0
+      E=: #M0
+    exportMapId: #M1
+    exportMap
+      E: #M0
+      E=: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredFunctions
+      f: #M2
+    exportMapId: #M3
+    exportMap
+      f: #M2
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportMapId: #M1
+        exportedExtensions: []
+[status] idle
+''',
+      updatedA: r'''
+extension E on int {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredExtensions
+      E: #M5
+        declaredMethods
+          foo: #M6
+    exportMapId: #M7
+    exportMap
+      E: #M5
+    exportedExtensions: #M5
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  exportedExtensionsMismatch
+    libraryUri: package:test/a.dart
+    expectedIds: []
+    actualIds: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportMapId: #M7
+        instances
+          E
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M6
+        exportedExtensions: #M5
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_it_extension_introduce() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension E on int {
+  void foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  0.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredExtensions
+      E: #M0
+        declaredMethods
+          foo: #M1
+    exportMapId: #M2
+    exportMap
+      E: #M0
+    exportedExtensions: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredFunctions
+      f: #M3
+    exportMapId: #M4
+    exportMap
+      f: #M3
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M5
+        exportMapId: #M2
+        instances
+          E
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+        exportedExtensions: #M0
+[status] idle
+''',
+      updatedA: r'''
+extension E on int {
+  void foo() {}
+}
+extension E on int {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredConflicts
+      E: #M6
+      E=: #M6
+    exportMapId: #M7
+    exportMap
+      E: #M6
+      E=: #M6
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelNotInstance
+    libraryUri: package:test/a.dart
+    name: E
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M5
+        exportMapId: #M7
+        exportedExtensions: []
+[status] idle
+''',
+    );
+  }
+
   test_dependency_class_it_remove() async {
     await _runChangeScenarioTA(
       initialA: r'''
@@ -80102,6 +80715,59 @@ extension A<T, U> on int {}
     );
   }
 
+  test_manifest_extensionType_addConflict() async {
+    // See https://github.com/dart-lang/sdk/issues/61741
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E(List<int> it) {
+  int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredExtensionTypes
+      E: #M0
+        declaredFields
+          foo: #M1
+          it: #M2
+        declaredGetters
+          foo: #M3
+          it: #M4
+        interface: #M5
+          map
+            foo: #M3
+            it: #M4
+          implemented
+            foo: #M3
+            it: #M4
+    exportMapId: #M6
+    exportMap
+      E: #M0
+''',
+      updatedCode: r'''
+extension type E(List<int> it) {
+  int get foo => 0;
+}
+extension type E(List<int> it) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      E: #M7
+      E=: #M7
+    exportMapId: #M8
+    exportMap
+      E: #M7
+      E=: #M7
+''',
+    );
+  }
+
   test_manifest_extensionType_constructor_idChangesWithContainer() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -90689,6 +91355,997 @@ mixin D<in T> {}
       B: #M2
       C: #M9
       D: #M11
+''',
+    );
+  }
+
+  test_manifest_topConflict_class_class_class() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+class A {
+  void foo() {}
+}
+class A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      A: #M0
+      A=: #M0
+    exportMapId: #M1
+    exportMap
+      A: #M0
+      A=: #M0
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+class A {
+  void foo() {}
+}
+class A {
+  void foo() {}
+}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      A: #M2
+      A=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      A: #M2
+      A=: #M2
+      B: #M3
+''',
+    );
+  }
+
+  test_manifest_topConflict_class_topFunction() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+void A() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      A: #M0
+      A=: #M0
+    exportMapId: #M1
+    exportMap
+      A: #M0
+      A=: #M0
+''',
+      updatedCode: r'''
+class A {}
+void A() {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      A: #M2
+      A=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      A: #M2
+      A=: #M2
+      B: #M3
+''',
+    );
+  }
+
+  test_manifest_topConflict_enum_enum_enum() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {v}
+enum A {v}
+enum A {v}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      A: #M0
+      A=: #M0
+    exportMapId: #M1
+    exportMap
+      A: #M0
+      A=: #M0
+''',
+      updatedCode: r'''
+enum A {v}
+enum A {v}
+enum A {v}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      A: #M2
+      A=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      A: #M2
+      A=: #M2
+      B: #M3
+''',
+    );
+  }
+
+  test_manifest_topConflict_extension_extension_extension() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension A on int {
+  void foo() {}
+}
+extension A on int {
+  void foo() {}
+}
+extension A on int {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      A: #M0
+      A=: #M0
+    exportMapId: #M1
+    exportMap
+      A: #M0
+      A=: #M0
+''',
+      updatedCode: r'''
+extension A on int {
+  void foo() {}
+}
+extension A on int {
+  void foo() {}
+}
+extension A on int {
+  void foo() {}
+}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      A: #M2
+      A=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      A: #M2
+      A=: #M2
+      B: #M3
+''',
+    );
+  }
+
+  test_manifest_topConflict_extensionType_extensionType_extensionType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A(int it) {
+  void foo() {}
+}
+extension type A(int it) {
+  void foo() {}
+}
+extension type A(int it) {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      A: #M0
+      A=: #M0
+    exportMapId: #M1
+    exportMap
+      A: #M0
+      A=: #M0
+''',
+      updatedCode: r'''
+extension type A(int it) {
+  void foo() {}
+}
+extension type A(int it) {
+  void foo() {}
+}
+extension type A(int it) {
+  void foo() {}
+}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      A: #M2
+      A=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      A: #M2
+      A=: #M2
+      B: #M3
+''',
+    );
+  }
+
+  test_manifest_topConflict_getter_class() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int get A => 0;
+class A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      A: #M0
+      A=: #M0
+    exportMapId: #M1
+    exportMap
+      A: #M0
+      A=: #M0
+''',
+      updatedCode: r'''
+int get A => 0;
+class A {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      A: #M2
+      A=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      A: #M2
+      A=: #M2
+      B: #M3
+''',
+    );
+  }
+
+  test_manifest_topConflict_getter_getter_getter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int get foo => 0;
+int get foo => 0;
+int get foo => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      foo: #M0
+      foo=: #M0
+    exportMapId: #M1
+    exportMap
+      foo: #M0
+      foo=: #M0
+''',
+      updatedCode: r'''
+int get foo => 0;
+int get foo => 0;
+int get foo => 0;
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      foo: #M2
+      foo=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      B: #M3
+      foo: #M2
+      foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_topConflict_getter_getter_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int get foo => 0;
+int get foo => 0;
+set foo(int _) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      foo: #M0
+      foo=: #M0
+    exportMapId: #M1
+    exportMap
+      foo: #M0
+      foo=: #M0
+''',
+      updatedCode: r'''
+int get foo => 0;
+int get foo => 0;
+set foo(int _) {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      foo: #M2
+      foo=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      B: #M3
+      foo: #M2
+      foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_topConflict_getter_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int get foo => 0;
+set foo(int _) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredGetters
+      foo: #M0
+    declaredSetters
+      foo=: #M1
+    declaredVariables
+      foo: #M2
+    exportMapId: #M3
+    exportMap
+      foo: #M0
+      foo=: #M1
+''',
+      updatedCode: r'''
+int get foo => 0;
+set foo(int _) {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      B: #M4
+        interface: #M5
+    declaredGetters
+      foo: #M0
+    declaredSetters
+      foo=: #M1
+    declaredVariables
+      foo: #M2
+    exportMapId: #M6
+    exportMap
+      B: #M4
+      foo: #M0
+      foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_topConflict_getter_setter_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int get foo => 0;
+set foo(int _) {}
+set foo(int _) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      foo: #M0
+      foo=: #M0
+    exportMapId: #M1
+    exportMap
+      foo: #M0
+      foo=: #M0
+''',
+      updatedCode: r'''
+int get foo => 0;
+set foo(int _) {}
+set foo(int _) {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      foo: #M2
+      foo=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      B: #M3
+      foo: #M2
+      foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_topConflict_mixin_mixin_mixin() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo() {}
+}
+mixin A {
+  void foo() {}
+}
+mixin A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      A: #M0
+      A=: #M0
+    exportMapId: #M1
+    exportMap
+      A: #M0
+      A=: #M0
+''',
+      updatedCode: r'''
+mixin A {
+  void foo() {}
+}
+mixin A {
+  void foo() {}
+}
+mixin A {
+  void foo() {}
+}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      A: #M2
+      A=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      A: #M2
+      A=: #M2
+      B: #M3
+''',
+    );
+  }
+
+  test_manifest_topConflict_setter_getter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+set foo(int _) {}
+int get foo => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredGetters
+      foo: #M0
+    declaredSetters
+      foo=: #M1
+    declaredVariables
+      foo: #M2
+    exportMapId: #M3
+    exportMap
+      foo: #M0
+      foo=: #M1
+''',
+      updatedCode: r'''
+set foo(int _) {}
+int get foo => 0;
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      B: #M4
+        interface: #M5
+    declaredGetters
+      foo: #M0
+    declaredSetters
+      foo=: #M1
+    declaredVariables
+      foo: #M2
+    exportMapId: #M6
+    exportMap
+      B: #M4
+      foo: #M0
+      foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_topConflict_setter_setter_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+set foo(int _) {}
+set foo(int _) {}
+set foo(int _) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      foo: #M0
+      foo=: #M0
+    exportMapId: #M1
+    exportMap
+      foo: #M0
+      foo=: #M0
+''',
+      updatedCode: r'''
+set foo(int _) {}
+set foo(int _) {}
+set foo(int _) {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      foo: #M2
+      foo=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      B: #M3
+      foo: #M2
+      foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_topConflict_topFunction3_to1() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo() {}
+void foo() {}
+void foo() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      foo: #M0
+      foo=: #M0
+    exportMapId: #M1
+    exportMap
+      foo: #M0
+      foo=: #M0
+''',
+      updatedCode: r'''
+void foo() {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      B: #M2
+        interface: #M3
+    declaredFunctions
+      foo: #M4
+    exportMapId: #M5
+    exportMap
+      B: #M2
+      foo: #M4
+''',
+    );
+  }
+
+  test_manifest_topConflict_topFunction_topFunction_topFunction() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo() {}
+void foo() {}
+void foo() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      foo: #M0
+      foo=: #M0
+    exportMapId: #M1
+    exportMap
+      foo: #M0
+      foo=: #M0
+''',
+      updatedCode: r'''
+void foo() {}
+void foo() {}
+void foo() {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      foo: #M2
+      foo=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      B: #M3
+      foo: #M2
+      foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_topConflict_topVariable_class() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int A = 0;
+class A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      A: #M0
+      A=: #M0
+    exportMapId: #M1
+    exportMap
+      A: #M0
+      A=: #M0
+''',
+      updatedCode: r'''
+int A = 0;
+class A {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      A: #M2
+      A=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      A: #M2
+      A=: #M2
+      B: #M3
+''',
+    );
+  }
+
+  test_manifest_topConflict_topVariable_final_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final int foo = 0;
+set foo(int _) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredGetters
+      foo: #M0
+    declaredSetters
+      foo=: #M1
+    declaredVariables
+      foo: #M2
+    exportMapId: #M3
+    exportMap
+      foo: #M0
+      foo=: #M1
+''',
+      updatedCode: r'''
+final int foo = 0;
+set foo(int _) {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      B: #M4
+        interface: #M5
+    declaredGetters
+      foo: #M0
+    declaredSetters
+      foo=: #M1
+    declaredVariables
+      foo: #M2
+    exportMapId: #M6
+    exportMap
+      B: #M4
+      foo: #M0
+      foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_topConflict_topVariable_notFinal_getter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int foo = 0;
+int get foo => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      foo: #M0
+      foo=: #M0
+    exportMapId: #M1
+    exportMap
+      foo: #M0
+      foo=: #M0
+''',
+      updatedCode: r'''
+int foo = 0;
+int get foo => 0;
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      foo: #M2
+      foo=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      B: #M3
+      foo: #M2
+      foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_topConflict_topVariable_notFinal_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int foo = 0;
+set foo(int _) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      foo: #M0
+      foo=: #M0
+    exportMapId: #M1
+    exportMap
+      foo: #M0
+      foo=: #M0
+''',
+      updatedCode: r'''
+int foo = 0;
+set foo(int _) {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      foo: #M2
+      foo=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      B: #M3
+      foo: #M2
+      foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_topConflict_topVariable_topVariable_topVariable() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int foo = 0;
+int foo = 0;
+int foo = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      foo: #M0
+      foo=: #M0
+    exportMapId: #M1
+    exportMap
+      foo: #M0
+      foo=: #M0
+''',
+      updatedCode: r'''
+int foo = 0;
+int foo = 0;
+int foo = 0;
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      foo: #M2
+      foo=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      B: #M3
+      foo: #M2
+      foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_topConflict_typeAlias_typeAlias_typeAlias() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef A = int;
+typedef A = int;
+typedef A = int;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      A: #M0
+      A=: #M0
+    exportMapId: #M1
+    exportMap
+      A: #M0
+      A=: #M0
+''',
+      updatedCode: r'''
+typedef A = int;
+typedef A = int;
+typedef A = int;
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      A: #M2
+      A=: #M2
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      A: #M2
+      A=: #M2
+      B: #M3
 ''',
     );
   }

@@ -2649,6 +2649,11 @@ class RequirementsManifest {
       return null;
     }
 
+    // Skip conflicts.
+    if (manifest.declaredConflicts.containsKey(instanceName)) {
+      return null;
+    }
+
     var libraryRequirements = _getLibraryRequirements(libraryElement);
     var instancesMap = libraryRequirements.instances;
     var instanceItem =
@@ -2689,6 +2694,11 @@ class RequirementsManifest {
 
     var interfaceName = element.lookupName?.asLookupName;
     if (interfaceName == null) {
+      return null;
+    }
+
+    // Skip conflicts.
+    if (manifest.declaredConflicts.containsKey(interfaceName)) {
       return null;
     }
 

@@ -786,16 +786,16 @@ sealed class InstanceItem<E extends InstanceElementImpl>
     inheritedConstructors.write(writer);
   }
 
-  void _makeNameConflict(LookupName lookupName2) {
+  void _makeNameConflict(LookupName lookupName) {
     var id = ManifestItemId.generate();
-    for (var lookupName in lookupName2.relatedNames) {
-      declaredConflicts[lookupName] = id;
-      declaredFields.remove(lookupName);
-      declaredGetters.remove(lookupName);
-      declaredSetters.remove(lookupName);
-      declaredMethods.remove(lookupName);
-      declaredConstructors.remove(lookupName);
-      inheritedConstructors.remove(lookupName);
+    for (var relatedName in lookupName.relatedNames) {
+      declaredConflicts[relatedName] = id;
+      declaredFields.remove(relatedName);
+      declaredGetters.remove(relatedName);
+      declaredSetters.remove(relatedName);
+      declaredMethods.remove(relatedName);
+      declaredConstructors.remove(relatedName);
+      inheritedConstructors.remove(relatedName);
     }
   }
 }
