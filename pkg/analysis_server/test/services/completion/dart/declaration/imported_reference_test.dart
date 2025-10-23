@@ -3513,8 +3513,6 @@ suggestions
     kind: import
   dart:async
     kind: import
-  dart:async2
-    kind: import
   dart:collection
     kind: import
   dart:convert

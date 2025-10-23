@@ -122,14 +122,6 @@ abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {}
 '''),
 ]);
 
-final MockSdkLibrary _LIB_ASYNC2 = MockSdkLibrary('async2', [
-  MockSdkLibraryUnit('async2/async2.dart', '''
-library dart.async2;
-
-class Future {}
-'''),
-]);
-
 final MockSdkLibrary _LIB_COLLECTION = MockSdkLibrary('collection', [
   MockSdkLibraryUnit('collection/collection.dart', '''
 library dart.collection;
@@ -1616,7 +1608,6 @@ final MockSdkLibrary _LIB_WASM = MockSdkLibrary('_wasm', [
 
 final List<MockSdkLibrary> _LIBRARIES = [
   _LIB_ASYNC,
-  _LIB_ASYNC2,
   _LIB_COLLECTION,
   _LIB_CONVERT,
   _LIB_CORE,
