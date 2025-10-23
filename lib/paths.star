@@ -74,16 +74,14 @@ _DDC_PATHS = _WEB_PATHS + [
     "pkg/(js|modular_test|sourcemap_testing)/.+",
 ]
 
-_ANALYZER_NNBD_PATHS = _STANDARD_PATHS + [
-    # analyzer sources
+_ANALYZER_PATHS_ONLY = [
     "pkg/(analyzer|analyzer_cli|_fe_analyzer_shared)/.+",
 ]
 
 _ANALYZER_PATHS = _STANDARD_PATHS + [
     # "analyzer" bots analyze everything under pkg
     "pkg/.+",
-    # "analyzer-analysis-server-linux" bot also analyzes dartfuzz, observatory and iso-stress
-    "runtime/observatory/.+",
+    # "analyzer-analysis-server-linux" bot also analyzes dartfuzz and iso-stress
     "runtime/tests/concurrency/.+",
     "runtime/tools/dartfuzz/.+",
 ]
@@ -116,7 +114,7 @@ def _to_location_filters(paths):
 
 paths = struct(
     analyzer = _ANALYZER_PATHS,
-    analyzer_nnbd = _ANALYZER_NNBD_PATHS,
+    analyzer_only = _ANALYZER_PATHS_ONLY,
     cfe = _CFE_PATHS,
     cfe_only = _CFE_PATHS_ONLY,
     dart2bytecode = _DART2BYTECODE_PATHS,
