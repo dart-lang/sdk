@@ -47,6 +47,16 @@ class ContextStructure {
   /// [transitiveFileUniqueCount].
   final int transitiveFileUniqueLineCount;
 
+  /// The type of the workspaces in all of the contexts. A list of 3 elements,
+  /// index 0 - number of Blaze/GN/Basic workspace
+  /// index 1 - number of workspaces with one package
+  /// index 2 - number of Pub workspaces
+  final List<int> contextWorkspaceType;
+
+  /// The number of packages in the workspace. This value is calculated only
+  /// for Pub workspaces (monorepo).
+  final PercentileCalculator numberOfPackagesInWorkspace;
+
   final PercentileCalculator libraryCycleLibraryCounts;
   final PercentileCalculator libraryCycleLineCounts;
 
@@ -61,10 +71,15 @@ class ContextStructure {
     required this.transitiveFileUniqueLineCount,
     required List<int> libraryCycleLibraryCounts,
     required List<int> libraryCycleLineCounts,
+    this.contextWorkspaceType = const <int>[0, 0, 0],
+    List<int> numberOfPackagesInWorkspace = const <int>[],
   }) : libraryCycleLibraryCounts = PercentileCalculator.from(
          libraryCycleLibraryCounts,
        ),
        libraryCycleLineCounts = PercentileCalculator.from(
          libraryCycleLineCounts,
+       ),
+       numberOfPackagesInWorkspace = PercentileCalculator.from(
+         numberOfPackagesInWorkspace,
        );
 }

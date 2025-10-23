@@ -549,6 +549,44 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     );
   }
 
+  void test_multiple_packages_pub_workspace() {
+    var aFilePath = '/workspace/a/lib/a.dart';
+    var bFilePath = '/workspace/b/b.dart';
+    _addResources(['/workspace/a/lib/', '/workspace/b/', aFilePath, bFilePath]);
+    newPubspecYamlFile('/workspace', '''
+name: works
+workspace:
+- a
+- b
+''');
+    newPubspecYamlFile('/workspace/a', 'name: a');
+    PackageConfigWorkspace workspace = _createWorkspace('/workspace', [
+      'project',
+      'foo',
+    ]);
+
+    expect(workspace.root, convertPath('/workspace'));
+    workspace.findPackageFor(convertPath(aFilePath));
+    workspace.findPackageFor(convertPath(bFilePath));
+    expect(workspace.allPackages.length, 2);
+    expect(workspace.isPubWorkspace, true);
+  }
+
+  void test_single_package_workspace() {
+    var aFilePath = '/workspace/a/lib/a.dart';
+    _addResources(['/workspace/a/lib/', aFilePath]);
+    newPubspecYamlFile('/workspace/a', 'name: a');
+    PackageConfigWorkspace workspace = _createWorkspace('/workspace', [
+      'project',
+      'foo',
+    ]);
+
+    expect(workspace.root, convertPath('/workspace'));
+    workspace.findPackageFor(convertPath(aFilePath));
+    expect(workspace.allPackages.length, 1);
+    expect(workspace.isPubWorkspace, false);
+  }
+
   void _addResources(List<String> paths) {
     for (String path in paths) {
       if (path.endsWith('/')) {

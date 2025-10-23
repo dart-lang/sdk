@@ -119,6 +119,8 @@ class AnalyticsManager {
     required int transitiveFileUniqueLineCount,
     required List<int> libraryCycleLibraryCounts,
     required List<int> libraryCycleLineCounts,
+    required List<int> numberOfPackagesInWorkspace,
+    required List<int> contextWorkspaceType,
   }) {
     // This is currently keeping the first report of completed analysis, but we
     // might want to consider alternatives, such as keeping the "largest"
@@ -133,6 +135,8 @@ class AnalyticsManager {
       transitiveFileUniqueLineCount: transitiveFileUniqueLineCount,
       libraryCycleLibraryCounts: libraryCycleLibraryCounts,
       libraryCycleLineCounts: libraryCycleLineCounts,
+      contextWorkspaceType: contextWorkspaceType,
+      numberOfPackagesInWorkspace: numberOfPackagesInWorkspace,
     );
   }
 
@@ -474,6 +478,12 @@ class AnalyticsManager {
       h3('Analysis data');
       buffer.writeln('<ul>');
       li('numberOfContexts: ${json.encode(analysisData.numberOfContexts)}');
+      li(
+        'contextWorkspaceType: ${json.encode(analysisData.contextWorkspaceType.toString())}',
+      );
+      li(
+        'numberOfPackagesPerWorkspace: ${json.encode(analysisData.numberOfPackagesInWorkspace.toString())}',
+      );
       li('immediateFileCount: ${json.encode(analysisData.immediateFileCount)}');
       li(
         'immediateFileLineCount: ${json.encode(analysisData.immediateFileLineCount)}',
