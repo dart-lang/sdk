@@ -577,7 +577,6 @@ package:analyzer/dart/analysis/utilities.dart:
   parseFile (function: ParseStringResult Function({required FeatureSet featureSet, required String path, ResourceProvider? resourceProvider, bool throwIfDiagnostics}))
   parseString (function: ParseStringResult Function({required String content, FeatureSet? featureSet, String? path, bool throwIfDiagnostics}))
   resolveFile (function: Future<SomeResolvedUnitResult> Function({required String path, ResourceProvider? resourceProvider}))
-  resolveFile2 (function: Future<SomeResolvedUnitResult> Function({required String path, ResourceProvider? resourceProvider}), deprecated)
 package:analyzer/dart/ast/ast.dart:
   useDeclaringConstructorsAst (static getter: bool)
   useDeclaringConstructorsAst= (static setter: bool)

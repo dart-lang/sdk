@@ -14,6 +14,7 @@
 * Remove deprecated `PartDirective.configurations`.
 * Remove deprecated `TypeDefiningElement`.
 * Remove deprecated `TypeAliasElement.aliasedElement`.
+* Remove deprecated `resolveFile2`.
 * Remove deprecated `ErrorCode`.
 * Remove deprecated `ErrorSeverity`.
 * Remove deprecated `ErrorType`.

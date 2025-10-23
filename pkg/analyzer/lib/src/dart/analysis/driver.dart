@@ -299,9 +299,7 @@ class AnalysisDriver {
     required this.withFineDependencies,
     this.ownedFiles,
     this.analysisContext,
-    @Deprecated("Use 'analysisOptionsMap' instead")
-    AnalysisOptionsImpl? analysisOptions,
-    AnalysisOptionsMap? analysisOptionsMap,
+    required this.analysisOptionsMap,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     this.enableIndex = false,
@@ -324,11 +322,6 @@ class AnalysisDriver {
        declaredVariables = declaredVariables ?? DeclaredVariables(),
        testingData = retainDataForTesting ? TestingData() : null,
        _enableLintRuleTiming = enableLintRuleTiming,
-       // This '!' is temporary. The analysisOptionsMap is effectively
-       // required but can't be until Google3 is updated.
-       analysisOptionsMap = analysisOptions == null
-           ? analysisOptionsMap!
-           : AnalysisOptionsMap.forSharedOptions(analysisOptions),
        _saltForUnlinked = _calculateSaltForUnlinked(enableIndex: enableIndex),
        _saltForElements = _calculateSaltForElements(
          declaredVariables ?? DeclaredVariables(),

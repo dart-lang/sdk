@@ -81,8 +81,6 @@ Future<int> generateWasm(WasmCompilerOptions options,
       options, StandardFileSystem.instance, relativeSourceMapUrlMapper,
       (message) {
     if (!options.dryRun) printDiagnosticMessage(message, errorPrinter);
-  }, writeFile: (String filename, String content) {
-    File(filename).writeAsStringSync(content);
   });
 
   if (result is CompilationDryRunResult) {

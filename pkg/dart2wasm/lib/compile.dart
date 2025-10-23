@@ -161,8 +161,7 @@ Future<CompilationResult> compile(
     compiler.WasmCompilerOptions options,
     FileSystem fileSystem,
     Uri Function(String moduleName)? sourceMapUrlGenerator,
-    void Function(CfeDiagnosticMessage) handleDiagnosticMessage,
-    {void Function(String, String)? writeFile}) async {
+    void Function(CfeDiagnosticMessage) handleDiagnosticMessage) async {
   final wasm.Mode mode;
   if (options.translatorOptions.jsCompatibility) {
     mode = wasm.Mode.jsCompatibility;
@@ -227,8 +226,7 @@ Future<CompilationResult> _runCfePhase(
     compiler.WasmCompilerOptions options,
     WasmTarget target,
     FileSystem fileSystem,
-    void Function(CfeDiagnosticMessage) handleDiagnosticMessage,
-    {void Function(String, String)? writeFile}) async {
+    void Function(CfeDiagnosticMessage) handleDiagnosticMessage) async {
   var hadCompileTimeError = false;
   void diagnosticMessageHandler(CfeDiagnosticMessage message) {
     if (message.severity == CfeSeverity.error) {
@@ -299,8 +297,9 @@ Future<CompilationResult> _runCfePhase(
   }
   final component = compilerResult!.component!;
 
-  if (options.dumpKernelAfterCfe != null && writeFile != null) {
-    writeFile(options.dumpKernelAfterCfe!, writeComponentToString(component));
+  if (options.dumpKernelAfterCfe != null) {
+    writeComponentToText(component,
+        path: options.dumpKernelAfterCfe!, showMetadata: true);
   }
 
   return CfeResult(component, compilerResult.coreTypes!);
@@ -355,8 +354,7 @@ Future<CompilationResult> _runTfaPhase(
     CfeResult cfeResult,
     compiler.WasmCompilerOptions options,
     WasmTarget target,
-    FileSystem fileSystem,
-    {void Function(String, String)? writeFile}) async {
+    FileSystem fileSystem) async {
   var CfeResult(:component, :coreTypes) = cfeResult;
 
   ClosedWorldClassHierarchy classHierarchy =
@@ -408,8 +406,9 @@ Future<CompilationResult> _runTfaPhase(
       isDynamicSubmodule: isDynamicSubmodule);
   target.recordClasses = recordClasses;
 
-  if (options.dumpKernelBeforeTfa != null && writeFile != null) {
-    writeFile(options.dumpKernelBeforeTfa!, writeComponentToString(component));
+  if (options.dumpKernelBeforeTfa != null) {
+    writeComponentToText(component,
+        path: options.dumpKernelBeforeTfa!, showMetadata: true);
   }
 
   final moduleStrategy = _createModuleStrategy(options, component, coreTypes,

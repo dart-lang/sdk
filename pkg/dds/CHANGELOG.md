@@ -1,3 +1,7 @@
+# 5.2.0-wip
+
+- [DAP] `Stopped(reason: 'entry')` events will no longer be lost if an isolate has not yet reached the `PauseStart` state when connecting to the VM.
+
 # 5.1.0
 - Update to version 2.1 of the DDS protocol.
 - Deprecate `getAvailableCachedCpuSamples` and `getCachedCpuSamples` RPCs.
