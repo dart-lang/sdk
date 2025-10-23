@@ -1487,15 +1487,14 @@ class BytecodeGenerator extends RecursiveVisitor {
     final bool? constantValue = _constantConditionValue(condition);
     if (constantValue != null) {
       if (constantValue == value) {
+        _emitLocalSourcePosition(condition.fileOffset);
         asm.emitJump(dest);
       }
       return;
     }
     if (condition is EqualsNull) {
       _generateNode(condition.expression);
-      if (condition.fileOffset != TreeNode.noOffset) {
-        _emitLocalSourcePosition(condition.fileOffset);
-      }
+      _emitLocalSourcePosition(condition.fileOffset);
       if (value) {
         asm.emitJumpIfNull(dest);
       } else {
@@ -1525,6 +1524,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       if (negated) {
         value = !value;
       }
+      _emitLocalSourcePosition(condition.fileOffset);
       if (value) {
         asm.emitJumpIfTrue(dest);
       } else {
@@ -2730,10 +2730,12 @@ class BytecodeGenerator extends RecursiveVisitor {
   // emits a source position entry and/or debugger stop as appropriate,
   // restoring the current source position afterwards.
   void _emitLocalSourcePosition(int fileOffset) {
-    final savedSourcePosition = asm.currentSourcePosition;
-    _recordSourcePosition(fileOffset);
-    _emitSourcePosition();
-    asm.currentSourcePosition = savedSourcePosition;
+    if (fileOffset != TreeNode.noOffset) {
+      final savedSourcePosition = asm.currentSourcePosition;
+      _recordSourcePosition(fileOffset);
+      _emitSourcePosition();
+      asm.currentSourcePosition = savedSourcePosition;
+    }
   }
 
   /// Generates non-local transfer from inner node [from] into the outer
@@ -3552,10 +3554,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     final target = node.target;
     if (target is Field && !_needsSetter(target)) {
-      if (_variableSetNeedsDebugCheck(node.value)) {
-        _emitSourcePosition();
-      }
       int cpIndex = cp.addStaticField(target);
+      _emitSourcePosition();
       asm.emitStoreStaticTOS(cpIndex);
     } else {
       _genDirectCall(target, objectTable.getArgDescHandle(1), 1,
@@ -3742,14 +3742,6 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
     }
   }
-
-  bool _variableSetNeedsDebugCheck(Expression rhs) =>
-      rhs is BasicLiteral ||
-      rhs is ConstantExpression ||
-      rhs is StaticGet ||
-      rhs is FunctionExpression ||
-      rhs is VariableGet ||
-      rhs is AsExpression;
 
   @override
   void visitLoadLibrary(LoadLibrary node) {
@@ -4360,21 +4352,17 @@ class BytecodeGenerator extends RecursiveVisitor {
         }
       }
 
-      // Emit a source position only as part of a DebugCheck instruction or
-      // if there's a store instruction to be emitted for the current PC offset.
-      if ((initializer == null || _variableSetNeedsDebugCheck(initializer)) &&
-          (options.emitDebuggerStops || emitStore)) {
-        if (initializer != null) {
-          _recordSourcePosition(node.fileEqualsOffset);
-        }
-        _emitSourcePosition();
-      }
-
       if (options.emitLocalVarInfo && !asm.isUnreachable && node.name != null) {
         _declareLocalVariable(node, maxInitializerPosition + 1);
       }
 
       if (emitStore) {
+        if (!node.isSynthesized) {
+          if (initializer != null) {
+            _recordSourcePosition(node.fileEqualsOffset);
+          }
+          _emitSourcePosition();
+        }
         _genStoreVar(node);
       }
     }
