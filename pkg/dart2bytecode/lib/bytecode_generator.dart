@@ -1487,15 +1487,14 @@ class BytecodeGenerator extends RecursiveVisitor {
     final bool? constantValue = _constantConditionValue(condition);
     if (constantValue != null) {
       if (constantValue == value) {
+        _emitLocalSourcePosition(condition.fileOffset);
         asm.emitJump(dest);
       }
       return;
     }
     if (condition is EqualsNull) {
       _generateNode(condition.expression);
-      if (condition.fileOffset != TreeNode.noOffset) {
-        _emitLocalSourcePosition(condition.fileOffset);
-      }
+      _emitLocalSourcePosition(condition.fileOffset);
       if (value) {
         asm.emitJumpIfNull(dest);
       } else {
@@ -1525,6 +1524,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       if (negated) {
         value = !value;
       }
+      _emitLocalSourcePosition(condition.fileOffset);
       if (value) {
         asm.emitJumpIfTrue(dest);
       } else {
@@ -2730,10 +2730,12 @@ class BytecodeGenerator extends RecursiveVisitor {
   // emits a source position entry and/or debugger stop as appropriate,
   // restoring the current source position afterwards.
   void _emitLocalSourcePosition(int fileOffset) {
-    final savedSourcePosition = asm.currentSourcePosition;
-    _recordSourcePosition(fileOffset);
-    _emitSourcePosition();
-    asm.currentSourcePosition = savedSourcePosition;
+    if (fileOffset != TreeNode.noOffset) {
+      final savedSourcePosition = asm.currentSourcePosition;
+      _recordSourcePosition(fileOffset);
+      _emitSourcePosition();
+      asm.currentSourcePosition = savedSourcePosition;
+    }
   }
 
   /// Generates non-local transfer from inner node [from] into the outer
