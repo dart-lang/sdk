@@ -351,6 +351,7 @@ class IncrementalJavaScriptBundler {
         customScheme: _fileSystemScheme,
         compiler: compiler,
         component: summaryComponent,
+        packageConfig: packageConfig,
       );
       final Uint8List codeBytes = utf8.encode(code.code);
       final Uint8List sourceMapBytes = utf8.encode(json.encode(code.sourceMap));
