@@ -2684,6 +2684,104 @@ e() {
         await runTests(moduleFormat: 'ddc', canary: true);
       });
     });
+    group(
+        'sourcemaps with cross package sources do not reference `lib/` '
+        'directories', () {
+      Future<void> runTests(
+          {required String moduleFormat, bool canary = false}) async {
+        // Create two packages in a dependency cycle.
+        final String packagesDir = '${tempDir.path}/packages';
+        final File packageConfig =
+            new File('${tempDir.path}/.dart_tool/package_config.json')
+              ..createSync(recursive: true)
+              ..writeAsStringSync('''
+    {
+      "configVersion": 2,
+      "packages": [
+        {
+          "name": "a",
+          "rootUri": "$packagesDir/a",
+          "packageUri": "lib/"
+        },
+        {
+          "name": "b",
+          "rootUri": "$packagesDir/b",
+          "packageUri": "lib/"
+        }
+      ]
+    }
+    ''');
+        new File('$packagesDir/a/lib/a.dart')
+          ..createSync(recursive: true)
+          ..writeAsStringSync("import 'package:b/b.dart';\n"
+              "String a1() => 'a1';\n"
+              "String a2() => 'a2' + b2();\n");
+        new File('$packagesDir/b/lib/b.dart')
+          ..createSync(recursive: true)
+          ..writeAsStringSync("import 'package:a/a.dart';\n"
+              "String b1() => 'b1' + a1();\n"
+              "String b2() => 'b2';\n");
+        // Compile the cycle as a single output.
+        final String library = 'package:a/a.dart';
+        final File dillFile = new File('${tempDir.path}/a.dill');
+        final File manifestFile = new File('${dillFile.path}.json');
+        final File sourceMapsFile = new File('${dillFile.path}.map');
+        final List<String> args = <String>[
+          '--sdk-root=${sdkRoot.toFilePath()}',
+          '--incremental',
+          '--platform=${ddcPlatformKernel.path}',
+          '--output-dill=${dillFile.path}',
+          '--target=dartdevc',
+          '--dartdevc-module-format=$moduleFormat',
+          if (canary) '--dartdevc-canary',
+          '--packages=${packageConfig.path}',
+        ];
+        final FrontendServer frontendServer = new FrontendServer();
+        final Future<int> result = frontendServer.open(args);
+        frontendServer.compile(library);
+        final Completer<bool> expectationCompleter = new Completer<bool>();
+        frontendServer.listen((Result compiledResult) {
+          final CompilationResult result =
+              new CompilationResult.parse(compiledResult.status);
+          expect(result.errorsCount, 0);
+          expect(result.filename, dillFile.path);
+          expect(manifestFile.existsSync(), true);
+          // Extract the sourcemap.
+          final Map<String, dynamic> manifest =
+              json.decode(utf8.decode(manifestFile.readAsBytesSync()));
+          final List<dynamic> offsets =
+              manifest['/packages/a/a.dart.lib.js']['sourcemap'];
+          final Map<String, dynamic> sourcemap = json.decode(utf8.decode(
+              sourceMapsFile
+                  .readAsBytesSync()
+                  .sublist(offsets.first, offsets.last)));
+          // Verify source maps are pointing at correct source files.
+          //
+          // There is a built in assumption that the original sources for all
+          // packages are served in a structure similar to the definition from
+          // the package_config.json file but without the `lib/` directories.
+          final List<dynamic> sources = sourcemap['sources'];
+          expect(sources.length, 2);
+          expect(sources, containsAll(['a.dart', '../b/b.dart']));
+
+          frontendServer.accept();
+          frontendServer.quit();
+          expectationCompleter.complete(true);
+        });
+
+        await expectationCompleter.future;
+        expect(await result, 0);
+        frontendServer.close();
+      }
+
+      test('AMD module format', () async {
+        await runTests(moduleFormat: 'amd');
+      });
+
+      test('DDC module format and canary', () async {
+        await runTests(moduleFormat: 'ddc', canary: true);
+      });
+    });
 
     group('compile expression to JavaScript', () {
       Future<void> runTests(
