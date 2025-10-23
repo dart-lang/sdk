@@ -1,4 +1,4 @@
-## 0.1.6-dev
+## 0.1.6
 
 - Require version `9.0.0` of the `analyzer` package.
 
