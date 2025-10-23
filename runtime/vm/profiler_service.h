@@ -16,7 +16,7 @@
 #include "vm/thread_interrupter.h"
 #include "vm/token_position.h"
 
-#if defined(SUPPORT_PERFETTO)
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 #include "perfetto/protozero/scattered_heap_buffer.h"
 #include "third_party/perfetto/protos/perfetto/trace/profiling/profile_common.pbzero.h"
 #include "third_party/perfetto/protos/perfetto/trace/trace_packet.pbzero.h"
@@ -39,10 +39,6 @@ class SampleFilter;
 class ProcessedSample;
 class ProcessedSampleBuffer;
 class Profile;
-
-namespace perfetto_utils {
-class InternedDataBuilder;
-}
 
 class ProfileFunctionSourcePosition {
  public:
@@ -399,14 +395,9 @@ class Profile : public ValueObject {
   void PrintProfileJSON(JSONObject* obj,
                         bool include_code_samples,
                         bool is_event = false);
-
-#if defined(SUPPORT_PERFETTO)
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
   void PrintProfilePerfetto(JSONStream* js);
-  void PrintProfilePerfetto(
-      perfetto_utils::InternedDataBuilder& interned_data_builder,
-      void* file,
-      Dart_FileWriteCallback write_bytes);
-#endif  // defined(SUPPORT_PERFETTO)
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
   ProfileFunction* FindFunction(const Function& function);
 
@@ -414,13 +405,6 @@ class Profile : public ValueObject {
   Isolate* isolate() const { return isolate_; }
 
  private:
-#if defined(SUPPORT_PERFETTO)
-  template <typename WriteBytesFunction>
-  void PrintProfilePerfettoImpl(
-      WriteBytesFunction&& write_bytes,
-      perfetto_utils::InternedDataBuilder& interned_data_builder);
-#endif
-
   void PrintHeaderJSON(JSONObject* obj);
   void ProcessSampleFrameJSON(JSONArray* stack,
                               ProfileCodeInlinedFunctionsCache* cache,
@@ -433,22 +417,16 @@ class Profile : public ValueObject {
                                ProcessedSample* sample,
                                intptr_t frame_index);
   void PrintSamplesJSON(JSONObject* obj, bool code_samples);
-#if defined(SUPPORT_PERFETTO)
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
   /*
-   * Writes Perfetto packets describing the CPU samples in this profile using
-   * the given |write_bytes| function.
-   *
-   * The |packet| parameter allows us to reuse an existing
+   * Appends Perfetto packets describing the CPU samples in this profile to
+   * |jsonBase64String|. The |packet| parameter allows us to reuse an existing
    * heap-buffered packet to avoid allocating a new one.
    */
-  template <typename WriteBytesFunction>
   void PrintSamplesPerfetto(
-      protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*
-          packet_ptr,
-      WriteBytesFunction&& write_bytes,
-      perfetto_utils::InternedDataBuilder& interned_data_builder,
-      const GrowableArray<uint64_t>& function_iids);
-#endif  // defined(SUPPORT_PERFETTO)
+      JSONBase64String* jsonBase64String,
+      protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet);
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
   Thread* thread_;
   Isolate* isolate_;

@@ -2,7 +2,7 @@ name: runtime_tests_vm_dart
 description: VM Dart tests
 
 environment:
-  sdk: ^3.10.0
+  sdk: ^3.8.0
 
 resolution: workspace
 publish_to: none

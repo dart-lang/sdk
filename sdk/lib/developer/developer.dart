@@ -144,69 +144,6 @@ external void log(
 @Since('2.19')
 external int get reachabilityBarrier;
 
-/// Types of timeline recorders supported by the VM.
-@Since('3.11')
-enum TimelineRecorder {
-  /// [Perfetto](https://ui.perfetto.dev)'s protobuf based format.
-  ///
-  /// Supports both profiling and tracing data.
-  ///
-  /// Scheme is available in [Perfetto docs](https://perfetto.dev/docs/reference/trace-packet-proto).
-  perfetto,
-
-  /// Chrome's JSON based format viewable by [Catapult](chrome://tracing).
-  ///
-  /// Supports only tracing data.
-  ///
-  /// Scheme is described in [here](https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview?tab=t.0).
-  chrome,
-
-  /// Emits platform specific timeline events.
-  ///
-  /// * On Linux and Android this means writing events into
-  /// [ftrace](https://docs.kernel.org/trace/ftrace.html) buffer.
-  /// * On Mac OS X this uses [signposts](https://developer.apple.com/documentation/os/recording-performance-data).
-  /// * On Fuchsia it uses [Fuchsia tracing system](https://fuchsia.dev/fuchsia-src/concepts/kernel/tracing-system).
-  /// * Not supported on Windows.
-  ///
-  systrace,
-}
-
-/// Specific sets of events whose recording can be enabled separately.
-@Since('3.11')
-enum TimelineStream {
-  /// Calls to `Dart_*` VM C API functions.
-  api,
-
-  /// Events related to compilation to machine code.
-  compiler,
-
-  /// Detailed timing information about compiler phases.
-  compilerVerbose,
-
-  /// Events created via [Timeline] APIs.
-  dart,
-
-  /// Events related to debugger.
-  debugger,
-
-  /// Events created by `Dart_RecordTimelineEvent`.
-  embedder,
-
-  /// Events related to garbage collection and/or heap iteration.
-  gc,
-
-  /// Isolate and isolate group lifecycle events such as startup and shutdown.
-  isolate,
-
-  /// Events representing `dart:async` microtasks. VM will only populate this
-  /// stream with events if it is started with `--profile-microtasks`.
-  microtask,
-
-  /// VM lifecycle events such as startup and shutdown.
-  vm,
-}
-
 /// Functionality available on the native runtime.
 @Since('3.0')
 abstract final class NativeRuntime {
@@ -236,43 +173,4 @@ abstract final class NativeRuntime {
   /// NOTE: This is an experimental function. We reserve the right to change
   /// or remove it in the future.
   external static void writeHeapSnapshotToFile(String filepath);
-
-  /// Tells runtime to write timeline data using [recorder].
-  ///
-  /// Timeline recording is enabled for the whole runtime and not for any
-  /// specific isolate or isolate group.
-  ///
-  /// Once started timeline recording will continue until it is stopped by
-  /// [stopStreamingTimeline].
-  ///
-  /// Some recorders write into a specific file (specified by [path]), while
-  /// others write to system wide recording buffer.
-  ///
-  /// The [streams] specifies which timeline streams to enable. Only
-  /// [TimelineStream.dart] and [TimelineStream.gc] are enabled by default.
-  ///
-  /// If [recorder] supports profiling data then setting [enableProfiler] to
-  /// `true` will turn on sampling profiler, which will collect profiling
-  /// samples with frequency specified by [samplingInterval]. These samples
-  /// will then written into the timeline.
-  ///
-  /// Throws [ArgumentError] iff:
-  ///
-  /// * [path] is specified but [recorder] writes to a fixed location.
-  /// * [path] is not specified and [recorder] requires it.
-  /// * [enableProfiler] is `true` and [recorder] does not support writing out
-  ///   profiling data.
-  /// * [samplingInterval] is too small.
-  @Since('3.11')
-  external static void streamTimelineTo(
-    TimelineRecorder recorder, {
-    String? path,
-    List<TimelineStream> streams = const [.dart, .gc],
-    bool enableProfiler = false,
-    Duration samplingInterval = const Duration(microseconds: 1000),
-  });
-
-  /// Finishes capturing of timeline data started by [streamTimelineTo].
-  @Since('3.11')
-  external static void stopStreamingTimeline();
 }

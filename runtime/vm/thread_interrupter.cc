@@ -11,7 +11,7 @@
 
 namespace dart {
 
-#if defined(DART_INCLUDE_PROFILER)
+#ifndef PRODUCT
 
 // Notes:
 //
@@ -239,6 +239,6 @@ void* ThreadInterrupter::PrepareCurrentThread() {
 void ThreadInterrupter::CleanupCurrentThreadState(void* state) {}
 #endif
 
-#endif  // defined(DART_INCLUDE_PROFILER)
+#endif  // !PRODUCT
 
 }  // namespace dart

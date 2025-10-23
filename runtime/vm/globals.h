@@ -105,16 +105,11 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 #define NOT_IN_PRECOMPILED_RUNTIME(code) code
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-// Note: we include timeline support even in PRODUCT builds.
-#if !defined(DART_DISABLE_TIMELINE)
+#if !defined(DART_DISABLE_TIMELINE) &&                                         \
+    (defined(DART_ENABLE_TIMELINE) || !defined(PRODUCT) ||                     \
+     defined(DART_HOST_OS_FUCHSIA) || defined(DART_TARGET_OS_FUCHSIA) ||       \
+     defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_MACOS))
 #define SUPPORT_TIMELINE 1
-#endif
-
-// All non-PRODUCT builds include profiler. Otherwise include profiler
-// whenever timeline with perfetto support is included.
-#if !defined(PRODUCT) ||                                                       \
-    (defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO))
-#define DART_INCLUDE_PROFILER 1
 #endif
 
 // Include IL printer and disassembler functionality into non-PRODUCT builds,

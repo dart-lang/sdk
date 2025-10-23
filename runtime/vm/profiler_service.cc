@@ -10,9 +10,7 @@
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 #include "vm/heap/safepoint.h"
-#if !defined(PRODUCT)
 #include "vm/json_stream.h"
-#endif
 #include "vm/log.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
@@ -24,7 +22,7 @@
 #include "vm/service_event.h"
 #include "vm/timeline.h"
 
-#if defined(SUPPORT_PERFETTO)
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 #include "perfetto/ext/tracing/core/trace_packet.h"
 #include "perfetto/protozero/scattered_heap_buffer.h"
 #include "third_party/perfetto/protos/perfetto/common/builtin_clock.pbzero.h"
@@ -33,7 +31,7 @@
 #include "third_party/perfetto/protos/perfetto/trace/profiling/profile_packet.pbzero.h"
 #include "third_party/perfetto/protos/perfetto/trace/trace_packet.pbzero.h"
 #include "vm/perfetto_utils.h"
-#endif  // defined(SUPPORT_PERFETTO)
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 namespace dart {
 
@@ -41,7 +39,7 @@ DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(int, profile_period);
 DECLARE_FLAG(bool, profile_vm);
 
-#if defined(DART_INCLUDE_PROFILER)
+#ifndef PRODUCT
 
 ProfileFunctionSourcePosition::ProfileFunctionSourcePosition(
     TokenPosition token_pos)
@@ -179,7 +177,6 @@ const char* ProfileFunction::KindToCString(Kind kind) {
   }
 }
 
-#if !defined(PRODUCT)
 void ProfileFunction::PrintToJSONObject(JSONObject* func) {
   func->AddProperty("type", "NativeFunction");
   func->AddProperty("name", name());
@@ -220,7 +217,6 @@ void ProfileFunction::PrintToJSONArray(JSONArray* functions,
     }
   }
 }
-#endif  // !defined(PRODUCT)
 
 void ProfileFunction::AddProfileCode(intptr_t code_table_index) {
   for (intptr_t i = 0; i < profile_codes_.length(); i++) {
@@ -374,7 +370,6 @@ void ProfileCode::TickAddress(uword pc, bool exclusive) {
   }
 }
 
-#if !defined(PRODUCT)
 void ProfileCode::PrintNativeCode(JSONObject* profile_code_obj) {
   ASSERT(kind() == kNativeCode);
   JSONObject obj(profile_code_obj, "code");
@@ -488,7 +483,6 @@ void ProfileCode::PrintToJSONArray(JSONArray* codes) {
     }
   }
 }
-#endif  // !defined(PRODUCT)
 
 class ProfileFunctionTable : public ZoneAllocated {
  public:
@@ -1583,7 +1577,6 @@ ProfileCode* Profile::GetCodeFromPC(uword pc, int64_t timestamp) {
   return code;
 }
 
-#if !defined(PRODUCT)
 void Profile::PrintHeaderJSON(JSONObject* obj) {
   intptr_t pid = OS::ProcessId();
 
@@ -1678,6 +1671,58 @@ void Profile::ProcessSampleFrameJSON(JSONArray* stack,
   }
 }
 
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+namespace {
+void ProcessSampleFramePerfetto(Profile* profile,
+                                GrowableArray<uint64_t>& callstack,
+                                ProfileCodeInlinedFunctionsCache* cache,
+                                ProcessedSample* sample,
+                                intptr_t frame_index) {
+  const uword pc = sample->At(frame_index);
+  ProfileCode* profile_code = profile->GetCodeFromPC(pc, sample->timestamp());
+  ASSERT(profile_code != nullptr);
+  ProfileFunction* function = profile_code->function();
+  ASSERT(function != nullptr);
+
+  // Don't show stubs in stack traces.
+  if (!function->is_visible() ||
+      (function->kind() == ProfileFunction::kStubFunction)) {
+    return;
+  }
+
+  GrowableArray<const Function*>* inlined_functions = nullptr;
+  GrowableArray<TokenPosition>* inlined_token_positions = nullptr;
+  TokenPosition token_position = TokenPosition::kNoSource;
+  Code& code = Code::ZoneHandle();
+
+  if (profile_code->code().IsCode()) {
+    code ^= profile_code->code().ptr();
+    cache->Get(pc, code, sample, frame_index, &inlined_functions,
+               &inlined_token_positions, &token_position);
+  }
+
+  if (code.IsNull() || (inlined_functions == nullptr) ||
+      (inlined_functions->length() <= 1)) {
+    // This is the ID of a |Frame| that was added to the interned data table in
+    // |ProfilerService::PrintProfilePerfetto|. See the comments in that method
+    // for more details.
+    callstack.Add(function->table_index() + 1);
+    return;
+  }
+
+  for (intptr_t i = 0; i < inlined_functions->length(); ++i) {
+    const Function* inlined_function = (*inlined_functions)[i];
+    ASSERT(inlined_function != NULL);
+    ASSERT(!inlined_function->IsNull());
+    ProfileFunction* profile_function =
+        profile->FindFunction(*inlined_function);
+    ASSERT(profile_function != NULL);
+    callstack.Add(profile_function->table_index() + 1);
+  }
+}
+}  // namespace
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
 void Profile::ProcessInlinedFunctionFrameJSON(
     JSONArray* stack,
     const Function* inlined_function) {
@@ -1757,6 +1802,79 @@ void Profile::PrintSamplesJSON(JSONObject* obj, bool code_samples) {
   }
 }
 
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+void Profile::PrintSamplesPerfetto(
+    JSONBase64String* jsonBase64String,
+    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*
+        packet_ptr) {
+  ASSERT(jsonBase64String != nullptr);
+  ASSERT(packet_ptr != nullptr);
+  auto& packet = *packet_ptr;
+
+  perfetto_utils::BytesInterner<uint64_t, Zone> callstack_interner(zone_);
+  GrowableArray<uint64_t> callstack(128);
+
+  // Note that |cache| is zone-allocated, so it does not need to be deallocated
+  // manually.
+  auto* cache = new ProfileCodeInlinedFunctionsCache();
+  for (intptr_t sample_index = 0; sample_index < samples_->length();
+       ++sample_index) {
+    ProcessedSample* sample = samples_->At(sample_index);
+
+    // Walk the sampled PCs and intern the stack.
+    callstack.Clear();
+    for (intptr_t frame_index = sample->length() - 1; frame_index >= 0;
+         --frame_index) {
+      ASSERT(sample->At(frame_index) != 0);
+      ProcessSampleFramePerfetto(this, callstack, cache, sample, frame_index);
+    }
+
+    // Empty sample (everything is invisible).
+    if (callstack.is_empty()) {
+      continue;
+    }
+
+    const auto callstack_iid =
+        callstack_interner.Intern(&callstack[0], callstack.length());
+
+    perfetto_utils::SetTrustedPacketSequenceId(packet.get());
+    // We set this flag to indicate that this packet reads from the interned
+    // data table.
+    packet->set_sequence_flags(
+        perfetto::protos::pbzero::TracePacket_SequenceFlags::
+            SEQ_NEEDS_INCREMENTAL_STATE);
+    perfetto_utils::SetTimestampAndMonotonicClockId(packet.get(),
+                                                    sample->timestamp());
+
+    // Populate |packet| with a |PerfSample| that is linked to the |Callstack|
+    // that we populated above.
+    auto& perf_sample = *packet->set_perf_sample();
+    perf_sample.set_pid(OS::ProcessId());
+    perf_sample.set_tid(OSThread::ThreadIdToIntPtr(sample->tid()));
+    perf_sample.set_callstack_iid(callstack_iid);
+
+    if (callstack_interner.HasNewlyInternedEntries()) {
+      auto& interned_data = *packet->set_interned_data();
+      callstack_interner.FlushNewlyInternedTo(
+          [&interned_data](const auto& interned) {
+            auto& callstack = *interned_data.add_callstacks();
+            callstack.set_iid(interned.iid);
+            for (intptr_t i = 0; i < interned.length; i++) {
+              callstack.add_frame_ids(interned.data[i]);
+            }
+          });
+    }
+
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet);
+    packet.Reset();
+  }
+}
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
+ProfileFunction* Profile::FindFunction(const Function& function) {
+  return (functions_ != nullptr) ? functions_->Lookup(function) : nullptr;
+}
+
 void Profile::PrintProfileJSON(JSONStream* stream, bool include_code_samples) {
   JSONObject obj(stream);
   PrintProfileJSON(&obj, include_code_samples);
@@ -1807,151 +1925,67 @@ void Profile::PrintProfileJSON(JSONObject* obj,
   PrintSamplesJSON(obj, include_code_samples);
   thread->CheckForSafepoint();
 }
-#endif  // !defined(PRODUCT)
 
-#if defined(SUPPORT_PERFETTO)
-namespace {
-void ProcessSampleFramePerfetto(Profile* profile,
-                                GrowableArray<uint64_t>& callstack,
-                                ProfileCodeInlinedFunctionsCache* cache,
-                                ProcessedSample* sample,
-                                intptr_t frame_index,
-                                const GrowableArray<uint64_t>& function_iids) {
-  const uword pc = sample->At(frame_index);
-  ProfileCode* profile_code = profile->GetCodeFromPC(pc, sample->timestamp());
-  ASSERT(profile_code != nullptr);
-  ProfileFunction* function = profile_code->function();
-  ASSERT(function != nullptr);
-
-  // Don't show stubs in stack traces.
-  if (!function->is_visible() ||
-      (function->kind() == ProfileFunction::kStubFunction)) {
-    return;
-  }
-
-  GrowableArray<const Function*>* inlined_functions = nullptr;
-  GrowableArray<TokenPosition>* inlined_token_positions = nullptr;
-  TokenPosition token_position = TokenPosition::kNoSource;
-  Code& code = Code::ZoneHandle();
-
-  if (profile_code->code().IsCode()) {
-    code ^= profile_code->code().ptr();
-    cache->Get(pc, code, sample, frame_index, &inlined_functions,
-               &inlined_token_positions, &token_position);
-  }
-
-  if (code.IsNull() || (inlined_functions == nullptr) ||
-      (inlined_functions->length() <= 1)) {
-    // This is the ID of a |Frame| that was added to the interned data table in
-    // |ProfilerService::PrintProfilePerfetto|. See the comments in that method
-    // for more details.
-    callstack.Add(function_iids[function->table_index()]);
-    return;
-  }
-
-  for (intptr_t i = 0; i < inlined_functions->length(); ++i) {
-    const Function* inlined_function = (*inlined_functions)[i];
-    ASSERT(inlined_function != NULL);
-    ASSERT(!inlined_function->IsNull());
-    ProfileFunction* profile_function =
-        profile->FindFunction(*inlined_function);
-    ASSERT(profile_function != NULL);
-    callstack.Add(function_iids[profile_function->table_index()]);
-  }
-}
-}  // namespace
-
-template <typename WriteBytesFunction>
-void Profile::PrintSamplesPerfetto(
-    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet_ptr,
-    WriteBytesFunction&& write_bytes,
-    perfetto_utils::InternedDataBuilder& interned_data_builder,
-    const GrowableArray<uint64_t>& function_iids) {
-  ASSERT(packet_ptr != nullptr);
-  auto& packet = *packet_ptr;
-
-  GrowableArray<uint64_t> callstack(128);
-
-  // Note that |cache| is zone-allocated, so it does not need to be deallocated
-  // manually.
-  auto* cache = new ProfileCodeInlinedFunctionsCache();
-  for (intptr_t sample_index = 0; sample_index < samples_->length();
-       ++sample_index) {
-    ProcessedSample* sample = samples_->At(sample_index);
-
-    // Walk the sampled PCs and intern the stack.
-    callstack.Clear();
-    for (intptr_t frame_index = sample->length() - 1; frame_index >= 0;
-         --frame_index) {
-      ASSERT(sample->At(frame_index) != 0);
-      ProcessSampleFramePerfetto(this, callstack, cache, sample, frame_index,
-                                 function_iids);
-    }
-
-    // Empty sample (everything is invisible).
-    if (callstack.is_empty()) {
-      continue;
-    }
-
-    const auto callstack_iid = interned_data_builder.callstacks().Intern(
-        &callstack[0], callstack.length());
-
-    perfetto_utils::SetTrustedPacketSequenceId(packet.get());
-    perfetto_utils::SetTimestampAndMonotonicClockId(packet.get(),
-                                                    sample->timestamp());
-
-    // Populate |packet| with a |PerfSample| that is linked to the |Callstack|
-    // that we populated above.
-    auto& perf_sample = *packet->set_perf_sample();
-    perf_sample.set_pid(OS::ProcessId());
-    perf_sample.set_tid(OSThread::ThreadIdToIntPtr(sample->tid()));
-    perf_sample.set_callstack_iid(callstack_iid);
-
-    interned_data_builder.AttachInternedDataTo(packet.get());
-
-    perfetto_utils::WritePacketBytes(&packet, write_bytes);
-    packet.Reset();
-  }
-}
-#endif  // defined(SUPPORT_PERFETTO)
-
-ProfileFunction* Profile::FindFunction(const Function& function) {
-  return (functions_ != nullptr) ? functions_->Lookup(function) : nullptr;
-}
-
-#if defined(SUPPORT_PERFETTO)
-template <typename WriteBytesFunction>
-void Profile::PrintProfilePerfettoImpl(
-    WriteBytesFunction&& write_bytes,
-    perfetto_utils::InternedDataBuilder& interned_data_builder) {
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+void Profile::PrintProfilePerfetto(JSONStream* js) {
+  ScopeTimer sw("Profile::PrintProfilePerfetto", FLAG_trace_profiler);
   Thread* thread = Thread::Current();
+
+  JSONObject jsobj_topLevel(js);
+  jsobj_topLevel.AddProperty("type", "PerfettoCpuSamples");
+  PrintHeaderJSON(&jsobj_topLevel);
+
+  js->AppendSerializedObject("\"samples\":");
+  JSONBase64String jsonBase64String(js);
 
   // We allocate one heap-buffered packet and continuously follow a cycle of
   // resetting the buffer and writing its contents.
   protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket> packet;
 
   perfetto_utils::PopulateClockSnapshotPacket(packet.get());
-  perfetto_utils::WritePacketBytes(&packet, write_bytes);
+  perfetto_utils::AppendPacketToJSONBase64String(&jsonBase64String, &packet);
   packet.Reset();
 
   perfetto_utils::SetTrustedPacketSequenceId(packet.get());
+  // We use |PerfSample|s to serialize our CPU sample information. Each
+  // |PerfSample| must be linked to a |Callstack| in the interned data table.
+  // When serializing a new profile, we set |SEQ_INCREMENTAL_STATE_CLEARED| on
+  // the first packet to clear the interned data table and avoid conflicts with
+  // any profiles that are combined with this one.
+  //
+  // See perfetto/trace/interned_data/interned_data.proto in
+  // third_party/perfetto/protos a detailed description of how the interned
+  // data table works.
+  packet->set_sequence_flags(
+      perfetto::protos::pbzero::TracePacket_SequenceFlags::
+          SEQ_INCREMENTAL_STATE_CLEARED);
 
-  GrowableArray<uint64_t> function_iids(functions_->length());
+  perfetto::protos::pbzero::InternedData& interned_data =
+      *packet->set_interned_data();
+
+  // The Perfetto trace viewer will not be able to parse our trace if the
+  // mapping with iid 0 is not declared.
+  perfetto::protos::pbzero::Mapping& mapping = *interned_data.add_mappings();
+  mapping.set_iid(0);
+
   for (intptr_t i = 0; i < functions_->length(); ++i) {
     ProfileFunction* function = functions_->At(i);
     ASSERT(function != NULL);
+    const intptr_t common_iid = function->table_index() + 1;
 
-    const uint64_t function_name_iid =
-        interned_data_builder.function_names().Intern(function->Name());
+    perfetto::protos::pbzero::InternedString& function_name =
+        *interned_data.add_function_names();
+    function_name.set_iid(common_iid);
+    function_name.set_str(function->Name());
 
-    uint64_t mapping_iid = 0;
     const char* resolved_script_url = function->ResolvedScriptUrl();
     if (resolved_script_url != nullptr) {
+      perfetto::protos::pbzero::InternedString& mapping_path =
+          *interned_data.add_mapping_paths();
+      mapping_path.set_iid(common_iid);
       const Script& script_handle =
           Script::Handle(function->function()->script());
       TokenPosition token_pos = function->function()->token_pos();
-
-      uint64_t mapping_path_iid;
       if (!script_handle.IsNull() && token_pos.IsReal()) {
         intptr_t line = -1;
         intptr_t column = -1;
@@ -1964,72 +1998,38 @@ void Profile::PrintProfilePerfettoImpl(
             std::make_unique<char[]>(path_with_location_buffer_size);
         Utils::SNPrint(path_with_location.get(), path_with_location_buffer_size,
                        "%s:%" Pd ":%" Pd, resolved_script_url, line, column);
-
-        mapping_path_iid = interned_data_builder.mapping_paths().Intern(
-            path_with_location.get());
+        mapping_path.set_str(path_with_location.get());
       } else {
-        mapping_path_iid =
-            interned_data_builder.mapping_paths().Intern(resolved_script_url);
+        mapping_path.set_str(resolved_script_url);
       }
 
-      mapping_iid = interned_data_builder.mappings().Intern(&mapping_path_iid,
-                                                            /*length=*/1);
+      // TODO(derekx): Check if using profiled_frame_symbols instead of mapping
+      // provides any benefit.
+      perfetto::protos::pbzero::Mapping& mapping =
+          *interned_data.add_mappings();
+      mapping.set_iid(common_iid);
+      mapping.add_path_string_ids(common_iid);
     }
 
     // Add a |Frame| to the interned data table that is linked to |function|'s
     // name and source location (through the interned data table). A Perfetto
     // |Callstack| consists of a stack of |Frame|s, so the |Callstack|s
     // populated by |PrintSamplesPerfetto| will refer to these |Frame|s.
-    uint64_t frame_info[2] = {function_name_iid, mapping_iid};
-    function_iids.Add(interned_data_builder.frames().Intern(
-        frame_info, ARRAY_SIZE(frame_info)));
+    perfetto::protos::pbzero::Frame& frame = *interned_data.add_frames();
+    frame.set_iid(common_iid);
+    frame.set_function_name_id(common_iid);
+    frame.set_mapping_id(resolved_script_url == nullptr ? 0 : common_iid);
 
     thread->CheckForSafepoint();
   }
-  interned_data_builder.AttachInternedDataTo(packet.get());
-  perfetto_utils::WritePacketBytes(&packet, write_bytes);
+  perfetto_utils::AppendPacketToJSONBase64String(&jsonBase64String, &packet);
   packet.Reset();
 
-  PrintSamplesPerfetto(&packet, write_bytes, interned_data_builder,
-                       function_iids);
+  PrintSamplesPerfetto(&jsonBase64String, &packet);
   thread->CheckForSafepoint();
 }
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
-#if !defined(PRODUCT)
-void Profile::PrintProfilePerfetto(JSONStream* js) {
-  ScopeTimer sw("Profile::PrintProfilePerfetto", FLAG_trace_profiler);
-
-  JSONObject jsobj_topLevel(js);
-  jsobj_topLevel.AddProperty("type", "PerfettoCpuSamples");
-  PrintHeaderJSON(&jsobj_topLevel);
-
-  js->AppendSerializedObject("\"samples\":");
-  JSONBase64String jsonBase64String(js);
-
-  perfetto_utils::InternedDataBuilder interned_data_builder;
-
-  PrintProfilePerfettoImpl(
-      [&](auto bytes, auto bytes_length) {
-        jsonBase64String.AppendBytes(bytes, bytes_length);
-      },
-      interned_data_builder);
-}
-#endif
-
-void Profile::PrintProfilePerfetto(
-    perfetto_utils::InternedDataBuilder& interned_data_builder,
-    void* file,
-    Dart_FileWriteCallback write_bytes) {
-  ScopeTimer sw("Profile::PrintProfilePerfetto", FLAG_trace_profiler);
-  PrintProfilePerfettoImpl(
-      [&](auto bytes, auto bytes_length) {
-        write_bytes(bytes, bytes_length, file);
-      },
-      interned_data_builder);
-}
-#endif  // defined(SUPPORT_PERFETTO)
-
-#if !defined(PRODUCT)
 void ProfilerService::PrintCommonImpl(PrintFormat format,
                                       Thread* thread,
                                       JSONStream* js,
@@ -2046,7 +2046,7 @@ void ProfilerService::PrintCommonImpl(PrintFormat format,
   if (format == PrintFormat::JSON) {
     profile.PrintProfileJSON(js, include_code_samples);
   } else if (format == PrintFormat::Perfetto) {
-#if defined(SUPPORT_PERFETTO)
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
     // This branch will never be reached when SUPPORT_PERFETTO is not defined or
     // when PRODUCT is defined, because |PrintPerfetto| is not defined when
     // SUPPORT_PERFETTO is not defined or when PRODUCT is defined.
@@ -2054,9 +2054,23 @@ void ProfilerService::PrintCommonImpl(PrintFormat format,
 #else
     UNREACHABLE();
 
-#endif  // defined(SUPPORT_PERFETTO)
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
   }
 }
+
+class NoAllocationSampleFilter : public SampleFilter {
+ public:
+  NoAllocationSampleFilter(Dart_Port port,
+                           intptr_t thread_task_mask,
+                           int64_t time_origin_micros,
+                           int64_t time_extent_micros)
+      : SampleFilter(port,
+                     thread_task_mask,
+                     time_origin_micros,
+                     time_extent_micros) {}
+
+  bool FilterSample(Sample* sample) { return !sample->is_allocation_sample(); }
+};
 
 void ProfilerService::PrintCommon(PrintFormat format,
                                   JSONStream* js,
@@ -2080,14 +2094,14 @@ void ProfilerService::PrintJSON(JSONStream* js,
               include_code_samples);
 }
 
-#if defined(SUPPORT_PERFETTO)
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 void ProfilerService::PrintPerfetto(JSONStream* js,
                                     int64_t time_origin_micros,
                                     int64_t time_extent_micros) {
   PrintCommon(PrintFormat::Perfetto, js, time_origin_micros,
               time_extent_micros);
 }
-#endif  // defined(SUPPORT_PERFETTO)
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 class AllocationSampleFilter : public SampleFilter {
  public:
@@ -2166,8 +2180,7 @@ void ProfilerService::ClearSamples() {
   ClearProfileVisitor clear_profile(isolate);
   sample_block_buffer->VisitSamples(&clear_profile);
 }
-#endif  // !defined(PRODUCT)
 
-#endif  // defined(DART_INCLUDE_PROFILER)
+#endif  // !PRODUCT
 
 }  // namespace dart

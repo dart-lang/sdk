@@ -53,10 +53,6 @@ var denylist = [
 
   // Don't instantiate callables with random function pointers.
   'dart.ffi._NativeCallableIsolateLocal',
-
-  // Don't write heap snapshots or profile to random files.
-  'dart.developer.NativeRuntime.writeHeapSnapshotToFile',
-  'dart.developer.NativeRuntime.streamTimelineTo',
 ];
 
 bool isDenylisted(Symbol qualifiedSymbol) {

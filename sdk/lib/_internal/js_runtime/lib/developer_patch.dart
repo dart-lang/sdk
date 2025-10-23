@@ -359,20 +359,4 @@ abstract final class NativeRuntime {
       throw UnsupportedError(
         "Generating heap snapshots is not supported on the web.",
       );
-
-  @patch
-  static void streamTimelineTo(
-    TimelineRecorder recorder, {
-    String? path,
-    String streams = "Dart,GC,Compiler",
-    bool enableProfiler = false,
-    Duration samplingInterval = const Duration(microseconds: 1000),
-  }) => throw UnsupportedError(
-    "Streaming timelines is not supported on the web.",
-  );
-
-  @patch
-  static void stopStreamingTimeline() => throw UnsupportedError(
-    "Streaming timelines is not supported on the web.",
-  );
 }

@@ -151,7 +151,7 @@ uword OSThread::GetCurrentStackPointer() {
 #endif
 }
 
-#if defined(DART_INCLUDE_PROFILER)
+#if !defined(PRODUCT)
 void OSThread::DisableThreadInterrupts() {
   ASSERT(OSThread::Current() == this);
   thread_interrupt_disabled_.fetch_add(1u);
@@ -179,7 +179,7 @@ void OSThread::EnableThreadInterrupts() {
 bool OSThread::ThreadInterruptsEnabled() {
   return thread_interrupt_disabled_ == 0;
 }
-#endif  // defined(DART_INCLUDE_PROFILER)
+#endif  // !defined(PRODUCT)
 
 static void DeleteThread(void* thread) {
   MSAN_UNPOISON(&thread, sizeof(thread));
