@@ -4364,7 +4364,9 @@ class BytecodeGenerator extends RecursiveVisitor {
       // if there's a store instruction to be emitted for the current PC offset.
       if ((initializer == null || _variableSetNeedsDebugCheck(initializer)) &&
           (options.emitDebuggerStops || emitStore)) {
-        _recordSourcePosition(node.fileEqualsOffset);
+        if (initializer != null) {
+          _recordSourcePosition(node.fileEqualsOffset);
+        }
         _emitSourcePosition();
       }
 
