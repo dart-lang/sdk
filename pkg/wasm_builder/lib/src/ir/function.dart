@@ -130,6 +130,7 @@ class DefinedFunction extends BaseFunction implements Serializable {
     p.withLocalNames(localNames, () {
       type.printSignatureWithNamesTo(p, oneLine: true);
     });
+    p.write(' <...>');
     p.writeln(')');
   }
 
@@ -159,6 +160,7 @@ class ImportedFunction extends BaseFunction implements Import {
   void printTo(IrPrinter p) {
     p.write('(func ');
     p.writeFunctionReference(this);
+    p.write(' ');
     p.writeImport(module, name);
     p.write(' ');
     type.printOneLineSignatureTo(p);

@@ -36,6 +36,12 @@ void main(List<String> args) async {
 
   await withTempDir((String tempDir) async {
     for (final dartFilename in listIrTests()) {
+      // Ignore helper files (e.g. tests may use deferred modules which requires
+      // multiple dart files to test).
+      if (dartFilename.contains('.h.')) {
+        continue;
+      }
+
       if (filterRegExp != null && !filterRegExp.hasMatch(dartFilename)) {
         continue;
       }
@@ -46,15 +52,17 @@ void main(List<String> args) async {
       }
 
       final dartCode = File(dartFilename).readAsStringSync();
-      final watFile = File(path.setExtension(dartFilename, '.wat'));
       final wasmFile = File(path.join(
           tempDir, path.setExtension(path.basename(dartFilename), '.wasm')));
+
+      final (settings, compilerOptions) = parseSettings(dartCode);
 
       print('\nTesting $dartFilename');
 
       final result = await Process.run('/usr/bin/env', [
         'bash',
         'pkg/dart2wasm/tool/compile_benchmark',
+        for (final option in compilerOptions) '--extra-compiler-option=$option',
         if (runFromSource) '--src',
         '--no-strip-wasm',
         '-o',
@@ -69,26 +77,42 @@ void main(List<String> args) async {
         continue;
       }
 
-      final wasmBytes = wasmFile.readAsBytesSync();
-      final wat =
-          moduleToString(parseModule(wasmBytes), parseNameFilters(dartCode));
-      if (write) {
-        print('-> Updated expectation file: ${watFile.path}');
-        watFile.writeAsStringSync(wat);
-        continue;
-      }
-      if (!watFile.existsSync()) {
-        print('Expected "${watFile.path}" to exist.');
-        failTest();
-        continue;
-      }
+      final deferredModulePrefix =
+          '${path.withoutExtension(wasmFile.path)}_mod';
+      final deferredModuleWasmFiles = wasmFile.parent
+          .listSync()
+          .whereType<File>()
+          .where((fse) =>
+              fse.path.endsWith('.wasm') &&
+              fse.path.startsWith(deferredModulePrefix))
+          .toList();
 
-      final oldWat = watFile.readAsStringSync();
-      if (oldWat != wat) {
-        print(
-            '-> Expectation mismatch. Run with `-w` to update expectation file.');
-        failTest();
-        continue;
+      for (final file in [wasmFile, ...deferredModuleWasmFiles]) {
+        final module = parseModule(file.readAsBytesSync());
+        final wat = module.printAsWat(settings: settings);
+        final watFile = File(path.join(path.dirname(dartFilename),
+            path.setExtension(path.basename(file.path), '.wat')));
+
+        if (write) {
+          print('-> Updated expectation file: ${watFile.path}');
+          watFile.writeAsStringSync(wat);
+          continue;
+        }
+        if (!watFile.existsSync()) {
+          print('Expected "${watFile.path}" to exist.');
+          failTest();
+          continue;
+        }
+
+        final oldWat = watFile.readAsStringSync();
+        if (oldWat != wat) {
+          print('-> Expectation of ${path.basename(watFile.path)} mismatch: ');
+          print('Expected:\n  ${oldWat.split('\n').join('\n  ')}');
+          print('Actual:\n  ${wat.split('\n').join('\n  ')}');
+          print('-> Run with `-w` to update expectation file.');
+          failTest();
+          continue;
+        }
       }
     }
   });
@@ -116,32 +140,52 @@ Module parseModule(Uint8List wasmBytes) {
   return Module.deserialize(deserializer);
 }
 
-String moduleToString(Module module, List<RegExp> functionNameFilters) {
-  bool printFunctionBody(BaseFunction function) {
-    final name = function.functionName;
-    if (name == null) return false;
-    return functionNameFilters.any((pattern) => name.contains(pattern));
-  }
-
-  final mp = ModulePrinter(module, printFunctionBody: printFunctionBody);
-  for (final function in module.functions.defined) {
-    if (printFunctionBody(function)) {
-      mp.enqueueFunction(function);
-    }
-  }
-  return mp.print();
-}
-
-List<RegExp> parseNameFilters(String dartCode) {
+(ModulePrintSettings, List<String>) parseSettings(String dartCode) {
   const functionFilter = '// functionFilter=';
-  final filters = <RegExp>[];
+  const tableFilter = '// tableFilter=';
+  const globalFilter = '// globalFilter=';
+  const typeFilter = '// typeFilter=';
+  const compilerOption = '// compilerOption=';
+
+  final functionFilters = <RegExp>[];
+  final tableFilters = <RegExp>[];
+  final globalFilters = <RegExp>[];
+  final typeFilters = <RegExp>[];
+  final compilerOptions = <String>[];
+
   for (final line in dartCode.split('\n')) {
-    if (line.startsWith(functionFilter)) {
-      final filter = line.substring(functionFilter.length).trim();
-      if (filter.isNotEmpty) {
-        filters.add(RegExp(filter));
+    for (final (prefix, regexpList) in [
+      (functionFilter, functionFilters),
+      (tableFilter, tableFilters),
+      (globalFilter, globalFilters),
+      (typeFilter, typeFilters),
+    ]) {
+      if (line.startsWith(prefix)) {
+        final value = line.substring(prefix.length).trim();
+        if (value.isNotEmpty) {
+          regexpList.add(RegExp(value));
+        }
+      }
+    }
+    for (final (prefix, list) in [
+      (compilerOption, compilerOptions),
+    ]) {
+      if (line.startsWith(prefix)) {
+        final value = line.substring(prefix.length).trim();
+        if (value.isNotEmpty) {
+          list.add(value);
+        }
       }
     }
   }
-  return filters;
+  return (
+    ModulePrintSettings(
+        functionFilters: functionFilters,
+        tableFilters: tableFilters,
+        globalFilters: globalFilters,
+        typeFilters: typeFilters,
+        preferMultiline: true,
+        scrubAbsoluteUris: true),
+    compilerOptions
+  );
 }

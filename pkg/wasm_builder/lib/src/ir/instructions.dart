@@ -74,9 +74,15 @@ class Instructions implements Serializable {
     for (int k = 0; k < instructions.length; ++k) {
       final i = instructions[k];
       if (i is End) return;
-      p.write(k > 0 ? ' (' : '(');
-      i.printTo(p);
-      p.write(')');
+      if (p.preferMultiline) {
+        p.write('(');
+        i.printTo(p);
+        p.writeln(')');
+      } else {
+        p.write(k > 0 ? ' (' : '(');
+        i.printTo(p);
+        p.write(')');
+      }
     }
   }
 
