@@ -75,20 +75,26 @@ declare_args() {
   # Whether the sampling heap profiler should be included in product mode.
   dart_include_sampling_heap_profiler = false
 
-  # Whether features that depend on Perfetto should be built. We need
-  # to define this to allow excluding code that depends on Perfetto
-  # from being built on platforms which have a problem linking in the
-  # Perfetto library, e.g. watchOS.
-  #
-  # is_watchos may be undefined when Dart SDK is built from the Flutter
-  # engine tree.
-  dart_support_perfetto = !defined(is_watchos) || !is_watchos
-
   # Whether to support dynamic loading and interpretation of Dart bytecode.
   dart_dynamic_modules = false
 }
 
 declare_args() {
+  # Whether features that depend on Perfetto should be built. We need
+  # to define this to allow excluding code that depends on Perfetto
+  # from being built on platforms which have a problem linking in the
+  # Perfetto library, e.g. watchOS.
+  #
+  # We also exclude perfetto support when producing product builds for
+  # mobile OSes.
+  #
+  # is_watchos may be undefined when Dart SDK is built from the Flutter
+  # engine tree.
+  dart_support_perfetto =
+      !((defined(is_watchos) && is_watchos) ||
+        ((dart_runtime_mode == "release" && (defined(is_ios) && is_ios)) ||
+         (defined(is_android) && is_android)))
+
   # The analyze_snapshot tool is only supported on 64 bit AOT builds that use
   # ELF.
   build_analyze_snapshot =

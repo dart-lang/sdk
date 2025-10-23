@@ -22,6 +22,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(int, profile_period);
+
 // Native implementations for the dart:developer library.
 DEFINE_NATIVE_ENTRY(Developer_debugger, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, when, arguments->NativeArgAt(0));
@@ -226,7 +228,52 @@ DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_writeHeapSnapshotToFile, 0, 1) {
 #else
   Exceptions::ThrowUnsupportedError(
       "Heap snapshots are only supported in non-product mode.");
-#endif  // !defined(PRODUCT)
+#endif  // !defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_streamTimelineTo, 0, 5) {
+#if defined(SUPPORT_TIMELINE)
+  const auto& recorder = String::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const auto& path = String::CheckedHandle(zone, arguments->NativeArgAt(1));
+  const auto& streams = String::CheckedHandle(zone, arguments->NativeArgAt(2));
+
+#if defined(DART_INCLUDE_PROFILER)
+  const auto& enable_profiler =
+      Bool::CheckedHandle(zone, arguments->NativeArgAt(3));
+  const auto& sampling_interval =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(4));
+
+  if (enable_profiler.value()) {
+    FLAG_profiler = true;
+    FLAG_profile_period = sampling_interval.Value();
+    Profiler::UpdateSamplePeriod();
+    Profiler::UpdateRunningState();
+  }
+#endif
+
+  Timeline::StreamTo(recorder.ToCString(), path.ToCString(),
+                     streams.ToCString());
+#else
+  Exceptions::ThrowUnsupportedError(
+      "Timeline support was excluded during build.");
+#endif  // !defined(SUPPORT_TIMELINE)
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_stopStreamingTimeline, 0, 0) {
+#if defined(SUPPORT_TIMELINE)
+#if defined(DART_INCLUDE_PROFILER)
+  FLAG_profiler = false;
+  FLAG_profile_period = 1000;
+  Profiler::UpdateSamplePeriod();
+  Profiler::UpdateRunningState();
+#endif
+  Timeline::StopStreaming();
+#else
+  Exceptions::ThrowUnsupportedError(
+      "Timeline support was excluded during build.");
+#endif  // !defined(SUPPORT_TIMELINE)
   return Object::null();
 }
 

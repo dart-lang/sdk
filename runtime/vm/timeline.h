@@ -20,7 +20,7 @@
 #include "vm/os.h"
 #include "vm/os_thread.h"
 
-#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
 #include "perfetto/protozero/scattered_heap_buffer.h"
 #include "third_party/perfetto/protos/perfetto/trace/trace_packet.pbzero.h"
 #endif  // defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO) &&           \
@@ -75,6 +75,8 @@ class Zone;
 #define STARTUP_RECORDER_NAME "Startup"
 #define SYSTRACE_RECORDER_NAME "Systrace"
 
+// Note: when updating this list consider updating TimelineStream enum in
+// sdk/lib/developer.dart.
 // (name, fuchsia_name, has_static_labels).
 #define TIMELINE_STREAM_LIST(V)                                                \
   V(API, "dart:api", true)                                                     \
@@ -226,6 +228,12 @@ class Timeline : public AllStatic {
   // Cleanup timeline system. Not thread safe.
   static void Cleanup();
 
+  static void StreamTo(const char* recorder,
+                       const char* file,
+                       const char* streams);
+
+  static void StopStreaming();
+
   // Access the global recorder. Not thread safe.
   static TimelineEventRecorder* recorder() { return recorder_; }
 
@@ -267,6 +275,10 @@ class Timeline : public AllStatic {
 #undef TIMELINE_STREAM_FLAGS
 
  private:
+  // Initialize timeline system. Not thread safe.
+  static void InitWithRecorder(TimelineEventRecorder* recorder,
+                               const char* streams);
+
   static TimelineEventRecorder* recorder_;
   static Dart_TimelineRecorderCallback callback_;
   static MallocGrowableArray<char*>* enabled_streams_;
@@ -475,13 +487,13 @@ class TimelineEvent {
   void PrintJSON(JSONStream* stream) const;
 #endif
   void PrintJSON(JSONWriter* writer) const;
-#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#if defined(SUPPORT_PERFETTO)
   bool CanBeRepresentedByPerfettoTracePacket() const;
   /*
    * Populates the fields of |packet| with this event's data.
    */
   void PopulateTracePacket(perfetto::protos::pbzero::TracePacket* packet) const;
-#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#endif  // defined(SUPPORT_PERFETTO)
 
   ThreadId thread() const { return thread_; }
 
@@ -626,9 +638,9 @@ class TimelineEvent {
   friend class TimelineEventPlatformRecorder;
   friend class TimelineEventFuchsiaRecorder;
   friend class TimelineEventMacosRecorder;
-#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#if defined(SUPPORT_PERFETTO)
   friend class TimelineEventPerfettoFileRecorder;
-#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#endif  // defined(SUPPORT_PERFETTO)
   friend class TimelineStream;
   friend class TimelineTestHelper;
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
@@ -649,6 +661,8 @@ class TimelineTrackMetadata {
    * object into |jsarr_events|.
    */
   void PrintJSON(const JSONArray& jsarr_events) const;
+#endif  // !defined(PRODUCT)
+
 #if defined(SUPPORT_PERFETTO)
   /*
    * Populates the fields of |track_descriptor_packet| with the metadata stored
@@ -657,7 +671,6 @@ class TimelineTrackMetadata {
   void PopulateTracePacket(
       perfetto::protos::pbzero::TracePacket* track_descriptor_packet) const;
 #endif  // defined(SUPPORT_PERFETTO)
-#endif  // !defined(PRODUCT)
 
  private:
   // The ID of the process that this track is associated with.
@@ -668,19 +681,19 @@ class TimelineTrackMetadata {
   CStringUniquePtr track_name_;
 };
 
+#if defined(SUPPORT_PERFETTO)
 class AsyncTimelineTrackMetadata {
  public:
   AsyncTimelineTrackMetadata(intptr_t pid, intptr_t async_id);
   intptr_t pid() const { return pid_; }
   intptr_t async_id() const { return async_id_; }
-#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
   /*
    * Populates the fields of |track_descriptor_packet| with the metadata stored
    * by this object.
    */
   void PopulateTracePacket(
       perfetto::protos::pbzero::TracePacket* track_descriptor_packet) const;
-#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
  private:
   // The ID of the process that this track is associated with.
@@ -688,6 +701,7 @@ class AsyncTimelineTrackMetadata {
   // The async ID that this track is associated with.
   intptr_t async_id_;
 };
+#endif  // defined(SUPPORT_PERFETTO)
 
 #define TIMELINE_DURATION(thread, stream, name)                                \
   TimelineBeginEndScope tbes(thread, Timeline::Get##stream##Stream(), name);
@@ -912,20 +926,18 @@ class TimelineEventRecorder : public MallocAllocated {
   virtual void AddTrackMetadataBasedOnThread(const intptr_t process_id,
                                              const intptr_t trace_id,
                                              const char* thread_name);
-  void AddAsyncTrackMetadataBasedOnEvent(const TimelineEvent& event);
+  virtual void AddAsyncTrackMetadataBasedOnEvent(const TimelineEvent& event);
 
  protected:
+  static constexpr intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
+
   SimpleHashMap& track_uuid_to_track_metadata() {
     return track_uuid_to_track_metadata_;
   }
-  SimpleHashMap& async_track_uuid_to_track_metadata() {
-    return async_track_uuid_to_track_metadata_;
+
+  Mutex& track_uuid_to_track_metadata_lock() {
+    return track_uuid_to_track_metadata_lock_;
   }
-#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
-  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet() {
-    return packet_;
-  }
-#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 #ifndef PRODUCT
   void WriteTo(const char* directory);
@@ -968,23 +980,52 @@ class TimelineEventRecorder : public MallocAllocated {
   friend class OSThread;
 
  private:
-  static constexpr intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
   Mutex track_uuid_to_track_metadata_lock_;
   SimpleHashMap track_uuid_to_track_metadata_;
-  Mutex async_track_uuid_to_track_metadata_lock_;
-  SimpleHashMap async_track_uuid_to_track_metadata_;
-#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
-  // We allocate one heap-buffered packet as a class member, because it lets us
-  // continuously follow a cycle of resetting the buffer and writing its
-  // contents.
-  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket> packet_;
-#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
 };
 
+#if defined(SUPPORT_PERFETTO)
+template <typename Base>
+class TimelineEventRecorderWithPerfettoSupport : public Base {
+ public:
+  template <typename... Args>
+  explicit TimelineEventRecorderWithPerfettoSupport(Args&&... args);
+
+  ~TimelineEventRecorderWithPerfettoSupport();
+
+  void PrintPerfettoMeta(JSONBase64String* jsonBase64String);
+
+  void AddAsyncTrackMetadataBasedOnEvent(const TimelineEvent& event);
+
+ protected:
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet() {
+    return packet_;
+  }
+
+  SimpleHashMap& async_track_uuid_to_track_metadata() {
+    return async_track_uuid_to_track_metadata_;
+  }
+
+ private:
+  // We allocate one heap-buffered packet as a class member, because it lets us
+  // continuously follow a cycle of resetting the buffer and writing its
+  // contents.
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket> packet_;
+
+  static constexpr intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
+  Mutex async_track_uuid_to_track_metadata_lock_;
+  SimpleHashMap async_track_uuid_to_track_metadata_;
+};
+#else
+template <typename Base>
+using TimelineEventRecorderWithPerfettoSupport = Base;
+#endif
+
 // An abstract recorder that buffers recorded events.
-class TimelineEventBufferedRecorder : public TimelineEventRecorder {
+class TimelineEventBufferedRecorder
+    : public TimelineEventRecorderWithPerfettoSupport<TimelineEventRecorder> {
  public:
 #ifndef PRODUCT
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
