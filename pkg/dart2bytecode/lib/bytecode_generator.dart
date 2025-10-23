@@ -3693,7 +3693,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     _generateNode(node.value);
 
-    if (_variableSetNeedsDebugCheck(node.value)) {
+    if (!v.isSynthesized) {
       _emitSourcePosition();
     }
 
