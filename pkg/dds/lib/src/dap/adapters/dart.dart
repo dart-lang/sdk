@@ -831,21 +831,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final pauseEventKind = isolate.runnable ?? false
           ? vm.EventKind.kIsolateRunnable
           : vm.EventKind.kIsolateStart;
-      final thread =
-          await isolateManager.registerIsolate(isolate, pauseEventKind);
+      await isolateManager.registerIsolate(isolate, pauseEventKind);
 
       // If the Isolate already has a Pause event we can give it to the
       // IsolateManager to handle (if it's PausePostStart it will re-configure
-      // the isolate before resuming), otherwise we can just resume it (if it's
-      // runnable - otherwise we'll handle this when it becomes runnable in an
-      // event later).
+      // the isolate before resuming), otherwise wait for the PauseStart event
+      // to arrive and then this will be done.
       if (isolate.pauseEvent?.kind?.startsWith('Pause') ?? false) {
         await isolateManager.handleEvent(
           isolate.pauseEvent!,
         );
-      } else if (isolate.runnable == true) {
-        await isolateManager.handleThreadStartup(thread,
-            sendStoppedOnEntry: false);
       }
     }));
   }

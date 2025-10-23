@@ -694,7 +694,7 @@ class IsolateManager {
       thread.startupHandled = true;
       await readyToResumeThread(thread.threadId);
     } else if (eventKind == vm.EventKind.kPauseStart) {
-      handleThreadStartup(thread, sendStoppedOnEntry: true);
+      handleThreadStartup(thread);
     } else {
       // PauseExit, PauseBreakpoint, PauseInterrupted, PauseException
       var reason = 'pause';
@@ -765,10 +765,7 @@ class IsolateManager {
   /// Handles thread startup if it has not already been handled.
   ///
   /// This includes sending Stopped-on-Entry and sending a readyToResume.
-  Future<void> handleThreadStartup(
-    ThreadInfo thread, {
-    required bool sendStoppedOnEntry,
-  }) async {
+  Future<void> handleThreadStartup(ThreadInfo thread) async {
     // Don't resume from a PauseStart if this has already happened (see
     // comments on [thread.startupHandled]).
     if (thread.startupHandled) {
@@ -776,12 +773,11 @@ class IsolateManager {
     }
 
     thread.startupHandled = true;
+
     // Send a Stopped event to inform the client UI the thread is paused and
     // declare that we are ready to resume (which might result in an
     // immediate resume).
-    if (sendStoppedOnEntry) {
-      sendStoppedOnEntryEvent(thread);
-    }
+    sendStoppedOnEntryEvent(thread);
     await readyToResumeThread(thread.threadId);
   }
 
