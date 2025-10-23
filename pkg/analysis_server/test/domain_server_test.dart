@@ -76,8 +76,8 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     expect(
       response.toJson(),
       equals({
-        Response.ID: '0',
-        Response.RESULT: {VERSION: PROTOCOL_VERSION},
+        Response.idAttributeName: '0',
+        Response.resultAttributeName: {VERSION: PROTOCOL_VERSION},
       }),
     );
   }

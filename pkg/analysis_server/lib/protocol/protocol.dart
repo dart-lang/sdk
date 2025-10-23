@@ -21,10 +21,10 @@ export 'package:analyzer_plugin/protocol/protocol.dart' show Enum;
 class Notification {
   /// The name of the JSON attribute containing the name of the event that
   /// triggered the notification.
-  static const String EVENT = 'event';
+  static const String eventAttributeName = 'event';
 
   /// The name of the JSON attribute containing the result values.
-  static const String PARAMS = 'params';
+  static const String paramsAttributeName = 'params';
 
   /// The name of the event that triggered the notification.
   final String event;
@@ -41,22 +41,17 @@ class Notification {
   /// Initialize a newly created instance based on the given JSON data.
   factory Notification.fromJson(Map<Object?, Object?> json) {
     return Notification(
-      json[Notification.EVENT] as String,
-      json[Notification.PARAMS] as Map<String, Object?>?,
+      json[Notification.eventAttributeName] as String,
+      json[Notification.paramsAttributeName] as Map<String, Object?>?,
     );
   }
 
-  /// Return a table representing the structure of the Json object that will be
+  /// Returns a table representing the structure of the JSON object that will be
   /// sent to the client to represent this response.
-  Map<String, Object> toJson() {
-    var jsonObject = <String, Object>{};
-    jsonObject[EVENT] = event;
-    var params = this.params;
-    if (params != null) {
-      jsonObject[PARAMS] = params;
-    }
-    return jsonObject;
-  }
+  Map<String, Object> toJson() => {
+    eventAttributeName: event,
+    paramsAttributeName: ?params,
+  };
 }
 
 /// A request that was received from the client.
@@ -64,17 +59,17 @@ class Notification {
 /// Clients may not extend, implement or mix-in this class.
 class Request extends RequestOrResponse {
   /// The name of the JSON attribute containing the id of the request.
-  static const String ID = 'id';
+  static const String idAttributeName = 'id';
 
   /// The name of the JSON attribute containing the name of the request.
-  static const String METHOD = 'method';
+  static const String methodAttributeName = 'method';
 
   /// The name of the JSON attribute containing the request parameters.
-  static const String PARAMS = 'params';
+  static const String paramsAttributeName = 'params';
 
   /// The name of the optional JSON attribute indicating the time (milliseconds
   /// since epoch) at which the client made the request.
-  static const String CLIENT_REQUEST_TIME = 'clientRequestTime';
+  static const String clientRequestTimeAttributeName = 'clientRequestTime';
 
   /// The unique identifier used to identify this request.
   @override
@@ -123,21 +118,14 @@ class Request extends RequestOrResponse {
         _equalMaps(params, other.params);
   }
 
-  /// Return a table representing the structure of the Json object that will be
+  /// Returns a table representing the structure of the JSON object that will be
   /// sent to the client to represent this response.
-  Map<String, Object> toJson() {
-    var jsonObject = <String, Object>{};
-    jsonObject[ID] = id;
-    jsonObject[METHOD] = method;
-    if (params.isNotEmpty) {
-      jsonObject[PARAMS] = params;
-    }
-    var clientRequestTime = this.clientRequestTime;
-    if (clientRequestTime != null) {
-      jsonObject[CLIENT_REQUEST_TIME] = clientRequestTime;
-    }
-    return jsonObject;
-  }
+  Map<String, Object> toJson() => {
+    idAttributeName: id,
+    methodAttributeName: method,
+    if (params.isNotEmpty) paramsAttributeName: params,
+    clientRequestTimeAttributeName: ?clientRequestTime,
+  };
 
   bool _equalLists(List<Object?> first, List<Object?> second) {
     var length = first.length;
@@ -189,35 +177,35 @@ class Request extends RequestOrResponse {
     return first == second;
   }
 
-  /// Return a request parsed from the given json, or `null` if the [data] is
-  /// not a valid json representation of a request. The [data] is expected to
-  /// have the following format:
+  /// Returns a request parsed from the given JSON [result], or `null` if the
+  /// data is not a valid JSON representation of a request. The data is expected
+  /// to have the following format:
   ///
-  ///   {
-  ///     'clientRequestTime': millisecondsSinceEpoch
-  ///     'id': String,
-  ///     'method': methodName,
-  ///     'params': {
-  ///       parameter_name: value
+  ///     {
+  ///       'clientRequestTime': millisecondsSinceEpoch
+  ///       'id': String,
+  ///       'method': methodName,
+  ///       'params': {
+  ///         parameter_name: value
+  ///       }
   ///     }
-  ///   }
   ///
-  /// where both the parameters and clientRequestTime are optional.
+  /// where both the parameters and `clientRequestTime` are optional.
   ///
   /// The parameters can contain any number of name/value pairs. The
-  /// clientRequestTime must be an int representing the time at which the client
-  /// issued the request (milliseconds since epoch).
+  /// `clientRequestTime` must be an int representing the time at which the
+  /// client issued the request (milliseconds since epoch).
   static Request? fromJson(Map<String, Object?> result) {
-    var id = result[Request.ID];
-    var method = result[Request.METHOD];
+    var id = result[Request.idAttributeName];
+    var method = result[Request.methodAttributeName];
     if (id is! String || method is! String) {
       return null;
     }
-    var time = result[Request.CLIENT_REQUEST_TIME];
+    var time = result[Request.clientRequestTimeAttributeName];
     if (time is! int?) {
       return null;
     }
-    var params = result[Request.PARAMS];
+    var params = result[Request.paramsAttributeName];
     if (params is Map<String, Object?>?) {
       return Request(id, method, params, time);
     } else {
@@ -225,24 +213,24 @@ class Request extends RequestOrResponse {
     }
   }
 
-  /// Return a request parsed from the given [data], or `null` if the [data] is
-  /// not a valid json representation of a request. The [data] is expected to
+  /// Returns a request parsed from the given [data], or `null` if the [data] is
+  /// not a valid JSON representation of a request. The [data] is expected to
   /// have the following format:
   ///
-  ///   {
-  ///     'clientRequestTime': millisecondsSinceEpoch
-  ///     'id': String,
-  ///     'method': methodName,
-  ///     'params': {
-  ///       parameter_name: value
+  ///     {
+  ///       'clientRequestTime': millisecondsSinceEpoch
+  ///       'id': String,
+  ///       'method': methodName,
+  ///       'params': {
+  ///         parameter_name: value
+  ///       }
   ///     }
-  ///   }
   ///
-  /// where both the parameters and clientRequestTime are optional.
+  /// where both the parameters and `clientRequestTime` are optional.
   ///
   /// The parameters can contain any number of name/value pairs. The
-  /// clientRequestTime must be an int representing the time at which the client
-  /// issued the request (milliseconds since epoch).
+  /// `clientRequestTime` must be an int representing the time at which the
+  /// client issued the request (milliseconds since epoch).
   static Request? fromString(String data) {
     try {
       var result = json.decode(data);
@@ -293,13 +281,13 @@ abstract class RequestOrResponse {
 class Response extends RequestOrResponse {
   /// The name of the JSON attribute containing the id of the request for which
   /// this is a response.
-  static const String ID = 'id';
+  static const String idAttributeName = 'id';
 
   /// The name of the JSON attribute containing the error message.
-  static const String ERROR = 'error';
+  static const String errorAttributeName = 'error';
 
   /// The name of the JSON attribute containing the result values.
-  static const String RESULT = 'result';
+  static const String resultAttributeName = 'result';
 
   /// The unique identifier used to identify the request that this response is
   /// associated with.
@@ -315,7 +303,7 @@ class Response extends RequestOrResponse {
   Map<String, Object?>? result;
 
   /// Initialize a newly created instance to represent a response to a request
-  /// with the given [id].  If [_result] is provided, it will be used as the
+  /// with the given [id].  If [result] is provided, it will be used as the
   /// result; otherwise an empty result will be used.  If an [error] is provided
   /// then the response will represent an error condition.
   Response(this.id, {this.result, this.error});
@@ -615,30 +603,22 @@ class Response extends RequestOrResponse {
 
   /// Return a table representing the structure of the Json object that will be
   /// sent to the client to represent this response.
-  Map<String, Object> toJson() {
-    var jsonObject = <String, Object>{};
-    jsonObject[ID] = id;
-    var error = this.error;
-    if (error != null) {
-      jsonObject[ERROR] = error.toJson(clientUriConverter: null);
-    }
-    var result = this.result;
-    if (result != null) {
-      jsonObject[RESULT] = result;
-    }
-    return jsonObject;
-  }
+  Map<String, Object> toJson() => {
+    idAttributeName: id,
+    errorAttributeName: ?error?.toJson(clientUriConverter: null),
+    resultAttributeName: ?result,
+  };
 
   /// Initialize a newly created instance based on the given JSON data.
   static Response? fromJson(Map<String, Object?> json) {
     try {
-      var id = json[Response.ID];
+      var id = json[Response.idAttributeName];
       if (id is! String) {
         return null;
       }
 
       RequestError? decodedError;
-      var error = json[Response.ERROR];
+      var error = json[Response.errorAttributeName];
       if (error is Map) {
         decodedError = RequestError.fromJson(
           ResponseDecoder(null),
@@ -649,7 +629,7 @@ class Response extends RequestOrResponse {
       }
 
       Map<String, Object?>? decodedResult;
-      var result = json[Response.RESULT];
+      var result = json[Response.resultAttributeName];
       if (result is Map<String, Object?>) {
         decodedResult = result;
       }

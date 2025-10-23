@@ -1143,6 +1143,11 @@ class LibraryManifestPrinter extends ManifestPrinter {
       sink.writelnWithIndent('libraryMetadata: $idStr');
     }
 
+    var declaredConflicts = manifest.declaredConflicts.sorted;
+    sink.writeElements('declaredConflicts', declaredConflicts, (entry) {
+      _writelnIdLookupName(entry.key, entry.value);
+    });
+
     var classEntries = manifest.declaredClasses.sorted;
     sink.writeElements('declaredClasses', classEntries, (entry) {
       var item = entry.value;

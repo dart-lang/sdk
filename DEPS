@@ -75,7 +75,7 @@ vars = {
   "jsc_tag": "version:301576",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
-  "clang_version": "git_revision:8b93f27cf7e6e53636db870873b53269efa3cca4",
+  "clang_version": "git_revision:62adc83c918b1b55f70e4ee33c727b040da2a9ed",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
   "gn_version": "git_revision:07d3c6f4dc290fae5ca6152ebcb37d6815c411ab",
@@ -97,7 +97,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "1d2e23d5e55788091a51420ba3a9889d4efe7509",
-  "boringssl_rev": "2067eac9e25332fa983c3d5f1bd1b00fa4f467fc",
+  "boringssl_rev": "db1a8456167249f95b854a1cd24c6b553d0f1567",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "0327830448901920f739259364c3f2f624df5a03",

@@ -136,7 +136,7 @@ class RequestTest {
     var original = Request('one', 'aMethod', null, 347);
     var map = original.toJson();
     // Insert bad value - should be int but client sent string instead
-    map[Request.CLIENT_REQUEST_TIME] = '347';
+    map[Request.clientRequestTimeAttributeName] = '347';
     var jsonData = json.encode(map);
     var request = Request.fromString(jsonData);
     expect(request, isNull);
@@ -164,7 +164,10 @@ class RequestTest {
     var request = Request('one', 'aMethod');
     expect(
       request.toJson(),
-      equals({Request.ID: 'one', Request.METHOD: 'aMethod'}),
+      equals({
+        Request.idAttributeName: 'one',
+        Request.methodAttributeName: 'aMethod',
+      }),
     );
   }
 
@@ -173,9 +176,9 @@ class RequestTest {
     expect(
       request.toJson(),
       equals({
-        Request.ID: 'one',
-        Request.METHOD: 'aMethod',
-        Request.PARAMS: {'foo': 'bar'},
+        Request.idAttributeName: 'one',
+        Request.methodAttributeName: 'aMethod',
+        Request.paramsAttributeName: {'foo': 'bar'},
       }),
     );
   }
@@ -190,8 +193,8 @@ class ResponseTest {
     expect(
       response.toJson(),
       equals({
-        Response.ID: '',
-        Response.ERROR: {
+        Response.idAttributeName: '',
+        Response.errorAttributeName: {
           'code': 'INVALID_REQUEST',
           'message': 'Invalid request',
         },
@@ -206,8 +209,8 @@ class ResponseTest {
     expect(
       response.toJson(),
       equals({
-        Response.ID: '0',
-        Response.ERROR: {
+        Response.idAttributeName: '0',
+        Response.errorAttributeName: {
           'code': 'UNKNOWN_REQUEST',
           'message': 'Unknown request',
         },

@@ -33,13 +33,13 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
         .cast<Map<String, Object?>>()
         .asBroadcastStream();
     var responseStream = jsonStream
-        .where((json) => json[Notification.EVENT] == null)
+        .where((json) => json[Notification.eventAttributeName] == null)
         .transform(ResponseConverter())
         .where((response) => response != null)
         .cast<Response>()
         .asBroadcastStream();
     var notificationStream = jsonStream
-        .where((json) => json[Notification.EVENT] != null)
+        .where((json) => json[Notification.eventAttributeName] != null)
         .transform(NotificationConverter())
         .asBroadcastStream();
     return ByteStreamClientChannel._(
