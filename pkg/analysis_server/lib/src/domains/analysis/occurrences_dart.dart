@@ -88,6 +88,14 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    if (node.declaredFragment?.element case var element?) {
+      _addOccurrence(element, node.name);
+    }
+    super.visitCatchClauseParameter(node);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     _addOccurrence(node.declaredFragment!.element, node.name);
 

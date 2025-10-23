@@ -28,6 +28,22 @@ void f() {
 }
 ''');
 
+  Future<void> test_catch_error() => _testMarkedContent(r'''
+void foo() {
+  try {} catch (/*[0*/error/*0]*/, stackTrace) {
+    print('$/*[1*/error/*1]*/, $stackTrace');
+  }
+}
+''');
+
+  Future<void> test_catch_stack() => _testMarkedContent(r'''
+void foo() {
+  try {} catch (error, /*[0*/stackTrace/*0]*/) {
+    print('$error, $/*[1*/stackTrace/*1]*/');
+  }
+}
+''');
+
   Future<void> test_dartCode_issue5369_field() => _testMarkedContent('''
 class A {
   var /*[0*/a/*0]*/ = [''].where((_) => true).toList();
