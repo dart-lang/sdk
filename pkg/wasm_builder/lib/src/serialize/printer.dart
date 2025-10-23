@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core';
 import 'dart:typed_data';
 import 'dart:collection';
 
@@ -11,11 +10,16 @@ import '../ir/ir.dart' as ir;
 class ModulePrinter {
   final ir.Module _module;
 
-  late final _typeNamer = _TypeNamer(enqueueType);
-  late final _globalNamer = _GlobalNamer(enqueueGlobal);
-  late final _functionNamer = _FunctionNamer(enqueueFunction);
-  late final _tagNamer = _TagNamer(enqueueTag);
-  late final _tableNamer = _TableNamer(enqueueTable);
+  late final typeNamer =
+      _TypeNamer(settings.scrubAbsoluteUris, _module, enqueueType);
+  late final globalNamer =
+      _GlobalNamer(settings.scrubAbsoluteUris, _module, enqueueGlobal);
+  late final functionNamer =
+      _FunctionNamer(settings.scrubAbsoluteUris, _module, enqueueFunction);
+  late final tagNamer =
+      _TagNamer(settings.scrubAbsoluteUris, _module, enqueueTag);
+  late final tableNamer =
+      _TableNamer(settings.scrubAbsoluteUris, _module, enqueueTable);
 
   final _types = <ir.DefType, String>{};
   final _tags = <ir.Tag, String>{};
@@ -28,27 +32,28 @@ class ModulePrinter {
 
   /// Closure that tells us whether the body of a function should be printed or
   /// not.
-  late final bool Function(ir.BaseFunction) _printFunctionBody;
+  final ModulePrintSettings settings;
 
-  ModulePrinter(this._module,
-      {bool Function(ir.BaseFunction)? printFunctionBody}) {
-    _printFunctionBody = printFunctionBody ?? (_) => true;
-  }
+  ModulePrinter(this._module, {this.settings = const ModulePrintSettings()});
 
-  IrPrinter newIrPrinter() => IrPrinter._(_module, _typeNamer, _globalNamer,
-      _functionNamer, _tagNamer, _tableNamer);
+  IrPrinter newIrPrinter() => IrPrinter._(settings.preferMultiline, _module,
+      typeNamer, globalNamer, functionNamer, tagNamer, tableNamer);
 
   void enqueueType(ir.DefType type) {
     if (!_types.containsKey(type)) {
       _types[type] = '';
-      _generateType(type);
+      _generateDefType(type,
+          includeConstituents: settings.printTypeConstituents(
+              typeNamer.nameDefType(type, activateOnReferenceCallback: false)));
     }
   }
 
   void enqueueGlobal(ir.Global global) {
     if (!_globals.containsKey(global)) {
       _globals[global] = '';
-      _generateGlobal(global);
+      _generateGlobal(global,
+          includeInitializer: settings.printGlobalInitializer(globalNamer
+              .nameGlobal(global, activateOnReferenceCallback: false)));
     }
   }
 
@@ -73,7 +78,9 @@ class ModulePrinter {
   void enqueueTable(ir.Table table) {
     if (!_tables.containsKey(table)) {
       _tables[table] = '';
-      _generateTable(table);
+      _generateTable(table,
+          includeElements: settings.printTableElements(
+              tableNamer.nameTable(table, activateOnReferenceCallback: false)));
     }
   }
 
@@ -82,7 +89,9 @@ class ModulePrinter {
       while (_functionsQueue.isNotEmpty) {
         final fun = _functionsQueue.removeFirst();
 
-        _generateFunction(fun, includingBody: _printFunctionBody(fun));
+        _generateFunction(fun,
+            includingBody: settings.printFunctionBody(functionNamer
+                .nameFunction(fun, activateOnReferenceCallback: false)));
       }
     }
 
@@ -116,6 +125,13 @@ class ModulePrinter {
       }
       for (final global in _module.globals.imported) {
         final s = _globals[global];
+        if (s != null) {
+          mp.write(s);
+          mp.writeln();
+        }
+      }
+      for (final table in _module.tables.imported) {
+        final s = _tables[table];
         if (s != null) {
           mp.write(s);
           mp.writeln();
@@ -160,17 +176,21 @@ class ModulePrinter {
     _tags[tag] = p.getText();
   }
 
-  void _generateTable(ir.Table table) {
-    if (table is! ir.DefinedTable) return;
-
+  void _generateTable(ir.Table table, {required bool includeElements}) {
     final p = newIrPrinter();
-    table.printTo(p);
+    if (table is ir.DefinedTable) {
+      table.printTo(p, includeElements: includeElements);
+    } else if (table is ir.ImportedTable) {
+      table.printTo(p, includeElements: includeElements);
+    } else {
+      return;
+    }
     _tables[table] = p.getText();
   }
 
-  void _generateGlobal(ir.Global global) {
+  void _generateGlobal(ir.Global global, {required bool includeInitializer}) {
     final p = newIrPrinter();
-    global.printTo(p);
+    global.printTo(p, includeInitializer: includeInitializer);
     _globals[global] = p.getText();
   }
 
@@ -191,11 +211,58 @@ class ModulePrinter {
     _functions[fun] = p.getText().trimRight();
   }
 
-  void _generateType(ir.DefType type) {
+  void _generateDefType(ir.DefType type, {required bool includeConstituents}) {
     final p = newIrPrinter();
-    type.printTypeDefTo(p);
+    type.printTypeDefTo(p, includeConstituents: includeConstituents);
     _types[type] = p.getText();
   }
+}
+
+class ModulePrintSettings {
+  final List<RegExp> functionFilters;
+  final List<RegExp> tableFilters;
+  final List<RegExp> globalFilters;
+  final List<RegExp> typeFilters;
+  final bool preferMultiline;
+  final bool scrubAbsoluteUris;
+
+  const ModulePrintSettings(
+      {this.functionFilters = const [],
+      this.tableFilters = const [],
+      this.globalFilters = const [],
+      this.typeFilters = const [],
+      this.preferMultiline = false,
+      this.scrubAbsoluteUris = false});
+
+  bool printFunctionBody(String name) {
+    if (functionFilters.isEmpty) return true;
+    if (name.isEmpty) return false;
+    return functionFilters.any((pattern) => name.contains(pattern));
+  }
+
+  bool printTableElements(String name) {
+    if (tableFilters.isEmpty) return true;
+    if (name.isEmpty) return false;
+    return tableFilters.any((pattern) => name.contains(pattern));
+  }
+
+  bool printGlobalInitializer(String name) {
+    if (globalFilters.isEmpty) return true;
+    if (name.isEmpty) return false;
+    return globalFilters.any((pattern) => name.contains(pattern));
+  }
+
+  bool printTypeConstituents(String name) {
+    if (typeFilters.isEmpty) return true;
+    if (name.isEmpty) return false;
+    return typeFilters.any((pattern) => name.contains(pattern));
+  }
+
+  bool get hasFilters =>
+      functionFilters.isNotEmpty ||
+      tableFilters.isNotEmpty ||
+      globalFilters.isNotEmpty ||
+      typeFilters.isNotEmpty;
 }
 
 class IndentPrinter {
@@ -268,6 +335,7 @@ class IndentPrinter {
 }
 
 class IrPrinter extends IndentPrinter {
+  final bool preferMultiline;
   final ir.Module module;
 
   final _TypeNamer _typeNamer;
@@ -279,13 +347,13 @@ class IrPrinter extends IndentPrinter {
   _LocalNamer? _localNamer;
   final _labelNamer = _LabelNamer();
 
-  IrPrinter._(this.module, this._typeNamer, this._globalNamer,
-      this._functionNamer, this._tagNamer, this._tableNamer);
+  IrPrinter._(this.preferMultiline, this.module, this._typeNamer,
+      this._globalNamer, this._functionNamer, this._tagNamer, this._tableNamer);
 
   /// Returns a new [IrPrinter] with same settings, but empty indentation,
   /// empty text content and no local namer.
-  IrPrinter dup() => IrPrinter._(
-      module, _typeNamer, _globalNamer, _functionNamer, _tagNamer, _tableNamer);
+  IrPrinter dup() => IrPrinter._(preferMultiline, module, _typeNamer,
+      _globalNamer, _functionNamer, _tagNamer, _tableNamer);
 
   void beginLabeledBlock(ir.Instruction? instruction) {
     _labelNamer.stack.add(LabelInfo(instruction));
@@ -314,7 +382,8 @@ class IrPrinter extends IndentPrinter {
   }
 
   void withLocalNames(Map<int, String> names, void Function() fun) {
-    _localNamer = _LocalNamer(names);
+    _localNamer =
+        _LocalNamer(_functionNamer._scrubAbsoluteFileUris, module, names);
     fun();
     _localNamer = null;
   }
@@ -420,78 +489,126 @@ class IrPrinter extends IndentPrinter {
 }
 
 class _Namer<T> {
+  final ir.Module _module;
+  final bool _scrubAbsoluteFileUris;
+
   int _nextId = 0;
 
   final Map<T, String> _names = {};
   final void Function(T) _onReference;
 
-  _Namer(this._onReference);
+  late final Map<ir.Exportable, String> _exportNames = (() {
+    final map = <ir.Exportable, String>{};
+    for (final export in _module.exports.exported) {
+      final ir.Exportable? key = switch (export) {
+        ir.TableExport(table: var table) => table,
+        ir.TagExport(tag: var tag) => tag,
+        ir.GlobalExport(global: var global) => global,
+        ir.MemoryExport(memory: var memory) => memory,
+        ir.FunctionExport(function: var function) => function,
+        _ => null,
+      };
+      if (key != null) {
+        map[key] = export.name;
+      }
+    }
+    return map;
+  })();
 
-  String _name(T key, String? name, String unnamedPrefix) {
+  _Namer(this._scrubAbsoluteFileUris, this._module, this._onReference);
+
+  String _name(T key, String? name, String unnamedPrefix,
+      bool activateOnReferenceCallback) {
     final existing = _names[key];
     if (existing != null) return existing;
 
-    _onReference(key);
+    if (activateOnReferenceCallback) {
+      _onReference(key);
+    }
+    if (name == null) {
+      if (key is ir.Import) {
+        name = '${key.module}.${key.name}';
+      } else if (key is ir.Exportable) {
+        name = _exportNames[key];
+      }
+    }
+    if (name != null && _scrubAbsoluteFileUris) {
+      name = _sanitizeAbsoluteFileUris(name);
+    }
     final sanitizedName =
         name != null ? _sanitizeName(name) : '$unnamedPrefix${_nextId++}';
-    return _names[key] ??= '\$$sanitizedName';
+    final quotedName = '\$$sanitizedName';
+    return activateOnReferenceCallback
+        ? _names[key] ??= quotedName
+        : quotedName;
   }
 }
 
 class _FunctionNamer extends _Namer<ir.BaseFunction> {
-  _FunctionNamer(super.onReference);
+  _FunctionNamer(super.scrubAbsoluteUris, super.module, super.onReference);
 
-  String nameFunction(ir.BaseFunction function) {
-    return super._name(function, function.functionName, '');
+  String nameFunction(ir.BaseFunction function,
+      {bool activateOnReferenceCallback = true}) {
+    return super._name(
+        function, function.functionName, '', activateOnReferenceCallback);
   }
 }
 
 class _TagNamer extends _Namer<ir.Tag> {
-  _TagNamer(super.onReference);
+  _TagNamer(super.scrubAbsoluteUris, super.module, super.onReference);
 
-  String nameTag(ir.Tag tag) {
-    return super._name(tag, null, 'tag');
+  String nameTag(ir.Tag tag, {bool activateOnReferenceCallback = true}) {
+    return super._name(tag, null, 'tag', activateOnReferenceCallback);
   }
 }
 
 class _TableNamer extends _Namer<ir.Table> {
-  _TableNamer(super.onReference);
+  _TableNamer(super.scubUris, super.module, super.onReference);
 
-  String nameTable(ir.Table? table) {
-    if (table == null) {
-      return '\$table0';
-    }
-    return super._name(table, null, 'table');
+  String nameTable(ir.Table? table, {bool activateOnReferenceCallback = true}) {
+    table ??= _module.tables.defined.first;
+
+    // Try to use cache first to avoid O(n) scan in the exports.
+    final existing = _names[table];
+    if (existing != null) return existing;
+
+    final prefix = table is ir.ImportedTable ? 'itable' : 'dtable';
+    return super._name(table, null, prefix, activateOnReferenceCallback);
   }
 }
 
 class _TypeNamer extends _Namer<ir.DefType> {
-  _TypeNamer(super.onReference);
+  _TypeNamer(super.scrubAbsoluteUris, super.module, super.onReference);
 
-  String nameDefType(ir.DefType type) {
-    return super._name(type, type is ir.DataType ? type.name : null, 'type');
+  String nameDefType(ir.DefType type,
+      {bool activateOnReferenceCallback = true}) {
+    return super._name(type, type is ir.DataType ? type.name : null, 'type',
+        activateOnReferenceCallback);
   }
 }
 
 class _LocalNamer extends _Namer<int> {
   final Map<int, String> _namedVariables;
 
-  _LocalNamer(this._namedVariables) : super((_) {});
+  _LocalNamer(bool scrubAbsoluteUris, ir.Module module, this._namedVariables)
+      : super(scrubAbsoluteUris, module, (_) {});
 
-  String nameLocal(int index) {
-    return super._name(index, _namedVariables[index], 'var');
+  String nameLocal(int index, {bool activateOnReferenceCallback = true}) {
+    return super._name(
+        index, _namedVariables[index], 'var', activateOnReferenceCallback);
   }
 }
 
 class _GlobalNamer extends _Namer<ir.Global> {
-  _GlobalNamer(super.onReference);
+  _GlobalNamer(super.scrubAbsoluteUris, super.module, super.onReference);
 
-  String nameGlobal(ir.Global global) {
+  String nameGlobal(ir.Global global,
+      {bool activateOnReferenceCallback = true}) {
     String? gn = global.globalName;
     if (gn == null && global is ir.ImportedGlobal) {
       gn = '${global.module}.${global.name}';
     }
-    return super._name(global, gn, 'global');
+    return super._name(global, gn, 'global', activateOnReferenceCallback);
   }
 }
 
@@ -575,6 +692,28 @@ String _escapeString(String s) {
     }
   }
   return '$sb';
+}
+
+String _sanitizeAbsoluteFileUris(String name) {
+  int globalStart = 0;
+  while (true) {
+    final start = name.indexOf('file:///', globalStart);
+    if (start < 0) {
+      break;
+    }
+    final end = name.indexOf('.dart', start);
+    if (end < 0) {
+      break;
+    }
+    final uri = name.substring(start, end);
+    final slash = uri.lastIndexOf('/');
+    final first = name.substring(0, start);
+    final filename = name.substring(start + slash + 1, end);
+    final last = name.substring(end + '.dart'.length);
+    name = '${first}file:///.../$filename.dart$last';
+    globalStart = name.length - last.length;
+  }
+  return name;
 }
 
 String _sanitizeName(String s) {

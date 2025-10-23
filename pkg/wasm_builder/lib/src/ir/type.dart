@@ -875,15 +875,21 @@ abstract class DefType extends HeapType {
 
   void deserializeFillInner(Deserializer d, List<DefType> existing);
 
-  void printTypeDefTo(IrPrinter p) {
+  void printTypeDefTo(IrPrinter p, {bool includeConstituents = true}) {
     // This may generate other types that this one refers to.
     final ip = p.dup();
-    printTypeDefToInternal(ip);
+    if (includeConstituents) {
+      printTypeDefToInternal(ip);
+    }
 
     p.write('(type ');
     p.writeDefTypeReference(this);
-    p.write(' ');
-    p.write(ip.getText());
+    if (includeConstituents) {
+      p.write(' ');
+      p.write(ip.getText());
+    } else {
+      p.write(' <...>');
+    }
     p.write(')');
   }
 
@@ -1079,7 +1085,8 @@ class FunctionType extends DefType {
   }
 
   void printSignatureWithNamesTo(IrPrinter p, {bool oneLine = true}) {
-    final indent = !oneLine && (inputs.length + outputs.length) > 2;
+    final indent =
+        !oneLine && (p.preferMultiline || (inputs.length + outputs.length) > 2);
     final sep = indent ? '\n  ' : ' ';
 
     if (indent) p.write(sep);
@@ -1202,7 +1209,7 @@ class StructType extends DataType {
     p.write('struct');
     p.withIndent(() {
       for (int i = 0; i < fields.length; ++i) {
-        if (fields.length > 2) {
+        if (p.preferMultiline || fields.length > 2) {
           p.writeln();
         } else {
           p.write(' ');

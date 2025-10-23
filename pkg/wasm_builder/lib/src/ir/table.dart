@@ -46,24 +46,42 @@ class DefinedTable extends Table {
   DefinedTable(super.enclosingModule, this.elements, super.finalizableIndex,
       super.type, super.minSize, super.maxSize);
 
-  void printTo(IrPrinter p) {
+  void printTo(IrPrinter p, {bool includeElements = true}) {
     // NOTE: This format differs from what V8's `wami` will print.
     // It makes it easier to see the exact values of the table.
     p.write('(table ');
     p.writeTableReference(this, alwaysPrint: true);
-    p.write(' ${elements.length} ');
-    p.writeValueType(type);
-    p.writeln();
-    p.withIndent(() {
-      for (int i = 0; i < elements.length; ++i) {
-        final function = elements[i];
-        if (function != null) {
-          p.write('(at $i ');
-          p.writeFunctionReference(function);
-          p.writeln(')');
-        }
+    String? exportName;
+    for (final e in enclosingModule.exports.exported) {
+      if (e is TableExport && e.table == this) {
+        exportName = e.name;
+        break;
       }
-    });
+    }
+    if (exportName != null) {
+      p.write(' ');
+      p.writeExport(exportName);
+    }
+
+    p.write(' $minSize ');
+    p.writeValueType(type);
+    if (includeElements) {
+      if (elements.any((e) => e != null)) {
+        p.writeln();
+        p.withIndent(() {
+          for (int i = 0; i < elements.length; ++i) {
+            final function = elements[i];
+            if (function != null) {
+              p.write('(def $i ');
+              p.writeFunctionReference(function);
+              p.writeln(')');
+            }
+          }
+        });
+      }
+    } else {
+      p.write(' <...>');
+    }
     p.write(')');
   }
 }
@@ -87,6 +105,32 @@ class ImportedTable extends Table implements Import {
     s.writeName(name);
     s.writeByte(0x01);
     super.serialize(s);
+  }
+
+  void printTo(IrPrinter p, {bool includeElements = true}) {
+    // NOTE: This format differs from what V8's `wami` will print.
+    // It makes it easier to see the exact values of the table.
+    p.write('(table ');
+    p.writeTableReference(this, alwaysPrint: true);
+    p.write(' ');
+    p.writeImport(module, name);
+    p.write(' $minSize ');
+    p.writeValueType(type);
+    if (includeElements) {
+      if (setElements.isNotEmpty) {
+        p.writeln();
+        p.withIndent(() {
+          setElements.forEach((int i, function) {
+            p.write('(set $i ');
+            p.writeFunctionReference(function);
+            p.writeln(')');
+          });
+        });
+      }
+    } else {
+      p.write(' <...>');
+    }
+    p.write(')');
   }
 }
 

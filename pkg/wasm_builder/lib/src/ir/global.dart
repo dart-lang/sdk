@@ -28,7 +28,8 @@ abstract class Global with Indexable, Exportable {
     return GlobalExport(name, this);
   }
 
-  void printTo(IrPrinter p) => throw 'not implemented';
+  void printTo(IrPrinter p, {bool includeInitializer = true}) =>
+      throw 'not implemented';
 }
 
 /// A global variable defined in a module.
@@ -46,17 +47,31 @@ class DefinedGlobal extends Global implements Serializable {
   }
 
   @override
-  void printTo(IrPrinter p) {
+  void printTo(IrPrinter p, {bool includeInitializer = true}) {
     // This may generate globals this one refers to.
     final ip = p.dup();
-    initializer.printInitializerTo(ip);
+    if (includeInitializer) {
+      initializer.printInitializerTo(ip);
+    }
 
     p.write('(global ');
     p.writeGlobalReference(this);
     p.write(' ');
     type.printTo(p);
-    p.write(' ');
-    p.write(ip.getText().trim());
+    if (includeInitializer) {
+      if (p.preferMultiline) {
+        p.indent();
+        p.writeln();
+      } else {
+        p.write(' ');
+      }
+      p.write(ip.getText().trim());
+      if (p.preferMultiline) {
+        p.deindent();
+      }
+    } else {
+      p.write(' <...>');
+    }
     p.write(')');
   }
 }
@@ -82,7 +97,7 @@ class ImportedGlobal extends Global implements Import {
   }
 
   @override
-  void printTo(IrPrinter p) {
+  void printTo(IrPrinter p, {bool includeInitializer = true}) {
     p.write('(global ');
     p.writeGlobalReference(this);
     p.write(' ');
