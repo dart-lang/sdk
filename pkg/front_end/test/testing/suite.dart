@@ -1705,7 +1705,7 @@ class Strategy extends EquivalenceStrategy {
   }
 
   @override
-  bool checkVariableDeclaration_binaryOffsetNoTag(
+  bool checkVariableStatement_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
     VariableDeclaration node,
     VariableDeclaration other,

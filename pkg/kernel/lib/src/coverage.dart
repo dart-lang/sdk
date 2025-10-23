@@ -957,8 +957,8 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    visited.add(StatementKind.VariableDeclaration);
+  void visitVariableStatement(VariableStatement node) {
+    visited.add(StatementKind.VariableStatement);
     node.visitChildren(this);
   }
 
@@ -1483,8 +1483,8 @@ enum StatementKind {
   SwitchStatement,
   TryCatch,
   TryFinally,
-  VariableDeclaration,
   VariableInitialization,
+  VariableStatement,
   WhileStatement,
   YieldStatement,
 }
