@@ -578,8 +578,8 @@ package:analyzer/dart/analysis/utilities.dart:
   parseString (function: ParseStringResult Function({required String content, FeatureSet? featureSet, String? path, bool throwIfDiagnostics}))
   resolveFile (function: Future<SomeResolvedUnitResult> Function({required String path, ResourceProvider? resourceProvider}))
 package:analyzer/dart/ast/ast.dart:
-  useDeclaringConstructorsAst (static getter: bool)
-  useDeclaringConstructorsAst= (static setter: bool)
+  useDeclaringConstructorsAst (static getter: bool, experimental)
+  useDeclaringConstructorsAst= (static setter: bool, experimental)
   AdjacentStrings (class extends Object implements StringLiteral):
     strings (getter: NodeList<StringLiteral>)
   AnnotatedNode (class extends Object implements AstNode):
