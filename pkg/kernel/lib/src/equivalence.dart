@@ -820,8 +820,8 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitVariableDeclaration(VariableDeclaration node, Node other) {
-    return strategy.checkVariableDeclaration(this, node, other);
+  bool visitVariableStatement(VariableStatement node, Node other) {
+    return strategy.checkVariableStatement(this, node, other);
   }
 
   @override
@@ -1274,9 +1274,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     }
     if (a is LabeledStatement) {
       return b is LabeledStatement;
-    }
-    if (a is VariableDeclaration) {
-      return b is VariableDeclaration && a.name == b.name;
     }
     if (a is TypeParameter) {
       return b is TypeParameter && a.name == b.name;
@@ -5295,38 +5292,35 @@ class EquivalenceStrategy {
     return result;
   }
 
-  bool checkVariableDeclaration(
-      EquivalenceVisitor visitor, VariableDeclaration? node, Object? other) {
+  bool checkVariableStatement(
+      EquivalenceVisitor visitor, VariableStatement? node, Object? other) {
     if (identical(node, other)) return true;
-    if (node is! VariableDeclaration) return false;
-    if (other is! VariableDeclaration) return false;
-    if (!visitor.checkDeclarations(node, other, '')) {
-      return false;
-    }
+    if (node is! VariableStatement) return false;
+    if (other is! VariableStatement) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkVariableDeclaration_fileEqualsOffset(visitor, node, other)) {
+    if (!checkVariableStatement_fileEqualsOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkVariableDeclaration_annotations(visitor, node, other)) {
+    if (!checkVariableStatement_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkVariableDeclaration_name(visitor, node, other)) {
+    if (!checkVariableStatement_name(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkVariableDeclaration_flags(visitor, node, other)) {
+    if (!checkVariableStatement_flags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkVariableDeclaration_type(visitor, node, other)) {
+    if (!checkVariableStatement_type(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkVariableDeclaration_binaryOffsetNoTag(visitor, node, other)) {
+    if (!checkVariableStatement_binaryOffsetNoTag(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkVariableDeclaration_initializer(visitor, node, other)) {
+    if (!checkVariableStatement_initializer(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkVariableDeclaration_fileOffset(visitor, node, other)) {
+    if (!checkVariableStatement_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -9645,47 +9639,47 @@ class EquivalenceStrategy {
     return checkStatement_fileOffset(visitor, node, other);
   }
 
-  bool checkVariableDeclaration_fileEqualsOffset(EquivalenceVisitor visitor,
-      VariableDeclaration node, VariableDeclaration other) {
+  bool checkVariableStatement_fileEqualsOffset(EquivalenceVisitor visitor,
+      VariableStatement node, VariableStatement other) {
     return visitor.checkValues(
         node.fileEqualsOffset, other.fileEqualsOffset, 'fileEqualsOffset');
   }
 
-  bool checkVariableDeclaration_annotations(EquivalenceVisitor visitor,
-      VariableDeclaration node, VariableDeclaration other) {
+  bool checkVariableStatement_annotations(EquivalenceVisitor visitor,
+      VariableStatement node, VariableStatement other) {
     return visitor.checkLists(
         node.annotations, other.annotations, visitor.checkNodes, 'annotations');
   }
 
-  bool checkVariableDeclaration_name(EquivalenceVisitor visitor,
-      VariableDeclaration node, VariableDeclaration other) {
+  bool checkVariableStatement_name(EquivalenceVisitor visitor,
+      VariableStatement node, VariableStatement other) {
     return visitor.checkValues(node.name, other.name, 'name');
   }
 
-  bool checkVariableDeclaration_flags(EquivalenceVisitor visitor,
-      VariableDeclaration node, VariableDeclaration other) {
+  bool checkVariableStatement_flags(EquivalenceVisitor visitor,
+      VariableStatement node, VariableStatement other) {
     return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
-  bool checkVariableDeclaration_type(EquivalenceVisitor visitor,
-      VariableDeclaration node, VariableDeclaration other) {
+  bool checkVariableStatement_type(EquivalenceVisitor visitor,
+      VariableStatement node, VariableStatement other) {
     return visitor.checkNodes(node.type, other.type, 'type');
   }
 
-  bool checkVariableDeclaration_binaryOffsetNoTag(EquivalenceVisitor visitor,
-      VariableDeclaration node, VariableDeclaration other) {
+  bool checkVariableStatement_binaryOffsetNoTag(EquivalenceVisitor visitor,
+      VariableStatement node, VariableStatement other) {
     return visitor.checkValues(
         node.binaryOffsetNoTag, other.binaryOffsetNoTag, 'binaryOffsetNoTag');
   }
 
-  bool checkVariableDeclaration_initializer(EquivalenceVisitor visitor,
-      VariableDeclaration node, VariableDeclaration other) {
+  bool checkVariableStatement_initializer(EquivalenceVisitor visitor,
+      VariableStatement node, VariableStatement other) {
     return visitor.checkNodes(
         node.initializer, other.initializer, 'initializer');
   }
 
-  bool checkVariableDeclaration_fileOffset(EquivalenceVisitor visitor,
-      VariableDeclaration node, VariableDeclaration other) {
+  bool checkVariableStatement_fileOffset(EquivalenceVisitor visitor,
+      VariableStatement node, VariableStatement other) {
     return checkStatement_fileOffset(visitor, node, other);
   }
 

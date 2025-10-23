@@ -244,4 +244,16 @@ class LspMessages {
       },
     };
   }
+
+  static Map<String, dynamic> semanticTokensFull(Uri uri, int id) {
+    return {
+      'jsonrpc': '2.0',
+      'id': id,
+      'method': 'textDocument/semanticTokens/full',
+      'params': {
+        'textDocument': {'uri': '$uri'},
+      },
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
 }

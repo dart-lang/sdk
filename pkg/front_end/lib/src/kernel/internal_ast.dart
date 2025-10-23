@@ -853,7 +853,7 @@ class ReturnStatementImpl extends ReturnStatement {
 }
 
 /// Front end specific implementation of [VariableDeclaration].
-class VariableDeclarationImpl extends VariableDeclaration {
+class VariableDeclarationImpl extends VariableStatement {
   final bool forSyntheticToken;
 
   /// Determine whether the given [VariableDeclarationImpl] had an implicit

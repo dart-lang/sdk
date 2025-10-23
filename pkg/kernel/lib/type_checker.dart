@@ -108,6 +108,7 @@ abstract class TypeChecker {
 }
 
 class TypeCheckingVisitor
+    with StatementVisitorExperimentExclusionMixin<void>
     implements
         ExpressionVisitor<DartType>,
         StatementVisitor<void>,

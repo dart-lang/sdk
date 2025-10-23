@@ -333,9 +333,9 @@ abstract class StatementVisitor<R> {
   R visitTryCatch(TryCatch node);
   R visitTryFinally(TryFinally node);
   R visitYieldStatement(YieldStatement node);
-  R visitVariableDeclaration(VariableDeclaration node);
   R visitPatternVariableDeclaration(PatternVariableDeclaration node);
   R visitFunctionDeclaration(FunctionDeclaration node);
+  R visitVariableStatement(VariableStatement node);
 }
 
 /// Helper mixin for [StatementVisitor] that implements visit methods by
@@ -391,7 +391,6 @@ mixin StatementVisitorDefaultMixin<R> implements StatementVisitor<R> {
   R visitTryFinally(TryFinally node) => defaultStatement(node);
   @override
   R visitYieldStatement(YieldStatement node) => defaultStatement(node);
-  @override
   R visitVariableDeclaration(VariableDeclaration node) =>
       defaultStatement(node);
   @override
@@ -400,6 +399,9 @@ mixin StatementVisitorDefaultMixin<R> implements StatementVisitor<R> {
   @override
   R visitFunctionDeclaration(FunctionDeclaration node) =>
       defaultStatement(node);
+  @override
+  R visitVariableStatement(VariableStatement node) =>
+      visitVariableDeclaration(node);
 }
 
 abstract class MemberVisitor<R> {
@@ -2612,9 +2614,9 @@ abstract class StatementVisitor1<R, A> {
   R visitTryCatch(TryCatch node, A arg);
   R visitTryFinally(TryFinally node, A arg);
   R visitYieldStatement(YieldStatement node, A arg);
-  R visitVariableDeclaration(VariableDeclaration node, A arg);
   R visitPatternVariableDeclaration(PatternVariableDeclaration node, A arg);
   R visitFunctionDeclaration(FunctionDeclaration node, A arg);
+  R visitVariableStatement(VariableStatement node, A arg);
 }
 
 /// Helper mixin for [StatementVisitor1] that implements visit methods by
@@ -2681,7 +2683,6 @@ mixin StatementVisitor1DefaultMixin<R, A> implements StatementVisitor1<R, A> {
   @override
   R visitYieldStatement(YieldStatement node, A arg) =>
       defaultStatement(node, arg);
-  @override
   R visitVariableDeclaration(VariableDeclaration node, A arg) =>
       defaultStatement(node, arg);
   @override
@@ -2690,6 +2691,9 @@ mixin StatementVisitor1DefaultMixin<R, A> implements StatementVisitor1<R, A> {
   @override
   R visitFunctionDeclaration(FunctionDeclaration node, A arg) =>
       defaultStatement(node, arg);
+  @override
+  R visitVariableStatement(VariableStatement node, A arg) =>
+      visitVariableDeclaration(node, arg);
 }
 
 /// [DartTypeVisitorExperimentExclusionMixin] is intended to reduce the effects
@@ -2797,6 +2801,21 @@ mixin StatementVisitorExperimentExclusionMixin<R>
       "${runtimeType}.visitVariableInitialization isn't supported.",
     );
   }
+
+  /// Now that [VariableDeclaration] is abstract, it doesn't have its own visit
+  /// method in [StatementVisitor]. However, for the transitional period the
+  /// backends would rely on having `visitVariableDeclaration` and on needing to
+  /// override it. Since the statement visitors in the backends should mix in
+  /// [StatementVisitorExclusionMixin], we can deliver the abstract declaration
+  /// of `visitorVariableDeclaration` to them via the mixin. At the same time,
+  /// it allows us to redirect `visitVariableStatement` to the overrides of
+  /// `visitVariableDeclarations` backends already have.
+  R visitVariableDeclaration(VariableDeclaration node);
+
+  @override
+  R visitVariableStatement(VariableStatement node) {
+    return visitVariableDeclaration(node);
+  }
 }
 
 /// [StatementVisitor1ExperimentExclusionMixin] is intended to reduce the
@@ -2812,6 +2831,21 @@ mixin StatementVisitor1ExperimentExclusionMixin<R, A>
     throw StateError(
       "${runtimeType}.visitVariableInitialization isn't supported.",
     );
+  }
+
+  /// Now that [VariableDeclaration] is abstract, it doesn't have its own visit
+  /// method in [StatementVisitor1]. However, for the transitional period the
+  /// backends would rely on having `visitVariableDeclaration` and on needing to
+  /// override it. Since the statement visitors in the backends should mix in
+  /// [StatementVisitorExclusionMixin], we can deliver the abstract declaration
+  /// of `visitorVariableDeclaration` to them via the mixin. At the same time,
+  /// it allows us to redirect `visitVariableStatement` to the overrides of
+  /// `visitVariableDeclarations` backends already have.
+  R visitVariableDeclaration(VariableDeclaration node, A arg);
+
+  @override
+  R visitVariableStatement(VariableStatement node, A arg) {
+    return visitVariableDeclaration(node, arg);
   }
 }
 

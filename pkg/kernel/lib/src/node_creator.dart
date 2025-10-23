@@ -802,7 +802,7 @@ class NodeCreator {
         )..fileOffset = _needFileOffset();
       case ExpressionKind.Let:
         return Let(
-            _createStatementFromKind(StatementKind.VariableDeclaration)
+            _createStatementFromKind(StatementKind.VariableStatement)
                 as VariableDeclaration,
             _createExpression())
           ..fileOffset = _needFileOffset();
@@ -1316,7 +1316,7 @@ class NodeCreator {
       case StatementKind.TryFinally:
         return TryFinally(_createStatement(), _createStatement())
           ..fileOffset = _needFileOffset();
-      case StatementKind.VariableDeclaration:
+      case StatementKind.VariableStatement:
         return _createOneOf(_pendingStatements, kind, index, [
           () => VariableDeclaration('foo')..fileOffset = _needFileOffset(),
           () => VariableDeclaration('foo', initializer: _createExpression())
@@ -1379,7 +1379,7 @@ class NodeCreator {
   /// If there are any pending [VariableDeclaration] nodes, one of these is
   /// created.
   VariableDeclaration _createVariableDeclaration() {
-    return _createStatementFromKind(StatementKind.VariableDeclaration)
+    return _createStatementFromKind(StatementKind.VariableStatement)
         as VariableDeclaration;
   }
 
