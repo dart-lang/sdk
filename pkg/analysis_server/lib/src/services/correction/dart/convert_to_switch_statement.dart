@@ -112,13 +112,14 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
     var caseClause = ifStatement.caseClause;
 
     if (caseClause != null) {
-      if (expression is! SimpleIdentifier) {
+      if (expression is! SimpleIdentifier &&
+          ifStatement.elseStatement is IfStatement) {
         return null;
       }
       var guardedPattern = caseClause.guardedPattern;
       var patternCode = utils.getNodeText(guardedPattern);
       return _IfCaseThen(
-        expressionCode: expression.token.lexeme,
+        expressionCode: utils.getNodeText(expression),
         patternCode: patternCode,
         statement: ifStatement.thenStatement,
       );
