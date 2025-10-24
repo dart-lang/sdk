@@ -322,4 +322,25 @@ void f() {
 }
 ''');
   }
+
+  Future<void> test_classField() async {
+    await resolveTestCode('''
+class F {
+  final v1 = () => 42;
+
+  void f() {
+    v1();
+  }
+}
+''');
+    await assertHasFix('''
+class F {
+  int v1() => 42;
+
+  void f() {
+    v1();
+  }
+}
+''');
+  }
 }
