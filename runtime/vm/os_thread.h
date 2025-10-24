@@ -128,12 +128,12 @@ class OSThread : public BaseThread {
   static void SetCurrentSafestackPointer(uword ssp);
 #endif
 
-#if !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
   // Used to temporarily disable or enable thread interrupts.
   void DisableThreadInterrupts();
   void EnableThreadInterrupts();
   bool ThreadInterruptsEnabled();
-#endif  // !defined(PRODUCT)
+#endif  // defined(DART_INCLUDE_PROFILER)
 
   // The currently executing thread, or nullptr if not yet initialized.
   static OSThread* TryCurrent() {
@@ -289,12 +289,12 @@ class OSThread : public BaseThread {
   // All |Thread|s are registered in the thread list.
   OSThread* thread_list_next_ = nullptr;
 
-#if !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
   // Thread interrupts disabled by default.
   RelaxedAtomic<uintptr_t> thread_interrupt_disabled_ = {1};
   bool prepared_for_interrupts_ = false;
   void* thread_interrupter_state_ = nullptr;
-#endif  // !defined(PRODUCT)
+#endif  // defined(DART_INCLUDE_PROFILER)
 
   Log* log_;
   uword stack_base_ = 0;

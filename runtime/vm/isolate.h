@@ -1188,35 +1188,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 #if !defined(PRODUCT)
   Debugger* debugger() const { return debugger_; }
 
-  // Returns the current SampleBlock used to track CPU profiling samples.
-  SampleBlock* current_sample_block() const { return current_sample_block_; }
-  void set_current_sample_block(SampleBlock* block) {
-    current_sample_block_ = block;
-  }
-  SampleBlock* exchange_current_sample_block(SampleBlock* block) {
-    return current_sample_block_.exchange(block, std::memory_order_acq_rel);
-  }
-  void ProcessFreeSampleBlocks(Thread* thread);
-
-  // Returns the current SampleBlock used to track Dart allocation samples.
-  SampleBlock* current_allocation_sample_block() const {
-    return current_allocation_sample_block_;
-  }
-  void set_current_allocation_sample_block(SampleBlock* block) {
-    current_allocation_sample_block_ = block;
-  }
-  SampleBlock* exchange_current_allocation_sample_block(SampleBlock* block) {
-    return current_allocation_sample_block_.exchange(block,
-                                                     std::memory_order_acq_rel);
-  }
-
-  bool TakeHasCompletedBlocks() {
-    return has_completed_blocks_.exchange(0) != 0;
-  }
-  bool TrySetHasCompletedBlocks() {
-    return has_completed_blocks_.exchange(1) == 0;
-  }
-
   void set_has_resumption_breakpoints(bool value) {
     has_resumption_breakpoints_ = value;
   }
@@ -1244,6 +1215,37 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // resume execution.
   bool GetAndClearResumeRequest() {
     return isolate_flags_.TryClear<ResumeRequestBit>();
+  }
+#endif
+
+#if defined(DART_INCLUDE_PROFILER)
+  // Returns the current SampleBlock used to track CPU profiling samples.
+  SampleBlock* current_sample_block() const { return current_sample_block_; }
+  void set_current_sample_block(SampleBlock* block) {
+    current_sample_block_ = block;
+  }
+  SampleBlock* exchange_current_sample_block(SampleBlock* block) {
+    return current_sample_block_.exchange(block, std::memory_order_acq_rel);
+  }
+  void ProcessFreeSampleBlocks(Thread* thread);
+
+  // Returns the current SampleBlock used to track Dart allocation samples.
+  SampleBlock* current_allocation_sample_block() const {
+    return current_allocation_sample_block_;
+  }
+  void set_current_allocation_sample_block(SampleBlock* block) {
+    current_allocation_sample_block_ = block;
+  }
+  SampleBlock* exchange_current_allocation_sample_block(SampleBlock* block) {
+    return current_allocation_sample_block_.exchange(block,
+                                                     std::memory_order_acq_rel);
+  }
+
+  bool TakeHasCompletedBlocks() {
+    return has_completed_blocks_.exchange(0) != 0;
+  }
+  bool TrySetHasCompletedBlocks() {
+    return has_completed_blocks_.exchange(1) == 0;
   }
 #endif
 
@@ -1635,14 +1637,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 #if !defined(PRODUCT)
   Debugger* debugger_ = nullptr;
 
-  // SampleBlock containing CPU profiling samples.
-  RelaxedAtomic<SampleBlock*> current_sample_block_ = nullptr;
-
-  // SampleBlock containing Dart allocation profiling samples.
-  RelaxedAtomic<SampleBlock*> current_allocation_sample_block_ = nullptr;
-
-  RelaxedAtomic<uword> has_completed_blocks_ = {0};
-
   int64_t last_resume_timestamp_;
 
   VMTagCounters vm_tag_counters_;
@@ -1678,6 +1672,16 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 #endif  // !defined(PRODUCT)
+
+#if defined(DART_INCLUDE_PROFILER)
+  // SampleBlock containing CPU profiling samples.
+  RelaxedAtomic<SampleBlock*> current_sample_block_ = nullptr;
+
+  // SampleBlock containing Dart allocation profiling samples.
+  RelaxedAtomic<SampleBlock*> current_allocation_sample_block_ = nullptr;
+
+  RelaxedAtomic<uword> has_completed_blocks_ = {0};
+#endif
 
   // All other fields go here.
   int64_t start_time_micros_;

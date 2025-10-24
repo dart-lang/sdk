@@ -49,6 +49,14 @@ constexpr bool FLAG_support_il_printer = true;
 constexpr bool FLAG_support_il_printer = false;
 #endif  // defined(INCLUDE_IL_PRINTER)
 
+#if defined(DART_INCLUDE_PROFILER)
+#define PROFILER_FLAGS(P, R, C, D)                                             \
+  P(profiler, bool, false, "Enable the profiler.")
+#else
+#define PROFILER_FLAGS(P, R, C, D)                                             \
+  R(profiler, false, bool, false, "Enable the profiler.")
+#endif
+
 // List of VM-global (i.e. non-isolate specific) flags.
 //
 // The value used for those flags at snapshot generation time needs to be the
@@ -81,6 +89,7 @@ constexpr bool FLAG_support_il_printer = false;
 #define FLAG_LIST(P, R, C, D)                                                  \
   VM_GLOBAL_FLAG_LIST(P, R, C, D)                                              \
   DISASSEMBLE_FLAGS(P, R, C, D)                                                \
+  PROFILER_FLAGS(P, R, C, D)                                                   \
   P(abort_on_oom, bool, false,                                                 \
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   P(add_readonly_data_symbols, bool, false,                                    \
@@ -174,7 +183,6 @@ constexpr bool FLAG_support_il_printer = false;
     "Attempt to print a native stack trace when an API error is created.")     \
   D(print_variable_descriptors, bool, false,                                   \
     "Print variable descriptors in disassembly.")                              \
-  R(profiler, false, bool, false, "Enable the profiler.")                      \
   R(profiler_native_memory, false, bool, false,                                \
     "Enable native memory statistic collection.")                              \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \

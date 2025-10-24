@@ -16,7 +16,7 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if defined(DART_INCLUDE_PROFILER)
 
 // Old linux kernels on ARM might require a trampoline to
 // work around incorrect Thumb -> ARM transitions.
@@ -95,7 +95,7 @@ void ThreadInterrupter::CleanupCurrentThreadState(void* state) {
   SignalHandler::CleanupCurrentThreadState(state);
 }
 
-#endif  // !PRODUCT
+#endif  // defined(DART_INCLUDE_PROFILER)
 
 }  // namespace dart
 
