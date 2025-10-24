@@ -23,17 +23,6 @@ Library? _enclosingLibraryForReference(Reference reference) {
   throw ArgumentError('Could not find enclosing library for ${reference.node}');
 }
 
-Class? enclosingClassForReference(Reference reference) {
-  TreeNode? current = reference.node;
-  // References generated for constants will not have a node attached.
-  if (reference.node == null) return null;
-  while (current != null) {
-    if (current is Class) return current;
-    current = current.parent;
-  }
-  return null;
-}
-
 class ModuleMetadataBuilder {
   int _counter = _mainModuleId;
   final WasmCompilerOptions options;
