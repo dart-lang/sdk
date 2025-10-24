@@ -370,12 +370,13 @@ class A {
   void m() {
     /*[1*/p/*1]*/.foo();
     print(/*[2*/p/*2]*/.a);
+    /*[3*/p/*3]*/.A();
   }
 }
 
 void foo() {}
 
-/*[3*/p/*3]*/.A? a;
+/*[4*/p/*4]*/.A? a;
 ''');
 
   Future<void> test_prefixed() => _testMarkedContent('''
