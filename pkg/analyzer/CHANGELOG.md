@@ -1,4 +1,4 @@
-## 9.0.0-dev
+## 9.0.0
 * Remove deprecated field `Diagnostic.data`.
 * In the method `DiagnosticReporter.atOffset` and the constructors
   `Diagnostic.tmp` and `Diagnostic.forValues`, remove the deprecated named

@@ -402,10 +402,14 @@ class ApiDescription {
         throw UnimplementedError('Unexpected element: $runtimeType');
     }
 
-    if (element.metadata.hasDeprecated) {
+    // For synthetic elements such as getters/setters induced by top level
+    // variables and fields, annotations can be found on the corresponding
+    // non-synthetic element.
+    var nonSyntheticElement = element.nonSynthetic;
+    if (nonSyntheticElement.metadata.hasDeprecated) {
       parentheticals.add(['deprecated']);
     }
-    if (element.metadata.hasExperimental) {
+    if (nonSyntheticElement.metadata.hasExperimental) {
       parentheticals.add(['experimental']);
     }
 

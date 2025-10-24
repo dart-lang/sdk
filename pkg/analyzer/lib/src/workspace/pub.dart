@@ -180,6 +180,10 @@ class PackageConfigWorkspace extends SimpleWorkspace {
   /// The contents of the package config file.
   late final String? _packageConfigContent;
 
+  /// Indicates whether this is a PubWorkspace as per
+  /// https://dart.dev/tools/pub/workspaces
+  bool _isPubWorkspace = false;
+
   final Map<String, WorkspacePackageImpl> _workspacePackages = {};
 
   factory PackageConfigWorkspace(
@@ -208,6 +212,15 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     this.packageConfigFile,
   ) {
     _packageConfigContent = packageConfigFile.readAsStringSync();
+    var pubspecFile = provider
+        .getFolder(root)
+        .getChildAssumingFile(file_paths.pubspecYaml);
+    if (pubspecFile.exists) {
+      var pubspec = Pubspec.parse(pubspecFile.readAsStringSync());
+      if (pubspec.workspace != null) {
+        _isPubWorkspace = true;
+      }
+    }
   }
 
   Iterable<WorkspacePackageImpl> get allPackages =>
@@ -217,6 +230,8 @@ class PackageConfigWorkspace extends SimpleWorkspace {
   bool get isConsistentWithFileSystem {
     return _fileContentOrNull(packageConfigFile) == _packageConfigContent;
   }
+
+  bool get isPubWorkspace => _isPubWorkspace;
 
   @override
   UriResolver get packageUriResolver {
