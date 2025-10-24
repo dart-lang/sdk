@@ -447,7 +447,7 @@ final class GetterSuggestion extends TypedImportableSuggestion
   }
 
   @override
-  FunctionType get type => element.type;
+  DartType get type => element.type.returnType;
 
   /// Return the name of the enclosing class or extension.
   ///
