@@ -71,13 +71,13 @@ library_for_all_configs("libdart_vm") {
   target_type = "source_set"
   extra_product_deps = []
   extra_nonproduct_deps = []
-  if (dart_support_perfetto) {
-    extra_nonproduct_deps += [ "//third_party/perfetto:libprotozero" ]
-  }
   extra_deps = [
     "//third_party/icu:icui18n",
     "//third_party/icu:icuuc",
   ]
+  if (dart_support_perfetto) {
+    extra_deps += [ "//third_party/perfetto:libprotozero" ]
+  }
   extra_precompiler_deps = [
     # The Mach-O writer uses BoringSSL's SHA256 function for code signatures.
     "//third_party/boringssl",
@@ -123,10 +123,10 @@ library_for_all_configs_with_compiler("libdart_compiler") {
   include_dirs = [ ".." ]
 
   extra_nonproduct_deps = []
-  if (dart_support_perfetto) {
-    extra_nonproduct_deps += [ "//third_party/perfetto:libprotozero" ]
-  }
   extra_deps = []
+  if (dart_support_perfetto) {
+    extra_deps += [ "//third_party/perfetto:libprotozero" ]
+  }
   if (is_fuchsia) {
     extra_deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
   }
@@ -135,12 +135,12 @@ library_for_all_configs_with_compiler("libdart_compiler") {
 library_for_all_configs("libdart_lib") {
   target_type = "source_set"
   extra_nonproduct_deps = []
-  if (dart_support_perfetto) {
-    extra_nonproduct_deps += [ "//third_party/perfetto:libprotozero" ]
-  }
   extra_deps = []
   if (is_fuchsia) {
     extra_deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
+  }
+  if (dart_support_perfetto) {
+    extra_deps += [ "//third_party/perfetto:libprotozero" ]
   }
   include_dirs = [ ".." ]
   allsources = async_runtime_cc_files + concurrent_runtime_cc_files +

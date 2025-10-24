@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // functionFilter=test|roundTrip
+// globalFilter=DoesNotMatch
+// tableFilter=DoesNotMatch
 
 import 'dart:js_interop';
 

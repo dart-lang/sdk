@@ -3,29 +3,20 @@
     (field $field0 i32)))
   (type $JSStringImpl (sub final $#Top (struct
     (field $field0 i32)
-    (field $field1 externref))))
+    (field $_ref externref))))
   (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param externref) (result externref))
   (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
-  (global $S.a (import "S" "a") externref)
-  (global $"stringValueNullable initialized" (mut i32)
-    (i32.const 0))
-  (global $stringValueNullable (mut (ref null $JSStringImpl))
-    (ref.null none))
-  (global $"ktrue initialized" (mut i32)
-    (i32.const 0))
-  (global $ktrue (mut i32)
-    (i32.const 0))
-  (global $stringValue (mut (ref null $JSStringImpl))
-    (ref.null none))
-  (global $"C358 \"a\"" (ref $JSStringImpl)
-    (i32.const 4)
-    (global.get $S.a)
-    (struct.new $JSStringImpl))
+  (global $"stringValueNullable initialized" (mut i32) <...>)
+  (global $stringValueNullable (mut (ref null $JSStringImpl)) <...>)
+  (global $"ktrue initialized" (mut i32) <...>)
+  (global $ktrue (mut i32) <...>)
+  (global $stringValue (mut (ref null $JSStringImpl)) <...>)
+  (global $"C358 \"a\"" (ref $JSStringImpl) <...>)
   (func $new JSStringImpl.fromRef (param $var0 externref) (result (ref $JSStringImpl)) <...>)
   (func $"testStringConstant <noInline>"
     (local $var0 externref)
     global.get $"C358 \"a\""
-    struct.get $JSStringImpl $field1
+    struct.get $JSStringImpl $_ref
     call $"dart2wasm._274 (import)"
     local.tee $var0
     call $isDartNull
@@ -59,7 +50,7 @@
       br_on_non_null $label0
       call $"stringValue implicit getter"
     end $label0
-    struct.get $JSStringImpl $field1
+    struct.get $JSStringImpl $_ref
     call $"dart2wasm._274 (import)"
     local.tee $var0
     call $isDartNull

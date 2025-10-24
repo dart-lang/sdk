@@ -15,7 +15,7 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if defined(DART_INCLUDE_PROFILER)
 
 DECLARE_FLAG(bool, trace_thread_interrupter);
 
@@ -62,7 +62,7 @@ void ThreadInterrupter::RemoveSignalHandler() {
   SignalHandler::Remove();
 }
 
-#endif  // !PRODUCT
+#endif  // defined(DART_INCLUDE_PROFILER)
 
 }  // namespace dart
 

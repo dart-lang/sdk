@@ -27,10 +27,10 @@ const Map<String, String> severityEnumNames = <String, String>{
 
 /// Decoded messages from the `_fe_analyzer_shared` package's `messages.yaml`
 /// file.
-final Map<String, SharedErrorCodeInfo> feAnalyzerSharedMessages =
+final Map<String, SharedMessage> feAnalyzerSharedMessages =
     _loadCfeStyleMessages(
       feAnalyzerSharedPkgPath,
-      decodeMessage: SharedErrorCodeInfo.fromYaml,
+      decodeMessage: SharedMessage.fromYaml,
     );
 
 /// The path to the `fe_analyzer_shared` package.
@@ -40,16 +40,15 @@ final String feAnalyzerSharedPkgPath = normalize(
 
 /// Decoded messages from the `messages.yaml` files in the front end and
 /// `_fe_analyzer_shared`.
-final Map<String, CfeStyleErrorCodeInfo> frontEndAndSharedMessages = Map.from(
+final Map<String, CfeStyleMessage> frontEndAndSharedMessages = Map.from(
   frontEndMessages,
 )..addAll(feAnalyzerSharedMessages);
 
 /// Decoded messages from the front end's `messages.yaml` file.
-final Map<String, FrontEndErrorCodeInfo> frontEndMessages =
-    _loadCfeStyleMessages(
-      frontEndPkgPath,
-      decodeMessage: FrontEndErrorCodeInfo.fromYaml,
-    );
+final Map<String, FrontEndMessage> frontEndMessages = _loadCfeStyleMessages(
+  frontEndPkgPath,
+  decodeMessage: FrontEndMessage.fromYaml,
+);
 
 /// The path to the `front_end` package.
 final String frontEndPkgPath = normalize(
@@ -68,9 +67,9 @@ final RegExp placeholderPattern = RegExp(
   '#([-a-zA-Z0-9_]+)(?:%([0-9]*).([0-9]+))?',
 );
 
-/// A set of tables mapping between shared and analyzer error codes.
-final SharedToAnalyzerErrorCodeTables sharedToAnalyzerErrorCodeTables =
-    SharedToAnalyzerErrorCodeTables._(feAnalyzerSharedMessages);
+/// A set of tables mapping between shared and analyzer diagnostics.
+final SharedToAnalyzerDiagnosticTables sharedToAnalyzerDiagnosticTables =
+    SharedToAnalyzerDiagnosticTables._(feAnalyzerSharedMessages);
 
 /// Converts a template to an analyzer internal template string (which uses
 /// placeholders like `{0}`).
@@ -86,8 +85,8 @@ String convertTemplate(List<TemplatePart> template) {
 }
 
 /// Decodes a YAML object (in CFE style `messages.yaml` format) into a map from
-/// error name to [ErrorCodeInfo].
-Map<String, T> decodeCfeStyleMessagesYaml<T extends CfeStyleErrorCodeInfo>(
+/// diagnostic name to [Message].
+Map<String, T> decodeCfeStyleMessagesYaml<T extends CfeStyleMessage>(
   Object? yaml, {
   required T Function(YamlMap) decodeMessage,
   required String path,
@@ -101,19 +100,19 @@ Map<String, T> decodeCfeStyleMessagesYaml<T extends CfeStyleErrorCodeInfo>(
     problem('root node is not a map');
   }
   for (var entry in yaml.entries) {
-    var errorName = entry.key;
-    if (errorName is! String) {
-      problem('non-string error key ${json.encode(errorName)}');
+    var diagnosticName = entry.key;
+    if (diagnosticName is! String) {
+      problem('non-string diagnostic key ${json.encode(diagnosticName)}');
     }
-    var errorValue = entry.value;
-    if (errorValue is! YamlMap) {
-      problem('value associated with error $errorName is not a map');
+    var diagnosticValue = entry.value;
+    if (diagnosticValue is! YamlMap) {
+      problem('value associated with diagnostic $diagnosticName is not a map');
     }
     try {
-      result[errorName] = decodeMessage(errorValue);
+      result[diagnosticName] = decodeMessage(diagnosticValue);
     } catch (e, st) {
       Error.throwWithStackTrace(
-        'while processing $errorName from $path, $e',
+        'while processing $diagnosticName from $path, $e',
         st,
       );
     }
@@ -122,7 +121,7 @@ Map<String, T> decodeCfeStyleMessagesYaml<T extends CfeStyleErrorCodeInfo>(
 }
 
 /// Loads messages in CFE style `messages.yaml` format.
-Map<String, T> _loadCfeStyleMessages<T extends CfeStyleErrorCodeInfo>(
+Map<String, T> _loadCfeStyleMessages<T extends CfeStyleMessage>(
   String packagePath, {
   required T Function(YamlMap) decodeMessage,
 }) {
@@ -187,62 +186,62 @@ List<String> _splitText(
 /// This class implements [Comparable], so lists of it can be safely
 /// [List.sort]ed.
 class AnalyzerCode implements Comparable<AnalyzerCode> {
-  /// The class name.
-  final ErrorClassInfo errorClass;
+  /// The class containing the constant for this diagnostic.
+  final DiagnosticClassInfo diagnosticClass;
 
-  /// The error name.
+  /// The diagnostic name.
   ///
-  /// The error name is in "snake case", meaning it consists of words separated
-  /// by underscores. Those words might be lower case or upper case.
+  /// The diagnostic name is in "snake case", meaning it consists of words
+  /// separated by underscores. Those words might be lower case or upper case.
   ///
   // TODO(paulberry): change `messages.yaml` to consistently use lower snake
   // case.
-  final String snakeCaseErrorName;
+  final String snakeCaseName;
 
-  AnalyzerCode({required this.errorClass, required this.snakeCaseErrorName});
+  AnalyzerCode({required this.diagnosticClass, required this.snakeCaseName});
 
   /// The string that should be generated into analyzer source code to refer to
   /// this diagnostic code.
   String get analyzerCodeReference =>
-      [errorClass.name, camelCaseErrorName].join('.');
+      [diagnosticClass.name, camelCaseName].join('.');
 
-  /// The error name, converted to camel case.
-  String get camelCaseErrorName => snakeCaseErrorName.toCamelCase();
+  /// The diagnostic name, converted to camel case.
+  String get camelCaseName => snakeCaseName.toCamelCase();
 
   @override
-  int get hashCode => Object.hash(errorClass, snakeCaseErrorName);
+  int get hashCode => Object.hash(diagnosticClass, snakeCaseName);
 
   @override
   bool operator ==(Object other) =>
       other is AnalyzerCode &&
-      errorClass == other.errorClass &&
-      snakeCaseErrorName == other.snakeCaseErrorName;
+      diagnosticClass == other.diagnosticClass &&
+      snakeCaseName == other.snakeCaseName;
 
   @override
   int compareTo(AnalyzerCode other) {
-    // Compare the error classes by name. This works because we know that the
-    // error classes are unique (this is verified by the `ErrorClassInfo.byName`
-    // method).
-    var className = errorClass.name;
-    var otherClassName = other.errorClass.name;
+    // Compare the diagnostic classes by name. This works because we know that
+    // the diagnostic classes are unique (this is verified by the
+    // `DiagnosticClassInfo.byName` method).
+    var className = diagnosticClass.name;
+    var otherClassName = other.diagnosticClass.name;
     if (className.compareTo(otherClassName) case var result when result != 0) {
       return result;
     }
-    return snakeCaseErrorName.compareTo(other.snakeCaseErrorName);
+    return snakeCaseName.compareTo(other.snakeCaseName);
   }
 
   @override
-  String toString() => [errorClass.name, snakeCaseErrorName].join('.');
+  String toString() => [diagnosticClass.name, snakeCaseName].join('.');
 }
 
-/// In-memory representation of error code information obtained from a
+/// In-memory representation of diagnostic information obtained from a
 /// `messages.yaml` file in `pkg/front_end` or `pkg/_fe_analyzer_shared`.
-abstract class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
-  /// The name of the [CfeSeverity] constant describing this error code's CFE
+abstract class CfeStyleMessage extends Message {
+  /// The name of the [CfeSeverity] constant describing this diagnostic's CFE
   /// severity.
   final String? cfeSeverity;
 
-  CfeStyleErrorCodeInfo.fromYaml(YamlMap yaml)
+  CfeStyleMessage.fromYaml(YamlMap yaml)
     : cfeSeverity = _decodeSeverity(yaml['severity']),
       super.fromYaml(yaml) {
     if (yaml['problemMessage'] == null) {
@@ -273,388 +272,47 @@ sealed class Conversion {
   /// having the given [name] and [type].
   ///
   /// If no conversion is needed, returns `null`.
-  String? toCode({required String name, required ErrorCodeParameterType type});
+  String? toCode({required String name, required DiagnosticParameterType type});
 }
 
-/// Information about a class derived from `ErrorCode`.
-class ErrorClassInfo {
-  static final Map<String, ErrorClassInfo> _errorClassesByName = () {
-    var result = <String, ErrorClassInfo>{};
-    for (var info in errorClasses) {
+/// Information about a class derived from `DiagnosticCode`.
+class DiagnosticClassInfo {
+  static final Map<String, DiagnosticClassInfo> _diagnosticClassesByName = () {
+    var result = <String, DiagnosticClassInfo>{};
+    for (var info in diagnosticClasses) {
       if (result.containsKey(info.name)) {
-        throw 'Duplicate error class name: ${json.encode(info.name)}';
+        throw 'Duplicate diagnostic class name: ${json.encode(info.name)}';
       }
       result[info.name] = info;
     }
     return result;
   }();
 
-  static String get _allErrorClassNames =>
-      (_errorClassesByName.keys.toList()..sort()).map(json.encode).join(', ');
+  static String get _allDiagnosticClassNames =>
+      (_diagnosticClassesByName.keys.toList()..sort())
+          .map(json.encode)
+          .join(', ');
 
   /// The name of this class.
   final String name;
 
-  const ErrorClassInfo({required this.name});
+  const DiagnosticClassInfo({required this.name});
 
-  static ErrorClassInfo byName(String name) =>
-      _errorClassesByName[name] ??
-      (throw 'No error class named ${json.encode(name)}. Possible names: '
-          '$_allErrorClassNames');
-}
-
-/// In-memory representation of error code information obtained from either the
-/// analyzer or the front end's `messages.yaml` file.  This class contains the
-/// common functionality supported by both formats.
-abstract class ErrorCodeInfo {
-  /// If present, a documentation comment that should be associated with the
-  /// error in code generated output.
-  final String? comment;
-
-  /// If the error code has an associated correctionMessage, the template for
-  /// it.
-  final List<TemplatePart>? correctionMessage;
-
-  /// If non-null, the deprecation message for this error code.
-  final String? deprecatedMessage;
-
-  /// If present, user-facing documentation for the error.
-  final String? documentation;
-
-  /// Whether diagnostics with this code have documentation for them that has
-  /// been published.
-  ///
-  /// `null` if the YAML doesn't contain this information.
-  final bool? hasPublishedDocs;
-
-  /// Indicates whether this error is caused by an unresolved identifier.
-  final bool isUnresolvedIdentifier;
-
-  /// The problemMessage for the error code.
-  final List<TemplatePart> problemMessage;
-
-  /// If present, the SDK version this error code stopped being reported in.
-  /// If not null, error codes will not be generated for this error.
-  final String? removedIn;
-
-  /// If present, indicates that this error code has a special name for
-  /// presentation to the user, that is potentially shared with other error
-  /// codes.
-  final String? sharedName;
-
-  /// If present, indicates that this error code has been renamed from
-  /// [previousName] to its current name (or [sharedName]).
-  final String? previousName;
-
-  /// Map describing the parameters for this error code, obtained from the
-  /// `parameters` entry in the yaml file.
-  ///
-  /// Map keys are parameter names. Map values are [ErrorCodeParameter] objects.
-  final Map<String, ErrorCodeParameter> parameters;
-
-  /// The raw YAML node that this `ErrorCodeInfo` was parsed from, or `null` if
-  /// this `ErrorCodeInfo` was created without reference to a raw YAML node.
-  ///
-  /// This exists to make it easier for automated scripts to edit the YAML
-  /// source.
-  final YamlMap? yamlNode;
-
-  ErrorCodeInfo({
-    this.comment,
-    this.documentation,
-    this.hasPublishedDocs,
-    this.isUnresolvedIdentifier = false,
-    this.sharedName,
-    required Object? problemMessageYaml,
-    required Object? correctionMessageYaml,
-    this.deprecatedMessage,
-    this.previousName,
-    this.removedIn,
-    required this.parameters,
-    this.yamlNode,
-  }) : problemMessage =
-           _decodeMessage(
-             problemMessageYaml,
-             parameters: parameters,
-             kind: 'problemMessage',
-           ) ??
-           [],
-       correctionMessage = _decodeMessage(
-         correctionMessageYaml,
-         parameters: parameters,
-         kind: 'correctionMessage',
-       );
-
-  /// Decodes an [ErrorCodeInfo] object from its YAML representation.
-  ErrorCodeInfo.fromYaml(YamlMap yaml)
-    : this(
-        comment: yaml['comment'] as String?,
-        correctionMessageYaml: yaml['correctionMessage'],
-        deprecatedMessage: yaml['deprecatedMessage'] as String?,
-        documentation: yaml['documentation'] as String?,
-        hasPublishedDocs: yaml['hasPublishedDocs'] as bool?,
-        isUnresolvedIdentifier:
-            yaml['isUnresolvedIdentifier'] as bool? ?? false,
-        problemMessageYaml: yaml['problemMessage'],
-        sharedName: yaml['sharedName'] as String?,
-        removedIn: yaml['removedIn'] as String?,
-        previousName: yaml['previousName'] as String?,
-        parameters: _decodeParameters(yaml['parameters']),
-        yamlNode: yaml,
-      );
-
-  /// If this error is no longer reported and
-  /// its error codes should no longer be generated.
-  bool get isRemoved => removedIn != null;
-
-  void outputConstantHeader(StringSink out) {
-    out.write(toAnalyzerComments(indent: '  '));
-    if (deprecatedMessage != null) {
-      out.writeln('  @Deprecated("$deprecatedMessage")');
-    }
-  }
-
-  /// Generates a dart declaration for this error code, suitable for inclusion
-  /// in the error class [className].
-  ///
-  /// [diagnosticCode] is the name of the error code to be generated.
-  void toAnalyzerCode(
-    GeneratedErrorClassInfo errorClassInfo,
-    String diagnosticCode, {
-    String? sharedNameReference,
-    required MemberAccumulator memberAccumulator,
-  }) {
-    var correctionMessage = this.correctionMessage;
-    var parameters = this.parameters;
-    var usesParameters = [problemMessage, correctionMessage].any(
-      (value) =>
-          value != null && value.any((part) => part is TemplateParameterPart),
-    );
-    var constantName = diagnosticCode.toCamelCase();
-    String className;
-    String templateParameters = '';
-    String? withArgumentsName;
-    if (parameters.isNotEmpty && !usesParameters) {
-      throw StateError(
-        'Error code declares parameters using a `parameters` entry, but '
-        "doesn't use them",
-      );
-    } else if (parameters.values.any((p) => !p.type.isSupportedByAnalyzer)) {
-      // Do not generate literate API yet.
-      className = errorClassInfo.name;
-    } else if (parameters.isNotEmpty) {
-      // Parameters are present so generate a diagnostic template (with
-      // `.withArguments` support).
-      className = errorClassInfo.templateName;
-      var withArgumentsParams = parameters.entries
-          .map((p) => 'required ${p.value.type.analyzerName} ${p.key}')
-          .join(', ');
-      var argumentNames = parameters.keys.join(', ');
-      var pascalCaseName = diagnosticCode.toPascalCase();
-      withArgumentsName = '_withArguments$pascalCaseName';
-      templateParameters =
-          '<LocatableDiagnostic Function({$withArgumentsParams})>';
-      var newIfNeeded = errorClassInfo.file.shouldUseExplicitNewOrConst
-          ? 'new '
-          : '';
-      memberAccumulator.staticMethods[withArgumentsName] =
-          '''
-static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
-  return ${newIfNeeded}LocatableDiagnosticImpl(
-    ${errorClassInfo.name}.$constantName, [$argumentNames]);
-}''';
-    } else {
-      // Parameters are not present so generate a "withoutArguments" constant.
-      className = errorClassInfo.withoutArgumentsName;
-    }
-
-    var constant = StringBuffer();
-    outputConstantHeader(constant);
-    constant.writeln(
-      '  static const $className$templateParameters $constantName =',
-    );
-    if (errorClassInfo.file.shouldUseExplicitNewOrConst) {
-      constant.writeln('const ');
-    }
-    constant.writeln('$className(');
-    constant.writeln(
-      '${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
-    );
-    var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
-    var messageAsCode = convertTemplate(problemMessage);
-    var messageLines = _splitText(
-      messageAsCode,
-      maxWidth: maxWidth,
-      firstLineWidth: maxWidth + 4,
-    );
-    constant.writeln('${messageLines.map(_encodeString).join('\n')},');
-    if (correctionMessage != null) {
-      constant.write('correctionMessage: ');
-      var code = convertTemplate(correctionMessage);
-      var codeLines = _splitText(code, maxWidth: maxWidth);
-      constant.writeln('${codeLines.map(_encodeString).join('\n')},');
-    }
-    if (hasPublishedDocs ?? false) {
-      constant.writeln('hasPublishedDocs:true,');
-    }
-    if (isUnresolvedIdentifier) {
-      constant.writeln('isUnresolvedIdentifier:true,');
-    }
-    if (sharedName != null) {
-      constant.writeln("uniqueName: '$diagnosticCode',");
-    }
-    if (withArgumentsName != null) {
-      constant.writeln('withArguments: $withArgumentsName,');
-    }
-    constant.writeln('expectedTypes: ${_computeExpectedTypes()},');
-    constant.writeln(');');
-    memberAccumulator.constants[constantName] = constant.toString();
-
-    if (errorClassInfo.deprecatedSnakeCaseNames.contains(diagnosticCode)) {
-      memberAccumulator.constants[diagnosticCode] =
-          '''
-  @Deprecated("Please use $constantName")
-  static const ${errorClassInfo.name} $diagnosticCode = $constantName;
-''';
-    }
-  }
-
-  /// Generates doc comments for this error code.
-  String toAnalyzerComments({String indent = ''}) {
-    // Start with the comment specified in `messages.yaml`.
-    var out = StringBuffer();
-    List<String> commentLines = switch (comment) {
-      null || '' => [],
-      var c => c.split('\n'),
-    };
-
-    // Add a `Parameters:` section to the bottom of the comment if appropriate.
-    switch (parameters) {
-      case Map(isEmpty: true):
-        if (commentLines.isNotEmpty) commentLines.add('');
-        commentLines.add('No parameters.');
-      default:
-        if (commentLines.isNotEmpty) commentLines.add('');
-        commentLines.add('Parameters:');
-        for (var MapEntry(key: name, value: p) in parameters.entries) {
-          var prefix = '${p.type.messagesYamlName} $name: ';
-          var extraIndent = ' ' * prefix.length;
-          var firstLineWidth = 80 - 4 - indent.length;
-          var lines = _splitText(
-            '$prefix${p.comment}',
-            maxWidth: firstLineWidth - prefix.length,
-            firstLineWidth: firstLineWidth,
-          );
-          commentLines.add(lines[0]);
-          for (var line in lines.skip(1)) {
-            commentLines.add('$extraIndent$line');
-          }
-        }
-    }
-
-    // Indent the result and prefix with `///`.
-    for (var line in commentLines) {
-      out.writeln('$indent///${line.isEmpty ? '' : ' '}$line');
-    }
-    return out.toString();
-  }
-
-  String _computeExpectedTypes() {
-    var expectedTypes = [
-      for (var parameter in parameters.values)
-        'ExpectedType.${parameter.type.name}',
-    ];
-    return '[${expectedTypes.join(', ')}]';
-  }
-
-  String _encodeString(String s) {
-    // JSON encoding gives us mostly what we need.
-    var jsonEncoded = json.encode(s);
-    // But we also need to escape `$`.
-    return jsonEncoded.replaceAll(r'$', r'\$');
-  }
-
-  static List<TemplatePart>? _decodeMessage(
-    Object? rawMessage, {
-    required Map<String, ErrorCodeParameter> parameters,
-    required String kind,
-  }) {
-    switch (rawMessage) {
-      case null:
-        return null;
-      case String():
-        // Remove trailing whitespace. This is necessary for templates defined
-        // with `|` (verbatim) as they always contain a trailing newline that we
-        // don't want.
-        var text = rawMessage.trimRight();
-        if (text.contains(oldPlaceholderPattern)) {
-          throw StateError(
-            '$kind is ${json.encode(text)}, which contains an old-style '
-            'analyzer placeholder pattern. Please convert to #NAME format.',
-          );
-        }
-
-        var template = <TemplatePart>[];
-        var i = 0;
-        for (var match in placeholderPattern.allMatches(text)) {
-          var matchStart = match.start;
-          if (matchStart > i) {
-            template.add(TemplateLiteralPart(text.substring(i, matchStart)));
-          }
-          template.add(
-            TemplateParameterPart.fromMatch(match, parameters: parameters),
-          );
-          i = match.end;
-        }
-        if (text.length > i) {
-          template.add(TemplateLiteralPart(text.substring(i)));
-        }
-        return template;
-      default:
-        throw 'Bad message type: ${rawMessage.runtimeType}';
-    }
-  }
-
-  static Map<String, ErrorCodeParameter> _decodeParameters(Object? yaml) {
-    if (yaml == null) {
-      throw StateError('Missing parameters section');
-    }
-    if (yaml == 'none') return const {};
-    yaml as Map<Object?, Object?>;
-    var result = <String, ErrorCodeParameter>{};
-    var index = 0;
-    for (var MapEntry(:key, :value) in yaml.entries) {
-      switch ((key as String).split(' ')) {
-        case [var type, var name]:
-          if (result.containsKey(name)) {
-            throw StateError('Duplicate parameter name: $name');
-          }
-          result[name] = ErrorCodeParameter(
-            name: name,
-            type: ErrorCodeParameterType.fromMessagesYamlName(type),
-            comment: value as String,
-            index: index++,
-          );
-        default:
-          throw StateError(
-            'Malformed parameter key (should be `TYPE NAME`): '
-            '${json.encode(key)}',
-          );
-      }
-    }
-    return result;
-  }
+  static DiagnosticClassInfo byName(String name) =>
+      _diagnosticClassesByName[name] ??
+      (throw 'No diagnostic class named ${json.encode(name)}. Possible names: '
+          '$_allDiagnosticClassNames');
 }
 
 /// In-memory representation of a single key/value pair from the `parameters`
-/// map for an error code.
-class ErrorCodeParameter {
+/// map for a diagnostic.
+class DiagnosticParameter {
   final String name;
-  final ErrorCodeParameterType type;
+  final DiagnosticParameterType type;
   final String comment;
   final int index;
 
-  ErrorCodeParameter({
+  DiagnosticParameter({
     required this.name,
     required this.type,
     required this.comment,
@@ -664,7 +322,7 @@ class ErrorCodeParameter {
 
 /// In-memory representation of the type of a single diagnostic code's
 /// parameter.
-enum ErrorCodeParameterType {
+enum DiagnosticParameterType {
   character(
     messagesYamlName: 'Character',
     cfeName: 'String',
@@ -765,15 +423,15 @@ enum ErrorCodeParameterType {
   ///   sufficient.
   final Conversion? cfeConversion;
 
-  const ErrorCodeParameterType({
+  const DiagnosticParameterType({
     required this.messagesYamlName,
     String? analyzerName,
     this.cfeName,
     this.cfeConversion,
   }) : _analyzerName = analyzerName;
 
-  /// Decodes a type name from `messages.yaml` into an [ErrorCodeParameterName].
-  factory ErrorCodeParameterType.fromMessagesYamlName(String name) =>
+  /// Decodes a type name from `messages.yaml` into a [DiagnosticParameterType].
+  factory DiagnosticParameterType.fromMessagesYamlName(String name) =>
       _messagesYamlNameToValue[name] ??
       (throw StateError('Unknown type name: $name'));
 
@@ -786,9 +444,9 @@ enum ErrorCodeParameterType {
   bool get isSupportedByAnalyzer => _analyzerName != null;
 }
 
-/// In-memory representation of error code information obtained from the file
+/// In-memory representation of diagnostic information obtained from the file
 /// `pkg/front_end/messages.yaml`.
-class FrontEndErrorCodeInfo extends CfeStyleErrorCodeInfo {
+class FrontEndMessage extends CfeStyleMessage {
   /// The value of the `pseudoSharedCode` property in
   /// `pkg/front_end/messages.yaml`.
   ///
@@ -801,7 +459,7 @@ class FrontEndErrorCodeInfo extends CfeStyleErrorCodeInfo {
   // codes.
   final String? pseudoSharedCode;
 
-  FrontEndErrorCodeInfo.fromYaml(YamlMap yaml)
+  FrontEndMessage.fromYaml(YamlMap yaml)
     : pseudoSharedCode = yaml['pseudoSharedCode'] as String?,
       super.fromYaml(yaml) {
     if (yaml['analyzerCode'] != null) {
@@ -810,33 +468,33 @@ class FrontEndErrorCodeInfo extends CfeStyleErrorCodeInfo {
   }
 }
 
-/// Information about a code generated class derived from `ErrorCode`.
-class GeneratedErrorClassInfo extends ErrorClassInfo {
+/// Information about a code generated class derived from `DiagnosticCode`.
+class GeneratedDiagnosticClassInfo extends DiagnosticClassInfo {
   /// The generated file containing this class.
-  final GeneratedErrorCodeFile file;
+  final GeneratedDiagnosticFile file;
 
-  /// The severity of errors in this class, or `null` if the severity should be
-  /// based on the [type] of the error.
+  /// The severity of diagnostics in this class, or `null` if the severity
+  /// should be based on the [type] of the diagnostic.
   final String? severity;
 
-  /// The type of errors in this class.
+  /// The type of diagnostics in this class.
   final String type;
 
-  /// The names of any errors which are relied upon by analyzer clients, and
-  /// therefore will need their "snake case" form preserved (with a deprecation
-  /// notice) after migration to camel case error codes.
+  /// The names of any diagnostics which are relied upon by analyzer clients,
+  /// and therefore will need their "snake case" form preserved (with a
+  /// deprecation notice) after migration to camel case diagnostic codes.
   final Set<String> deprecatedSnakeCaseNames;
 
-  /// If `true` (the default), error codes of this class will be included in the
-  /// automatically-generated `diagnosticCodeValues` list.
+  /// If `true` (the default), diagnostic codes of this class will be included
+  /// in the automatically-generated `diagnosticCodeValues` list.
   final bool includeInDiagnosticCodeValues;
 
-  /// Documentation comment to generate for the error class.
+  /// Documentation comment to generate for the diagnostic class.
   ///
   /// If no documentation comment is needed, this should be the empty string.
   final String comment;
 
-  const GeneratedErrorClassInfo({
+  const GeneratedDiagnosticClassInfo({
     required this.file,
     required super.name,
     this.severity,
@@ -846,7 +504,7 @@ class GeneratedErrorClassInfo extends ErrorClassInfo {
     this.comment = '',
   });
 
-  /// Generates the code to compute the severity of errors of this class.
+  /// Generates the code to compute the severity of diagnostics of this class.
   String get severityCode {
     var severity = this.severity;
     if (severity == null) {
@@ -858,7 +516,7 @@ class GeneratedErrorClassInfo extends ErrorClassInfo {
 
   String get templateName => '${_baseName}Template';
 
-  /// Generates the code to compute the type of errors of this class.
+  /// Generates the code to compute the type of diagnostics of this class.
   String get typeCode => 'DiagnosticType.$type';
 
   String get withoutArgumentsName => '${_baseName}WithoutArguments';
@@ -873,8 +531,8 @@ class GeneratedErrorClassInfo extends ErrorClassInfo {
   }
 }
 
-/// Representation of a single file containing generated error codes.
-class GeneratedErrorCodeFile {
+/// Representation of a single file containing generated diagnostics.
+class GeneratedDiagnosticFile {
   /// The file path (relative to the SDK's `pkg` directory) of the generated
   /// file.
   final String path;
@@ -888,7 +546,7 @@ class GeneratedErrorCodeFile {
 
   final bool shouldIgnorePreferSingleQuotes;
 
-  const GeneratedErrorCodeFile({
+  const GeneratedDiagnosticFile({
     required this.path,
     required this.parentLibrary,
     this.shouldUseExplicitNewOrConst = false,
@@ -911,8 +569,353 @@ class LabelerConversion implements Conversion {
       other is LabelerConversion && other.methodName == methodName;
 
   @override
-  String toCode({required String name, required ErrorCodeParameterType type}) =>
-      'labeler.$methodName($name)';
+  String toCode({
+    required String name,
+    required DiagnosticParameterType type,
+  }) => 'labeler.$methodName($name)';
+}
+
+/// In-memory representation of diagnostic information obtained from either the
+/// analyzer or the front end's `messages.yaml` file.  This class contains the
+/// common functionality supported by both formats.
+abstract class Message {
+  /// If present, a documentation comment that should be associated with the
+  /// diagnostic in code generated output.
+  final String? comment;
+
+  /// If the diagnostic has an associated correctionMessage, the template for
+  /// it.
+  final List<TemplatePart>? correctionMessage;
+
+  /// If non-null, the deprecation message for this error code.
+  final String? deprecatedMessage;
+
+  /// If present, user-facing documentation for the error.
+  final String? documentation;
+
+  /// Whether diagnostics with this code have documentation for them that has
+  /// been published.
+  ///
+  /// `null` if the YAML doesn't contain this information.
+  final bool? hasPublishedDocs;
+
+  /// Indicates whether this error is caused by an unresolved identifier.
+  final bool isUnresolvedIdentifier;
+
+  /// The problemMessage for the error code.
+  final List<TemplatePart> problemMessage;
+
+  /// If present, the SDK version this error code stopped being reported in.
+  /// If not null, error codes will not be generated for this error.
+  final String? removedIn;
+
+  /// If present, indicates that this error code has a special name for
+  /// presentation to the user, that is potentially shared with other error
+  /// codes.
+  final String? sharedName;
+
+  /// If present, indicates that this error code has been renamed from
+  /// [previousName] to its current name (or [sharedName]).
+  final String? previousName;
+
+  /// Map describing the parameters for this diagnostic, obtained from the
+  /// `parameters` entry in the yaml file.
+  ///
+  /// Map keys are parameter names. Map values are [DiagnosticParameter] objects.
+  final Map<String, DiagnosticParameter> parameters;
+
+  /// The raw YAML node that this [Message] was parsed from, or `null` if this
+  /// [Message] was created without reference to a raw YAML node.
+  ///
+  /// This exists to make it easier for automated scripts to edit the YAML
+  /// source.
+  final YamlMap? yamlNode;
+
+  Message({
+    this.comment,
+    this.documentation,
+    this.hasPublishedDocs,
+    this.isUnresolvedIdentifier = false,
+    this.sharedName,
+    required Object? problemMessageYaml,
+    required Object? correctionMessageYaml,
+    this.deprecatedMessage,
+    this.previousName,
+    this.removedIn,
+    required this.parameters,
+    this.yamlNode,
+  }) : problemMessage =
+           _decodeMessage(
+             problemMessageYaml,
+             parameters: parameters,
+             kind: 'problemMessage',
+           ) ??
+           [],
+       correctionMessage = _decodeMessage(
+         correctionMessageYaml,
+         parameters: parameters,
+         kind: 'correctionMessage',
+       );
+
+  /// Decodes an [Message] object from its YAML representation.
+  Message.fromYaml(YamlMap yaml)
+    : this(
+        comment: yaml['comment'] as String?,
+        correctionMessageYaml: yaml['correctionMessage'],
+        deprecatedMessage: yaml['deprecatedMessage'] as String?,
+        documentation: yaml['documentation'] as String?,
+        hasPublishedDocs: yaml['hasPublishedDocs'] as bool?,
+        isUnresolvedIdentifier:
+            yaml['isUnresolvedIdentifier'] as bool? ?? false,
+        problemMessageYaml: yaml['problemMessage'],
+        sharedName: yaml['sharedName'] as String?,
+        removedIn: yaml['removedIn'] as String?,
+        previousName: yaml['previousName'] as String?,
+        parameters: _decodeParameters(yaml['parameters']),
+        yamlNode: yaml,
+      );
+
+  /// If this diagnostic is no longer reported and
+  /// its diagnostic codes should no longer be generated.
+  bool get isRemoved => removedIn != null;
+
+  void outputConstantHeader(StringSink out) {
+    out.write(toAnalyzerComments(indent: '  '));
+    if (deprecatedMessage != null) {
+      out.writeln('  @Deprecated("$deprecatedMessage")');
+    }
+  }
+
+  /// Generates a dart declaration for this diagnostic, suitable for inclusion
+  /// in the diagnostic class [className].
+  ///
+  /// [diagnosticCode] is the name of the diagnostic to be generated.
+  void toAnalyzerCode(
+    GeneratedDiagnosticClassInfo diagnosticClassInfo,
+    String diagnosticCode, {
+    String? sharedNameReference,
+    required MemberAccumulator memberAccumulator,
+  }) {
+    var correctionMessage = this.correctionMessage;
+    var parameters = this.parameters;
+    var usesParameters = [problemMessage, correctionMessage].any(
+      (value) =>
+          value != null && value.any((part) => part is TemplateParameterPart),
+    );
+    var constantName = diagnosticCode.toCamelCase();
+    String className;
+    String templateParameters = '';
+    String? withArgumentsName;
+    if (parameters.isNotEmpty && !usesParameters) {
+      throw StateError(
+        'Error code declares parameters using a `parameters` entry, but '
+        "doesn't use them",
+      );
+    } else if (parameters.values.any((p) => !p.type.isSupportedByAnalyzer)) {
+      // Do not generate literate API yet.
+      className = diagnosticClassInfo.name;
+    } else if (parameters.isNotEmpty) {
+      // Parameters are present so generate a diagnostic template (with
+      // `.withArguments` support).
+      className = diagnosticClassInfo.templateName;
+      var withArgumentsParams = parameters.entries
+          .map((p) => 'required ${p.value.type.analyzerName} ${p.key}')
+          .join(', ');
+      var argumentNames = parameters.keys.join(', ');
+      var pascalCaseName = diagnosticCode.toPascalCase();
+      withArgumentsName = '_withArguments$pascalCaseName';
+      templateParameters =
+          '<LocatableDiagnostic Function({$withArgumentsParams})>';
+      var newIfNeeded = diagnosticClassInfo.file.shouldUseExplicitNewOrConst
+          ? 'new '
+          : '';
+      memberAccumulator.staticMethods[withArgumentsName] =
+          '''
+static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
+  return ${newIfNeeded}LocatableDiagnosticImpl(
+    ${diagnosticClassInfo.name}.$constantName, [$argumentNames]);
+}''';
+    } else {
+      // Parameters are not present so generate a "withoutArguments" constant.
+      className = diagnosticClassInfo.withoutArgumentsName;
+    }
+
+    var constant = StringBuffer();
+    outputConstantHeader(constant);
+    constant.writeln(
+      '  static const $className$templateParameters $constantName =',
+    );
+    if (diagnosticClassInfo.file.shouldUseExplicitNewOrConst) {
+      constant.writeln('const ');
+    }
+    constant.writeln('$className(');
+    constant.writeln(
+      '${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
+    );
+    var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
+    var messageAsCode = convertTemplate(problemMessage);
+    var messageLines = _splitText(
+      messageAsCode,
+      maxWidth: maxWidth,
+      firstLineWidth: maxWidth + 4,
+    );
+    constant.writeln('${messageLines.map(_encodeString).join('\n')},');
+    if (correctionMessage != null) {
+      constant.write('correctionMessage: ');
+      var code = convertTemplate(correctionMessage);
+      var codeLines = _splitText(code, maxWidth: maxWidth);
+      constant.writeln('${codeLines.map(_encodeString).join('\n')},');
+    }
+    if (hasPublishedDocs ?? false) {
+      constant.writeln('hasPublishedDocs:true,');
+    }
+    if (isUnresolvedIdentifier) {
+      constant.writeln('isUnresolvedIdentifier:true,');
+    }
+    if (sharedName != null) {
+      constant.writeln("uniqueName: '$diagnosticCode',");
+    }
+    if (withArgumentsName != null) {
+      constant.writeln('withArguments: $withArgumentsName,');
+    }
+    constant.writeln('expectedTypes: ${_computeExpectedTypes()},');
+    constant.writeln(');');
+    memberAccumulator.constants[constantName] = constant.toString();
+
+    if (diagnosticClassInfo.deprecatedSnakeCaseNames.contains(diagnosticCode)) {
+      memberAccumulator.constants[diagnosticCode] =
+          '''
+  @Deprecated("Please use $constantName")
+  static const ${diagnosticClassInfo.name} $diagnosticCode = $constantName;
+''';
+    }
+  }
+
+  /// Generates doc comments for this error code.
+  String toAnalyzerComments({String indent = ''}) {
+    // Start with the comment specified in `messages.yaml`.
+    var out = StringBuffer();
+    List<String> commentLines = switch (comment) {
+      null || '' => [],
+      var c => c.split('\n'),
+    };
+
+    // Add a `Parameters:` section to the bottom of the comment if appropriate.
+    switch (parameters) {
+      case Map(isEmpty: true):
+        if (commentLines.isNotEmpty) commentLines.add('');
+        commentLines.add('No parameters.');
+      default:
+        if (commentLines.isNotEmpty) commentLines.add('');
+        commentLines.add('Parameters:');
+        for (var MapEntry(key: name, value: p) in parameters.entries) {
+          var prefix = '${p.type.messagesYamlName} $name: ';
+          var extraIndent = ' ' * prefix.length;
+          var firstLineWidth = 80 - 4 - indent.length;
+          var lines = _splitText(
+            '$prefix${p.comment}',
+            maxWidth: firstLineWidth - prefix.length,
+            firstLineWidth: firstLineWidth,
+          );
+          commentLines.add(lines[0]);
+          for (var line in lines.skip(1)) {
+            commentLines.add('$extraIndent$line');
+          }
+        }
+    }
+
+    // Indent the result and prefix with `///`.
+    for (var line in commentLines) {
+      out.writeln('$indent///${line.isEmpty ? '' : ' '}$line');
+    }
+    return out.toString();
+  }
+
+  String _computeExpectedTypes() {
+    var expectedTypes = [
+      for (var parameter in parameters.values)
+        'ExpectedType.${parameter.type.name}',
+    ];
+    return '[${expectedTypes.join(', ')}]';
+  }
+
+  String _encodeString(String s) {
+    // JSON encoding gives us mostly what we need.
+    var jsonEncoded = json.encode(s);
+    // But we also need to escape `$`.
+    return jsonEncoded.replaceAll(r'$', r'\$');
+  }
+
+  static List<TemplatePart>? _decodeMessage(
+    Object? rawMessage, {
+    required Map<String, DiagnosticParameter> parameters,
+    required String kind,
+  }) {
+    switch (rawMessage) {
+      case null:
+        return null;
+      case String():
+        // Remove trailing whitespace. This is necessary for templates defined
+        // with `|` (verbatim) as they always contain a trailing newline that we
+        // don't want.
+        var text = rawMessage.trimRight();
+        if (text.contains(oldPlaceholderPattern)) {
+          throw StateError(
+            '$kind is ${json.encode(text)}, which contains an old-style '
+            'analyzer placeholder pattern. Please convert to #NAME format.',
+          );
+        }
+
+        var template = <TemplatePart>[];
+        var i = 0;
+        for (var match in placeholderPattern.allMatches(text)) {
+          var matchStart = match.start;
+          if (matchStart > i) {
+            template.add(TemplateLiteralPart(text.substring(i, matchStart)));
+          }
+          template.add(
+            TemplateParameterPart.fromMatch(match, parameters: parameters),
+          );
+          i = match.end;
+        }
+        if (text.length > i) {
+          template.add(TemplateLiteralPart(text.substring(i)));
+        }
+        return template;
+      default:
+        throw 'Bad message type: ${rawMessage.runtimeType}';
+    }
+  }
+
+  static Map<String, DiagnosticParameter> _decodeParameters(Object? yaml) {
+    if (yaml == null) {
+      throw StateError('Missing parameters section');
+    }
+    if (yaml == 'none') return const {};
+    yaml as Map<Object?, Object?>;
+    var result = <String, DiagnosticParameter>{};
+    var index = 0;
+    for (var MapEntry(:key, :value) in yaml.entries) {
+      switch ((key as String).split(' ')) {
+        case [var type, var name]:
+          if (result.containsKey(name)) {
+            throw StateError('Duplicate parameter name: $name');
+          }
+          result[name] = DiagnosticParameter(
+            name: name,
+            type: DiagnosticParameterType.fromMessagesYamlName(type),
+            comment: value as String,
+            index: index++,
+          );
+        default:
+          throw StateError(
+            'Malformed parameter key (should be `TYPE NAME`): '
+            '${json.encode(key)}',
+          );
+      }
+    }
+    return result;
+  }
 }
 
 /// A [Conversion] that acts on [num], applying formatting parameters specified
@@ -953,8 +956,11 @@ class NumericConversion implements Conversion {
       other.padWithZeros == padWithZeros;
 
   @override
-  String? toCode({required String name, required ErrorCodeParameterType type}) {
-    if (type != ErrorCodeParameterType.num) {
+  String? toCode({
+    required String name,
+    required DiagnosticParameterType type,
+  }) {
+    if (type != DiagnosticParameterType.num) {
       throw 'format suffix may only be applied to parameters of type num';
     }
     return 'conversions.formatNumber($name, fractionDigits: $fractionDigits, '
@@ -992,20 +998,20 @@ class NumericConversion implements Conversion {
   }
 }
 
-/// In-memory representation of error code information obtained from the file
+/// In-memory representation of diagnostic information obtained from the file
 /// `pkg/_fe_analyzer_shared/messages.yaml`.
-class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
-  /// The analyzer error code that corresponds to this shared error code.
+class SharedMessage extends CfeStyleMessage {
+  /// The analyzer diagnostic code that corresponds to this shared diagnostic.
   ///
-  /// Shared error codes are required to have exactly one analyzer error code
+  /// Shared diagnostics are required to have exactly one analyzer code
   /// associated with them.
   final AnalyzerCode analyzerCode;
 
-  SharedErrorCodeInfo.fromYaml(super.yaml)
+  SharedMessage.fromYaml(super.yaml)
     : analyzerCode = _decodeAnalyzerCode(
         (yaml['analyzerCode'] ??
                 (throw StateError(
-                  'Shared error codes must specify an analyzerCode.',
+                  'Shared diagnostics must specify an analyzerCode.',
                 )))
             as String,
       ),
@@ -1013,11 +1019,11 @@ class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
 
   static AnalyzerCode _decodeAnalyzerCode(String s) {
     switch (s.split('.')) {
-      case [var className, var errorName]
-          when errorName == errorName.toUpperCase():
+      case [var className, var snakeCaseName]
+          when snakeCaseName == snakeCaseName.toUpperCase():
         return AnalyzerCode(
-          errorClass: ErrorClassInfo.byName(className),
-          snakeCaseErrorName: errorName,
+          diagnosticClass: DiagnosticClassInfo.byName(className),
+          snakeCaseName: snakeCaseName,
         );
       default:
         throw StateError(
@@ -1028,35 +1034,35 @@ class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
   }
 }
 
-/// Data tables mapping between shared errors and their corresponding
-/// automatically generated analyzer errors.
-class SharedToAnalyzerErrorCodeTables {
-  /// Map whose values are the shared errors for which analyzer errors should be
-  /// automatically generated, and whose keys are the corresponding analyzer
-  /// error code.
-  final Map<AnalyzerCode, SharedErrorCodeInfo> analyzerCodeToInfo = {};
+/// Data tables mapping between shared diagnostics and their corresponding
+/// automatically generated analyzer diagnostics.
+class SharedToAnalyzerDiagnosticTables {
+  /// Map whose values are the shared diagnostics for which analyzer diagnostics
+  /// should be automatically generated, and whose keys are the corresponding
+  /// analyzer code.
+  final Map<AnalyzerCode, SharedMessage> analyzerCodeToMessage = {};
 
-  /// List of shared errors for which analyzer errors should be automatically
-  /// generated, sorted by analyzer code.
-  final List<SharedErrorCodeInfo> sortedSharedErrors = [];
+  /// List of shared diagnostics for which analyzer diagnostics should be
+  /// automatically generated, sorted by analyzer code.
+  final List<SharedMessage> sortedSharedDiagnostics = [];
 
-  SharedToAnalyzerErrorCodeTables._(Map<String, SharedErrorCodeInfo> messages) {
-    var infoToFrontEndCode = <SharedErrorCodeInfo, String>{};
+  SharedToAnalyzerDiagnosticTables._(Map<String, SharedMessage> messages) {
+    var infoToFrontEndCode = <SharedMessage, String>{};
     for (var entry in messages.entries) {
-      var errorCodeInfo = entry.value;
+      var message = entry.value;
       var frontEndCode = entry.key;
-      sortedSharedErrors.add(errorCodeInfo);
-      infoToFrontEndCode[errorCodeInfo] = frontEndCode;
-      var analyzerCode = errorCodeInfo.analyzerCode;
-      var previousEntryForAnalyzerCode = analyzerCodeToInfo[analyzerCode];
+      sortedSharedDiagnostics.add(message);
+      infoToFrontEndCode[message] = frontEndCode;
+      var analyzerCode = message.analyzerCode;
+      var previousEntryForAnalyzerCode = analyzerCodeToMessage[analyzerCode];
       if (previousEntryForAnalyzerCode != null) {
         throw 'Analyzer code $analyzerCode used by both '
             '${infoToFrontEndCode[previousEntryForAnalyzerCode]} and '
             '$frontEndCode';
       }
-      analyzerCodeToInfo[analyzerCode] = errorCodeInfo;
+      analyzerCodeToMessage[analyzerCode] = message;
     }
-    sortedSharedErrors.sortBy((e) => e.analyzerCode.camelCaseErrorName);
+    sortedSharedDiagnostics.sortBy((e) => e.analyzerCode.camelCaseName);
   }
 }
 
@@ -1076,8 +1082,10 @@ class SimpleConversion implements Conversion {
       other is SimpleConversion && other.functionName == functionName;
 
   @override
-  String toCode({required String name, required ErrorCodeParameterType type}) =>
-      'conversions.$functionName($name)';
+  String toCode({
+    required String name,
+    required DiagnosticParameterType type,
+  }) => 'conversions.$functionName($name)';
 }
 
 /// [TemplatePart] representing a literal string of characters, with no
@@ -1093,7 +1101,7 @@ class TemplateLiteralPart implements TemplatePart {
 /// diagnostic message.
 class TemplateParameterPart implements TemplatePart {
   /// The parameter to be substituted.
-  final ErrorCodeParameter parameter;
+  final DiagnosticParameter parameter;
 
   /// The conversion to apply to the parameter.
   ///
@@ -1104,7 +1112,7 @@ class TemplateParameterPart implements TemplatePart {
   /// [placeholderPattern].
   factory TemplateParameterPart.fromMatch(
     Match match, {
-    required Map<String, ErrorCodeParameter> parameters,
+    required Map<String, DiagnosticParameter> parameters,
   }) {
     String name = match[1]!;
     var parameter = parameters[name];

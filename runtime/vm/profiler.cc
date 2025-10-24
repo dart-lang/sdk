@@ -74,10 +74,7 @@ DEFINE_FLAG(
     "the oldest ones. This flag itself does not enable the profiler; the "
     "profiler must be enabled separately, e.g. with --profiler.");
 
-// Include native stack dumping helpers into AOT compiler even in PRODUCT
-// mode. This allows to report more informative errors when gen_snapshot
-// crashes.
-#if !defined(PRODUCT) || defined(DART_PRECOMPILER)
+#if defined(DART_INCLUDE_PROFILER)
 ProfilerCounters Profiler::counters_ = {};
 
 static void DumpStackFrame(uword pc, uword fp, const char* name, uword offset) {
@@ -374,7 +371,6 @@ static bool ValidateThreadStackBounds(uintptr_t fp,
   return true;
 }
 
-#if !defined(PRODUCT)
 // Get |thread|'s stack boundary and verify that |sp| and |fp| are within
 // it. Return |false| if anything looks suspicious.
 static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
@@ -418,7 +414,6 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
 
   return ValidateThreadStackBounds(fp, sp, *stack_lower, *stack_upper);
 }
-#endif  // !defined(PRODUCT)
 
 static bool GetAndValidateCurrentThreadStackBounds(uintptr_t fp,
                                                    uintptr_t sp,
@@ -609,15 +604,14 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 
   DumpCompilerState(thread);
 }
-#endif  // !defined(PRODUCT) || defined(DART_PRECOMPILER)
-
-#ifndef PRODUCT
 
 RelaxedAtomic<bool> Profiler::initialized_ = false;
 SampleBlockBuffer* Profiler::sample_block_buffer_ = nullptr;
-
+Profiler::ProfileProcessorCallback Profiler::process_profile_callback_ =
+    nullptr;
 bool SampleBlockProcessor::initialized_ = false;
 bool SampleBlockProcessor::shutdown_ = false;
+bool SampleBlockProcessor::drain_ = false;
 bool SampleBlockProcessor::thread_running_ = false;
 ThreadJoinId SampleBlockProcessor::processor_thread_id_ =
     OSThread::kInvalidThreadJoinId;
@@ -661,9 +655,13 @@ void Profiler::Cleanup() {
   }
   ASSERT(initialized_);
   ThreadInterrupter::Cleanup();
-  SampleBlockProcessor::Cleanup();
+
+  const bool should_drain = process_profile_callback_ != nullptr;
+  SampleBlockProcessor::Cleanup(should_drain);
+
   SampleBlockCleanupVisitor visitor;
   Isolate::VisitIsolates(&visitor);
+
   initialized_ = false;
 }
 
@@ -793,16 +791,23 @@ void SampleBlockBuffer::FreeCompletedBlocks() {
 
 static void FlushSampleBlocks(Isolate* isolate) {
   ASSERT(isolate != nullptr);
+  bool flushed = false;
 
   SampleBlock* block = isolate->exchange_current_sample_block(nullptr);
   if (block != nullptr) {
     block->MarkCompleted();
+    flushed = true;
   }
 
   block = isolate->exchange_current_allocation_sample_block(nullptr);
   if (block != nullptr) {
     // Allocation samples are collected synchronously.
     block->MarkCompleted();
+    flushed = true;
+  }
+
+  if (flushed) {
+    isolate->TrySetHasCompletedBlocks();
   }
 }
 
@@ -1400,9 +1405,10 @@ void Profiler::SampleThreadSingleFrame(Thread* thread,
   ASSERT(thread != nullptr);
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != nullptr);
-  Isolate* isolate = thread->IGNORE_RACE(isolate)();
-
   ASSERT(Profiler::sample_block_buffer() != nullptr);
+
+#if !defined(PRODUCT)
+  Isolate* isolate = thread->IGNORE_RACE(isolate)();
 
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
@@ -1410,6 +1416,7 @@ void Profiler::SampleThreadSingleFrame(Thread* thread,
   if (thread->IsDartMutatorThread()) {
     counters->Increment(sample->vm_tag());
   }
+#endif
 
   // Write the single pc value.
   sample->SetAt(0, pc);
@@ -1531,12 +1538,14 @@ void Profiler::SampleThread(Thread* thread,
   // At this point we have a valid stack boundary for this isolate and
   // know that our initial stack and frame pointers are within the boundary.
 
+#if !defined(PRODUCT)
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != nullptr);
   if (thread->IsDartMutatorThread()) {
     counters->Increment(sample->vm_tag());
   }
+#endif
 
   ProfilerNativeStackWalker native_stack_walker(
       &counters_, (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT,
@@ -1885,6 +1894,7 @@ void SampleBlockProcessor::Init() {
   ASSERT(monitor_ != nullptr);
   initialized_ = true;
   shutdown_ = false;
+  drain_ = false;
 }
 
 void SampleBlockProcessor::Startup() {
@@ -1898,13 +1908,14 @@ void SampleBlockProcessor::Startup() {
   ASSERT(processor_thread_id_ != OSThread::kInvalidThreadJoinId);
 }
 
-void SampleBlockProcessor::Cleanup() {
+void SampleBlockProcessor::Cleanup(bool drain /* = false */) {
   {
     MonitorLocker shutdown_ml(monitor_);
     if (shutdown_) {
       // Already shutdown.
       return;
     }
+    drain_ = drain;
     shutdown_ = true;
     // Notify.
     shutdown_ml.Notify();
@@ -1913,13 +1924,39 @@ void SampleBlockProcessor::Cleanup() {
 
   // Join the thread.
   ASSERT(processor_thread_id_ != OSThread::kInvalidThreadJoinId);
-  OSThread::Join(processor_thread_id_);
+  auto thread = Thread::Current();
+  if (thread != nullptr) {
+    TransitionVMToBlocked transition(thread);
+    OSThread::Join(processor_thread_id_);
+  } else {
+    OSThread::Join(processor_thread_id_);
+  }
   processor_thread_id_ = OSThread::kInvalidThreadJoinId;
   initialized_ = false;
   ASSERT(!thread_running_);
 }
 
-void Profiler::ProcessCompletedBlocks(Isolate* isolate) {}
+void Profiler::ProcessCompletedBlocks(Isolate* isolate) {
+  const auto process_profile_callback = process_profile_callback_;
+  if (process_profile_callback == nullptr) {
+    return;
+  }
+
+  auto thread = Thread::Current();
+  if (Isolate::IsSystemIsolate(isolate)) return;
+
+  TIMELINE_DURATION(thread, Isolate, "Profiler::ProcessCompletedBlocks")
+  DisableThreadInterruptsScope dtis(thread);
+  StackZone zone(thread);
+  HandleScope handle_scope(thread);
+
+  NoAllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
+                                  -1, -1);
+  Profile profile;
+  profile.Build(thread, isolate, &filter, Profiler::sample_block_buffer());
+
+  process_profile_callback(profile);
+}
 
 void Profiler::IsolateShutdown(Thread* thread) {
   FlushSampleBlocks(thread->isolate());
@@ -1943,7 +1980,7 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
   const int64_t wakeup_interval = 1000 * 100;
   while (true) {
     wait_ml.WaitMicros(wakeup_interval);
-    if (shutdown_) {
+    if (shutdown_ && !drain_) {
       break;
     }
 
@@ -1954,17 +1991,24 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
       Thread::EnterIsolateGroupAsHelper(group, Thread::kSampleBlockTask,
                                         kBypassSafepoint);
       group->ForEachIsolate([&](Isolate* isolate) {
+        if (drain_) {
+          FlushSampleBlocks(isolate);
+        }
         if (isolate->TakeHasCompletedBlocks()) {
           Profiler::ProcessCompletedBlocks(isolate);
         }
       });
       Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     });
+
+    if (shutdown_) {
+      break;
+    }
   }
   // Signal to main thread we are exiting.
   thread_running_ = false;
 }
 
-#endif  // !PRODUCT
+#endif  // defined(DART_INCLUDE_PROFILER)
 
 }  // namespace dart

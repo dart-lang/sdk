@@ -33,20 +33,21 @@ final List<GeneratedContent> allTargets = _analyzerGeneratedFiles();
 /// Generates a list of [GeneratedContent] objects describing all the analyzer
 /// files that need to be generated.
 List<GeneratedContent> _analyzerGeneratedFiles() {
-  var classesByFile = <GeneratedErrorCodeFile, List<GeneratedErrorClassInfo>>{};
-  for (var errorClassInfo in errorClasses) {
-    if (errorClassInfo is! GeneratedErrorClassInfo) continue;
+  var classesByFile =
+      <GeneratedDiagnosticFile, List<GeneratedDiagnosticClassInfo>>{};
+  for (var diagnosticClassInfo in diagnosticClasses) {
+    if (diagnosticClassInfo is! GeneratedDiagnosticClassInfo) continue;
 
     // Lint codes are generated separately.
-    if (errorClassInfo == linterLintCodeInfo) continue;
+    if (diagnosticClassInfo == linterLintCodeInfo) continue;
 
-    (classesByFile[errorClassInfo.file] ??= []).add(errorClassInfo);
+    (classesByFile[diagnosticClassInfo.file] ??= []).add(diagnosticClassInfo);
   }
   var generatedCodes = <AnalyzerCode>[];
   return [
     for (var entry in classesByFile.entries)
       GeneratedFile(entry.key.path, (pkgRoot) async {
-        var codeGenerator = _AnalyzerErrorGenerator(
+        var codeGenerator = _AnalyzerDiagnosticGenerator(
           entry.key,
           entry.value,
           generatedCodes,
@@ -64,11 +65,11 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
   ];
 }
 
-/// Code generator for analyzer error classes.
-class _AnalyzerErrorGenerator {
-  final GeneratedErrorCodeFile file;
+/// Code generator for analyzer diagnostic classes.
+class _AnalyzerDiagnosticGenerator {
+  final GeneratedDiagnosticFile file;
 
-  final List<GeneratedErrorClassInfo> errorClasses;
+  final List<GeneratedDiagnosticClassInfo> diagnosticClasses;
 
   final List<AnalyzerCode> generatedCodes;
 
@@ -86,7 +87,11 @@ class _AnalyzerErrorGenerator {
 // codes here.
 ''');
 
-  _AnalyzerErrorGenerator(this.file, this.errorClasses, this.generatedCodes);
+  _AnalyzerDiagnosticGenerator(
+    this.file,
+    this.diagnosticClasses,
+    this.generatedCodes,
+  );
 
   void generate() {
     out.writeln('// ignore_for_file: deprecated_member_use_from_same_package');
@@ -102,45 +107,47 @@ class _AnalyzerErrorGenerator {
     out.write('''
 part of ${json.encode(file.parentLibrary)};
 ''');
-    for (var errorClass
-        in errorClasses.toList()..sort((a, b) => a.name.compareTo(b.name))) {
+    for (var diagnosticClass
+        in diagnosticClasses.toList()
+          ..sort((a, b) => a.name.compareTo(b.name))) {
       out.writeln();
-      if (errorClass.comment.isNotEmpty) {
-        errorClass.comment.trimRight().split('\n').forEach((line) {
+      if (diagnosticClass.comment.isNotEmpty) {
+        diagnosticClass.comment.trimRight().split('\n').forEach((line) {
           out.writeln('/// $line');
         });
       }
       out.write(
-        'class ${errorClass.name} extends DiagnosticCodeWithExpectedTypes {',
+        'class ${diagnosticClass.name} extends DiagnosticCodeWithExpectedTypes {',
       );
       var memberAccumulator = MemberAccumulator();
 
       var entries =
           [
             ...analyzerMessages.entries,
-            ...sharedToAnalyzerErrorCodeTables.analyzerCodeToInfo.entries,
+            ...sharedToAnalyzerDiagnosticTables.analyzerCodeToMessage.entries,
           ].where(
-            (error) =>
-                error.key.errorClass == errorClass && !error.value.isRemoved,
+            (diagnostic) =>
+                diagnostic.key.diagnosticClass == diagnosticClass &&
+                !diagnostic.value.isRemoved,
           );
       for (var entry in entries) {
-        var errorCode = entry.key;
-        var errorName = errorCode.snakeCaseErrorName;
-        var errorCodeInfo = entry.value;
+        var diagnosticCode = entry.key;
+        var diagnosticName = diagnosticCode.snakeCaseName;
+        var message = entry.value;
 
         try {
-          if (errorCodeInfo is! AliasErrorCodeInfo &&
-              errorClass.includeInDiagnosticCodeValues) {
-            generatedCodes.add(errorCode);
+          if (message is! AliasMessage &&
+              diagnosticClass.includeInDiagnosticCodeValues) {
+            generatedCodes.add(diagnosticCode);
           }
-          errorCodeInfo.toAnalyzerCode(
-            errorClass,
-            errorName,
+          message.toAnalyzerCode(
+            diagnosticClass,
+            diagnosticName,
             memberAccumulator: memberAccumulator,
           );
         } catch (e, st) {
           Error.throwWithStackTrace(
-            'While processing ${errorClass.name}.$errorName: $e',
+            'While processing ${diagnosticClass.name}.$diagnosticName: $e',
             st,
           );
         }
@@ -152,7 +159,7 @@ part of ${json.encode(file.parentLibrary)};
         '[name].',
       );
       constructor.writeln(
-        'const ${errorClass.name}(String name, String problemMessage, {',
+        'const ${diagnosticClass.name}(String name, String problemMessage, {',
       );
       constructor.writeln('super.correctionMessage,');
       constructor.writeln('super.hasPublishedDocs = false,');
@@ -163,7 +170,7 @@ part of ${json.encode(file.parentLibrary)};
       constructor.writeln('name: name,');
       constructor.writeln('problemMessage: problemMessage,');
       constructor.writeln(
-        "uniqueName: '${errorClass.name}.\${uniqueName ?? name}',",
+        "uniqueName: '${diagnosticClass.name}.\${uniqueName ?? name}',",
       );
       constructor.writeln(');');
       memberAccumulator.constructors[''] = constructor.toString();
@@ -171,34 +178,34 @@ part of ${json.encode(file.parentLibrary)};
       memberAccumulator.accessors['severity'] =
           '''
 @override
-DiagnosticSeverity get severity => ${errorClass.severityCode};
+DiagnosticSeverity get severity => ${diagnosticClass.severityCode};
 ''';
       memberAccumulator.accessors['type'] =
           '''
 @override
-DiagnosticType get type => ${errorClass.typeCode};
+DiagnosticType get type => ${diagnosticClass.typeCode};
 ''';
 
       memberAccumulator.writeTo(out);
       out.writeln('}');
 
       out.writeln();
-      _outputDerivedClass(errorClass, withArguments: true);
+      _outputDerivedClass(diagnosticClass, withArguments: true);
       out.writeln();
-      _outputDerivedClass(errorClass, withArguments: false);
+      _outputDerivedClass(diagnosticClass, withArguments: false);
     }
   }
 
   void _outputDerivedClass(
-    GeneratedErrorClassInfo errorClass, {
+    GeneratedDiagnosticClassInfo diagnosticClass, {
     required bool withArguments,
   }) {
     var className = withArguments
-        ? errorClass.templateName
-        : errorClass.withoutArgumentsName;
+        ? diagnosticClass.templateName
+        : diagnosticClass.withoutArgumentsName;
     out.writeln('final class $className');
     if (withArguments) out.writeln('<T extends Function>');
-    out.writeln('    extends ${errorClass.name}');
+    out.writeln('    extends ${diagnosticClass.name}');
     if (!withArguments) out.writeln('    with DiagnosticWithoutArguments');
     out.writeln('{');
     if (withArguments) {
@@ -260,8 +267,8 @@ part of 'diagnostic_code_values.dart';
     );
     out.writeln('const List<DiagnosticCode> diagnosticCodeValues = [');
     for (var analyzerCode in generatedCodes) {
-      var errorName = analyzerCode.camelCaseErrorName;
-      out.writeln('  ${analyzerCode.errorClass.name}.$errorName,');
+      var diagnosticName = analyzerCode.camelCaseName;
+      out.writeln('  ${analyzerCode.diagnosticClass.name}.$diagnosticName,');
     }
     out.writeln('];');
     out.writeln();
@@ -277,7 +284,8 @@ part of 'diagnostic_code_values.dart';
 
   void _generateSharedAnalyzerCodeList() {
     out.writeln('final sharedAnalyzerCodes = <DiagnosticCode>[');
-    for (var entry in sharedToAnalyzerErrorCodeTables.sortedSharedErrors) {
+    for (var entry
+        in sharedToAnalyzerDiagnosticTables.sortedSharedDiagnostics) {
       out.writeln('${entry.analyzerCode.analyzerCodeReference},');
     }
     out.writeln('];');

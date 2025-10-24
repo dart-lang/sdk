@@ -21,7 +21,7 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if defined(DART_INCLUDE_PROFILER)
 
 DECLARE_FLAG(bool, trace_thread_interrupter);
 
@@ -242,7 +242,7 @@ void ThreadInterrupter::RemoveSignalHandler() {
   // Nothing to do on Fuchsia.
 }
 
-#endif  // !PRODUCT
+#endif  // defined(DART_INCLUDE_PROFILER)
 
 }  // namespace dart
 
