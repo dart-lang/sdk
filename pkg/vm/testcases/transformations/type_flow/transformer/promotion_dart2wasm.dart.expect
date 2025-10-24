@@ -1,23 +1,17 @@
 library #lib;
 import self as self;
-import "dart:core" as core;
 import "dart:async" as asy;
-import "dart:_internal" as _in;
+import "dart:core" as core;
 
-abstract class Foo extends core::Object {
-}
 
 [@vm.inferred-return-type.metadata=dart.async::_Future]
 static method main() → asy::Future<void> async /* emittedValueType= void */ {
   core::int :async_temporary_0;
   core::bool :async_temporary_1;
   final core::Object x = new core::Object::•();
-  :async_temporary_1 = [@vm.inferred-type.metadata=! (receiver not int)] false =={core::Object::==}{(core::Object) → core::bool} true;
-  if(_in::unsafeCast<dynamic>(:async_temporary_1)) {
-    :async_temporary_0 = await throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
-    :async_temporary_1 = [@vm.inferred-type.metadata=! (receiver not int)] [@vm.direct-call.metadata=library dart:_boxed_int::BoxedInt.>] [@vm.inferred-type.metadata=! (skip check)] _in::unsafeCast<dynamic>(:async_temporary_0).{core::num::>}(2){(core::num) → core::bool} =={core::Object::==}{(core::Object) → core::bool} true;
-  }
-  if(_in::unsafeCast<dynamic>(:async_temporary_1)) {
-    core::print("hello");
+  :async_temporary_1 = false;
+  ;
+  if(:async_temporary_1) {
+    throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
   }
 }
