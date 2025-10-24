@@ -216,7 +216,9 @@ class DocumentationValidator {
   Future<void> validate() async {
     await _validateMessages(analyzerMessages);
     await _validateMessages(lintMessages);
-    await _validateMessages(sharedToAnalyzerErrorCodeTables.analyzerCodeToInfo);
+    await _validateMessages(
+      sharedToAnalyzerDiagnosticTables.analyzerCodeToMessage,
+    );
     if (buffer.isNotEmpty) {
       fail(buffer.toString());
     }
@@ -335,25 +337,23 @@ class DocumentationValidator {
   }
 
   /// Extract documentation from the given [messages].
-  Future<void> _validateMessages(
-    Map<AnalyzerCode, ErrorCodeInfo> messages,
-  ) async {
-    for (var errorEntry in messages.entries) {
-      var errorName = errorEntry.key;
-      var errorCodeInfo = errorEntry.value;
+  Future<void> _validateMessages(Map<AnalyzerCode, Message> messages) async {
+    for (var messageEntry in messages.entries) {
+      var messageName = messageEntry.key;
+      var message = messageEntry.value;
 
-      // If the error code is no longer generated,
+      // If the diagnostic is no longer generated,
       // the corresponding code snippets won't report it.
-      if (errorCodeInfo.isRemoved) {
+      if (message.isRemoved) {
         continue;
       }
       var docs = parseErrorCodeDocumentation(
-        errorName.toString(),
-        errorCodeInfo.documentation,
+        messageName.toString(),
+        message.documentation,
       );
       if (docs != null) {
-        codeName = errorCodeInfo.sharedName ?? errorName.snakeCaseErrorName;
-        variableName = errorName.toString();
+        codeName = message.sharedName ?? messageName.snakeCaseName;
+        variableName = messageName.toString();
         if (unverifiedDocs.contains(variableName)) {
           continue;
         }
@@ -371,7 +371,7 @@ class DocumentationValidator {
         }
         for (int i = 0; i < exampleSnippets.length; i++) {
           _SnippetData snippet = exampleSnippets[i];
-          if (errorName.errorClass == lintCodeInfo) {
+          if (messageName.diagnosticClass == lintCodeInfo) {
             snippet.lintCode = codeName;
           }
           await _validateSnippet('example', i, snippet);
@@ -386,7 +386,7 @@ class DocumentationValidator {
           if (firstExample != null) {
             snippet.auxiliaryFiles.addAll(firstExample.auxiliaryFiles);
           }
-          if (errorName.errorClass == lintCodeInfo) {
+          if (messageName.diagnosticClass == lintCodeInfo) {
             snippet.lintCode = codeName;
           }
           await _validateSnippet('fixes', i, snippet);

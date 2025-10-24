@@ -66,16 +66,15 @@ part of 'cfe_codes.dart';
   List<String> keys = frontEndAndSharedMessages.keys.toList()..sort();
   var pseudoSharedCodeValues = <String>{};
   for (String name in keys) {
-    var errorCodeInfo = frontEndAndSharedMessages[name]!;
+    var message = frontEndAndSharedMessages[name]!;
     var forFeAnalyzerShared =
-        errorCodeInfo is SharedErrorCodeInfo ||
-        errorCodeInfo is FrontEndErrorCodeInfo &&
-            errorCodeInfo.pseudoSharedCode != null;
+        message is SharedMessage ||
+        message is FrontEndMessage && message.pseudoSharedCode != null;
     String template;
     try {
       template = _TemplateCompiler(
         name: name,
-        errorCodeInfo: errorCodeInfo,
+        message: message,
         pseudoSharedCodeValues: forFeAnalyzerShared
             ? pseudoSharedCodeValues
             : null,
@@ -105,8 +104,8 @@ part of 'cfe_codes.dart';
     '[Code.sharedCode].',
   );
   sharedMessages.writeln('enum SharedCode {');
-  for (var code in sharedToAnalyzerErrorCodeTables.sortedSharedErrors) {
-    sharedMessages.writeln('  ${code.analyzerCode.camelCaseErrorName},');
+  for (var code in sharedToAnalyzerDiagnosticTables.sortedSharedDiagnostics) {
+    sharedMessages.writeln('  ${code.analyzerCode.camelCaseName},');
   }
   sharedMessages.writeln('}');
 
@@ -128,11 +127,11 @@ String _newName({required Set<String> usedNames, required String nameHint}) {
 
 class _TemplateCompiler {
   final String name;
-  final CfeStyleErrorCodeInfo errorCodeInfo;
+  final CfeStyleMessage message;
   final List<TemplatePart> problemMessage;
   final List<TemplatePart>? correctionMessage;
   final String? severity;
-  final Map<String, ErrorCodeParameter> parameters;
+  final Map<String, DiagnosticParameter> parameters;
   final String? pseudoSharedCode;
 
   /// If the template will be generated into `pkg/_fe_analyzer_shared`, a set of
@@ -156,14 +155,14 @@ class _TemplateCompiler {
 
   _TemplateCompiler({
     required this.name,
-    required this.errorCodeInfo,
+    required this.message,
     required this.pseudoSharedCodeValues,
-  }) : problemMessage = errorCodeInfo.problemMessage,
-       correctionMessage = errorCodeInfo.correctionMessage,
-       severity = errorCodeInfo.cfeSeverity,
-       parameters = errorCodeInfo.parameters,
-       pseudoSharedCode = errorCodeInfo is FrontEndErrorCodeInfo
-           ? errorCodeInfo.pseudoSharedCode
+  }) : problemMessage = message.problemMessage,
+       correctionMessage = message.correctionMessage,
+       severity = message.cfeSeverity,
+       parameters = message.parameters,
+       pseudoSharedCode = message is FrontEndMessage
+           ? message.pseudoSharedCode
            : null;
 
   String compile() {
@@ -171,8 +170,8 @@ class _TemplateCompiler {
       if (pseudoSharedCodeValues != null && pseudoSharedCode != null)
         'pseudoSharedCode: ${_encodePseudoSharedCode(pseudoSharedCode!)}',
       if (severity != null) 'severity: CfeSeverity.$severity',
-      if (errorCodeInfo case SharedErrorCodeInfo(:var analyzerCode))
-        'sharedCode: SharedCode.${analyzerCode.camelCaseErrorName}',
+      if (message case SharedMessage(:var analyzerCode))
+        'sharedCode: SharedCode.${analyzerCode.camelCaseName}',
     ];
 
     String interpolatedProblemMessage = interpolate(problemMessage)!;
