@@ -34,4 +34,106 @@ class A { foo() {int x; x.^ print("foo");}}
 suggestions
 ''');
   }
+
+  Future<void> test_privateExtendedClass_otherLibrary() async {
+    allowedIdentifiers = const {'_privateMethod'};
+    newFile(join(testPackageLibPath, 'lib.dart'), '''
+class A {
+  void m() => _privateMethod();
+  void _privateMethod() {}
+}
+''');
+    await computeSuggestions('''
+import 'lib.dart';
+
+class B extends A {
+  void bar() {
+    _private^
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 8
+suggestions
+''');
+  }
+
+  Future<void> test_privateExtendedClass_sameFile() async {
+    allowedIdentifiers = const {'_privateMethod'};
+    await computeSuggestions('''
+class A {
+  void m() => _privateMethod();
+  void _privateMethod() {}
+}
+class B extends A {
+  void bar() {
+    _private^
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 8
+suggestions
+  _privateMethod
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_privateExtendedClass_sameLibrary_lib() async {
+    allowedIdentifiers = const {'_privateMethod'};
+    newFile(join(testPackageLibPath, 'lib.dart'), '''
+part of 'test.dart';
+
+class A {
+  void m() => _privateMethod();
+  void _privateMethod() {}
+}
+''');
+    await computeSuggestions('''
+part 'lib.dart';
+
+class B extends A {
+  void bar() {
+    _private^
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 8
+suggestions
+  _privateMethod
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_privateExtendedClass_sameLibrary_part() async {
+    allowedIdentifiers = const {'_privateMethod'};
+    newFile(join(testPackageLibPath, 'lib.dart'), '''
+part 'test.dart';
+
+class A {
+  void m() => _privateMethod();
+  void _privateMethod() {}
+}
+''');
+    await computeSuggestions('''
+part of 'lib.dart';
+
+class B extends A {
+  void bar() {
+    _private^
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 8
+suggestions
+  _privateMethod
+    kind: methodInvocation
+''');
+  }
 }

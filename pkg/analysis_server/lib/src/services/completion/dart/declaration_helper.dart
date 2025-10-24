@@ -1088,6 +1088,9 @@ class DeclarationHelper {
     var referencingInterface = _referencingInterfaceFor(element);
     var members = element.inheritedMembers;
     for (var member in members.values) {
+      if (!member.isVisibleIn(request.libraryElement)) {
+        continue;
+      }
       switch (member) {
         case MethodElement():
           if (member.isOperator) {
