@@ -71,6 +71,26 @@ void f() {
     expect(loc.uri, equals(referencedFileUri));
   }
 
+  Future<void> test_atDeclaration_catchClauseParameter_error() async {
+    var contents = '''
+void foo() {
+  try {} catch ([!^e!], s) {}
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_catchClauseParameter_stack() async {
+    var contents = '''
+void foo() {
+  try {} catch (e, [!^s!]) {}
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_atDeclaration_class() async {
     var contents = '''
 class [!^A!] {}
@@ -178,6 +198,30 @@ typedef void [!^F!]();
   Future<void> test_atDeclaration_typeAlias_generic() async {
     var contents = '''
 typedef [!^F!] = void Function();
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_catchClauseParameter_error() async {
+    var contents = '''
+void foo() {
+  try {} catch ([!e!], s) {
+    print(e^);
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_catchClauseParameter_stack() async {
+    var contents = '''
+void foo() {
+  try {} catch (e, [!s!]) {
+    print(s^);
+  }
+}
 ''';
 
     await testContents(contents);

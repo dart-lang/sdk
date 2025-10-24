@@ -132,6 +132,8 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
       if (element != null) {
         _addOccurrence(element, node.type.name);
       }
+      // Still visit the import prefix if there is one.
+      node.type.importPrefix?.accept(this);
       return; // skip visitNamedType.
     }
 

@@ -193,6 +193,43 @@ void f(Object? x) {
     await assertNoAssist();
   }
 
+  Future<void> test_single_case_expr_thenBlock_elseBlock() async {
+    await resolveTestCode('''
+void f(int? x) {
+  i^f (x?.abs() case int()) {
+    0;
+  } else {
+    1;
+  }
+}
+''');
+    await assertHasAssist('''
+void f(int? x) {
+  switch (x?.abs()) {
+    case int():
+      0;
+    default:
+      1;
+  }
+}
+''');
+  }
+
+  Future<void> test_single_case_expr_thenBlock_elseIfBlock() async {
+    await resolveTestCode('''
+void f(int? x) {
+  i^f (x?.abs() case int()) {
+    0;
+  } else if (x?.abs() case int()) {
+    1;
+  }
+}
+''');
+    // No assist because the expression is reused and it is not a simple
+    // identifier.
+    await assertNoAssist();
+  }
+
   Future<void> test_single_case_thenBlock() async {
     await resolveTestCode('''
 void f(Object? x) {

@@ -268,6 +268,14 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    var fragment = node.declaredFragment;
+    if (fragment == null) return;
+    computer._addRegionForFragment(node.name, fragment);
+    super.visitCatchClauseParameter(node);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     computer._addRegionForFragment(node.name, node.declaredFragment);
     super.visitClassDeclaration(node);

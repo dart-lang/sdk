@@ -360,6 +360,38 @@ void main() {
     );
   }
 
+  Future<void> test_pattern_getter_lint() async {
+    content = '''
+abstract class MyType {
+  int get name;
+}
+
+void f(MyType m) {
+  if (m case MyType(:^)) {}
+}
+''';
+    _enableLints([LintNames.always_specify_types]);
+    await initializeServer();
+
+    var completion = await getCompletionItem('name');
+    var resolved = await resolveCompletion(completion);
+    var newContent = applyTextEdits(code.code, [
+      toTextEdit(resolved.textEdit!),
+    ]);
+    expect(
+      newContent,
+      equalsNormalized('''
+abstract class MyType {
+  int get name;
+}
+
+void f(MyType m) {
+  if (m case MyType(:int name)) {}
+}
+'''),
+    );
+  }
+
   /// We should not show `var`, `final` or the member type on the display text.
   Future<void> test_pattern_member_name_only() async {
     content = '''
