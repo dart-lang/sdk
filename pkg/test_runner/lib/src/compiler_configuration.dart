@@ -567,11 +567,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       CommandArtifact? artifact) {
     final wasmFilename = artifact!.filename;
     final args = testFile.dartOptions;
-    final isD8 = runtimeConfiguration is D8RuntimeConfiguration;
     return [
-      if (isD8) ...[
-        '--shell-option=--experimental-wasm-imported-strings',
-      ],
       wasmFilename,
       ...testFile.sharedObjects
           .map((obj) => '${_configuration.buildDirectory}/wasm/$obj.wasm'),
