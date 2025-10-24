@@ -1,23 +1,17 @@
 (module $module0
   (type $#Top (struct
     (field $field0 i32)))
-  (type $BoxedInt (sub $#Top (struct
+  (type $BoxedInt (sub final $#Top (struct
     (field $field0 i32)
     (field $value i64))))
   (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param externref) (result externref))
   (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
-  (global $"intValueNullable initialized" (mut i32)
-    (i32.const 0))
-  (global $intValueNullable (mut (ref null $BoxedInt))
-    (ref.null none))
-  (global $"ktrue initialized" (mut i32)
-    (i32.const 0))
-  (global $ktrue (mut i32)
-    (i32.const 0))
-  (global $"intValue initialized" (mut i32)
-    (i32.const 0))
-  (global $intValue (mut i64)
-    (i64.const 0))
+  (global $"intValueNullable initialized" (mut i32) <...>)
+  (global $intValueNullable (mut (ref null $BoxedInt)) <...>)
+  (global $"ktrue initialized" (mut i32) <...>)
+  (global $ktrue (mut i32) <...>)
+  (global $"intValue initialized" (mut i32) <...>)
+  (global $intValue (mut i64) <...>)
   (func $"testIntConstant <noInline>"
     (local $var0 externref)
     i64.const 1
