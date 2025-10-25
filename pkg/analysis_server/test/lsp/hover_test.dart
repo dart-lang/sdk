@@ -1244,6 +1244,34 @@ Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
+  Future<void> test_tryCatch_error() async {
+    var content = '''
+void foo() {
+  try {} on Exception catch ([!err^or!], stack) {}
+}
+''';
+    var expected = '''
+```dart
+Exception error
+```
+Type: `Exception`''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_tryCatch_stack() async {
+    var content = '''
+void foo() {
+  try {} on Exception catch (error, [!stac^k!]) {}
+}
+''';
+    var expected = '''
+```dart
+StackTrace stack
+```
+Type: `StackTrace`''';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_typeParameter() async {
     var content = '''
 class C<[!^T!]> {}
