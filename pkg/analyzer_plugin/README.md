@@ -2,6 +2,10 @@
 [![package publisher](https://img.shields.io/pub/publisher/analyzer_plugin.svg)](https://pub.dev/packages/analyzer_plugin/publisher)
 
 A framework for building plugins for the analysis server.
+**Notice:**  
+This package is for **legacy support** and is **not recommended** for new plugin development.  
+For modern plugin implementations, use the [`analysis_server_plugin`](https://pub.dev/packages/analysis_server_plugin) package instead.  
+See its documentation for the latest architecture and examples.
 
 ## Usage
 
