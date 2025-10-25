@@ -270,6 +270,23 @@ void f() {
 ''');
   }
 
+  Future<void> test_top_level_declaration() async {
+    await resolveTestCode('''
+final v1 = () => 42;
+
+void f() {
+  v1();
+}
+''');
+    await assertHasFix('''
+int v1() => 42;
+
+void f() {
+  v1();
+}
+''');
+  }
+
   Future<void> test_type() async {
     await resolveTestCode('''
 void f() {
