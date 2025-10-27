@@ -214,11 +214,7 @@ class DocumentationValidator {
 
   /// Validate the documentation.
   Future<void> validate() async {
-    await _validateMessages(analyzerMessages);
-    await _validateMessages(lintMessages);
-    await _validateMessages(
-      sharedToAnalyzerDiagnosticTables.analyzerCodeToMessage,
-    );
+    await _validateMessages(diagnosticTables.analyzerCodeToMessage);
     if (buffer.isNotEmpty) {
       fail(buffer.toString());
     }

@@ -18235,6 +18235,7 @@ ICDataPtr ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
 
 ICDataPtr ICData::Clone(const ICData& from) {
   Zone* zone = Thread::Current()->zone();
+  SafepointMutexLocker ml(IsolateGroup::Current()->type_feedback_mutex());
 
   // We have to check the megamorphic bit before accessing the entries of the
   // ICData to ensure all writes to the entries have been flushed and are

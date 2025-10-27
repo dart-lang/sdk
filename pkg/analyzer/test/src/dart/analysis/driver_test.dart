@@ -23435,6 +23435,120 @@ class A2 {}
     );
   }
 
+  test_dependency_export_class_reExport_duplicate() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+class A {}
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart';
+''');
+
+    configuration.elementTextConfiguration.withExportScope = true;
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      A: #M0
+      A=: #M0
+    exportMapId: #M1
+    exportMap
+      A: #M0
+      A=: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    exportMapId: #M2
+    exportMap
+      A: #M0
+    reExportMap
+      A: #M0
+    exportedLibraryUris: package:test/a.dart
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            A: #M0
+[status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@class::A::@def::1
+    exportNamespace
+      A: package:test/a.dart::@class::A::@def::1
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+class A {}
+class A {}
+class B {}
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredConflicts
+      A: #M3
+      A=: #M3
+    declaredClasses
+      B: #M4
+        interface: #M5
+    exportMapId: #M6
+    exportMap
+      A: #M3
+      A=: #M3
+      B: #M4
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  exportIdMismatch
+    fragmentUri: package:test/test.dart
+    exportedUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H3
+    exportMapId: #M7
+    exportMap
+      A: #M3
+      B: #M4
+    reExportMap
+      A: #M3
+      B: #M4
+    exportedLibraryUris: package:test/a.dart
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            A: #M3
+            B: #M4
+[status] idle
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@class::A::@def::1
+      exported[(0, 0)] package:test/a.dart::@class::B
+    exportNamespace
+      A: package:test/a.dart::@class::A::@def::1
+      B: package:test/a.dart::@class::B
+''',
+    );
+  }
+
   test_dependency_export_dynamic() async {
     configuration
       ..withGetErrorsEvents = false

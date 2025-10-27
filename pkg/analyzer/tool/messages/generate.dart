@@ -121,36 +121,25 @@ part of ${json.encode(file.parentLibrary)};
       );
       var memberAccumulator = MemberAccumulator();
 
-      var entries =
-          [
-            ...analyzerMessages.entries,
-            ...sharedToAnalyzerDiagnosticTables.analyzerCodeToMessage.entries,
-          ].where(
-            (diagnostic) =>
-                diagnostic.key.diagnosticClass == diagnosticClass &&
-                !diagnostic.value.isRemoved,
-          );
+      var entries = diagnosticTables.analyzerCodeToMessage.entries.where(
+        (diagnostic) =>
+            diagnostic.key.diagnosticClass == diagnosticClass &&
+            !diagnostic.value.isRemoved,
+      );
       for (var entry in entries) {
         var diagnosticCode = entry.key;
-        var diagnosticName = diagnosticCode.snakeCaseName;
         var message = entry.value;
 
-        try {
+        LocatedError.wrap(node: message.keyNode, () {
           if (message is! AliasMessage &&
               diagnosticClass.includeInDiagnosticCodeValues) {
             generatedCodes.add(diagnosticCode);
           }
           message.toAnalyzerCode(
             diagnosticClass,
-            diagnosticName,
             memberAccumulator: memberAccumulator,
           );
-        } catch (e, st) {
-          Error.throwWithStackTrace(
-            'While processing ${diagnosticClass.name}.$diagnosticName: $e',
-            st,
-          );
-        }
+        });
       }
 
       var constructor = StringBuffer();
@@ -284,8 +273,7 @@ part of 'diagnostic_code_values.dart';
 
   void _generateSharedAnalyzerCodeList() {
     out.writeln('final sharedAnalyzerCodes = <DiagnosticCode>[');
-    for (var entry
-        in sharedToAnalyzerDiagnosticTables.sortedSharedDiagnostics) {
+    for (var entry in diagnosticTables.sortedSharedDiagnostics) {
       out.writeln('${entry.analyzerCode.analyzerCodeReference},');
     }
     out.writeln('];');

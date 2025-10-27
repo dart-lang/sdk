@@ -3059,11 +3059,28 @@ class AstBuilder extends StackListener {
             );
         }
         if (firstFormalParameter.keyword case var keyword?) {
-          if (keyword.keyword != Keyword.CONST) {
-            diagnosticReporter.diagnosticReporter?.atToken(
-              keyword,
-              ParserErrorCode.representationFieldModifier,
-            );
+          if (_featureSet.isEnabled(Feature.declaring_constructors)) {
+            switch (keyword.keyword) {
+              case Keyword.CONST:
+              case Keyword.FINAL:
+                break;
+              case Keyword.VAR:
+                diagnosticReporter.diagnosticReporter?.atToken(
+                  keyword,
+                  ParserErrorCode.representationFieldModifier,
+                );
+            }
+          } else {
+            switch (keyword.keyword) {
+              case Keyword.CONST:
+                break;
+              case Keyword.FINAL:
+              case Keyword.VAR:
+                diagnosticReporter.diagnosticReporter?.atToken(
+                  keyword,
+                  ParserErrorCode.representationFieldModifier,
+                );
+            }
           }
         }
         fieldName = firstFormalParameter.name!;

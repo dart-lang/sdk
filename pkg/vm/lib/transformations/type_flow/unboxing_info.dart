@@ -262,7 +262,14 @@ class UnboxingInfoManager {
           PragmaRecognizedType.AsmIntrinsic,
           PragmaRecognizedType.Other,
         ]) ||
-        _nativeCodeOracle.hasDisableUnboxedParameters(member);
+        _nativeCodeOracle.hasDisableUnboxedParameters(member) ||
+        // Instance method dispatch uses boxed calling convention
+        // when receiver has a dynamically loaded class, even if
+        // method is not exported.
+        (member.isInstanceMember &&
+            _nativeCodeOracle.hasDynamicallyExtendableSubtypes(
+              member.enclosingClass!,
+            ));
   }
 
   bool _isNative(Member member) => getExternalName(_coreTypes, member) != null;

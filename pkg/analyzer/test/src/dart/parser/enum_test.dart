@@ -438,6 +438,75 @@ EnumDeclaration
 ''');
   }
 
+  test_primaryConstructor_declaringFormalParameter_default_namedRequired_final() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+enum const E({required final int a = 0}) {v}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          requiredKeyword: required
+          keyword: final
+          type: NamedType
+            name: int
+          name: a
+        separator: =
+        defaultValue: IntegerLiteral
+          literal: 0
+      rightDelimiter: }
+      rightParenthesis: )
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_declaringFormalParameter_simple_final() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+enum const E(final int a) {v}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        keyword: final
+        type: NamedType
+          name: int
+        name: a
+      rightParenthesis: )
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
   test_primaryConstructor_notConst_hasTypeParameters_named() {
     useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''

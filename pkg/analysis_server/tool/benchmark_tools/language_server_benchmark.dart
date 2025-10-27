@@ -98,6 +98,12 @@ abstract class DartLanguageServerBenchmark {
   }
 
   Future<OutstandingRequest?> send(Map<String, dynamic> json) async {
+    var result = sendNoFlush(json);
+    await p.stdin.flush();
+    return result;
+  }
+
+  OutstandingRequest? sendNoFlush(Map<String, dynamic> json) {
     // Mostly copied from
     // pkg/analysis_server/lib/src/lsp/channel/lsp_byte_stream_channel.dart
     var jsonEncodedBody = jsonEncode(json);
@@ -135,7 +141,6 @@ abstract class DartLanguageServerBenchmark {
     if (!_lsp) {
       p.stdin.add(const [10]);
     }
-    await p.stdin.flush();
     if (verbosity > 2) {
       print('\n\nMessage sent\n\n');
     }

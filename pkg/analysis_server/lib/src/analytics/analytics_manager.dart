@@ -482,7 +482,7 @@ class AnalyticsManager {
         'contextWorkspaceType: ${json.encode(analysisData.contextWorkspaceType.toString())}',
       );
       li(
-        'numberOfPackagesPerWorkspace: ${json.encode(analysisData.numberOfPackagesInWorkspace.toString())}',
+        'numberOfPackagesPerWorkspace: ${json.encode(analysisData.numberOfPackagesInWorkspace.toAnalyticsString())}',
       );
       li('immediateFileCount: ${json.encode(analysisData.immediateFileCount)}');
       li(
@@ -563,6 +563,11 @@ class AnalyticsManager {
           libraryCycleLibraryCounts: contextStructure.libraryCycleLibraryCounts
               .toAnalyticsString(),
           libraryCycleLineCounts: contextStructure.libraryCycleLineCounts
+              .toAnalyticsString(),
+          contextWorkspaceType: contextStructure.contextWorkspaceType
+              .toString(),
+          numberOfPackagesInWorkspace: contextStructure
+              .numberOfPackagesInWorkspace
               .toAnalyticsString(),
         ),
       );

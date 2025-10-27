@@ -109,6 +109,9 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
       } else if (type == PragmaEntryPointType.Extendable) {
         entryPoints.addDynamicallyExtendableClass(klass);
         nativeCodeOracle.addClassReferencedFromNativeCode(klass);
+        nativeCodeOracle.addClassWithDynamicallyExtendableSubtype(klass);
+      } else if (type == PragmaEntryPointType.ImplicitlyExtendable) {
+        nativeCodeOracle.addClassWithDynamicallyExtendableSubtype(klass);
       } else {
         throw "Error: The argument to an entry-point pragma annotation "
             "on a class must evaluate to null, true, or false.\n"
@@ -177,6 +180,7 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
           }
           break;
         case PragmaEntryPointType.Extendable:
+        case PragmaEntryPointType.ImplicitlyExtendable:
           throw "Error: only class can be extendable";
         case PragmaEntryPointType.CanBeOverridden:
           nativeCodeOracle.addDynamicallyOverriddenMember(proc);
@@ -243,6 +247,7 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
           throw "Error: 'call' is not a valid entry-point pragma annotation "
               "argument for the field $field.\n$_referenceToDocumentation";
         case PragmaEntryPointType.Extendable:
+        case PragmaEntryPointType.ImplicitlyExtendable:
           throw "Error: only class can be extendable";
         case PragmaEntryPointType.CanBeOverridden:
           nativeCodeOracle.addDynamicallyOverriddenMember(field);
@@ -257,10 +262,11 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 /// Provides insights into the behavior of native code.
 class NativeCodeOracle {
   final LibraryIndex _libraryIndex;
-  final Set<Member> _membersReferencedFromNativeCode = new Set<Member>();
-  final Set<Member> _dynamicallyOverriddenMembers = new Set<Member>();
-  final Set<Class> _classesReferencedFromNativeCode = new Set<Class>();
-  final Set<Library> _librariesReferencedFromNativeCode = new Set<Library>();
+  final Set<Member> _membersReferencedFromNativeCode = Set<Member>();
+  final Set<Member> _dynamicallyOverriddenMembers = Set<Member>();
+  final Set<Class> _classesReferencedFromNativeCode = Set<Class>();
+  final Set<Class> _classesWithDynamicallyExtendableSubtypes = Set<Class>();
+  final Set<Library> _librariesReferencedFromNativeCode = Set<Library>();
   final PragmaAnnotationParser _matcher;
 
   NativeCodeOracle(this._libraryIndex, this._matcher);
@@ -285,6 +291,13 @@ class NativeCodeOracle {
 
   bool isMemberReferencedFromNativeCode(Member member) =>
       _membersReferencedFromNativeCode.contains(member);
+
+  void addClassWithDynamicallyExtendableSubtype(Class klass) {
+    _classesWithDynamicallyExtendableSubtypes.add(klass);
+  }
+
+  bool hasDynamicallyExtendableSubtypes(Class klass) =>
+      _classesWithDynamicallyExtendableSubtypes.contains(klass);
 
   void addDynamicallyOverriddenMember(Member member) {
     _dynamicallyOverriddenMembers.add(member);

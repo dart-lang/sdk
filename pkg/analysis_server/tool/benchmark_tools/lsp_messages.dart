@@ -20,6 +20,15 @@ class LspMessages {
     'params': {},
   };
 
+  static Map<String, dynamic> cancelRequest(int id) {
+    return {
+      'jsonrpc': '2.0',
+      'method': r'$/cancelRequest',
+      'params': {'id': id},
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
   static Map<String, dynamic> codeAction(
     int id,
     Uri uri, {
@@ -252,6 +261,25 @@ class LspMessages {
       'method': 'textDocument/semanticTokens/full',
       'params': {
         'textDocument': {'uri': '$uri'},
+      },
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
+  static Map<String, dynamic> signatureHelp(
+    Uri uri,
+    int id, {
+    required int line,
+    required int character,
+  }) {
+    return {
+      'jsonrpc': '2.0',
+      'id': id,
+      'method': 'textDocument/signatureHelp',
+      'params': {
+        'textDocument': {'uri': '$uri'},
+        'position': {'line': line, 'character': character},
+        'context': {'isRetrigger': true, 'triggerKind': 3},
       },
       'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
     };

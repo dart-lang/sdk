@@ -126,6 +126,45 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     PluginManager.pluginResponseTimes.clear();
   }
 
+  Future<void> test_server_contextStructure() async {
+    _defaultStartup();
+
+    // Record a brief working period.
+    manager.analysisComplete(
+      immediateFileCount: 1,
+      immediateFileLineCount: 1,
+      transitiveFileCount: 3,
+      transitiveFileLineCount: 20,
+      transitiveFileUniqueCount: 2,
+      transitiveFileUniqueLineCount: 15,
+      libraryCycleLibraryCounts: [],
+      libraryCycleLineCounts: [],
+      numberOfContexts: 3,
+      contextWorkspaceType: [0, 1, 2],
+      numberOfPackagesInWorkspace: [1, 3, 4],
+    );
+
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.contextStructure(
+        eventData: {
+          'immediateFileCount': 1,
+          'immediateFileLineCount': 1,
+          'transitiveFileCount': 3,
+          'transitiveFileLineCount': 20,
+          'transitiveFileUniqueCount': 2,
+          'transitiveFileUniqueLineCount': 15,
+          'libraryCycleLibraryCounts': _IsPercentiles(),
+          'libraryCycleLineCounts': _IsPercentiles(),
+          'numberOfContexts': 3,
+          'contextWorkspaceType': '[0, 1, 2]',
+          'numberOfPackagesInWorkspace': _IsPercentiles(),
+        },
+      ),
+    ]);
+  }
+
   Future<void> test_server_notification() async {
     _defaultStartup();
     manager.handledNotificationMessage(
@@ -538,6 +577,9 @@ class _ExpectedEvent {
 
   _ExpectedEvent.commandExecuted({Map<String, Object?>? eventData})
     : this(DashEvent.commandExecuted, eventData);
+
+  _ExpectedEvent.contextStructure({Map<String, Object?>? eventData})
+    : this(DashEvent.contextStructure, eventData);
 
   _ExpectedEvent.lintUsageCount({Map<String, Object?>? eventData})
     : this(DashEvent.lintUsageCount, eventData);

@@ -63,25 +63,20 @@ part of 'codes.dart';
 part of 'cfe_codes.dart';
 """);
 
-  List<String> keys = frontEndAndSharedMessages.keys.toList()..sort();
   var pseudoSharedCodeValues = <String>{};
-  for (String name in keys) {
-    var message = frontEndAndSharedMessages[name]!;
+  for (var message in diagnosticTables.sortedFrontEndDiagnostics) {
     var forFeAnalyzerShared =
         message is SharedMessage ||
         message is FrontEndMessage && message.pseudoSharedCode != null;
-    String template;
-    try {
-      template = _TemplateCompiler(
-        name: name,
+    String template = LocatedError.wrap(
+      node: message.keyNode,
+      () => _TemplateCompiler(
         message: message,
         pseudoSharedCodeValues: forFeAnalyzerShared
             ? pseudoSharedCodeValues
             : null,
-      ).compile();
-    } catch (e, st) {
-      Error.throwWithStackTrace('Error while compiling $name: $e', st);
-    }
+      ).compile(),
+    );
     if (forFeAnalyzerShared) {
       sharedMessages.writeln(template);
     } else {
@@ -104,7 +99,7 @@ part of 'cfe_codes.dart';
     '[Code.sharedCode].',
   );
   sharedMessages.writeln('enum SharedCode {');
-  for (var code in sharedToAnalyzerDiagnosticTables.sortedSharedDiagnostics) {
+  for (var code in diagnosticTables.sortedSharedDiagnostics) {
     sharedMessages.writeln('  ${code.analyzerCode.camelCaseName},');
   }
   sharedMessages.writeln('}');
@@ -154,10 +149,10 @@ class _TemplateCompiler {
   bool hasLabeler = false;
 
   _TemplateCompiler({
-    required this.name,
     required this.message,
     required this.pseudoSharedCodeValues,
-  }) : problemMessage = message.problemMessage,
+  }) : name = message.frontEndCode,
+       problemMessage = message.problemMessage,
        correctionMessage = message.correctionMessage,
        severity = message.cfeSeverity,
        parameters = message.parameters,

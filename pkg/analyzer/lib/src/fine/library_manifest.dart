@@ -748,11 +748,12 @@ class LibraryManifestBuilder {
         }
 
         var reference = exported.reference;
-        var lookupName = reference.isSetter
-            ? '${reference.name}='.asLookupName
-            : reference.name.asLookupName;
-
         var element = elementFactory.elementOfReference3(reference);
+
+        var lookupName = element.lookupName?.asLookupName;
+        if (lookupName == null) {
+          continue;
+        }
 
         // Skip elements that exist in nowhere.
         var elementLibrary = element.library;

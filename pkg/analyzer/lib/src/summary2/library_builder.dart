@@ -132,7 +132,7 @@ class LibraryBuilder {
           var exportedReferences = exportedLibrary.exportedReferences;
           for (var exported in exportedReferences) {
             var reference = exported.reference;
-            var name = reference.name;
+            var name = reference.elementName;
             if (reference.isSetter) {
               export.addToExportScope('$name=', exported);
             } else {

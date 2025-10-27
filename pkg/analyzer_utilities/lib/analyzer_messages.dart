@@ -9,7 +9,7 @@ import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
-import 'package:yaml/yaml.dart' show loadYaml, YamlMap;
+import 'package:yaml/yaml.dart' show YamlMap, YamlScalar, loadYamlNode;
 
 const codesFile = GeneratedDiagnosticFile(
   path: 'analyzer/lib/src/error/codes.g.dart',
@@ -174,8 +174,9 @@ const transformSetErrorCodeFile = GeneratedDiagnosticFile(
 );
 
 /// Decoded messages from the analyzer's `messages.yaml` file.
-final Map<AnalyzerCode, AnalyzerMessage> analyzerMessages =
-    _analyzerAndLintMessages.analyzerMessages;
+final List<AnalyzerMessage> analyzerMessages = decodeAnalyzerMessagesYaml(
+  analyzerPkgPath,
+);
 
 /// The path to the `analyzer` package.
 final String analyzerPkgPath = normalize(
@@ -186,88 +187,87 @@ final String analyzerPkgPath = normalize(
 final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
 
 /// Decoded messages from the linter's `messages.yaml` file.
-final Map<AnalyzerCode, AnalyzerMessage> lintMessages =
-    _analyzerAndLintMessages.lintMessages;
+final List<AnalyzerMessage> lintMessages = decodeAnalyzerMessagesYaml(
+  linterPkgPath,
+);
 
-final ({
-  Map<AnalyzerCode, AnalyzerMessage> analyzerMessages,
-  Map<AnalyzerCode, AnalyzerMessage> lintMessages,
-})
-_analyzerAndLintMessages = _loadAnalyzerAndLintMessages();
+/// Decodes a YAML object (in analyzer style `messages.yaml` format) into a list
+/// of [AnalyzerMessage]s.
+List<AnalyzerMessage> decodeAnalyzerMessagesYaml(String packagePath) {
+  var path = join(packagePath, 'messages.yaml');
+  var yaml = loadYamlNode(
+    File(path).readAsStringSync(),
+    sourceUrl: Uri.file(path),
+  );
 
-/// Decodes a YAML object (obtained from a `messages.yaml` file) into a map.
-Map<AnalyzerCode, AnalyzerMessage> decodeAnalyzerMessagesYaml(
-  String packagePath,
-) {
-  var yaml =
-      loadYaml(File(join(packagePath, 'messages.yaml')).readAsStringSync())
-          as Object?;
-  Never problem(String message) {
-    throw 'Problem in $packagePath/messages.yaml: $message';
+  var result = <AnalyzerMessage>[];
+  if (yaml is! YamlMap) {
+    throw LocatedError('root node is not a map', node: yaml);
   }
-
-  var result = <AnalyzerCode, AnalyzerMessage>{};
-  if (yaml is! Map<Object?, Object?>) {
-    problem('root node is not a map');
-  }
-  for (var classEntry in yaml.entries) {
-    var className = classEntry.key;
+  for (var classEntry in yaml.nodes.entries) {
+    var keyNode = classEntry.key as YamlScalar;
+    var className = keyNode.value;
     if (className is! String) {
-      problem('non-string class key ${json.encode(className)}');
+      throw LocatedError(
+        'non-string class key ${json.encode(className)}',
+        node: keyNode,
+      );
     }
     var classValue = classEntry.value;
-    if (classValue is! Map<Object?, Object?>) {
-      problem('value associated with class key $className is not a map');
+    if (classValue is! YamlMap) {
+      throw LocatedError(
+        'value associated with class key $className is not a map',
+        node: classValue,
+      );
     }
-    for (var diagnosticEntry in classValue.entries) {
-      var diagnosticName = diagnosticEntry.key;
+    for (var diagnosticEntry in classValue.nodes.entries) {
+      var keyNode = diagnosticEntry.key as YamlScalar;
+      var diagnosticName = keyNode.value;
       if (diagnosticName is! String) {
-        problem(
-          'in class $className, non-string diagnostic key '
-          '${json.encode(diagnosticName)}',
+        throw LocatedError(
+          'non-string diagnostic key ${json.encode(diagnosticName)}',
+          node: keyNode,
         );
       }
       var diagnosticValue = diagnosticEntry.value;
       if (diagnosticValue is! YamlMap) {
-        problem(
-          'value associated with diagnostic $className.$diagnosticName is not '
-          'a map',
+        throw LocatedError(
+          'value associated with diagnostic is not a map',
+          node: diagnosticValue,
         );
       }
 
-      AnalyzerMessage message;
-      try {
-        message =
-            result[AnalyzerCode(
-              diagnosticClass: DiagnosticClassInfo.byName(className),
-              snakeCaseName: diagnosticName,
-            )] = AnalyzerMessage.fromYaml(
-              diagnosticValue,
-            );
-      } catch (e, st) {
-        Error.throwWithStackTrace(
-          'while processing $className.$diagnosticName, $e',
-          st,
+      AnalyzerMessage message = LocatedError.wrap(node: diagnosticValue, () {
+        var analyzerCode = AnalyzerCode(
+          diagnosticClass: DiagnosticClassInfo.byName(className),
+          snakeCaseName: diagnosticName,
         );
-      }
+        return AnalyzerMessage.fromYaml(
+          diagnosticValue,
+          keyNode: keyNode,
+          analyzerCode: analyzerCode,
+        );
+      });
+      result.add(message);
       if (message.hasPublishedDocs == null) {
-        problem('Missing hasPublishedDocs for $className.$diagnosticName');
+        throw LocatedError('Missing hasPublishedDocs', node: diagnosticValue);
       }
 
       if (message case AliasMessage(:var aliasFor)) {
         var aliasForPath = aliasFor.split('.');
         if (aliasForPath.isEmpty) {
-          problem(
-            "The 'aliasFor' value at '$className.$diagnosticName is empty",
+          throw LocatedError(
+            "The 'aliasFor' value is empty",
+            node: diagnosticValue,
           );
         }
         var node = yaml;
         for (var key in aliasForPath) {
           var value = node[key];
-          if (value is! Map<Object?, Object?>) {
-            problem(
-              'No Map value at "$aliasFor", aliased from '
-              '$className.$diagnosticName',
+          if (value is! YamlMap) {
+            throw LocatedError(
+              'No Map value at "$aliasFor"',
+              node: diagnosticValue,
             );
           }
           node = value;
@@ -278,75 +278,64 @@ Map<AnalyzerCode, AnalyzerMessage> decodeAnalyzerMessagesYaml(
   return result;
 }
 
-/// Loads analyzer and lint messages from their respective `messages.yaml`
-/// files, and performs consistency checks on them.
-({
-  Map<AnalyzerCode, AnalyzerMessage> analyzerMessages,
-  Map<AnalyzerCode, AnalyzerMessage> lintMessages,
-})
-_loadAnalyzerAndLintMessages() {
-  var analyzerMessages = decodeAnalyzerMessagesYaml(analyzerPkgPath);
-  var lintMessages = decodeAnalyzerMessagesYaml(linterPkgPath);
-
-  // Check for duplicate codes.
-  var camelCaseNameToCodes = <String, List<String>>{};
-  for (var codeMap in [analyzerMessages, lintMessages]) {
-    for (var analyzerCode in codeMap.keys) {
-      (camelCaseNameToCodes[analyzerCode.camelCaseName] ??= []).add(
-        analyzerCode.toString(),
-      );
-    }
-  }
-  for (var MapEntry(:key, :value) in feAnalyzerSharedMessages.entries) {
-    (camelCaseNameToCodes[value.analyzerCode.camelCaseName] ??= []).add(
-      '$key (shared)',
-    );
-  }
-  for (var MapEntry(:key, :value) in camelCaseNameToCodes.entries) {
-    if (value.length > 1) {
-      throw 'Analyzer diagnostic name $key used for multiple diagnostics: '
-          '${value.join(', ')}';
-    }
-  }
-
-  return (analyzerMessages: analyzerMessages, lintMessages: lintMessages);
-}
-
 /// An [AnalyzerMessage] which is an alias for another, for incremental
 /// deprecation purposes.
 class AliasMessage extends AnalyzerMessage {
   String aliasFor;
 
-  AliasMessage._fromYaml(super.yaml, {required this.aliasFor})
-    : super._fromYaml();
+  AliasMessage._fromYaml(
+    super.yaml, {
+    required this.aliasFor,
+    required super.keyNode,
+    required super.analyzerCode,
+  }) : super._fromYaml();
 
   String get aliasForClass => aliasFor.split('.').first;
 
   @override
   void toAnalyzerCode(
-    DiagnosticClassInfo diagnosticClassInfo,
-    String diagnosticCode, {
+    DiagnosticClassInfo diagnosticClassInfo, {
     String? sharedNameReference,
     required MemberAccumulator memberAccumulator,
   }) {
     var constant = StringBuffer();
     outputConstantHeader(constant);
-    constant.writeln('  static const $aliasForClass $diagnosticCode =');
+    constant.writeln('  static const $aliasForClass $constantName =');
     constant.writeln('$aliasFor;');
-    memberAccumulator.constants[diagnosticCode] = constant.toString();
+    memberAccumulator.constants[constantName] = constant.toString();
   }
 }
 
 /// In-memory representation of diagnostic information obtained from the
 /// analyzer's `messages.yaml` file.
-class AnalyzerMessage extends Message {
-  factory AnalyzerMessage.fromYaml(YamlMap yaml) {
+class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
+  @override
+  final AnalyzerCode analyzerCode;
+
+  factory AnalyzerMessage.fromYaml(
+    YamlMap yaml, {
+    required YamlScalar keyNode,
+    required AnalyzerCode analyzerCode,
+  }) {
     if (yaml['aliasFor'] case var aliasFor?) {
-      return AliasMessage._fromYaml(yaml, aliasFor: aliasFor as String);
+      return AliasMessage._fromYaml(
+        yaml,
+        aliasFor: aliasFor as String,
+        keyNode: keyNode,
+        analyzerCode: analyzerCode,
+      );
     } else {
-      return AnalyzerMessage._fromYaml(yaml);
+      return AnalyzerMessage._fromYaml(
+        yaml,
+        keyNode: keyNode,
+        analyzerCode: analyzerCode,
+      );
     }
   }
 
-  AnalyzerMessage._fromYaml(super.yaml) : super.fromYaml();
+  AnalyzerMessage._fromYaml(
+    super.yaml, {
+    required super.keyNode,
+    required this.analyzerCode,
+  }) : super.fromYaml();
 }
