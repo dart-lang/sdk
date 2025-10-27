@@ -26,6 +26,17 @@ const Map<String, String> severityEnumNames = <String, String>{
   'INFO': 'info',
 };
 
+/// A set of tables derived from shared, CFE, analyzer, and linter diagnostics.
+///
+/// For details see the documentation for fields in the [DiagnosticTables]
+/// class.
+final DiagnosticTables diagnosticTables = DiagnosticTables._([
+  ...frontEndMessages.values,
+  ...feAnalyzerSharedMessages.values,
+  ...analyzerMessages.values,
+  ...lintMessages.values,
+]);
+
 /// Decoded messages from the `_fe_analyzer_shared` package's `messages.yaml`
 /// file.
 final Map<String, SharedMessage> feAnalyzerSharedMessages =
@@ -38,12 +49,6 @@ final Map<String, SharedMessage> feAnalyzerSharedMessages =
 final String feAnalyzerSharedPkgPath = normalize(
   join(pkg_root.packageRoot, '_fe_analyzer_shared'),
 );
-
-/// Decoded messages from the `messages.yaml` files in the front end and
-/// `_fe_analyzer_shared`.
-final Map<String, CfeStyleMessage> frontEndAndSharedMessages = Map.from(
-  frontEndMessages,
-)..addAll(feAnalyzerSharedMessages);
 
 /// Decoded messages from the front end's `messages.yaml` file.
 final Map<String, FrontEndMessage> frontEndMessages = _loadCfeStyleMessages(
@@ -67,10 +72,6 @@ final RegExp oldPlaceholderPattern = RegExp(r'\{\d+\}');
 final RegExp placeholderPattern = RegExp(
   '#([-a-zA-Z0-9_]+)(?:%([0-9]*).([0-9]+))?',
 );
-
-/// A set of tables mapping between shared and analyzer diagnostics.
-final SharedToAnalyzerDiagnosticTables sharedToAnalyzerDiagnosticTables =
-    SharedToAnalyzerDiagnosticTables._(feAnalyzerSharedMessages);
 
 /// Converts a template to an analyzer internal template string (which uses
 /// placeholders like `{0}`).
@@ -454,6 +455,54 @@ enum DiagnosticParameterType {
   /// Whether giatnostic messages using parameters of this type are supported by
   /// the analyzer.
   bool get isSupportedByAnalyzer => _analyzerName != null;
+}
+
+/// A set of tables derived from shared, CFE, analyzer, and linter diagnostics.
+class DiagnosticTables {
+  /// Map from analyzer code to the single unique message with that code.
+  final Map<AnalyzerCode, MessageWithAnalyzerCode> analyzerCodeToMessage = {};
+
+  /// List of shared diagnostics for which analyzer diagnostics should be
+  /// automatically generated, sorted by analyzer code.
+  final List<SharedMessage> sortedSharedDiagnostics = [];
+
+  /// List of front end diagnostics, sorted by front end code.
+  final List<CfeStyleMessage> sortedFrontEndDiagnostics = [];
+
+  DiagnosticTables._(List<Message> messages) {
+    var frontEndCodeDuplicateChecker = _DuplicateChecker<String>(
+      kind: 'Front end code',
+    );
+    var analyzerCodeDuplicateChecker = _DuplicateChecker<AnalyzerCode>(
+      kind: 'Analyzer code',
+    );
+    var analyzerCodeCamelCaseNameDuplicateChecker = _DuplicateChecker<String>(
+      kind: 'Analyzer code camelCase name',
+    );
+    for (var message in messages) {
+      if (message is CfeStyleMessage) {
+        var frontEndCode = message.frontEndCode;
+        frontEndCodeDuplicateChecker[frontEndCode] = message;
+        sortedFrontEndDiagnostics.add(message);
+      }
+      if (message is SharedMessage) {
+        sortedSharedDiagnostics.add(message);
+      }
+      if (message is MessageWithAnalyzerCode) {
+        var analyzerCode = message.analyzerCode;
+        analyzerCodeToMessage[analyzerCode] = message;
+        analyzerCodeDuplicateChecker[analyzerCode] = message;
+        analyzerCodeCamelCaseNameDuplicateChecker[analyzerCode.camelCaseName] =
+            message;
+      }
+    }
+
+    analyzerCodeDuplicateChecker.check();
+    analyzerCodeCamelCaseNameDuplicateChecker.check();
+    frontEndCodeDuplicateChecker.check();
+    sortedSharedDiagnostics.sortBy((e) => e.analyzerCode.camelCaseName);
+    sortedFrontEndDiagnostics.sortBy((e) => e.frontEndCode);
+  }
 }
 
 /// In-memory representation of diagnostic information obtained from the file
@@ -1098,48 +1147,6 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
   }
 }
 
-/// Data tables mapping between shared diagnostics and their corresponding
-/// automatically generated analyzer diagnostics.
-class SharedToAnalyzerDiagnosticTables {
-  /// Map whose values are the shared diagnostics for which analyzer diagnostics
-  /// should be automatically generated, and whose keys are the corresponding
-  /// analyzer code.
-  final Map<AnalyzerCode, SharedMessage> analyzerCodeToMessage = {};
-
-  /// List of shared diagnostics for which analyzer diagnostics should be
-  /// automatically generated, sorted by analyzer code.
-  final List<SharedMessage> sortedSharedDiagnostics = [];
-
-  SharedToAnalyzerDiagnosticTables._(Map<String, SharedMessage> messages) {
-    var infoToFrontEndCode = <SharedMessage, String>{};
-    var analyzerCodeToMessages = <AnalyzerCode, List<SharedMessage>>{};
-    for (var entry in messages.entries) {
-      var message = entry.value;
-      var frontEndCode = entry.key;
-      sortedSharedDiagnostics.add(message);
-      infoToFrontEndCode[message] = frontEndCode;
-      var analyzerCode = message.analyzerCode;
-      (analyzerCodeToMessages[analyzerCode] ??= []).add(message);
-    }
-
-    for (var MapEntry(key: analyzerCode, value: messages)
-        in analyzerCodeToMessages.entries) {
-      switch (messages) {
-        case [var message]:
-          analyzerCodeToMessage[analyzerCode] = message;
-        default:
-          throw [
-            'Analyzer code $analyzerCode used for multiple diagnostics:',
-            for (var message in messages)
-              '${message.location}: ${message.keyNode}',
-          ].join('\n');
-      }
-    }
-
-    sortedSharedDiagnostics.sortBy((e) => e.analyzerCode.camelCaseName);
-  }
-}
-
 /// A [Conversion] that invokes a top level function via the `conversions`
 /// import prefix.
 class SimpleConversion implements Conversion {
@@ -1220,6 +1227,29 @@ class TemplateParameterPart implements TemplatePart {
 /// Each `problemMessage` and `correctionMessage` template string in a
 /// `messages.yaml` file is decoded into a list of [TemplatePart].
 sealed class TemplatePart {}
+
+class _DuplicateChecker<Code> {
+  final Map<Code, List<Message>> _codeToMessages = {};
+  final String kind;
+
+  _DuplicateChecker({required this.kind});
+
+  void operator []=(Code code, Message message) {
+    (_codeToMessages[code] ??= []).add(message);
+  }
+
+  void check() {
+    for (var MapEntry(key: code, value: messages) in _codeToMessages.entries) {
+      if (messages.length != 1) {
+        throw [
+          '$kind $code used for multiple diagnostics:',
+          for (var message in messages)
+            '${message.location}: ${message.keyNode}',
+        ].join('\n');
+      }
+    }
+  }
+}
 
 extension YamlNodeLocation on YamlNode {
   /// A string suitable for identifying the location of this node in the source

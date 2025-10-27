@@ -63,10 +63,8 @@ part of 'codes.dart';
 part of 'cfe_codes.dart';
 """);
 
-  List<String> keys = frontEndAndSharedMessages.keys.toList()..sort();
   var pseudoSharedCodeValues = <String>{};
-  for (String name in keys) {
-    var message = frontEndAndSharedMessages[name]!;
+  for (var message in diagnosticTables.sortedFrontEndDiagnostics) {
     var forFeAnalyzerShared =
         message is SharedMessage ||
         message is FrontEndMessage && message.pseudoSharedCode != null;
@@ -101,7 +99,7 @@ part of 'cfe_codes.dart';
     '[Code.sharedCode].',
   );
   sharedMessages.writeln('enum SharedCode {');
-  for (var code in sharedToAnalyzerDiagnosticTables.sortedSharedDiagnostics) {
+  for (var code in diagnosticTables.sortedSharedDiagnostics) {
     sharedMessages.writeln('  ${code.analyzerCode.camelCaseName},');
   }
   sharedMessages.writeln('}');

@@ -175,7 +175,7 @@ const transformSetErrorCodeFile = GeneratedDiagnosticFile(
 
 /// Decoded messages from the analyzer's `messages.yaml` file.
 final Map<AnalyzerCode, AnalyzerMessage> analyzerMessages =
-    _analyzerAndLintMessages.analyzerMessages;
+    decodeAnalyzerMessagesYaml(analyzerPkgPath);
 
 /// The path to the `analyzer` package.
 final String analyzerPkgPath = normalize(
@@ -187,13 +187,7 @@ final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
 
 /// Decoded messages from the linter's `messages.yaml` file.
 final Map<AnalyzerCode, AnalyzerMessage> lintMessages =
-    _analyzerAndLintMessages.lintMessages;
-
-final ({
-  Map<AnalyzerCode, AnalyzerMessage> analyzerMessages,
-  Map<AnalyzerCode, AnalyzerMessage> lintMessages,
-})
-_analyzerAndLintMessages = _loadAnalyzerAndLintMessages();
+    decodeAnalyzerMessagesYaml(linterPkgPath);
 
 /// Decodes a YAML object (obtained from a `messages.yaml` file) into a map.
 Map<AnalyzerCode, AnalyzerMessage> decodeAnalyzerMessagesYaml(
@@ -280,41 +274,6 @@ Map<AnalyzerCode, AnalyzerMessage> decodeAnalyzerMessagesYaml(
     }
   }
   return result;
-}
-
-/// Loads analyzer and lint messages from their respective `messages.yaml`
-/// files, and performs consistency checks on them.
-({
-  Map<AnalyzerCode, AnalyzerMessage> analyzerMessages,
-  Map<AnalyzerCode, AnalyzerMessage> lintMessages,
-})
-_loadAnalyzerAndLintMessages() {
-  var analyzerMessages = decodeAnalyzerMessagesYaml(analyzerPkgPath);
-  var lintMessages = decodeAnalyzerMessagesYaml(linterPkgPath);
-
-  // Check for duplicate codes.
-  var camelCaseNameToMessages = <String, List<Message>>{};
-  var allAnalyzerAndLintMessages = [
-    for (var codeMap in [analyzerMessages, lintMessages]) ...codeMap.values,
-  ];
-  for (var message in <MessageWithAnalyzerCode>[
-    ...allAnalyzerAndLintMessages,
-    ...feAnalyzerSharedMessages.values,
-  ]) {
-    (camelCaseNameToMessages[message.analyzerCode.camelCaseName] ??= []).add(
-      message,
-    );
-  }
-  for (var MapEntry(:key, :value) in camelCaseNameToMessages.entries) {
-    if (value.length > 1) {
-      throw [
-        'Analyzer diagnostic name $key used for multiple diagnostics:',
-        for (var message in value) '${message.location}: ${message.keyNode}',
-      ].join('\n');
-    }
-  }
-
-  return (analyzerMessages: analyzerMessages, lintMessages: lintMessages);
 }
 
 /// An [AnalyzerMessage] which is an alias for another, for incremental
