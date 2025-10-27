@@ -46,11 +46,7 @@ DEFINE_FLAG(int,
             max_profile_depth,
             Sample::kPCArraySizeInWords* kMaxSamplesPerTick,
             "Maximum number stack frames walked. Minimum 2. Maximum 255.");
-#if defined(DART_INCLUDE_SIMULATOR)
-DEFINE_FLAG(bool, profile_vm, true, "Always collect native stack traces.");
-#else
 DEFINE_FLAG(bool, profile_vm, false, "Always collect native stack traces.");
-#endif
 DEFINE_FLAG(bool,
             profile_vm_allocation,
             false,
@@ -1478,7 +1474,7 @@ void Profiler::SampleThread(Thread* thread,
   if (in_dart_code) {
     // If we're in Dart code, use the Dart stack pointer.
 #if defined(DART_INCLUDE_SIMULATOR)
-    if (FLAG_use_simulator) {
+    if (FLAG_use_simulator && !FLAG_profile_vm) {
       Simulator* simulator = isolate->simulator();
       sp = simulator->get_register(SPREG);
       fp = simulator->get_register(FPREG);
