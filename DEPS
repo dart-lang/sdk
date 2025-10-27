@@ -133,7 +133,7 @@ vars = {
   # EOL comment after a dependency to instead pin at the current revision.
   "ai_rev": "0a85ddf4f75cee6e3abe07cecdffae69bbdbc793",
   "core_rev": "5c3e2c38df268be2347f3aad30ced0147dd012bb", # b/444274553
-  "dartdoc_rev": "98d03ad2cc341d1fb053e0addfc96ba35301976b",
+  "dartdoc_rev": "6d1aa6f5045c33d3723aba05e3e0dc1403b763c0",
   "ecosystem_rev": "6a8746e70b315aceec7f81cae9bef8b67abb2453",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
   "http_rev": "2cb6c12966e18abc11a0217a8b613742849a29ea",
@@ -141,13 +141,13 @@ vars = {
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "3ec573500f743d4a1393f7802143aef50fec0a47", # rolled manually while native assets are experimental
-  "protobuf_rev": "78cf7432a6b1a0771042a1931047cf7c15d931c6",
+  "protobuf_rev": "7db07843c86de526edbe3c4d668c0962ef0b203b",
   "pub_rev": "f7f1891e2de3d795532f45ec214f88ac912ffcd6", # rolled manually
   "shelf_rev": "710b8cef08f69acf176c807eaf274dfb8656fde0",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "8083c8f24ffbca58cc0385add03c296b70636e7a",
-  "tools_rev": "5fe6ee6fe1e545fab5e253c3a57f279f7000a807",
+  "test_rev": "5855358095b8718712567b8abc0435ddfd125ba8",
+  "tools_rev": "e0cc0bcc7f685e913ef87624951487e4a2c76d0f",
   "vector_math_rev": "a7b7e9ccb931348dbfa669e0f8fea1bf97705b16",
   "web_rev": "5a7d0be70a258252b95bac6b900f26d6dae4d433",
   "webdev_rev": "b9c39c00853dfad0e235bec3b265f86a0f4f328a",
