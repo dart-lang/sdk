@@ -38,6 +38,7 @@ abstract class ParsedPragma {}
 enum PragmaEntryPointType {
   Default,
   Extendable,
+  ImplicitlyExtendable,
   CanBeOverridden,
   GetterOnly,
   SetterOnly,
@@ -220,6 +221,10 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         return const ParsedEntryPointPragma(PragmaEntryPointType.Default);
       case kDynModuleExtendablePragmaName:
         return const ParsedEntryPointPragma(PragmaEntryPointType.Extendable);
+      case kDynModuleImplicitlyExtendablePragmaName:
+        return const ParsedEntryPointPragma(
+          PragmaEntryPointType.ImplicitlyExtendable,
+        );
       case kDynModuleCanBeOverriddenPragmaName:
         return const ParsedEntryPointPragma(
           PragmaEntryPointType.CanBeOverridden,
