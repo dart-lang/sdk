@@ -163,6 +163,15 @@ front_end/UnterminatedToken/example: missingExample # This is a fall-back messag
 front_end/WasmImportOrExportInUserCode/example: missingExample # only issued by wasm build
 front_end/WebLiteralCannotBeRepresentedExactly/example: missingExample # only issued on web build
 
+# An invalid private named parameter produces one of two errors depending on
+# whether the "private-named-parameters" experiment is enabled. By default with
+# the experiment off, it shows the old error (PrivateOptionalParameter), even
+# for the example in the new error code. Allow that for now.
+# TODO(rnystrom): Decide if we want to consolidate to one single error when the
+# experiment is closer to shipping.
+front_end/PrivateNamedNonFieldParameter/part_wrapped_script: hasOnlyUnrelatedMessages
+front_end/PrivateNamedNonFieldParameter/script: hasOnlyUnrelatedMessages
+
 # Can we do better?
 _fe_analyzer_shared/ConstAndFinal/declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
 _fe_analyzer_shared/ConstAndFinal/declaration4: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?

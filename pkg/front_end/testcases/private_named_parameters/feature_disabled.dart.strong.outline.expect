@@ -1,0 +1,31 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/private_named_parameters/feature_disabled.dart:11:20: Error: The 'private-named-parameters' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to the current release or higher.
+//   C({required this._foo, required this._bar});
+//                    ^^^^
+// pkg/front_end/testcases/private_named_parameters/feature_disabled.dart:5:1: Context: This is the annotation that opts out this library from the 'private-named-parameters' language feature.
+// // @dart=3.9
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/feature_disabled.dart:11:40: Error: The 'private-named-parameters' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to the current release or higher.
+//   C({required this._foo, required this._bar});
+//                                        ^^^^
+// pkg/front_end/testcases/private_named_parameters/feature_disabled.dart:5:1: Context: This is the annotation that opts out this library from the 'private-named-parameters' language feature.
+// // @dart=3.9
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::String _foo;
+  field core::String _bar;
+  constructor •({required core::String _foo, required core::String _bar}) → self::C
+    ;
+}
+static method main() → dynamic
+  ;

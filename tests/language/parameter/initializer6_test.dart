@@ -4,13 +4,13 @@
 
 import "package:expect/expect.dart";
 
-/// It is a compile-time error if a named formal parameter begins with an '_'.
+/// It is a compile-time error if a named formal parameter begins with an '_'
+/// unless it refers to a field.
 
 class Foo {
-  num _y;
-  Foo.private({this._y = 77}) {}
-  //                ^^
-  // [analyzer] COMPILE_TIME_ERROR.PRIVATE_OPTIONAL_PARAMETER
+  Foo.private({int _y = 77}) {}
+  //               ^^
+  // [analyzer] SYNTACTIC_ERROR.PRIVATE_OPTIONAL_PARAMETER
   // [cfe] A named parameter can't start with an underscore ('_').
 }
 

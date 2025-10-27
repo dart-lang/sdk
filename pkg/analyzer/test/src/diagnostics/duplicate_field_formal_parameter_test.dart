@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -44,14 +45,12 @@ class A {
 ''',
       [
         error(WarningCode.unusedField, 16, 1),
-        error(CompileTimeErrorCode.privateOptionalParameter, 29, 1),
         error(
           CompileTimeErrorCode.duplicateFieldFormalParameter,
           41,
           1,
           contextMessages: [message(testFile, 29, 1)],
         ),
-        error(CompileTimeErrorCode.privateOptionalParameter, 41, 1),
       ],
     );
   }
@@ -69,14 +68,14 @@ class A {
 ''',
       [
         error(WarningCode.unusedField, 60, 1),
-        error(CompileTimeErrorCode.privateOptionalParameter, 73, 1),
+        error(ParserErrorCode.experimentNotEnabledOffByDefault, 73, 1),
+        error(ParserErrorCode.experimentNotEnabledOffByDefault, 85, 1),
         error(
           CompileTimeErrorCode.duplicateFieldFormalParameter,
           85,
           1,
           contextMessages: [message(testFile, 73, 1)],
         ),
-        error(CompileTimeErrorCode.privateOptionalParameter, 85, 1),
       ],
     );
   }
@@ -234,14 +233,12 @@ class A {
 ''',
       [
         error(WarningCode.unusedField, 16, 1),
-        error(CompileTimeErrorCode.privateOptionalParameter, 38, 1),
         error(
           CompileTimeErrorCode.duplicateFieldFormalParameter,
           55,
           1,
           contextMessages: [message(testFile, 38, 1)],
         ),
-        error(CompileTimeErrorCode.privateOptionalParameter, 55, 1),
       ],
     );
   }
@@ -259,14 +256,14 @@ class A {
 ''',
       [
         error(WarningCode.unusedField, 60, 1),
-        error(CompileTimeErrorCode.privateOptionalParameter, 82, 1),
+        error(ParserErrorCode.experimentNotEnabledOffByDefault, 82, 1),
+        error(ParserErrorCode.experimentNotEnabledOffByDefault, 99, 1),
         error(
           CompileTimeErrorCode.duplicateFieldFormalParameter,
           99,
           1,
           contextMessages: [message(testFile, 82, 1)],
         ),
-        error(CompileTimeErrorCode.privateOptionalParameter, 99, 1),
       ],
     );
   }

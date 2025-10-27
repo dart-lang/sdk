@@ -1378,10 +1378,6 @@ CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION:
   status: noFix
 CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION:
   status: noFix
-CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER:
-  status: needsFix
-  notes: |-
-    Remove the underscore
 CompileTimeErrorCode.PRIVATE_SETTER:
   status: noFix
 CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL:
@@ -3221,6 +3217,12 @@ ParserErrorCode.PREFIX_AFTER_COMBINATOR:
   status: needsFix
   notes: |-
     Move the prefix before the combinators.
+ParserErrorCode.PRIVATE_OPTIONAL_PARAMETER:
+  status: needsFix
+  notes: |-
+    Remove the underscore
+ParserErrorCode.PRIVATE_NAMED_NON_FIELD_PARAMETER:
+  status: needsEvaluation
 ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
   status: hasFix
 ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA:

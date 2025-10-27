@@ -2300,6 +2300,24 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// No parameters.
   static const ParserErrorWithoutArguments
+  privateNamedNonFieldParameter = ParserErrorWithoutArguments(
+    'PRIVATE_NAMED_NON_FIELD_PARAMETER',
+    "Named parameters that don't refer to instance variables can't start with "
+        "underscore.",
+    expectedTypes: [],
+  );
+
+  /// No parameters.
+  static const ParserErrorWithoutArguments privateOptionalParameter =
+      ParserErrorWithoutArguments(
+        'PRIVATE_OPTIONAL_PARAMETER',
+        "Named parameters can't start with an underscore.",
+        hasPublishedDocs: true,
+        expectedTypes: [],
+      );
+
+  /// No parameters.
+  static const ParserErrorWithoutArguments
   recordLiteralOnePositionalNoTrailingComma = ParserErrorWithoutArguments(
     'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
     "A record literal with exactly one positional field requires a trailing "

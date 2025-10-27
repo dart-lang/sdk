@@ -6065,15 +6065,6 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     ],
   );
 
-  /// No parameters.
-  static const CompileTimeErrorWithoutArguments privateOptionalParameter =
-      CompileTimeErrorWithoutArguments(
-        'PRIVATE_OPTIONAL_PARAMETER',
-        "Named parameters can't start with an underscore.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
-
   /// Parameters:
   /// String p0: the name of the setter
   static const CompileTimeErrorTemplate<

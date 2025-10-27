@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,23 +20,31 @@ class PrivateOptionalParameterTest extends PubPackageResolutionTest {
     await assertErrorsInCode(
       r'''
 class A {
-  var _p;
+  int? _p;
   A({this._p = 0});
 }
 ''',
-      [
-        error(WarningCode.unusedField, 16, 2),
-        error(CompileTimeErrorCode.privateOptionalParameter, 30, 2),
-      ],
+      [error(WarningCode.unusedField, 17, 2)],
     );
   }
 
-  test_private() async {
+  test_nonConstructor() async {
     await assertErrorsInCode(
       '''
 f({var _p}) {}
 ''',
-      [error(CompileTimeErrorCode.privateOptionalParameter, 7, 2)],
+      [error(ParserErrorCode.privateNamedNonFieldParameter, 7, 2)],
+    );
+  }
+
+  test_nonFieldParameter() async {
+    await assertErrorsInCode(
+      '''
+class C {
+  C({int? _notField});
+}
+''',
+      [error(ParserErrorCode.privateNamedNonFieldParameter, 20, 9)],
     );
   }
 
@@ -44,7 +53,7 @@ f({var _p}) {}
       '''
 f({_p = 0}) {}
 ''',
-      [error(CompileTimeErrorCode.privateOptionalParameter, 3, 2)],
+      [error(ParserErrorCode.privateNamedNonFieldParameter, 3, 2)],
     );
   }
 }
