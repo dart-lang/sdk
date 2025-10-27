@@ -9,7 +9,7 @@ import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
-import 'package:yaml/yaml.dart' show loadYaml, YamlMap;
+import 'package:yaml/yaml.dart' show YamlMap, YamlScalar, loadYamlNode;
 
 const codesFile = GeneratedDiagnosticFile(
   path: 'analyzer/lib/src/error/codes.g.dart',
@@ -199,75 +199,79 @@ _analyzerAndLintMessages = _loadAnalyzerAndLintMessages();
 Map<AnalyzerCode, AnalyzerMessage> decodeAnalyzerMessagesYaml(
   String packagePath,
 ) {
-  var yaml =
-      loadYaml(File(join(packagePath, 'messages.yaml')).readAsStringSync())
-          as Object?;
-  Never problem(String message) {
-    throw 'Problem in $packagePath/messages.yaml: $message';
-  }
+  var path = join(packagePath, 'messages.yaml');
+  var yaml = loadYamlNode(
+    File(path).readAsStringSync(),
+    sourceUrl: Uri.file(path),
+  );
 
   var result = <AnalyzerCode, AnalyzerMessage>{};
-  if (yaml is! Map<Object?, Object?>) {
-    problem('root node is not a map');
+  if (yaml is! YamlMap) {
+    throw LocatedError('root node is not a map', node: yaml);
   }
-  for (var classEntry in yaml.entries) {
-    var className = classEntry.key;
+  for (var classEntry in yaml.nodes.entries) {
+    var keyNode = classEntry.key as YamlScalar;
+    var className = keyNode.value;
     if (className is! String) {
-      problem('non-string class key ${json.encode(className)}');
+      throw LocatedError(
+        'non-string class key ${json.encode(className)}',
+        node: keyNode,
+      );
     }
     var classValue = classEntry.value;
-    if (classValue is! Map<Object?, Object?>) {
-      problem('value associated with class key $className is not a map');
+    if (classValue is! YamlMap) {
+      throw LocatedError(
+        'value associated with class key $className is not a map',
+        node: classValue,
+      );
     }
-    for (var diagnosticEntry in classValue.entries) {
-      var diagnosticName = diagnosticEntry.key;
+    for (var diagnosticEntry in classValue.nodes.entries) {
+      var keyNode = diagnosticEntry.key as YamlScalar;
+      var diagnosticName = keyNode.value;
       if (diagnosticName is! String) {
-        problem(
-          'in class $className, non-string diagnostic key '
-          '${json.encode(diagnosticName)}',
+        throw LocatedError(
+          'non-string diagnostic key ${json.encode(diagnosticName)}',
+          node: keyNode,
         );
       }
       var diagnosticValue = diagnosticEntry.value;
       if (diagnosticValue is! YamlMap) {
-        problem(
-          'value associated with diagnostic $className.$diagnosticName is not '
-          'a map',
+        throw LocatedError(
+          'value associated with diagnostic is not a map',
+          node: diagnosticValue,
         );
       }
 
-      AnalyzerMessage message;
-      try {
-        message =
+      AnalyzerMessage message = LocatedError.wrap(
+        node: diagnosticValue,
+        () =>
             result[AnalyzerCode(
               diagnosticClass: DiagnosticClassInfo.byName(className),
               snakeCaseName: diagnosticName,
             )] = AnalyzerMessage.fromYaml(
               diagnosticValue,
-            );
-      } catch (e, st) {
-        Error.throwWithStackTrace(
-          'while processing $className.$diagnosticName, $e',
-          st,
-        );
-      }
+              keyNode: keyNode,
+            ),
+      );
       if (message.hasPublishedDocs == null) {
-        problem('Missing hasPublishedDocs for $className.$diagnosticName');
+        throw LocatedError('Missing hasPublishedDocs', node: diagnosticValue);
       }
 
       if (message case AliasMessage(:var aliasFor)) {
         var aliasForPath = aliasFor.split('.');
         if (aliasForPath.isEmpty) {
-          problem(
-            "The 'aliasFor' value at '$className.$diagnosticName is empty",
+          throw LocatedError(
+            "The 'aliasFor' value is empty",
+            node: diagnosticValue,
           );
         }
         var node = yaml;
         for (var key in aliasForPath) {
           var value = node[key];
-          if (value is! Map<Object?, Object?>) {
-            problem(
-              'No Map value at "$aliasFor", aliased from '
-              '$className.$diagnosticName',
+          if (value is! YamlMap) {
+            throw LocatedError(
+              'No Map value at "$aliasFor"',
+              node: diagnosticValue,
             );
           }
           node = value;
@@ -289,23 +293,25 @@ _loadAnalyzerAndLintMessages() {
   var lintMessages = decodeAnalyzerMessagesYaml(linterPkgPath);
 
   // Check for duplicate codes.
-  var camelCaseNameToCodes = <String, List<String>>{};
+  var camelCaseNameToMessages = <String, List<Message>>{};
   for (var codeMap in [analyzerMessages, lintMessages]) {
-    for (var analyzerCode in codeMap.keys) {
-      (camelCaseNameToCodes[analyzerCode.camelCaseName] ??= []).add(
-        analyzerCode.toString(),
+    for (var entry in codeMap.entries) {
+      (camelCaseNameToMessages[entry.key.camelCaseName] ??= []).add(
+        entry.value,
       );
     }
   }
-  for (var MapEntry(:key, :value) in feAnalyzerSharedMessages.entries) {
-    (camelCaseNameToCodes[value.analyzerCode.camelCaseName] ??= []).add(
-      '$key (shared)',
+  for (var message in feAnalyzerSharedMessages.values) {
+    (camelCaseNameToMessages[message.analyzerCode.camelCaseName] ??= []).add(
+      message,
     );
   }
-  for (var MapEntry(:key, :value) in camelCaseNameToCodes.entries) {
+  for (var MapEntry(:key, :value) in camelCaseNameToMessages.entries) {
     if (value.length > 1) {
-      throw 'Analyzer diagnostic name $key used for multiple diagnostics: '
-          '${value.join(', ')}';
+      throw [
+        'Analyzer diagnostic name $key used for multiple diagnostics:',
+        for (var message in value) '${message.location}: ${message.keyNode}',
+      ].join('\n');
     }
   }
 
@@ -317,8 +323,11 @@ _loadAnalyzerAndLintMessages() {
 class AliasMessage extends AnalyzerMessage {
   String aliasFor;
 
-  AliasMessage._fromYaml(super.yaml, {required this.aliasFor})
-    : super._fromYaml();
+  AliasMessage._fromYaml(
+    super.yaml, {
+    required this.aliasFor,
+    required super.keyNode,
+  }) : super._fromYaml();
 
   String get aliasForClass => aliasFor.split('.').first;
 
@@ -340,13 +349,21 @@ class AliasMessage extends AnalyzerMessage {
 /// In-memory representation of diagnostic information obtained from the
 /// analyzer's `messages.yaml` file.
 class AnalyzerMessage extends Message {
-  factory AnalyzerMessage.fromYaml(YamlMap yaml) {
+  factory AnalyzerMessage.fromYaml(
+    YamlMap yaml, {
+    required YamlScalar keyNode,
+  }) {
     if (yaml['aliasFor'] case var aliasFor?) {
-      return AliasMessage._fromYaml(yaml, aliasFor: aliasFor as String);
+      return AliasMessage._fromYaml(
+        yaml,
+        aliasFor: aliasFor as String,
+        keyNode: keyNode,
+      );
     } else {
-      return AnalyzerMessage._fromYaml(yaml);
+      return AnalyzerMessage._fromYaml(yaml, keyNode: keyNode);
     }
   }
 
-  AnalyzerMessage._fromYaml(super.yaml) : super.fromYaml();
+  AnalyzerMessage._fromYaml(super.yaml, {required super.keyNode})
+    : super.fromYaml();
 }

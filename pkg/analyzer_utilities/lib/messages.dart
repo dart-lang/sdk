@@ -14,7 +14,8 @@ import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
-import 'package:yaml/yaml.dart' show loadYaml, YamlMap;
+import 'package:yaml/yaml.dart'
+    show YamlMap, YamlScalar, YamlNode, loadYamlNode;
 
 const Map<String, String> severityEnumNames = <String, String>{
   'CONTEXT': 'context',
@@ -87,35 +88,34 @@ String convertTemplate(List<TemplatePart> template) {
 /// Decodes a YAML object (in CFE style `messages.yaml` format) into a map from
 /// diagnostic name to [Message].
 Map<String, T> decodeCfeStyleMessagesYaml<T extends CfeStyleMessage>(
-  Object? yaml, {
-  required T Function(YamlMap) decodeMessage,
+  YamlNode yaml, {
+  required T Function(YamlMap, {required YamlScalar keyNode}) decodeMessage,
   required String path,
 }) {
-  Never problem(String message) {
-    throw 'Problem in $path: $message';
-  }
-
   var result = <String, T>{};
-  if (yaml is! Map<Object?, Object?>) {
-    problem('root node is not a map');
+  if (yaml is! YamlMap) {
+    throw LocatedError('root node is not a map', node: yaml);
   }
-  for (var entry in yaml.entries) {
-    var diagnosticName = entry.key;
+  for (var entry in yaml.nodes.entries) {
+    var keyNode = entry.key as YamlScalar;
+    var diagnosticName = keyNode.value;
     if (diagnosticName is! String) {
-      problem('non-string diagnostic key ${json.encode(diagnosticName)}');
+      throw LocatedError(
+        'non-string diagnostic key ${json.encode(diagnosticName)}',
+        node: keyNode,
+      );
     }
     var diagnosticValue = entry.value;
     if (diagnosticValue is! YamlMap) {
-      problem('value associated with diagnostic $diagnosticName is not a map');
-    }
-    try {
-      result[diagnosticName] = decodeMessage(diagnosticValue);
-    } catch (e, st) {
-      Error.throwWithStackTrace(
-        'while processing $diagnosticName from $path, $e',
-        st,
+      throw LocatedError(
+        'value associated with diagnostic $diagnosticName is not a map',
+        node: diagnosticValue,
       );
     }
+    result[diagnosticName] = LocatedError.wrap(
+      node: diagnosticValue,
+      () => decodeMessage(diagnosticValue, keyNode: keyNode),
+    );
   }
   return result;
 }
@@ -123,10 +123,10 @@ Map<String, T> decodeCfeStyleMessagesYaml<T extends CfeStyleMessage>(
 /// Loads messages in CFE style `messages.yaml` format.
 Map<String, T> _loadCfeStyleMessages<T extends CfeStyleMessage>(
   String packagePath, {
-  required T Function(YamlMap) decodeMessage,
+  required T Function(YamlMap, {required YamlScalar keyNode}) decodeMessage,
 }) {
   var path = join(packagePath, 'messages.yaml');
-  Object? messagesYaml = loadYaml(
+  var messagesYaml = loadYamlNode(
     File(path).readAsStringSync(),
     sourceUrl: Uri.file(path),
   );
@@ -241,23 +241,26 @@ abstract class CfeStyleMessage extends Message {
   /// severity.
   final String? cfeSeverity;
 
-  CfeStyleMessage.fromYaml(YamlMap yaml)
-    : cfeSeverity = _decodeSeverity(yaml['severity']),
+  CfeStyleMessage.fromYaml(YamlMap yaml, {required super.keyNode})
+    : cfeSeverity = _decodeSeverity(yaml.nodes['severity']),
       super.fromYaml(yaml) {
     if (yaml['problemMessage'] == null) {
-      throw 'Missing problemMessage';
+      throw LocatedError('Missing problemMessage', node: yaml);
     }
   }
 
-  static String? _decodeSeverity(Object? yamlEntry) {
-    switch (yamlEntry) {
+  static String? _decodeSeverity(YamlNode? node) {
+    switch (node) {
       case null:
         return null;
-      case String():
-        return severityEnumNames[yamlEntry] ??
-            (throw "Unknown severity '$yamlEntry'");
+      case YamlScalar(:var value):
+        return severityEnumNames[value] ??
+            (throw LocatedError("Unknown severity '$value'", node: node));
       default:
-        throw 'Bad severity type: ${yamlEntry.runtimeType}';
+        throw LocatedError(
+          'Bad severity type: ${node.runtimeType}',
+          node: node,
+        );
     }
   }
 }
@@ -432,8 +435,7 @@ enum DiagnosticParameterType {
 
   /// Decodes a type name from `messages.yaml` into a [DiagnosticParameterType].
   factory DiagnosticParameterType.fromMessagesYamlName(String name) =>
-      _messagesYamlNameToValue[name] ??
-      (throw StateError('Unknown type name: $name'));
+      _messagesYamlNameToValue[name] ?? (throw 'Unknown type name: $name');
 
   String get analyzerName =>
       _analyzerName ??
@@ -459,11 +461,14 @@ class FrontEndMessage extends CfeStyleMessage {
   // codes.
   final String? pseudoSharedCode;
 
-  FrontEndMessage.fromYaml(YamlMap yaml)
+  FrontEndMessage.fromYaml(YamlMap yaml, {required super.keyNode})
     : pseudoSharedCode = yaml['pseudoSharedCode'] as String?,
       super.fromYaml(yaml) {
-    if (yaml['analyzerCode'] != null) {
-      throw StateError('Only shared messages can have an analyzer code');
+    if (yaml.nodes['analyzerCode'] case var node?) {
+      throw LocatedError(
+        'Only shared messages can have an analyzer code',
+        node: node,
+      );
     }
   }
 }
@@ -526,7 +531,7 @@ class GeneratedDiagnosticClassInfo extends DiagnosticClassInfo {
     if (name.endsWith(suffix)) {
       return name.substring(0, name.length - suffix.length);
     } else {
-      throw StateError("Can't infer base name for class $name");
+      throw "Can't infer base name for class $name";
     }
   }
 }
@@ -573,6 +578,34 @@ class LabelerConversion implements Conversion {
     required String name,
     required DiagnosticParameterType type,
   }) => 'labeler.$methodName($name)';
+}
+
+/// An error with an associated YAML source location.
+class LocatedError {
+  final YamlNode node;
+  final String message;
+
+  LocatedError(this.message, {required this.node});
+
+  @override
+  String toString() => '${node.location}: $message';
+
+  /// Executes [callback], converting any exceptions it generates to a
+  /// [LocatedError] that points to [node].
+  static T wrap<T>(T Function() callback, {required YamlNode node}) {
+    try {
+      return callback();
+    } catch (error, stackTrace) {
+      if (error is! LocatedError) {
+        Error.throwWithStackTrace(
+          LocatedError(error.toString(), node: node),
+          stackTrace,
+        );
+      } else {
+        rethrow;
+      }
+    }
+  }
 }
 
 /// In-memory representation of diagnostic information obtained from either the
@@ -624,12 +657,18 @@ abstract class Message {
   /// Map keys are parameter names. Map values are [DiagnosticParameter] objects.
   final Map<String, DiagnosticParameter> parameters;
 
-  /// The raw YAML node that this [Message] was parsed from, or `null` if this
-  /// [Message] was created without reference to a raw YAML node.
+  /// The raw YAML node that this [Message] was parsed from.
   ///
   /// This exists to make it easier for automated scripts to edit the YAML
   /// source.
-  final YamlMap? yamlNode;
+  final YamlMap yamlNode;
+
+  /// The raw YAML key for the key/value pair that this `ErrorCodeInfo` was
+  /// parsed from.
+  ///
+  /// This exists to make it easier for automated scripts to edit the YAML
+  /// source.
+  final YamlScalar keyNode;
 
   Message({
     this.comment,
@@ -637,13 +676,14 @@ abstract class Message {
     this.hasPublishedDocs,
     this.isUnresolvedIdentifier = false,
     this.sharedName,
-    required Object? problemMessageYaml,
-    required Object? correctionMessageYaml,
+    required YamlNode? problemMessageYaml,
+    required YamlNode? correctionMessageYaml,
     this.deprecatedMessage,
     this.previousName,
     this.removedIn,
     required this.parameters,
-    this.yamlNode,
+    required this.yamlNode,
+    required this.keyNode,
   }) : problemMessage =
            _decodeMessage(
              problemMessageYaml,
@@ -658,26 +698,31 @@ abstract class Message {
        );
 
   /// Decodes an [Message] object from its YAML representation.
-  Message.fromYaml(YamlMap yaml)
+  Message.fromYaml(YamlMap yaml, {required YamlScalar keyNode})
     : this(
         comment: yaml['comment'] as String?,
-        correctionMessageYaml: yaml['correctionMessage'],
+        correctionMessageYaml: yaml.nodes['correctionMessage'],
         deprecatedMessage: yaml['deprecatedMessage'] as String?,
         documentation: yaml['documentation'] as String?,
         hasPublishedDocs: yaml['hasPublishedDocs'] as bool?,
         isUnresolvedIdentifier:
             yaml['isUnresolvedIdentifier'] as bool? ?? false,
-        problemMessageYaml: yaml['problemMessage'],
+        problemMessageYaml: yaml.nodes['problemMessage'],
         sharedName: yaml['sharedName'] as String?,
         removedIn: yaml['removedIn'] as String?,
         previousName: yaml['previousName'] as String?,
-        parameters: _decodeParameters(yaml['parameters']),
+        parameters: _decodeParameters(yaml.nodes['parameters']),
         yamlNode: yaml,
+        keyNode: keyNode,
       );
 
   /// If this diagnostic is no longer reported and
   /// its diagnostic codes should no longer be generated.
   bool get isRemoved => removedIn != null;
+
+  /// A string suitable for identifying the location of this message's key node
+  /// in the source YAML file.
+  String get location => keyNode.location;
 
   void outputConstantHeader(StringSink out) {
     out.write(toAnalyzerComments(indent: '  '));
@@ -707,10 +752,8 @@ abstract class Message {
     String templateParameters = '';
     String? withArgumentsName;
     if (parameters.isNotEmpty && !usesParameters) {
-      throw StateError(
-        'Error code declares parameters using a `parameters` entry, but '
-        "doesn't use them",
-      );
+      throw 'Error code declares parameters using a `parameters` entry, but '
+          "doesn't use them";
     } else if (parameters.values.any((p) => !p.type.isSupportedByAnalyzer)) {
       // Do not generate literate API yet.
       className = diagnosticClassInfo.name;
@@ -847,22 +890,23 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
   }
 
   static List<TemplatePart>? _decodeMessage(
-    Object? rawMessage, {
+    YamlNode? node, {
     required Map<String, DiagnosticParameter> parameters,
     required String kind,
   }) {
-    switch (rawMessage) {
+    switch (node) {
       case null:
         return null;
-      case String():
+      case YamlScalar(:String value):
         // Remove trailing whitespace. This is necessary for templates defined
         // with `|` (verbatim) as they always contain a trailing newline that we
         // don't want.
-        var text = rawMessage.trimRight();
+        var text = value.trimRight();
         if (text.contains(oldPlaceholderPattern)) {
-          throw StateError(
+          throw LocatedError(
             '$kind is ${json.encode(text)}, which contains an old-style '
             'analyzer placeholder pattern. Please convert to #NAME format.',
+            node: node,
           );
         }
 
@@ -883,36 +927,37 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
         }
         return template;
       default:
-        throw 'Bad message type: ${rawMessage.runtimeType}';
+        throw LocatedError('Bad message type: ${node.runtimeType}', node: node);
     }
   }
 
-  static Map<String, DiagnosticParameter> _decodeParameters(Object? yaml) {
+  static Map<String, DiagnosticParameter> _decodeParameters(YamlNode? yaml) {
     if (yaml == null) {
-      throw StateError('Missing parameters section');
+      throw 'Missing parameters section';
     }
-    if (yaml == 'none') return const {};
-    yaml as Map<Object?, Object?>;
+    if (yaml case YamlScalar(value: 'none')) return const {};
+    yaml as YamlMap;
     var result = <String, DiagnosticParameter>{};
     var index = 0;
-    for (var MapEntry(:key, :value) in yaml.entries) {
-      switch ((key as String).split(' ')) {
-        case [var type, var name]:
-          if (result.containsKey(name)) {
-            throw StateError('Duplicate parameter name: $name');
-          }
-          result[name] = DiagnosticParameter(
-            name: name,
-            type: DiagnosticParameterType.fromMessagesYamlName(type),
-            comment: value as String,
-            index: index++,
-          );
-        default:
-          throw StateError(
-            'Malformed parameter key (should be `TYPE NAME`): '
-            '${json.encode(key)}',
-          );
-      }
+    for (var MapEntry(:key, :value) in yaml.nodes.entries) {
+      var keyNode = key as YamlScalar;
+      LocatedError.wrap(node: keyNode, () {
+        switch ((keyNode.value as String).split(' ')) {
+          case [var type, var name]:
+            if (result.containsKey(name)) {
+              throw 'Duplicate parameter name: $name';
+            }
+            result[name] = DiagnosticParameter(
+              name: name,
+              type: DiagnosticParameterType.fromMessagesYamlName(type),
+              comment: value.value as String,
+              index: index++,
+            );
+          default:
+            throw 'Malformed parameter key (should be `TYPE NAME`): '
+                '${json.encode(key)}';
+        }
+      });
     }
     return result;
   }
@@ -1007,11 +1052,12 @@ class SharedMessage extends CfeStyleMessage {
   /// associated with them.
   final AnalyzerCode analyzerCode;
 
-  SharedMessage.fromYaml(super.yaml)
+  SharedMessage.fromYaml(super.yaml, {required super.keyNode})
     : analyzerCode = _decodeAnalyzerCode(
         (yaml['analyzerCode'] ??
-                (throw StateError(
+                (throw LocatedError(
                   'Shared diagnostics must specify an analyzerCode.',
+                  node: yaml,
                 )))
             as String,
       ),
@@ -1026,10 +1072,8 @@ class SharedMessage extends CfeStyleMessage {
           snakeCaseName: snakeCaseName,
         );
       default:
-        throw StateError(
-          'Analyzer codes must take the form ClassName.DIAGNOSTIC_NAME. Found '
-          '${json.encode(s)} instead.',
-        );
+        throw 'Analyzer codes must take the form ClassName.DIAGNOSTIC_NAME. '
+            'Found ${json.encode(s)} instead.';
     }
   }
 }
@@ -1048,20 +1092,30 @@ class SharedToAnalyzerDiagnosticTables {
 
   SharedToAnalyzerDiagnosticTables._(Map<String, SharedMessage> messages) {
     var infoToFrontEndCode = <SharedMessage, String>{};
+    var analyzerCodeToMessages = <AnalyzerCode, List<SharedMessage>>{};
     for (var entry in messages.entries) {
       var message = entry.value;
       var frontEndCode = entry.key;
       sortedSharedDiagnostics.add(message);
       infoToFrontEndCode[message] = frontEndCode;
       var analyzerCode = message.analyzerCode;
-      var previousEntryForAnalyzerCode = analyzerCodeToMessage[analyzerCode];
-      if (previousEntryForAnalyzerCode != null) {
-        throw 'Analyzer code $analyzerCode used by both '
-            '${infoToFrontEndCode[previousEntryForAnalyzerCode]} and '
-            '$frontEndCode';
-      }
-      analyzerCodeToMessage[analyzerCode] = message;
+      (analyzerCodeToMessages[analyzerCode] ??= []).add(message);
     }
+
+    for (var MapEntry(key: analyzerCode, value: messages)
+        in analyzerCodeToMessages.entries) {
+      switch (messages) {
+        case [var message]:
+          analyzerCodeToMessage[analyzerCode] = message;
+        default:
+          throw [
+            'Analyzer code $analyzerCode used for multiple diagnostics:',
+            for (var message in messages)
+              '${message.location}: ${message.keyNode}',
+          ].join('\n');
+      }
+    }
+
     sortedSharedDiagnostics.sortBy((e) => e.analyzerCode.camelCaseName);
   }
 }
@@ -1117,9 +1171,7 @@ class TemplateParameterPart implements TemplatePart {
     String name = match[1]!;
     var parameter = parameters[name];
     if (parameter == null) {
-      throw StateError(
-        'Placeholder ${json.encode(name)} not declared as a parameter',
-      );
+      throw 'Placeholder ${json.encode(name)} not declared as a parameter';
     }
 
     return TemplateParameterPart._(
@@ -1148,3 +1200,16 @@ class TemplateParameterPart implements TemplatePart {
 /// Each `problemMessage` and `correctionMessage` template string in a
 /// `messages.yaml` file is decoded into a list of [TemplatePart].
 sealed class TemplatePart {}
+
+extension YamlNodeLocation on YamlNode {
+  /// A string suitable for identifying the location of this node in the source
+  /// YAML file.
+  String get location {
+    var start = span.start;
+    var path = start.sourceUrl?.toFilePath() ?? '<unknown>';
+    // Convert line/column to 1-based because that's what most editors expect
+    var line = start.line + 1;
+    var column = start.column + 1;
+    return '$path:$line:$column';
+  }
+}

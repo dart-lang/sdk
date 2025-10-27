@@ -70,18 +70,16 @@ part of 'cfe_codes.dart';
     var forFeAnalyzerShared =
         message is SharedMessage ||
         message is FrontEndMessage && message.pseudoSharedCode != null;
-    String template;
-    try {
-      template = _TemplateCompiler(
+    String template = LocatedError.wrap(
+      node: message.keyNode,
+      () => _TemplateCompiler(
         name: name,
         message: message,
         pseudoSharedCodeValues: forFeAnalyzerShared
             ? pseudoSharedCodeValues
             : null,
-      ).compile();
-    } catch (e, st) {
-      Error.throwWithStackTrace('Error while compiling $name: $e', st);
-    }
+      ).compile(),
+    );
     if (forFeAnalyzerShared) {
       sharedMessages.writeln(template);
     } else {

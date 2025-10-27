@@ -135,7 +135,7 @@ part of ${json.encode(file.parentLibrary)};
         var diagnosticName = diagnosticCode.snakeCaseName;
         var message = entry.value;
 
-        try {
+        LocatedError.wrap(node: message.keyNode, () {
           if (message is! AliasMessage &&
               diagnosticClass.includeInDiagnosticCodeValues) {
             generatedCodes.add(diagnosticCode);
@@ -145,12 +145,7 @@ part of ${json.encode(file.parentLibrary)};
             diagnosticName,
             memberAccumulator: memberAccumulator,
           );
-        } catch (e, st) {
-          Error.throwWithStackTrace(
-            'While processing ${diagnosticClass.name}.$diagnosticName: $e',
-            st,
-          );
-        }
+        });
       }
 
       var constructor = StringBuffer();
