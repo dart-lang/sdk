@@ -53,7 +53,6 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
         if (messagesRuleInfo[lintName]!.removed) continue;
         message.toAnalyzerCode(
           linterLintCodeInfo,
-          analyzerCode.snakeCaseName,
           sharedNameReference: 'LintNames.$lintName',
           memberAccumulator: memberAccumulator,
         );

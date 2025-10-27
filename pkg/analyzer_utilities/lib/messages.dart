@@ -211,6 +211,9 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
   @override
   int get hashCode => Object.hash(diagnosticClass, snakeCaseName);
 
+  /// The diagnostic name, converted to PascalCase.
+  String get pascalCaseName => snakeCaseName.toPascalCase();
+
   @override
   bool operator ==(Object other) =>
       other is AnalyzerCode &&
@@ -731,6 +734,105 @@ abstract class Message {
   /// in the source YAML file.
   String get location => keyNode.location;
 
+  String _computeExpectedTypes() {
+    var expectedTypes = [
+      for (var parameter in parameters.values)
+        'ExpectedType.${parameter.type.name}',
+    ];
+    return '[${expectedTypes.join(', ')}]';
+  }
+
+  String _encodeString(String s) {
+    // JSON encoding gives us mostly what we need.
+    var jsonEncoded = json.encode(s);
+    // But we also need to escape `$`.
+    return jsonEncoded.replaceAll(r'$', r'\$');
+  }
+
+  static List<TemplatePart>? _decodeMessage(
+    YamlNode? node, {
+    required Map<String, DiagnosticParameter> parameters,
+    required String kind,
+  }) {
+    switch (node) {
+      case null:
+        return null;
+      case YamlScalar(:String value):
+        // Remove trailing whitespace. This is necessary for templates defined
+        // with `|` (verbatim) as they always contain a trailing newline that we
+        // don't want.
+        var text = value.trimRight();
+        if (text.contains(oldPlaceholderPattern)) {
+          throw LocatedError(
+            '$kind is ${json.encode(text)}, which contains an old-style '
+            'analyzer placeholder pattern. Please convert to #NAME format.',
+            node: node,
+          );
+        }
+
+        var template = <TemplatePart>[];
+        var i = 0;
+        for (var match in placeholderPattern.allMatches(text)) {
+          var matchStart = match.start;
+          if (matchStart > i) {
+            template.add(TemplateLiteralPart(text.substring(i, matchStart)));
+          }
+          template.add(
+            TemplateParameterPart.fromMatch(match, parameters: parameters),
+          );
+          i = match.end;
+        }
+        if (text.length > i) {
+          template.add(TemplateLiteralPart(text.substring(i)));
+        }
+        return template;
+      default:
+        throw LocatedError('Bad message type: ${node.runtimeType}', node: node);
+    }
+  }
+
+  static Map<String, DiagnosticParameter> _decodeParameters(YamlNode? yaml) {
+    if (yaml == null) {
+      throw 'Missing parameters section';
+    }
+    if (yaml case YamlScalar(value: 'none')) return const {};
+    yaml as YamlMap;
+    var result = <String, DiagnosticParameter>{};
+    var index = 0;
+    for (var MapEntry(:key, :value) in yaml.nodes.entries) {
+      var keyNode = key as YamlScalar;
+      LocatedError.wrap(node: keyNode, () {
+        switch ((keyNode.value as String).split(' ')) {
+          case [var type, var name]:
+            if (result.containsKey(name)) {
+              throw 'Duplicate parameter name: $name';
+            }
+            result[name] = DiagnosticParameter(
+              name: name,
+              type: DiagnosticParameterType.fromMessagesYamlName(type),
+              comment: value.value as String,
+              index: index++,
+            );
+          default:
+            throw 'Malformed parameter key (should be `TYPE NAME`): '
+                '${json.encode(key)}';
+        }
+      });
+    }
+    return result;
+  }
+}
+
+/// Interface class for diagnostic messages that have an analyzer code, and thus
+/// can be reported by the analyzer.
+mixin MessageWithAnalyzerCode on Message {
+  /// The code used by the analyzer to refer to this diagnostic message.
+  AnalyzerCode get analyzerCode;
+
+  /// The name of the constant in analyzer code that should be used to refer to
+  /// this message.
+  String get constantName => analyzerCode.camelCaseName;
+
   void outputConstantHeader(StringSink out) {
     out.write(toAnalyzerComments(indent: '  '));
     if (deprecatedMessage != null) {
@@ -743,18 +845,17 @@ abstract class Message {
   ///
   /// [diagnosticCode] is the name of the diagnostic to be generated.
   void toAnalyzerCode(
-    GeneratedDiagnosticClassInfo diagnosticClassInfo,
-    String diagnosticCode, {
+    GeneratedDiagnosticClassInfo diagnosticClassInfo, {
     String? sharedNameReference,
     required MemberAccumulator memberAccumulator,
   }) {
+    var diagnosticCode = analyzerCode.snakeCaseName;
     var correctionMessage = this.correctionMessage;
     var parameters = this.parameters;
     var usesParameters = [problemMessage, correctionMessage].any(
       (value) =>
           value != null && value.any((part) => part is TemplateParameterPart),
     );
-    var constantName = diagnosticCode.toCamelCase();
     String className;
     String templateParameters = '';
     String? withArgumentsName;
@@ -772,8 +873,7 @@ abstract class Message {
           .map((p) => 'required ${p.value.type.analyzerName} ${p.key}')
           .join(', ');
       var argumentNames = parameters.keys.join(', ');
-      var pascalCaseName = diagnosticCode.toPascalCase();
-      withArgumentsName = '_withArguments$pascalCaseName';
+      withArgumentsName = '_withArguments${analyzerCode.pascalCaseName}';
       templateParameters =
           '<LocatableDiagnostic Function({$withArgumentsParams})>';
       var newIfNeeded = diagnosticClassInfo.file.shouldUseExplicitNewOrConst
@@ -880,101 +980,6 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     }
     return out.toString();
   }
-
-  String _computeExpectedTypes() {
-    var expectedTypes = [
-      for (var parameter in parameters.values)
-        'ExpectedType.${parameter.type.name}',
-    ];
-    return '[${expectedTypes.join(', ')}]';
-  }
-
-  String _encodeString(String s) {
-    // JSON encoding gives us mostly what we need.
-    var jsonEncoded = json.encode(s);
-    // But we also need to escape `$`.
-    return jsonEncoded.replaceAll(r'$', r'\$');
-  }
-
-  static List<TemplatePart>? _decodeMessage(
-    YamlNode? node, {
-    required Map<String, DiagnosticParameter> parameters,
-    required String kind,
-  }) {
-    switch (node) {
-      case null:
-        return null;
-      case YamlScalar(:String value):
-        // Remove trailing whitespace. This is necessary for templates defined
-        // with `|` (verbatim) as they always contain a trailing newline that we
-        // don't want.
-        var text = value.trimRight();
-        if (text.contains(oldPlaceholderPattern)) {
-          throw LocatedError(
-            '$kind is ${json.encode(text)}, which contains an old-style '
-            'analyzer placeholder pattern. Please convert to #NAME format.',
-            node: node,
-          );
-        }
-
-        var template = <TemplatePart>[];
-        var i = 0;
-        for (var match in placeholderPattern.allMatches(text)) {
-          var matchStart = match.start;
-          if (matchStart > i) {
-            template.add(TemplateLiteralPart(text.substring(i, matchStart)));
-          }
-          template.add(
-            TemplateParameterPart.fromMatch(match, parameters: parameters),
-          );
-          i = match.end;
-        }
-        if (text.length > i) {
-          template.add(TemplateLiteralPart(text.substring(i)));
-        }
-        return template;
-      default:
-        throw LocatedError('Bad message type: ${node.runtimeType}', node: node);
-    }
-  }
-
-  static Map<String, DiagnosticParameter> _decodeParameters(YamlNode? yaml) {
-    if (yaml == null) {
-      throw 'Missing parameters section';
-    }
-    if (yaml case YamlScalar(value: 'none')) return const {};
-    yaml as YamlMap;
-    var result = <String, DiagnosticParameter>{};
-    var index = 0;
-    for (var MapEntry(:key, :value) in yaml.nodes.entries) {
-      var keyNode = key as YamlScalar;
-      LocatedError.wrap(node: keyNode, () {
-        switch ((keyNode.value as String).split(' ')) {
-          case [var type, var name]:
-            if (result.containsKey(name)) {
-              throw 'Duplicate parameter name: $name';
-            }
-            result[name] = DiagnosticParameter(
-              name: name,
-              type: DiagnosticParameterType.fromMessagesYamlName(type),
-              comment: value.value as String,
-              index: index++,
-            );
-          default:
-            throw 'Malformed parameter key (should be `TYPE NAME`): '
-                '${json.encode(key)}';
-        }
-      });
-    }
-    return result;
-  }
-}
-
-/// Interface class for diagnostic messages that have an analyzer code, and thus
-/// can be reported by the analyzer.
-abstract interface class MessageWithAnalyzerCode implements Message {
-  /// The code used by the analyzer to refer to this diagnostic message.
-  AnalyzerCode get analyzerCode;
 }
 
 /// A [Conversion] that acts on [num], applying formatting parameters specified
@@ -1059,7 +1064,7 @@ class NumericConversion implements Conversion {
 
 /// In-memory representation of diagnostic information obtained from the file
 /// `pkg/_fe_analyzer_shared/messages.yaml`.
-class SharedMessage extends CfeStyleMessage implements MessageWithAnalyzerCode {
+class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
   /// The analyzer diagnostic code that corresponds to this shared diagnostic.
   ///
   /// Shared diagnostics are required to have exactly one analyzer code

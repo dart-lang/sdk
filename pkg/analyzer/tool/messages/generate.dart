@@ -132,7 +132,6 @@ part of ${json.encode(file.parentLibrary)};
           );
       for (var entry in entries) {
         var diagnosticCode = entry.key;
-        var diagnosticName = diagnosticCode.snakeCaseName;
         var message = entry.value;
 
         LocatedError.wrap(node: message.keyNode, () {
@@ -142,7 +141,6 @@ part of ${json.encode(file.parentLibrary)};
           }
           message.toAnalyzerCode(
             diagnosticClass,
-            diagnosticName,
             memberAccumulator: memberAccumulator,
           );
         });

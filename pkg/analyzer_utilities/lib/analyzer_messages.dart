@@ -333,22 +333,21 @@ class AliasMessage extends AnalyzerMessage {
 
   @override
   void toAnalyzerCode(
-    DiagnosticClassInfo diagnosticClassInfo,
-    String diagnosticCode, {
+    DiagnosticClassInfo diagnosticClassInfo, {
     String? sharedNameReference,
     required MemberAccumulator memberAccumulator,
   }) {
     var constant = StringBuffer();
     outputConstantHeader(constant);
-    constant.writeln('  static const $aliasForClass $diagnosticCode =');
+    constant.writeln('  static const $aliasForClass $constantName =');
     constant.writeln('$aliasFor;');
-    memberAccumulator.constants[diagnosticCode] = constant.toString();
+    memberAccumulator.constants[constantName] = constant.toString();
   }
 }
 
 /// In-memory representation of diagnostic information obtained from the
 /// analyzer's `messages.yaml` file.
-class AnalyzerMessage extends Message implements MessageWithAnalyzerCode {
+class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
   @override
   final AnalyzerCode analyzerCode;
 
