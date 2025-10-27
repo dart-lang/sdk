@@ -2013,6 +2013,7 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
   Class& cls = Class::Handle(zone, raw_class);
   if (cls.IsNull()) return false;
   if (!cls.is_finalized()) return false;
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (Array::Handle(cls.current_functions()).IsNull()) return false;
 
   if (class_is_abstract_return != nullptr) {
