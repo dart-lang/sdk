@@ -18,7 +18,7 @@ int workload() {
   final sw = Stopwatch()..start();
   return Timeline.timeSync('workload-loop', () {
     var sum = 0;
-    while (sw.elapsedMilliseconds < 50) {
+    while (sw.elapsedMilliseconds < 500) {
       final l = <int>[];
       for (var i = 0; i < 10000; i++) {
         l.add(i * i);
