@@ -48,6 +48,8 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
       grandParentSemicolon = grandParent.semicolon;
     } else if (grandParent is FieldDeclaration) {
       grandParentSemicolon = grandParent.semicolon;
+    } else if (grandParent is TopLevelVariableDeclaration) {
+      grandParentSemicolon = grandParent.semicolon;
     } else {
       return;
     }
