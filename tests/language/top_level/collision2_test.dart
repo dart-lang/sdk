@@ -8,7 +8,7 @@
 get x => 200;
 
 // Ok: can have a setter named x when getter x is defined.
-set x(var i) {
+set x(i) {
   print(i);
 }
 

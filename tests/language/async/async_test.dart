@@ -131,7 +131,7 @@ main() {
     asyncEnd();
   });
 
-  var checkAsync = (var someFunc) {
+  var checkAsync = (someFunc) {
     var toTest = someFunc();
     Expect.isTrue(toTest is Future);
     asyncStart();

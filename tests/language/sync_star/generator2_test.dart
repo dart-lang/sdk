@@ -44,7 +44,7 @@ class K {
   K() sync* {} // //# 50: compile-time error
   get nix sync* {}
   get garnix sync* => null; // //# 51: syntax error
-  set etwas(var z) sync* { } // //# 52: compile-time error
+  set etwas(z) sync* { } // //# 52: compile-time error
   sync() sync* {
     yield sync; // Yields a tear-off of the sync() method.
   }

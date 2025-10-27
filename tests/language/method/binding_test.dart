@@ -45,7 +45,7 @@ class A {
     return (baz)();
   }
 
-  invokeBar(var obj) {
+  invokeBar(obj) {
     return (obj.bar)();
   }
 

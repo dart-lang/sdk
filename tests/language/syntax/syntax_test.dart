@@ -93,7 +93,7 @@ class DOMWindow {}
 
 abstract class Fisk {}
 
-abstract class I implements UNKNOWN; //# 34: syntax error
+abstract class I implements UNKNOWN; //# 34: compile-time error
 
 class XWindow extends DOMWindow
 hest "*Window" //# 35: syntax error
@@ -155,7 +155,7 @@ class A {
 
 abstract class G<T> {}
 
-typedef <T>(); //# 48: syntax error
+typedef <T>(); //# 48: compile-time error
 
 class B
 extends void //# 49: syntax error

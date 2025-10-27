@@ -11,7 +11,7 @@ typedef void Foo<T>(T t);
 typedef void Bar(int i);
 
 class Class<T> {
-  test(bool expectedResult, var o, String typeName) {
+  test(bool expectedResult, o, String typeName) {
     if (expectedResult) {
       Expect.isNotNull(o as Foo<T>, "bar as Foo<$typeName>");
     } else {

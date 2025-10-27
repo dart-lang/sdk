@@ -87,7 +87,7 @@ class IReq {
 // Even if prefixed by `var`, `final`, `required` or `covariant`,
 // or if made optional with or without a default value.
 class CVar implements IIntInt {
-  foo(var x) {
+  foo(x) {
     // Checks that x is exactly int.
     // It is assignable in both directions, and it's not dynamic.
     intVar = x;
@@ -99,7 +99,7 @@ class CVar implements IIntInt {
 }
 
 class CFinal implements IInt {
-  foo(final x) {
+  foo(x) {
     var sameTypeAsX = x;
     intVar = x;
     sameTypeAsX = intVar;
@@ -311,7 +311,7 @@ void testInheritOpt() {
 
 // Do not inherit `final` with the type.
 class IFinal {
-  void foo(final int x) {}
+  void foo(int x) {}
 }
 
 class CInheritFinal implements IFinal {

@@ -193,7 +193,7 @@ allocateObjects() {
   return list;
 }
 
-callThemAll(var list) {
+callThemAll(list) {
   for (var i = 0; i < list.length; i++) {
     Expect.equals(i, list[i].f);
   }

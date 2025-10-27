@@ -55,7 +55,7 @@ void main() {
   testZ(const X2());
 }
 
-void testC(var c) {
+void testC(c) {
   Expect.isTrue(c is C);
   Expect.isTrue(c is D<int>);
   Expect.isTrue(c is! D<String>);
@@ -65,7 +65,7 @@ void testC(var c) {
   Expect.equals(42, c.field);
 }
 
-void testZ(var z) {
+void testZ(z) {
   Expect.isTrue(z is X<int>);
   Expect.isTrue(z is! X<String>);
   Expect.isTrue(z is X1<int>);

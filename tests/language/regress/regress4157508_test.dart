@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Issue4157508Test {
-  Issue4157508Test(var v) {
+  Issue4157508Test(v) {
     var d = new DateTime.fromMillisecondsSinceEpoch(v, isUtc: true);
   }
 

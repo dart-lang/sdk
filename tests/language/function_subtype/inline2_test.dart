@@ -20,7 +20,7 @@ class C {
   C.c7([int this.field()? = null]);
 }
 
-void test(var f, String constructorName) {
+void test(f, String constructorName) {
   testDynamicTypeError(false, () => f(m1), "'new C.$constructorName(m1)'");
   testDynamicTypeError(true, () => f(m2), "'new C.$constructorName(m2)'");
   testDynamicTypeError(

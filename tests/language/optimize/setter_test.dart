@@ -13,7 +13,7 @@ class A {
 class B extends A {}
 
 void sameImplicitSetter() {
-  oneTarget(var a, var v) {
+  oneTarget(a, v) {
     a.field = v;
   }
 
@@ -38,7 +38,7 @@ void sameImplicitSetter() {
 
 // Deoptimize when no feedback exists.
 void setterNoFeedback() {
-  maybeSet(var a, var v, bool set_it) {
+  maybeSet(a, v, bool set_it) {
     if (set_it) {
       return a.field = v;
     }
@@ -72,11 +72,11 @@ class X {
 }
 
 void sameNotImplicitSetter() {
-  oneTarget(var a, var v) {
+  oneTarget(a, v) {
     return a.field = v;
   }
 
-  incField(var a) {
+  incField(a) {
     a.field++;
   }
 
@@ -98,7 +98,7 @@ class Y {
 }
 
 multiImplicitSetter() {
-  oneTarget(var a, var v) {
+  oneTarget(a, v) {
     return a.field = v;
   }
 
@@ -125,7 +125,7 @@ class Z {
 }
 
 multiNotImplicitSetter() {
-  oneTarget(var a, var v) {
+  oneTarget(a, v) {
     return a.field = v;
   }
 

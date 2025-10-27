@@ -531,7 +531,7 @@ class ArithmeticTest {
     }
   }
 
-  static mySqrt(var x) => sqrt(x);
+  static mySqrt(x) => sqrt(x);
 
   static testSqrtDeopt() {
     for (var i = 0; i < 10; i++) mySqrt(4.0);

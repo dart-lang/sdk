@@ -9,12 +9,12 @@ import "package:expect/expect.dart";
 main() {
   const MISSING_VALUE = "MISSING_VALUE";
 
-  void foo([var p1 = MISSING_VALUE, var p2 = MISSING_VALUE]) {
+  void foo([p1 = MISSING_VALUE, p2 = MISSING_VALUE]) {
     Expect.equals("P1", p1);
     Expect.equals("P2", p2);
   }
 
-  void bar([var p1 = "MISSING_VALUE", var p2 = "MISSING_VALUE"]) {
+  void bar([p1 = "MISSING_VALUE", p2 = "MISSING_VALUE"]) {
     Expect.equals("P1", p1);
     Expect.equals("P2", p2);
   }

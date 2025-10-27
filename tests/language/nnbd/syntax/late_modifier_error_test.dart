@@ -9,7 +9,7 @@
 
 late //# 01: syntax error
 int f1(
-  late //# 02: compile-time error
+  late //# 02: syntax error
   int x
 ) => throw 0;
 
