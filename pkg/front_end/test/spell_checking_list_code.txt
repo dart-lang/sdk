@@ -454,6 +454,7 @@ delegating
 delim
 delimit
 delimiting
+delivered
 demands
 demangle
 demangled

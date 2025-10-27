@@ -1794,6 +1794,116 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
     super.visitSwitchStatement(node);
   }
+
+  @override
+  void visitListConcatenation(ListConcatenation node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      if (!inUnevaluatedConstant) {
+        problem(node, "Unexpected internal node $node.");
+      }
+    }
+  }
+
+  @override
+  void visitSetConcatenation(SetConcatenation node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      if (!inUnevaluatedConstant) {
+        problem(node, "Unexpected internal node $node.");
+      }
+    }
+  }
+
+  @override
+  void visitMapConcatenation(MapConcatenation node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      if (!inUnevaluatedConstant) {
+        problem(node, "Unexpected internal node $node.");
+      }
+    }
+  }
+
+  @override
+  void visitInstanceCreation(InstanceCreation node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      if (!inUnevaluatedConstant) {
+        problem(node, "Unexpected internal node $node.");
+      }
+    }
+  }
+
+  @override
+  void visitFileUriExpression(FileUriExpression node) {
+    if (!target.supportsFileUriExpression) {
+      if (stage >= VerificationStage.afterConstantEvaluation) {
+        if (!inUnevaluatedConstant) {
+          problem(node, "Unexpected internal node $node.");
+        }
+      }
+    }
+  }
+
+  @override
+  void visitPatternAssignment(PatternAssignment node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitIfCaseStatement(IfCaseStatement node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitPatternSwitchStatement(PatternSwitchStatement node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void defaultPattern(Pattern node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitSwitchExpression(SwitchExpression node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitPatternGuard(PatternGuard node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitPatternSwitchCase(PatternSwitchCase node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
 }
 
 class VerifyGetStaticType extends RecursiveVisitor {

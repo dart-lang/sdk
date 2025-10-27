@@ -454,6 +454,9 @@ class WasmTarget extends Target {
   bool get supportsSetLiterals => true;
 
   @override
+  bool get supportsFileUriExpression => true;
+
+  @override
   int get enabledLateLowerings => LateLowering.all;
 
   @override
