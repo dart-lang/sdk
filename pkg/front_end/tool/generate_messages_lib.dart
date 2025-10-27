@@ -73,7 +73,6 @@ part of 'cfe_codes.dart';
     String template = LocatedError.wrap(
       node: message.keyNode,
       () => _TemplateCompiler(
-        name: name,
         message: message,
         pseudoSharedCodeValues: forFeAnalyzerShared
             ? pseudoSharedCodeValues
@@ -152,10 +151,10 @@ class _TemplateCompiler {
   bool hasLabeler = false;
 
   _TemplateCompiler({
-    required this.name,
     required this.message,
     required this.pseudoSharedCodeValues,
-  }) : problemMessage = message.problemMessage,
+  }) : name = message.frontEndCode,
+       problemMessage = message.problemMessage,
        correctionMessage = message.correctionMessage,
        severity = message.cfeSeverity,
        parameters = message.parameters,

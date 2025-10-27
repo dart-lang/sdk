@@ -242,17 +242,17 @@ Map<AnalyzerCode, AnalyzerMessage> decodeAnalyzerMessagesYaml(
         );
       }
 
-      AnalyzerMessage message = LocatedError.wrap(
-        node: diagnosticValue,
-        () =>
-            result[AnalyzerCode(
-              diagnosticClass: DiagnosticClassInfo.byName(className),
-              snakeCaseName: diagnosticName,
-            )] = AnalyzerMessage.fromYaml(
-              diagnosticValue,
-              keyNode: keyNode,
-            ),
-      );
+      AnalyzerMessage message = LocatedError.wrap(node: diagnosticValue, () {
+        var analyzerCode = AnalyzerCode(
+          diagnosticClass: DiagnosticClassInfo.byName(className),
+          snakeCaseName: diagnosticName,
+        );
+        return result[analyzerCode] = AnalyzerMessage.fromYaml(
+          diagnosticValue,
+          keyNode: keyNode,
+          analyzerCode: analyzerCode,
+        );
+      });
       if (message.hasPublishedDocs == null) {
         throw LocatedError('Missing hasPublishedDocs', node: diagnosticValue);
       }
@@ -294,14 +294,13 @@ _loadAnalyzerAndLintMessages() {
 
   // Check for duplicate codes.
   var camelCaseNameToMessages = <String, List<Message>>{};
-  for (var codeMap in [analyzerMessages, lintMessages]) {
-    for (var entry in codeMap.entries) {
-      (camelCaseNameToMessages[entry.key.camelCaseName] ??= []).add(
-        entry.value,
-      );
-    }
-  }
-  for (var message in feAnalyzerSharedMessages.values) {
+  var allAnalyzerAndLintMessages = [
+    for (var codeMap in [analyzerMessages, lintMessages]) ...codeMap.values,
+  ];
+  for (var message in <MessageWithAnalyzerCode>[
+    ...allAnalyzerAndLintMessages,
+    ...feAnalyzerSharedMessages.values,
+  ]) {
     (camelCaseNameToMessages[message.analyzerCode.camelCaseName] ??= []).add(
       message,
     );
@@ -327,6 +326,7 @@ class AliasMessage extends AnalyzerMessage {
     super.yaml, {
     required this.aliasFor,
     required super.keyNode,
+    required super.analyzerCode,
   }) : super._fromYaml();
 
   String get aliasForClass => aliasFor.split('.').first;
@@ -348,22 +348,34 @@ class AliasMessage extends AnalyzerMessage {
 
 /// In-memory representation of diagnostic information obtained from the
 /// analyzer's `messages.yaml` file.
-class AnalyzerMessage extends Message {
+class AnalyzerMessage extends Message implements MessageWithAnalyzerCode {
+  @override
+  final AnalyzerCode analyzerCode;
+
   factory AnalyzerMessage.fromYaml(
     YamlMap yaml, {
     required YamlScalar keyNode,
+    required AnalyzerCode analyzerCode,
   }) {
     if (yaml['aliasFor'] case var aliasFor?) {
       return AliasMessage._fromYaml(
         yaml,
         aliasFor: aliasFor as String,
         keyNode: keyNode,
+        analyzerCode: analyzerCode,
       );
     } else {
-      return AnalyzerMessage._fromYaml(yaml, keyNode: keyNode);
+      return AnalyzerMessage._fromYaml(
+        yaml,
+        keyNode: keyNode,
+        analyzerCode: analyzerCode,
+      );
     }
   }
 
-  AnalyzerMessage._fromYaml(super.yaml, {required super.keyNode})
-    : super.fromYaml();
+  AnalyzerMessage._fromYaml(
+    super.yaml, {
+    required super.keyNode,
+    required this.analyzerCode,
+  }) : super.fromYaml();
 }

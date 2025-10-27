@@ -241,8 +241,15 @@ abstract class CfeStyleMessage extends Message {
   /// severity.
   final String? cfeSeverity;
 
+  /// The name used by the front end to refer to this diagnostic.
+  ///
+  /// This is the key corresponding to the diagnostic's entry in
+  /// `messages.yaml`.
+  final String frontEndCode;
+
   CfeStyleMessage.fromYaml(YamlMap yaml, {required super.keyNode})
     : cfeSeverity = _decodeSeverity(yaml.nodes['severity']),
+      frontEndCode = keyNode.value as String,
       super.fromYaml(yaml) {
     if (yaml['problemMessage'] == null) {
       throw LocatedError('Missing problemMessage', node: yaml);
@@ -963,6 +970,13 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
   }
 }
 
+/// Interface class for diagnostic messages that have an analyzer code, and thus
+/// can be reported by the analyzer.
+abstract interface class MessageWithAnalyzerCode implements Message {
+  /// The code used by the analyzer to refer to this diagnostic message.
+  AnalyzerCode get analyzerCode;
+}
+
 /// A [Conversion] that acts on [num], applying formatting parameters specified
 /// in the template.
 class NumericConversion implements Conversion {
@@ -1045,11 +1059,12 @@ class NumericConversion implements Conversion {
 
 /// In-memory representation of diagnostic information obtained from the file
 /// `pkg/_fe_analyzer_shared/messages.yaml`.
-class SharedMessage extends CfeStyleMessage {
+class SharedMessage extends CfeStyleMessage implements MessageWithAnalyzerCode {
   /// The analyzer diagnostic code that corresponds to this shared diagnostic.
   ///
   /// Shared diagnostics are required to have exactly one analyzer code
   /// associated with them.
+  @override
   final AnalyzerCode analyzerCode;
 
   SharedMessage.fromYaml(super.yaml, {required super.keyNode})
