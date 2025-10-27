@@ -157,7 +157,6 @@ extension type A(covariant final int it) {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.extraneousModifierInPrimaryConstructor, 17, 9),
-      error(ParserErrorCode.representationFieldModifier, 27, 5),
     ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -186,7 +185,6 @@ extension type A(covariant final int it) {}
 ''');
       parseResult.assertErrors([
         error(ParserErrorCode.extraneousModifierInPrimaryConstructor, 17, 9),
-        error(ParserErrorCode.representationFieldModifier, 27, 5),
       ]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -212,9 +210,7 @@ ExtensionTypeDeclaration
     var parseResult = parseStringWithErrors(r'''
 extension type A(final int it) {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.representationFieldModifier, 17, 5),
-    ]);
+    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
@@ -240,8 +236,63 @@ ExtensionTypeDeclaration
       var parseResult = parseStringWithErrors(r'''
 extension type A(final int it) {}
 ''');
+      parseResult.assertNoErrors();
+
+      var node = parseResult.findNode.singleExtensionTypeDeclaration;
+      assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+    }
+  }
+
+  test_error_fieldModifier_final_language310() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A(final int it) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.representationFieldModifier, 33, 5),
+    ]);
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+
+    {
+      useDeclaringConstructorsAst = false;
+      var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A(final int it) {}
+''');
       parseResult.assertErrors([
-        error(ParserErrorCode.representationFieldModifier, 17, 5),
+        error(ParserErrorCode.representationFieldModifier, 33, 5),
       ]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
