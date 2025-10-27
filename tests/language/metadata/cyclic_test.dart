@@ -16,11 +16,11 @@ class Super {
 }
 
 class Sub1 extends Super {
-  const Sub1(var field) : super(field);
+  const Sub1(field) : super(field);
 }
 
 class Sub2 extends Super {
-  const Sub2(var field) : super(field);
+  const Sub2(field) : super(field);
 }
 
 void main() {

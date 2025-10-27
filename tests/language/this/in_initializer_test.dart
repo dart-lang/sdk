@@ -11,9 +11,9 @@ class A {
   var x;
 
   foo() => null;
-  bar(var y) => y;
+  bar(y) => y;
   static sfoo() => null;
-  static sbar(var y) => y;
+  static sbar(y) => y;
 
   A.next();
 

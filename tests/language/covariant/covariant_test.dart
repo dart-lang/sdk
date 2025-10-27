@@ -15,7 +15,6 @@
 import 'package:expect/expect.dart';
 
 // Top level field may not have a covariant.
-// Would be considered a minor (acceptable) bug, if it was accepted here too.
 covariant // //# 00: syntax error
 int x0 = 0;
 
@@ -28,7 +27,6 @@ covariant // //# 01: syntax error
 int get x1 => 499;
 
 // Top level setters may not have a covariant.
-// Would be considered a minor (acceptable) bug, if it was accepted here too.
 void set x2(
     covariant //# 02: compile-time error
     int val) {}
@@ -60,8 +58,7 @@ covariant covariant; // //# 06b: syntax error
 covariant // //# 07: syntax error
 get x7 => 499;
 
-// Top level setters may not have a covariant.
-// Would be considered a minor (acceptable) bug, if it was accepted here too.
+// Top level setters may not have a covariant parameter.
 void set x8(
     covariant //# 08: compile-time error
     val) {}
@@ -78,7 +75,6 @@ covariant // //# 11: syntax error
 f11() => 499;
 
 // Covariant should not work on top-level methods.
-// It's a minor (acceptable) bug to not error out here.
 int f12(
     covariant //# 12: compile-time error
         int x) =>
@@ -92,32 +88,15 @@ int f13(
     499;
 
 // Covariant should not work on top-level methods.
-// It's a minor (acceptable) bug to not error out here.
 int f14(
     covariant //# 14: compile-time error
-        final x) =>
-    499;
-
-// `Covariant` must be in front of modifiers.
-int f15(
-        final
-    covariant //# 15: syntax error
             x) =>
     499;
 
 // Covariant should not work on top-level methods.
-// It's a minor (acceptable) bug to not error out here.
 int f16(
     covariant //# 16: compile-time error
-        final int x) =>
-    499;
-
-// `Covariant` must be in front of modifiers.
-int f17(
-        final
-    covariant //# 17: syntax error
-            int
-            x) =>
+        int x) =>
     499;
 
 // On its own, `covariant` is just a parameter name.
@@ -128,7 +107,6 @@ covariant; // //# 19: syntax error
 // All of the above as statics in a class.
 class A {
   // Static fields may not have a covariant.
-  // Would be considered a minor (acceptable) bug, if it was accepted here too.
   static
   covariant // //# 20: syntax error
       int x20 = 0;
@@ -147,7 +125,6 @@ class A {
   static int get x21b => 499;
 
   // Static setters may not have a covariant.
-  // Would be considered a minor (acceptable) bug, if it was accepted here too.
   static void set x22(
       covariant //# 22: compile-time error
       int val) {}
@@ -181,7 +158,6 @@ class A {
   static get x27b => 499;
 
   // Static setters may not have a covariant.
-  // Would be considered a minor (acceptable) bug, if it was accepted here too.
   static void set x28(
       covariant //# 28: compile-time error
       val) {}
@@ -206,7 +182,6 @@ class A {
   static f31b() => 499;
 
   // Covariant should not work on static methods.
-  // It's a minor (acceptable) bug to not error out here.
   static int f32(
       covariant //# 32: compile-time error
           int x) =>
@@ -220,32 +195,15 @@ class A {
       499;
 
   // Covariant should not work on top-level methods.
-  // It's a minor (acceptable) bug to not error out here.
   static int f34(
       covariant //# 34: compile-time error
-          final x) =>
-      499;
-
-  // `Covariant` must be in front of modifiers.
-  static int f35(
-          final
-      covariant //# 35: syntax error
               x) =>
       499;
 
   // Covariant should not work on top-level methods.
-  // It's a minor (acceptable) bug to not error out here.
   static int f36(
       covariant //# 36: compile-time error
-          final int x) =>
-      499;
-
-  // `Covariant` must be in front of modifiers.
-  static int f37(
-          final
-      covariant //# 37: syntax error
-              int
-              x) =>
+          int x) =>
       499;
 
   // `Covariant` on its own is just a parameter name.
@@ -324,27 +282,12 @@ class B {
 
   int f54(
       covariant // //# 54: ok
-          final x) =>
-      499;
-
-  // `Covariant` must be in front of modifiers.
-  int f55(
-          final
-      covariant //# 55: syntax error
               x) =>
       499;
 
   int f56(
       covariant // //# 56: ok
-          final int x) =>
-      499;
-
-  // `Covariant` must be in front of modifiers.
-  int f57(
-          final
-      covariant //# 57: syntax error
-              int
-              x) =>
+          int x) =>
       499;
 
   // `Covariant` on its own is just a parameter name.
@@ -374,9 +317,7 @@ main() {
   use(f12(2));
   use(f13(3));
   use(f14(3));
-  use(f15(3));
   use(f16(3));
-  use(f17(3));
   Expect.equals(123, f18(123));
   use(covariant); // //# 19: continued
 
@@ -401,9 +342,7 @@ main() {
   use(A.f32(2));
   use(A.f33(3));
   use(A.f34(3));
-  use(A.f35(3));
   use(A.f36(3));
-  use(A.f37(3));
   Expect.equals(1234, A.f38(1234));
   use(A.covariant); // //# 39: continued
 
@@ -426,9 +365,7 @@ main() {
   use(b.f52(2));
   use(b.f53(2));
   use(b.f54(3));
-  use(b.f55(3));
   use(b.f56(3));
-  use(b.f57(3));
   Expect.equals(12345, b.f58(12345));
   use(B.covariant); // //# 59: continued
 }

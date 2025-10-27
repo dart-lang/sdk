@@ -170,7 +170,7 @@ class Bug4082360 {
 
 class Hoisting {
   var f_;
-  Hoisting.negate(var x) {
+  Hoisting.negate(x) {
     f_ = () {
       return x;
     };

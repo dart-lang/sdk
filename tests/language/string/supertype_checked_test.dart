@@ -17,7 +17,7 @@ class A implements Comparable<A> {
     return value.compareTo(o.value);
   }
 
-  A promote(var other) {
+  A promote(other) {
     return other;
   }
 }

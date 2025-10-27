@@ -16,7 +16,7 @@ class B {
 
   B(x) : b = x {}
 
-  B.namedB(var x) : b = x {}
+  B.namedB(x) : b = x {}
 }
 
 // Test the order of initialization: first the instance variable then

@@ -19,7 +19,7 @@ class NumA extends A<num> {}
 class B<T> {
   T? value;
 
-  void test(var o, bool expect) {
+  void test(o, bool expect) {
     Expect.equals(expect, o is T);
   }
 }
