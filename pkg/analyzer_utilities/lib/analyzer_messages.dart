@@ -174,8 +174,9 @@ const transformSetErrorCodeFile = GeneratedDiagnosticFile(
 );
 
 /// Decoded messages from the analyzer's `messages.yaml` file.
-final Map<AnalyzerCode, AnalyzerMessage> analyzerMessages =
-    decodeAnalyzerMessagesYaml(analyzerPkgPath);
+final List<AnalyzerMessage> analyzerMessages = decodeAnalyzerMessagesYaml(
+  analyzerPkgPath,
+);
 
 /// The path to the `analyzer` package.
 final String analyzerPkgPath = normalize(
@@ -186,20 +187,20 @@ final String analyzerPkgPath = normalize(
 final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
 
 /// Decoded messages from the linter's `messages.yaml` file.
-final Map<AnalyzerCode, AnalyzerMessage> lintMessages =
-    decodeAnalyzerMessagesYaml(linterPkgPath);
+final List<AnalyzerMessage> lintMessages = decodeAnalyzerMessagesYaml(
+  linterPkgPath,
+);
 
-/// Decodes a YAML object (obtained from a `messages.yaml` file) into a map.
-Map<AnalyzerCode, AnalyzerMessage> decodeAnalyzerMessagesYaml(
-  String packagePath,
-) {
+/// Decodes a YAML object (in analyzer style `messages.yaml` format) into a list
+/// of [AnalyzerMessage]s.
+List<AnalyzerMessage> decodeAnalyzerMessagesYaml(String packagePath) {
   var path = join(packagePath, 'messages.yaml');
   var yaml = loadYamlNode(
     File(path).readAsStringSync(),
     sourceUrl: Uri.file(path),
   );
 
-  var result = <AnalyzerCode, AnalyzerMessage>{};
+  var result = <AnalyzerMessage>[];
   if (yaml is! YamlMap) {
     throw LocatedError('root node is not a map', node: yaml);
   }
@@ -241,12 +242,13 @@ Map<AnalyzerCode, AnalyzerMessage> decodeAnalyzerMessagesYaml(
           diagnosticClass: DiagnosticClassInfo.byName(className),
           snakeCaseName: diagnosticName,
         );
-        return result[analyzerCode] = AnalyzerMessage.fromYaml(
+        return AnalyzerMessage.fromYaml(
           diagnosticValue,
           keyNode: keyNode,
           analyzerCode: analyzerCode,
         );
       });
+      result.add(message);
       if (message.hasPublishedDocs == null) {
         throw LocatedError('Missing hasPublishedDocs', node: diagnosticValue);
       }

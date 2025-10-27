@@ -47,7 +47,7 @@ part of 'lint_codes.dart';
 class LinterLintCode extends LintCodeWithExpectedTypes {
 ''');
       var memberAccumulator = MemberAccumulator();
-      for (var message in lintMessages.values) {
+      for (var message in lintMessages) {
         var analyzerCode = message.analyzerCode;
         var lintName = message.sharedName ?? analyzerCode.snakeCaseName;
         if (messagesRuleInfo[lintName]!.removed) continue;

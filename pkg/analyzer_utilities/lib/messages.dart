@@ -31,19 +31,18 @@ const Map<String, String> severityEnumNames = <String, String>{
 /// For details see the documentation for fields in the [DiagnosticTables]
 /// class.
 final DiagnosticTables diagnosticTables = DiagnosticTables._([
-  ...frontEndMessages.values,
-  ...feAnalyzerSharedMessages.values,
-  ...analyzerMessages.values,
-  ...lintMessages.values,
+  ...frontEndMessages,
+  ...feAnalyzerSharedMessages,
+  ...analyzerMessages,
+  ...lintMessages,
 ]);
 
 /// Decoded messages from the `_fe_analyzer_shared` package's `messages.yaml`
 /// file.
-final Map<String, SharedMessage> feAnalyzerSharedMessages =
-    _loadCfeStyleMessages(
-      feAnalyzerSharedPkgPath,
-      decodeMessage: SharedMessage.fromYaml,
-    );
+final List<SharedMessage> feAnalyzerSharedMessages = _loadCfeStyleMessages(
+  feAnalyzerSharedPkgPath,
+  decodeMessage: SharedMessage.fromYaml,
+);
 
 /// The path to the `fe_analyzer_shared` package.
 final String feAnalyzerSharedPkgPath = normalize(
@@ -51,7 +50,7 @@ final String feAnalyzerSharedPkgPath = normalize(
 );
 
 /// Decoded messages from the front end's `messages.yaml` file.
-final Map<String, FrontEndMessage> frontEndMessages = _loadCfeStyleMessages(
+final List<FrontEndMessage> frontEndMessages = _loadCfeStyleMessages(
   frontEndPkgPath,
   decodeMessage: FrontEndMessage.fromYaml,
 );
@@ -86,14 +85,14 @@ String convertTemplate(List<TemplatePart> template) {
       .join();
 }
 
-/// Decodes a YAML object (in CFE style `messages.yaml` format) into a map from
-/// diagnostic name to [Message].
-Map<String, T> decodeCfeStyleMessagesYaml<T extends CfeStyleMessage>(
+/// Decodes a YAML object (in CFE style `messages.yaml` format) into a list of
+/// [CfeStyleMessage]s.
+List<T> decodeCfeStyleMessagesYaml<T extends CfeStyleMessage>(
   YamlNode yaml, {
   required T Function(YamlMap, {required YamlScalar keyNode}) decodeMessage,
   required String path,
 }) {
-  var result = <String, T>{};
+  var result = <T>[];
   if (yaml is! YamlMap) {
     throw LocatedError('root node is not a map', node: yaml);
   }
@@ -113,16 +112,18 @@ Map<String, T> decodeCfeStyleMessagesYaml<T extends CfeStyleMessage>(
         node: diagnosticValue,
       );
     }
-    result[diagnosticName] = LocatedError.wrap(
-      node: diagnosticValue,
-      () => decodeMessage(diagnosticValue, keyNode: keyNode),
+    result.add(
+      LocatedError.wrap(
+        node: diagnosticValue,
+        () => decodeMessage(diagnosticValue, keyNode: keyNode),
+      ),
     );
   }
   return result;
 }
 
 /// Loads messages in CFE style `messages.yaml` format.
-Map<String, T> _loadCfeStyleMessages<T extends CfeStyleMessage>(
+List<T> _loadCfeStyleMessages<T extends CfeStyleMessage>(
   String packagePath, {
   required T Function(YamlMap, {required YamlScalar keyNode}) decodeMessage,
 }) {
