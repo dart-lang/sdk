@@ -480,6 +480,8 @@ class DiagnosticTables {
     var analyzerCodeCamelCaseNameDuplicateChecker = _DuplicateChecker<String>(
       kind: 'Analyzer code camelCase name',
     );
+    var analyzerSharedNameToMessages =
+        <String, List<MessageWithAnalyzerCode>>{};
     for (var message in messages) {
       if (message is CfeStyleMessage) {
         var frontEndCode = message.frontEndCode;
@@ -495,14 +497,38 @@ class DiagnosticTables {
         analyzerCodeDuplicateChecker[analyzerCode] = message;
         analyzerCodeCamelCaseNameDuplicateChecker[analyzerCode.camelCaseName] =
             message;
+        (analyzerSharedNameToMessages[message.sharedName ??
+                    analyzerCode.snakeCaseName] ??=
+                [])
+            .add(message);
       }
     }
 
     analyzerCodeDuplicateChecker.check();
     analyzerCodeCamelCaseNameDuplicateChecker.check();
     frontEndCodeDuplicateChecker.check();
+    _checkSharedNames(analyzerSharedNameToMessages);
+
     sortedSharedDiagnostics.sortBy((e) => e.analyzerCode.camelCaseName);
     sortedFrontEndDiagnostics.sortBy((e) => e.frontEndCode);
+  }
+
+  static void _checkSharedNames(
+    Map<String, List<MessageWithAnalyzerCode>> analyzerSharedNameToMessages,
+  ) {
+    for (var MapEntry(key: sharedName, value: messages)
+        in analyzerSharedNameToMessages.entries) {
+      if (messages case [
+        var message,
+      ] when sharedName != message.analyzerCode.snakeCaseName) {
+        var sharedNameJson = json.encode(sharedName);
+        throw LocatedError(
+          'This is the only message that uses shared name '
+          '$sharedNameJson. The message should be renamed to $sharedNameJson.',
+          node: message.keyNode,
+        );
+      }
+    }
   }
 }
 
