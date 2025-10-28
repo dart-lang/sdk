@@ -100,7 +100,7 @@ vars = {
   "boringssl_rev": "706742e482d89214f13a642ccfcdad596a24a32f",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "0327830448901920f739259364c3f2f624df5a03",
+  "devtools_rev": "9360cc98ac03a6e50a9f56213fb7f45e62f55fcf",
   # Use the SHA found in `flutter-candidate.txt` in the devtools repo.
   "flutter_rev": "36ea2bdeab611e908967b6fa57659998f600a2cb",
   "icu_rev": "1b2e3e8a421efae36141a7b932b41e315b089af8",
