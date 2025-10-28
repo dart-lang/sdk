@@ -75167,6 +75167,47 @@ const a = -'' + 2;
     );
   }
 
+  test_manifest_constInitializer_functionExpression_formalParameter_defaultValue_formalParameter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final f = ({int x = x}) {};
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredGetters
+      f: #M0
+    declaredVariables
+      f: #M1
+    exportMapId: #M2
+    exportMap
+      f: #M0
+''',
+      updatedCode: r'''
+final f = ({int x = x}) {};
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M3
+        interface: #M4
+    declaredGetters
+      f: #M0
+    declaredVariables
+      f: #M1
+    exportMapId: #M5
+    exportMap
+      A: #M3
+      f: #M0
+''',
+    );
+  }
+
   test_manifest_constInitializer_identifier_addIdentifier() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
