@@ -43,7 +43,7 @@ void f () {
   const String? s = null;
   const <String, double>{?s: 0.1};
 }
-''', errorFilter: (error) => error.message.contains('String?'));
+''', filter: (error) => error.message.contains('String?'));
   }
 
   Future<void> test_nonConst_mapKey_withGeneralUnassignable() async {
@@ -99,7 +99,7 @@ void f () {
   const String? s = null;
   const <Symbol, String>{#key: ?s};
 }
-''', errorFilter: (error) => error.message.contains('String?'));
+''', filter: (error) => error.message.contains('String?'));
   }
 
   Future<void> test_nonConst_mapValue_withGeneralUnassignable() async {

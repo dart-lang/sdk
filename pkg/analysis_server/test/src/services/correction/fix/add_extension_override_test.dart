@@ -49,7 +49,7 @@ void f(String str) {
 }
 ''',
       matchFixMessage: "Add an extension override for 'StringExt1'",
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode ==
           CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
@@ -60,7 +60,7 @@ void f(String str) {
         "Add an extension override for 'StringExt1'",
         "Add an extension override for 'StringExt2'",
       ],
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode ==
           CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
@@ -124,7 +124,7 @@ f() {
 }
 ''',
       expectedNumberOfFixesForKind: 1,
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo;
       },
@@ -201,7 +201,7 @@ extension E2 on A {
 }
 ''',
       matchFixMessage: "Add an extension override for 'E2'",
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode ==
           CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
@@ -236,7 +236,7 @@ extension E2 on A {
 }
 ''',
       matchFixMessage: "Add an extension override for 'E2'",
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode ==
           CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
@@ -275,7 +275,7 @@ extension E2 on A {
 }
 ''',
       matchFixMessage: "Add an extension override for 'E2'",
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode ==
           CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
@@ -383,7 +383,7 @@ void f(String str) {
 }
 ''',
       matchFixMessage: "Add an extension override for 'StringExt1'",
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode ==
           CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
@@ -394,7 +394,7 @@ void f(String str) {
         "Add an extension override for 'StringExt1'",
         "Add an extension override for 'StringExt2'",
       ],
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode ==
           CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );

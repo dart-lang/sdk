@@ -68,7 +68,7 @@ class B implements A {
   }
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne;
       },
@@ -97,7 +97,7 @@ class B implements A {
   }
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne;
       },
@@ -125,7 +125,7 @@ class B implements A {
   }
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne;
       },

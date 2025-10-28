@@ -260,6 +260,6 @@ void foo(Random r) {}
 import 'dart:math' show Random;
 
 void foo(Random r) {}
-''', errorFilter: _firstUnusedShownNameErrorFilter);
+''', filter: _firstUnusedShownNameErrorFilter);
   }
 }

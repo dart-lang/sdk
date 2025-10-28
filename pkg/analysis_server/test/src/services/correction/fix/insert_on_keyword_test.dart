@@ -48,7 +48,7 @@ extension int {}
       '''
 extension on int {}
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == ParserErrorCode.expectedToken;
       },
     );
@@ -89,7 +89,7 @@ extension List<int> {}
       '''
 extension on List<int> {}
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == ParserErrorCode.expectedToken;
       },
     );

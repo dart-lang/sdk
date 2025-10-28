@@ -21,6 +21,27 @@ class AddFieldFormalNamedParametersTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.addInitializingFormalNamesParameters;
 
+  Future<void> test_enum() async {
+    await resolveTestCode('''
+enum MyEnum {
+  a;
+
+  const MyEnum();
+
+  final int value;
+}
+''');
+    await assertHasFix('''
+enum MyEnum {
+  a;
+
+  const MyEnum({required this.value});
+
+  final int value;
+}
+''');
+  }
+
   Future<void> test_flutter_nullable() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
@@ -205,6 +226,27 @@ class Test {
 class AddFieldFormalParametersTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.addInitializingFormalParameters;
+
+  Future<void> test_enum() async {
+    await resolveTestCode('''
+enum MyEnum {
+  a;
+
+  const MyEnum();
+
+  final int value;
+}
+''');
+    await assertHasFix('''
+enum MyEnum {
+  a;
+
+  const MyEnum(this.value);
+
+  final int value;
+}
+''');
+  }
 
   Future<void> test_flutter() async {
     writeTestPackageConfig(flutter: true);

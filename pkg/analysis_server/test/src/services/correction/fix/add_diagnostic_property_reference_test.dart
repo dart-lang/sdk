@@ -658,7 +658,7 @@ class C extends Widget with Diagnosticable {
   }
 }
 ''',
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode != CompileTimeErrorCode.undefinedClass,
     );
   }
@@ -692,7 +692,7 @@ class C extends Widget with Diagnosticable {
   }
 }
 ''',
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode != CompileTimeErrorCode.undefinedClass,
     );
   }

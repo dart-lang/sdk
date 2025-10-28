@@ -213,7 +213,7 @@ import 'dart:_internal';
 ''');
 
     await assertHasFix('''
-''', errorFilter: (e) => e.diagnosticCode == WarningCode.unusedImport);
+''', filter: (e) => e.diagnosticCode == WarningCode.unusedImport);
   }
 
   Future<void> test_severalLines() async {

@@ -269,7 +269,7 @@ void f() {
 void f() {
 }
 ''',
-      errorFilter: (e) =>
+      filter: (e) =>
           e.diagnosticCode != CompileTimeErrorCode.referencedBeforeDeclaration,
     );
   }

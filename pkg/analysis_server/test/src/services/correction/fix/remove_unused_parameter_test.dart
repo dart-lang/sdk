@@ -135,7 +135,7 @@ class C {
   C(int b = 1,);
 }
 ''',
-      errorFilter: (e) => e.offset == testCode.indexOf('int a'),
+      filter: (e) => e.offset == testCode.indexOf('int a'),
       allowFixAllFixes: true,
     );
   }

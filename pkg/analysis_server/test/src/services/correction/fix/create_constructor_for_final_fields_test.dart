@@ -64,7 +64,7 @@ class Test extends StatelessWidget {
   const Test({super.key, required int a}) : _a = a;
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'_a' must be initialized");
       },
     );
@@ -92,7 +92,7 @@ class Test extends StatelessWidget {
   const Test({required int a, super.key}) : _a = a;
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'_a' must be initialized");
       },
     );
@@ -163,7 +163,7 @@ class B extends A {
   B({super.f11, super.f12, required this.f21, required this.f22});
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'f21'");
       },
     );
@@ -199,7 +199,7 @@ class B extends A {
   B({required super.f11, required super.f12, required this.f21, required this.f22});
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'f21'");
       },
     );
@@ -238,7 +238,7 @@ class B extends A {
   B({required super.f12, required this.f21, super.f11});
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'f21'");
       },
     );
@@ -263,7 +263,7 @@ class Test {
   final int c;
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a'");
       },
     );
@@ -287,7 +287,7 @@ class Test {
   Test({required this.a, required this.c});
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a'");
       },
     );
@@ -311,7 +311,7 @@ class Test {
   Test({required int a, required int b, required this.c}) : _a = a, _b = b;
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
                 CompileTimeErrorCode.finalNotInitialized &&
             error.message.contains("'_a'");
@@ -328,7 +328,7 @@ class Test {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a'");
       },
     );
@@ -354,7 +354,7 @@ enum E {
   const E({required this.a, required this.c});
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a' must be initialized");
       },
     );
@@ -407,7 +407,7 @@ class MyWidget extends StatelessWidget {
   const MyWidget({super.key, required this.a, this.c});
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a'");
       },
     );
@@ -436,7 +436,7 @@ class MyWidget extends StatelessWidget {
   const MyWidget({super.key, required this.a, this.b, required this.child});
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a'");
       },
     );
@@ -465,7 +465,7 @@ class MyWidget extends StatelessWidget {
   const MyWidget({super.key, required this.a, this.b, required this.children});
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a'");
       },
     );
@@ -489,7 +489,7 @@ class Test {
   Test(this.a, this._b, this.c);
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a'");
       },
     );
@@ -524,7 +524,7 @@ class Test {
   final int c;
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a'");
       },
     );
@@ -548,7 +548,7 @@ class Test {
   Test(this.a, this.c);
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a'");
       },
     );
@@ -574,7 +574,7 @@ enum E {
   const E(this.a, this.c);
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a'");
       },
     );
@@ -620,7 +620,7 @@ class MyWidget extends StatelessWidget {
   const MyWidget({Key? key, required this.a, this.c}) : super(key: key);
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a'");
       },
     );
@@ -649,7 +649,7 @@ class MyWidget extends StatelessWidget {
   const MyWidget({Key? key, required this.a, this.b, required this.child}) : super(key: key);
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a'");
       },
     );
@@ -678,7 +678,7 @@ class MyWidget extends StatelessWidget {
   const MyWidget({Key? key, required this.a, this.b, this.children}) : super(key: key);
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'a'");
       },
     );
@@ -705,7 +705,7 @@ class MyWidget extends StatelessWidget {
   const MyWidget({Key? key, required int a, required this.b}) : _a = a, super(key: key);
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.message.contains("'b'");
       },
     );

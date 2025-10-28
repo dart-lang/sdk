@@ -165,7 +165,7 @@ void f(int x) {
 void f(int x) {
   print(0);
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_conditional_expression_alwaysTrue() async {
@@ -178,7 +178,7 @@ void f(int x) {
 void f(int x) {
   print(1);
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_ifElement_alwaysFalse_hasElse() async {
@@ -199,7 +199,7 @@ void f(int x) {
     2,
   ];
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_ifElement_alwaysFalse_hasElse_withComments() async {
@@ -228,7 +228,7 @@ void f(int x) {
     2,
   ];
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_ifElement_alwaysFalse_noElse_insideList() async {
@@ -248,7 +248,7 @@ void f(int x) {
     2,
   ];
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void>
@@ -272,7 +272,7 @@ void f(int x) {
     2,
   ];
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_ifElement_alwaysFalse_noElse_insideSet() async {
@@ -292,7 +292,7 @@ Object f(int x) {
     2,
   };
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_ifElement_alwaysTrue() async {
@@ -335,7 +335,7 @@ void f(int x) {
     2,
   ];
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_ifElement_alwaysTrue_withComments() async {
@@ -382,7 +382,7 @@ void f(int x) {
   2;
   3;
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_ifStatement_alwaysFalse_hasElse_block_empty() async {
@@ -400,7 +400,7 @@ void f(int x) {
   0;
   2;
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_ifStatement_alwaysFalse_hasElse_statement() async {
@@ -420,7 +420,7 @@ void f(int x) {
   2;
   3;
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_ifStatement_alwaysFalse_noElse() async {
@@ -438,7 +438,7 @@ void f(int x) {
   0;
   2;
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_ifStatement_alwaysTrue_hasElse_block() async {
@@ -459,7 +459,7 @@ void f(int x) {
   1;
   3;
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_ifStatement_alwaysTrue_noElse() async {
@@ -776,7 +776,7 @@ class Person {
   }
 }
 ''');
-    await assertNoFix(errorFilter: _ignoreDeadCode);
+    await assertNoFix(filter: _ignoreDeadCode);
   }
 }
 
@@ -825,7 +825,7 @@ void f(int x) {
 void f(int x) {
   print(0);
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_conditional_expression_alwaysTrue() async {
@@ -838,7 +838,7 @@ void f(int x) {
 void f(int x) {
   print(1);
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_unnecessaryTypeCheck_false() async {
