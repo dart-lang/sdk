@@ -610,10 +610,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A(final int a(String x)) {}
 ''');
-    // TODO(scheglov): this is wrong.
-    parseResult.assertErrors([
-      error(ParserErrorCode.functionTypedParameterVar, 8, 5),
-    ]);
+    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -646,10 +643,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A(var int a(String x)) {}
 ''');
-    // TODO(scheglov): this is wrong.
-    parseResult.assertErrors([
-      error(ParserErrorCode.functionTypedParameterVar, 8, 3),
-    ]);
+    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
