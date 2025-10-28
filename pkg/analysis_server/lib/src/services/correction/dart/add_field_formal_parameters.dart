@@ -17,8 +17,6 @@ typedef _FieldRecord = ({bool isRequired, String parameter});
 class AddFieldFormalParameters extends ResolvedCorrectionProducer {
   final _Style _style;
 
-  bool _useRequired = false;
-
   @override
   final FixKind fixKind;
 
@@ -43,13 +41,10 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     }
     List<FormalParameter> parameters = constructor.parameters.parameters;
 
-    var classNode = constructor.parent;
-    if (classNode is! ClassDeclaration) {
-      return;
-    }
-
-    var superType = classNode.declaredFragment!.element.supertype;
-    if (superType == null) {
+    var instanceNodeDeclaration = constructor.parent;
+    if (instanceNodeDeclaration is! NamedCompilationUnitMember ||
+        instanceNodeDeclaration is TypeAlias ||
+        instanceNodeDeclaration is FunctionDeclaration) {
       return;
     }
 
@@ -76,10 +71,6 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
         firstNamedParameter = parameter;
         break;
       }
-    }
-
-    if (_style == _Style.requiredNamed) {
-      _useRequired = true;
     }
 
     var fieldsRecords = fields.map(_parameterForField).toList();
@@ -125,6 +116,9 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
             write += fieldParametersCode;
           }
           builder.addSimpleInsertion(parameters.last.end, write);
+        } else {
+          var offset = constructor.parameters.leftParenthesis.end;
+          builder.addSimpleInsertion(offset, '{$fieldParametersCode}');
         }
       } else if (lastRequiredParameter != null) {
         return builder.addSimpleInsertion(
@@ -144,7 +138,8 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
   _FieldRecord _parameterForField(FieldElement field) {
     var prefix = '';
     var isRequired = false;
-    if (typeSystem.isPotentiallyNonNullable(field.type) && _useRequired) {
+    if (typeSystem.isPotentiallyNonNullable(field.type) &&
+        _style == _Style.requiredNamed) {
       isRequired = true;
       prefix = 'required ';
     }

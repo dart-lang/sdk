@@ -6342,8 +6342,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ConstructorDeclaration constructor,
   ) {
     var fields = <FieldElement>{};
-    var classDeclaration = constructor.parent as ClassDeclaration;
-    for (ClassMember fieldDeclaration in classDeclaration.members) {
+    var unitMemberDeclaration =
+        constructor.parent as NamedCompilationUnitMember;
+    late NodeList<ClassMember> membersList;
+    switch (unitMemberDeclaration) {
+      case TypeAlias() || FunctionDeclaration():
+        assert(
+          false,
+          'How can a constructor be declared in type alias or function?',
+        );
+        return [];
+      case ExtensionTypeDeclaration():
+        // Extension types do not have fields to be initialized.
+        return [];
+      case ClassDeclaration(:var members) ||
+          MixinDeclaration(:var members) ||
+          EnumDeclaration(:var members):
+        membersList = members;
+      default:
+        assert(
+          false,
+          'Unexpected parent of constructor: '
+          '${unitMemberDeclaration.runtimeType}',
+        );
+        return [];
+    }
+    for (ClassMember fieldDeclaration in membersList) {
       if (fieldDeclaration is FieldDeclaration) {
         for (VariableDeclaration field in fieldDeclaration.fields.variables) {
           if (field.initializer == null) {
