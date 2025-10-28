@@ -396,6 +396,30 @@ abstract final class NativeCallable<T extends Function> {
     throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
   }
 
+  /// Constructs a [NativeCallable] that can be invoked from any thread.
+  ///
+  /// When the native code invokes the function [nativeFunction],
+  /// the [callback] will be executed within the isolate group
+  /// of the [Isolate] which originally constructed the callable.
+  /// Specifically, this means that an attempt to access any
+  /// static or global field which is not shared between
+  /// isolates in a group will result in a [Error].
+  ///
+  /// If an exception is thrown by the [callback], the
+  /// native function will return the `exceptionalReturn`,
+  /// which must be assignable to the return type of
+  /// the [callback].
+  ///
+  /// [callback] and [exceptionalReturn] must be
+  /// _trivially shareable_.
+  ///
+  /// This callback must be [close]d when it is no longer
+  /// needed. An [Isolate] that created the callback will
+  /// be kept alive until [close] is called.
+  ///
+  /// After [NativeCallable.close] is called, invoking
+  /// the [nativeFunction] from native code will cause
+  /// undefined behavior.
   factory NativeCallable.isolateGroupBound(
     @DartRepresentationOf("T") Function callback, {
     Object? exceptionalReturn,

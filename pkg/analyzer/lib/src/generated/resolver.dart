@@ -5178,11 +5178,12 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         return;
       }
 
-      nameScope = FormalParameterScope(
-        TypeParameterScope(nameScope, element.typeParameters),
-        element.formalParameters,
-      );
-      super.visitFunctionExpression(node);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      node.typeParameters?.accept(this);
+      node.parameters?.accept(this);
+
+      nameScope = FormalParameterScope(nameScope, element.formalParameters);
+      node.body.accept(this);
     } finally {
       nameScope = outerScope;
       _enclosingClosure = outerClosure;

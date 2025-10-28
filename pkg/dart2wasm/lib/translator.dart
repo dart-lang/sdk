@@ -1860,13 +1860,13 @@ class Translator with KernelNodes {
       // runtime.
       final i = internalizedStringsForJSRuntime.length;
       internalizedString = module.globals.import('s', '$i',
-          w.GlobalType(w.RefType.extern(nullable: true), mutable: false));
+          w.GlobalType(w.RefType.extern(nullable: false), mutable: false));
       internalizedStringsForJSRuntime.add(s);
     } else {
       internalizedString = module.globals.import(
         'S',
         s,
-        w.GlobalType(w.RefType.extern(nullable: true), mutable: false),
+        w.GlobalType(w.RefType.extern(nullable: false), mutable: false),
       );
     }
     _internalizedStringGlobals[(module, s)] = internalizedString;

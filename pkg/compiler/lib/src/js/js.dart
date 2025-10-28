@@ -25,13 +25,11 @@ export 'js_debug.dart';
 String prettyPrint(
   Node node, {
   bool enableMinification = false,
-  bool allowVariableMinification = true,
   bool preferSemicolonToNewlineInMinifiedOutput = false,
 }) {
   // TODO(johnniwinther): Do we need all the options here?
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
-    shouldCompressOutput: enableMinification,
-    minifyLocalVariables: allowVariableMinification,
+    minify: enableMinification,
     preferSemicolonToNewlineInMinifiedOutput:
         preferSemicolonToNewlineInMinifiedOutput,
   );
@@ -48,13 +46,12 @@ CodeBuffer createCodeBuffer(
   DumpInfoJsAstRegistry? monitor,
   JavaScriptAnnotationMonitor annotationMonitor =
       const JavaScriptAnnotationMonitor(),
-  bool allowVariableMinification = true,
   List<CodeOutputListener> listeners = const [],
 }) {
+  bool enableMinification = compilerOptions.enableMinification;
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
     utf8: compilerOptions.features.writeUtf8.isEnabled,
-    shouldCompressOutput: compilerOptions.enableMinification,
-    minifyLocalVariables: allowVariableMinification,
+    minify: enableMinification,
   );
   CodeBuffer outBuffer = CodeBuffer(listeners);
   SourceInformationProcessor sourceInformationProcessor =

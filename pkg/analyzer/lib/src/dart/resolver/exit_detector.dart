@@ -187,6 +187,11 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
+  bool visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    return _elementExits(node.propertyName.element);
+  }
+
+  @override
   bool visitEmptyStatement(EmptyStatement node) => false;
 
   @override

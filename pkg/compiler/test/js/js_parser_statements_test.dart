@@ -9,7 +9,7 @@ import 'package:compiler/src/js/js.dart' show js;
 
 testStatement(String statement, arguments, String expect) {
   jsAst.Node node = js.statement(statement, arguments);
-  String jsText = jsAst.prettyPrint(node, allowVariableMinification: false);
+  String jsText = jsAst.prettyPrint(node);
   Expect.stringEquals(
     expect.trim(),
     jsText.trim(),

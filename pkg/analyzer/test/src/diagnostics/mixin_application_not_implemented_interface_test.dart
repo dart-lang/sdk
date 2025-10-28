@@ -16,6 +16,23 @@ main() {
 @reflectiveTest
 class MixinApplicationNotImplementedInterfaceTest
     extends PubPackageResolutionTest {
+  test_class_hasRecursion() async {
+    // https://github.com/dart-lang/sdk/issues/61829
+    await assertErrorsInCode(
+      '''
+class A {}
+abstract class X with Unresolved, M, CycleWithX {}
+mixin M on A {}
+mixin CycleWithX on X {}
+''',
+      [
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 26, 1),
+        error(CompileTimeErrorCode.mixinOfNonClass, 33, 10),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 84, 10),
+      ],
+    );
+  }
+
   test_class_matchingInterface() async {
     await assertNoErrorsInCode('''
 abstract class A<T> {}

@@ -4,7 +4,7 @@
   (type $JSStringImpl (sub final $#Top (struct
     (field $field0 i32)
     (field $_ref externref))))
-  (global $"S.hello world" (import "S" "hello world") externref)
+  (global $"S.hello world" (import "S" "hello world") (ref extern))
   (global $"C329 \"hello world\"" (ref $JSStringImpl)
     (i32.const 4)
     (global.get $"S.hello world")
