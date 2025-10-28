@@ -930,7 +930,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     _checkForValidField(node);
-    _checkForPrivateOptionalParameter(node);
     _checkForFieldInitializingFormalRedirectingConstructor(node);
     _checkForTypeAnnotationDeferredClass(node.type);
     var fieldElement = node.declaredFragment?.element.field;
@@ -1456,7 +1455,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _checkForPrivateOptionalParameter(node);
     _checkForTypeAnnotationDeferredClass(node.type);
     super.visitSimpleFormalParameter(node);
   }
@@ -4956,24 +4954,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         arguments: messageArguments,
       );
     }
-  }
-
-  /// Check that the given named optional [parameter] does not begin with '_'.
-  void _checkForPrivateOptionalParameter(FormalParameter parameter) {
-    // should be named parameter
-    if (!parameter.isNamed) {
-      return;
-    }
-    // name should start with '_'
-    var name = parameter.name;
-    if (name == null || name.isSynthetic || !name.lexeme.startsWith('_')) {
-      return;
-    }
-
-    diagnosticReporter.atToken(
-      name,
-      CompileTimeErrorCode.privateOptionalParameter,
-    );
   }
 
   /// Check whether the given constructor [declaration] is the redirecting

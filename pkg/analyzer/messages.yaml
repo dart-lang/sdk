@@ -13901,36 +13901,6 @@ CompileTimeErrorCode:
 
       If you need both of the mixins, then rename the conflicting member in one
       of the two mixins.
-  PRIVATE_OPTIONAL_PARAMETER:
-    parameters: none
-    problemMessage: "Named parameters can't start with an underscore."
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the name of a named parameter
-      starts with an underscore.
-
-      #### Example
-
-      The following code produces this diagnostic because the named parameter
-      `_x` starts with an underscore:
-
-      ```dart
-      class C {
-        void m({int [!_x!] = 0}) {}
-      }
-      ```
-
-      #### Common fixes
-
-      Rename the parameter so that it doesn't start with an underscore:
-
-      ```dart
-      class C {
-        void m({int x = 0}) {}
-      }
-      ```
   PRIVATE_SETTER:
     parameters:
       String p0: the name of the setter
@@ -21788,6 +21758,69 @@ ParserErrorCode:
     problemMessage: "Positional parameters must be enclosed in square brackets ('[' and ']')."
     correctionMessage: Try surrounding the positional parameters in square brackets.
     hasPublishedDocs: false
+  PRIVATE_OPTIONAL_PARAMETER:
+    parameters: none
+    problemMessage: "Named parameters can't start with an underscore."
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the name of a named parameter
+      starts with an underscore.
+
+      #### Example
+
+      The following code produces this diagnostic because the named parameter
+      `_x` starts with an underscore:
+
+      ```dart
+      class C {
+        void m({int [!_x!] = 0}) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Rename the parameter so that it doesn't start with an underscore:
+
+      ```dart
+      class C {
+        void m({int x = 0}) {}
+      }
+      ```
+  PRIVATE_NAMED_NON_FIELD_PARAMETER:
+    parameters: none
+    problemMessage: "Named parameters that don't refer to instance variables can't start with underscore."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the name of a named parameter
+      starts with an underscore and the parameter isn't an initializing formal
+      or field parameter.
+
+      #### Example
+
+      The following code produces this diagnostic because the named parameter
+      `_x` starts with an underscore:
+
+      ```dart
+      class C {
+        C({int [!_x!] = 0});
+      }
+      ```
+
+      #### Common fixes
+
+      Only use a private named parameter when it refers to a field:
+
+      ```dart
+      class C {
+        final int _x;
+        C({this._x = 0});
+        int get x => _x;
+      }
+      ```
   REPRESENTATION_FIELD_MODIFIER:
     parameters: none
     problemMessage: "Representation fields can't have modifiers."

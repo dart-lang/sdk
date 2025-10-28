@@ -333,7 +333,18 @@ class FastaErrorReporter {
         // Reported by [ErrorVerifier._checkForBuiltInIdentifierAsName].
         return;
       case PseudoSharedCode.privateOptionalParameter:
-        // Reported by [ErrorVerifier._checkForPrivateOptionalParameter].
+        diagnosticReporter?.atOffset(
+          offset: offset,
+          length: length,
+          diagnosticCode: ParserErrorCode.privateOptionalParameter,
+        );
+        return;
+      case PseudoSharedCode.privateNamedNonFieldParameter:
+        diagnosticReporter?.atOffset(
+          offset: offset,
+          length: length,
+          diagnosticCode: ParserErrorCode.privateNamedNonFieldParameter,
+        );
         return;
       case PseudoSharedCode.nonSyncAbstractMethod:
         // Not reported but followed by a MISSING_FUNCTION_BODY error.

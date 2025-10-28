@@ -1574,6 +1574,13 @@ PrivateNamedParameter:
   script: |
     void foo({int? _hello}) {}
 
+PrivateNamedNonFieldParameter:
+  pseudoSharedCode: PRIVATE_NAMED_NON_FIELD_PARAMETER
+  parameters: none
+  problemMessage: "A named parameter that doesn't refer to an instance variable can't start with an underscore ('_')."
+  script: |
+    void foo({int? _hello}) {}
+
 GetterWithFormals:
   pseudoSharedCode: GETTER_WITH_PARAMETERS
   parameters: none

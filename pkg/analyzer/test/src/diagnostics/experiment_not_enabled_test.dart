@@ -67,4 +67,20 @@ typedef A = int?;
       [error(ParserErrorCode.experimentNotEnabled, 26, 1)],
     );
   }
+
+  test_privateNamedParameters_disabled() async {
+    await assertErrorsInCode(
+      r'''
+// @dart = 3.8
+class C {
+  int? _x;
+  C({this._x});
+}
+''',
+      [
+        error(WarningCode.unusedField, 32, 2),
+        error(ParserErrorCode.experimentNotEnabledOffByDefault, 46, 2),
+      ],
+    );
+  }
 }

@@ -78,7 +78,9 @@ abstract class Compiler {
 class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     with
         OnceConstantVisitorDefaultMixin<js_ast.Expression>,
+        StatementVisitorInternalNodeMixin<js_ast.Statement>,
         StatementVisitorExperimentExclusionMixin<js_ast.Statement>,
+        ExpressionVisitorInternalNodeMixin<js_ast.Expression>,
         ExpressionVisitorExperimentExclusionMixin<js_ast.Expression>
     implements
         StatementVisitor<js_ast.Statement>,
@@ -7686,36 +7688,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression visitListConcatenation(ListConcatenation node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('List concatenation');
-  }
-
-  @override
-  js_ast.Expression visitSetConcatenation(SetConcatenation node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('Set concatenation');
-  }
-
-  @override
-  js_ast.Expression visitMapConcatenation(MapConcatenation node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('Map concatenation');
-  }
-
-  @override
-  js_ast.Expression visitInstanceCreation(InstanceCreation node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('Instance creation');
-  }
-
-  @override
-  js_ast.Expression visitFileUriExpression(FileUriExpression node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('File URI expression');
-  }
-
-  @override
   js_ast.Expression visitConstructorTearOff(ConstructorTearOff node) {
     throw UnsupportedError('Constructor tear off');
   }
@@ -8545,43 +8517,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js_ast.Comment('Experiments: ${enabledExperiments.join(', ')}'),
     ];
     return header;
-  }
-
-  @override
-  js_ast.Statement visitIfCaseStatement(IfCaseStatement node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitIfCaseStatement');
-  }
-
-  @override
-  js_ast.Expression visitPatternAssignment(PatternAssignment node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitPatternAssignment');
-  }
-
-  @override
-  js_ast.Statement visitPatternSwitchStatement(PatternSwitchStatement node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitPatternSwitchStatement');
-  }
-
-  @override
-  js_ast.Statement visitPatternVariableDeclaration(
-    PatternVariableDeclaration node,
-  ) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitPatternVariableDeclaration');
-  }
-
-  @override
-  js_ast.Expression visitSwitchExpression(SwitchExpression node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitSwitchExpression');
   }
 
   @override

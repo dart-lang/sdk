@@ -57,6 +57,9 @@ class VmTarget extends Target {
   bool get supportsSetLiterals => false;
 
   @override
+  bool get supportsFileUriExpression => true;
+
+  @override
   int get enabledLateLowerings => LateLowering.none;
 
   @override

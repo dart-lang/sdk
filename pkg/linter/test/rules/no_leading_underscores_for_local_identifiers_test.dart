@@ -357,14 +357,14 @@ void f(int _) {}
 
   test_parameter_named() async {
     await assertNoDiagnostics(r'''
-// ignore: private_optional_parameter
+// ignore: private_named_non_field_parameter
 void f({int? _n}) {}
 ''');
   }
 
   test_parameter_namedRequired() async {
     await assertNoDiagnostics(r'''
-// ignore: private_optional_parameter
+// ignore: private_named_non_field_parameter
 void f({required int _n}) {}
 ''');
   }

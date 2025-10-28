@@ -1,0 +1,9 @@
+// @dart = 3.9
+
+class C {
+  C({required this._foo, required this._bar});
+  String _bar;
+  String _foo;
+}
+
+main() {}

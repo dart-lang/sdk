@@ -148,6 +148,10 @@ class DocumentationValidator {
     // Has `language=2.9`
     'CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD',
 
+    // Produces the newer PRIVATE_NAMED_NON_FIELD_PARAMETER diagnostic instead
+    // as part of the "private named parameters" feature.
+    'ParserErrorCode.PRIVATE_OPTIONAL_PARAMETER',
+
     //
     // The following can't currently be verified because the examples aren't
     // Dart code.

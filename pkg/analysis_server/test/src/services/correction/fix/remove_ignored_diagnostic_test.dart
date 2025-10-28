@@ -165,12 +165,12 @@ class C {
   Future<void> test_line_first_leading_and_eol() async {
     await resolveTestCode('''
 class C {
-  // ignore: private_optional_parameter
+  // ignore: private_named_non_field_parameter
   int f({required _a}) => null; // ignore: unused_local_variable, return_of_invalid_type
 }''');
     await assertHasFix('''
 class C {
-  // ignore: private_optional_parameter
+  // ignore: private_named_non_field_parameter
   int f({required _a}) => null; // ignore: return_of_invalid_type
 }''');
   }

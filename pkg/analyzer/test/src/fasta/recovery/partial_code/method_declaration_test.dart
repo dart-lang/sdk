@@ -63,10 +63,18 @@ class MethodTest extends PartialCodeTest {
           ParserErrorCode.missingIdentifier,
           ParserErrorCode.missingFunctionBody,
         ], 'm(B b, [_s_]){}'),
-        TestDescriptor('noType_emptyNamed', 'm(B b, {})', [
-          ParserErrorCode.missingIdentifier,
-          ParserErrorCode.missingFunctionBody,
-        ], 'm(B b, {_s_}){}'),
+        TestDescriptor(
+          'noType_emptyNamed',
+          'm(B b, {})',
+          [
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.missingFunctionBody,
+          ],
+          'm(B b, {_s_}){}',
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.privateOptionalParameter,
+          ],
+        ),
         //
         // Instance method, with simple return type.
         //
@@ -105,10 +113,18 @@ class MethodTest extends PartialCodeTest {
           ParserErrorCode.missingIdentifier,
           ParserErrorCode.missingFunctionBody,
         ], 'A m(B b, [_s_]){}'),
-        TestDescriptor('type_emptyNamed', 'A m(B b, {})', [
-          ParserErrorCode.missingIdentifier,
-          ParserErrorCode.missingFunctionBody,
-        ], 'A m(B b, {_s_}){}'),
+        TestDescriptor(
+          'type_emptyNamed',
+          'A m(B b, {})',
+          [
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.missingFunctionBody,
+          ],
+          'A m(B b, {_s_}){}',
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.privateOptionalParameter,
+          ],
+        ),
         //
         // Static method, no return type.
         //
@@ -152,10 +168,18 @@ class MethodTest extends PartialCodeTest {
           ],
           'static m(B b, [_s_]){}',
         ),
-        TestDescriptor('static_noType_emptyNamed', 'static m(B b, {})', [
-          ParserErrorCode.missingIdentifier,
-          ParserErrorCode.missingFunctionBody,
-        ], 'static m(B b, {_s_}){}'),
+        TestDescriptor(
+          'static_noType_emptyNamed',
+          'static m(B b, {})',
+          [
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.missingFunctionBody,
+          ],
+          'static m(B b, {_s_}){}',
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.privateOptionalParameter,
+          ],
+        ),
         //
         // Static method, with simple return type.
         //
@@ -207,6 +231,9 @@ class MethodTest extends PartialCodeTest {
             ParserErrorCode.missingFunctionBody,
           ],
           'static A m(B b, {_s_}){}',
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.privateOptionalParameter,
+          ],
         ),
       ],
       PartialCodeTest.classMemberSuffixes,

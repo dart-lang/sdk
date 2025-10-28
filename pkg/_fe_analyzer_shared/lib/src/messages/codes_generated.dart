@@ -2685,6 +2685,14 @@ const MessageCode codePrefixAfterCombinator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codePrivateNamedNonFieldParameter = const MessageCode(
+  "PrivateNamedNonFieldParameter",
+  pseudoSharedCode: PseudoSharedCode.privateNamedNonFieldParameter,
+  problemMessage:
+      """A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePrivateNamedParameter = const MessageCode(
   "PrivateNamedParameter",
   pseudoSharedCode: PseudoSharedCode.privateOptionalParameter,
@@ -3203,6 +3211,7 @@ enum PseudoSharedCode {
   nonSyncAbstractMethod,
   nonSyncFactory,
   positionalAfterNamedArgument,
+  privateNamedNonFieldParameter,
   privateOptionalParameter,
   returnInGenerator,
   setOrMapLiteralTooManyTypeArguments,

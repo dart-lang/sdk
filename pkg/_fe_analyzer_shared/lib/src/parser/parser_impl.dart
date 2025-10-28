@@ -328,6 +328,9 @@ class Parser {
   /// `true` if the 'declaring-constructors' feature is enabled.
   final bool _isDeclaringConstructorsFeatureEnabled;
 
+  /// `true` if the 'private-named-parameters' feature is enabled.
+  final bool _isPrivateNamedParametersEnabled;
+
   /// Indicates whether the last pattern parsed is allowed inside unary
   /// patterns.  This is set by [parsePrimaryPattern] and [parsePattern].
   ///
@@ -352,7 +355,9 @@ class Parser {
        _isEnhancedPartsFeatureEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.enhancedParts),
        _isDeclaringConstructorsFeatureEnabled = experimentalFeatures
-           .isExperimentEnabled(ExperimentalFlag.declaringConstructors);
+           .isExperimentEnabled(ExperimentalFlag.declaringConstructors),
+       _isPrivateNamedParametersEnabled = experimentalFeatures
+           .isExperimentEnabled(ExperimentalFlag.privateNamedParameters);
 
   /// Executes [callback]; however if `this` is the `TestParser` (from
   /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
@@ -2300,7 +2305,29 @@ class Parser {
     } else {
       nameToken = token = ensureIdentifier(token, nameContext);
       if (isNamedParameter && nameToken.lexeme.startsWith("_")) {
-        reportRecoverableError(nameToken, codes.codePrivateNamedParameter);
+        // TODO(rnystrom): Also handle declaring field parameters.
+        bool refersToField = thisKeyword != null;
+
+        if (_isPrivateNamedParametersEnabled) {
+          if (!refersToField) {
+            reportRecoverableError(
+              nameToken,
+              codes.codePrivateNamedNonFieldParameter,
+            );
+          }
+        } else {
+          if (!refersToField) {
+            reportRecoverableError(nameToken, codes.codePrivateNamedParameter);
+          } else {
+            // The user is using syntax that is now meaningful, but in a
+            // library where it isn't enabled, so report a more precise error.
+            reportExperimentNotEnabled(
+              ExperimentalFlag.privateNamedParameters,
+              nameToken,
+              nameToken,
+            );
+          }
+        }
       }
     }
     if (endInlineFunctionType != null) {

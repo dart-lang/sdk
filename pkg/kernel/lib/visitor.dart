@@ -308,6 +308,262 @@ mixin PatternVisitorDefaultMixin<R> implements PatternVisitor<R> {
   R visitWildcardPattern(WildcardPattern node) => defaultPattern(node);
 }
 
+/// [PatternVisitorInternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin PatternVisitorInternalNodeMixin<R> implements PatternVisitor<R> {
+  @override
+  R visitAndPattern(AndPattern node) {
+    throw StateError(
+      "${runtimeType}.visitAndPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitAssignedVariablePattern(AssignedVariablePattern node) {
+    throw StateError(
+      "${runtimeType}.visitAssignedVariablePattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitCastPattern(CastPattern node) {
+    throw StateError(
+      "${runtimeType}.visitCastPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitConstantPattern(ConstantPattern node) {
+    throw StateError(
+      "${runtimeType}.visitConstantPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitInvalidPattern(InvalidPattern node) {
+    throw StateError(
+      "${runtimeType}.visitInvalidPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitListPattern(ListPattern node) {
+    throw StateError(
+      "${runtimeType}.visitListPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitMapPattern(MapPattern node) {
+    throw StateError(
+      "${runtimeType}.visitMapPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitNamedPattern(NamedPattern node) {
+    throw StateError(
+      "${runtimeType}.visitNamedPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitNullAssertPattern(NullAssertPattern node) {
+    throw StateError(
+      "${runtimeType}.visitNullAssertPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitNullCheckPattern(NullCheckPattern node) {
+    throw StateError(
+      "${runtimeType}.visitNullCheckPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitObjectPattern(ObjectPattern node) {
+    throw StateError(
+      "${runtimeType}.visitObjectPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitOrPattern(OrPattern node) {
+    throw StateError(
+      "${runtimeType}.visitOrPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitRecordPattern(RecordPattern node) {
+    throw StateError(
+      "${runtimeType}.visitRecordPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitRelationalPattern(RelationalPattern node) {
+    throw StateError(
+      "${runtimeType}.visitRelationalPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitRestPattern(RestPattern node) {
+    throw StateError(
+      "${runtimeType}.visitRestPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitVariablePattern(VariablePattern node) {
+    throw StateError(
+      "${runtimeType}.visitVariablePattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitWildcardPattern(WildcardPattern node) {
+    throw StateError(
+      "${runtimeType}.visitWildcardPattern isn't supported.",
+    );
+  }
+}
+
+/// [PatternVisitor1InternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin PatternVisitor1InternalNodeMixin<R, A> implements PatternVisitor1<R, A> {
+  @override
+  R visitAndPattern(AndPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitAndPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitAssignedVariablePattern(AssignedVariablePattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitAssignedVariablePattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitCastPattern(CastPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitCastPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitConstantPattern(ConstantPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitConstantPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitInvalidPattern(InvalidPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitInvalidPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitListPattern(ListPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitListPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitMapPattern(MapPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitMapPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitNamedPattern(NamedPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitNamedPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitNullAssertPattern(NullAssertPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitNullAssertPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitNullCheckPattern(NullCheckPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitNullCheckPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitObjectPattern(ObjectPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitObjectPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitOrPattern(OrPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitOrPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitRecordPattern(RecordPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitRecordPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitRelationalPattern(RelationalPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitRelationalPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitRestPattern(RestPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitRestPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitVariablePattern(VariablePattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitVariablePattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitWildcardPattern(WildcardPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitWildcardPattern isn't supported.",
+    );
+  }
+}
+
 abstract class StatementVisitor<R> {
   const StatementVisitor();
 
@@ -2741,6 +2997,123 @@ mixin DartTypeVisitor1ExperimentExclusionMixin<R, A>
   }
 }
 
+/// [ExpressionVisitorInternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin ExpressionVisitorInternalNodeMixin<R> implements ExpressionVisitor<R> {
+  @override
+  R visitListConcatenation(ListConcatenation node) {
+    throw StateError(
+      "${runtimeType}.visitListConcatenation isn't supported.",
+    );
+  }
+
+  @override
+  R visitSetConcatenation(SetConcatenation node) {
+    throw StateError(
+      "${runtimeType}.visitSetConcatenation isn't supported.",
+    );
+  }
+
+  @override
+  R visitMapConcatenation(MapConcatenation node) {
+    throw StateError(
+      "${runtimeType}.visitMapConcatenation isn't supported.",
+    );
+  }
+
+  @override
+  R visitInstanceCreation(InstanceCreation node) {
+    throw StateError(
+      "${runtimeType}.visitInstanceCreation isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternAssignment(PatternAssignment node) {
+    throw StateError(
+      "${runtimeType}.visitPatternAssignment isn't supported.",
+    );
+  }
+
+  @override
+  R visitSwitchExpression(SwitchExpression node) {
+    throw StateError(
+      "${runtimeType}.visitSwitchExpression isn't supported.",
+    );
+  }
+
+  @override
+  R visitFileUriExpression(FileUriExpression node) {
+    throw StateError(
+      "${runtimeType}.visitFileUriExpression isn't supported.",
+    );
+  }
+}
+
+/// [ExpressionVisitor1InternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin ExpressionVisitor1InternalNodeMixin<R, A>
+    implements ExpressionVisitor1<R, A> {
+  @override
+  R visitListConcatenation(ListConcatenation node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitListConcatenation isn't supported.",
+    );
+  }
+
+  @override
+  R visitSetConcatenation(SetConcatenation node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitSetConcatenation isn't supported.",
+    );
+  }
+
+  @override
+  R visitMapConcatenation(MapConcatenation node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitMapConcatenation isn't supported.",
+    );
+  }
+
+  @override
+  R visitInstanceCreation(InstanceCreation node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitInstanceCreation isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternAssignment(PatternAssignment node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitPatternAssignment isn't supported.",
+    );
+  }
+
+  @override
+  R visitSwitchExpression(SwitchExpression node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitSwitchExpression isn't supported.",
+    );
+  }
+
+  @override
+  R visitFileUriExpression(FileUriExpression node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitFileUriExpression isn't supported.",
+    );
+  }
+}
+
 /// [ExpressionVisitorExperimentExclusionMixin] is intended to reduce the
 /// effects of CFE experiments on the backends.
 ///
@@ -2783,6 +3156,67 @@ mixin ExpressionVisitor1ExperimentExclusionMixin<R, A>
   R visitVariableWrite(VariableWrite node, A arg) {
     throw StateError(
       "${runtimeType}.visitVariableWrite isn't supported.",
+    );
+  }
+}
+
+/// [StatementVisitorInternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin StatementVisitorInternalNodeMixin<R> implements StatementVisitor<R> {
+  @override
+  R visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    throw StateError(
+      "${runtimeType}.visitPatternVariableDeclaration isn't supported.",
+    );
+  }
+
+  @override
+  R visitIfCaseStatement(IfCaseStatement node) {
+    throw StateError(
+      "${runtimeType}.visitIfCaseStatement isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternSwitchStatement(PatternSwitchStatement node) {
+    throw StateError(
+      "${runtimeType}.visitPatternSwitchStatement isn't supported.",
+    );
+  }
+}
+
+/// [StatementVisitor1InternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin StatementVisitor1InternalNodeMixin<R, A>
+    implements StatementVisitor1<R, A> {
+  @override
+  R visitPatternVariableDeclaration(PatternVariableDeclaration node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitPatternVariableDeclaration isn't supported.",
+    );
+  }
+
+  @override
+  R visitIfCaseStatement(IfCaseStatement node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitIfCaseStatement isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternSwitchStatement(PatternSwitchStatement node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitPatternSwitchStatement isn't supported.",
     );
   }
 }
@@ -2846,6 +3280,66 @@ mixin StatementVisitor1ExperimentExclusionMixin<R, A>
   @override
   R visitVariableStatement(VariableStatement node, A arg) {
     return visitVariableDeclaration(node, arg);
+  }
+}
+
+/// [TreeVisitorInternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin TreeVisitorInternalNodeMixin<R> implements TreeVisitor<R> {
+  @override
+  R visitSwitchExpressionCase(SwitchExpressionCase node) {
+    throw StateError(
+      "${runtimeType}.visitSwitchExpressionCase isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternGuard(PatternGuard node) {
+    throw StateError(
+      "${runtimeType}.visitPatternGuard isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternSwitchCase(PatternSwitchCase node) {
+    throw StateError(
+      "${runtimeType}.visitPatternSwitchCase isn't supported.",
+    );
+  }
+}
+
+/// [TreeVisitor1InternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin TreeVisitor1InternalNodeMixin<R, A> implements TreeVisitor1<R, A> {
+  @override
+  R visitSwitchExpressionCase(SwitchExpressionCase node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitSwitchExpressionCase isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternGuard(PatternGuard node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitPatternGuard isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternSwitchCase(PatternSwitchCase node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitPatternSwitchCase isn't supported.",
+    );
   }
 }
 
