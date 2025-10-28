@@ -7,6 +7,7 @@ import 'package:kernel/core_types.dart';
 import 'package:path/path.dart' as path;
 
 import 'compiler_options.dart';
+import 'deferred_loading.dart' show DeferredLoadingLoweringUris;
 import 'target.dart';
 import 'util.dart';
 
@@ -101,10 +102,14 @@ class ModuleOutputData {
 
 /// Module strategy that puts all libraries into a single module.
 class DefaultModuleStrategy extends ModuleStrategy {
+  final CoreTypes coreTypes;
   final Component component;
   final WasmCompilerOptions options;
 
-  DefaultModuleStrategy(this.component, this.options);
+  DefaultModuleStrategy(this.coreTypes, this.component, this.options);
+
+  late final deferredLoweringTransformer =
+      DeferredLoadingLoweringUris(coreTypes);
 
   @override
   ModuleOutputData buildModuleOutputData() {
@@ -117,10 +122,14 @@ class DefaultModuleStrategy extends ModuleStrategy {
   }
 
   @override
-  void prepareComponent() {}
+  void prepareComponent() {
+    deferredLoweringTransformer.markRuntimeFunctionsAsEntrypoints();
+  }
 
   @override
-  Future<void> processComponentAfterTfa() async {}
+  Future<void> processComponentAfterTfa() async {
+    component.accept(deferredLoweringTransformer);
+  }
 }
 
 bool _hasWasmExportPragma(CoreTypes coreTypes, Member m) =>

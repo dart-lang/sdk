@@ -20,6 +20,7 @@ import 'class_info.dart';
 import 'code_generator.dart';
 import 'compiler_options.dart';
 import 'constants.dart' show maxArrayNewFixedLength;
+import 'deferred_loading.dart' show DeferredLoadingLoweringUris;
 import 'dispatch_table.dart';
 import 'dynamic_module_kernel_metadata.dart';
 import 'intrinsics.dart' show MemberIntrinsic;
@@ -117,6 +118,9 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
       this.dynamicInterfaceSpecificationBaseUri)
       : index = coreTypes.index;
 
+  late final deferredLoweringTransformer =
+      DeferredLoadingLoweringUris(coreTypes);
+
   @override
   void prepareComponent() {
     // Annotate the kernel with info from dynamic interface.
@@ -131,6 +135,8 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
 
     component.addMetadataRepository(DynamicModuleConstantRepository());
     component.addMetadataRepository(DynamicModuleGlobalIdRepository());
+
+    deferredLoweringTransformer.markRuntimeFunctionsAsEntrypoints();
   }
 
   @override
@@ -202,7 +208,9 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
   }
 
   @override
-  Future<void> processComponentAfterTfa() async {}
+  Future<void> processComponentAfterTfa() async {
+    component.accept(deferredLoweringTransformer);
+  }
 }
 
 class DynamicSubmoduleStrategy extends ModuleStrategy {

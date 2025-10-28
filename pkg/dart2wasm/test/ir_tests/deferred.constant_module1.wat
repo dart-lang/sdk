@@ -12,7 +12,7 @@
     (field $field1 (mut i32))
     (field $fun (ref $#Closure-0-1)))))
   (type $BoxedInt <...>)
-  (func $"C379 H1 (lazy initializer)}" (import "module0" "func0") (result (ref $H1)))
+  (func $"C380 H1 (lazy initializer)}" (import "module0" "func0") (result (ref $H1)))
   (func $print (import "module0" "func1") (param (ref null $#Top)) (result (ref null $#Top)))
   (func $JSStringImpl._interpolate (import "module0" "func2") (param (ref $Array<Object?>)) (result (ref $JSStringImpl)))
   (global $module0.global0 (import "module0" "global0") (ref null $H1))
@@ -24,14 +24,14 @@
     block $label0 (result (ref $H1))
       global.get $module0.global0
       br_on_non_null $label0
-      call $"C379 H1 (lazy initializer)}"
+      call $"C380 H1 (lazy initializer)}"
     end $label0
     call $print
     drop
     block $label1 (result (ref $H1))
       global.get $module0.global0
       br_on_non_null $label1
-      call $"C379 H1 (lazy initializer)}"
+      call $"C380 H1 (lazy initializer)}"
     end $label1
     struct.get $H1 $fun
     local.tee $var0

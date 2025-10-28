@@ -584,7 +584,7 @@ ModuleStrategy _createModuleStrategy(
     return DynamicSubmoduleStrategy(
         component, options, target, coreTypes, dynamicMainModuleUri!);
   }
-  return DefaultModuleStrategy(component, options);
+  return DefaultModuleStrategy(coreTypes, component, options);
 }
 
 // Patches `dart:_internal`s `mainTearOff{0,1,2}` getters.

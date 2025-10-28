@@ -5,12 +5,12 @@
     (field $field0 i32)
     (field $_ref externref))))
   (global $"S.hello world" (import "S" "hello world") externref)
-  (global $"C327 \"hello world\"" (ref $JSStringImpl)
+  (global $"C329 \"hello world\"" (ref $JSStringImpl)
     (i32.const 4)
     (global.get $"S.hello world")
     (struct.new $JSStringImpl))
   (func $"main <noInline>"
-    global.get $"C327 \"hello world\""
+    global.get $"C329 \"hello world\""
     call $print
   )
   (func $print (param $var0 (ref $#Top)) <...>)

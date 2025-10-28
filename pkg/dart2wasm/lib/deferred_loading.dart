@@ -18,6 +18,7 @@ import 'compiler_options.dart';
 import 'generate_wasm.dart';
 import 'modules.dart';
 import 'target.dart';
+import 'util.dart' show addPragma;
 
 /// The root of a deferred import subgraph.
 ///
@@ -91,15 +92,21 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
   DeferredLoadingModuleStrategy(
       this.component, this.options, this.kernelTarget, this.coreTypes);
 
+  late final deferredLoweringTransformer = options.loadsIdsUri != null
+      ? _DeferredLoadingLoweringLoadIds(component, coreTypes)
+      : DeferredLoadingLoweringUris(coreTypes);
+
   @override
   void prepareComponent() {
-    if (options.loadsIdsUri != null) {
-      component.accept(_DeferredLoadingLoadIdTransformer(component, coreTypes));
-    }
+    // Since we've deferred module loading enabled, we mark the necessary
+    // runtime methods as entrypoints for TFA.
+    deferredLoweringTransformer.markRuntimeFunctionsAsEntrypoints();
   }
 
   @override
   Future<void> processComponentAfterTfa() async {
+    component.accept(deferredLoweringTransformer);
+
     final (libraryToRootSet, importTargetMap) = _buildLibraryToImports();
 
     final builder = ModuleMetadataBuilder(options);
@@ -229,6 +236,10 @@ class StressTestModuleStrategy extends ModuleStrategy {
   final WasmCompilerOptions options;
   late final ModuleOutputData moduleOutputData;
 
+  late final deferredLoweringTransformer = options.loadsIdsUri != null
+      ? _DeferredLoadingLoweringLoadIds(component, coreTypes)
+      : DeferredLoadingLoweringUris(coreTypes);
+
   /// We load all 'dart:*' libraries since just doing the deferred load of modules
   /// requires a significant portion of the SDK libraries.
   late final Set<Library> _testModeMainLibraries = {
@@ -283,13 +294,15 @@ class StressTestModuleStrategy extends ModuleStrategy {
     await_transformer.transformLibraries(
         [invokeMain.enclosingLibrary], classHierarchy, coreTypes);
 
-    if (options.loadsIdsUri != null) {
-      component.accept(_DeferredLoadingLoadIdTransformer(component, coreTypes));
-    }
+    // Since we've deferred module loading enabled, we mark the necessary
+    // runtime methods as entrypoints for TFA.
+    deferredLoweringTransformer.markRuntimeFunctionsAsEntrypoints();
   }
 
   @override
   Future<void> processComponentAfterTfa() async {
+    component.accept(deferredLoweringTransformer);
+
     final moduleBuilder = ModuleMetadataBuilder(options);
     final mainModule = moduleBuilder.buildModuleMetadata();
     final initLibraries = _testModeMainLibraries;
@@ -409,25 +422,88 @@ String _generateDeferredMapJson(Component component, Uri rootLibraryUri,
   return const JsonEncoder.withIndent('  ').convert(output);
 }
 
-class _DeferredLoadingLoadIdTransformer extends Transformer {
-  final Procedure? _loadLibrary;
-  final Procedure? _checkLibraryIsLoaded;
+abstract class DeferredLoadingLoweringBase extends Transformer {
+  final CoreTypes coreTypes;
+
+  DeferredLoadingLoweringBase(this.coreTypes);
+
+  void markRuntimeFunctionsAsEntrypoints();
+
+  void addEntryPointPragma(Procedure node) {
+    addPragma(node, 'wasm:entry-point', coreTypes, value: BoolConstant(true));
+  }
+}
+
+class DeferredLoadingLoweringUris extends DeferredLoadingLoweringBase {
+  final Procedure _loadLibrary;
+  final Procedure _checkLibraryIsLoaded;
+
+  DeferredLoadingLoweringUris(super.coreTypes)
+      : _loadLibrary = coreTypes.index
+            .getTopLevelProcedure('dart:_internal', 'loadLibrary'),
+        _checkLibraryIsLoaded = coreTypes.index
+            .getTopLevelProcedure('dart:_internal', 'checkLibraryIsLoaded');
+
+  @override
+  void markRuntimeFunctionsAsEntrypoints() {
+    addEntryPointPragma(_loadLibrary);
+    addEntryPointPragma(_checkLibraryIsLoaded);
+  }
+
+  @override
+  TreeNode visitLibrary(Library node) {
+    for (final dep in node.dependencies) {
+      if (dep.isDeferred) {
+        return super.visitLibrary(node);
+      }
+    }
+    // No need to transform libraries without deferred imports.
+    return node;
+  }
+
+  @override
+  TreeNode visitLoadLibrary(LoadLibrary node) {
+    final import = node.import;
+    return StaticInvocation(
+        _loadLibrary,
+        Arguments([
+          StringLiteral('${import.enclosingLibrary.importUri}'),
+          StringLiteral(import.name!)
+        ]));
+  }
+
+  @override
+  TreeNode visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    final import = node.import;
+    return StaticInvocation(
+        _checkLibraryIsLoaded,
+        Arguments([
+          StringLiteral('${import.enclosingLibrary.importUri}'),
+          StringLiteral(import.name!)
+        ]));
+  }
+}
+
+class _DeferredLoadingLoweringLoadIds extends DeferredLoadingLoweringBase {
   final Procedure _loadLibraryFromLoadId;
   final Procedure _checkLibraryIsLoadedFromLoadId;
+
   final LoadIdRepository _loadIdRepository = LoadIdRepository();
   Map<String, int> _libraryLoadIds = {};
   int _loadIdCounter = 1;
 
-  _DeferredLoadingLoadIdTransformer(Component component, CoreTypes coreTypes)
-      : _loadLibrary = coreTypes.index.tryGetProcedure(
-            'dart:_internal', LibraryIndex.topLevel, 'loadLibrary'),
-        _checkLibraryIsLoaded = coreTypes.index.tryGetProcedure(
-            'dart:_internal', LibraryIndex.topLevel, 'checkLibraryIsLoaded'),
-        _loadLibraryFromLoadId = coreTypes.index
+  _DeferredLoadingLoweringLoadIds(Component component, super.coreTypes)
+      : _loadLibraryFromLoadId = coreTypes.index
             .getTopLevelProcedure('dart:_internal', 'loadLibraryFromLoadId'),
         _checkLibraryIsLoadedFromLoadId = coreTypes.index.getTopLevelProcedure(
             'dart:_internal', 'checkLibraryIsLoadedFromLoadId') {
     component.addMetadataRepository(_loadIdRepository);
+  }
+
+  @override
+  void markRuntimeFunctionsAsEntrypoints() {
+    addEntryPointPragma(_loadLibraryFromLoadId);
+    addEntryPointPragma(_checkLibraryIsLoadedFromLoadId);
   }
 
   @override
@@ -446,17 +522,19 @@ class _DeferredLoadingLoadIdTransformer extends Transformer {
   }
 
   @override
-  TreeNode visitStaticInvocation(StaticInvocation node) {
-    if (node.target != _loadLibrary && node.target != _checkLibraryIsLoaded) {
-      return super.visitStaticInvocation(node);
-    }
-    final [_, importPrefix as StringLiteral] = node.arguments.positional;
-    final loadId = '${_libraryLoadIds[importPrefix.value]!}';
+  TreeNode visitLoadLibrary(LoadLibrary node) {
+    final import = node.import;
+    final loadId = '${_libraryLoadIds[import.name!]!}';
     return StaticInvocation(
-        node.target == _loadLibrary
-            ? _loadLibraryFromLoadId
-            : _checkLibraryIsLoadedFromLoadId,
-        Arguments([StringLiteral(loadId)]));
+        _loadLibraryFromLoadId, Arguments([StringLiteral(loadId)]));
+  }
+
+  @override
+  TreeNode visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    final import = node.import;
+    final loadId = '${_libraryLoadIds[import.name!]!}';
+    return StaticInvocation(
+        _checkLibraryIsLoadedFromLoadId, Arguments([StringLiteral(loadId)]));
   }
 }
 

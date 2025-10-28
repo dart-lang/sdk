@@ -57,9 +57,6 @@ class _WasmTransformer extends Transformer {
   final Procedure _trySetStackTraceForwarder;
   final Procedure _trySetStackTrace;
 
-  final Procedure _loadLibrary;
-  final Procedure _checkLibraryIsLoaded;
-
   final List<_AsyncStarFrame> _asyncStarFrames = [];
   bool _enclosingIsAsyncStar = false;
 
@@ -164,10 +161,6 @@ class _WasmTransformer extends Transformer {
             .getTopLevelProcedure('dart:async', '_trySetStackTrace'),
         _trySetStackTrace = coreTypes.index
             .getProcedure('dart:core', 'Error', '_trySetStackTrace'),
-        _loadLibrary = coreTypes.index
-            .getTopLevelProcedure("dart:_internal", "loadLibrary"),
-        _checkLibraryIsLoaded = coreTypes.index
-            .getTopLevelProcedure("dart:_internal", "checkLibraryIsLoaded"),
         _factorySpecializer = FactorySpecializer(coreTypes),
         _pushPopWasmArrayTransformer = PushPopWasmArrayTransformer(coreTypes);
 
@@ -836,30 +829,6 @@ class _WasmTransformer extends Transformer {
   TreeNode visitFunctionTearOff(FunctionTearOff node) {
     node.transformChildren(this);
     return node.receiver;
-  }
-
-  @override
-  TreeNode visitLoadLibrary(LoadLibrary node) {
-    node.transformChildren(this);
-    final import = node.import;
-    return StaticInvocation(
-        _loadLibrary,
-        Arguments([
-          StringLiteral('${import.enclosingLibrary.importUri}'),
-          StringLiteral(import.name!)
-        ]));
-  }
-
-  @override
-  TreeNode visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
-    node.transformChildren(this);
-    final import = node.import;
-    return StaticInvocation(
-        _checkLibraryIsLoaded,
-        Arguments([
-          StringLiteral('${import.enclosingLibrary.importUri}'),
-          StringLiteral(import.name!)
-        ]));
   }
 
   @override
