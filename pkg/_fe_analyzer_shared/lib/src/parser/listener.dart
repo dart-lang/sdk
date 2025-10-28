@@ -315,8 +315,7 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent('ExtensionTypeDeclaration');
   }
 
-  /// Handle the start of a primary constructor declaration, currently only
-  /// occurring in extension type declarations.
+  /// Handle the start of a primary constructor declaration.
   void beginPrimaryConstructor(Token beginToken) {
     logEvent('PrimaryConstructor');
   }
@@ -340,8 +339,7 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent('PrimaryConstructor');
   }
 
-  /// Handle the omission of a primary constructor declaration. Currently only
-  /// occurring in extension type declarations.
+  /// Handle the omission of a primary constructor declaration.
   void handleNoPrimaryConstructor(
     Token token,
     Token? constKeyword,
