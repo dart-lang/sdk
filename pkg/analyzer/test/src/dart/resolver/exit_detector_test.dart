@@ -1027,6 +1027,28 @@ void f() {
 ''', 0);
   }
 
+  test_dotShorthandPropertyAccess_getterReturnsNever() async {
+    await _assertNthStatementExits(r'''
+class C {
+  static Never get foo => throw 42;
+}
+void f() {
+  C _ = .foo;
+}
+''', 0);
+  }
+
+  test_dotShorthandPropertyAccess_noExit() async {
+    await _assertNthStatementDoesNotExit(r'''
+class C {
+  static C get foo => C();
+}
+void f() {
+  C _ = .foo;
+}
+''', 0);
+  }
+
   test_forStatement_implicitTrue_breakWithLabel() async {
     await _assertNthStatementDoesNotExit(r'''
 void f() {
