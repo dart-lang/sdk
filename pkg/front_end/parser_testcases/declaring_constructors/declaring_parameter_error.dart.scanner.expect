@@ -10,6 +10,10 @@ class C(covariant var a) {}
 class C(covariant final a) {}
 class C(covariant var a b) {}
 class C(covariant final a b) {}
+class C(const f()) {}
+class C(const f<T>()) {}
+class C(const void f()) {}
+class C(const void f<T>()) {}
 
 enum E(covariant a) {}
 enum E(covariant a b) {}
@@ -17,6 +21,10 @@ enum E(covariant var a) {}
 enum E(covariant final a) {}
 enum E(covariant var a b) {}
 enum E(covariant final a b) {}
+enum E(const f()) {}
+enum E(const f<T>()) {}
+enum E(const void f()) {}
+enum E(const void f<T>()) {}
 
 extension type ET(int i) {
 ET(var a b) {}
@@ -28,6 +36,10 @@ extension type ET(covariant var a) {}
 extension type ET(covariant final a) {}
 extension type ET(covariant var a b) {}
 extension type ET(covariant final a b) {}
+extension type ET(const f()) {}
+extension type ET(const f<T>()) {}
+extension type ET(const void f()) {}
+extension type ET(const void f<T>()) {}
 
 
 m[StringToken]([BeginToken]var[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
@@ -42,6 +54,10 @@ class[KeywordToken] C[StringToken]([BeginToken]covariant[KeywordToken] var[Keywo
 class[KeywordToken] C[StringToken]([BeginToken]covariant[KeywordToken] final[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
 class[KeywordToken] C[StringToken]([BeginToken]covariant[KeywordToken] var[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
 class[KeywordToken] C[StringToken]([BeginToken]covariant[KeywordToken] final[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]const[KeywordToken] f[StringToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]const[KeywordToken] f[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]const[KeywordToken] void[KeywordToken] f[StringToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]const[KeywordToken] void[KeywordToken] f[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
 
 enum[KeywordToken] E[StringToken]([BeginToken]covariant[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
 enum[KeywordToken] E[StringToken]([BeginToken]covariant[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
@@ -49,6 +65,10 @@ enum[KeywordToken] E[StringToken]([BeginToken]covariant[KeywordToken] var[Keywor
 enum[KeywordToken] E[StringToken]([BeginToken]covariant[KeywordToken] final[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
 enum[KeywordToken] E[StringToken]([BeginToken]covariant[KeywordToken] var[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
 enum[KeywordToken] E[StringToken]([BeginToken]covariant[KeywordToken] final[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]([BeginToken]const[KeywordToken] f[StringToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]([BeginToken]const[KeywordToken] f[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]([BeginToken]const[KeywordToken] void[KeywordToken] f[StringToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]([BeginToken]const[KeywordToken] void[KeywordToken] f[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
 
 extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]
 ET[StringToken]([BeginToken]var[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
@@ -60,4 +80,8 @@ extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]covariant[
 extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]covariant[KeywordToken] final[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
 extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]covariant[KeywordToken] var[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
 extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]covariant[KeywordToken] final[KeywordToken] a[StringToken] b[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]const[KeywordToken] f[StringToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]const[KeywordToken] f[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]const[KeywordToken] void[KeywordToken] f[StringToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]const[KeywordToken] void[KeywordToken] f[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
 [SimpleToken]

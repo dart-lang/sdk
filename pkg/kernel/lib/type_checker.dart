@@ -1367,4 +1367,10 @@ class TypeCheckingVisitor
     throw UnimplementedError(
         "Unimplemented support for $node (${node.runtimeType}).");
   }
+
+  @override
+  DartType visitRedirectingFactoryInvocation(
+      RedirectingFactoryInvocation node) {
+    return node.expression.accept(this);
+  }
 }

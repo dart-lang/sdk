@@ -269,6 +269,13 @@ class CloneVisitorNotMembers
   }
 
   @override
+  TreeNode visitRedirectingFactoryInvocation(
+      RedirectingFactoryInvocation node) {
+    return new RedirectingFactoryInvocation.byReference(
+        node.redirectingFactoryTargetReference, clone(node.expression));
+  }
+
+  @override
   TreeNode visitNot(Not node) {
     return new Not(clone(node.operand));
   }

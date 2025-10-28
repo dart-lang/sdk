@@ -2361,6 +2361,16 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
+  TreeNode visitRedirectingFactoryInvocation(
+    RedirectingFactoryInvocation node,
+    TreeNode? removalSentinel,
+  ) {
+    return transformOrRemove(node.expression, removalSentinel) ??
+        // Coverage-ignore(suite): Not run.
+        node.expression;
+  }
+
+  @override
   TreeNode visitStaticInvocation(
     StaticInvocation node,
     TreeNode? removalSentinel,
@@ -5929,6 +5939,13 @@ class ConstantEvaluator
     throw new UnsupportedError(
       "Unsupported auxiliary expression ${node} (${node.runtimeType}).",
     );
+  }
+
+  @override
+  Constant visitRedirectingFactoryInvocation(
+    RedirectingFactoryInvocation node,
+  ) {
+    return node.expression.accept(this);
   }
 }
 

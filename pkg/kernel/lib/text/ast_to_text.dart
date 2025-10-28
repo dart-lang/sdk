@@ -1655,6 +1655,14 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) {
+    write('/*original=');
+    writeMemberReferenceFromReference(node.redirectingFactoryTargetReference);
+    write('*/');
+    writeNode(node.expression);
+  }
+
+  @override
   void visitNot(Not node) {
     writeSymbol('!');
     writeExpression(node.operand, Precedence.PREFIX);
@@ -3151,6 +3159,10 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitConstructorInvocation(ConstructorInvocation node) => CALLEE;
+
+  @override
+  int visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) =>
+      CALLEE;
 
   @override
   int visitNot(Not node) => PREFIX;

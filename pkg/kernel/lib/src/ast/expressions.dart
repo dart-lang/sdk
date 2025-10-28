@@ -2742,6 +2742,84 @@ class ConstructorInvocation extends InvocationExpression {
   }
 }
 
+/// Invocation of a redirecting factory constructor.
+///
+/// This wraps the actual invocation [expression] with the original redirecting
+/// factory target. This node is available only in outlines and during
+/// pre-modular transformation, and is replaced with [expression] during
+/// constant evaluation.
+class RedirectingFactoryInvocation extends Expression {
+  /// The original target of the redirecting factory invocation.
+  Reference redirectingFactoryTargetReference;
+
+  /// The invocation of the effective target.
+  InvocationExpression expression;
+
+  factory RedirectingFactoryInvocation(
+      Procedure redirectingFactoryTarget, InvocationExpression expression) {
+    assert(redirectingFactoryTarget.isRedirectingFactory);
+    return new RedirectingFactoryInvocation.byReference(
+        redirectingFactoryTarget.reference, expression);
+  }
+
+  RedirectingFactoryInvocation.byReference(
+      this.redirectingFactoryTargetReference, this.expression) {
+    expression.parent = this;
+  }
+
+  Procedure get redirectingFactoryTarget =>
+      redirectingFactoryTargetReference.asProcedure;
+
+  void set redirectingFactoryTarget(Procedure value) {
+    assert(redirectingFactoryTarget.isRedirectingFactory);
+    redirectingFactoryTargetReference = value.reference;
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    return expression.getStaticTypeInternal(context);
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) =>
+      v.visitRedirectingFactoryInvocation(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitRedirectingFactoryInvocation(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    redirectingFactoryTarget.acceptReference(v);
+    expression.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    expression = v.transform(expression);
+    expression.parent = this;
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    expression = v.transform(expression);
+    expression.parent = this;
+  }
+
+  @override
+  String toString() {
+    return "RedirectingFactoryInvocation(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('/*original=');
+    printer.writeMemberName(redirectingFactoryTargetReference);
+    printer.write('*/');
+    expression.toTextInternal(printer);
+  }
+}
+
 /// An explicit type instantiation of a generic function.
 class Instantiation extends Expression {
   Expression expression;

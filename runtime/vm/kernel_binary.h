@@ -18,7 +18,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kSupportedKernelFormatVersion = 125;
+static const uint32_t kSupportedKernelFormatVersion = 126;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -173,6 +173,7 @@ static const uint32_t kSupportedKernelFormatVersion = 125;
   V(PatternAssignment, 150)                                                    \
   V(PatternVariableDeclaration, 151)                                           \
   V(NullType, 152)                                                             \
+  V(RedirectingFactoryInvocation, 153)                                         \
   V(SpecializedVariableGet, 224)                                               \
   V(SpecializedVariableSet, 232)                                               \
   V(SpecializedIntLiteral, 240)

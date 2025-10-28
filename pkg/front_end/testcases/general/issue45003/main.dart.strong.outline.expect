@@ -6,7 +6,7 @@ import "bar_lib.dart" as bar;
 
 import "org-dartlang-testcase:///foo_lib.dart";
 
-static const field core::Set<foo::Foo> foo = const <foo::Foo>{const bar::Bar::•<dynamic>()};
+static const field core::Set<foo::Foo> foo = const <foo::Foo>{/*original=foo::Foo::bar*/ const bar::Bar::•<dynamic>()};
 static method main() → dynamic
   ;
 

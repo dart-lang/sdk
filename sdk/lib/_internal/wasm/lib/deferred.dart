@@ -46,6 +46,8 @@ class DeferredLoadIdNotLoadedError extends Error implements NoSuchMethodError {
   }
 }
 
+// NOTE: We'll inject a `@pragma('wasm:entry-point')` before TFA if we need this
+// method at runtime.
 Future<void> loadLibraryFromLoadId(String loadId) {
   return _loading.putIfAbsent(loadId, () {
     // Start module load
@@ -64,13 +66,17 @@ Future<void> loadLibraryFromLoadId(String loadId) {
   });
 }
 
-Object checkLibraryIsLoadedFromLoadId(String loadId) {
+// NOTE: We'll inject a `@pragma('wasm:entry-point')` before TFA if we need this
+// method at runtime.
+bool checkLibraryIsLoadedFromLoadId(String loadId) {
   if (!_loaded.contains(loadId)) {
     throw DeferredLoadIdNotLoadedError(loadId);
   }
   return true;
 }
 
+// NOTE: We'll inject a `@pragma('wasm:entry-point')` before TFA if we need this
+// method at runtime.
 Future<void> loadLibrary(String enclosingLibraryOrLoadId, String importPrefix) {
   if (_importMapping.isEmpty) {
     // Only contains one unit.
@@ -135,7 +141,9 @@ Future<void> loadLibrary(String enclosingLibraryOrLoadId, String importPrefix) {
   });
 }
 
-Object checkLibraryIsLoaded(
+// NOTE: We'll inject a `@pragma('wasm:entry-point')` before TFA if we need this
+// method at runtime.
+bool checkLibraryIsLoaded(
   String enclosingLibraryOrLoadId,
   String importPrefix,
 ) {

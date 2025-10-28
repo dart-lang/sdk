@@ -1069,6 +1069,11 @@ class NodeCreator {
       case ExpressionKind.PatternAssignment:
         return new PatternAssignment(_createPattern(), _createExpression())
           ..fileOffset = _needFileOffset();
+      case ExpressionKind.RedirectingFactoryInvocation:
+        return new RedirectingFactoryInvocation(
+            _needRedirectingFactory(),
+            _createExpressionFromKind(ExpressionKind.ConstructorInvocation)
+                as InvocationExpression);
       case ExpressionKind.VariableRead:
       case ExpressionKind.VariableWrite:
         throw new UnimplementedError("Unimplemented support for ${kind}.");

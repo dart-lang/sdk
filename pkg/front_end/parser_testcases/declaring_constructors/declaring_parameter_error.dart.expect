@@ -32,57 +32,105 @@ parser/declaring_constructors/declaring_parameter_error:12:9: Can't have modifie
 class C(covariant final a b) {}
         ^^^^^^^^^
 
-parser/declaring_constructors/declaring_parameter_error:14:8: Can't have modifier 'covariant' in a primary constructor.
+parser/declaring_constructors/declaring_parameter_error:13:9: Can't have modifier 'const' here.
+class C(const f()) {}
+        ^^^^^
+
+parser/declaring_constructors/declaring_parameter_error:14:9: Can't have modifier 'const' here.
+class C(const f<T>()) {}
+        ^^^^^
+
+parser/declaring_constructors/declaring_parameter_error:15:9: Can't have modifier 'const' here.
+class C(const void f()) {}
+        ^^^^^
+
+parser/declaring_constructors/declaring_parameter_error:16:9: Can't have modifier 'const' here.
+class C(const void f<T>()) {}
+        ^^^^^
+
+parser/declaring_constructors/declaring_parameter_error:18:8: Can't have modifier 'covariant' in a primary constructor.
 enum E(covariant a) {}
        ^^^^^^^^^
 
-parser/declaring_constructors/declaring_parameter_error:15:8: Can't have modifier 'covariant' in a primary constructor.
+parser/declaring_constructors/declaring_parameter_error:19:8: Can't have modifier 'covariant' in a primary constructor.
 enum E(covariant a b) {}
        ^^^^^^^^^
 
-parser/declaring_constructors/declaring_parameter_error:16:8: Can't have modifier 'covariant' in a primary constructor.
+parser/declaring_constructors/declaring_parameter_error:20:8: Can't have modifier 'covariant' in a primary constructor.
 enum E(covariant var a) {}
        ^^^^^^^^^
 
-parser/declaring_constructors/declaring_parameter_error:17:8: Can't have modifier 'covariant' in a primary constructor.
+parser/declaring_constructors/declaring_parameter_error:21:8: Can't have modifier 'covariant' in a primary constructor.
 enum E(covariant final a) {}
        ^^^^^^^^^
 
-parser/declaring_constructors/declaring_parameter_error:18:8: Can't have modifier 'covariant' in a primary constructor.
+parser/declaring_constructors/declaring_parameter_error:22:8: Can't have modifier 'covariant' in a primary constructor.
 enum E(covariant var a b) {}
        ^^^^^^^^^
 
-parser/declaring_constructors/declaring_parameter_error:19:8: Can't have modifier 'covariant' in a primary constructor.
+parser/declaring_constructors/declaring_parameter_error:23:8: Can't have modifier 'covariant' in a primary constructor.
 enum E(covariant final a b) {}
        ^^^^^^^^^
 
-parser/declaring_constructors/declaring_parameter_error:22:6: Variables can't be declared using both 'var' and a type name.
+parser/declaring_constructors/declaring_parameter_error:24:8: Can't have modifier 'const' here.
+enum E(const f()) {}
+       ^^^^^
+
+parser/declaring_constructors/declaring_parameter_error:25:8: Can't have modifier 'const' here.
+enum E(const f<T>()) {}
+       ^^^^^
+
+parser/declaring_constructors/declaring_parameter_error:26:8: Can't have modifier 'const' here.
+enum E(const void f()) {}
+       ^^^^^
+
+parser/declaring_constructors/declaring_parameter_error:27:8: Can't have modifier 'const' here.
+enum E(const void f<T>()) {}
+       ^^^^^
+
+parser/declaring_constructors/declaring_parameter_error:30:6: Variables can't be declared using both 'var' and a type name.
   ET(var a b) {}
      ^^^
 
-parser/declaring_constructors/declaring_parameter_error:25:19: Can't have modifier 'covariant' in a primary constructor.
+parser/declaring_constructors/declaring_parameter_error:33:19: Can't have modifier 'covariant' in a primary constructor.
 extension type ET(covariant a) {}
                   ^^^^^^^^^
 
-parser/declaring_constructors/declaring_parameter_error:26:19: Can't have modifier 'covariant' in a primary constructor.
+parser/declaring_constructors/declaring_parameter_error:34:19: Can't have modifier 'covariant' in a primary constructor.
 extension type ET(covariant a b) {}
                   ^^^^^^^^^
 
-parser/declaring_constructors/declaring_parameter_error:27:19: Can't have modifier 'covariant' in a primary constructor.
+parser/declaring_constructors/declaring_parameter_error:35:19: Can't have modifier 'covariant' in a primary constructor.
 extension type ET(covariant var a) {}
                   ^^^^^^^^^
 
-parser/declaring_constructors/declaring_parameter_error:28:19: Can't have modifier 'covariant' in a primary constructor.
+parser/declaring_constructors/declaring_parameter_error:36:19: Can't have modifier 'covariant' in a primary constructor.
 extension type ET(covariant final a) {}
                   ^^^^^^^^^
 
-parser/declaring_constructors/declaring_parameter_error:29:19: Can't have modifier 'covariant' in a primary constructor.
+parser/declaring_constructors/declaring_parameter_error:37:19: Can't have modifier 'covariant' in a primary constructor.
 extension type ET(covariant var a b) {}
                   ^^^^^^^^^
 
-parser/declaring_constructors/declaring_parameter_error:30:19: Can't have modifier 'covariant' in a primary constructor.
+parser/declaring_constructors/declaring_parameter_error:38:19: Can't have modifier 'covariant' in a primary constructor.
 extension type ET(covariant final a b) {}
                   ^^^^^^^^^
+
+parser/declaring_constructors/declaring_parameter_error:39:19: Can't have modifier 'const' here.
+extension type ET(const f()) {}
+                  ^^^^^
+
+parser/declaring_constructors/declaring_parameter_error:40:19: Can't have modifier 'const' here.
+extension type ET(const f<T>()) {}
+                  ^^^^^
+
+parser/declaring_constructors/declaring_parameter_error:41:19: Can't have modifier 'const' here.
+extension type ET(const void f()) {}
+                  ^^^^^
+
+parser/declaring_constructors/declaring_parameter_error:42:19: Can't have modifier 'const' here.
+extension type ET(const void f<T>()) {}
+                  ^^^^^
 
 beginCompilationUnit(m)
   beginMetadataStar(m)
@@ -318,6 +366,150 @@ beginCompilationUnit(m)
       endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
     endClassDeclaration(class, })
   endTopLevelDeclaration(})
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables(()
+    beginClassDeclaration(class, null, null, null, null, null, null, null, null, C)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(const)
+          endMetadataStar(0)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'const' here., Try removing 'const'., {lexeme: const}], const, const)
+          beginFormalParameter(const, MemberKind.PrimaryConstructor, null, null, const)
+            handleNoTypeVariables(()
+            beginFunctionTypedFormalParameter(()
+              handleNoType(const)
+              beginFormalParameters((, MemberKind.FunctionTypedParameter)
+              endFormalParameters(0, (, ), MemberKind.FunctionTypedParameter)
+            endFunctionTypedFormalParameter(f, null)
+            handleIdentifier(f, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false, false)
+      handleNoType())
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables(()
+    beginClassDeclaration(class, null, null, null, null, null, null, null, null, C)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(const)
+          endMetadataStar(0)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'const' here., Try removing 'const'., {lexeme: const}], const, const)
+          beginFormalParameter(const, MemberKind.PrimaryConstructor, null, null, const)
+            beginTypeVariables(<)
+              beginMetadataStar(T)
+              endMetadataStar(0)
+              handleIdentifier(T, typeVariableDeclaration)
+              beginTypeVariable(T)
+                handleTypeVariablesDefined(T, 1)
+                handleNoType(T)
+              endTypeVariable(>, 0, null, null)
+            endTypeVariables(<, >)
+            beginFunctionTypedFormalParameter(<)
+              handleNoType(const)
+              beginFormalParameters((, MemberKind.FunctionTypedParameter)
+              endFormalParameters(0, (, ), MemberKind.FunctionTypedParameter)
+            endFunctionTypedFormalParameter(f, null)
+            handleIdentifier(f, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false, false)
+      handleNoType())
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables(()
+    beginClassDeclaration(class, null, null, null, null, null, null, null, null, C)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(const)
+          endMetadataStar(0)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'const' here., Try removing 'const'., {lexeme: const}], const, const)
+          beginFormalParameter(const, MemberKind.PrimaryConstructor, null, null, const)
+            handleNoTypeVariables(()
+            beginFunctionTypedFormalParameter(()
+              handleVoidKeyword(void)
+              beginFormalParameters((, MemberKind.FunctionTypedParameter)
+              endFormalParameters(0, (, ), MemberKind.FunctionTypedParameter)
+            endFunctionTypedFormalParameter(f, null)
+            handleIdentifier(f, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false, false)
+      handleNoType())
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables(()
+    beginClassDeclaration(class, null, null, null, null, null, null, null, null, C)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(const)
+          endMetadataStar(0)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'const' here., Try removing 'const'., {lexeme: const}], const, const)
+          beginFormalParameter(const, MemberKind.PrimaryConstructor, null, null, const)
+            beginTypeVariables(<)
+              beginMetadataStar(T)
+              endMetadataStar(0)
+              handleIdentifier(T, typeVariableDeclaration)
+              beginTypeVariable(T)
+                handleTypeVariablesDefined(T, 1)
+                handleNoType(T)
+              endTypeVariable(>, 0, null, null)
+            endTypeVariables(<, >)
+            beginFunctionTypedFormalParameter(<)
+              handleVoidKeyword(void)
+              beginFormalParameters((, MemberKind.FunctionTypedParameter)
+              endFormalParameters(0, (, ), MemberKind.FunctionTypedParameter)
+            endFunctionTypedFormalParameter(f, null)
+            handleIdentifier(f, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false, false)
+      handleNoType())
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(})
   beginMetadataStar(enum)
   endMetadataStar(0)
   beginUncategorizedTopLevelDeclaration(enum)
@@ -470,6 +662,146 @@ beginCompilationUnit(m)
             handleIdentifier(b, formalParameterDeclaration)
             handleFormalParameterWithoutValue())
           endFormalParameter(final, null, null, null, b, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false, false)
+      handleEnumNoWithClause()
+      handleImplements(null, 0)
+      handleEnumHeader(null, enum, {)
+      beginEnumBody({)
+        handleEnumElements(}, 0)
+      endEnumBody({, })
+    endEnum(enum, enum, {, 0, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(()
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(const)
+          endMetadataStar(0)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'const' here., Try removing 'const'., {lexeme: const}], const, const)
+          beginFormalParameter(const, MemberKind.PrimaryConstructor, null, null, const)
+            handleNoTypeVariables(()
+            beginFunctionTypedFormalParameter(()
+              handleNoType(const)
+              beginFormalParameters((, MemberKind.FunctionTypedParameter)
+              endFormalParameters(0, (, ), MemberKind.FunctionTypedParameter)
+            endFunctionTypedFormalParameter(f, null)
+            handleIdentifier(f, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false, false)
+      handleEnumNoWithClause()
+      handleImplements(null, 0)
+      handleEnumHeader(null, enum, {)
+      beginEnumBody({)
+        handleEnumElements(}, 0)
+      endEnumBody({, })
+    endEnum(enum, enum, {, 0, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(()
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(const)
+          endMetadataStar(0)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'const' here., Try removing 'const'., {lexeme: const}], const, const)
+          beginFormalParameter(const, MemberKind.PrimaryConstructor, null, null, const)
+            beginTypeVariables(<)
+              beginMetadataStar(T)
+              endMetadataStar(0)
+              handleIdentifier(T, typeVariableDeclaration)
+              beginTypeVariable(T)
+                handleTypeVariablesDefined(T, 1)
+                handleNoType(T)
+              endTypeVariable(>, 0, null, null)
+            endTypeVariables(<, >)
+            beginFunctionTypedFormalParameter(<)
+              handleNoType(const)
+              beginFormalParameters((, MemberKind.FunctionTypedParameter)
+              endFormalParameters(0, (, ), MemberKind.FunctionTypedParameter)
+            endFunctionTypedFormalParameter(f, null)
+            handleIdentifier(f, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false, false)
+      handleEnumNoWithClause()
+      handleImplements(null, 0)
+      handleEnumHeader(null, enum, {)
+      beginEnumBody({)
+        handleEnumElements(}, 0)
+      endEnumBody({, })
+    endEnum(enum, enum, {, 0, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(()
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(const)
+          endMetadataStar(0)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'const' here., Try removing 'const'., {lexeme: const}], const, const)
+          beginFormalParameter(const, MemberKind.PrimaryConstructor, null, null, const)
+            handleNoTypeVariables(()
+            beginFunctionTypedFormalParameter(()
+              handleVoidKeyword(void)
+              beginFormalParameters((, MemberKind.FunctionTypedParameter)
+              endFormalParameters(0, (, ), MemberKind.FunctionTypedParameter)
+            endFunctionTypedFormalParameter(f, null)
+            handleIdentifier(f, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false, false)
+      handleEnumNoWithClause()
+      handleImplements(null, 0)
+      handleEnumHeader(null, enum, {)
+      beginEnumBody({)
+        handleEnumElements(}, 0)
+      endEnumBody({, })
+    endEnum(enum, enum, {, 0, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(()
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(const)
+          endMetadataStar(0)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'const' here., Try removing 'const'., {lexeme: const}], const, const)
+          beginFormalParameter(const, MemberKind.PrimaryConstructor, null, null, const)
+            beginTypeVariables(<)
+              beginMetadataStar(T)
+              endMetadataStar(0)
+              handleIdentifier(T, typeVariableDeclaration)
+              beginTypeVariable(T)
+                handleTypeVariablesDefined(T, 1)
+                handleNoType(T)
+              endTypeVariable(>, 0, null, null)
+            endTypeVariables(<, >)
+            beginFunctionTypedFormalParameter(<)
+              handleVoidKeyword(void)
+              beginFormalParameters((, MemberKind.FunctionTypedParameter)
+              endFormalParameters(0, (, ), MemberKind.FunctionTypedParameter)
+            endFunctionTypedFormalParameter(f, null)
+            handleIdentifier(f, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
       endPrimaryConstructor((, null, false, false)
       handleEnumNoWithClause()
@@ -666,4 +998,128 @@ beginCompilationUnit(m)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, null, extension, type, })
   endTopLevelDeclaration(})
-endCompilationUnit(21, )
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(null, extension, ET)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(const)
+          endMetadataStar(0)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'const' here., Try removing 'const'., {lexeme: const}], const, const)
+          beginFormalParameter(const, MemberKind.PrimaryConstructor, null, null, const)
+            handleNoTypeVariables(()
+            beginFunctionTypedFormalParameter(()
+              handleNoType(const)
+              beginFormalParameters((, MemberKind.FunctionTypedParameter)
+              endFormalParameters(0, (, ), MemberKind.FunctionTypedParameter)
+            endFunctionTypedFormalParameter(f, null)
+            handleIdentifier(f, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false, true)
+      handleImplements(null, 0)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, null, extension, type, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(null, extension, ET)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(const)
+          endMetadataStar(0)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'const' here., Try removing 'const'., {lexeme: const}], const, const)
+          beginFormalParameter(const, MemberKind.PrimaryConstructor, null, null, const)
+            beginTypeVariables(<)
+              beginMetadataStar(T)
+              endMetadataStar(0)
+              handleIdentifier(T, typeVariableDeclaration)
+              beginTypeVariable(T)
+                handleTypeVariablesDefined(T, 1)
+                handleNoType(T)
+              endTypeVariable(>, 0, null, null)
+            endTypeVariables(<, >)
+            beginFunctionTypedFormalParameter(<)
+              handleNoType(const)
+              beginFormalParameters((, MemberKind.FunctionTypedParameter)
+              endFormalParameters(0, (, ), MemberKind.FunctionTypedParameter)
+            endFunctionTypedFormalParameter(f, null)
+            handleIdentifier(f, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false, true)
+      handleImplements(null, 0)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, null, extension, type, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(null, extension, ET)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(const)
+          endMetadataStar(0)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'const' here., Try removing 'const'., {lexeme: const}], const, const)
+          beginFormalParameter(const, MemberKind.PrimaryConstructor, null, null, const)
+            handleNoTypeVariables(()
+            beginFunctionTypedFormalParameter(()
+              handleVoidKeyword(void)
+              beginFormalParameters((, MemberKind.FunctionTypedParameter)
+              endFormalParameters(0, (, ), MemberKind.FunctionTypedParameter)
+            endFunctionTypedFormalParameter(f, null)
+            handleIdentifier(f, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false, true)
+      handleImplements(null, 0)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, null, extension, type, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(null, extension, ET)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(const)
+          endMetadataStar(0)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'const' here., Try removing 'const'., {lexeme: const}], const, const)
+          beginFormalParameter(const, MemberKind.PrimaryConstructor, null, null, const)
+            beginTypeVariables(<)
+              beginMetadataStar(T)
+              endMetadataStar(0)
+              handleIdentifier(T, typeVariableDeclaration)
+              beginTypeVariable(T)
+                handleTypeVariablesDefined(T, 1)
+                handleNoType(T)
+              endTypeVariable(>, 0, null, null)
+            endTypeVariables(<, >)
+            beginFunctionTypedFormalParameter(<)
+              handleVoidKeyword(void)
+              beginFormalParameters((, MemberKind.FunctionTypedParameter)
+              endFormalParameters(0, (, ), MemberKind.FunctionTypedParameter)
+            endFunctionTypedFormalParameter(f, null)
+            handleIdentifier(f, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false, true)
+      handleImplements(null, 0)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, null, extension, type, })
+  endTopLevelDeclaration(})
+endCompilationUnit(33, )

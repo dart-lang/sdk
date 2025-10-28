@@ -9,7 +9,7 @@ class A extends core::Object /*hasConstConstructor*/  {
   static factory redir(core::int x) → self::A /* redirection-target: self::A::• */
     return new self::A::•(x);
 }
-@self::A::•(1)
+@/*original=self::A::redir*/ const self::A::•(1)
 static method foo(core::String y) → dynamic
   ;
 static method main() → dynamic
@@ -17,5 +17,5 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55849_2.dart:10:2 -> InstanceConstant(const A{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_2.dart:10:2 -> InstanceConstant(const A{})
 Extra constant evaluation: evaluated: 3, effectively constant: 1

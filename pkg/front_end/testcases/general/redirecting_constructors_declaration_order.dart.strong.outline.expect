@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field core::List<self::A> field;
-  constructor •({core::List<self::A> field = const <self::A>[const self::B::•<dynamic>()]}) → self::C
+  constructor •({core::List<self::A> field = const <self::A>[/*original=self::A::redir*/ const self::B::•<dynamic>()]}) → self::C
     ;
 }
 abstract class A extends core::Object {
