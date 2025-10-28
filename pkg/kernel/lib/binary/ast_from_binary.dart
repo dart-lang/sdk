@@ -2311,6 +2311,8 @@ class BinaryBuilder {
         return _readPatternAssignment();
       case Tag.FileUriConstantExpression:
         return _readFileUriConstantExpression();
+      case Tag.RedirectingFactoryInvocation:
+        return _readRedirectingFactoryInvocation();
       default:
         throw fail('unexpected expression tag: $tag');
     }
@@ -2622,6 +2624,13 @@ class BinaryBuilder {
     return new ConstructorInvocation.byReference(
         readNonNullMemberReference(), readArguments(),
         isConst: true)
+      ..fileOffset = offset;
+  }
+
+  Expression _readRedirectingFactoryInvocation() {
+    int offset = readOffset();
+    return new RedirectingFactoryInvocation.byReference(
+        readNonNullMemberReference(), readExpression() as InvocationExpression)
       ..fileOffset = offset;
   }
 

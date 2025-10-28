@@ -110,6 +110,7 @@ class Tag {
   static const int FunctionInvocation = 125;
   static const int FunctionTearOff = 126;
   static const int LocalFunctionInvocation = 127;
+  static const int RedirectingFactoryInvocation = 153;
 
   // Statements
   static const int ExpressionStatement = 61;
@@ -226,7 +227,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 125;
+  static const int BinaryFormatVersion = 126;
 }
 
 abstract class ConstantTag {

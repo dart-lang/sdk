@@ -771,6 +771,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   // Coverage-ignore(suite): Not run.
+  ExpressionInferenceResult visitRedirectingFactoryInvocation(
+    RedirectingFactoryInvocation node,
+    DartType typeContext,
+  ) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitListConcatenation(
     ListConcatenation node,
     DartType typeContext,
@@ -2558,10 +2567,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required bool isConst,
     required bool hasInferredTypeArguments,
   }) {
-    Procedure initialTarget = target;
     Expression replacementNode;
 
-    _RedirectionTarget redirectionTarget = _getRedirectionTarget(initialTarget);
+    _RedirectionTarget redirectionTarget = _getRedirectionTarget(target);
     Member resolvedTarget = redirectionTarget.target;
     if (redirectionTarget.typeArguments.any((type) => type is UnknownType)) {
       return null;
@@ -2578,7 +2586,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ..fileOffset = fileOffset;
     } else {
       Substitution substitution = Substitution.fromPairs(
-        initialTarget.function.typeParameters,
+        target.function.typeParameters,
         arguments.types,
       );
       for (int i = 0; i < redirectionTarget.typeArguments.length; i++) {
@@ -2594,8 +2602,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       arguments.types.length = redirectionTarget.typeArguments.length;
 
       replacementNode = _buildRedirectingFactoryTargetInvocation(
-        resolvedTarget,
-        new Arguments(
+        redirectingFactoryTarget: target.reference != resolvedTarget.reference
+            ? target
+            : null,
+        effectiveTarget: resolvedTarget,
+        arguments: new Arguments(
           arguments.positional,
           types: arguments.types,
           named: arguments.named,
@@ -2608,16 +2619,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return replacementNode;
   }
 
-  Expression _buildRedirectingFactoryTargetInvocation(
-    Member target,
-    Arguments arguments, {
+  Expression _buildRedirectingFactoryTargetInvocation({
+    required Procedure? redirectingFactoryTarget,
+    required Member effectiveTarget,
+    required Arguments arguments,
     required bool isConst,
     required int fileOffset,
     required bool hasInferredTypeArguments,
   }) {
     Expression? result = problemReporting.checkStaticArguments(
       compilerContext: compilerContext,
-      target: target,
+      target: effectiveTarget,
       arguments: arguments,
       fileOffset: fileOffset,
       fileUri: fileUri,
@@ -2625,8 +2637,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (result != null) {
       return result;
     }
-    if (target is Constructor) {
-      if (isConst && !target.isConst) {
+    if (effectiveTarget is Constructor) {
+      if (isConst && !effectiveTarget.isConst) {
         // Coverage-ignore-block(suite): Not run.
         return problemReporting.buildProblem(
           compilerContext: compilerContext,
@@ -2638,16 +2650,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       problemReporting.checkBoundsInConstructorInvocation(
         libraryFeatures: libraryFeatures,
-        constructor: target,
+        constructor: effectiveTarget,
         typeArguments: arguments.types,
         typeEnvironment: typeSchemaEnvironment,
         fileUri: fileUri,
         fileOffset: fileOffset,
       );
-      return new ConstructorInvocation(target, arguments, isConst: isConst)
-        ..fileOffset = fileOffset;
+      ConstructorInvocation constructorInvocation = new ConstructorInvocation(
+        effectiveTarget,
+        arguments,
+        isConst: isConst,
+      )..fileOffset = fileOffset;
+      if (redirectingFactoryTarget != null) {
+        return new RedirectingFactoryInvocation(
+          redirectingFactoryTarget,
+          constructorInvocation,
+        )..fileOffset = fileOffset;
+      } else {
+        return constructorInvocation;
+      }
     } else {
-      Procedure procedure = target as Procedure;
+      Procedure procedure = effectiveTarget as Procedure;
       if (isConst && !procedure.isConst) {
         // Coverage-ignore-block(suite): Not run.
         if (procedure.isExtensionTypeMember) {
@@ -2673,15 +2696,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       problemReporting.checkBoundsInFactoryInvocation(
         libraryFeatures: libraryFeatures,
-        factory: target,
+        factory: effectiveTarget,
         typeArguments: arguments.types,
         typeEnvironment: typeSchemaEnvironment,
         fileUri: fileUri,
         fileOffset: fileOffset,
         inferred: hasInferredTypeArguments,
       );
-      return new StaticInvocation(target, arguments, isConst: isConst)
-        ..fileOffset = fileOffset;
+      StaticInvocation factoryInvocation = new StaticInvocation(
+        effectiveTarget,
+        arguments,
+        isConst: isConst,
+      )..fileOffset = fileOffset;
+      if (redirectingFactoryTarget != null) {
+        return new RedirectingFactoryInvocation(
+          redirectingFactoryTarget,
+          factoryInvocation,
+        )..fileOffset = fileOffset;
+      } else {
+        return factoryInvocation;
+      }
     }
   }
 

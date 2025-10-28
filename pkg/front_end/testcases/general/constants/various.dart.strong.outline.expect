@@ -263,10 +263,10 @@ static const field self::FooWithHashCodeField fooWithHashCodeField1 = const self
 static const field self::FooWithHashCodeField fooWithHashCodeField2 = const self::FooWithHashCodeField::•(42);
 static const field core::bool fooWithHashCodeFieldIdentical = core::identical(self::fooWithHashCodeField1, self::fooWithHashCodeField2);
 static const field core::bool fooWithHashCodeFieldEqual = self::fooWithHashCodeField1 =={core::Object::==}{(core::Object) → core::bool} self::fooWithHashCodeField2;
-static const field core::Symbol barFoo = const _in::Symbol::•("Foo");
-static const field core::Symbol barFooEqual = const _in::Symbol::•("Foo=");
-static const field core::Symbol tripleShiftSymbol = const _in::Symbol::•(">>>");
-static const field core::Symbol symbolWithDots = const _in::Symbol::•("I.Have.Dots");
+static const field core::Symbol barFoo = /*original=core::Symbol::•*/ const _in::Symbol::•("Foo");
+static const field core::Symbol barFooEqual = /*original=core::Symbol::•*/ const _in::Symbol::•("Foo=");
+static const field core::Symbol tripleShiftSymbol = /*original=core::Symbol::•*/ const _in::Symbol::•(">>>");
+static const field core::Symbol symbolWithDots = /*original=core::Symbol::•*/ const _in::Symbol::•("I.Have.Dots");
 static const field core::int circularity1 = self::circularity2;
 static const field core::int circularity2 = self::circularity3;
 static const field core::int circularity3 = self::circularity4;
@@ -351,10 +351,10 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:142:58 
 Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:143:44 -> BoolConstant(true)
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:144:40 -> InstanceConstant(const FooWithHashCodeField{FooWithHashCodeField.x: 42, FooWithHashCodeField.y: 5, FooWithHashCodeField.hashCode: 1764})
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:144:65 -> InstanceConstant(const FooWithHashCodeField{FooWithHashCodeField.x: 42, FooWithHashCodeField.y: 5, FooWithHashCodeField.hashCode: 1764})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:146:29 -> SymbolConstant(#Foo)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:147:34 -> SymbolConstant(#Foo=)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:148:40 -> SymbolConstant(#>>>)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:149:37 -> SymbolConstant(#I.Have.Dots)
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///various.dart:146:29 -> SymbolConstant(#Foo)
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///various.dart:147:34 -> SymbolConstant(#Foo=)
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///various.dart:148:40 -> SymbolConstant(#>>>)
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///various.dart:149:37 -> SymbolConstant(#I.Have.Dots)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:171:7 -> InstanceConstant(const ClassWithTypeArguments<int, int, int>{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:173:7 -> InstanceConstant(const ClassWithTypeArguments<dynamic, dynamic, dynamic>{})
 Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:175:1 -> BoolConstant(false)

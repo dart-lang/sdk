@@ -323,6 +323,12 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitRedirectingFactoryInvocation(
+      RedirectingFactoryInvocation node, Node other) {
+    return strategy.checkRedirectingFactoryInvocation(this, node, other);
+  }
+
+  @override
   bool visitInstantiation(Instantiation node, Node other) {
     return strategy.checkInstantiation(this, node, other);
   }
@@ -3032,6 +3038,27 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkEqualsCall_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkRedirectingFactoryInvocation(EquivalenceVisitor visitor,
+      RedirectingFactoryInvocation? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! RedirectingFactoryInvocation) return false;
+    if (other is! RedirectingFactoryInvocation) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkRedirectingFactoryInvocation_redirectingFactoryTargetReference(
+        visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRedirectingFactoryInvocation_expression(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRedirectingFactoryInvocation_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -7551,6 +7578,26 @@ class EquivalenceStrategy {
 
   bool checkEqualsCall_fileOffset(
       EquivalenceVisitor visitor, EqualsCall node, EqualsCall other) {
+    return checkExpression_fileOffset(visitor, node, other);
+  }
+
+  bool checkRedirectingFactoryInvocation_redirectingFactoryTargetReference(
+      EquivalenceVisitor visitor,
+      RedirectingFactoryInvocation node,
+      RedirectingFactoryInvocation other) {
+    return visitor.checkReferences(
+        node.redirectingFactoryTargetReference,
+        other.redirectingFactoryTargetReference,
+        'redirectingFactoryTargetReference');
+  }
+
+  bool checkRedirectingFactoryInvocation_expression(EquivalenceVisitor visitor,
+      RedirectingFactoryInvocation node, RedirectingFactoryInvocation other) {
+    return visitor.checkNodes(node.expression, other.expression, 'expression');
+  }
+
+  bool checkRedirectingFactoryInvocation_fileOffset(EquivalenceVisitor visitor,
+      RedirectingFactoryInvocation node, RedirectingFactoryInvocation other) {
     return checkExpression_fileOffset(visitor, node, other);
   }
 

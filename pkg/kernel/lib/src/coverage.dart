@@ -363,6 +363,12 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) {
+    visited.add(ExpressionKind.RedirectingFactoryInvocation);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitInstantiation(Instantiation node) {
     visited.add(ExpressionKind.Instantiation);
     node.visitChildren(this);
@@ -1408,6 +1414,7 @@ enum ExpressionKind {
   RecordIndexGet,
   RecordLiteral,
   RecordNameGet,
+  RedirectingFactoryInvocation,
   RedirectingFactoryTearOff,
   Rethrow,
   SetConcatenation,

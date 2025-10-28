@@ -39,6 +39,7 @@ abstract class ExpressionVisitor<R> {
   R visitSuperMethodInvocation(SuperMethodInvocation node);
   R visitStaticInvocation(StaticInvocation node);
   R visitConstructorInvocation(ConstructorInvocation node);
+  R visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node);
   R visitNot(Not node);
   R visitNullCheck(NullCheck node);
   R visitLogicalExpression(LogicalExpression node);
@@ -153,6 +154,9 @@ mixin ExpressionVisitorDefaultMixin<R> implements ExpressionVisitor<R> {
   R visitStaticInvocation(StaticInvocation node) => defaultExpression(node);
   @override
   R visitConstructorInvocation(ConstructorInvocation node) =>
+      defaultExpression(node);
+  @override
+  R visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) =>
       defaultExpression(node);
   @override
   R visitNot(Not node) => defaultExpression(node);
@@ -2534,6 +2538,7 @@ abstract class ExpressionVisitor1<R, A> {
   R visitSuperMethodInvocation(SuperMethodInvocation node, A arg);
   R visitStaticInvocation(StaticInvocation node, A arg);
   R visitConstructorInvocation(ConstructorInvocation node, A arg);
+  R visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node, A arg);
   R visitNot(Not node, A arg);
   R visitNullCheck(NullCheck node, A arg);
   R visitLogicalExpression(LogicalExpression node, A arg);
@@ -2660,6 +2665,10 @@ mixin ExpressionVisitor1DefaultMixin<R, A> implements ExpressionVisitor1<R, A> {
       defaultExpression(node, arg);
   @override
   R visitConstructorInvocation(ConstructorInvocation node, A arg) =>
+      defaultExpression(node, arg);
+  @override
+  R visitRedirectingFactoryInvocation(
+          RedirectingFactoryInvocation node, A arg) =>
       defaultExpression(node, arg);
   @override
   R visitNot(Not node, A arg) => defaultExpression(node, arg);
@@ -3053,6 +3062,13 @@ mixin ExpressionVisitorInternalNodeMixin<R> implements ExpressionVisitor<R> {
       "${runtimeType}.visitFileUriExpression isn't supported.",
     );
   }
+
+  @override
+  R visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) {
+    throw StateError(
+      "${runtimeType}.visitRedirectingFactoryInvocation isn't supported.",
+    );
+  }
 }
 
 /// [ExpressionVisitor1InternalNodeMixin] is intended to reduce the effects of
@@ -3110,6 +3126,14 @@ mixin ExpressionVisitor1InternalNodeMixin<R, A>
   R visitFileUriExpression(FileUriExpression node, A arg) {
     throw StateError(
       "${runtimeType}.visitFileUriExpression isn't supported.",
+    );
+  }
+
+  @override
+  R visitRedirectingFactoryInvocation(
+      RedirectingFactoryInvocation node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitRedirectingFactoryInvocation isn't supported.",
     );
   }
 }

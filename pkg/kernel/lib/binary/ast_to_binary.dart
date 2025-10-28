@@ -1857,6 +1857,14 @@ class BinaryPrinter
   }
 
   @override
+  void visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) {
+    writeByte(Tag.RedirectingFactoryInvocation);
+    writeOffset(node.fileOffset);
+    writeNonNullReference(node.redirectingFactoryTargetReference);
+    writeNode(node.expression);
+  }
+
+  @override
   void visitArguments(Arguments node) {
     writeUInt30(node.positional.length + node.named.length);
     writeNodeList(node.types);

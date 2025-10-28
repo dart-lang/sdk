@@ -171,6 +171,11 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
     List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
+    } else if (expression is RedirectingFactoryInvocation) {
+      return InvocationInferenceResult._insertHoistedExpressions(
+        expression,
+        hoistedArguments,
+      );
     } else {
       assert(
         expression is InvocationExpression || expression is InvalidExpression,
