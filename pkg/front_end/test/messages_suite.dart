@@ -322,9 +322,6 @@ class MessageTestSuite extends ChainContext {
               }
               break;
 
-            case "frontendInternal":
-              break;
-
             case "analyzerCode":
               if (value is! String) {
                 throw new ArgumentError(
