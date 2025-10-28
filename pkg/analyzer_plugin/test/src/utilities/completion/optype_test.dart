@@ -1131,6 +1131,21 @@ void f() {
     );
   }
 
+  Future<void> test_dotShorthandConstructorInvocation_arguments() async {
+    addTestSource('''
+class C {
+  C({int? i});
+}
+void f() {
+  C _ = .new(^);
+},
+''');
+    await assertOpType(
+      completionLocation: 'ArgumentList_constructor_named',
+      namedArgs: true,
+    );
+  }
+
   Future<void> test_dotShorthandConstructorInvocation_noTarget() async {
     addTestSource('''
 class C {
