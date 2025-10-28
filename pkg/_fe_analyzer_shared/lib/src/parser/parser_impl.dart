@@ -2209,10 +2209,20 @@ class Parser {
         Token closer = typeParam.skip(token);
         if (closer.next!.isA(TokenType.OPEN_PAREN)) {
           if (varFinalOrConst != null) {
-            reportRecoverableError(
-              varFinalOrConst,
-              codes.codeFunctionTypedParameterVar,
-            );
+            if (memberKind != MemberKind.PrimaryConstructor) {
+              reportRecoverableError(
+                varFinalOrConst,
+                codes.codeFunctionTypedParameterVar,
+              );
+            } else {
+              if (!_isDeclaringConstructorsFeatureEnabled) {
+                reportExperimentNotEnabled(
+                  ExperimentalFlag.declaringConstructors,
+                  varFinalOrConst,
+                  varFinalOrConst,
+                );
+              }
+            }
           }
           beforeInlineFunctionType = token;
           token = closer.next!.endGroup!;
@@ -2221,10 +2231,20 @@ class Parser {
       }
     } else if (next.isA(TokenType.OPEN_PAREN)) {
       if (varFinalOrConst != null) {
-        reportRecoverableError(
-          varFinalOrConst,
-          codes.codeFunctionTypedParameterVar,
-        );
+        if (memberKind != MemberKind.PrimaryConstructor) {
+          reportRecoverableError(
+            varFinalOrConst,
+            codes.codeFunctionTypedParameterVar,
+          );
+        } else {
+          if (!_isDeclaringConstructorsFeatureEnabled) {
+            reportExperimentNotEnabled(
+              ExperimentalFlag.declaringConstructors,
+              varFinalOrConst,
+              varFinalOrConst,
+            );
+          }
+        }
       }
       beforeInlineFunctionType = token;
       token = next.endGroup!;
