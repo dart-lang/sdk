@@ -1281,6 +1281,26 @@ class AnalysisDriver {
     var request = _ResolveForCompletionRequest(
       path: path,
       offset: offset,
+      line: null,
+      column: null,
+      performance: performance,
+    );
+    _resolveForCompletionRequests.add(request);
+    _scheduler.notify();
+    return request.completer.future;
+  }
+
+  Future<ResolvedForCompletionResultImpl?> resolveForCompletionWithLineColumn({
+    required String path,
+    required int line,
+    required int column,
+    required OperationPerformanceImpl performance,
+  }) {
+    var request = _ResolveForCompletionRequest(
+      path: path,
+      offset: null,
+      line: line,
+      column: column,
       performance: performance,
     );
     _resolveForCompletionRequests.add(request);
@@ -2272,6 +2292,20 @@ class AnalysisDriver {
 
       var file = _fsState.getFileForPath(path);
 
+      int? getOffsetFromLineColumn() {
+        var line = request.line;
+        var column = request.column;
+        if (line == null || column == null) return null;
+        // line is zero-based so cannot equal lineCount
+        if (line >= file.lineInfo.lineCount) {
+          return null;
+        }
+        return file.lineInfo.getOffsetOfLine(line) + column;
+      }
+
+      int? offset = request.offset ?? getOffsetFromLineColumn();
+      if (offset == null) return null;
+
       // Prepare the library - the file itself, or the known library.
       var kind = file.kind;
       var library = kind.library ?? kind.asLibrary;
@@ -2302,7 +2336,7 @@ class AnalysisDriver {
           typeSystemOperations: typeSystemOperations,
         ).analyzeForCompletion(
           file: file,
-          offset: request.offset,
+          offset: offset,
           unitElement: unitElement,
           performance: performance,
         );
@@ -2886,13 +2920,17 @@ class _GetFilesReferencingNameRequest {
 
 class _ResolveForCompletionRequest {
   final String path;
-  final int offset;
+  final int? offset;
+  final int? line;
+  final int? column;
   final OperationPerformanceImpl performance;
   final Completer<ResolvedForCompletionResultImpl?> completer = Completer();
 
   _ResolveForCompletionRequest({
     required this.path,
     required this.offset,
+    required this.line,
+    required this.column,
     required this.performance,
   });
 }

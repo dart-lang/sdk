@@ -21,7 +21,6 @@ import 'package:meta/meta.dart';
 abstract class DartSnippetProducer extends SnippetProducer {
   final AnalysisSessionHelper sessionHelper;
   final CorrectionUtils utils;
-  final LibraryElement libraryElement;
   final bool useSuperParams;
 
   /// A cache of mappings from Elements to their public Library Elements.
@@ -34,18 +33,20 @@ abstract class DartSnippetProducer extends SnippetProducer {
     super.request, {
     required Map<Element, LibraryElement?> elementImportCache,
   }) : sessionHelper = AnalysisSessionHelper(request.analysisSession),
-       utils = CorrectionUtils(request.unit),
-       libraryElement = request.unit.libraryElement,
-       useSuperParams = request.unit.libraryElement.featureSet.isEnabled(
+       utils = CorrectionUtils.fromUnitAndContent(
+         request.compilationUnit,
+         request.content,
+       ),
+       useSuperParams = request.libraryElement.featureSet.isEnabled(
          Feature.super_parameters,
        ),
        _elementImportCache = elementImportCache;
 
   CodeStyleOptions get codeStyleOptions => sessionHelper.session.analysisContext
-      .getAnalysisOptionsForFile(request.unit.file)
+      .getAnalysisOptionsForFile(request.file)
       .codeStyleOptions;
 
-  bool get isInTestDirectory => request.unit.unit.inTestDir;
+  bool get isInTestDirectory => request.compilationUnit.inTestDir;
 }
 
 abstract class FlutterSnippetProducer extends DartSnippetProducer {

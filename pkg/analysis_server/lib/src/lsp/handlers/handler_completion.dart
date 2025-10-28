@@ -25,10 +25,10 @@ import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart'
 import 'package:analysis_server/src/services/snippets/snippet_manager.dart';
 import 'package:analysis_server/src/utilities/element_location2.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
@@ -118,10 +118,28 @@ class CompletionHandler
     // To do this, tell the server to lock requests until we have a resolved
     // unit and LineInfo.
     late ErrorOr<LineInfo> lineInfo;
-    late ErrorOr<ResolvedUnitResult> unit;
+    late ErrorOr<ResolvedForCompletionResultImpl> unit;
     await server.pauseSchedulerWhile(() async {
-      unit = await path.mapResult(requireResolvedUnit);
-      lineInfo = await unit.map(
+      unit = await message.performance.runAsync('resolveForCompletion', (
+        performance,
+      ) async {
+        return await path.mapResult<ResolvedForCompletionResultImpl>((
+          path,
+        ) async {
+          var result = await server.resolveForCompletionWithLineColumn(
+            path: path,
+            line: pos.line,
+            column: pos.character,
+            performance: performance,
+          );
+          if (result != null) return success(result);
+          return server.isAnalyzed(path)
+              ? analysisFailedError(path)
+              : fileNotAnalyzedError(path);
+        });
+      });
+
+      lineInfo = unit.map(
         // If we don't have a unit, we can still try to obtain the line info from
         // the server (this could be because the file is non-Dart, such as YAML or
         // another handled by a plugin).
@@ -312,13 +330,17 @@ class CompletionHandler
 
   Future<Iterable<CompletionItem>> _getDartSnippetItems({
     required LspClientCapabilities clientCapabilities,
-    required ResolvedUnitResult unit,
+    required ResolvedForCompletionResultImpl unit,
     required int offset,
     required LineInfo lineInfo,
     required bool Function(String input) filter,
     CompletionItemDefaults? defaults,
   }) async {
-    var request = DartSnippetRequest(unit: unit, offset: offset);
+    var request = DartSnippetRequest.fromCompletionResult(
+      unit: unit,
+      offset: offset,
+      file: unit.fileState.source.file,
+    );
     var snippetManager = DartSnippetManager();
     var snippets = await snippetManager.computeSnippets(
       request,
@@ -340,7 +362,7 @@ class CompletionHandler
 
   Future<ErrorOr<_CompletionResults>> _getServerDartItems(
     LspClientCapabilities capabilities,
-    ResolvedUnitResult unit,
+    ResolvedForCompletionResultImpl unit,
     CompletionPerformance completionPerformance,
     OperationPerformanceImpl performance,
     int offset,
@@ -351,11 +373,19 @@ class CompletionHandler
     var useNotImportedCompletions =
         suggestFromUnimportedLibraries && capabilities.applyEdit;
 
-    var completionRequest = DartCompletionRequest.forResolvedUnit(
-      resolvedUnit: unit,
+    var analysisSession = unit.analysisSession;
+
+    var completionRequest = DartCompletionRequest(
+      analysisSession: analysisSession,
+      fileState: unit.fileState,
+      filePath: unit.path,
+      fileContent: unit.content,
+      libraryFragment: unit.unitElement,
       offset: offset,
-      dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(unit),
-      completionPreference: CompletionPreference.replace,
+      unit: unit.parsedUnit,
+      dartdocDirectiveInfo: server.getDartdocDirectiveInfoForSession(
+        analysisSession,
+      ),
     );
     var target = completionRequest.target;
     var targetPrefix = completionRequest.targetPrefix;
@@ -566,9 +596,8 @@ class CompletionHandler
           .enableSnippets;
       // We can only produce edits with edit builders for files inside
       // the root, so skip snippets entirely if not.
-      var isEditableFile = unit.session.analysisContext.contextRoot.isAnalyzed(
-        unit.path,
-      );
+      var isEditableFile = analysisSession.analysisContext.contextRoot
+          .isAnalyzed(unit.path);
       List<CompletionItem> unrankedResults;
       if (capabilities.completionSnippets &&
           snippetsEnabled &&
