@@ -263,6 +263,9 @@ class KeywordHelper {
   /// keywords to include.
   void addExpressionKeywords(
     AstNode? node, {
+    bool canBeBool = true,
+    bool canBeNull = true,
+    bool canSuggestConst = true,
     bool mustBeConstant = false,
     bool mustBeStatic = false,
   }) {
@@ -311,11 +314,17 @@ class KeywordHelper {
       return true;
     }
 
-    addKeyword(Keyword.FALSE);
-    addKeyword(Keyword.NULL);
-    addKeyword(Keyword.TRUE);
+    if (canBeBool) {
+      addKeyword(Keyword.FALSE);
+    }
+    if (canBeNull) {
+      addKeyword(Keyword.NULL);
+    }
+    if (canBeBool) {
+      addKeyword(Keyword.TRUE);
+    }
     if (node != null) {
-      if (constIsValid(node)) {
+      if (canSuggestConst && constIsValid(node)) {
         addKeyword(Keyword.CONST);
       }
       if (!mustBeConstant && !mustBeStatic) {

@@ -15,7 +15,11 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
   List<CompletionItem> completionResults = [];
 
   int sortTextSorter(CompletionItem item1, CompletionItem item2) =>
-      (item1.sortText ?? item1.label).compareTo(item2.sortText ?? item2.label);
+      (item1.sortText == item2.sortText)
+      ? item1.label.compareTo(item2.label)
+      : (item1.sortText ?? item1.label).compareTo(
+          item2.sortText ?? item2.label,
+        );
 
   Future<String?> verifyCompletions(
     Uri fileUri,

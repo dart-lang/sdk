@@ -4089,8 +4089,6 @@ replacement
 suggestions
   n
     kind: localVariable
-  null
-    kind: keyword
   const
     kind: keyword
 ''');
@@ -4984,8 +4982,6 @@ suggestions
   true
     kind: keyword
   false
-    kind: keyword
-  null
     kind: keyword
   this
     kind: keyword
@@ -5890,17 +5886,38 @@ void r() {
   x(^);
 }
 ''');
+    // Could be:
+    //
+    // ```dart
+    // switch (i) {
+    //   < 0 => (k) {},
+    //   _ => v,
+    // }
+    // ```
     assertResponse(r'''
 suggestions
   v
     kind: localVariable
-  true
+  switch
     kind: keyword
-  false
-    kind: keyword
+''');
+  }
+
+  Future<void> test_commentSnippets058_1_nullable() async {
+    allowedIdentifiers = {'v'};
+    await computeSuggestions('''
+typedef void callback(int k);
+void x(callback? q){}
+void r() {
+  callback v;
+  x(^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  v
+    kind: localVariable
   null
-    kind: keyword
-  const
     kind: keyword
   switch
     kind: keyword
@@ -7946,8 +7963,6 @@ suggestions
     kind: constructorInvocation
   A.second
     kind: constructorInvocation
-  null
-    kind: keyword
   false
     kind: keyword
   true

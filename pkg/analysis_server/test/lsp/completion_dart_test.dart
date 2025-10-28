@@ -1545,6 +1545,28 @@ void g() {
     );
   }
 
+  Future<void> test_closure_unnamedParameters() async {
+    var content = '''
+void f(void Function(int) x) {
+  f(^);
+}
+''';
+
+    var expectedContent = '''
+void f(void Function(int) x) {
+  f((p0) => ^,);
+}
+''';
+
+    await verifyCompletions(
+      mainFileUri,
+      content,
+      expectCompletions: ['(p0) =>', '(p0) {}'],
+      applyEditsFor: '(p0) =>',
+      expectedContent: expectedContent,
+    );
+  }
+
   Future<void> test_color_material() async {
     content = '''
 import 'package:flutter/material.dart';
