@@ -2215,18 +2215,12 @@ void TimelineEventFileRecorderBase::ShutDown() {
 
 TimelineEventBlock* TimelineEventFileRecorderBase::GetNewBlockLocked() {
   ASSERT(lock_.IsOwnedByCurrentThread());
-  // Start by reusing a block.
   TimelineEventBlock* block = nullptr;
-  if (empty_blocks_ != nullptr) {
-    // TODO(vegorov) maybe we don't want to take a lock just to grab an empty
-    // block?
+  {
     MonitorLocker ml(&monitor_);
     if (empty_blocks_ != nullptr) {
       block = empty_blocks_;
       empty_blocks_ = empty_blocks_->next();
-      if (FLAG_trace_timeline) {
-        OS::PrintErr("Reused empty block %p\n", block);
-      }
     }
   }
   if (block == nullptr) {
@@ -2234,9 +2228,10 @@ TimelineEventBlock* TimelineEventFileRecorderBase::GetNewBlockLocked() {
     if (FLAG_trace_timeline) {
       OS::PrintErr("Created new block %p\n", block);
     }
+  } else if (FLAG_trace_timeline) {
+    OS::PrintErr("Reused empty block %p\n", block);
   }
   block->Open();
-
   return block;
 }
 
