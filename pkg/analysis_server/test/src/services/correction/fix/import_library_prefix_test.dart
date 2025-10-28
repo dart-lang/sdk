@@ -90,7 +90,7 @@ void f() {
   print('$a $b');
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.undefinedClass;
       },
     );
@@ -118,7 +118,7 @@ void f() {
   print('$a $b');
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.undefinedClass;
       },
     );

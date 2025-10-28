@@ -59,7 +59,7 @@ void f(List<int>? l) {
   l?..[0]..length;
 }
 ''',
-      errorFilter: (error) => error.length == 6,
+      filter: (error) => error.length == 6,
       matchFixMessage: "Replace the '..' with a '?..' in the invocation",
     );
   }
@@ -76,7 +76,7 @@ void f(int? i) {
   i?..toInt()..abs();
 }
 ''',
-      errorFilter: (error) => error.length == 3,
+      filter: (error) => error.length == 3,
       matchFixMessage: "Replace the '..' with a '?..' in the invocation",
     );
   }
@@ -93,7 +93,7 @@ void f(int? i) {
   (i)?..isEven..abs();
 }
 ''',
-      errorFilter: (error) => error.length == 3,
+      filter: (error) => error.length == 3,
       matchFixMessage: "Replace the '..' with a '?..' in the invocation",
     );
   }
@@ -110,7 +110,7 @@ void f(List<int>? l) {
   l?..length..[0];
 }
 ''',
-      errorFilter: (error) => error.length == 1,
+      filter: (error) => error.length == 1,
       matchFixMessage: "Replace the '..' with a '?..' in the invocation",
     );
   }

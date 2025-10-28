@@ -250,7 +250,7 @@ int f(E x) {
   };
 }
 ''',
-      errorFilter: (e) =>
+      filter: (e) =>
           e.diagnosticCode ==
           CompileTimeErrorCode.nonExhaustiveSwitchExpression,
     );
@@ -416,7 +416,7 @@ class AddMissingSwitchCasesTest_SwitchStatement extends FixProcessorTest {
   }
 
   Future<void> assertHasFixWithFilter(String expected) async {
-    await assertHasFix(expected, errorFilter: _filter);
+    await assertHasFix(expected, filter: _filter);
   }
 
   Future<void> test_empty() async {
@@ -557,7 +557,7 @@ void f(E e) {
   }
 }
 ''',
-      errorFilter: (e) =>
+      filter: (e) =>
           e.diagnosticCode == CompileTimeErrorCode.nonExhaustiveSwitchStatement,
     );
   }
@@ -736,7 +736,7 @@ void f(E e) {
   switch(e
 }
 ''');
-    await assertNoFix(errorFilter: _filter);
+    await assertNoFix(filter: _filter);
   }
 
   Future<void> test_notBrackets() async {

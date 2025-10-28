@@ -330,7 +330,7 @@ import 'dart:ffi';
 final class S extends Struct {}
 final class C {}
 ''',
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode == FfiCode.subtypeOfStructClassInWith,
     );
   }

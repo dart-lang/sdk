@@ -35,7 +35,7 @@ extension E on int {
   int get a => null;
 }
 ''',
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode ==
           CompileTimeErrorCode.extensionDeclaresInstanceField,
     );
@@ -87,10 +87,10 @@ extension E on int {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) => error.offset == testCode.indexOf('foo'),
+      filter: (error) => error.offset == testCode.indexOf('foo'),
     );
     await assertNoFix(
-      errorFilter: (error) => error.offset == testCode.indexOf('bar'),
+      filter: (error) => error.offset == testCode.indexOf('bar'),
     );
   }
 }
@@ -159,10 +159,10 @@ extension type A(int i) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) => error.offset == testCode.indexOf('foo'),
+      filter: (error) => error.offset == testCode.indexOf('foo'),
     );
     await assertNoFix(
-      errorFilter: (error) => error.offset == testCode.indexOf('bar'),
+      filter: (error) => error.offset == testCode.indexOf('bar'),
     );
   }
 }
@@ -239,7 +239,7 @@ class A {
   A(this.v);
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.implicitThisReferenceInInitializer;
       },
@@ -263,7 +263,7 @@ class A {
   A(this.v);
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.implicitThisReferenceInInitializer;
       },
@@ -287,7 +287,7 @@ class A {
   A(this.v);
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.implicitThisReferenceInInitializer;
       },

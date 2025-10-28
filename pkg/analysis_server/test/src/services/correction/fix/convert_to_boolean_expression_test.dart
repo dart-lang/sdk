@@ -55,7 +55,7 @@ void f(bool value) {
 void f(bool value) {
   if (false) print(value);
 }
-''', errorFilter: (error) => error.diagnosticCode == lint);
+''', filter: (error) => error.diagnosticCode == lint);
   }
 
   Future<void> test_andAndTrue() async {

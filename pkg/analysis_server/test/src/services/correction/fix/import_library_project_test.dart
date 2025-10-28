@@ -703,8 +703,7 @@ void f() {
   Test();
 }
 ''');
-    await assertHasFix(
-      r'''
+    await assertHasFix(r'''
 import 'package:test/lib.dart';
 
 import 'package:$foo/foo.dart';
@@ -712,10 +711,7 @@ import 'package:$foo/foo.dart';
 void f() {
   Test();
 }
-''',
-      errorFilter: (e) =>
-          e.diagnosticCode == CompileTimeErrorCode.undefinedFunction,
-    );
+''', filter: (e) => e.diagnosticCode == CompileTimeErrorCode.undefinedFunction);
   }
 
   Future<void> test_lib() async {

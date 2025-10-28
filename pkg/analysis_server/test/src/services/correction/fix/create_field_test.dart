@@ -276,7 +276,7 @@ A f() {
   return .test;
 }
 ''',
-      errorFilter: (e) {
+      filter: (e) {
         return e.diagnosticCode ==
             CompileTimeErrorCode.dotShorthandUndefinedGetter;
       },
@@ -299,7 +299,7 @@ A f() {
   return .test;
 }
 ''',
-      errorFilter: (e) {
+      filter: (e) {
         return e.diagnosticCode ==
             CompileTimeErrorCode.dotShorthandUndefinedGetter;
       },

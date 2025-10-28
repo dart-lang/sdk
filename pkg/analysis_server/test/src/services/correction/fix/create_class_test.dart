@@ -471,7 +471,7 @@ class Test {
   const Test();
 }
 ''',
-      errorFilter: (e) {
+      filter: (e) {
         return e.diagnosticCode == CompileTimeErrorCode.undefinedFunction;
       },
     );
@@ -562,7 +562,7 @@ void f() {}
 class Test {
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.undefinedIdentifier;
       },
     );

@@ -287,9 +287,7 @@ void f() {
   ({0, 1:2});
 }
 ''');
-    await assertNoFix(
-      errorFilter: lintNameFilter(LintNames.always_specify_types),
-    );
+    await assertNoFix(filter: lintNameFilter(LintNames.always_specify_types));
   }
 
   Future<void> test_setOrMapLiteral_map() async {

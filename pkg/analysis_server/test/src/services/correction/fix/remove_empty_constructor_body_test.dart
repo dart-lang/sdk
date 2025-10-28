@@ -70,7 +70,7 @@ class C {
 class A {
   A() {/*
 ''');
-    await assertNoFix(errorFilter: _isInterestingError);
+    await assertNoFix(filter: _isInterestingError);
   }
 
   static bool _isInterestingError(Diagnostic e) {

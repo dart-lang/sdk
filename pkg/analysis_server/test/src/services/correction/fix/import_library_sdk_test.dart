@@ -306,7 +306,7 @@ class MyAnnotation {
 @MyAnnotation(int, const [Completer])
 void f() {}
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.undefinedIdentifier;
       },
     );

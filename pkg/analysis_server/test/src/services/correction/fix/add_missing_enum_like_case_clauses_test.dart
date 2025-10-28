@@ -40,7 +40,7 @@ class AddMissingEnumLikeCaseClausesTest extends FixProcessorLintTest {
   }
 
   Future<void> assertHasFixWithFilter(String expected) async {
-    await assertHasFix(expected, errorFilter: _filter);
+    await assertHasFix(expected, filter: _filter);
   }
 
   Future<void> test_empty() async {

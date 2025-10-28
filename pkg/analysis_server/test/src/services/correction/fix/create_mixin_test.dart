@@ -309,7 +309,7 @@ void f() {}
 mixin Test {
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.undefinedIdentifier;
       },
     );

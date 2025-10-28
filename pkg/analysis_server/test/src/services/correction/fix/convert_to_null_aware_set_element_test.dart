@@ -42,7 +42,7 @@ void f () {
   const String? s = null;
   const <String>{?s};
 }
-''', errorFilter: (error) => error.message.contains('String?'));
+''', filter: (error) => error.message.contains('String?'));
   }
 
   Future<void> test_nonConst_set_withGeneralUnassignable() async {

@@ -32,7 +32,7 @@ class A {
   Map<String, dynamic> m;
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == ParserErrorCode.varAsTypeName;
       },
     );

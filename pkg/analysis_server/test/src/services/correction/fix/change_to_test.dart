@@ -482,8 +482,7 @@ void f(A a) {
   a.foo2 += 2;
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 class A {
   int get foo => 0;
   set foo(int _) {}
@@ -492,10 +491,7 @@ class A {
 void f(A a) {
   a.foo += 2;
 }
-''',
-      errorFilter: (e) =>
-          e.diagnosticCode == CompileTimeErrorCode.undefinedGetter,
-    );
+''', filter: (e) => e.diagnosticCode == CompileTimeErrorCode.undefinedGetter);
   }
 
   Future<void> test_getterSetter_qualified_static() async {
@@ -509,8 +505,7 @@ void f() {
   A.foo2 += 2;
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 class A {
   static int get foo => 0;
   static set foo(int _) {}
@@ -519,10 +514,7 @@ class A {
 void f() {
   A.foo += 2;
 }
-''',
-      errorFilter: (e) =>
-          e.diagnosticCode == CompileTimeErrorCode.undefinedGetter,
-    );
+''', filter: (e) => e.diagnosticCode == CompileTimeErrorCode.undefinedGetter);
   }
 
   Future<void> test_getterSetter_unqualified() async {

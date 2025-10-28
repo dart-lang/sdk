@@ -59,7 +59,7 @@ void f() {
   (42);
 }
 ''',
-      errorFilter: (e) => e.offset == testCode.indexOf('(42'),
+      filter: (e) => e.offset == testCode.indexOf('(42'),
       allowFixAllFixes: true,
     );
   }
@@ -70,7 +70,7 @@ void f() {
   ((42));
 }
 ''');
-    await assertNoFix(errorFilter: (e) => e.offset == testCode.indexOf('((42'));
+    await assertNoFix(filter: (e) => e.offset == testCode.indexOf('((42'));
   }
 
   Future<void> test_previous_notKeyword() async {

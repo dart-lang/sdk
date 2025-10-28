@@ -154,17 +154,13 @@ void f() async {
   doSomething()
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 Future doSomething() => Future.value('');
 
 void f() async {
   await doSomething()
 }
-''',
-      errorFilter: (error) =>
-          error.diagnosticCode != ParserErrorCode.expectedToken,
-    );
+''', filter: (error) => error.diagnosticCode != ParserErrorCode.expectedToken);
   }
 
   Future<void> test_nonBoolCondition_futureBool() async {
@@ -325,7 +321,7 @@ Future<void> baz() async {
   variable = await bar();
 }
 ''',
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
@@ -339,7 +335,7 @@ void baz() {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
@@ -360,7 +356,7 @@ Future<void> baz() async {
   String variable = await bar();
 }
 ''',
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
