@@ -36,6 +36,7 @@ class DeprecatedFunctionalityVerifier {
 
   void constructorDeclaration(ConstructorDeclaration node) {
     _checkForDeprecatedOptionalSuperParameters(node);
+    _checkForDeprecatedOptionalRedirectedParameters(node);
 
     // Check redirectiong constructor invocations in the initializer list.
     for (var redirectingConstructorInvocation
@@ -217,6 +218,46 @@ class DeprecatedFunctionalityVerifier {
         _diagnosticReporter.atEntity(
           errorEntity,
           WarningCode.deprecatedOptional,
+          arguments: [parameter.name ?? '<unknown>'],
+        );
+      }
+    }
+  }
+
+  void _checkForDeprecatedOptionalRedirectedParameters(
+    ConstructorDeclaration node,
+  ) {
+    if (node.redirectedConstructor?.element case var redirectedConstructor?) {
+      var SourceRange(offset: errorOffset, length: errorLength) =
+          node.errorRange;
+      var positionalArgumentCount = node.parameters.parameters
+          .where((p) => p.isPositional)
+          .length;
+      var namedArgumentNames = node.parameters.parameters
+          .where((p) => p.isNamed)
+          .map((p) => p.name?.lexeme)
+          .nonNulls
+          .toList();
+      var redirectedConstructorPositionalParameterCount = 0;
+      for (var parameter in redirectedConstructor.formalParameters) {
+        if (parameter.isPositional) {
+          redirectedConstructorPositionalParameterCount++;
+        }
+        if (!parameter.isOptional) continue;
+        if (!parameter.isDeprecatedWithKind('optional')) continue;
+        if (parameter.isPositional) {
+          if (redirectedConstructorPositionalParameterCount <=
+              positionalArgumentCount) {
+            continue;
+          }
+        } else {
+          if (namedArgumentNames.contains(parameter.name)) continue;
+        }
+
+        _diagnosticReporter.atOffset(
+          offset: errorOffset,
+          length: errorLength,
+          diagnosticCode: WarningCode.deprecatedOptional,
           arguments: [parameter.name ?? '<unknown>'],
         );
       }
