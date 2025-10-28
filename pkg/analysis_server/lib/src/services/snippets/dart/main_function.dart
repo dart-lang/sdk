@@ -32,8 +32,7 @@ class MainFunction extends DartSnippetProducer {
       session: request.analysisSession,
       defaultEol: utils.endOfLine,
     );
-
-    var typeProvider = request.unit.typeProvider;
+    var typeProvider = request.typeProvider;
     var listString = typeProvider.listType(typeProvider.stringType);
 
     await builder.addDartFileEdit(request.filePath, (builder) {

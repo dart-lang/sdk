@@ -1031,11 +1031,44 @@ abstract class AnalysisServer {
       return null;
     }
 
+    var result = _tryGetCachedResolvedUnitAsResolvedForCompletion(driver, path);
+    if (result != null) return result;
+
     try {
-      await driver.applyPendingFileChanges();
       return await driver.resolveForCompletion(
         path: path,
         offset: offset,
+        performance: performance,
+      );
+    } catch (e, st) {
+      instrumentationService.logException(e, st);
+    }
+    return null;
+  }
+
+  Future<ResolvedForCompletionResultImpl?> resolveForCompletionWithLineColumn({
+    required String path,
+    required int line,
+    required int column,
+    required OperationPerformanceImpl performance,
+  }) async {
+    if (!file_paths.isDart(resourceProvider.pathContext, path)) {
+      return null;
+    }
+
+    var driver = getAnalysisDriver(path);
+    if (driver == null) {
+      return null;
+    }
+
+    var result = _tryGetCachedResolvedUnitAsResolvedForCompletion(driver, path);
+    if (result != null) return result;
+
+    try {
+      return await driver.resolveForCompletionWithLineColumn(
+        path: path,
+        line: line,
+        column: column,
         performance: performance,
       );
     } catch (e, st) {
@@ -1096,6 +1129,34 @@ abstract class AnalysisServer {
     surveyManager?.shutdown();
     await contextManager.dispose();
     await analyticsManager.shutdown();
+  }
+
+  ResolvedForCompletionResultImpl?
+  _tryGetCachedResolvedUnitAsResolvedForCompletion(
+    AnalysisDriver driver,
+    String path,
+  ) {
+    try {
+      ResolvedUnitResult? result = driver.getCachedResolvedUnit(path);
+      if (result != null) {
+        result as ResolvedUnitResultImpl;
+        return ResolvedForCompletionResultImpl(
+          analysisSession: result.session,
+          fileState: result.fileState,
+          path: path,
+          uri: result.uri,
+          exists: result.exists,
+          content: result.content,
+          lineInfo: result.lineInfo,
+          parsedUnit: result.unit,
+          unitElement: result.libraryFragment,
+          resolvedNodes: [result.unit],
+        );
+      }
+    } catch (e, st) {
+      instrumentationService.logException(e, st);
+    }
+    return null;
   }
 }
 
