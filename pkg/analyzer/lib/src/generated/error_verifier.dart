@@ -4315,16 +4315,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     int mixinIndex,
     NamedTypeImpl mixinName,
   ) {
+    var enclosingClass = _enclosingClass!;
     var mixinType = mixinName.type as InterfaceTypeImpl;
     for (var constraint in mixinType.superclassConstraints) {
-      var superType = _enclosingClass!.supertype as InterfaceTypeImpl;
+      var superType = enclosingClass.supertype as InterfaceTypeImpl;
       superType = superType.withNullability(NullabilitySuffix.none);
 
       bool isSatisfied = typeSystem.isSubtypeOf(superType, constraint);
       if (!isSatisfied) {
         for (int i = 0; i < mixinIndex && !isSatisfied; i++) {
+          // If there are less mixin types than mixin nodes, escape.
+          if (i >= enclosingClass.mixins.length) {
+            return false;
+          }
+          // Probe a previous mixin type.
           isSatisfied = typeSystem.isSubtypeOf(
-            _enclosingClass!.mixins[i],
+            enclosingClass.mixins[i],
             constraint,
           );
         }
