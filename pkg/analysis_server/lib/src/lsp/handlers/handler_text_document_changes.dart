@@ -11,6 +11,9 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 
+const String textDocumentChangeHandlerPerformanceCaption =
+    'change file request processing';
+
 typedef StaticOptions = Either2<TextDocumentSyncKind, TextDocumentSyncOptions>;
 
 class TextDocumentChangeHandler
@@ -29,15 +32,20 @@ class TextDocumentChangeHandler
     MessageInfo message,
     CancellationToken token,
   ) {
-    var doc = params.textDocument;
-    // Editors should never try to change our macro files, but just in case
-    // we get these requests, ignore them.
-    if (!isEditableDocument(doc.uri)) {
-      return success(null);
-    }
+    return message.performance.run(
+      textDocumentChangeHandlerPerformanceCaption,
+      (_) {
+        var doc = params.textDocument;
+        // Editors should never try to change our macro files, but just in case
+        // we get these requests, ignore them.
+        if (!isEditableDocument(doc.uri)) {
+          return success(null);
+        }
 
-    var path = pathOfDoc(doc);
-    return path.mapResultSync((path) => _changeFile(path, params));
+        var path = pathOfDoc(doc);
+        return path.mapResultSync((path) => _changeFile(path, params));
+      },
+    );
   }
 
   ErrorOr<void> _changeFile(String path, DidChangeTextDocumentParams params) {

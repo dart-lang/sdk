@@ -94,6 +94,15 @@ class LspMessages {
     };
   }
 
+  static Map<String, dynamic> diagnosticServer(int id) {
+    return {
+      'jsonrpc': '2.0',
+      'id': id,
+      'method': 'dart/diagnosticServer',
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
   static Map<String, dynamic> didChange(
     Uri uri, {
     required int version,

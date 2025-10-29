@@ -432,7 +432,10 @@ class PluginManager {
   /// content overlays to those specified by the [params]. As a side-effect,
   /// update the overlay state so that it can be sent to any newly started
   /// plugins.
-  void setAnalysisUpdateContentParams(AnalysisUpdateContentParams params) {
+  void setAnalysisUpdateContentParams(
+    AnalysisUpdateContentParams params, {
+    String? precomputedNewContentForChange,
+  }) {
     for (var plugin in _pluginMap.values) {
       plugin.sendRequest(params);
     }
@@ -444,12 +447,18 @@ class PluginManager {
       } else if (overlay is AddContentOverlay) {
         _overlayState[file] = overlay;
       } else if (overlay is ChangeContentOverlay) {
-        var previousOverlay = _overlayState[file]!;
-        var newContent = SourceEdit.applySequence(
-          previousOverlay.content,
-          overlay.edits,
-        );
-        _overlayState[file] = AddContentOverlay(newContent);
+        if (precomputedNewContentForChange != null) {
+          _overlayState[file] = AddContentOverlay(
+            precomputedNewContentForChange,
+          );
+        } else {
+          var previousOverlay = _overlayState[file]!;
+          var newContent = SourceEdit.applySequence(
+            previousOverlay.content,
+            overlay.edits,
+          );
+          _overlayState[file] = AddContentOverlay(newContent);
+        }
       } else {
         throw ArgumentError('Invalid class of overlay: ${overlay.runtimeType}');
       }

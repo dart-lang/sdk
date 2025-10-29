@@ -298,8 +298,9 @@ class TestPluginManager implements PluginManager {
 
   @override
   void setAnalysisUpdateContentParams(
-    plugin.AnalysisUpdateContentParams params,
-  ) {
+    plugin.AnalysisUpdateContentParams params, {
+    String? precomputedNewContentForChange,
+  }) {
     analysisUpdateContentParams = params;
   }
 }

@@ -45,17 +45,40 @@ applyAndConvertEditsToServer(
       // TextDocumentContentChangeEvent1
       // {range, text}
       (change) {
-        var lines = LineInfo.fromContent(newContent);
-        var offsetStart = toOffset(
-          lines,
-          change.range.start,
-          failureIsCritical: failureIsCritical,
-        );
-        var offsetEnd = toOffset(
-          lines,
-          change.range.end,
-          failureIsCritical: failureIsCritical,
-        );
+        ErrorOr<int> offsetStart;
+        ErrorOr<int> offsetEnd;
+
+        var start = change.range.start;
+        var end = change.range.end;
+        if (start.line == end.line) {
+          // We only need a single line, so we skip the creation of `LineInfo`
+          // which is faster.
+          var offsetOfLine = LineInfo.getOffsetForLine(start.line, newContent);
+          offsetStart = toOffsetFromOffsetLineAndColumn(
+            offsetOfLine,
+            start.character,
+            start.line,
+            failureIsCritical: failureIsCritical,
+          );
+          offsetEnd = toOffsetFromOffsetLineAndColumn(
+            offsetOfLine,
+            end.character,
+            end.line,
+            failureIsCritical: failureIsCritical,
+          );
+        } else {
+          var lines = LineInfo.fromContent(newContent);
+          offsetStart = toOffset(
+            lines,
+            start,
+            failureIsCritical: failureIsCritical,
+          );
+          offsetEnd = toOffset(
+            lines,
+            end,
+            failureIsCritical: failureIsCritical,
+          );
+        }
         if (offsetStart.isError) {
           return failure(offsetStart);
         }
