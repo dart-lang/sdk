@@ -1825,123 +1825,126 @@ class OutlineBuilder extends StackListenerImpl {
       name = identifier.name;
     }
 
-    if (!forExtensionType) {
+    int? startOffset = constKeyword?.charOffset ?? nameOffset ?? formalsOffset;
+
+    // TODO(johnniwinther): Handle declaring parameters.
+    if (forExtensionType) {
+      bool inExtensionType =
+          declarationContext == DeclarationContext.ExtensionType;
+      if (formals != null) {
+        int requiredPositionalCount = 0;
+        int? firstNamedParameterOffset;
+        int? firstOptionalPositionalParameterOffset;
+        for (int i = 0; i < formals.length; i++) {
+          FormalParameterBuilder formal = formals[i];
+          if (inExtensionType) {
+            TypeBuilder type = formal.type;
+            if (type is FunctionTypeBuilder &&
+                type.hasFunctionFormalParameterSyntax) {
+              _compilationUnit.addProblem(
+                // ignore: lines_longer_than_80_chars
+                codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax,
+                formal.fileOffset,
+                formal.name.length,
+                formal.fileUri,
+              );
+            }
+            if (type is ImplicitTypeBuilder) {
+              _compilationUnit.addProblem(
+                codeExpectedRepresentationType,
+                formal.fileOffset,
+                formal.name.length,
+                formal.fileUri,
+              );
+              formal.type = new InvalidTypeBuilderImpl(
+                formal.fileUri,
+                formal.fileOffset,
+              );
+            }
+            if (formal.modifiers.containsSyntacticModifiers(
+              ignoreCovariant: true,
+              ignoreRequired: true,
+            )) {
+              _compilationUnit.addProblem(
+                codeRepresentationFieldModifier,
+                formal.fileOffset,
+                formal.name.length,
+                formal.fileUri,
+              );
+            }
+            if (formal.isInitializingFormal) {
+              _compilationUnit.addProblem(
+                codeExtensionTypePrimaryConstructorWithInitializingFormal,
+                formal.fileOffset,
+                formal.name.length,
+                formal.fileUri,
+              );
+            }
+          }
+
+          if (formal.isPositional) {
+            if (formal.isOptionalPositional) {
+              firstOptionalPositionalParameterOffset = formal.fileOffset;
+            } else {
+              requiredPositionalCount++;
+            }
+          }
+          if (formal.isNamed) {
+            firstNamedParameterOffset = formal.fileOffset;
+          }
+          _builderFactory.addPrimaryConstructorField(
+            // TODO(johnniwinther): Support annotations on annotations on fields
+            // defined through a primary constructor. This is not needed for
+            // extension types where the field is not part of the AST but will
+            // be needed when primary constructors are generally supported.
+            metadata: null,
+            type: formal.type,
+            name: formal.name,
+            nameOffset: formal.fileOffset,
+          );
+          formals[i] = formal.forPrimaryConstructor(_builderFactory);
+        }
+        if (inExtensionType) {
+          if (firstOptionalPositionalParameterOffset != null) {
+            _compilationUnit.addProblem(
+              codeOptionalParametersInExtensionTypeDeclaration,
+              firstOptionalPositionalParameterOffset,
+              1,
+              uri,
+            );
+          } else if (firstNamedParameterOffset != null) {
+            _compilationUnit.addProblem(
+              codeNamedParametersInExtensionTypeDeclaration,
+              firstNamedParameterOffset,
+              1,
+              uri,
+            );
+          } else if (requiredPositionalCount == 0) {
+            _compilationUnit.addProblem(
+              codeExpectedRepresentationField,
+              charOffset,
+              1,
+              uri,
+            );
+          } else if (formals.length > 1) {
+            _compilationUnit.addProblem(
+              codeMultipleRepresentationFields,
+              charOffset,
+              1,
+              uri,
+            );
+          }
+        }
+      }
+    } else {
       reportIfNotEnabled(
         libraryFeatures.declaringConstructors,
         beginToken.charOffset,
         noLength,
       );
-      // TODO(johnniwinther): Support primary constructors in general.
-      return;
-    }
-
-    int? startOffset = constKeyword?.charOffset ?? nameOffset ?? formalsOffset;
-
-    bool inExtensionType =
-        declarationContext == DeclarationContext.ExtensionType;
-    if (formals != null) {
-      int requiredPositionalCount = 0;
-      int? firstNamedParameterOffset;
-      int? firstOptionalPositionalParameterOffset;
-      for (int i = 0; i < formals.length; i++) {
-        FormalParameterBuilder formal = formals[i];
-        if (inExtensionType) {
-          TypeBuilder type = formal.type;
-          if (type is FunctionTypeBuilder &&
-              type.hasFunctionFormalParameterSyntax) {
-            _compilationUnit.addProblem(
-              // ignore: lines_longer_than_80_chars
-              codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax,
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri,
-            );
-          }
-          if (type is ImplicitTypeBuilder) {
-            _compilationUnit.addProblem(
-              codeExpectedRepresentationType,
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri,
-            );
-            formal.type = new InvalidTypeBuilderImpl(
-              formal.fileUri,
-              formal.fileOffset,
-            );
-          }
-          if (formal.modifiers.containsSyntacticModifiers(
-            ignoreCovariant: true,
-            ignoreRequired: true,
-          )) {
-            _compilationUnit.addProblem(
-              codeRepresentationFieldModifier,
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri,
-            );
-          }
-          if (formal.isInitializingFormal) {
-            _compilationUnit.addProblem(
-              codeExtensionTypePrimaryConstructorWithInitializingFormal,
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri,
-            );
-          }
-        }
-
-        if (formal.isPositional) {
-          if (formal.isOptionalPositional) {
-            firstOptionalPositionalParameterOffset = formal.fileOffset;
-          } else {
-            requiredPositionalCount++;
-          }
-        }
-        if (formal.isNamed) {
-          firstNamedParameterOffset = formal.fileOffset;
-        }
-        _builderFactory.addPrimaryConstructorField(
-          // TODO(johnniwinther): Support annotations on annotations on fields
-          // defined through a primary constructor. This is not needed for
-          // extension types where the field is not part of the AST but will
-          // be needed when primary constructors are generally supported.
-          metadata: null,
-          type: formal.type,
-          name: formal.name,
-          nameOffset: formal.fileOffset,
-        );
-        formals[i] = formal.forPrimaryConstructor(_builderFactory);
-      }
-      if (inExtensionType) {
-        if (firstOptionalPositionalParameterOffset != null) {
-          _compilationUnit.addProblem(
-            codeOptionalParametersInExtensionTypeDeclaration,
-            firstOptionalPositionalParameterOffset,
-            1,
-            uri,
-          );
-        } else if (firstNamedParameterOffset != null) {
-          _compilationUnit.addProblem(
-            codeNamedParametersInExtensionTypeDeclaration,
-            firstNamedParameterOffset,
-            1,
-            uri,
-          );
-        } else if (requiredPositionalCount == 0) {
-          _compilationUnit.addProblem(
-            codeExpectedRepresentationField,
-            charOffset,
-            1,
-            uri,
-          );
-        } else if (formals.length > 1) {
-          _compilationUnit.addProblem(
-            codeMultipleRepresentationFields,
-            charOffset,
-            1,
-            uri,
-          );
-        }
+      if (declarationContext == DeclarationContext.Enum) {
+        // TODO(johnniwinther): Support primary constructors in enums.
+        return;
       }
     }
 
