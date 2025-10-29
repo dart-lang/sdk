@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 /// Returns the given [list] if it is not empty, or `null` otherwise.
 List<E>? nullIfEmpty<E>(List<E>? list) {
   if (list == null || list.isEmpty) {
@@ -17,17 +19,16 @@ List<E>? nullIfEmpty<E>(List<E>? list) {
 class RecentBuffer<T> {
   final int capacity;
 
-  final List<T> _buffer = [];
+  final Queue<T> _buffer;
 
-  RecentBuffer(this.capacity);
+  RecentBuffer(this.capacity) : _buffer = Queue();
 
-  Iterable<T> get items => _buffer.reversed;
+  Iterable<T> get items => _buffer;
 
   void add(T item) {
-    _buffer.add(item);
-
-    if (_buffer.length > capacity) {
-      _buffer.removeAt(0);
+    while (_buffer.length >= capacity) {
+      _buffer.removeLast();
     }
+    _buffer.addFirst(item);
   }
 }

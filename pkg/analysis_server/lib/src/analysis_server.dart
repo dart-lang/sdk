@@ -1305,7 +1305,7 @@ enum MessageType {
 
 class ServerRecentPerformance {
   /// The maximum number of performance measurements to keep.
-  static const int performanceListMaxLength = 50;
+  static const int performanceListMaxLength = 250;
 
   /// The maximum number of slow performance measurements to keep.
   static const int slowRequestsListMaxLength = 1000;
