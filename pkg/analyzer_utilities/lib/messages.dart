@@ -14,12 +14,12 @@ import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
+import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart'
     show YamlMap, YamlScalar, YamlNode, loadYamlNode;
 
 const Map<String, String> severityEnumNames = <String, String>{
   'CONTEXT': 'context',
-  'ERROR': 'error',
   'IGNORED': 'ignored',
   'INTERNAL_PROBLEM': 'internalProblem',
   'WARNING': 'warning',
@@ -41,7 +41,7 @@ final DiagnosticTables diagnosticTables = DiagnosticTables._([
 /// file.
 final List<SharedMessage> feAnalyzerSharedMessages = _loadCfeStyleMessages(
   feAnalyzerSharedPkgPath,
-  decodeMessage: SharedMessage.fromYaml,
+  decodeMessage: SharedMessage.new,
 );
 
 /// The path to the `fe_analyzer_shared` package.
@@ -52,7 +52,7 @@ final String feAnalyzerSharedPkgPath = normalize(
 /// Decoded messages from the front end's `messages.yaml` file.
 final List<FrontEndMessage> frontEndMessages = _loadCfeStyleMessages(
   frontEndPkgPath,
-  decodeMessage: FrontEndMessage.fromYaml,
+  decodeMessage: FrontEndMessage.new,
 );
 
 /// The path to the `front_end` package.
@@ -89,12 +89,12 @@ String convertTemplate(List<TemplatePart> template) {
 /// [CfeStyleMessage]s.
 List<T> decodeCfeStyleMessagesYaml<T extends CfeStyleMessage>(
   YamlNode yaml, {
-  required T Function(YamlMap, {required YamlScalar keyNode}) decodeMessage,
+  required T Function(MessageYaml) decodeMessage,
   required String path,
 }) {
   var result = <T>[];
   if (yaml is! YamlMap) {
-    throw LocatedError('root node is not a map', node: yaml);
+    throw LocatedError('root node is not a map', span: yaml.span);
   }
   for (var entry in yaml.nodes.entries) {
     var keyNode = entry.key as YamlScalar;
@@ -102,20 +102,21 @@ List<T> decodeCfeStyleMessagesYaml<T extends CfeStyleMessage>(
     if (diagnosticName is! String) {
       throw LocatedError(
         'non-string diagnostic key ${json.encode(diagnosticName)}',
-        node: keyNode,
+        span: keyNode.span,
       );
     }
     var diagnosticValue = entry.value;
     if (diagnosticValue is! YamlMap) {
       throw LocatedError(
         'value associated with diagnostic $diagnosticName is not a map',
-        node: diagnosticValue,
+        span: diagnosticValue.span,
       );
     }
     result.add(
-      LocatedError.wrap(
-        node: diagnosticValue,
-        () => decodeMessage(diagnosticValue, keyNode: keyNode),
+      MessageYaml.decode(
+        key: keyNode,
+        value: diagnosticValue,
+        decoder: decodeMessage,
       ),
     );
   }
@@ -125,7 +126,7 @@ List<T> decodeCfeStyleMessagesYaml<T extends CfeStyleMessage>(
 /// Loads messages in CFE style `messages.yaml` format.
 List<T> _loadCfeStyleMessages<T extends CfeStyleMessage>(
   String packagePath, {
-  required T Function(YamlMap, {required YamlScalar keyNode}) decodeMessage,
+  required T Function(MessageYaml) decodeMessage,
 }) {
   var path = join(packagePath, 'messages.yaml');
   var messagesYaml = loadYamlNode(
@@ -252,28 +253,38 @@ abstract class CfeStyleMessage extends Message {
   /// `messages.yaml`.
   final String frontEndCode;
 
-  CfeStyleMessage.fromYaml(YamlMap yaml, {required super.keyNode})
-    : cfeSeverity = _decodeSeverity(yaml.nodes['severity']),
-      frontEndCode = keyNode.value as String,
-      super.fromYaml(yaml) {
-    if (yaml['problemMessage'] == null) {
-      throw LocatedError('Missing problemMessage', node: yaml);
-    }
-  }
-
-  static String? _decodeSeverity(YamlNode? node) {
-    switch (node) {
-      case null:
-        return null;
-      case YamlScalar(:var value):
-        return severityEnumNames[value] ??
-            (throw LocatedError("Unknown severity '$value'", node: node));
-      default:
-        throw LocatedError(
-          'Bad severity type: ${node.runtimeType}',
-          node: node,
-        );
-    }
+  CfeStyleMessage(MessageYaml messageYaml)
+    : cfeSeverity = messageYaml.get(
+        'severity',
+        decode: (node) {
+          switch (node) {
+            case YamlScalar(:var value):
+              if (value == 'ERROR') {
+                throw 'The "ERROR" severity is the default and not necessary.';
+              }
+              return severityEnumNames[value] ??
+                  (throw "Unknown severity '$value'");
+            default:
+              return throw 'Bad severity type: ${node.runtimeType}';
+          }
+        },
+        ifAbsent: () => null,
+      ),
+      frontEndCode = messageYaml.keyString,
+      super(messageYaml, requireProblemMessage: true) {
+    // Ignore extra keys related to front end example-based tests.
+    messageYaml.allowExtraKeys({
+      'bytes',
+      'declaration',
+      'exampleAllowMultipleReports',
+      'exampleAllowOtherCodes',
+      'experiments',
+      'expression',
+      'external',
+      'includeErrorContext',
+      'script',
+      'statement',
+    });
   }
 }
 
@@ -525,7 +536,7 @@ class DiagnosticTables {
         throw LocatedError(
           'This is the only message that uses shared name '
           '$sharedNameJson. The message should be renamed to $sharedNameJson.',
-          node: message.keyNode,
+          span: message.keySpan,
         );
       }
     }
@@ -547,16 +558,8 @@ class FrontEndMessage extends CfeStyleMessage {
   // codes.
   final String? pseudoSharedCode;
 
-  FrontEndMessage.fromYaml(YamlMap yaml, {required super.keyNode})
-    : pseudoSharedCode = yaml['pseudoSharedCode'] as String?,
-      super.fromYaml(yaml) {
-    if (yaml.nodes['analyzerCode'] case var node?) {
-      throw LocatedError(
-        'Only shared messages can have an analyzer code',
-        node: node,
-      );
-    }
-  }
+  FrontEndMessage(super.messageYaml)
+    : pseudoSharedCode = messageYaml.getOptionalString('pseudoSharedCode');
 }
 
 /// Information about a code generated class derived from `DiagnosticCode`.
@@ -666,25 +669,25 @@ class LabelerConversion implements Conversion {
   }) => 'labeler.$methodName($name)';
 }
 
-/// An error with an associated YAML source location.
+/// An error with an associated source span.
 class LocatedError {
-  final YamlNode node;
+  final SourceSpan span;
   final String message;
 
-  LocatedError(this.message, {required this.node});
+  LocatedError(this.message, {required this.span});
 
   @override
-  String toString() => '${node.location}: $message';
+  String toString() => '${span.location}: $message';
 
   /// Executes [callback], converting any exceptions it generates to a
   /// [LocatedError] that points to [node].
-  static T wrap<T>(T Function() callback, {required YamlNode node}) {
+  static T wrap<T>(T Function() callback, {required SourceSpan span}) {
     try {
       return callback();
     } catch (error, stackTrace) {
       if (error is! LocatedError) {
         Error.throwWithStackTrace(
-          LocatedError(error.toString(), node: node),
+          LocatedError(error.toString(), span: span),
           stackTrace,
         );
       } else {
@@ -737,62 +740,46 @@ abstract class Message {
   /// Map keys are parameter names. Map values are [DiagnosticParameter] objects.
   final Map<String, DiagnosticParameter> parameters;
 
-  /// The raw YAML node that this [Message] was parsed from.
+  /// SourceSpan for the YAML value that this [Message] was parsed from.
   ///
   /// This exists to make it easier for automated scripts to edit the YAML
   /// source.
-  final YamlMap yamlNode;
+  final SourceSpan valueSpan;
 
-  /// The raw YAML key for the key/value pair that this `ErrorCodeInfo` was
-  /// parsed from.
+  /// SourceSpan for the YAML key that this [Message] was parsed from.
   ///
   /// This exists to make it easier for automated scripts to edit the YAML
   /// source.
-  final YamlScalar keyNode;
+  final SourceSpan keySpan;
 
-  Message({
-    this.comment,
-    this.documentation,
-    this.isUnresolvedIdentifier = false,
-    this.sharedName,
-    required YamlNode? problemMessageYaml,
-    required YamlNode? correctionMessageYaml,
-    this.deprecatedMessage,
-    this.previousName,
-    this.removedIn,
-    required this.parameters,
-    required this.yamlNode,
-    required this.keyNode,
-  }) : problemMessage =
-           _decodeMessage(
-             problemMessageYaml,
-             parameters: parameters,
-             kind: 'problemMessage',
-           ) ??
-           [],
-       correctionMessage = _decodeMessage(
-         correctionMessageYaml,
-         parameters: parameters,
-         kind: 'correctionMessage',
-       );
+  /// The key from the key/value pair that defines the message, expressed as a
+  /// [String].
+  final String keyString;
 
-  /// Decodes an [Message] object from its YAML representation.
-  Message.fromYaml(YamlMap yaml, {required YamlScalar keyNode})
-    : this(
-        comment: yaml['comment'] as String?,
-        correctionMessageYaml: yaml.nodes['correctionMessage'],
-        deprecatedMessage: yaml['deprecatedMessage'] as String?,
-        documentation: yaml['documentation'] as String?,
-        isUnresolvedIdentifier:
-            yaml['isUnresolvedIdentifier'] as bool? ?? false,
-        problemMessageYaml: yaml.nodes['problemMessage'],
-        sharedName: yaml['sharedName'] as String?,
-        removedIn: yaml['removedIn'] as String?,
-        previousName: yaml['previousName'] as String?,
-        parameters: _decodeParameters(yaml.nodes['parameters']),
-        yamlNode: yaml,
-        keyNode: keyNode,
-      );
+  /// Decodes a [Message] object from its YAML representation.
+  Message(MessageYaml messageYaml, {bool requireProblemMessage = false})
+    : comment = messageYaml.getOptionalString('comment'),
+      correctionMessage = messageYaml.getMessageTemplate(
+        'correctionMessage',
+        isRequired: false,
+      ),
+      deprecatedMessage = messageYaml.getOptionalString('deprecatedMessage'),
+      documentation = messageYaml.getOptionalString('documentation'),
+      isUnresolvedIdentifier =
+          messageYaml.getOptionalBool('isUnresolvedIdentifier') ?? false,
+      problemMessage =
+          messageYaml.getMessageTemplate(
+            'problemMessage',
+            isRequired: requireProblemMessage,
+          ) ??
+          [],
+      sharedName = messageYaml.getOptionalString('sharedName'),
+      removedIn = messageYaml.getOptionalString('removedIn'),
+      previousName = messageYaml.getOptionalString('previousName'),
+      parameters = messageYaml.parameters,
+      valueSpan = messageYaml.valueSpan,
+      keySpan = messageYaml.keySpan,
+      keyString = messageYaml.keyString;
 
   /// If this diagnostic is no longer reported and
   /// its diagnostic codes should no longer be generated.
@@ -800,7 +787,7 @@ abstract class Message {
 
   /// A string suitable for identifying the location of this message's key node
   /// in the source YAML file.
-  String get location => keyNode.location;
+  String get location => keySpan.location;
 
   String _computeExpectedTypes() {
     var expectedTypes = [
@@ -815,79 +802,6 @@ abstract class Message {
     var jsonEncoded = json.encode(s);
     // But we also need to escape `$`.
     return jsonEncoded.replaceAll(r'$', r'\$');
-  }
-
-  static List<TemplatePart>? _decodeMessage(
-    YamlNode? node, {
-    required Map<String, DiagnosticParameter> parameters,
-    required String kind,
-  }) {
-    switch (node) {
-      case null:
-        return null;
-      case YamlScalar(:String value):
-        // Remove trailing whitespace. This is necessary for templates defined
-        // with `|` (verbatim) as they always contain a trailing newline that we
-        // don't want.
-        var text = value.trimRight();
-        if (text.contains(oldPlaceholderPattern)) {
-          throw LocatedError(
-            '$kind is ${json.encode(text)}, which contains an old-style '
-            'analyzer placeholder pattern. Please convert to #NAME format.',
-            node: node,
-          );
-        }
-
-        var template = <TemplatePart>[];
-        var i = 0;
-        for (var match in placeholderPattern.allMatches(text)) {
-          var matchStart = match.start;
-          if (matchStart > i) {
-            template.add(TemplateLiteralPart(text.substring(i, matchStart)));
-          }
-          template.add(
-            TemplateParameterPart.fromMatch(match, parameters: parameters),
-          );
-          i = match.end;
-        }
-        if (text.length > i) {
-          template.add(TemplateLiteralPart(text.substring(i)));
-        }
-        return template;
-      default:
-        throw LocatedError('Bad message type: ${node.runtimeType}', node: node);
-    }
-  }
-
-  static Map<String, DiagnosticParameter> _decodeParameters(YamlNode? yaml) {
-    if (yaml == null) {
-      throw 'Missing parameters section';
-    }
-    if (yaml case YamlScalar(value: 'none')) return const {};
-    yaml as YamlMap;
-    var result = <String, DiagnosticParameter>{};
-    var index = 0;
-    for (var MapEntry(:key, :value) in yaml.nodes.entries) {
-      var keyNode = key as YamlScalar;
-      LocatedError.wrap(node: keyNode, () {
-        switch ((keyNode.value as String).split(' ')) {
-          case [var type, var name]:
-            if (result.containsKey(name)) {
-              throw 'Duplicate parameter name: $name';
-            }
-            result[name] = DiagnosticParameter(
-              name: name,
-              type: DiagnosticParameterType.fromMessagesYamlName(type),
-              comment: value.value as String,
-              index: index++,
-            );
-          default:
-            throw 'Malformed parameter key (should be `TYPE NAME`): '
-                '${json.encode(key)}';
-        }
-      });
-    }
-    return result;
   }
 }
 
@@ -1056,6 +970,218 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
   }
 }
 
+/// The raw YAML key/value pair representing a single diagnostic message.
+///
+/// This class provides methods and getters for validating that the message is
+/// well-formed and decoding it.
+class MessageYaml {
+  /// The YAML key node from the key/value pair that defines the message.
+  final YamlScalar _key;
+
+  /// The YAML value node from key/value pair that defines the message. This is
+  /// always a [YamlMap].
+  final YamlMap _map;
+
+  /// The parameters listed under the `parameters` key, decoded into a map.
+  late final Map<String, DiagnosticParameter> parameters = get(
+    'parameters',
+    decode: _decodeParameters,
+  );
+
+  /// The set of keys that the message is permitted to contain.
+  ///
+  /// Keys are added to this set while the message is being decoded. At the end
+  /// of the [decode] method, if there are any keys in [_map] that aren't in
+  /// this set, an exception will be thrown to report them as unexpected keys.
+  final Set<String> _permittedKeys = {};
+
+  MessageYaml._(this._key, this._map);
+
+  /// The span of the YAML key node from the key/value pair that defines the
+  /// message.
+  SourceSpan get keySpan => _key.span;
+
+  /// The key from the key/value pair that defines the message, expressed as a
+  /// [String].
+  String get keyString => _key.value.toString();
+
+  /// The span of the YAML value node from the key/value pair that defines the
+  /// message.
+  SourceSpan get valueSpan => _map.span;
+
+  /// Adds [extraKeys] to the set of keys that the message is allowed to
+  /// contain.
+  ///
+  /// At the end of the [decode] method, if there are any keys that haven't been
+  /// passed to either this method or one of the `get` methods, an exception
+  /// will be thrown to report them as unexpected keys.
+  void allowExtraKeys(Iterable<String> extraKeys) {
+    _permittedKeys.addAll(extraKeys);
+  }
+
+  /// Attempts to decode the YAML value associated with [key].
+  ///
+  /// If an entry is present with the given [key], the corresponding value
+  /// [YamlNode] is passed to the [decode] callback for decoding.
+  ///
+  /// If no entry is present and a non-null value was supplied for the
+  /// [ifAbsent] callback, it is invoked to obtain the default value.
+  ///
+  /// If no entry is present and [ifAbsent] is `null` (the default), an
+  /// exception is thrown.
+  ///
+  /// Any exceptions that occur during execution of the [decode] or [ifAbsent]
+  /// callback are converted to [LocatedError] (if necessary), and tagged with
+  /// an appropriate location in the source YAML file.
+  T get<T>(
+    String key, {
+    required T Function(YamlNode) decode,
+    T Function()? ifAbsent,
+  }) {
+    _permittedKeys.add(key);
+    if (_map.nodes[key] case var node?) {
+      return LocatedError.wrap(() => decode(node), span: node.span);
+    } else {
+      return LocatedError.wrap(
+        ifAbsent ?? (() => throw 'Missing key ${json.encode(key)}'),
+        span: keySpan,
+      );
+    }
+  }
+
+  /// Attempts to decode the YAML value associated with [key] as a boolean.
+  ///
+  /// If there is no entry present with the given [key], an exception is thrown.
+  bool getBool(String key) => get(key, decode: _decodeBool);
+
+  /// Attempts to decode the YAML value associated with [key] as a message
+  /// template.
+  ///
+  /// If [isRequired] is `true` and there is no entry present with the given
+  /// [key], an exception is thrown.
+  List<TemplatePart>? getMessageTemplate(
+    String key, {
+    required bool isRequired,
+  }) => get(
+    key,
+    decode: (node) {
+      switch (node) {
+        case YamlScalar(:String value):
+          // Remove trailing whitespace. This is necessary for templates defined
+          // with `|` (verbatim) as they always contain a trailing newline that we
+          // don't want.
+          var text = value.trimRight();
+          if (text.contains(oldPlaceholderPattern)) {
+            throw '$key contains an old-style analyzer placeholder pattern. '
+                'Please convert to #NAME format.';
+          }
+
+          var template = <TemplatePart>[];
+          var i = 0;
+          for (var match in placeholderPattern.allMatches(text)) {
+            var matchStart = match.start;
+            if (matchStart > i) {
+              template.add(TemplateLiteralPart(text.substring(i, matchStart)));
+            }
+            template.add(
+              TemplateParameterPart.fromMatch(match, parameters: parameters),
+            );
+            i = match.end;
+          }
+          if (text.length > i) {
+            template.add(TemplateLiteralPart(text.substring(i)));
+          }
+          return template;
+        default:
+          throw 'Bad message type: ${node.runtimeType}';
+      }
+    },
+    ifAbsent: isRequired ? null : () => null,
+  );
+
+  /// Attempts to decode the YAML value associated with [key] as a boolean.
+  ///
+  /// If there is no entry present with the given [key], `null` is returned.
+  bool? getOptionalBool(String key) =>
+      get(key, decode: _decodeBool, ifAbsent: () => null);
+
+  /// Attempts to decode the YAML value associated with [key] as a string.
+  ///
+  /// If there is no entry present with the given [key], `null` is returned.
+  String? getOptionalString(String key) => get(
+    key,
+    decode: (node) => switch (node) {
+      YamlScalar(:String value) => value,
+      _ => throw 'Must be a string',
+    },
+    ifAbsent: () => null,
+  );
+
+  /// Decodes a YAML [key]/[value] pair into a diagnostic message by invoking
+  /// the given [decoder].
+  ///
+  /// Any exceptions that occur during execution of the [decoder] are converted
+  /// to [LocatedError] (if necessary), and tagged with an appropriate location
+  /// in the source YAML file.
+  static T decode<T extends Message>({
+    required YamlScalar key,
+    required YamlMap value,
+    required T Function(MessageYaml) decoder,
+  }) {
+    return LocatedError.wrap(() {
+      var messageYaml = MessageYaml._(key, value);
+      var result = decoder(messageYaml);
+      for (var key in value.nodes.keys) {
+        key as YamlScalar;
+        if (!messageYaml._permittedKeys.contains(key.value)) {
+          throw LocatedError(
+            'Unexpected key ${json.encode(key.value)}',
+            span: key.span,
+          );
+        }
+      }
+      return result;
+    }, span: key.span);
+  }
+
+  static bool _decodeBool(YamlNode node) => switch (node) {
+    YamlScalar(:bool value) => value,
+    _ => throw 'Must be a bool',
+  };
+
+  static Map<String, DiagnosticParameter> _decodeParameters(YamlNode yaml) {
+    switch (yaml) {
+      case YamlScalar(value: 'none'):
+        return const {};
+      case YamlMap(:var nodes):
+        var result = <String, DiagnosticParameter>{};
+        var index = 0;
+        for (var MapEntry(:key, :value) in nodes.entries) {
+          var keyNode = key as YamlScalar;
+          LocatedError.wrap(span: keyNode.span, () {
+            switch ((keyNode.value as String).split(' ')) {
+              case [var type, var name]:
+                if (result.containsKey(name)) {
+                  throw 'Duplicate parameter name: $name';
+                }
+                result[name] = DiagnosticParameter(
+                  name: name,
+                  type: DiagnosticParameterType.fromMessagesYamlName(type),
+                  comment: value.value as String,
+                  index: index++,
+                );
+              default:
+                throw 'Malformed parameter key (should be `TYPE NAME`): '
+                    '${json.encode(key.value)}';
+            }
+          });
+        }
+        return result;
+    }
+    throw 'Must be a map or "none".';
+  }
+}
+
 /// A [Conversion] that acts on [num], applying formatting parameters specified
 /// in the template.
 class NumericConversion implements Conversion {
@@ -1149,32 +1275,26 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
   @override
   final bool hasPublishedDocs;
 
-  SharedMessage.fromYaml(super.yaml, {required super.keyNode})
-    : analyzerCode = _decodeAnalyzerCode(
-        (yaml['analyzerCode'] ??
-                (throw LocatedError(
-                  'Shared diagnostics must specify an analyzerCode.',
-                  node: yaml,
-                )))
-            as String,
+  SharedMessage(super.messageYaml)
+    : analyzerCode = messageYaml.get(
+        'analyzerCode',
+        decode: _decodeAnalyzerCode,
       ),
-      hasPublishedDocs =
-          yaml['hasPublishedDocs'] as bool? ??
-          (throw 'Missing key "hasPublishedDocs".'),
-      super.fromYaml();
+      hasPublishedDocs = messageYaml.getBool('hasPublishedDocs');
 
-  static AnalyzerCode _decodeAnalyzerCode(String s) {
-    switch (s.split('.')) {
-      case [var className, var snakeCaseName]
-          when snakeCaseName == snakeCaseName.toUpperCase():
-        return AnalyzerCode(
-          diagnosticClass: DiagnosticClassInfo.byName(className),
-          snakeCaseName: snakeCaseName,
-        );
-      default:
-        throw 'Analyzer codes must take the form ClassName.DIAGNOSTIC_NAME. '
-            'Found ${json.encode(s)} instead.';
+  static AnalyzerCode _decodeAnalyzerCode(YamlNode node) {
+    switch (node) {
+      case YamlScalar(value: String s):
+        switch (s.split('.')) {
+          case [var className, var snakeCaseName]
+              when snakeCaseName == snakeCaseName.toUpperCase():
+            return AnalyzerCode(
+              diagnosticClass: DiagnosticClassInfo.byName(className),
+              snakeCaseName: snakeCaseName,
+            );
+        }
     }
+    throw 'Analyzer codes must take the form ClassName.DIAGNOSTIC_NAME.';
   }
 }
 
@@ -1275,18 +1395,16 @@ class _DuplicateChecker<Code> {
         throw [
           '$kind $code used for multiple diagnostics:',
           for (var message in messages)
-            '${message.location}: ${message.keyNode}',
+            '${message.location}: ${message.keyString}',
         ].join('\n');
       }
     }
   }
 }
 
-extension YamlNodeLocation on YamlNode {
-  /// A string suitable for identifying the location of this node in the source
-  /// YAML file.
+extension SourceSpanLocation on SourceSpan {
+  /// A string suitable for identifying this span in the source YAML file.
   String get location {
-    var start = span.start;
     var path = start.sourceUrl?.toFilePath() ?? '<unknown>';
     // Convert line/column to 1-based because that's what most editors expect
     var line = start.line + 1;

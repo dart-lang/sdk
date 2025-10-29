@@ -15,6 +15,7 @@ dependencies:
   package_config: any
   path: any
   pub_semver: any
+  source_span: any
   test: any
   yaml: any
 
