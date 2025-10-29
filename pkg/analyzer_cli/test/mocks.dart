@@ -6,7 +6,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer_cli/src/options.dart';
 
 class MockCommandLineOptions implements CommandLineOptions {
