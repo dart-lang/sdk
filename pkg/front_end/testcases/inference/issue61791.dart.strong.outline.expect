@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+extension type E1(self::A a) implements self::A {
+  abstract extension-type-member representation-field get a() → self::A;
+  constructor • = self::E1|constructor#;
+  constructor tearoff • = self::E1|constructor#_#new#tearOff;
+}
+extension type E2(self::B b) implements self::B, self::E1 /* erasure=self::A */ {
+  abstract extension-type-member representation-field get b() → self::B;
+  constructor • = self::E2|constructor#;
+  constructor tearoff • = self::E2|constructor#_#new#tearOff;
+}
+static extension-type-member method E1|constructor#(self::A a) → self::E1 /* erasure=self::A */
+  ;
+static extension-type-member synthetic method E1|constructor#_#new#tearOff(self::A a) → self::E1 /* erasure=self::A */
+  return self::E1|constructor#(a);
+static extension-type-member method E2|constructor#(self::B b) → self::E2 /* erasure=self::B */
+  ;
+static extension-type-member synthetic method E2|constructor#_#new#tearOff(self::B b) → self::E2 /* erasure=self::B */
+  return self::E2|constructor#(b);
+static method test(self::E2 /* erasure=self::B */ e) → dynamic
+  ;

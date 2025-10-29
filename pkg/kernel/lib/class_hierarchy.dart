@@ -762,10 +762,12 @@ class ClosedWorldClassHierarchy
   }
 
   List<_ClassInfo> _getRankedSuperclassInfos(_ClassInfo info) {
-    if (info.leastUpperBoundInfos != null) return info.leastUpperBoundInfos!;
+    if (info._rankedSuperclassInfos != null) {
+      return info._rankedSuperclassInfos!;
+    }
     _LubHeap heap = new _LubHeap()..add(info);
     List<_ClassInfo> chain = <_ClassInfo>[];
-    info.leastUpperBoundInfos = chain;
+    info._rankedSuperclassInfos = chain;
     _ClassInfo? lastInfo = null;
     while (heap.isNotEmpty) {
       _ClassInfo nextInfo = heap.remove();
@@ -792,18 +794,16 @@ class ClosedWorldClassHierarchy
 
   List<_ClassInfo> _getCombinedRankedSuperclassInfosFromList(
       List<_ClassInfo> infos) {
-    if (infos.length == 1 && infos.single.leastUpperBoundInfos != null) {
-      return infos.single.leastUpperBoundInfos!;
+    if (infos.length == 1 && infos.single._rankedSuperclassInfos != null) {
+      return infos.single._rankedSuperclassInfos!;
     }
 
     _LubHeap heap = new _LubHeap();
     for (_ClassInfo info in infos) {
       heap.add(info);
-      if (info.leastUpperBoundInfos == null) {
-        List<_ClassInfo> chainForInfo = _getRankedSuperclassInfos(info);
-        for (_ClassInfo fromChain in chainForInfo) {
-          heap.add(fromChain);
-        }
+      List<_ClassInfo> chainForInfo = _getRankedSuperclassInfos(info);
+      for (_ClassInfo fromChain in chainForInfo) {
+        heap.add(fromChain);
       }
     }
 
@@ -1857,7 +1857,8 @@ class _ClassInfo {
   late final Uint32List superclassIntervalList;
   late final Uint32List supertypeIntervalList;
 
-  List<_ClassInfo>? leastUpperBoundInfos;
+  /// Cached result of [ClosedWorldClassHierarchy._getRankedSuperclassInfos].
+  List<_ClassInfo>? _rankedSuperclassInfos;
 
   /// Maps generic supertype classes to the instantiations implemented by this
   /// class.

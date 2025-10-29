@@ -893,19 +893,19 @@ mixin StandardBounds {
 
       int computeExtensionTypeDeclarationDepth(
           ExtensionTypeDeclaration extensionTypeDeclaration,
-          List<InterfaceType> superInterfaceType) {
+          List<InterfaceType> superInterfaceTypes) {
         int? depth = extensionTypeDeclarationDepth[extensionTypeDeclaration];
         if (depth == null) {
           int maxDepth = 0;
           for (DartType implemented in extensionTypeDeclaration.implements) {
             if (implemented is ExtensionType) {
               int supertypeDepth = computeExtensionTypeDeclarationDepth(
-                  implemented.extensionTypeDeclaration, superInterfaceType);
+                  implemented.extensionTypeDeclaration, superInterfaceTypes);
               if (supertypeDepth >= maxDepth) {
                 maxDepth = supertypeDepth + 1;
               }
             } else if (implemented is InterfaceType) {
-              superInterfaceType.add(implemented);
+              superInterfaceTypes.add(implemented);
             }
           }
           depth = extensionTypeDeclarationDepth[extensionTypeDeclaration] =
