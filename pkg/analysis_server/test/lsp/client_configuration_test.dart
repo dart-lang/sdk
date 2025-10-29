@@ -67,6 +67,35 @@ class ClientConfigurationTest with ResourceProviderMixin {
 /// for each kind of hint.
 @reflectiveTest
 class InlayHintsConfigurationTest {
+  void test_dotShorthandTypes_disabled() {
+    var options = [
+      LspClientInlayHintsConfiguration(false),
+      LspClientInlayHintsConfiguration({'dotShorthandTypes': false}),
+      LspClientInlayHintsConfiguration({
+        'dotShorthandTypes': {'enabled': false},
+      }),
+    ];
+
+    for (var option in options) {
+      expect(option.dotShorthandTypesEnabled, false);
+    }
+  }
+
+  void test_dotShorthandTypes_enabled() {
+    var options = [
+      LspClientInlayHintsConfiguration(null),
+      LspClientInlayHintsConfiguration(true),
+      LspClientInlayHintsConfiguration({'dotShorthandTypes': true}),
+      LspClientInlayHintsConfiguration({
+        'dotShorthandTypes': {'enabled': true},
+      }),
+    ];
+
+    for (var option in options) {
+      expect(option.dotShorthandTypesEnabled, true);
+    }
+  }
+
   void test_parameterNames_all() {
     var options = [
       LspClientInlayHintsConfiguration(null),

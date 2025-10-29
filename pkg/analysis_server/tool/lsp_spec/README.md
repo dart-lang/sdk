@@ -45,6 +45,7 @@ Client workspace settings are requested with `workspace/configuration` during in
 - `dart.documentation` (`none`, `summary`, `full`): The kind of dartdocs to include in requests that can return large numbers of results such as Code Completion. If not set, defaults to `full`.
 - `dart.includeDependenciesInWorkspaceSymbols` (`bool?`): Whether to include symbols from dependencies and Dart/Flutter SDKs in Workspace Symbol results. If not set, defaults to `true`.
 - `dart.inlayHints` (`bool?` | `Object?`): Whether to show Inlay Hints. When set to `true`, enables all inlay hints with default settings. When set to `false`, disables all inlay hints. Can also be an object to configure individual hint types as defined below. Defaults to `true`.
+  - `dotShorthandTypes` (`{ "enabled": bool }`): Whether to show Inlay Hints for dot shorthand types.
   - `parameterNames` (`{ "enabled": true | false | "none" | "literal" | "all" }`): Controls parameter name hints.
     - `"none"` or `false`: show no parameter name hints
 	- `"literal"`: show hints only for arguments with literal values
