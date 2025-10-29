@@ -15,69 +15,180 @@ main() {
 
 @reflectiveTest
 class InconsistentLanguageVersionOverrideTest extends PubPackageResolutionTest {
-  CompileTimeErrorCode get _errorCode =>
-      CompileTimeErrorCode.inconsistentLanguageVersionOverride;
+  test_0_00_000_AAA() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.10
+part 'b.dart';
+''');
 
-  test_both_different() async {
-    await _checkLibraryAndPart(
-      libraryContent: r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.10
+part of 'a.dart';
+part 'c.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+// @dart = 3.10
+part of 'b.dart';
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, []);
+    await assertErrorsInFile2(c, []);
+  }
+
+  test_0_00_000_AAB() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.10
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.10
+part of 'a.dart';
+part 'c.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+// @dart = 3.11
+part of 'b.dart';
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, [
+      error(CompileTimeErrorCode.inconsistentLanguageVersionOverride, 39, 8),
+    ]);
+    await assertErrorsInFile2(c, []);
+  }
+
+  test_0_00_000_AAN() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.10
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.10
+part of 'a.dart';
+part 'c.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+part of 'b.dart';
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, [
+      error(CompileTimeErrorCode.inconsistentLanguageVersionOverride, 39, 8),
+    ]);
+    await assertErrorsInFile2(c, []);
+  }
+
+  test_0_00_000_ABB() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.10
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.11
+part of 'a.dart';
+part 'c.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+// @dart = 3.11
+part of 'b.dart';
+''');
+
+    await assertErrorsInFile2(a, [
+      error(CompileTimeErrorCode.inconsistentLanguageVersionOverride, 21, 8),
+    ]);
+    await assertErrorsInFile2(b, []);
+    await assertErrorsInFile2(c, []);
+  }
+
+  test_0_00_000_NAA() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.10
+part of 'a.dart';
+part 'c.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+// @dart = 3.10
+part of 'b.dart';
+''');
+
+    await assertErrorsInFile2(a, [
+      error(CompileTimeErrorCode.inconsistentLanguageVersionOverride, 5, 8),
+    ]);
+    await assertErrorsInFile2(b, []);
+    await assertErrorsInFile2(c, []);
+  }
+
+  test_0_00_AA() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.2
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.2
+part of 'a.dart';
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, []);
+  }
+
+  test_0_00_AB() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 3.1
 part 'b.dart';
-''',
-      partContent: r'''
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 // @dart = 3.2
 part of 'a.dart';
-''',
-      libraryDiagnostics: [error(_errorCode, 20, 8)],
-    );
+''');
+
+    await assertErrorsInFile2(a, [
+      error(CompileTimeErrorCode.inconsistentLanguageVersionOverride, 20, 8),
+    ]);
+    await assertErrorsInFile2(b, []);
   }
 
-  test_both_same() async {
-    await _checkLibraryAndPart(
-      libraryContent: r'''
-// @dart = 3.2
+  test_0_00_NA() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
-''',
-      partContent: r'''
-// @dart = 3.2
-part of 'a.dart';
-''',
-      libraryDiagnostics: [],
-    );
-  }
+''');
 
-  test_none() async {
-    await _checkLibraryAndPart(
-      libraryContent: r'''
-part 'b.dart';
-''',
-      partContent: r'''
-part of 'a.dart';
-''',
-      libraryDiagnostics: [],
-    );
-  }
-
-  test_onlyPart() async {
-    await _checkLibraryAndPart(
-      libraryContent: r'''
-part 'b.dart';
-''',
-      partContent: r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 // @dart = 3.1
 part of 'a.dart';
-''',
-      libraryDiagnostics: [error(_errorCode, 5, 8)],
-    );
+''');
+
+    await assertErrorsInFile2(a, [
+      error(CompileTimeErrorCode.inconsistentLanguageVersionOverride, 5, 8),
+    ]);
+    await assertErrorsInFile2(b, []);
   }
 
-  Future<void> _checkLibraryAndPart({
-    required String libraryContent,
-    required String partContent,
-    required List<ExpectedDiagnostic> libraryDiagnostics,
-  }) async {
-    var a = newFile('$testPackageLibPath/a.dart', libraryContent);
-    newFile('$testPackageLibPath/b.dart', partContent);
-    await assertErrorsInFile2(a, libraryDiagnostics);
+  test_0_00_NN() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, []);
   }
 }
