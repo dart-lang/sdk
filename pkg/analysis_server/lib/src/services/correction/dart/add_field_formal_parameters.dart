@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:collection/collection.dart';
 
 /// The boolean value indicates whether the field is required.
 /// The string value is the field/parameter name.
@@ -49,11 +50,16 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     }
 
     // Compute uninitialized final fields.
-    var fields = ErrorVerifier.computeNotInitializedFields(constructor);
-    fields.retainWhere((FieldElement field) => field.isFinal);
-    fields.sort(
-      (a, b) => a.firstFragment.nameOffset! - b.firstFragment.nameOffset!,
-    );
+    var fields = ErrorVerifier.computeNotInitializedFields(constructor)
+        .where((field) => field.isFinal)
+        .map((field) {
+          var nameOffset = field.firstFragment.nameOffset;
+          return nameOffset != null ? (field, nameOffset) : null;
+        })
+        .nonNulls
+        .sortedBy((pair) => pair.$2)
+        .map((pair) => pair.$1)
+        .toList();
 
     // Prepare the last required parameter.
     FormalParameter? lastRequiredParameter;
