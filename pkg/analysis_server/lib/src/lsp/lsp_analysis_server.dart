@@ -660,20 +660,13 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   /// Updates an overlay on [path] by applying the [edits] to the current
-  /// overlay.
-  ///
-  /// If the result of applying the edits is already known, [newContent] can be
-  /// set to avoid doing that calculation twice.
+  /// overlay with the result [newContent].
   void onOverlayUpdated(
     String path,
     List<plugin.SourceEdit> edits, {
-    String? newContent,
+    required String newContent,
   }) {
     assert(resourceProvider.hasOverlay(path));
-    if (newContent == null) {
-      var oldContent = resourceProvider.getFile(path).readAsStringSync();
-      newContent = plugin.applySequenceOfEdits(oldContent, edits);
-    }
 
     resourceProvider.setOverlay(
       path,
@@ -681,7 +674,11 @@ class LspAnalysisServer extends AnalysisServer {
       modificationStamp: overlayModificationStamp++,
     );
 
-    _afterOverlayChanged(path, plugin.ChangeContentOverlay(edits));
+    _afterOverlayChanged(
+      path,
+      plugin.ChangeContentOverlay(edits),
+      precomputedNewContentForChange: newContent,
+    );
   }
 
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
@@ -1034,11 +1031,19 @@ class LspAnalysisServer extends AnalysisServer {
     await _refreshAnalysisRoots();
   }
 
-  void _afterOverlayChanged(String path, plugin.HasToJson changeForPlugins) {
+  void _afterOverlayChanged(
+    String path,
+    plugin.HasToJson changeForPlugins, {
+    String? precomputedNewContentForChange,
+  }) {
     for (var driver in driverMap.values) {
       driver.changeFile(path);
     }
-    _notifyPluginsOverlayChanged(path, changeForPlugins);
+    _notifyPluginsOverlayChanged(
+      path,
+      changeForPlugins,
+      precomputedNewContentForChange: precomputedNewContentForChange,
+    );
 
     notifyDeclarationsTracker(path);
     notifyFlutterWidgetDescriptions(path);
@@ -1112,10 +1117,12 @@ class LspAnalysisServer extends AnalysisServer {
 
   void _notifyPluginsOverlayChanged(
     String path,
-    plugin.HasToJson changeForPlugins,
-  ) {
+    plugin.HasToJson changeForPlugins, {
+    String? precomputedNewContentForChange,
+  }) {
     pluginManager.setAnalysisUpdateContentParams(
       plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
+      precomputedNewContentForChange: precomputedNewContentForChange,
     );
   }
 

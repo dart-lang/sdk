@@ -27,6 +27,8 @@ abstract class OperationPerformance {
 
   OperationPerformance? getChild(String name);
 
+  Map<String, Object?> toJson();
+
   /// Write this operation and its children into the [buffer].
   void write({required StringBuffer buffer, String indent = ''});
 }
@@ -200,6 +202,17 @@ class OperationPerformanceImpl implements OperationPerformance {
     } finally {
       child._stop();
     }
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'name': name,
+      'count': count,
+      'elapsed': elapsed.inMicroseconds,
+      'elapsedSelf': elapsedSelf.inMicroseconds,
+      'children': children,
+    };
   }
 
   @override

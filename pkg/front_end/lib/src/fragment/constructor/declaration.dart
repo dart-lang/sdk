@@ -31,7 +31,6 @@ import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
-import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_function_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
@@ -1337,9 +1336,7 @@ class PrimaryConstructorDeclaration
       f,
       constructorBuilder: constructorBuilder,
       libraryBuilder: libraryBuilder,
-      declarationBuilder:
-          constructorBuilder.declarationBuilder
-              as SourceExtensionTypeDeclarationBuilder,
+      declarationBuilder: constructorBuilder.declarationBuilder,
       name: _fragment.name,
       nameScheme: nameScheme,
       constructorReferences: constructorReferences,

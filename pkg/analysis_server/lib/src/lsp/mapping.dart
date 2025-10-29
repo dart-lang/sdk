@@ -1473,6 +1473,26 @@ ErrorOr<int> toOffset(
   );
 }
 
+ErrorOr<int> toOffsetFromOffsetLineAndColumn(
+  int? offsetOfLine,
+  int column,
+  int originalLine, {
+  bool failureIsCritical = false,
+}) {
+  if (offsetOfLine == null) {
+    return ErrorOr<int>.error(
+      lsp.ResponseError(
+        code: failureIsCritical
+            ? lsp.ServerErrorCodes.ClientServerInconsistentState
+            : lsp.ServerErrorCodes.InvalidFileLineCol,
+        message: 'Invalid line number',
+        data: originalLine.toString(),
+      ),
+    );
+  }
+  return ErrorOr<int>.success(offsetOfLine + column);
+}
+
 lsp.Outline toOutline(server.LineInfo lineInfo, server.Outline outline) {
   var children = outline.children;
   return lsp.Outline(

@@ -18,6 +18,7 @@ LibTest/js_interop/NullableUndefineableJSAnyExtension/isNull_t01: SkipByDesign #
 LibTest/js_interop/NullableUndefineableJSAnyExtension/isUndefined_t01: SkipByDesign #isUndefined is not supported.
 LibTest/js_interop/interop_type_A01_t10: SkipByDesign # dart:html is not supported.
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported.
+VM/*: SkipByDesign # Only meant to run on vm.
 
 [ $compiler == dart2wasm && $browser ]
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: SkipSlow # Issue(http://dartbug.com/55182): Will timeout on browsers (due to no asyncEnd() firing) but eagerly fail on commandline JS engines.

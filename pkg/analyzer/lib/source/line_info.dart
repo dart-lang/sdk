@@ -52,6 +52,8 @@ class LineInfo {
     var length = content.length;
     for (var i = 0; i < length; i++) {
       var unit = content.codeUnitAt(i);
+      if (unit > slashR) continue;
+
       // Special-case \r\n.
       if (unit == slashR) {
         // Peek ahead to detect a following \n.
@@ -62,7 +64,7 @@ class LineInfo {
         }
       }
       // \n
-      if (unit == slashN) {
+      else if (unit == slashN) {
         lineStarts.add(i + 1);
       }
     }
@@ -123,5 +125,39 @@ class LineInfo {
   /// containing the given [offset].
   int getOffsetOfLineAfter(int offset) {
     return getOffsetOfLine(getLocation(offset).lineNumber);
+  }
+
+  /// Get the offset of the 0-indexed line [line] in [content].
+  ///
+  /// If [line] does not exist it will return null.
+  static int? getOffsetForLine(int line, String content) {
+    if (line == 0) return 0;
+    const slashN = 0x0A;
+    const slashR = 0x0D;
+
+    var length = content.length;
+    var inLine = 0;
+    for (var i = 0; i < length; i++) {
+      var unit = content.codeUnitAt(i);
+      if (unit > slashR) continue;
+
+      // Special-case \r\n.
+      if (unit == slashR) {
+        // Peek ahead to detect a following \n.
+        if (i + 1 < length && content.codeUnitAt(i + 1) == slashN) {
+          // Line start will get registered at next index at the \n.
+        } else {
+          inLine++;
+          if (inLine == line) return i + 1;
+        }
+      }
+      // \n
+      else if (unit == slashN) {
+        inLine++;
+        if (inLine == line) return i + 1;
+      }
+    }
+
+    return null;
   }
 }
