@@ -2590,6 +2590,38 @@ MethodInvocation
 ''');
   }
 
+  test_error_undefinedMethod_noTarget_synthetic_class() async {
+    await assertErrorsInCode(
+      r'''
+class {
+  void f() {
+    foo(0);
+  }
+}
+''',
+      [error(ParserErrorCode.missingIdentifier, 6, 1)],
+    );
+
+    var node = findNode.methodInvocation('foo(0);');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
   test_error_undefinedMethod_null() async {
     await assertErrorsInCode(
       r'''
