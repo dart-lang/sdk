@@ -57,7 +57,9 @@ bool SocketAddress::AreAddressesEqual(const RawAddr& a, const RawAddr& b) {
       return false;
     }
 
-    return (a.size <= offsetof(decltype(a.un), sun_path)) ||
+    // Cast below is avoid signed vs unsigned comparison warning on some OSes.
+    return (a.size <=
+            static_cast<socklen_t>(offsetof(decltype(a.un), sun_path))) ||
            (memcmp(a.un.sun_path, b.un.sun_path,
                    a.size - offsetof(decltype(a.un), sun_path)) == 0);
   } else {
