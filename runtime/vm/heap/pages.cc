@@ -624,15 +624,6 @@ bool PageSpace::CodeContains(uword addr) const {
   return false;
 }
 
-bool PageSpace::DataContains(uword addr) const {
-  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    if (!it.page()->is_executable() && it.page()->Contains(addr)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 void PageSpace::AddRegionsToObjectSet(ObjectSet* set) const {
   ASSERT((pages_ != nullptr) || (exec_pages_ != nullptr) ||
          (large_pages_ != nullptr));

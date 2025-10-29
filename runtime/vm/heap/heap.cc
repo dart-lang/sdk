@@ -273,20 +273,8 @@ bool Heap::Contains(uword addr) const {
   return new_space_.Contains(addr) || old_space_.Contains(addr);
 }
 
-bool Heap::NewContains(uword addr) const {
-  return new_space_.Contains(addr);
-}
-
-bool Heap::OldContains(uword addr) const {
-  return old_space_.Contains(addr);
-}
-
 bool Heap::CodeContains(uword addr) const {
   return old_space_.CodeContains(addr);
-}
-
-bool Heap::DataContains(uword addr) const {
-  return old_space_.DataContains(addr);
 }
 
 void Heap::VisitObjects(ObjectVisitor* visitor) {

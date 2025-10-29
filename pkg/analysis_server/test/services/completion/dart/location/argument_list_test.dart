@@ -71,8 +71,6 @@ suggestions
     kind: keyword
   false
     kind: keyword
-  null
-    kind: keyword
   const
     kind: keyword
   switch
@@ -98,8 +96,6 @@ replacement
 suggestions
   random
     kind: localVariable
-  null
-    kind: keyword
   false
     kind: keyword
   true
@@ -234,6 +230,83 @@ suggestions
   const
     kind: keyword
   null
+    kind: keyword
+''');
+  }
+
+  Future<void> test_closure_namedParameters() async {
+    includeClosures = true;
+    await computeSuggestions('''
+void f(void Function(int i) x) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  (i) => ^,
+    kind: invocation
+  (i) {
+    ^
+  },
+    kind: invocation
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_closure_unnamedParameters() async {
+    includeClosures = true;
+    await computeSuggestions('''
+void f(void Function(int) x) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  (p0) => ^,
+    kind: invocation
+  (p0) {
+    ^
+  },
+    kind: invocation
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_closure_unnamedParameters_equal() async {
+    includeClosures = true;
+    await computeSuggestions('''
+void f(void Function(int p2, int p2_1, int) x) {
+  f(^);
+}
+''');
+    // We expect it to try and use `p2` but since it is already in use, it
+    // should try `p2_1`, and then `p2_2`.
+    assertResponse('''
+suggestions
+  (p2, p2_1, p2_2) => ^,
+    kind: invocation
+  (p2, p2_1, p2_2) {
+    ^
+  },
+    kind: invocation
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_nullableClosure() async {
+    await computeSuggestions('''
+void f(void Function(int i)? x) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  null
+    kind: keyword
+  switch
     kind: keyword
 ''');
   }

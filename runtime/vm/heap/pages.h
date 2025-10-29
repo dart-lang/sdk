@@ -227,8 +227,6 @@ class PageSpace {
   bool Contains(uword addr) const;
   bool ContainsUnsafe(uword addr) const;
   bool CodeContains(uword addr) const;
-  bool DataContains(uword addr) const;
-  bool IsValidAddress(uword addr) const { return Contains(addr); }
 
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectsNoImagePages(ObjectVisitor* visitor) const;

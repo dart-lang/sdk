@@ -530,7 +530,7 @@ dependencies:
     await verifyCompletions(
       pubspecFileUri,
       content,
-      expectCompletions: ['^2.3.4', '^2.1.0'],
+      expectCompletions: ['^2.1.0', '^2.3.4'],
       applyEditsFor: '^2.3.4',
       expectedContent: expected,
       openCloseFile: false,
@@ -630,7 +630,7 @@ name: ''';
     await verifyCompletions(
       pubspecFileUri,
       content,
-      expectCompletions: ['name: ', 'description: '],
+      expectCompletions: ['description: ', 'name: '],
       applyEditsFor: 'name: ',
       expectedContent: expected,
     );

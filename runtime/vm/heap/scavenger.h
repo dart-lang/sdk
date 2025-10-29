@@ -132,7 +132,7 @@ class Scavenger {
   // During scavenging both the to and from spaces contain "legal" objects.
   // During a scavenge this function only returns true for addresses that will
   // be part of the surviving objects.
-  bool Contains(uword addr) const { return to_->Contains(addr); }
+  bool Contains(uword addr) const;
 
   uword TryAllocate(Thread* thread, intptr_t size) {
     uword addr = TryAllocateFromTLAB(thread, size);

@@ -572,9 +572,6 @@ class TimelineEvent {
     return PreSerializedArgsBit::decode(state_);
   }
 
-  TimelineEvent* next() const { return next_; }
-  void set_next(TimelineEvent* next) { next_ = next; }
-
  private:
   void StreamInit(TimelineStream* stream) { stream_ = stream; }
   void Init(EventType event_type, const char* label);
@@ -635,7 +632,6 @@ class TimelineEvent {
   uint64_t isolate_group_id_;
   void* isolate_data_;
   void* isolate_group_data_;
-  TimelineEvent* next_;
 
   friend class TimelineEventRecorder;
   friend class TimelineEventEndlessRecorder;

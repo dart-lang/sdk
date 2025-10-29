@@ -804,6 +804,11 @@ Scavenger::~Scavenger() {
   ASSERT(blocks_ == nullptr);
 }
 
+bool Scavenger::Contains(uword addr) const {
+  MutexLocker ml(&space_lock_);
+  return to_->Contains(addr);
+}
+
 intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
                                    GCReason reason) const {
   intptr_t num_mutators = heap_->isolate_group()->MutatorCount();

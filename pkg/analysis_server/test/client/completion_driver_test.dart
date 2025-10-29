@@ -68,7 +68,7 @@ abstract class AbstractCompletionDriverTest
 
   /// Return `true` if closures (suggestions starting with a left paren) should
   /// be included in the text to be compared.
-  bool get includeClosures => false;
+  bool includeClosures = false;
 
   /// Return `true` if overrides should be included in the text to be compared.
   bool get includeOverrides => true;

@@ -86,9 +86,6 @@
 # as well as internal documentation (comment), which will be included in
 # the code generated for the analyzer.
 #
-# In some cases a message is internal to the frontend, and no meaningful
-# analyzer code can be provided. In such cases set `frontendInternal: true`.
-#
 # ## Parameter Substitution in problemMessage and correctionMessage
 #
 # The fields `problemMessage` and `correctionMessage` are subject to parameter
@@ -4255,7 +4252,6 @@ InitializeFromDillNotSelfContained:
     Either way, you should probably delete the file so it doesn't use unnecessary disk space.
 
   severity: WARNING
-  frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
 
 InitializeFromDillNotSelfContainedNoDump:
@@ -4267,7 +4263,6 @@ InitializeFromDillNotSelfContainedNoDump:
     The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
 
   severity: WARNING
-  frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
 
 InitializeFromDillUnknownProblem:
@@ -4287,7 +4282,6 @@ InitializeFromDillUnknownProblem:
     Either way, you should probably delete the file so it doesn't use unnecessary disk space.
 
   severity: WARNING
-  frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
 
 InitializeFromDillUnknownProblemNoDump:
@@ -4304,7 +4298,6 @@ InitializeFromDillUnknownProblemNoDump:
     The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
 
   severity: WARNING
-  frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
 
 WebLiteralCannotBeRepresentedExactly:
@@ -4632,7 +4625,6 @@ RedirectingFactoryIncompatibleTypeArgument:
 SyntheticToken:
   parameters: none
   problemMessage: "This couldn't be parsed."
-  frontendInternal: true
 
 IncorrectTypeArgument:
   parameters:
@@ -4787,7 +4779,6 @@ TypeOrigin:
     Name name: undocumented
     Uri uri: undocumented
   problemMessage: "'#name' is from '#uri'."
-  frontendInternal: true
   external: test/type_labeler_test.dart
 
 TypeOriginWithFileUri:
@@ -4796,25 +4787,21 @@ TypeOriginWithFileUri:
     Uri uri: undocumented
     Uri uri2: undocumented
   problemMessage: "'#name' is from '#uri' ('#uri2')."
-  frontendInternal: true
   external: test/type_labeler_test.dart
 
 ObjectExtends:
   parameters: none
   problemMessage: "The class 'Object' can't have a superclass."
-  frontendInternal: true
   external: test/object_supertype_test.dart
 
 ObjectImplements:
   parameters: none
   problemMessage: "The class 'Object' can't implement anything."
-  frontendInternal: true
   external: test/object_supertype_test.dart
 
 ObjectMixesIn:
   parameters: none
   problemMessage: "The class 'Object' can't use mixins."
-  frontendInternal: true
   external: test/object_supertype_test.dart
 
 InstanceAndSynthesizedStaticConflict:

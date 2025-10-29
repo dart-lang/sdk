@@ -139,6 +139,25 @@ suggestions
 ''');
   }
 
+  Future<void> test_parameter_unnamed() async {
+    await computeSuggestions('''
+void f(void Function(int) x) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  (p0) => ^,
+    kind: invocation
+    displayText: (p0) =>
+  (p0) {
+    ^
+  },
+    kind: invocation
+    displayText: (p0) {}
+''');
+  }
+
   Future<void> test_parameters_optionalNamed() async {
     await computeSuggestions('''
 void f({void Function(int a, {int b, int c}) closure}) {}
