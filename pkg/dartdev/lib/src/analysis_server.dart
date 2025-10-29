@@ -199,8 +199,8 @@ class AnalysisServer {
         sdk.analysisServerAotSnapshot
       else
         sdk.analysisServerSnapshot,
-      if (suppressAnalytics) '--${Driver.SUPPRESS_ANALYTICS_FLAG}',
-      '--${Driver.CLIENT_ID}=dart-$commandName',
+      if (suppressAnalytics) '--${Driver.suppressAnalyticsFlag}',
+      '--${Driver.clientIdOption}=dart-$commandName',
       '--disable-server-feature-completion',
       '--disable-server-feature-search',
       if (disableStatusNotificationDebouncing)

@@ -303,8 +303,8 @@ class _AnalysisServerClient {
   Future<void> start({bool setAnalysisRoots = true}) async {
     var process = await _startDartProcess(_sdk, [
       _sdk.analysisServerSnapshot,
-      '--${Driver.SUPPRESS_ANALYTICS_FLAG}',
-      '--${Driver.CLIENT_ID}=completion-metrics-client',
+      '--${Driver.suppressAnalyticsFlag}',
+      '--${Driver.clientIdOption}=completion-metrics-client',
       '--sdk',
       sdkPath.path,
     ]);
