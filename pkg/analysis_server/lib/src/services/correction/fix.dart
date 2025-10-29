@@ -773,22 +773,22 @@ abstract final class DartFixKind {
   );
   static const createExtensionGetter = FixKind(
     'dart.fix.create.extension.getter',
-    DartFixKindPriority.ignore,
+    DartFixKindPriority.standard - 3, // Lower than createExtensionMethod
     "Create extension getter '{0}'",
   );
   static const createExtensionMethod = FixKind(
     'dart.fix.create.extension.method',
-    DartFixKindPriority.ignore,
+    DartFixKindPriority.standard - 2,
     "Create extension method '{0}'",
   );
   static const createExtensionOperator = FixKind(
     'dart.fix.create.extension.operator',
-    DartFixKindPriority.ignore,
+    DartFixKindPriority.standard - 2,
     "Create extension operator '{0}'",
   );
   static const createExtensionSetter = FixKind(
     'dart.fix.create.extension.setter',
-    DartFixKindPriority.ignore,
+    DartFixKindPriority.standard - 3, // Matching createExtensionGetter
     "Create extension setter '{0}'",
   );
   static const createField = FixKind(
