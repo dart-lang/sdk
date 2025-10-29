@@ -189,11 +189,18 @@ final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
 /// Decoded messages from the linter's `messages.yaml` file.
 final List<AnalyzerMessage> lintMessages = decodeAnalyzerMessagesYaml(
   linterPkgPath,
+  allowLinterKeys: true,
 );
 
 /// Decodes a YAML object (in analyzer style `messages.yaml` format) into a list
 /// of [AnalyzerMessage]s.
-List<AnalyzerMessage> decodeAnalyzerMessagesYaml(String packagePath) {
+///
+/// If [allowLinterKeys], error checking logic will not reject key/value pairs
+/// that are used by the linter.
+List<AnalyzerMessage> decodeAnalyzerMessagesYaml(
+  String packagePath, {
+  bool allowLinterKeys = false,
+}) {
   var path = join(packagePath, 'messages.yaml');
   var yaml = loadYamlNode(
     File(path).readAsStringSync(),
@@ -202,7 +209,7 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(String packagePath) {
 
   var result = <AnalyzerMessage>[];
   if (yaml is! YamlMap) {
-    throw LocatedError('root node is not a map', node: yaml);
+    throw LocatedError('root node is not a map', span: yaml.span);
   }
   for (var classEntry in yaml.nodes.entries) {
     var keyNode = classEntry.key as YamlScalar;
@@ -210,14 +217,14 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(String packagePath) {
     if (className is! String) {
       throw LocatedError(
         'non-string class key ${json.encode(className)}',
-        node: keyNode,
+        span: keyNode.span,
       );
     }
     var classValue = classEntry.value;
     if (classValue is! YamlMap) {
       throw LocatedError(
         'value associated with class key $className is not a map',
-        node: classValue,
+        span: classValue.span,
       );
     }
     for (var diagnosticEntry in classValue.nodes.entries) {
@@ -226,28 +233,32 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(String packagePath) {
       if (diagnosticName is! String) {
         throw LocatedError(
           'non-string diagnostic key ${json.encode(diagnosticName)}',
-          node: keyNode,
+          span: keyNode.span,
         );
       }
       var diagnosticValue = diagnosticEntry.value;
       if (diagnosticValue is! YamlMap) {
         throw LocatedError(
           'value associated with diagnostic is not a map',
-          node: diagnosticValue,
+          span: diagnosticValue.span,
         );
       }
 
-      AnalyzerMessage message = LocatedError.wrap(node: diagnosticValue, () {
-        var analyzerCode = AnalyzerCode(
-          diagnosticClass: DiagnosticClassInfo.byName(className),
-          snakeCaseName: diagnosticName,
-        );
-        return AnalyzerMessage.fromYaml(
-          diagnosticValue,
-          keyNode: keyNode,
-          analyzerCode: analyzerCode,
-        );
-      });
+      AnalyzerMessage message = MessageYaml.decode(
+        key: keyNode,
+        value: diagnosticValue,
+        decoder: (messageYaml) {
+          var analyzerCode = AnalyzerCode(
+            diagnosticClass: DiagnosticClassInfo.byName(className),
+            snakeCaseName: diagnosticName,
+          );
+          return AnalyzerMessage(
+            messageYaml,
+            analyzerCode: analyzerCode,
+            allowLinterKeys: allowLinterKeys,
+          );
+        },
+      );
       result.add(message);
 
       if (message case AliasMessage(:var aliasFor)) {
@@ -255,7 +266,7 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(String packagePath) {
         if (aliasForPath.isEmpty) {
           throw LocatedError(
             "The 'aliasFor' value is empty",
-            node: diagnosticValue,
+            span: diagnosticValue.span,
           );
         }
         var node = yaml;
@@ -264,7 +275,7 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(String packagePath) {
           if (value is! YamlMap) {
             throw LocatedError(
               'No Map value at "$aliasFor"',
-              node: diagnosticValue,
+              span: diagnosticValue.span,
             );
           }
           node = value;
@@ -280,12 +291,12 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(String packagePath) {
 class AliasMessage extends AnalyzerMessage {
   String aliasFor;
 
-  AliasMessage._fromYaml(
-    super.yaml, {
+  AliasMessage(
+    super.messageYaml, {
     required this.aliasFor,
-    required super.keyNode,
     required super.analyzerCode,
-  }) : super._fromYaml();
+    required super.allowLinterKeys,
+  }) : super._();
 
   String get aliasForClass => aliasFor.split('.').first;
 
@@ -312,33 +323,38 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
   @override
   final bool hasPublishedDocs;
 
-  factory AnalyzerMessage.fromYaml(
-    YamlMap yaml, {
-    required YamlScalar keyNode,
+  factory AnalyzerMessage(
+    MessageYaml messageYaml, {
     required AnalyzerCode analyzerCode,
+    required bool allowLinterKeys,
   }) {
-    if (yaml['aliasFor'] case var aliasFor?) {
-      return AliasMessage._fromYaml(
-        yaml,
-        aliasFor: aliasFor as String,
-        keyNode: keyNode,
+    if (messageYaml.getOptionalString('aliasFor') case var aliasFor?) {
+      return AliasMessage(
+        messageYaml,
+        aliasFor: aliasFor,
         analyzerCode: analyzerCode,
+        allowLinterKeys: allowLinterKeys,
       );
     } else {
-      return AnalyzerMessage._fromYaml(
-        yaml,
-        keyNode: keyNode,
+      return AnalyzerMessage._(
+        messageYaml,
         analyzerCode: analyzerCode,
+        allowLinterKeys: allowLinterKeys,
       );
     }
   }
 
-  AnalyzerMessage._fromYaml(
-    super.yaml, {
-    required super.keyNode,
+  AnalyzerMessage._(
+    MessageYaml messageYaml, {
     required this.analyzerCode,
-  }) : hasPublishedDocs =
-           yaml['hasPublishedDocs'] as bool? ??
-           (throw 'Missing key "hasPublishedDocs".'),
-       super.fromYaml();
+    required bool allowLinterKeys,
+  }) : hasPublishedDocs = messageYaml.getBool('hasPublishedDocs'),
+       super(messageYaml) {
+    // Ignore extra keys related to analyzer example-based tests.
+    messageYaml.allowExtraKeys({'experiment'});
+    if (allowLinterKeys) {
+      // Ignore extra keys understood by the linter.
+      messageYaml.allowExtraKeys({'categories', 'deprecatedDetails', 'state'});
+    }
+  }
 }

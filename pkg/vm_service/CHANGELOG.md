@@ -1,6 +1,8 @@
 ## 15.1.0
 - Update to version `4.20` of the spec.
 - Deprecate `streamCpuSamplesWithUserTag` RPC.
+- Fix bug where `RPCError` exceptions thrown by service callbacks were incorrectly
+  wrapped as `kServerError`, losing the original error code.
 
 ## 15.0.2
 - Add `kTimerSignificantlyOverdue` field to `EventKind`.

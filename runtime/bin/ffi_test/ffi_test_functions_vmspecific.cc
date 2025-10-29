@@ -331,21 +331,48 @@ DART_EXPORT void RestoreSIGPIPEHandler() {
 #endif
 }
 
-DART_EXPORT void IGH_MsanUnpoison(void* start, intptr_t length) {
-  MSAN_UNPOISON(start, length);
+struct IGH_Peer {
+  bool shutdown = false;
+  bool cleanup = false;
+  std::mutex mutex;
+  std::condition_variable cvar;
+};
+
+DART_EXPORT void* IGH_CreatePeer() {
+  return new IGH_Peer();
+}
+
+DART_EXPORT void IGH_CheckPeerShutdown(void* peer_in) {
+  IGH_Peer* peer = reinterpret_cast<IGH_Peer*>(peer_in);
+  ENSURE(peer->shutdown);
+
+  {
+    std::unique_lock<std::mutex> lock(peer->mutex);
+    while (!peer->cleanup) {
+      peer->cvar.wait(lock);
+    }
+  }
+  ENSURE(peer->cleanup);
+
+  delete peer;
 }
 
 DART_EXPORT Dart_Isolate IGH_CreateIsolate(const char* name, void* peer) {
   struct Helper {
     static void ShutdownCallback(void* ig_data, void* isolate_data) {
-      char* string = reinterpret_cast<char*>(isolate_data);
-      ENSURE(string[0] == 'a');
-      string[0] = 'x';
+      IGH_Peer* peer = reinterpret_cast<IGH_Peer*>(isolate_data);
+      ENSURE(!peer->shutdown);
+      peer->shutdown = true;
     }
     static void CleanupCallback(void* ig_data, void* isolate_data) {
-      char* string = reinterpret_cast<char*>(isolate_data);
-      ENSURE(string[2] == 'c');
-      string[2] = 'z';
+      IGH_Peer* peer = reinterpret_cast<IGH_Peer*>(isolate_data);
+      ENSURE(!peer->cleanup);
+
+      {
+        std::unique_lock<std::mutex> lock(peer->mutex);
+        peer->cleanup = true;
+        peer->cvar.notify_one();
+      }
     }
   };
 

@@ -14,6 +14,7 @@ void main() {
     defineReflectiveTests(CreateExtensionGetterTest);
     defineReflectiveTests(CreateExtensionMethodTest);
     defineReflectiveTests(CreateExtensionOperatorTest);
+    defineReflectiveTests(CreateExtensionPriorityTest);
     defineReflectiveTests(CreateExtensionSetterTest);
   });
 }
@@ -1581,6 +1582,23 @@ extension <T extends num> on T {
 ''');
   }
 
+  Future<void> test_tearoff() async {
+    await resolveTestCode('''
+class A<T> {}
+
+T? Function() i<T>(A<T> a) => a.test;
+''');
+    await assertHasFix('''
+class A<T> {}
+
+T? Function() i<T>(A<T> a) => a.test;
+
+extension <T> on A<T> {
+  T? test() {}
+}
+''');
+  }
+
   Future<void> test_typeArgument_parameter() async {
     await resolveTestCode('''
 void f<T>(T p) {
@@ -1930,6 +1948,23 @@ extension on String {
   int operator ~() {}
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class CreateExtensionPriorityTest extends FixPriorityTest {
+  Future<void> test_method_getter() async {
+    await resolveTestCode('''
+class A {}
+void f(void Function() fn) {
+  f(A().test);
+}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.createField,
+      DartFixKind.createExtensionMethod,
+      DartFixKind.createExtensionGetter,
+    ]);
   }
 }
 

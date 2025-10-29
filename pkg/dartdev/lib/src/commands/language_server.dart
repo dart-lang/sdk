@@ -46,8 +46,8 @@ For more information about the server's capabilities and configuration, see:
 
   @override
   Future<int> run() async {
-    const protocol = server.Driver.SERVER_PROTOCOL;
-    const lsp = server.Driver.PROTOCOL_LSP;
+    const protocol = server.Driver.serverProtocolOption;
+    const lsp = server.Driver.protocolLsp;
 
     var args = argResults!.arguments;
     if (!argResults!.wasParsed(protocol)) {

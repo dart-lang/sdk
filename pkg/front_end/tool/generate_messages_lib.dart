@@ -69,7 +69,7 @@ part of 'cfe_codes.dart';
         message is SharedMessage ||
         message is FrontEndMessage && message.pseudoSharedCode != null;
     String template = LocatedError.wrap(
-      node: message.keyNode,
+      span: message.keySpan,
       () => _TemplateCompiler(
         message: message,
         pseudoSharedCodeValues: forFeAnalyzerShared

@@ -130,7 +130,7 @@ part of ${json.encode(file.parentLibrary)};
         var diagnosticCode = entry.key;
         var message = entry.value;
 
-        LocatedError.wrap(node: message.keyNode, () {
+        LocatedError.wrap(span: message.keySpan, () {
           if (message is! AliasMessage &&
               diagnosticClass.includeInDiagnosticCodeValues) {
             generatedCodes.add(diagnosticCode);

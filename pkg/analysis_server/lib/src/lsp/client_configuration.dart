@@ -184,6 +184,7 @@ class LspClientConfiguration {
 /// "dart.inlayHints": false, // Disables all Inlay Hints
 ///
 /// "dart.inlayHints": {
+///   "dotShorthandTypes": { "enabled": true },
 ///   "parameterNames": { "enabled": "literal" },
 ///   "parameterTypes": { "enabled": true },
 ///   "returnTypes": { "enabled": false },
@@ -192,6 +193,7 @@ class LspClientConfiguration {
 /// }
 /// ```
 class LspClientInlayHintsConfiguration {
+  late bool _dotShorthandTypes;
   late InlayHintsParameterNamesMode _parameterNames;
   late bool _parameterTypes;
   late bool _returnTypes;
@@ -202,6 +204,7 @@ class LspClientInlayHintsConfiguration {
     var map = userPreference is Map<String, Object?> ? userPreference : null;
     var boolean = userPreference is bool ? userPreference : null;
 
+    _dotShorthandTypes = _getEnabled(map, 'dotShorthandTypes', boolean ?? true);
     _parameterNames = _getParameterNamesMode(
       map,
       boolean ?? true
@@ -213,6 +216,9 @@ class LspClientInlayHintsConfiguration {
     _typeArguments = _getEnabled(map, 'typeArguments', boolean ?? true);
     _variableTypes = _getEnabled(map, 'variableTypes', boolean ?? true);
   }
+
+  /// Whether dot shorthand type inlay hints are enabled.
+  bool get dotShorthandTypesEnabled => _dotShorthandTypes;
 
   /// Which kind of parameter names to show inlay hints for.
   InlayHintsParameterNamesMode get parameterNamesMode => _parameterNames;
