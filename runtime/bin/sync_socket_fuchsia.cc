@@ -32,8 +32,7 @@ static intptr_t Create(const RawAddr& addr) {
 }
 
 static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
-  intptr_t result = TEMP_FAILURE_RETRY(
-      connect(fd, &addr.addr, SocketAddress::GetAddrLength(addr)));
+  intptr_t result = TEMP_FAILURE_RETRY(connect(fd, &addr.addr, addr.size));
   if (result == 0) {
     return fd;
   }

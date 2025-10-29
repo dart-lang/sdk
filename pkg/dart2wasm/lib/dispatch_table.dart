@@ -52,6 +52,7 @@ class SelectorInfo {
 
   late bool isDynamicSubmoduleOverridable;
   late bool isDynamicSubmoduleCallable;
+  late bool isDynamicSubmoduleInheritable;
 
   /// Whether the computation of [paramInfo] should enforce usage of sentinels
   /// for optional parameters.
@@ -98,6 +99,7 @@ class SelectorInfo {
       useMultipleEntryPoints,
       isDynamicSubmoduleOverridable,
       isDynamicSubmoduleCallable,
+      isDynamicSubmoduleInheritable,
       _useSentinelForOptionalParameters,
     ]);
     sink.writeNullable(_checked, (targets) => targets.serialize(sink));
@@ -116,6 +118,7 @@ class SelectorInfo {
       useMultipleEntryPoints,
       isDynamicSubmoduleOverridable,
       isDynamicSubmoduleCallable,
+      isDynamicSubmoduleInheritable,
       useSentinelForOptionalParameters,
     ] = source.readBoolList();
     final checked =
@@ -133,6 +136,7 @@ class SelectorInfo {
       ..useMultipleEntryPoints = useMultipleEntryPoints
       ..isDynamicSubmoduleCallable = isDynamicSubmoduleCallable
       ..isDynamicSubmoduleOverridable = isDynamicSubmoduleOverridable
+      ..isDynamicSubmoduleInheritable = isDynamicSubmoduleInheritable
       .._useSentinelForOptionalParameters = useSentinelForOptionalParameters
       .._checked = checked
       .._unchecked = unchecked
@@ -638,15 +642,19 @@ class DispatchTable {
     _selectorInfo.forEach((_, selector) {
       bool isDynamicSubmoduleCallable = false;
       bool isDynamicSubmoduleOverridable = false;
+      bool isDynamicSubmoduleInheritable = false;
       for (final target in selector._references) {
         final member = target.asMember;
         isDynamicSubmoduleOverridable |=
             member.isDynamicSubmoduleOverridable(translator.coreTypes);
         isDynamicSubmoduleCallable |=
             member.isDynamicSubmoduleCallable(translator.coreTypes);
+        isDynamicSubmoduleInheritable |=
+            member.isDynamicSubmoduleInheritable(translator.coreTypes);
       }
       selector.isDynamicSubmoduleOverridable = isDynamicSubmoduleOverridable;
       selector.isDynamicSubmoduleCallable = isDynamicSubmoduleCallable;
+      selector.isDynamicSubmoduleInheritable = isDynamicSubmoduleInheritable;
 
       if (!selectorTargets.containsKey(selector)) {
         // There are no concrete implementations for the given [selector].

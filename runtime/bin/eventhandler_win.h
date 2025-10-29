@@ -47,7 +47,9 @@ class OverlappedBuffer {
     kConnect
   };
 
-  static std::unique_ptr<OverlappedBuffer> AllocateAcceptBuffer(Handle* handle);
+  static std::unique_ptr<OverlappedBuffer> AllocateAcceptBuffer(
+      Handle* handle,
+      ADDRESS_FAMILY sa_family);
   static std::unique_ptr<OverlappedBuffer> AllocateReadBuffer(Handle* handle,
                                                               int buffer_size);
   static std::unique_ptr<OverlappedBuffer> AllocateRecvFromBuffer(
@@ -86,9 +88,7 @@ class OverlappedBuffer {
   SOCKET client() const { return client_; }
   char* GetBufferStart() { return reinterpret_cast<char*>(&buffer_data_); }
   int GetBufferSize() const { return buflen_; }
-  struct sockaddr* from() const { return from_; }
-  socklen_t* from_len_addr() const { return from_len_addr_; }
-  socklen_t from_len() const { return from_ == nullptr ? 0 : *from_len_addr_; }
+  RawAddr* from() const { return from_; }
 
   // Returns the address of the OVERLAPPED structure with all fields
   // initialized to zero.
@@ -144,8 +144,7 @@ class OverlappedBuffer {
 
   // For the recvfrom operation additional storace is allocated for the
   // source sockaddr.
-  socklen_t* from_len_addr_;  // Pointer to source sockaddr size storage.
-  struct sockaddr* from_;     // Pointer to source sockaddr storage.
+  RawAddr* from_;
 
   // Buffer for recv/send/AcceptEx. This must be at the end of the
   // object as the object is allocated larger than it's definition
@@ -174,15 +173,11 @@ class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
   intptr_t Available();
   bool DataReady();
   intptr_t Read(void* buffer, intptr_t num_bytes);
-  intptr_t RecvFrom(void* buffer,
-                    intptr_t num_bytes,
-                    struct sockaddr* sa,
-                    socklen_t addr_len);
+  intptr_t RecvFrom(void* buffer, intptr_t num_bytes, RawAddr* from);
   virtual intptr_t Write(const void* buffer, intptr_t num_bytes);
   virtual intptr_t SendTo(const void* buffer,
                           intptr_t num_bytes,
-                          struct sockaddr* sa,
-                          socklen_t sa_len);
+                          const RawAddr& addr);
 
   // Internal interface used by the event handler.
   virtual bool IssueReadLocked(MonitorLocker* ml);
@@ -274,8 +269,7 @@ class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
                                 std::unique_ptr<OverlappedBuffer> buffer);
   virtual bool IssueSendToLocked(MonitorLocker* ml,
                                  std::unique_ptr<OverlappedBuffer> buffer,
-                                 struct sockaddr* sa,
-                                 socklen_t sa_len);
+                                 const RawAddr& addr);
 
   int flags_ = 0;
 
@@ -375,8 +369,9 @@ class SocketHandle : public Handle {
 // Information on listen sockets.
 class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
  public:
-  explicit ListenSocket(intptr_t s)
+  explicit ListenSocket(intptr_t s, ADDRESS_FAMILY sa_family)
       : DescriptorInfoMultipleMixin(s, kListenSocket),
+        sa_family_(sa_family),
         pending_accept_count_(0),
         accepted_head_(nullptr),
         accepted_tail_(nullptr),
@@ -409,6 +404,8 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 
   bool IssueAcceptLocked(MonitorLocker* ml);
 
+  ADDRESS_FAMILY sa_family_;
+
   // The number of asynchronous `IssueAccept` operations which haven't completed
   // yet.
   int pending_accept_count_;
@@ -429,7 +426,7 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
  public:
   explicit ClientSocket(intptr_t s,
-                        std::unique_ptr<RawAddr> remote_addr = nullptr)
+                        std::unique_ptr<RawAddr>&& remote_addr = nullptr)
       : DescriptorInfoSingleMixin(s, kClientSocket),
         next_(nullptr),
         connected_(false),
@@ -508,8 +505,7 @@ class DatagramSocket : public DescriptorInfoSingleMixin<SocketHandle> {
  private:
   virtual bool IssueSendToLocked(MonitorLocker* ml,
                                  std::unique_ptr<OverlappedBuffer> buffer,
-                                 sockaddr* sa,
-                                 socklen_t sa_len);
+                                 const RawAddr& addr);
 
   DISALLOW_COPY_AND_ASSIGN(DatagramSocket);
 };

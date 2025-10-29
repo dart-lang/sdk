@@ -459,7 +459,7 @@ class MessageTestSuite extends ChainContext {
               break;
 
             case "hasPublishedDocs":
-              if (value != true) {
+              if (value is! bool) {
                 badHasPublishedDocsValue.add(name);
               }
               break;
@@ -625,7 +625,7 @@ class MessageTestSuite extends ChainContext {
                 ? (
                     expectation: KnownExpectation.badValue,
                     message:
-                        "Bad hasPublishedDocs value (only 'true' supported) in:"
+                        "Bad hasPublishedDocs value (must be boolean) in:"
                         " ${badHasPublishedDocsValue.join(', ')}",
                   )
                 : null,

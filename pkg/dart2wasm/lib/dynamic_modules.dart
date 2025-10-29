@@ -81,6 +81,15 @@ extension DynamicModuleMember on Member {
   bool isDynamicSubmoduleOverridable(CoreTypes coreTypes) =>
       hasPragma(coreTypes, this, kDynModuleCanBeOverriddenPragmaName) ||
       hasPragma(coreTypes, this, kDynModuleCanBeOverriddenImplicitlyPragmaName);
+
+  /// Indicates that this member is inherited into subclass interfaces.
+  ///
+  /// The member may be invoked via the interface of subclasses defined in
+  /// submodules. Even though the member may not be directly callable from the
+  /// submodule, it needs to be included in the updated dispatch table for the
+  /// subclass.
+  bool isDynamicSubmoduleInheritable(CoreTypes coreTypes) =>
+      (enclosingClass?.isDynamicSubmoduleExtendable(coreTypes) ?? false);
 }
 
 class DynamicSubmoduleOutputData extends ModuleOutputData {

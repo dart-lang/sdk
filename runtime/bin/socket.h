@@ -183,7 +183,7 @@ class ListeningSocketRegistry {
   // This function should be called from a dart runtime call in order to create
   // a new (potentially shared) socket.
   Dart_Handle CreateBindListen(Dart_Handle socket_object,
-                               RawAddr addr,
+                               const RawAddr& addr,
                                intptr_t backlog,
                                bool v6_only,
                                bool shared);
@@ -226,7 +226,7 @@ class ListeningSocketRegistry {
     // but on different addresses.
     OSSocket* next;
 
-    OSSocket(RawAddr address,
+    OSSocket(const RawAddr& address,
              int port,
              bool v6_only,
              bool shared,
@@ -255,30 +255,24 @@ class ListeningSocketRegistry {
     return nullptr;
   }
 
-  OSSocket* FindOSSocketWithPath(OSSocket* current,
-                                 Namespace* namespc,
-                                 const char* path) {
+  OSSocket* FindMatchingUnixDomainSocket(OSSocket* current,
+                                         Namespace* namespc,
+                                         const RawAddr& addr) {
+    if (addr.is_abstract_unix_socket()) {
+      return FindOSSocketWithAddress(current, addr);
+    }
+
     while (current != nullptr) {
       ASSERT(current->address.addr.sa_family == AF_UNIX);
-#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
-      bool condition;
-      if (path[0] == '\0') {
-        condition = current->address.un.sun_path[0] == '\0' &&
-                    strcmp(&(current->address.un.sun_path[1]), path + 1) == 0;
-      } else {
-        condition =
-            File::AreIdentical(current->namespc, current->address.un.sun_path,
-                               namespc, path) == File::kIdentical;
+      if (current->address.is_abstract_unix_socket()) {
+        continue;
       }
-      if (condition) {
-        return current;
-      }
-#else
+
       if (File::AreIdentical(current->namespc, current->address.un.sun_path,
-                             namespc, path) == File::kIdentical) {
+                             namespc, addr.un.sun_path) == File::kIdentical) {
         return current;
       }
-#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+
       current = current->next;
     }
     return nullptr;

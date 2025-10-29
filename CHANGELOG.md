@@ -4,6 +4,18 @@
 
 ### Libraries
 
+#### `dart:io`
+
+- Added support for Unix domain sockets (`AF_UNIX`) on Windows. Support is
+  restricted to subset of features supported by the OS. Windows currently does
+  not support the following features for `AF_UNIX` sockets: datagram sockets,
+  ancillary data or abstract socket addresses. Unix domain sockets are
+  represented in the file-system using _reparse points_ which leads to some
+  discrepancies in the behavior of `dart:io` APIs: for example
+  `File(socketPath).existsSync()` will return `true` on POSIX operating systems,
+  but `false` on Windows. Use `FileSystemEntity.typeSync()` instead to get
+  portable behavior.
+
 #### `dart:js_util`
 
 - dart2wasm no longer supports `dart:js_util`. Any code that imports

@@ -34,7 +34,7 @@ class Dart2wasmExecutor implements TargetExecutor {
     var path = Platform.environment['TMP_DIR'] ?? '';
     if (path.isEmpty) {
       _tmp = Directory.systemTemp.createTempSync('_dynamic_module-');
-      _shouldCleanup = false;
+      _shouldCleanup = true;
     } else {
       _tmp = Directory(path);
       if (!_tmp.existsSync()) _tmp.createSync();

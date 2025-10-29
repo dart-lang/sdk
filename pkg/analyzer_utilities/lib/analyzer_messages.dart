@@ -249,9 +249,6 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(String packagePath) {
         );
       });
       result.add(message);
-      if (message.hasPublishedDocs == null) {
-        throw LocatedError('Missing hasPublishedDocs', node: diagnosticValue);
-      }
 
       if (message case AliasMessage(:var aliasFor)) {
         var aliasForPath = aliasFor.split('.');
@@ -312,6 +309,9 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
   @override
   final AnalyzerCode analyzerCode;
 
+  @override
+  final bool hasPublishedDocs;
+
   factory AnalyzerMessage.fromYaml(
     YamlMap yaml, {
     required YamlScalar keyNode,
@@ -337,5 +337,8 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
     super.yaml, {
     required super.keyNode,
     required this.analyzerCode,
-  }) : super.fromYaml();
+  }) : hasPublishedDocs =
+           yaml['hasPublishedDocs'] as bool? ??
+           (throw 'Missing key "hasPublishedDocs".'),
+       super.fromYaml();
 }
