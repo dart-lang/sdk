@@ -68,25 +68,17 @@ OverlappedBuffer::OverlappedBuffer(Handle* handle,
     : buflen_(buffer_size), operation_(operation), handle_(handle) {
   memset(GetBufferStart(), 0, GetBufferSize());
   if (operation == kRecvFrom) {
-    // Reserve part of the buffer for the length of source sockaddr
-    // and source sockaddr.
-    const int kAdditionalSize =
-        sizeof(struct sockaddr_storage) + sizeof(socklen_t);
-    ASSERT(buflen_ > kAdditionalSize);
-    buflen_ -= kAdditionalSize;
-    from_len_addr_ =
-        reinterpret_cast<socklen_t*>(GetBufferStart() + GetBufferSize());
-    *from_len_addr_ = sizeof(struct sockaddr_storage);
-    from_ = reinterpret_cast<struct sockaddr*>(from_len_addr_ + 1);
+    // Reserve part of the buffer for the length of source address.
+    ASSERT(buflen_ > sizeof(RawAddr));
+    buflen_ -= sizeof(RawAddr);
+    from_ = reinterpret_cast<RawAddr*>(GetBufferStart() + GetBufferSize());
+    // WSARecv needs to know how many bytes it can write.
+    from_->size = sizeof(sockaddr_storage);
   } else {
-    from_len_addr_ = nullptr;
     from_ = nullptr;
   }
   index_ = 0;
   data_length_ = 0;
-  if (operation_ == kAccept) {
-    client_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  }
 
   // Retain handle for the duration of the operation.
   handle->Retain();
@@ -114,8 +106,13 @@ std::unique_ptr<OverlappedBuffer> OverlappedBuffer::AllocateBuffer(
 }
 
 std::unique_ptr<OverlappedBuffer> OverlappedBuffer::AllocateAcceptBuffer(
-    Handle* handle) {
-  return AllocateBuffer(handle, 2 * kAcceptExAddressStorageSize, kAccept);
+    Handle* handle,
+    ADDRESS_FAMILY sa_family) {
+  auto result =
+      AllocateBuffer(handle, 2 * kAcceptExAddressStorageSize, kAccept);
+  result->client_ =
+      socket(sa_family, SOCK_STREAM, sa_family == AF_UNIX ? 0 : IPPROTO_TCP);
+  return result;
 }
 
 std::unique_ptr<OverlappedBuffer> OverlappedBuffer::AllocateReadBuffer(
@@ -129,7 +126,7 @@ std::unique_ptr<OverlappedBuffer> OverlappedBuffer::AllocateRecvFromBuffer(
     int buffer_size) {
   // For calling recvfrom additional buffer space is needed for the source
   // address information.
-  buffer_size += sizeof(socklen_t) + sizeof(struct sockaddr_storage);
+  buffer_size += sizeof(RawAddr);
   return AllocateBuffer(handle, buffer_size, kRecvFrom);
 }
 
@@ -405,8 +402,7 @@ bool Handle::IssueWriteLocked(MonitorLocker* ml,
 
 bool Handle::IssueSendToLocked(MonitorLocker* ml,
                                std::unique_ptr<OverlappedBuffer> buffer,
-                               struct sockaddr* sa,
-                               socklen_t sa_len) {
+                               const RawAddr& addr) {
   return false;
 }
 
@@ -493,7 +489,7 @@ void SocketHandle::HandleIssueError() {
 }
 
 bool ListenSocket::IssueAcceptLocked(MonitorLocker* ml) {
-  auto buffer = OverlappedBuffer::AllocateAcceptBuffer(this);
+  auto buffer = OverlappedBuffer::AllocateAcceptBuffer(this, sa_family_);
   DWORD received;
   BOOL ok;
   ok = EventHandler::delegate()->accept_ex()(
@@ -546,12 +542,14 @@ void ListenSocket::AcceptComplete(std::unique_ptr<OverlappedBuffer> buffer) {
           buffer->GetBufferStart(), 0, kAcceptExAddressStorageSize,
           kAcceptExAddressStorageSize, &local_addr, &local_addr_length,
           &remote_addr, &remote_addr_length);
-      RawAddr* raw_remote_addr = new RawAddr;
-      memmove(raw_remote_addr, remote_addr, remote_addr_length);
+
+      auto raw_remote_addr = std::make_unique<RawAddr>();
+      memmove(&raw_remote_addr->addr, remote_addr, remote_addr_length);
+      raw_remote_addr->size = remote_addr_length;
 
       // Insert the accepted socket into the list.
       ClientSocket* client_socket =
-          new ClientSocket(client, std::unique_ptr<RawAddr>(raw_remote_addr));
+          new ClientSocket(client, std::move(raw_remote_addr));
       client_socket->mark_connected();
       if (accepted_head_ == nullptr) {
         accepted_head_ = client_socket;
@@ -662,24 +660,14 @@ intptr_t Handle::Read(void* buffer, intptr_t num_bytes) {
   return num_bytes;
 }
 
-intptr_t Handle::RecvFrom(void* buffer,
-                          intptr_t num_bytes,
-                          struct sockaddr* sa,
-                          socklen_t sa_len) {
+intptr_t Handle::RecvFrom(void* buffer, intptr_t num_bytes, RawAddr* from) {
   MonitorLocker ml(&monitor_);
   if (data_ready_ == nullptr) {
     return 0;
   }
   num_bytes =
       data_ready_->Read(buffer, Utils::Minimum<intptr_t>(num_bytes, INT_MAX));
-  if (data_ready_->from()->sa_family == AF_INET) {
-    ASSERT(sa_len >= sizeof(struct sockaddr_in));
-    memmove(sa, data_ready_->from(), sizeof(struct sockaddr_in));
-  } else {
-    ASSERT(data_ready_->from()->sa_family == AF_INET6);
-    ASSERT(sa_len >= sizeof(struct sockaddr_in6));
-    memmove(sa, data_ready_->from(), sizeof(struct sockaddr_in6));
-  }
+  *from = *data_ready_->from();
   // Always dispose of the buffer, as UDP messages must be read in their
   // entirety to match how recvfrom works in a socket.
   data_ready_ = nullptr;
@@ -709,8 +697,7 @@ intptr_t Handle::Write(const void* data, intptr_t num_bytes) {
 
 intptr_t Handle::SendTo(const void* data,
                         intptr_t num_bytes,
-                        struct sockaddr* sa,
-                        socklen_t sa_len) {
+                        const RawAddr& addr) {
   MonitorLocker ml(&monitor_);
   if (HasPendingWrite() || IsClosed()) {
     return 0;
@@ -726,7 +713,7 @@ intptr_t Handle::SendTo(const void* data,
   }
   auto buffer = OverlappedBuffer::AllocateSendToBuffer(this, num_bytes);
   buffer->Write(data, num_bytes);
-  if (!IssueSendToLocked(&ml, std::move(buffer), sa, sa_len)) {
+  if (!IssueSendToLocked(&ml, std::move(buffer), addr)) {
     return -1;
   }
   return num_bytes;
@@ -975,14 +962,14 @@ bool ClientSocket::PopulateRemoteAddr(RawAddr& addr) {
 
 bool DatagramSocket::IssueSendToLocked(MonitorLocker* ml,
                                        std::unique_ptr<OverlappedBuffer> buffer,
-                                       struct sockaddr* sa,
-                                       socklen_t sa_len) {
+                                       const RawAddr& addr) {
   ASSERT(!HasPendingWrite());
   ASSERT(buffer->operation() == OverlappedBuffer::kSendTo);
 
   pending_write_ = buffer.get();
-  int rc = WSASendTo(socket(), pending_write_->GetWASBUF(), 1, nullptr, 0, sa,
-                     sa_len, pending_write_->GetCleanOverlapped(), nullptr);
+  int rc = WSASendTo(socket(), pending_write_->GetWASBUF(), 1, nullptr, 0,
+                     &addr.addr, addr.size,
+                     pending_write_->GetCleanOverlapped(), nullptr);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
     buffer.release();  // HandleIOCompletion will take ownership.
     return true;
@@ -1001,7 +988,7 @@ bool DatagramSocket::IssueRecvFromLocked(MonitorLocker* ml) {
   pending_read_ = buffer.get();
   DWORD flags = 0;
   int rc = WSARecvFrom(socket(), buffer->GetWASBUF(), 1, nullptr, &flags,
-                       buffer->from(), buffer->from_len_addr(),
+                       &buffer->from()->addr, &buffer->from()->size,
                        buffer->GetCleanOverlapped(), nullptr);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
     buffer.release();  // HandleIOCompletion will take ownership.

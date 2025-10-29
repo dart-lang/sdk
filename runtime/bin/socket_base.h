@@ -30,12 +30,48 @@
 namespace dart {
 namespace bin {
 
-union RawAddr {
-  struct sockaddr_in in;
-  struct sockaddr_in6 in6;
-  struct sockaddr_un un;
-  struct sockaddr_storage ss;
-  struct sockaddr addr;
+struct RawAddr {
+  union {
+    sockaddr_in in;
+    sockaddr_in6 in6;
+    sockaddr_un un;
+    sockaddr_storage ss;
+    sockaddr addr;
+  };
+  socklen_t size = sizeof(sockaddr_storage);
+
+  static RawAddr FromInet4or6(const sockaddr* sa) {
+    RawAddr raw;
+    switch (sa->sa_family) {
+      case AF_INET:
+        raw.size = sizeof(sockaddr_in);
+        break;
+      case AF_INET6:
+        raw.size = sizeof(sockaddr_in6);
+        break;
+
+      default:
+        UNREACHABLE();
+    }
+    memmove(&raw.addr, sa, raw.size);
+    return raw;
+  }
+
+  bool is_pathname_unix_socket() const {
+    return ss.ss_family == AF_UNIX && !is_unnamed_unix_socket() &&
+           un.sun_path[0] != '\0';
+  }
+
+  bool is_abstract_unix_socket() const {
+    return ss.ss_family == AF_UNIX && !is_unnamed_unix_socket() &&
+           un.sun_path[0] == '\0';
+  }
+
+  bool is_unnamed_unix_socket() const {
+    // Socket is unnamed if its sockaddr contains exactly |ss.ss_family|
+    // and no sun_path data at all.
+    return ss.ss_family == AF_UNIX && size == sizeof(decltype(ss.ss_family));
+  }
 };
 
 class SocketAddress {
@@ -56,19 +92,15 @@ class SocketAddress {
     ADDRESS_LAST = ADDRESS_ANY_IP_V6,
   };
 
-  // Unix domain socket may be unnamed. In this case addr_.un.sun_path contains
-  // garbage and should not be inspected.
-  explicit SocketAddress(struct sockaddr* sa, bool unnamed_unix_socket = false);
+  explicit SocketAddress(const RawAddr& addr);
 
   ~SocketAddress() {}
 
-  int GetType();
+  int GetType() const;
 
   const char* as_string() const { return as_string_; }
   const RawAddr& addr() const { return addr_; }
 
-  static intptr_t GetAddrLength(const RawAddr& addr,
-                                bool unnamed_unix_socket = false);
   static intptr_t GetInAddrLength(const RawAddr& addr);
   static bool AreAddressesEqual(const RawAddr& a, const RawAddr& b);
   static void GetSockAddr(Dart_Handle obj, RawAddr* addr);
@@ -83,19 +115,17 @@ class SocketAddress {
   static void SetAddrScope(RawAddr* addr, intptr_t scope_id);
   static intptr_t GetAddrScope(const RawAddr& addr);
 
- private:
-#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
-    defined(DART_HOST_OS_ANDROID)
-  // Unix domain address is only on Linux, Mac OS and Android now.
-  // unix(7) require sun_path to be 108 bytes on Linux and Android, 104 bytes on
-  // Mac OS.
-  static constexpr intptr_t kMaxUnixPathLength =
-      sizeof(((struct sockaddr_un*)nullptr)->sun_path);
-  char as_string_[kMaxUnixPathLength];
+#if !defined(DART_HOST_OS_FUCHSIA)
+  static constexpr intptr_t kMaxAddressStringLength =
+      sizeof(decltype(sockaddr_un::sun_path));
 #else
-  char as_string_[INET6_ADDRSTRLEN];
-#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||
-        // defined(DART_HOST_OS_ANDROID)
+  static constexpr intptr_t kMaxAddressStringLength = INET6_ADDRSTRLEN;
+#endif  // !defined(DART_HOST_OS_FUCHSIA)
+  static_assert(kMaxAddressStringLength >= INET6_ADDRSTRLEN);
+  static_assert(kMaxAddressStringLength >= INET_ADDRSTRLEN);
+
+ private:
+  char as_string_[kMaxAddressStringLength];
   RawAddr addr_;
 
   DISALLOW_COPY_AND_ASSIGN(SocketAddress);
@@ -103,10 +133,10 @@ class SocketAddress {
 
 class InterfaceSocketAddress {
  public:
-  InterfaceSocketAddress(struct sockaddr* sa,
+  InterfaceSocketAddress(const RawAddr& addr,
                          const char* interface_name,
                          intptr_t interface_index)
-      : socket_address_(new SocketAddress(sa)),
+      : socket_address_(new SocketAddress(addr)),
         interface_name_(interface_name),
         interface_index_(interface_index) {}
 
@@ -228,7 +258,7 @@ class SocketBase : public AllStatic {
   // to bind the socket to a specific IP.
   static bool IsBindError(intptr_t error_number);
   static intptr_t GetPort(intptr_t fd);
-  static bool GetSocketName(intptr_t fd, SocketAddress* p_sa);
+  static bool GetSocketName(intptr_t fd, RawAddr* raw);
   static SocketAddress* GetRemotePeer(intptr_t fd, intptr_t* port);
   static void GetError(intptr_t fd, OSError* os_error);
   static int GetType(intptr_t fd);

@@ -26,6 +26,7 @@ namespace dart {
 namespace bin {
 
 class DescriptorInfo;
+struct RawAddr;
 
 class IOHandle : public ReferenceCounted<IOHandle> {
  public:
@@ -46,7 +47,7 @@ class IOHandle : public ReferenceCounted<IOHandle> {
   // the Dart thread.
   intptr_t Read(void* buffer, intptr_t num_bytes);
   intptr_t Write(const void* buffer, intptr_t num_bytes);
-  intptr_t Accept(struct sockaddr* addr, socklen_t* addrlen);
+  intptr_t Accept(RawAddr* addr);
   intptr_t AvailableBytes();
 
   // Called from the EventHandler thread.

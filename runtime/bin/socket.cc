@@ -92,7 +92,7 @@ void ListeningSocketRegistry::RemoveByFd(Socket* fd) {
 }
 
 Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
-                                                      RawAddr addr,
+                                                      const RawAddr& addr,
                                                       intptr_t backlog,
                                                       bool v6_only,
                                                       bool shared) {
@@ -209,42 +209,39 @@ Dart_Handle ListeningSocketRegistry::CreateUnixDomainBindListen(
     return result;
   }
 
-#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
-  // Abstract unix domain socket doesn't exist in file system.
-  if (File::Exists(namespc, addr.un.sun_path) && path[0] != '@') {
-#else
-  if (File::Exists(namespc, addr.un.sun_path)) {
-#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
-    if (unix_domain_sockets_ != nullptr) {
-      // If there is a socket listening on this file. Ensure
-      // that it was created with `shared` mode and current `shared`
-      // is also true.
-      OSSocket* os_socket = unix_domain_sockets_;
-      OSSocket* os_socket_same_addr =
-          FindOSSocketWithPath(os_socket, namespc, addr.un.sun_path);
-      if (os_socket_same_addr != nullptr) {
-        if (!os_socket_same_addr->shared || !shared) {
-          OSError os_error(-1,
-                           "The shared flag to bind() needs to be `true` if "
-                           "binding multiple times on the same path.",
-                           OSError::kUnknown);
-          return DartUtils::NewDartOSError(&os_error);
-        }
-
-        // This socket creation is the exact same as the one which originally
-        // created the socket. Feed the same fd and store it into the native
-        // field of dart socket_object. Sockets here will share same fd but
-        // contain a different port() through EventHandler_SendData.
-        Socket* socketfd = new Socket(os_socket_same_addr->fd);
-        os_socket_same_addr->ref_count++;
-        // We set as a side-effect the file descriptor on the dart
-        // socket_object.
-        Socket::ReuseSocketIdNativeField(socket_object, socketfd,
-                                         Socket::kFinalizerListening);
-        InsertByFd(socketfd, os_socket_same_addr);
-        return Dart_True();
+  if (unix_domain_sockets_ != nullptr) {
+    // If there is a socket listening on this file. Ensure
+    // that it was created with `shared` mode and current `shared`
+    // is also true.
+    OSSocket* os_socket_same_addr =
+        FindMatchingUnixDomainSocket(unix_domain_sockets_, namespc, addr);
+    if (os_socket_same_addr != nullptr) {
+      if (!os_socket_same_addr->shared || !shared) {
+        OSError os_error(-1,
+                         "The shared flag to bind() needs to be `true` if "
+                         "binding multiple times on the same path.",
+                         OSError::kUnknown);
+        return DartUtils::NewDartOSError(&os_error);
       }
+
+      // This socket creation is the exact same as the one which originally
+      // created the socket. Feed the same fd and store it into the native
+      // field of dart socket_object. Sockets here will share same fd but
+      // contain a different port() through EventHandler_SendData.
+      Socket* socketfd = new Socket(os_socket_same_addr->fd);
+      os_socket_same_addr->ref_count++;
+      // We set as a side-effect the file descriptor on the dart
+      // socket_object.
+      Socket::ReuseSocketIdNativeField(socket_object, socketfd,
+                                       Socket::kFinalizerListening);
+      InsertByFd(socketfd, os_socket_same_addr);
+      return Dart_True();
     }
+  }
+
+  if (addr.is_pathname_unix_socket() &&
+      File::GetType(namespc, addr.un.sun_path, /*follow_links=*/false) !=
+          File::kDoesNotExist) {
     // Unix domain socket by default doesn't allow binding to an existing file.
     // An error (EADDRINUSE) will be returned back. However, hanging is noticed
     // on Android so we throw an exception for all platforms.
@@ -255,11 +252,13 @@ Dart_Handle ListeningSocketRegistry::CreateUnixDomainBindListen(
 
   // There is no socket listening on that path, so we create new one.
   intptr_t fd = ServerSocket::CreateUnixDomainBindListen(addr, backlog);
-
   if (fd < 0) {
     return DartUtils::NewDartOSError();
   }
-
+  if (!ServerSocket::StartAccept(fd)) {
+    OSError os_error(-1, "Failed to start accept", OSError::kUnknown);
+    return DartUtils::NewDartOSError(&os_error);
+  }
   Socket* socketfd = new Socket(fd);
   OSSocket* os_socket =
       new OSSocket(addr, -1, false, shared, socketfd, namespc);
@@ -420,7 +419,7 @@ void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Socket_CreateUnixDomainBindConnect)(
     Dart_NativeArguments args) {
-#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
   OSError os_error(
       -1, "Unix domain sockets are not available on this operating system.",
       OSError::kUnknown);
@@ -465,7 +464,7 @@ void FUNCTION_NAME(Socket_CreateUnixDomainBindConnect)(
 }
 
 void FUNCTION_NAME(Socket_CreateUnixDomainConnect)(Dart_NativeArguments args) {
-#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
   OSError os_error(
       -1, "Unix domain sockets are not available on this operating system.",
       OSError::kUnknown);
@@ -638,8 +637,9 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
     type = IPv6;
   }
   // Format the address to a string using the numeric format.
-  char numeric_address[INET6_ADDRSTRLEN];
-  SocketBase::FormatNumericAddress(addr, numeric_address, INET6_ADDRSTRLEN);
+  char numeric_address[SocketAddress::kMaxAddressStringLength];
+  SocketBase::FormatNumericAddress(addr, numeric_address,
+                                   ARRAY_SIZE(numeric_address));
 
   // Create a Datagram object with the data and sender address and port.
   const int kNumArgs = 5;
@@ -910,8 +910,7 @@ void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
       entry = Dart_NewList(2);
     } else {
       entry = Dart_NewList(3);
-      RawAddr raw = addr->addr();
-      Dart_ListSetAt(entry, 2, SocketAddress::ToTypedData(raw));
+      Dart_ListSetAt(entry, 2, SocketAddress::ToTypedData(addr->addr()));
     }
     Dart_ListSetAt(entry, 0, Dart_NewInteger(type));
     Dart_ListSetAt(entry, 1, Dart_NewStringFromCString(addr->as_string()));
@@ -1022,7 +1021,7 @@ void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(ServerSocket_CreateUnixDomainBindListen)(
     Dart_NativeArguments args) {
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_FUCHSIA)
   OSError os_error(
       -1, "Unix domain sockets are not available on this operating system.",
       OSError::kUnknown);
@@ -1084,7 +1083,7 @@ CObject* Socket::LookupRequest(const CObjectArray& request) {
             new CObjectString(CObject::NewString(addr->as_string()));
         entry->SetAt(1, as_string);
 
-        RawAddr raw = addr->addr();
+        const auto& raw = addr->addr();
         CObjectUint8Array* data = SocketAddress::ToCObject(raw);
         entry->SetAt(2, data);
 
@@ -1113,11 +1112,13 @@ CObject* Socket::ReverseLookupRequest(const CObjectArray& request) {
     memset(reinterpret_cast<void*>(&addr), 0, sizeof(RawAddr));
     if (len == sizeof(in_addr)) {
       addr.in.sin_family = AF_INET;
+      addr.size = sizeof(sockaddr_in);
       memmove(reinterpret_cast<void*>(&addr.in.sin_addr), addr_object.Buffer(),
               len);
     } else {
       ASSERT(len == sizeof(in6_addr));
       addr.in6.sin6_family = AF_INET6;
+      addr.size = sizeof(sockaddr_in6);
       memmove(reinterpret_cast<void*>(&addr.in6.sin6_addr),
               addr_object.Buffer(), len);
     }
@@ -1160,7 +1161,7 @@ CObject* Socket::ListInterfacesRequest(const CObjectArray& request) {
             new CObjectString(CObject::NewString(addr->as_string()));
         entry->SetAt(1, as_string);
 
-        RawAddr raw = addr->addr();
+        const auto& raw = addr->addr();
         CObjectUint8Array* data = SocketAddress::ToCObject(raw);
         entry->SetAt(2, data);
 
@@ -1671,21 +1672,25 @@ void FUNCTION_NAME(ResourceHandleImpl_toRawSocket)(Dart_NativeArguments args) {
       Dart_GetField(handle_object, DartUtils::NewString("_handle")));
   intptr_t fd = DartUtils::GetIntegerValue(handle_field);
 
-  SocketAddress* socket_address = reinterpret_cast<SocketAddress*>(
-      Dart_ScopeAllocate(sizeof(SocketAddress)));
-  ASSERT(socket_address != nullptr);
-  SocketBase::GetSocketName(fd, socket_address);
+  RawAddr raw;
+  if (!SocketBase::GetSocketName(fd, &raw)) {
+    OSError os_error(-1, "Failed to get socket address", OSError::kUnknown);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    return;
+  }
+
+  const SocketAddress socket_address(raw);
 
   // return a list describing socket_address: (type, hostname, typed_data_addr,
   // fd)
   Dart_Handle list = ThrowIfError(Dart_NewList(4));
   ThrowIfError(Dart_ListSetAt(
-      list, 0, ThrowIfError(Dart_NewInteger(socket_address->GetType()))));
+      list, 0, ThrowIfError(Dart_NewInteger(socket_address.GetType()))));
   ThrowIfError(Dart_ListSetAt(
       list, 1,
-      ThrowIfError(Dart_NewStringFromCString(socket_address->as_string()))));
+      ThrowIfError(Dart_NewStringFromCString(socket_address.as_string()))));
   ThrowIfError(Dart_ListSetAt(
-      list, 2, SocketAddress::ToTypedData(socket_address->addr())));
+      list, 2, SocketAddress::ToTypedData(socket_address.addr())));
   ThrowIfError(Dart_ListSetAt(list, 3, ThrowIfError(Dart_NewInteger(fd))));
 
   Dart_SetReturnValue(args, list);
