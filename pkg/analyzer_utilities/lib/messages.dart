@@ -481,6 +481,16 @@ class DiagnosticTables {
   /// List of front end diagnostics, sorted by front end code.
   final List<CfeStyleMessage> sortedFrontEndDiagnostics = [];
 
+  /// Map from [AnalyzerDiagnosticPackage] to the list of active diagnostic
+  /// messages for that package.
+  ///
+  /// A message is considered active is [MessageWithAnalyzerCode.isRemoved] is
+  /// `false` and the message is not an [AliasMessage].
+  ///
+  /// Each list is sorted by analyzer code.
+  final Map<AnalyzerDiagnosticPackage, List<MessageWithAnalyzerCode>>
+  activeMessagesByPackage = {};
+
   DiagnosticTables._(List<Message> messages) {
     var frontEndCodeDuplicateChecker = _DuplicateChecker<String>(
       kind: 'Front end code',
@@ -512,6 +522,14 @@ class DiagnosticTables {
                     analyzerCode.snakeCaseName] ??=
                 [])
             .add(message);
+        var diagnosticClass = analyzerCode.diagnosticClass;
+        if (diagnosticClass is GeneratedDiagnosticClassInfo &&
+            !message.isRemoved &&
+            message is! AliasMessage) {
+          (activeMessagesByPackage[diagnosticClass.package] ??= []).add(
+            message,
+          );
+        }
       }
     }
 
@@ -522,6 +540,9 @@ class DiagnosticTables {
 
     sortedSharedDiagnostics.sortBy((e) => e.analyzerCode.camelCaseName);
     sortedFrontEndDiagnostics.sortBy((e) => e.frontEndCode);
+    for (var value in activeMessagesByPackage.values) {
+      value.sortBy((e) => e.analyzerCode);
+    }
   }
 
   static void _checkSharedNames(
