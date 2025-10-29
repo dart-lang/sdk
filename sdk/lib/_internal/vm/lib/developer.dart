@@ -235,7 +235,10 @@ abstract final class NativeRuntime {
   static void streamTimelineTo(
     TimelineRecorder recorder, {
     String? path,
-    List<TimelineStream> streams = const [.dart, .gc],
+    List<TimelineStream> streams = const [
+      TimelineStream.dart,
+      TimelineStream.gc,
+    ],
     bool enableProfiler = false,
     Duration samplingInterval = const Duration(microseconds: 1000),
   }) {
@@ -247,7 +250,7 @@ abstract final class NativeRuntime {
       );
     }
 
-    if (recorder == .systrace) {
+    if (recorder == TimelineRecorder.systrace) {
       if (path != null) {
         throw ArgumentError.value(
           path,
@@ -266,7 +269,7 @@ abstract final class NativeRuntime {
       }
     }
 
-    if (recorder != .systrace && path == null) {
+    if (recorder != TimelineRecorder.systrace && path == null) {
       throw ArgumentError.value(
         path,
         'path',
@@ -274,7 +277,7 @@ abstract final class NativeRuntime {
       );
     }
 
-    if (recorder != .perfetto && enableProfiler) {
+    if (recorder != TimelineRecorder.perfetto && enableProfiler) {
       throw ArgumentError.value(
         enableProfiler,
         'enableProfiler',
@@ -284,25 +287,25 @@ abstract final class NativeRuntime {
     }
 
     final recorderName = switch (recorder) {
-      .perfetto => 'perfettofile',
-      .chrome => 'file',
-      .systrace => 'systrace',
+      TimelineRecorder.perfetto => 'perfettofile',
+      TimelineRecorder.chrome => 'file',
+      TimelineRecorder.systrace => 'systrace',
     };
 
     // Convert list of TimelineStream into a comma-separated list of values.
     final streamsString = [
       for (var str in streams)
         switch (str) {
-          .api => 'API',
-          .compiler => 'Compiler',
-          .compilerVerbose => 'CompilerVerbose',
-          .dart => 'Dart',
-          .debugger => 'Debugger',
-          .embedder => 'Embedder',
-          .gc => 'GC',
-          .isolate => 'Isolate',
-          .microtask => 'Microtask',
-          .vm => 'vm',
+          TimelineStream.api => 'API',
+          TimelineStream.compiler => 'Compiler',
+          TimelineStream.compilerVerbose => 'CompilerVerbose',
+          TimelineStream.dart => 'Dart',
+          TimelineStream.debugger => 'Debugger',
+          TimelineStream.embedder => 'Embedder',
+          TimelineStream.gc => 'GC',
+          TimelineStream.isolate => 'Isolate',
+          TimelineStream.microtask => 'Microtask',
+          TimelineStream.vm => 'vm',
         },
     ].join(',');
 
