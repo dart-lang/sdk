@@ -10,7 +10,6 @@
   "../vm/dart/builtin_type_names_test.dart",
   "../vm/dart/byte_array_optimized_test.dart",
   "../vm/dart/byte_array_test.dart",
-  "../vm/dart/cachable_idempotent_test.dart",
   "../vm/dart/callee_side_type_checks_test.dart",
   "../vm/dart/catch_entry_state_test.dart",
   "../vm/dart/awaiter_stacks/sync_async_start_pkg_test_test.dart",
