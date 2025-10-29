@@ -1755,22 +1755,29 @@ static constexpr Extension RV_D(4);  // Double-precision floating point
 static constexpr Extension RV_C(5);  // Compressed instructions
 static constexpr ExtensionSet RV_G = RV_I | RV_M | RV_A | RV_F | RV_D;
 static constexpr ExtensionSet RV_GC = RV_G | RV_C;
+static constexpr ExtensionSet RVA20 = RV_GC;
 static constexpr Extension RV_Zba(6);  // Address generation
 static constexpr Extension RV_Zbb(7);  // Basic bit-manipulation
 static constexpr Extension RV_Zbs(8);  // Single-bit instructions
 static constexpr Extension RV_Zbc(9);  // Carry-less multiplication
 static constexpr ExtensionSet RV_B = RV_Zba | RV_Zbb | RV_Zbs;
 static constexpr ExtensionSet RV_GCB = RV_GC | RV_B;
-static constexpr Extension RV_Zicond(10);  // Integer conditional operations
-static constexpr Extension RV_Zcb(11);     // More compressed instructions
-static constexpr Extension RV_Zabha(12);   // Byte and halfword AMOs
+static constexpr ExtensionSet RVA22 = RV_GCB;
+static constexpr Extension RV_V(10);       // Vector
+static constexpr Extension RV_Zicond(11);  // Integer conditional operations
+static constexpr Extension RV_Zcb(12);     // More compressed instructions
 static constexpr Extension RV_Zfa(13);     // Additional floating-point
-static constexpr Extension RV_Zalasr(14);  // Load-acquire, store-release
+static constexpr ExtensionSet RVA23 =
+    RV_GCB | RV_V | RV_Zicond | RV_Zcb | RV_Zfa;
+static constexpr Extension RV_Zabha(14);   // Byte and halfword AMOs
+static constexpr Extension RV_Zalasr(15);  // Load-acquire, store-release
 
-#if defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
-static constexpr ExtensionSet RV_baseline = RV_GCB;
+#if defined(DART_TARGET_OS_ANDROID)
+static constexpr ExtensionSet RV_baseline = RVA23;
+#elif defined(DART_TARGET_OS_FUCHSIA)
+static constexpr ExtensionSet RV_baseline = RVA22 | RV_V;
 #else
-static constexpr ExtensionSet RV_baseline = RV_GC;
+static constexpr ExtensionSet RV_baseline = RVA20;
 #endif
 
 #undef R
