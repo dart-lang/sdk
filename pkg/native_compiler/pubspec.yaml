@@ -4,7 +4,7 @@ description: Compiler targeting native platforms
 publish_to: none
 
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.10.0
 
 resolution: workspace
 

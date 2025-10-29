@@ -4,12 +4,15 @@ description: CFG/SSA compiler IR and optimization passes.
 publish_to: none
 
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.10.0
 
 resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
+  kernel: any
+  meta: any
 
 dev_dependencies:
+  front_end: any
   test: any
