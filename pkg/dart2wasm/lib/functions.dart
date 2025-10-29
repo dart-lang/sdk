@@ -162,7 +162,8 @@ class FunctionCollector {
       // dynamic submodules.
       if (translator.dynamicModuleSupportEnabled &&
           !translator.isDynamicSubmodule &&
-          member.isDynamicSubmoduleCallable(translator.coreTypes)) {
+          (member.isDynamicSubmoduleCallable(translator.coreTypes) ||
+              member.isDynamicSubmoduleInheritable(translator.coreTypes))) {
         translator.exporter
             .exportDynamicCallable(translator.mainModule, function, target);
       }
@@ -178,7 +179,9 @@ class FunctionCollector {
 
     // Export the function from the main module if it is callable from
     // dynamic submodules.
-    if (!target.asMember.isDynamicSubmoduleCallable(translator.coreTypes)) {
+    final member = target.asMember;
+    if (!member.isDynamicSubmoduleCallable(translator.coreTypes) &&
+        !member.isDynamicSubmoduleInheritable(translator.coreTypes)) {
       throw StateError(
           'Cannot invoke ${target.asMember} since it is not labeled as '
           'callable in the dynamic interface.');

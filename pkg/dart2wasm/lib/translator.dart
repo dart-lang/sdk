@@ -626,7 +626,9 @@ class Translator with KernelNodes {
     table ??= dispatchTable;
     functions.recordSelectorUse(selector, useUncheckedEntry);
 
-    if (dynamicModuleSupportEnabled && selector.isDynamicSubmoduleOverridable) {
+    if (dynamicModuleSupportEnabled &&
+        (selector.isDynamicSubmoduleOverridable ||
+            selector.isDynamicSubmoduleInheritable)) {
       dynamicModuleInfo!.callOverridableDispatch(b, selector, interfaceTarget!,
           useUncheckedEntry: useUncheckedEntry);
     } else {
@@ -1376,7 +1378,8 @@ class Translator with KernelNodes {
     assert(target.asMember.isInstanceMember);
     if (!isDynamicSubmodule) return dispatchTable;
     if (moduleForReference(target) == dynamicSubmodule) return dispatchTable;
-    assert(target.asMember.isDynamicSubmoduleCallable(coreTypes));
+    assert(target.asMember.isDynamicSubmoduleCallable(coreTypes) ||
+        target.asMember.isDynamicSubmoduleInheritable(coreTypes));
     return dynamicMainModuleDispatchTable!;
   }
 
