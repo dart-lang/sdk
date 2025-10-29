@@ -712,12 +712,6 @@ abstract class Message {
   /// If present, user-facing documentation for the error.
   final String? documentation;
 
-  /// Whether diagnostics with this code have documentation for them that has
-  /// been published.
-  ///
-  /// `null` if the YAML doesn't contain this information.
-  final bool? hasPublishedDocs;
-
   /// Indicates whether this error is caused by an unresolved identifier.
   final bool isUnresolvedIdentifier;
 
@@ -759,7 +753,6 @@ abstract class Message {
   Message({
     this.comment,
     this.documentation,
-    this.hasPublishedDocs,
     this.isUnresolvedIdentifier = false,
     this.sharedName,
     required YamlNode? problemMessageYaml,
@@ -790,7 +783,6 @@ abstract class Message {
         correctionMessageYaml: yaml.nodes['correctionMessage'],
         deprecatedMessage: yaml['deprecatedMessage'] as String?,
         documentation: yaml['documentation'] as String?,
-        hasPublishedDocs: yaml['hasPublishedDocs'] as bool?,
         isUnresolvedIdentifier:
             yaml['isUnresolvedIdentifier'] as bool? ?? false,
         problemMessageYaml: yaml.nodes['problemMessage'],
@@ -909,6 +901,12 @@ mixin MessageWithAnalyzerCode on Message {
   /// this message.
   String get constantName => analyzerCode.camelCaseName;
 
+  /// Whether diagnostics with this code have documentation for them that has
+  /// been published.
+  ///
+  /// `null` if the YAML doesn't contain this information.
+  bool get hasPublishedDocs;
+
   void outputConstantHeader(StringSink out) {
     out.write(toAnalyzerComments(indent: '  '));
     if (deprecatedMessage != null) {
@@ -992,7 +990,7 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
       var codeLines = _splitText(code, maxWidth: maxWidth);
       constant.writeln('${codeLines.map(_encodeString).join('\n')},');
     }
-    if (hasPublishedDocs ?? false) {
+    if (hasPublishedDocs) {
       constant.writeln('hasPublishedDocs:true,');
     }
     if (isUnresolvedIdentifier) {
@@ -1148,6 +1146,9 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
   @override
   final AnalyzerCode analyzerCode;
 
+  @override
+  final bool hasPublishedDocs;
+
   SharedMessage.fromYaml(super.yaml, {required super.keyNode})
     : analyzerCode = _decodeAnalyzerCode(
         (yaml['analyzerCode'] ??
@@ -1157,6 +1158,9 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
                 )))
             as String,
       ),
+      hasPublishedDocs =
+          yaml['hasPublishedDocs'] as bool? ??
+          (throw 'Missing key "hasPublishedDocs".'),
       super.fromYaml();
 
   static AnalyzerCode _decodeAnalyzerCode(String s) {
