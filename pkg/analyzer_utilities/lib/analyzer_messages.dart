@@ -16,6 +16,10 @@ const codesFile = GeneratedDiagnosticFile(
   parentLibrary: 'package:analyzer/src/error/codes.dart',
 );
 
+/// Enum representing the packages into which analyzer diagnostics can be
+/// generated.
+enum AnalyzerDiagnosticPackage { analyzer, analysisServer, linter }
+
 /// Information about all the classes derived from `DiagnosticCode` that are
 /// code-generated based on the contents of the analyzer and front end
 /// `messages.yaml` files.
@@ -104,7 +108,7 @@ or revisited.
     name: 'TransformSetErrorCode',
     type: 'COMPILE_TIME_ERROR',
     severity: 'ERROR',
-    includeInDiagnosticCodeValues: false,
+    package: AnalyzerDiagnosticPackage.analysisServer,
     comment: '''
 An error code representing a problem in a file containing an encoding of a
 transform set.
@@ -135,6 +139,7 @@ const linterLintCodeInfo = GeneratedDiagnosticClassInfo(
   file: lintCodesFile,
   name: 'LinterLintCode',
   type: 'LINT',
+  package: AnalyzerDiagnosticPackage.linter,
 );
 
 const manifestWarningCodeFile = GeneratedDiagnosticFile(

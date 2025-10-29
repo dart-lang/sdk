@@ -132,7 +132,7 @@ part of ${json.encode(file.parentLibrary)};
 
         LocatedError.wrap(span: message.keySpan, () {
           if (message is! AliasMessage &&
-              diagnosticClass.includeInDiagnosticCodeValues) {
+              diagnosticClass.package == AnalyzerDiagnosticPackage.analyzer) {
             generatedCodes.add(diagnosticCode);
           }
           message.toAnalyzerCode(

@@ -579,9 +579,8 @@ class GeneratedDiagnosticClassInfo extends DiagnosticClassInfo {
   /// deprecation notice) after migration to camel case diagnostic codes.
   final Set<String> deprecatedSnakeCaseNames;
 
-  /// If `true` (the default), diagnostic codes of this class will be included
-  /// in the automatically-generated `diagnosticCodeValues` list.
-  final bool includeInDiagnosticCodeValues;
+  /// The package into which the diagnostic codes will be generated.
+  final AnalyzerDiagnosticPackage package;
 
   /// Documentation comment to generate for the diagnostic class.
   ///
@@ -594,7 +593,7 @@ class GeneratedDiagnosticClassInfo extends DiagnosticClassInfo {
     this.severity,
     required this.type,
     this.deprecatedSnakeCaseNames = const {},
-    this.includeInDiagnosticCodeValues = true,
+    this.package = AnalyzerDiagnosticPackage.analyzer,
     this.comment = '',
   });
 
