@@ -594,14 +594,10 @@ class AnalyticsManager {
 
   /// Send information about analysis statistics.
   Future<void> _sendAnalysisStatistics() async {
-    if (_analysisWorkingDurations.valueCount == 0 &&
-        _analysisWorkingStatistics == null) {
+    var statistics = _analysisWorkingStatistics;
+    if (statistics == null) {
       return;
     }
-
-    var statistics =
-        _analysisWorkingStatistics ??
-        AnalyticsAnalysisWorkingStatistics(withFineDependencies: false);
 
     analytics.send(
       Event.analysisStatistics(

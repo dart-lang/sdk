@@ -14,6 +14,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:http/src/response.dart' as http;
@@ -195,7 +196,15 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     // Record a brief working period.
     manager.analysisStatusChanged(isWorking: true, statistics: null);
     await Future<void>.delayed(const Duration(milliseconds: 2));
-    manager.analysisStatusChanged(isWorking: false, statistics: null);
+    manager.analysisStatusChanged(
+      isWorking: false,
+      statistics: AnalysisStatusWorkingStatistics(
+        withFineDependencies: true,
+        changedFiles: {},
+        removedFiles: {},
+        fileCounts: FileCountsStatistics(),
+      ),
+    );
 
     await manager.shutdown();
     analytics.assertEvents([

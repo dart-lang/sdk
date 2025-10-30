@@ -2767,7 +2767,9 @@ class AnalysisDriverScheduler {
   void _transitionToWorking() {
     _statusSupport.transitionToWorking(
       buildStatistics: () {
-        var withFineDependencies = false;
+        var withFineDependencies = _drivers.any(
+          (driver) => driver.withFineDependencies,
+        );
 
         // Recompute file statistics once per: 60 * 1000 ms.
         var fileCountsStatistics = _fileCountsStatistics;
@@ -2775,9 +2777,6 @@ class AnalysisDriverScheduler {
             fileCountsStatistics.age.elapsedMilliseconds > 60 * 1000) {
           fileCountsStatistics = _fileCountsStatistics = FileCountsStatistics();
           for (var driver in _drivers) {
-            if (driver.withFineDependencies) {
-              withFineDependencies = true;
-            }
             for (var fileState in driver.knownFiles) {
               if (driver.addedFiles.contains(fileState.path)) {
                 fileCountsStatistics.immediateFileCount++;
