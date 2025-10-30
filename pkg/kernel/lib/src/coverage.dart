@@ -993,8 +993,8 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitTypeParameter(TypeParameter node) {
-    visited.add(NodeKind.TypeParameter);
+  void visitNominalParameter(NominalParameter node) {
+    visited.add(NodeKind.NominalParameter);
     node.visitChildren(this);
   }
 
@@ -1344,6 +1344,7 @@ enum NodeKind {
   NamedExpression,
   NamedParameter,
   NamedType,
+  NominalParameter,
   PatternGuard,
   PatternSwitchCase,
   PositionalParameter,
@@ -1354,7 +1355,6 @@ enum NodeKind {
   SwitchExpressionCase,
   SyntheticVariable,
   ThisVariable,
-  TypeParameter,
   TypeVariable,
   Typedef,
   VariableContext,

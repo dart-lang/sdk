@@ -112,7 +112,6 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     '_procedures': FieldRule(name: 'procedures'),
   },
   'Field': {'reference': FieldRule(name: 'fieldReference')},
-  'TypeParameter': {'_variance': FieldRule(name: 'variance')},
   'StructuralParameter': {'_variance': FieldRule(name: 'variance')},
   'FunctionNode': {
     '_body': FieldRule(name: 'body'),
@@ -150,6 +149,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'PatternSwitchStatement': {'cases': FieldRule(isDeclaration: true)},
   'TypeVariable': {'parameter': FieldRule(isDeclaration: false)},
   'ClassTypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
+  'NominalParameter': {'_variance': FieldRule(name: 'variance')},
 };
 
 /// Data that determines exceptions to how fields are used.
