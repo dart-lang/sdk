@@ -45,12 +45,7 @@ import 'spell_checking_utils.dart' as spell;
 import 'utils/suite_utils.dart' show internalMain;
 
 enum KnownExpectation {
-  missingAnalyzerCode,
   missingExample,
-  unknownKey,
-  badValue,
-  unknownSeverity,
-  unnecessarySeverity,
   spellingError,
   missingExternalFile,
   noMessageReported,
@@ -177,12 +172,6 @@ class MessageTestSuite extends ChainContext {
     required String prefix,
   }) {
     List<MessageTestDescription> result = [];
-    var package = root.pathSegments.lastWhere((s) => s.isNotEmpty);
-    bool analyzerCodeRequired = switch (package) {
-      '_fe_analyzer_shared' => true,
-      'front_end' => false,
-      _ => throw StateError('Unexpected package: ${json.encode(package)}'),
-    };
     Uri uri = root.resolve("messages.yaml");
     File file = new File.fromUri(uri);
     String fileContent = file.readAsStringSync();
@@ -193,17 +182,12 @@ class MessageTestSuite extends ChainContext {
         dynamic message = messageNode.value;
         if (message is String) continue;
 
-        List<String> unknownKeys = <String>[];
         bool exampleAllowOtherCodes = false;
         bool exampleAllowMultipleReports = false;
         bool includeErrorContext = false;
         List<Example> examples = <Example>[];
         String? externalTest;
-        String? analyzerCode;
         CfeSeverity? severity;
-        YamlNode? badSeverity;
-        YamlNode? unnecessarySeverity;
-        List<String> badHasPublishedDocsValue = <String>[];
         List<String>? spellingMessages;
         const String spellingPostMessage =
             "\nIf the word(s) look okay, update "
@@ -315,43 +299,6 @@ class MessageTestSuite extends ChainContext {
 
             case "severity":
               severity = severityEnumValues[value];
-              if (severity == null) {
-                badSeverity = node;
-              } else if (severity == CfeSeverity.error) {
-                unnecessarySeverity = node;
-              }
-              break;
-
-            case "analyzerCode":
-              if (value is! String) {
-                throw new ArgumentError(
-                  'analyzerCode should be a string: $value',
-                );
-              }
-              if (value.split('.') case [
-                _,
-                var diagnosticName,
-              ] when diagnosticName == diagnosticName.toUpperCase()) {
-                // ok
-              } else {
-                throw new ArgumentError(
-                  'analyzerCode should take the form ClassName.DIAGNOSTIC_NAME',
-                );
-              }
-              analyzerCode = value;
-              if (!analyzerCodeRequired) {
-                throw new ArgumentError(
-                  'analyzerCode not allowed in package ${json.encode(package)}',
-                );
-              }
-              break;
-
-            case "sharedName":
-              if (value is! String) {
-                throw new ArgumentError(
-                  'sharedName should be a string: $value.',
-                );
-              }
               break;
 
             case "exampleAllowOtherCodes":
@@ -458,12 +405,6 @@ class MessageTestSuite extends ChainContext {
               externalTest = node.value;
               break;
 
-            case "hasPublishedDocs":
-              if (value is! bool) {
-                badHasPublishedDocsValue.add(name);
-              }
-              break;
-
             case "experiments":
               if (value is String) {
                 experimentalFlags = parseExperimentalFlags(
@@ -474,50 +415,6 @@ class MessageTestSuite extends ChainContext {
                 throw new ArgumentError("Unknown experiments value: $value.");
               }
               break;
-
-            case "documentation":
-              if (value is! String) {
-                throw new ArgumentError(
-                  'documentation should be a string: $value.',
-                );
-              }
-              break;
-
-            case "comment":
-              if (value is! String) {
-                throw new ArgumentError('comment should be a string: $value.');
-              }
-              break;
-
-            case 'parameters':
-              switch (value) {
-                case 'none':
-                  break;
-                case YamlMap():
-                  for (var parameterDoc in value.values) {
-                    if (parameterDoc is! String) {
-                      throw new ArgumentError(
-                        'parameter documentation should be a string: '
-                        '$parameterDoc',
-                      );
-                    }
-                  }
-                default:
-                  throw new ArgumentError(
-                    'parameters should be a map or `none`: $value.',
-                  );
-              }
-
-            case 'pseudoSharedCode':
-              if (value is! String) {
-                throw new ArgumentError(
-                  'pseudoSharedCode should be a String: $value.',
-                );
-              }
-              break;
-
-            default:
-              unknownKeys.add(key);
           }
         }
 
@@ -606,64 +503,6 @@ class MessageTestSuite extends ChainContext {
 
         result.add(
           createDescription(
-            "knownKeys",
-            null,
-            unknownKeys.isNotEmpty
-                ? (
-                    expectation: KnownExpectation.unknownKey,
-                    message: "Unknown keys: ${unknownKeys.join(' ')}.",
-                  )
-                : null,
-          ),
-        );
-
-        result.add(
-          createDescription(
-            'hasPublishedDocs',
-            null,
-            badHasPublishedDocsValue.isNotEmpty
-                ? (
-                    expectation: KnownExpectation.badValue,
-                    message:
-                        "Bad hasPublishedDocs value (must be boolean) in:"
-                        " ${badHasPublishedDocsValue.join(', ')}",
-                  )
-                : null,
-          ),
-        );
-
-        result.add(
-          createDescription(
-            "severity",
-            null,
-            badSeverity != null
-                ? (
-                    expectation: KnownExpectation.unknownSeverity,
-                    message: "Unknown severity: '${badSeverity.value}'.",
-                  )
-                : null,
-            location: badSeverity?.span.start,
-          ),
-        );
-
-        result.add(
-          createDescription(
-            "unnecessarySeverity",
-            null,
-            unnecessarySeverity != null
-                ? (
-                    expectation: KnownExpectation.unnecessarySeverity,
-                    message:
-                        "The 'ERROR' severity is the default and not "
-                        "necessary.",
-                  )
-                : null,
-            location: unnecessarySeverity?.span.start,
-          ),
-        );
-
-        result.add(
-          createDescription(
             "spelling",
             null,
             spellingMessages != null
@@ -708,24 +547,6 @@ class MessageTestSuite extends ChainContext {
                     message:
                         "No example for $name, please add at least one "
                         "example.",
-                  )
-                : null,
-          ),
-        );
-
-        result.add(
-          createDescription(
-            "analyzerCode",
-            null,
-            analyzerCodeRequired && analyzerCode == null
-                ? (
-                    expectation: KnownExpectation.missingAnalyzerCode,
-                    message:
-                        "No analyzer code for $name."
-                        "\nTry running"
-                        " <BUILDDIR>/dart-sdk/bin/dart analyzer --format=machine"
-                        " on an example to find the code."
-                        " The code is printed just before the file name.",
                   )
                 : null,
           ),
