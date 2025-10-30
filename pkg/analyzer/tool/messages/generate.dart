@@ -43,14 +43,12 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
 
     (classesByFile[diagnosticClassInfo.file] ??= []).add(diagnosticClassInfo);
   }
-  var generatedCodes = <AnalyzerCode>[];
   return [
     for (var entry in classesByFile.entries)
       GeneratedFile(entry.key.path, (pkgRoot) async {
         var codeGenerator = _AnalyzerDiagnosticGenerator(
           entry.key,
           entry.value,
-          generatedCodes,
         );
         codeGenerator.generate();
         return codeGenerator.out.toString();
@@ -58,7 +56,7 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
     GeneratedFile('analyzer/lib/src/diagnostic/diagnostic_code_values.g.dart', (
       pkgRoot,
     ) async {
-      var codeGenerator = _DiagnosticCodeValuesGenerator(generatedCodes);
+      var codeGenerator = _DiagnosticCodeValuesGenerator();
       codeGenerator.generate();
       return codeGenerator.out.toString();
     }),
@@ -70,8 +68,6 @@ class _AnalyzerDiagnosticGenerator {
   final GeneratedDiagnosticFile file;
 
   final List<GeneratedDiagnosticClassInfo> diagnosticClasses;
-
-  final List<AnalyzerCode> generatedCodes;
 
   final StringBuffer out = StringBuffer('''
 // Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
@@ -87,11 +83,7 @@ class _AnalyzerDiagnosticGenerator {
 // codes here.
 ''');
 
-  _AnalyzerDiagnosticGenerator(
-    this.file,
-    this.diagnosticClasses,
-    this.generatedCodes,
-  );
+  _AnalyzerDiagnosticGenerator(this.file, this.diagnosticClasses);
 
   void generate() {
     out.writeln('// ignore_for_file: deprecated_member_use_from_same_package');
@@ -121,20 +113,12 @@ part of ${json.encode(file.parentLibrary)};
       );
       var memberAccumulator = MemberAccumulator();
 
-      var entries = diagnosticTables.analyzerCodeToMessage.entries.where(
-        (diagnostic) =>
-            diagnostic.key.diagnosticClass == diagnosticClass &&
-            !diagnostic.value.isRemoved,
-      );
-      for (var entry in entries) {
-        var diagnosticCode = entry.key;
-        var message = entry.value;
+      for (var message
+          in diagnosticTables.activeMessagesByPackage[diagnosticClass
+              .package]!) {
+        if (message.analyzerCode.diagnosticClass != diagnosticClass) continue;
 
         LocatedError.wrap(span: message.keySpan, () {
-          if (message is! AliasMessage &&
-              diagnosticClass.includeInDiagnosticCodeValues) {
-            generatedCodes.add(diagnosticCode);
-          }
           message.toAnalyzerCode(
             diagnosticClass,
             memberAccumulator: memberAccumulator,
@@ -220,8 +204,6 @@ DiagnosticType get type => ${diagnosticClass.typeCode};
 }
 
 class _DiagnosticCodeValuesGenerator {
-  final List<AnalyzerCode> generatedCodes;
-
   final StringBuffer out = StringBuffer('''
 // Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -241,11 +223,7 @@ class _DiagnosticCodeValuesGenerator {
 // ignore_for_file: deprecated_member_use_from_same_package
 ''');
 
-  _DiagnosticCodeValuesGenerator(this.generatedCodes);
-
   void generate() {
-    generatedCodes.sort();
-
     out.writeln();
     out.writeln(r'''
 part of 'diagnostic_code_values.dart';
@@ -255,7 +233,10 @@ part of 'diagnostic_code_values.dart';
       "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')",
     );
     out.writeln('const List<DiagnosticCode> diagnosticCodeValues = [');
-    for (var analyzerCode in generatedCodes) {
+    for (var message
+        in diagnosticTables.activeMessagesByPackage[AnalyzerDiagnosticPackage
+            .analyzer]!) {
+      var analyzerCode = message.analyzerCode;
       var diagnosticName = analyzerCode.camelCaseName;
       out.writeln('  ${analyzerCode.diagnosticClass.name}.$diagnosticName,');
     }

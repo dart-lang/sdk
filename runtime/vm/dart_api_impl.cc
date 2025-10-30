@@ -6008,6 +6008,9 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   // If this is an auxiliary isolate inside a larger isolate group, we will not
   // re-initialize the growth policy.
   if (I->group()->ContainsOnlyOneIsolate()) {
+    // Helper tasks like the background compile might be running. Avoid data
+    // races on the growth policy.
+    GcSafepointOperationScope safepoint(T);
     I->group()->heap()->old_space()->EvaluateAfterLoading();
   }
 
