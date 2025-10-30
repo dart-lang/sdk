@@ -497,6 +497,26 @@ void f(Object? x) {
 ''');
   }
 
+  Future<void>
+  test_createChange_patternVariable_forElement_expressionFunctionBody() async {
+    await indexTestUnit('''
+List<int> foo(Map<int, String> map) => [
+  for (var MapEntry(:key) in map.entries)
+    k^ey,
+];
+''');
+    // configure refactoring
+    createRenameRefactoring();
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+List<int> foo(Map<int, String> map) => [
+  for (var MapEntry(key:newName) in map.entries)
+    newName,
+];
+''');
+  }
+
   Future<void> test_createChange_patternVariable_ifCase() async {
     await indexTestUnit('''
 void f(Object? x) {

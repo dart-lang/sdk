@@ -2920,6 +2920,20 @@ void f(x) {
 ''');
   }
 
+  test_searchReferences_VariablePatternElement_expressionFunctionBody() async {
+    await resolveTestCode('''
+List<int> f(Map<int, String> map) => [
+  for (var MapEntry(:key) in map.entries)
+    key,
+];
+''');
+    var element = findNode.bindPatternVariableElement('key)');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> f@10
+  85 3:5 |key| READ
+''');
+  }
+
   test_searchReferences_VariablePatternElement_ifCase() async {
     await resolveTestCode('''
 void f(Object? x) {

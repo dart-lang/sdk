@@ -979,7 +979,10 @@ class Search {
 
     // Prepare the root node for search.
     var rootNode = bindElement.node.thisOrAncestorMatching(
-      (node) => node is SwitchExpression || node is Block,
+      (node) =>
+          node is SwitchExpression ||
+          node is Block ||
+          node is ExpressionFunctionBody,
     );
     if (rootNode == null) {
       return const <SearchResult>[];
