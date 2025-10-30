@@ -545,6 +545,7 @@ abstract interface class Map<K, V> {
   bool get isNotEmpty;
   int get length;
   Iterable<V> get values;
+  Iterable<MapEntry<K, V>> get entries;
 
   V? operator [](Object? key);
   void operator []=(K key, V value);

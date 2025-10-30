@@ -46,6 +46,7 @@ import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manage
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
@@ -824,7 +825,12 @@ abstract class AnalysisServer {
       _isFirstAnalysisSinceContextsBuilt = false;
       _dartFixPrompt.triggerCheck();
     }
-    analyticsManager.analysisStatusChanged(status.isWorking);
+    analyticsManager.analysisStatusChanged(
+      isWorking: status.isWorking,
+      statistics: status
+          .ifTypeOrNull<analysis.AnalysisStatusIdle>()
+          ?.workingStatistics,
+    );
   }
 
   /// Immediately handles an LSP message by delegating to the

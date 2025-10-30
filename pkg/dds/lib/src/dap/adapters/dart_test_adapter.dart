@@ -202,6 +202,7 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   void _handleExitCode(int code) {
     final codeSuffix = code == 0 ? '' : ' ($code)';
     logger?.call('Process exited ($code)');
+    handleSessionExited(code);
     handleSessionTerminate(codeSuffix);
   }
 

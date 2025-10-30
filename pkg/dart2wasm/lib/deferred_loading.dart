@@ -14,7 +14,6 @@ import 'package:kernel/core_types.dart';
 
 import 'await_transformer.dart' as await_transformer;
 import 'compiler_options.dart';
-import 'generate_wasm.dart';
 import 'modules.dart';
 import 'target.dart';
 import 'util.dart' show addPragma;

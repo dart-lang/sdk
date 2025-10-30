@@ -20,6 +20,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:collection/collection.dart';
 import 'package:memory_usage/memory_usage.dart';
 import 'package:meta/meta.dart';
@@ -88,6 +89,9 @@ class AnalyticsManager {
   /// or `null` if analysis is currently idle.
   DateTime? _analysisWorkingStart;
 
+  /// Accumulated statistics about analysis working periods.
+  AnalyticsAnalysisWorkingStatistics? _analysisWorkingStatistics;
+
   /// Accumulates durations (in ms) of periods where analysis was working.
   final PercentileCalculator _analysisWorkingDurations = PercentileCalculator();
 
@@ -140,12 +144,26 @@ class AnalyticsManager {
     );
   }
 
-  /// Called when analysis status changes to record period durations.
-  void analysisStatusChanged(bool isWorking) {
+  /// Called when analysis status changes to record analysis statistics.
+  ///
+  /// When [isWorking] switches to `false`, we (softly) expect [statistics]
+  /// to be statistics accumulated over just finished working period.
+  void analysisStatusChanged({
+    required bool isWorking,
+    required AnalysisStatusWorkingStatistics? statistics,
+  }) {
     if (isWorking) {
       _analysisWorkingStart ??= DateTime.now();
     } else {
       _finalizeOpenWorkingPeriod();
+    }
+
+    if (statistics != null) {
+      var accumulated = _analysisWorkingStatistics ??=
+          AnalyticsAnalysisWorkingStatistics(
+            withFineDependencies: statistics.withFineDependencies,
+          );
+      accumulated.append(statistics);
     }
   }
 
@@ -576,14 +594,47 @@ class AnalyticsManager {
 
   /// Send information about analysis statistics.
   Future<void> _sendAnalysisStatistics() async {
-    if (_analysisWorkingDurations.valueCount == 0) {
+    if (_analysisWorkingDurations.valueCount == 0 &&
+        _analysisWorkingStatistics == null) {
       return;
     }
+
+    var statistics =
+        _analysisWorkingStatistics ??
+        AnalyticsAnalysisWorkingStatistics(withFineDependencies: false);
+
     analytics.send(
       Event.analysisStatistics(
         workingDuration: _analysisWorkingDurations.toAnalyticsString(),
+        withFineDependencies: statistics.withFineDependencies,
+        changedFileUniqueCount: statistics.uniqueChangedFiles.length,
+        removedFileUniqueCount: statistics.uniqueRemovedFiles.length,
+        changedFileEventCount: statistics.changeFileEventCount,
+        removedFileEventCount: statistics.removeFileEventCount,
+        immediateFileCountPercentiles: statistics.immediateFileCountPercentiles
+            .toAnalyticsString(),
+        immediateFileLineCountPercentiles: statistics
+            .immediateFileLineCountPercentiles
+            .toAnalyticsString(),
+        transitiveFileCountPercentiles: statistics
+            .transitiveFileCountPercentiles
+            .toAnalyticsString(),
+        transitiveFileLineCountPercentiles: statistics
+            .transitiveFileLineCountPercentiles
+            .toAnalyticsString(),
+        produceErrorsPotentialFileCount:
+            statistics.produceErrorsPotentialFileCount,
+        produceErrorsPotentialFileLineCount:
+            statistics.produceErrorsPotentialFileLineCount,
+        produceErrorsActualFileCount: statistics.produceErrorsActualFileCount,
+        produceErrorsActualFileLineCount:
+            statistics.produceErrorsActualFileLineCount,
+        produceErrorsDurationMs: statistics.produceErrorsMs,
+        produceErrorsElementsDurationMs: statistics.produceErrorsElementsMs,
       ),
     );
+
+    _analysisWorkingStatistics = null;
     _analysisWorkingDurations.clear();
   }
 
