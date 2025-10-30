@@ -471,9 +471,6 @@ enum DiagnosticParameterType {
 
 /// A set of tables derived from shared, CFE, analyzer, and linter diagnostics.
 class DiagnosticTables {
-  /// Map from analyzer code to the single unique message with that code.
-  final Map<AnalyzerCode, MessageWithAnalyzerCode> analyzerCodeToMessage = {};
-
   /// List of shared diagnostics for which analyzer diagnostics should be
   /// automatically generated, sorted by analyzer code.
   final List<SharedMessage> sortedSharedDiagnostics = [];
@@ -514,7 +511,6 @@ class DiagnosticTables {
       }
       if (message is MessageWithAnalyzerCode) {
         var analyzerCode = message.analyzerCode;
-        analyzerCodeToMessage[analyzerCode] = message;
         analyzerCodeDuplicateChecker[analyzerCode] = message;
         analyzerCodeCamelCaseNameDuplicateChecker[analyzerCode.camelCaseName] =
             message;
