@@ -267,7 +267,10 @@ abstract final class NativeRuntime {
   external static void streamTimelineTo(
     TimelineRecorder recorder, {
     String? path,
-    List<TimelineStream> streams = const [.dart, .gc],
+    List<TimelineStream> streams = const [
+      TimelineStream.dart,
+      TimelineStream.gc,
+    ],
     bool enableProfiler = false,
     Duration samplingInterval = const Duration(microseconds: 1000),
   });
