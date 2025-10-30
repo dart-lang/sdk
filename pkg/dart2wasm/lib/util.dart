@@ -17,8 +17,6 @@ import 'package:vm/metadata/procedure_attributes.dart'
 import 'package:vm/metadata/table_selector.dart'
     show TableSelectorMetadataRepository;
 
-import 'deferred_loading.dart' show LoadIdRepository;
-
 bool hasPragma(CoreTypes coreTypes, Annotatable node, String name) {
   return getPragma(coreTypes, node, name, defaultValue: '') != null;
 }
@@ -82,7 +80,6 @@ String intToBase64(int i) => base64.encode(_intToLittleEndianBytes(i));
 
 Component createEmptyComponent() {
   return Component()
-    ..addMetadataRepository(LoadIdRepository())
     ..addMetadataRepository(ProcedureAttributesMetadataRepository())
     ..addMetadataRepository(TableSelectorMetadataRepository())
     ..addMetadataRepository(DirectCallMetadataRepository())

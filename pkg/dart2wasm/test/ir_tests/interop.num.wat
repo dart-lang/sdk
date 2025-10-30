@@ -18,14 +18,14 @@
   (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
   (func $"dart2wasm._147 (import)" (import "dart2wasm" "_147") (param externref) (result f64))
   (func $"dart2wasm._148 (import)" (import "dart2wasm" "_148") (param f64) (result externref))
-  (global $"C66 WasmArray<WasmArray<_Type>>[766]" (ref $Array<WasmArray<_Type>>) <...>)
-  (global $"C313 _TopType" (ref $_TopType) <...>)
+  (global $"C66 WasmArray<WasmArray<_Type>>[727]" (ref $Array<WasmArray<_Type>>) <...>)
+  (global $"C311 _TopType" (ref $_TopType) <...>)
   (global $"numValueNullable initialized" (mut i32) <...>)
   (global $numValueNullable (mut (ref null $#Top)) <...>)
   (global $"ktrue initialized" (mut i32) <...>)
   (global $ktrue (mut i32) <...>)
   (global $numValue (mut (ref null $#Top)) <...>)
-  (table $dtable2 699 funcref <...>)
+  (table $dtable2 666 funcref <...>)
   (func $_TypeUniverse.isSubtype (param $var0 (ref $_Type)) (param $var1 (ref null $_Environment)) (param $var2 (ref $_Type)) (param $var3 (ref null $_Environment)) (result i32) <...>)
   (func $_TypeUniverse._checkSubclassRelationshipViaTable (param $var0 i32) (param $var1 i32) (result i32) <...>)
   (func $_TypeUniverse.substituteTypeArgument (param $var0 (ref $_Type)) (param $var1 (ref $Array<_Type>)) (result (ref $_Type)) <...>)
@@ -70,7 +70,7 @@
     if (result (ref null $BoxedDouble))
       ref.null none
     else
-      i32.const 77
+      i32.const 76
       local.get $var0
       call $"dart2wasm._147 (import)"
       struct.new $BoxedDouble
@@ -143,13 +143,13 @@
           local.get $var1
           struct.get $#Top $field0
           local.tee $var0
-          i32.const 60
+          i32.const 63
           i32.eq
           br_if $label2
           drop
           i32.const 1
           local.get $var0
-          i32.const 77
+          i32.const 76
           i32.eq
           br_if $label2
           drop
@@ -163,7 +163,7 @@
         end
         local.get $var1
         struct.get $#Top $field0
-        i32.const 91
+        i32.const 90
         i32.sub
         local.tee $var0
         i32.const 9
@@ -178,13 +178,13 @@
           local.tee $var2
           struct.get $#Top $field0
           local.tee $var0
-          i32.const 170
+          i32.const 167
           i32.eq
           if (result i32)
             i32.const 0
           else
             local.get $var0
-            i32.const 170
+            i32.const 167
             call $_TypeUniverse._checkSubclassRelationshipViaTable
           end
           local.tee $var0
@@ -193,13 +193,13 @@
           if (result i32)
             i32.const 0
           else
-            global.get $"C313 _TopType"
+            global.get $"C311 _TopType"
             local.set $var3
             block $label3 (result i32)
               local.get $var2
               local.get $var2
               struct.get $#Top $field0
-              i32.const 333
+              i32.const 327
               i32.add
               call_indirect (param (ref $#Top)) (result (ref $Array<_Type>))
               local.set $var4
@@ -215,7 +215,7 @@
                 call $_TypeUniverse.isSubtype
                 br $label3
               end
-              global.get $"C66 WasmArray<WasmArray<_Type>>[766]"
+              global.get $"C66 WasmArray<WasmArray<_Type>>[727]"
               local.get $var0
               array.get $Array<WasmArray<_Type>>
               i32.const 0
@@ -233,7 +233,7 @@
           else
             local.get $var2
             struct.get $#Top $field0
-            i32.const 90
+            i32.const 89
             i32.eq
             if
               unreachable
@@ -256,7 +256,7 @@
     if (result (ref null $BoxedDouble))
       ref.null none
     else
-      i32.const 77
+      i32.const 76
       local.get $var5
       call $"dart2wasm._147 (import)"
       struct.new $BoxedDouble
