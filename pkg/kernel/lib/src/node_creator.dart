@@ -246,7 +246,7 @@ class NodeCreator {
                 SwitchExpression(
                     _createExpression(), [node as SwitchExpressionCase]));
             break;
-          case NodeKind.TypeParameter:
+          case NodeKind.NominalParameter:
             _addExpression(
                 statements,
                 FunctionExpression(FunctionNode(Block([]),
@@ -321,7 +321,7 @@ class NodeCreator {
         case NodeKind.NamedExpression:
         case NodeKind.NamedType:
         case NodeKind.SwitchCase:
-        case NodeKind.TypeParameter:
+        case NodeKind.NominalParameter:
         case NodeKind.StructuralParameter:
         case NodeKind.MapPatternEntry:
         case NodeKind.MapPatternRestEntry:
@@ -1805,7 +1805,7 @@ class NodeCreator {
         return SwitchCase(
             [NullLiteral()], [TreeNode.noOffset], _createStatement())
           ..fileOffset = _needFileOffset();
-      case NodeKind.TypeParameter:
+      case NodeKind.NominalParameter:
         return TypeParameter('foo', _createDartType(), _createDartType())
           ..fileOffset = _needFileOffset();
       case NodeKind.StructuralParameter:
@@ -1895,7 +1895,7 @@ const Set<NodeKind> inBodyNodeKinds = {
   NodeKind.NamedExpression,
   NodeKind.NamedType,
   NodeKind.SwitchCase,
-  NodeKind.TypeParameter,
+  NodeKind.NominalParameter,
   NodeKind.PatternGuard,
   NodeKind.PatternSwitchCase,
   NodeKind.SwitchExpressionCase,

@@ -32,6 +32,8 @@ abstract class DeclarationFragmentImpl implements DeclarationFragment {
 
   final LibraryFragment enclosingCompilationUnit;
 
+  final List<ConstructorReferenceBuilder> constructorReferences = [];
+
   DeclarationFragmentImpl({
     required this.fileUri,
     required this.typeParameters,

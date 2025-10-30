@@ -1,4 +1,4 @@
 Errors: {
-  org-dartlang-testcase:///main.dart: Error: Illegal type parameter name 'TypeParameter(a#b)' found during expression compilation.
+  org-dartlang-testcase:///main.dart: Error: Illegal type parameter name 'NominalTypeParameter(a#b)' found during expression compilation.
 }
 <no procedure>

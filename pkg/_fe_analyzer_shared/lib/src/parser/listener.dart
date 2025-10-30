@@ -143,7 +143,7 @@ abstract class Listener implements UnescapeErrorListener {
   void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {}
 
   /// Handle the beginning of a class declaration.
-  /// [begin] may be the same as [name], or may point to modifiers
+  /// [begin] may be the 'class' token, or may point to modifiers
   /// (or extraneous modifiers in the case of recovery) preceding [name].
   ///
   /// At this point we have parsed the name and type parameter declarations.
@@ -409,12 +409,31 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("WhileStatementBody");
   }
 
-  void beginEnum(Token enumKeyword) {}
+  /// Handle the beginning of an enum declaration.  Substructures:
+  /// - metadata
+  ///
+  /// At this point only the `enum` keyword have been seen, so we know a
+  /// declaration is coming but not its name or type parameter declarations.
+  ///
+  /// Ended by [endTopLevelDeclaration].
+  void beginEnumDeclarationPrelude(Token enumKeyword) {}
+
+  /// Handle the beginning of an enum declaration.
+  /// [beginToken] may be the [enumKeyword], or may point to modifiers
+  /// (or extraneous modifiers in the case of recovery) preceding [name].
+  ///
+  /// At this point we have parsed the name and type parameter declarations.
+  void beginEnumDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token enumKeyword,
+    Token name,
+  ) {}
 
   /// Handle the end of an enum declaration.  Substructures:
   /// - [memberCount] times:
   ///   - Enum member
-  void endEnum(
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,
@@ -1725,10 +1744,10 @@ abstract class Listener implements UnescapeErrorListener {
   /// This event is added for convenience for the listener.
   /// All top-level declarations will actually be begin/end'ed by more specific
   /// events as well, e.g. [beginClassDeclaration]/[endClassDeclaration],
-  /// [beginEnum]/[endEnum] etc.
+  /// [beginEnumDeclaration]/[endEnumDeclaration] etc.
   ///
   /// Normally listeners should probably override
-  /// [endClassDeclaration], [endNamedMixinApplication], [endEnum],
+  /// [endClassDeclaration], [endNamedMixinApplication], [endEnumDeclaration],
   /// [endTypedef], [endLibraryName], [endImport], [endExport],
   /// [endPart], [endPartOf], [endTopLevelFields], or [endTopLevelMethod]
   /// instead.

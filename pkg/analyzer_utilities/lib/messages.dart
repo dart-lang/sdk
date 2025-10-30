@@ -584,10 +584,6 @@ class GeneratedDiagnosticClassInfo extends DiagnosticClassInfo {
   /// The generated file containing this class.
   final GeneratedDiagnosticFile file;
 
-  /// The severity of diagnostics in this class, or `null` if the severity
-  /// should be based on the [type] of the diagnostic.
-  final String? severity;
-
   /// The type of diagnostics in this class.
   final String type;
 
@@ -607,22 +603,11 @@ class GeneratedDiagnosticClassInfo extends DiagnosticClassInfo {
   const GeneratedDiagnosticClassInfo({
     required this.file,
     required super.name,
-    this.severity,
     required this.type,
     this.deprecatedSnakeCaseNames = const {},
     this.package = AnalyzerDiagnosticPackage.analyzer,
     this.comment = '',
   });
-
-  /// Generates the code to compute the severity of diagnostics of this class.
-  String get severityCode {
-    var severity = this.severity;
-    if (severity == null) {
-      return '$typeCode.severity';
-    } else {
-      return 'DiagnosticSeverity.$severity';
-    }
-  }
 
   String get templateName => '${_baseName}Template';
 

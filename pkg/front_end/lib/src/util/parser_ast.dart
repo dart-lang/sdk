@@ -251,8 +251,8 @@ class BestEffortParserAstVisitor {
       visitMixin(declaration, declaration.beginToken, declaration.endToken);
       return;
     }
-    if (node is EnumEnd) {
-      EnumEnd declaration = node;
+    if (node is EnumDeclarationEnd) {
+      EnumDeclarationEnd declaration = node;
       visitEnum(
         declaration,
         declaration.enumKeyword,
@@ -449,7 +449,11 @@ class BestEffortParserAstVisitor {
   }
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitEnum(EnumEnd node, Token startInclusive, Token endInclusive) {}
+  void visitEnum(
+    EnumDeclarationEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitLibraryName(
@@ -679,19 +683,19 @@ extension GeneralASTContentExtension on ParserAstNode {
     if (this is! TopLevelDeclarationEnd) {
       return false;
     }
-    if (children!.first is! UncategorizedTopLevelDeclarationBegin) {
+    if (children!.first is! EnumDeclarationPreludeBegin) {
       return false;
     }
-    if (children!.last is! EnumEnd) {
+    if (children!.last is! EnumDeclarationEnd) {
       return false;
     }
 
     return true;
   }
 
-  EnumEnd asEnum() {
+  EnumDeclarationEnd asEnum() {
     if (!isEnum()) throw "Not enum";
-    return children!.last as EnumEnd;
+    return children!.last as EnumDeclarationEnd;
   }
 
   bool isTypedef() {
@@ -1648,7 +1652,7 @@ extension ClassFieldsExtension on ClassFieldsEnd {
 }
 
 // Coverage-ignore(suite): Not run.
-extension EnumExtension on EnumEnd {
+extension EnumDeclarationExtension on EnumDeclarationEnd {
   List<IdentifierHandle> getIdentifiers() {
     List<IdentifierHandle> ids = [];
     for (ParserAstNode child in children!) {
@@ -2384,11 +2388,13 @@ class ParserASTListener extends AbstractParserAstListener {
         if (begin == end) {
           // Exact match.
         } else if (end == "TopLevelDeclaration" &&
-            (begin == "ExtensionDeclarationPrelude" ||
+            (begin == "EnumDeclarationPrelude" ||
+                begin == "ExtensionDeclarationPrelude" ||
                 begin == "ClassOrMixinOrNamedMixinApplicationPrelude" ||
                 begin == "TopLevelMember" ||
                 begin == "UncategorizedTopLevelDeclaration")) {
           // endTopLevelDeclaration is started by one of
+          // beginEnumDeclarationPrelude
           // beginExtensionDeclarationPrelude,
           // beginClassOrNamedMixinApplicationPrelude
           // beginTopLevelMember or beginUncategorizedTopLevelDeclaration.

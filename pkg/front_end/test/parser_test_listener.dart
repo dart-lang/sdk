@@ -742,17 +742,38 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginEnum(Token enumKeyword) {
+  void beginEnumDeclarationPrelude(Token enumKeyword) {
     seen(enumKeyword);
     doPrint(
-      'beginEnum('
+      'beginEnumDeclarationPrelude('
       '$enumKeyword)',
     );
     indent++;
   }
 
   @override
-  void endEnum(
+  void beginEnumDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token enumKeyword,
+    Token name,
+  ) {
+    seen(beginToken);
+    seen(augmentToken);
+    seen(enumKeyword);
+    seen(name);
+    doPrint(
+      'beginEnumDeclaration('
+      '$beginToken, '
+      '$augmentToken, '
+      '$enumKeyword, '
+      '$name)',
+    );
+    indent++;
+  }
+
+  @override
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,
@@ -765,7 +786,7 @@ class ParserTestListener implements Listener {
     seen(leftBrace);
     seen(endToken);
     doPrint(
-      'endEnum('
+      'endEnumDeclaration('
       '$beginToken, '
       '$enumKeyword, '
       '$leftBrace, '

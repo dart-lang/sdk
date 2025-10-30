@@ -746,7 +746,7 @@ void main() {
       return foo;
     },
     (Node? foo) => "${errorPrefix}"
-        "Unset bound on type parameter TypeParameter(Foo.T)",
+        "Unset bound on type parameter NominalTypeParameter(Foo.T)",
   );
   negative1Test(
     'Unset default type typedef Foo<T> = dynamic',
@@ -760,7 +760,7 @@ void main() {
       return foo;
     },
     (Node? foo) => "${errorPrefix}"
-        "Unset default type on type parameter TypeParameter(Foo.T)",
+        "Unset default type on type parameter NominalTypeParameter(Foo.T)",
   );
   negative1Test(
     'Non-static top-level field',

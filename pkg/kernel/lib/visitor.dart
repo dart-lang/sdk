@@ -803,7 +803,6 @@ abstract class TreeVisitor<R>
   R visitCombinator(Combinator node);
   R visitLibraryPart(LibraryPart node);
   R visitTypedef(Typedef node);
-  R visitTypeParameter(TypeParameter node);
   R visitFunctionNode(FunctionNode node);
   R visitArguments(Arguments node);
   R visitNamedExpression(NamedExpression node);
@@ -824,6 +823,7 @@ abstract class TreeVisitor<R>
   R visitSyntheticVariable(SyntheticVariable node);
   R visitVariableContext(VariableContext node);
   R visitScope(Scope node);
+  R visitNominalParameter(NominalParameter node);
 }
 
 /// Helper mixin for [TreeVisitor] that implements visit methods by delegating
@@ -851,7 +851,6 @@ mixin TreeVisitorDefaultMixin<R> implements TreeVisitor<R> {
   R visitLibraryPart(LibraryPart node) => defaultTreeNode(node);
   @override
   R visitTypedef(Typedef node) => defaultTreeNode(node);
-  @override
   R visitTypeParameter(TypeParameter node) => defaultTreeNode(node);
   @override
   R visitFunctionNode(FunctionNode node) => defaultTreeNode(node);
@@ -894,6 +893,8 @@ mixin TreeVisitorDefaultMixin<R> implements TreeVisitor<R> {
   R visitVariableContext(VariableContext node) => defaultTreeNode(node);
   @override
   R visitScope(Scope node) => defaultTreeNode(node);
+  @override
+  R visitNominalParameter(NominalParameter node) => visitTypeParameter(node);
 }
 
 /// Base class for implementing [TreeVisitor1] that implements visit methods
@@ -942,7 +943,6 @@ abstract class TreeVisitor1<R, A>
   R visitCombinator(Combinator node, A arg);
   R visitLibraryPart(LibraryPart node, A arg);
   R visitTypedef(Typedef node, A arg);
-  R visitTypeParameter(TypeParameter node, A arg);
   R visitFunctionNode(FunctionNode node, A arg);
   R visitArguments(Arguments node, A arg);
   R visitNamedExpression(NamedExpression node, A arg);
@@ -963,6 +963,7 @@ abstract class TreeVisitor1<R, A>
   R visitSyntheticVariable(SyntheticVariable node, A arg);
   R visitVariableContext(VariableContext node, A arg);
   R visitScope(Scope node, A arg);
+  R visitNominalParameter(NominalParameter node, A arg);
 }
 
 /// Helper mixin for [TreeVisitor1] that implements visit methods by delegating
@@ -991,7 +992,6 @@ mixin TreeVisitor1DefaultMixin<R, A> implements TreeVisitor1<R, A> {
   R visitLibraryPart(LibraryPart node, A arg) => defaultTreeNode(node, arg);
   @override
   R visitTypedef(Typedef node, A arg) => defaultTreeNode(node, arg);
-  @override
   R visitTypeParameter(TypeParameter node, A arg) => defaultTreeNode(node, arg);
   @override
   R visitFunctionNode(FunctionNode node, A arg) => defaultTreeNode(node, arg);
@@ -1043,6 +1043,9 @@ mixin TreeVisitor1DefaultMixin<R, A> implements TreeVisitor1<R, A> {
       defaultTreeNode(node, arg);
   @override
   R visitScope(Scope node, A arg) => defaultTreeNode(node, arg);
+  @override
+  R visitNominalParameter(NominalParameter node, A arg) =>
+      visitTypeParameter(node, arg);
 }
 
 /// Base class for implementing [TreeVisitor1] that implements visit methods
@@ -3260,14 +3263,15 @@ mixin StatementVisitorExperimentExclusionMixin<R>
     );
   }
 
-  /// Now that [VariableDeclaration] is abstract, it doesn't have its own visit
-  /// method in [StatementVisitor]. However, for the transitional period the
-  /// backends would rely on having `visitVariableDeclaration` and on needing to
-  /// override it. Since the statement visitors in the backends should mix in
-  /// [StatementVisitorExclusionMixin], we can deliver the abstract declaration
-  /// of `visitorVariableDeclaration` to them via the mixin. At the same time,
-  /// it allows us to redirect `visitVariableStatement` to the overrides of
-  /// `visitVariableDeclarations` backends already have.
+  /// Since [VariableDeclaration] is abstract due to an experiment, it doesn't
+  /// have its own visit method in [StatementVisitor]. However, for the
+  /// transitional period the backends would rely on having
+  /// [visitVariableDeclaration] and on needing to override it. Since the
+  /// statement visitors in the backends should mix in
+  /// [StatementVisitorExperimentExclusionMixin], we can deliver the abstract
+  /// declaration of [visitVariableDeclaration] to them via the mixin. At the
+  /// same time, it allows us to redirect [visitVariableStatement] to the
+  /// overrides of [visitVariableDeclarations] the backends already have.
   R visitVariableDeclaration(VariableDeclaration node);
 
   @override
@@ -3291,14 +3295,15 @@ mixin StatementVisitor1ExperimentExclusionMixin<R, A>
     );
   }
 
-  /// Now that [VariableDeclaration] is abstract, it doesn't have its own visit
-  /// method in [StatementVisitor1]. However, for the transitional period the
-  /// backends would rely on having `visitVariableDeclaration` and on needing to
-  /// override it. Since the statement visitors in the backends should mix in
-  /// [StatementVisitorExclusionMixin], we can deliver the abstract declaration
-  /// of `visitorVariableDeclaration` to them via the mixin. At the same time,
-  /// it allows us to redirect `visitVariableStatement` to the overrides of
-  /// `visitVariableDeclarations` backends already have.
+  /// Since [VariableDeclaration] is abstract due to an experiment, it doesn't
+  /// have its own visit method in [StatementVisitor1]. However, for the
+  /// transitional period the backends would rely on having
+  /// [visitVariableDeclaration] and on needing to override it. Since the
+  /// statement visitors in the backends should mix in
+  /// [StatementVisitor1ExperimentExclusionMixin], we can deliver the abstract
+  /// declaration of [visitVariableDeclaration] to them via the mixin. At the
+  /// same time, it allows us to redirect [visitVariableStatement] to the
+  /// overrides of [visitVariableDeclarations] the backends already have.
   R visitVariableDeclaration(VariableDeclaration node, A arg);
 
   @override
@@ -3429,6 +3434,21 @@ mixin TreeVisitorExperimentExclusionMixin<R> implements TreeVisitor<R> {
       "${runtimeType}.visitScope isn't supported.",
     );
   }
+
+  /// Since [TypeParameter] is abstract due to an experiment, it doesn't have
+  /// its own visit method in [TreeVisitor]. However, for the transitional
+  /// period the backends would rely on having [visitTypeParameter] and on
+  /// needing to override it. Since the statement visitors in the backends
+  /// should mix in [TreeVisitorExperimentExclusionMixin], we can deliver the
+  /// abstract declaration of [visitTypeParameter] to them via the mixin. At the
+  /// same time, it allows us to redirect [visitNominalParameter] to the
+  /// overrides of [visitTypeParameter] the backends already have.
+  R visitTypeParameter(TypeParameter node);
+
+  @override
+  R visitNominalParameter(NominalParameter node) {
+    return visitTypeParameter(node);
+  }
 }
 
 /// [TreeVisitor1ExperimentExclusionMixin] is intended to reduce the effects of
@@ -3492,5 +3512,20 @@ mixin TreeVisitor1ExperimentExclusionMixin<R, A> implements TreeVisitor1<R, A> {
     throw StateError(
       "${runtimeType}.visitScope isn't supported.",
     );
+  }
+
+  /// Since [TypeParameter] is abstract due to an experiment, it doesn't have
+  /// its own visit method in [TreeVisitor1]. However, for the transitional
+  /// period the backends would rely on having [visitTypeParameter] and on
+  /// needing to override it. Since the statement visitors in the backends
+  /// should mix in [TreeVisitor1ExperimentExclusionMixin], we can deliver the
+  /// abstract declaration of [visitTypeParameter] to them via the mixin. At the
+  /// same time, it allows us to redirect [visitNominalParameter] to the
+  /// overrides of [visitTypeParameter] the backends already have.
+  R visitTypeParameter(TypeParameter node, A arg);
+
+  @override
+  R visitNominalParameter(NominalParameter node, A arg) {
+    return visitTypeParameter(node, arg);
   }
 }

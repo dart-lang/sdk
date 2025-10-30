@@ -851,8 +851,8 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitTypeParameter(TypeParameter node, Node other) {
-    return strategy.checkTypeParameter(this, node, other);
+  bool visitNominalParameter(NominalParameter node, Node other) {
+    return strategy.checkNominalParameter(this, node, other);
   }
 
   @override
@@ -1280,9 +1280,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     }
     if (a is LabeledStatement) {
       return b is LabeledStatement;
-    }
-    if (a is TypeParameter) {
-      return b is TypeParameter && a.name == b.name;
     }
     if (a is StructuralParameter) {
       return b is StructuralParameter && a.name == b.name;
@@ -5442,35 +5439,32 @@ class EquivalenceStrategy {
     return result;
   }
 
-  bool checkTypeParameter(
-      EquivalenceVisitor visitor, TypeParameter? node, Object? other) {
+  bool checkNominalParameter(
+      EquivalenceVisitor visitor, NominalParameter? node, Object? other) {
     if (identical(node, other)) return true;
-    if (node is! TypeParameter) return false;
-    if (other is! TypeParameter) return false;
-    if (!visitor.checkDeclarations(node, other, '')) {
-      return false;
-    }
+    if (node is! NominalParameter) return false;
+    if (other is! NominalParameter) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkTypeParameter_flags(visitor, node, other)) {
+    if (!checkNominalParameter_flags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypeParameter_annotations(visitor, node, other)) {
+    if (!checkNominalParameter_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypeParameter_name(visitor, node, other)) {
+    if (!checkNominalParameter_name(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypeParameter_bound(visitor, node, other)) {
+    if (!checkNominalParameter_bound(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypeParameter_defaultType(visitor, node, other)) {
+    if (!checkNominalParameter_defaultType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypeParameter_variance(visitor, node, other)) {
+    if (!checkNominalParameter_variance(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypeParameter_fileOffset(visitor, node, other)) {
+    if (!checkNominalParameter_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -9804,40 +9798,40 @@ class EquivalenceStrategy {
     return checkTreeNode_fileOffset(visitor, node, other);
   }
 
-  bool checkTypeParameter_flags(
-      EquivalenceVisitor visitor, TypeParameter node, TypeParameter other) {
+  bool checkNominalParameter_flags(EquivalenceVisitor visitor,
+      NominalParameter node, NominalParameter other) {
     return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
-  bool checkTypeParameter_annotations(
-      EquivalenceVisitor visitor, TypeParameter node, TypeParameter other) {
+  bool checkNominalParameter_annotations(EquivalenceVisitor visitor,
+      NominalParameter node, NominalParameter other) {
     return visitor.checkLists(
         node.annotations, other.annotations, visitor.checkNodes, 'annotations');
   }
 
-  bool checkTypeParameter_name(
-      EquivalenceVisitor visitor, TypeParameter node, TypeParameter other) {
+  bool checkNominalParameter_name(EquivalenceVisitor visitor,
+      NominalParameter node, NominalParameter other) {
     return visitor.checkValues(node.name, other.name, 'name');
   }
 
-  bool checkTypeParameter_bound(
-      EquivalenceVisitor visitor, TypeParameter node, TypeParameter other) {
+  bool checkNominalParameter_bound(EquivalenceVisitor visitor,
+      NominalParameter node, NominalParameter other) {
     return visitor.checkNodes(node.bound, other.bound, 'bound');
   }
 
-  bool checkTypeParameter_defaultType(
-      EquivalenceVisitor visitor, TypeParameter node, TypeParameter other) {
+  bool checkNominalParameter_defaultType(EquivalenceVisitor visitor,
+      NominalParameter node, NominalParameter other) {
     return visitor.checkNodes(
         node.defaultType, other.defaultType, 'defaultType');
   }
 
-  bool checkTypeParameter_variance(
-      EquivalenceVisitor visitor, TypeParameter node, TypeParameter other) {
+  bool checkNominalParameter_variance(EquivalenceVisitor visitor,
+      NominalParameter node, NominalParameter other) {
     return visitor.checkValues(node.variance, other.variance, 'variance');
   }
 
-  bool checkTypeParameter_fileOffset(
-      EquivalenceVisitor visitor, TypeParameter node, TypeParameter other) {
+  bool checkNominalParameter_fileOffset(EquivalenceVisitor visitor,
+      NominalParameter node, NominalParameter other) {
     return checkTreeNode_fileOffset(visitor, node, other);
   }
 

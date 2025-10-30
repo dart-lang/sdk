@@ -1460,7 +1460,7 @@ worlds:
         shouldCompile = true;
         what = "toplevel method";
       } else if (child.isEnum()) {
-        EnumEnd decl = child.asEnum();
+        EnumDeclarationEnd decl = child.asEnum();
         helper.replacements.add(
           new _Replacement(
             decl.enumKeyword.offset - 1,

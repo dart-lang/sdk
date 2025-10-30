@@ -64,15 +64,18 @@ class MockIOSink implements IOSink {
 
 class TestDiagnosticCode extends DiagnosticCode {
   @override
-  late DiagnosticSeverity severity;
+  final DiagnosticType type;
+
+  TestDiagnosticCode(
+    String name,
+    String message, {
+    this.type = DiagnosticType.COMPILE_TIME_ERROR,
+  }) : super(
+         problemMessage: message,
+         name: name,
+         uniqueName: 'TestErrorCode.$name',
+       );
 
   @override
-  late DiagnosticType type;
-
-  TestDiagnosticCode(String name, String message)
-    : super(
-        problemMessage: message,
-        name: name,
-        uniqueName: 'TestErrorCode.$name',
-      );
+  DiagnosticSeverity get severity => type.severity;
 }

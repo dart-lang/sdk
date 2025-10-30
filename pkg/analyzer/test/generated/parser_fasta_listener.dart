@@ -188,8 +188,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginEnum(Token enumKeyword) {
-    super.beginEnum(enumKeyword);
+  void beginEnumDeclarationPrelude(Token enumKeyword) {
+    super.beginEnumDeclarationPrelude(enumKeyword);
     begin('Enum');
   }
 
@@ -881,18 +881,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endEnum(
-    Token beginToken,
-    Token enumKeyword,
-    Token leftBrace,
-    int memberCount,
-    Token endToken,
-  ) {
-    end('Enum');
-    super.endEnum(beginToken, enumKeyword, leftBrace, memberCount, endToken);
-  }
-
-  @override
   void endEnumConstructor(
     Token? getOrSet,
     Token beginToken,
@@ -906,6 +894,24 @@ class ForwardingTestListener extends ForwardingListener {
       beginToken,
       beginParam,
       beginInitializers,
+      endToken,
+    );
+  }
+
+  @override
+  void endEnumDeclaration(
+    Token beginToken,
+    Token enumKeyword,
+    Token leftBrace,
+    int memberCount,
+    Token endToken,
+  ) {
+    end('Enum');
+    super.endEnumDeclaration(
+      beginToken,
+      enumKeyword,
+      leftBrace,
+      memberCount,
       endToken,
     );
   }

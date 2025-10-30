@@ -342,7 +342,15 @@ class AstBuilder extends StackListener {
   void beginConstantPattern(Token? constKeyword) {}
 
   @override
-  void beginEnum(Token enumKeyword) {}
+  void beginEnumDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token enumKeyword,
+    Token name,
+  ) {}
+
+  @override
+  void beginEnumDeclarationPrelude(Token enumKeyword) {}
 
   @override
   void beginExtensionDeclaration(
@@ -1651,23 +1659,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endEnum(
-    Token beginToken,
-    Token enumKeyword,
-    Token leftBrace,
-    int memberCount,
-    Token endToken,
-  ) {
-    assert(optional('enum', enumKeyword));
-    assert(optional('{', leftBrace));
-    debugEvent("Enum");
-
-    var builder = _classLikeBuilder as _EnumDeclarationBuilder;
-    declarations.add(builder.build());
-    _classLikeBuilder = null;
-  }
-
-  @override
   void endEnumConstructor(
     Token? getOrSet,
     Token beginToken,
@@ -1683,6 +1674,23 @@ class AstBuilder extends StackListener {
       beginInitializers,
       endToken,
     );
+  }
+
+  @override
+  void endEnumDeclaration(
+    Token beginToken,
+    Token enumKeyword,
+    Token leftBrace,
+    int memberCount,
+    Token endToken,
+  ) {
+    assert(optional('enum', enumKeyword));
+    assert(optional('{', leftBrace));
+    debugEvent("Enum");
+
+    var builder = _classLikeBuilder as _EnumDeclarationBuilder;
+    declarations.add(builder.build());
+    _classLikeBuilder = null;
   }
 
   @override

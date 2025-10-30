@@ -2054,7 +2054,7 @@ class FuzzAstVisitorSorter extends IgnoreSomeForCompatibilityAstVisitor {
   }
 
   @override
-  void visitEnumEnd(EnumEnd node) {
+  void visitEnumDeclarationEnd(EnumDeclarationEnd node) {
     handleData(
       FuzzOriginalType.Enum,
       FuzzSorterState.sortableRest,

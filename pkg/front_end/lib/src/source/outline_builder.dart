@@ -1106,8 +1106,7 @@ class OutlineBuilder extends StackListenerImpl {
     );
     pushDeclarationContext(DeclarationContext.Class);
     List<TypeParameterFragment>? typeParameters =
-        pop() as List<TypeParameterFragment>?;
-    push(typeParameters ?? NullValues.NominalParameters);
+        peek() as List<TypeParameterFragment>?;
     if (macroToken != null) {
       if (reportIfNotEnabled(
         libraryFeatures.macros,
@@ -3163,18 +3162,58 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginEnum(Token enumKeyword) {
-    assert(checkState(enumKeyword, [ValueKinds.IdentifierOrParserRecovery]));
-    Object? identifier = peek();
-
-    String declarationName;
-    if (identifier is Identifier) {
-      declarationName = identifier.name;
-    } else {
-      declarationName = '#enum';
-    }
+  void beginEnumDeclarationPrelude(Token enumKeyword) {
     pushDeclarationContext(DeclarationContext.Enum);
-    _builderFactory.beginEnumDeclarationHeader(declarationName);
+    _builderFactory.beginEnumDeclarationHeader();
+  }
+
+  @override
+  void beginEnumDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token enumKeyword,
+    Token name,
+  ) {
+    assert(
+      checkState(enumKeyword, [
+        /* type parameters */ ValueKinds.TypeParameterFragmentListOrNull,
+        /* name */ ValueKinds.IdentifierOrParserRecovery,
+      ]),
+    );
+    debugEvent("EnumDeclaration");
+    List<TypeParameterFragment>? typeParameters =
+        peek() as List<TypeParameterFragment>?;
+
+    _builderFactory.beginEnumDeclaration(
+      name.lexeme,
+      name.charOffset,
+      typeParameters,
+    );
+  }
+
+  @override
+  void handleEnumHeader(
+    Token? augmentToken,
+    Token enumKeyword,
+    Token leftBrace,
+  ) {
+    assert(
+      checkState(enumKeyword, [
+        /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+        /* mixins */ unionOfKinds([
+          ValueKinds.TypeBuilderListOrNull,
+          ValueKinds.ParserRecovery,
+        ]),
+        /* type parameters */ ValueKinds.TypeParameterFragmentListOrNull,
+        /* name */ ValueKinds.IdentifierOrParserRecovery,
+      ]),
+    );
+    debugEvent("EnumHeader");
+  }
+
+  @override
+  void beginEnumBody(Token token) {
+    _builderFactory.beginEnumBody();
   }
 
   @override
@@ -3209,63 +3248,13 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void handleEnumHeader(
-    Token? augmentToken,
-    Token enumKeyword,
-    Token leftBrace,
-  ) {
-    assert(
-      checkState(enumKeyword, [
-        /* interfaces */ ValueKinds.TypeBuilderListOrNull,
-        /* mixins */ unionOfKinds([
-          ValueKinds.TypeBuilderListOrNull,
-          ValueKinds.ParserRecovery,
-        ]),
-        /* type parameters */ ValueKinds.TypeParameterFragmentListOrNull,
-        /* name */ ValueKinds.IdentifierOrParserRecovery,
-      ]),
-    );
-    debugEvent("EnumHeader");
-
-    // We pop more values than needed to reach type parameters, offset and name.
-    List<TypeBuilder>? interfaces =
-        pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
-    Object? mixins = pop(NullValues.TypeBuilderList);
-    List<TypeParameterFragment>? typeParameters =
-        pop() as List<TypeParameterFragment>?;
-
-    Object? identifier = peek();
-    if (identifier is Identifier) {
-      _builderFactory.beginEnumDeclaration(
-        identifier.name,
-        identifier.nameOffset,
-        typeParameters,
-      );
-    } else {
-      identifier as ParserRecovery;
-      _builderFactory.beginEnumDeclaration(
-        "<syntax-error>",
-        identifier.charOffset,
-        typeParameters,
-      );
-    }
-    _builderFactory.beginEnumBody();
-
-    push(typeParameters ?? NullValues.NominalParameters);
-    push(mixins ?? NullValues.TypeBuilderList);
-    push(interfaces ?? NullValues.TypeBuilderList);
-
-    push(leftBrace.endGroup!.charOffset); // end char offset.
-  }
-
-  @override
   void handleEnumElements(Token elementsEndToken, int elementsCount) {
     debugEvent("handleEnumElements");
     push(elementsCount);
   }
 
   @override
-  void endEnum(
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,
@@ -3283,7 +3272,8 @@ class OutlineBuilder extends StackListenerImpl {
           ValueKinds.EnumConstantInfoOrNull,
           elementsCount,
         ),
-        /* endCharOffset */ ValueKinds.Integer,
+
+        ///* endCharOffset */ ValueKinds.Integer,
         /* interfaces */ ValueKinds.TypeBuilderListOrNull,
         /* mixins */ unionOfKinds([
           ValueKinds.TypeBuilderListOrNull,
@@ -3318,8 +3308,6 @@ class OutlineBuilder extends StackListenerImpl {
         }
       }
     }
-
-    int endOffset = popCharOffset();
 
     List<TypeBuilder>? interfaces =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
@@ -3365,7 +3353,7 @@ class OutlineBuilder extends StackListenerImpl {
         mixins: mixins,
         interfaces: interfaces,
         startOffset: startOffset,
-        endOffset: endOffset,
+        endOffset: endToken.charOffset, //endOffset,
       );
     } else {
       _builderFactory.endEnumDeclarationForParserRecovery(typeParameters);

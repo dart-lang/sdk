@@ -28,13 +28,11 @@ const List<DiagnosticClassInfo> diagnosticClasses = [
     file: optionCodesFile,
     name: 'AnalysisOptionsErrorCode',
     type: 'COMPILE_TIME_ERROR',
-    severity: 'ERROR',
   ),
   GeneratedDiagnosticClassInfo(
     file: optionCodesFile,
     name: 'AnalysisOptionsWarningCode',
     type: 'STATIC_WARNING',
-    severity: 'WARNING',
   ),
   GeneratedDiagnosticClassInfo(
     file: codesFile,
@@ -50,13 +48,11 @@ const List<DiagnosticClassInfo> diagnosticClasses = [
     file: codesFile,
     name: 'StaticWarningCode',
     type: 'STATIC_WARNING',
-    severity: 'WARNING',
   ),
   GeneratedDiagnosticClassInfo(
     file: codesFile,
     name: 'WarningCode',
     type: 'STATIC_WARNING',
-    severity: 'WARNING',
   ),
   GeneratedDiagnosticClassInfo(
     file: ffiCodesFile,
@@ -72,7 +68,6 @@ const List<DiagnosticClassInfo> diagnosticClasses = [
     file: syntacticErrorsFile,
     name: 'ParserErrorCode',
     type: 'SYNTACTIC_ERROR',
-    severity: 'ERROR',
     deprecatedSnakeCaseNames: {
       'UNEXPECTED_TOKEN', // Referenced by `package:dart_style`.
     },
@@ -81,19 +76,16 @@ const List<DiagnosticClassInfo> diagnosticClasses = [
     file: manifestWarningCodeFile,
     name: 'ManifestWarningCode',
     type: 'STATIC_WARNING',
-    severity: 'WARNING',
   ),
   GeneratedDiagnosticClassInfo(
     file: pubspecWarningCodeFile,
     name: 'PubspecWarningCode',
     type: 'STATIC_WARNING',
-    severity: 'WARNING',
   ),
   GeneratedDiagnosticClassInfo(
     file: todoCodesFile,
     name: 'TodoCode',
     type: 'TODO',
-    severity: 'INFO',
     comment: '''
 The error code indicating a marker in code for work that needs to be finished
 or revisited.
@@ -103,7 +95,6 @@ or revisited.
     file: transformSetErrorCodeFile,
     name: 'TransformSetErrorCode',
     type: 'COMPILE_TIME_ERROR',
-    severity: 'ERROR',
     package: AnalyzerDiagnosticPackage.analysisServer,
     comment: '''
 An error code representing a problem in a file containing an encoding of a

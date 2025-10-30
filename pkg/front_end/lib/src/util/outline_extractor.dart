@@ -800,7 +800,7 @@ class _ParserAstVisitor extends IgnoreSomeForCompatibilityAstVisitor {
   }
 
   @override
-  void visitEnumEnd(EnumEnd node) {
+  void visitEnumDeclarationEnd(EnumDeclarationEnd node) {
     TopLevelDeclarationEnd parent = node.parent! as TopLevelDeclarationEnd;
     IdentifierHandle identifier = parent.getIdentifier();
     List<IdentifierHandle> ids = node.getIdentifiers();
@@ -820,7 +820,7 @@ class _ParserAstVisitor extends IgnoreSomeForCompatibilityAstVisitor {
       "Hello from enum ${identifier.token} with content "
       "${ids.map((e) => e.token).join(", ")}",
     );
-    super.visitEnumEnd(node);
+    super.visitEnumDeclarationEnd(node);
   }
 
   @override
