@@ -681,7 +681,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
        );
 
   @override
-  DiagnosticSeverity get severity => DiagnosticType.COMPILE_TIME_ERROR.severity;
+  DiagnosticSeverity get severity => type.severity;
 
   @override
   DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;

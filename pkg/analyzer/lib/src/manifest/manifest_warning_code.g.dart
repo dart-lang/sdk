@@ -150,7 +150,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
        );
 
   @override
-  DiagnosticSeverity get severity => DiagnosticSeverity.WARNING;
+  DiagnosticSeverity get severity => type.severity;
 
   @override
   DiagnosticType get type => DiagnosticType.STATIC_WARNING;

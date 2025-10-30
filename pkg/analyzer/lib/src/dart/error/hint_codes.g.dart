@@ -106,7 +106,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
        );
 
   @override
-  DiagnosticSeverity get severity => DiagnosticType.HINT.severity;
+  DiagnosticSeverity get severity => type.severity;
 
   @override
   DiagnosticType get type => DiagnosticType.HINT;

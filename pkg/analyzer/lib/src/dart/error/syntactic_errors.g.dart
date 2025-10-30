@@ -2721,7 +2721,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
        );
 
   @override
-  DiagnosticSeverity get severity => DiagnosticSeverity.ERROR;
+  DiagnosticSeverity get severity => type.severity;
 
   @override
   DiagnosticType get type => DiagnosticType.SYNTACTIC_ERROR;
@@ -3023,7 +3023,7 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
        );
 
   @override
-  DiagnosticSeverity get severity => DiagnosticType.SYNTACTIC_ERROR.severity;
+  DiagnosticSeverity get severity => type.severity;
 
   @override
   DiagnosticType get type => DiagnosticType.SYNTACTIC_ERROR;

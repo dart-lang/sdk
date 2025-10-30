@@ -148,10 +148,9 @@ part of ${json.encode(file.parentLibrary)};
       constructor.writeln(');');
       memberAccumulator.constructors[''] = constructor.toString();
 
-      memberAccumulator.accessors['severity'] =
-          '''
+      memberAccumulator.accessors['severity'] = '''
 @override
-DiagnosticSeverity get severity => ${diagnosticClass.severityCode};
+DiagnosticSeverity get severity => type.severity;
 ''';
       memberAccumulator.accessors['type'] =
           '''
