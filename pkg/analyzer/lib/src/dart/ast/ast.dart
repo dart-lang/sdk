@@ -7077,7 +7077,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
 /// The enum declaration body, with constants and members.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 @experimental
-sealed class EnumBody implements ClassBody {
+sealed class EnumBody implements AstNode {
   /// The enumeration constants being declared.
   NodeList<EnumConstantDeclaration> get constants;
 
@@ -7103,7 +7103,7 @@ sealed class EnumBody implements ClassBody {
     GenerateNodeProperty('rightBracket'),
   ],
 )
-final class EnumBodyImpl extends ClassBodyImpl implements EnumBody {
+final class EnumBodyImpl extends AstNodeImpl implements EnumBody {
   @generated
   @override
   final Token leftBracket;

@@ -214,7 +214,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @experimental
   @override
-  R? visitEnumBody(EnumBody node) => visitClassBody(node);
+  R? visitEnumBody(EnumBody node) => visitNode(node);
 
   @override
   R? visitEnumConstantArguments(EnumConstantArguments node) => visitNode(node);

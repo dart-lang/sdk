@@ -871,7 +871,7 @@ package:analyzer/dart/ast/ast.dart:
   CatchClauseParameter (class extends AstNode):
     declaredFragment (getter: LocalVariableFragment?)
     name (getter: Token)
-  ClassBody (class extends Object implements AstNode, sealed (immediate subtypes: BlockClassBody, ClassBodyImpl, EmptyClassBody, EnumBody), experimental)
+  ClassBody (class extends Object implements AstNode, sealed (immediate subtypes: BlockClassBody, ClassBodyImpl, EmptyClassBody), experimental)
   ClassDeclaration (class extends Object implements NamedCompilationUnitMember):
     abstractKeyword (getter: Token?)
     augmentKeyword (getter: Token?)
@@ -1050,7 +1050,7 @@ package:analyzer/dart/ast/ast.dart:
     semicolon (getter: Token)
   EmptyStatement (class extends Object implements Statement):
     semicolon (getter: Token)
-  EnumBody (class extends Object implements ClassBody, sealed (immediate subtypes: EnumBodyImpl), experimental):
+  EnumBody (class extends Object implements AstNode, sealed (immediate subtypes: EnumBodyImpl), experimental):
     constants (getter: NodeList<EnumConstantDeclaration>)
     leftBracket (getter: Token)
     members (getter: NodeList<ClassMember>)
