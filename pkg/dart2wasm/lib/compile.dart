@@ -454,6 +454,10 @@ Future<CompilationResult> _runTfaPhase(
     // pkg/vm/test/transformations/type_flow/transformer_test.dart
     globalTypeFlow.transformComponent(target, coreTypes, component,
         useRapidTypeAnalysis: false);
+
+    // TFA may have tree shaken members that are in the library index cache.
+    // To avoid having dangling references in the index, we create a new one.
+    libraryIndex = LibraryIndex(component, _librariesToIndex);
   }
 
   if (options.phases.last == compiler.CompilerPhase.tfa) {

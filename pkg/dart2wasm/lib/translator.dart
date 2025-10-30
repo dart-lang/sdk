@@ -582,6 +582,7 @@ class Translator with KernelNodes {
     if (loadingMapNamesGetter != null) {
       // If the actual emitted code accesses the names (i.e. --no-minify and
       // code emits a deferred library load)
+      assert(!options.minify);
       final function =
           (functions.getExistingFunction(loadingMapNamesGetter.reference)
               as w.FunctionBuilder?);
