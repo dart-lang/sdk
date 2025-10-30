@@ -37,7 +37,7 @@
     if (result (ref null $BoxedInt))
       ref.null none
     else
-      i32.const 60
+      i32.const 63
       local.get $var0
       call $dartifyInt
       struct.new $BoxedInt
@@ -78,7 +78,7 @@
         call $"ktrue implicit getter"
       end
       if (result (ref null $BoxedInt))
-        i32.const 60
+        i32.const 63
         global.get $"intValue initialized"
         if (result i64)
           global.get $intValue
@@ -108,7 +108,7 @@
     if (result (ref null $BoxedInt))
       ref.null none
     else
-      i32.const 60
+      i32.const 63
       local.get $var1
       call $dartifyInt
       struct.new $BoxedInt

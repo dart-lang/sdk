@@ -436,6 +436,13 @@ mixin KernelNodes {
   late final Field boxedIntImmutableArrayCache =
       index.getTopLevelField('dart:_internal', 'boxedIntImmutableArray');
 
+  // Deferred loading.
+  late final Procedure? dartInternalLoadingMapGetter = index.tryGetProcedure(
+      'dart:_internal', LibraryIndex.topLevel, 'get:_loadingMap');
+  late final Procedure? dartInternalLoadingMapNamesGetter =
+      index.tryGetProcedure(
+          'dart:_internal', LibraryIndex.topLevel, 'get:_loadingMapNames');
+
   // Debugging
   late final Procedure printToConsole =
       index.getTopLevelProcedure("dart:_internal", "printToConsole");

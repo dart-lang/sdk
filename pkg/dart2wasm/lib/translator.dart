@@ -184,6 +184,7 @@ class Translator with KernelNodes {
   late final FunctionCollector functions;
 
   late final DynamicModuleConstants? dynamicModuleConstants;
+  late final DeferredModuleLoadingMap loadingMap;
 
   // Information about the program used and updated by the various phases.
 
@@ -457,7 +458,7 @@ class Translator with KernelNodes {
           : Closures(this, member, findCaptures: false);
 
   Translator(this.component, this.coreTypes, this.index, this.recordClasses,
-      this._moduleOutputData, this.options,
+      this.loadingMap, this._moduleOutputData, this.options,
       {bool enableDynamicModules = false,
       required MainModuleMetadata mainModuleMetadata})
       : symbols = Symbols(options.minify),
@@ -561,11 +562,111 @@ class Translator with KernelNodes {
     }
     _printFunction(initFunction, "init");
 
+    // This getter will be null if we pass e.g. `--load-ids=<uri>` as the
+    // runtime code will then be pruned to call out to embedder instead of
+    // consulting the load mapping bundled in the app.
+    final loadingMapGetter = dartInternalLoadingMapGetter;
+    if (loadingMapGetter != null) {
+      // This function will be null if we didn't pass `--load-ids=<uri>` but we
+      // ended up not having any actual deferred code (e.g. `await
+      // foo.loadLibrary()` is never called anywhere).
+      final function =
+          (functions.getExistingFunction(loadingMapGetter.reference)
+              as w.FunctionBuilder?);
+      if (function != null) {
+        _patchLoadingMapGetter(function);
+      }
+    }
+    // If original program uses deferred loading this will be non-null.
+    final loadingMapNamesGetter = dartInternalLoadingMapNamesGetter;
+    if (loadingMapNamesGetter != null) {
+      // If the actual emitted code accesses the names (i.e. --no-minify and
+      // code emits a deferred library load)
+      final function =
+          (functions.getExistingFunction(loadingMapNamesGetter.reference)
+              as w.FunctionBuilder?);
+      if (function != null) {
+        _patchLoadingMapNamesGetter(function);
+      }
+    }
+
     final result = <ModuleMetadata, w.Module>{};
     _outputToBuilder.forEach((outputModule, builder) {
       result[outputModule] = builder.build();
     });
     return result;
+  }
+
+  // NOTE: We do this after code generation is complete. So the code generation
+  // phase has the opportunity to generate more wasm modules and add them to the
+  // loading map.
+  void _patchLoadingMapGetter(w.FunctionBuilder function) {
+    final externRef = w.RefType.extern(nullable: false);
+    final arrayExternRef =
+        wasmArrayType(externRef, externRef.toString(), mutable: false);
+    final arrayArrayString = wasmArrayType(
+        w.RefType(arrayExternRef, nullable: false), arrayExternRef.toString(),
+        mutable: false);
+
+    _lazyInitializeGlobal(function,
+        w.RefType(arrayArrayString, nullable: false), 'loadIdModuleNames', (b) {
+      final moduleMap = loadingMap.moduleMap;
+      for (int i = 0; i < moduleMap.length; ++i) {
+        final moduleNames = moduleMap[i];
+        for (int k = 0; k < moduleNames.length; ++k) {
+          b.global_get(getInternalizedStringGlobal(
+              function.moduleBuilder, moduleNames[k].moduleName));
+        }
+        b.array_new_fixed(arrayExternRef, moduleNames.length);
+      }
+      b.array_new_fixed(arrayArrayString, moduleMap.length);
+    });
+  }
+
+  void _patchLoadingMapNamesGetter(w.FunctionBuilder function) {
+    final externRef = w.RefType.extern(nullable: false);
+    final arrayExternRef =
+        wasmArrayType(externRef, externRef.toString(), mutable: false);
+
+    _lazyInitializeGlobal(function, w.RefType(arrayExternRef, nullable: false),
+        'loadIdModuleImportInfo', (b) {
+      int index = 0;
+      loadingMap.loadIds.forEach((tuple, loadId) {
+        assert(index == loadId);
+        index++;
+        final libraryName = tuple.$1.importUri.toString();
+        final prefixName = tuple.$2;
+        b.global_get(
+            getInternalizedStringGlobal(function.moduleBuilder, libraryName));
+        b.global_get(
+            getInternalizedStringGlobal(function.moduleBuilder, prefixName));
+      });
+      b.array_new_fixed(arrayExternRef, 2 * loadingMap.loadIds.length);
+    });
+  }
+
+  void _lazyInitializeGlobal(w.FunctionBuilder f, w.ValueType type, String name,
+      void Function(w.InstructionsBuilder) gen) {
+    final globalType = w.GlobalType(type.withNullability(true));
+    final global = f.moduleBuilder.globals.define(globalType, name);
+    global.initializer
+      ..ref_null(w.HeapType.none)
+      ..end();
+
+    final b =
+        w.InstructionsBuilder(f.moduleBuilder, f.type.inputs, f.type.outputs);
+    f.replaceBody(b);
+
+    final label = b.block(const [], [type]);
+    b.global_get(global);
+    b.br_on_non_null(label);
+    gen(b);
+    final local = b.addLocal(type);
+    b.local_tee(local);
+    b.global_set(global);
+    b.local_get(local);
+    b.end();
+    b.end();
   }
 
   void _printFunction(w.BaseFunction function, Object name) {

@@ -11,11 +11,11 @@
   (global $"ktrue initialized" (mut i32) <...>)
   (global $ktrue (mut i32) <...>)
   (global $stringValue (mut (ref null $JSStringImpl)) <...>)
-  (global $"C360 \"a\"" (ref $JSStringImpl) <...>)
+  (global $"C358 \"a\"" (ref $JSStringImpl) <...>)
   (func $new JSStringImpl.fromRef (param $var0 externref) (result (ref $JSStringImpl)) <...>)
   (func $"testStringConstant <noInline>"
     (local $var0 externref)
-    global.get $"C360 \"a\""
+    global.get $"C358 \"a\""
     struct.get $JSStringImpl $_ref
     call $"dart2wasm._274 (import)"
     local.tee $var0

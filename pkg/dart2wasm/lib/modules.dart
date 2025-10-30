@@ -7,7 +7,6 @@ import 'package:kernel/core_types.dart';
 import 'package:path/path.dart' as path;
 
 import 'compiler_options.dart';
-import 'deferred_loading.dart' show DeferredLoadingLoweringUris;
 import 'target.dart';
 import 'util.dart';
 
@@ -108,9 +107,6 @@ class DefaultModuleStrategy extends ModuleStrategy {
 
   DefaultModuleStrategy(this.coreTypes, this.component, this.options);
 
-  late final deferredLoweringTransformer =
-      DeferredLoadingLoweringUris(coreTypes);
-
   @override
   ModuleOutputData buildModuleOutputData() {
     // If deferred loading is not enabled then put every library in the main
@@ -122,14 +118,11 @@ class DefaultModuleStrategy extends ModuleStrategy {
   }
 
   @override
-  void prepareComponent() {
-    deferredLoweringTransformer.markRuntimeFunctionsAsEntrypoints();
-  }
+  void prepareComponent() {}
 
   @override
-  Future<void> processComponentAfterTfa() async {
-    component.accept(deferredLoweringTransformer);
-  }
+  Future<void> processComponentAfterTfa(
+      DeferredModuleLoadingMap loadingMap) async {}
 }
 
 bool _hasWasmExportPragma(CoreTypes coreTypes, Member m) =>
@@ -145,7 +138,7 @@ bool containsWasmExport(CoreTypes coreTypes, Library lib) {
 
 abstract class ModuleStrategy {
   void prepareComponent();
-  Future<void> processComponentAfterTfa();
+  Future<void> processComponentAfterTfa(DeferredModuleLoadingMap loadingMap);
   ModuleOutputData buildModuleOutputData();
 }
 
@@ -163,4 +156,41 @@ Set<Library> getReachableLibraries(
     }
   }
   return reachable;
+}
+
+class DeferredModuleLoadingMap {
+  // Maps each (library, deferred import) to a unique id.
+  final Map<(Library, String), int> loadIds;
+
+  // Maps the unique load id to the imported library.
+  final List<Library> loadId2ImportedLibrary;
+
+  // Maps (library, import-name)-id to list of needed modules.
+  final List<List<ModuleMetadata>> moduleMap;
+
+  DeferredModuleLoadingMap._(
+      this.loadIds, this.moduleMap, this.loadId2ImportedLibrary);
+
+  factory DeferredModuleLoadingMap.fromComponent(Component c) {
+    int nextLoadId = 0;
+    final loadIds = <(Library, String), int>{};
+    final loadId2ImportedLibrary = <Library>[];
+    final moduleMap = <List<ModuleMetadata>>[];
+    for (final library in c.libraries) {
+      for (final dep in library.dependencies) {
+        if (!dep.isDeferred) continue;
+        final name = dep.name!;
+        loadIds[(library, name)] = nextLoadId++;
+        loadId2ImportedLibrary.add(dep.targetLibrary);
+        moduleMap.add([]);
+      }
+    }
+    return DeferredModuleLoadingMap._(
+        loadIds, moduleMap, loadId2ImportedLibrary);
+  }
+
+  void addModuleToLibraryImport(
+      Library lib, String importName, List<ModuleMetadata> modules) {
+    moduleMap[loadIds[(lib, importName)]!].addAll(modules);
+  }
 }

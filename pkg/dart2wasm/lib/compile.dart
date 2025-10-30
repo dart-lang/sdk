@@ -420,6 +420,12 @@ Future<CompilationResult> _runTfaPhase(
   // (such as mixin_deduplication and TFA).
   moduleStrategy.prepareComponent();
 
+  final hasDeferredImports = component.libraries
+      .any((lib) => lib.dependencies.any((d) => d.isDeferred));
+  if (hasDeferredImports) {
+    DeferredLoadingLowering.markRuntimeFunctionsAsEntrypoints(coreTypes);
+  }
+
   mixin_deduplication.transformLibraries(
       librariesToTransform, coreTypes, target);
 
@@ -494,12 +500,17 @@ Future<CompilationResult> _runCodegenPhase(
     :mainModuleMetadata,
     :jsInteropMethods
   ) = tfaSuccess;
-  await moduleStrategy.processComponentAfterTfa();
+
+  final loadingMap = DeferredModuleLoadingMap.fromComponent(component);
+  component.accept(DeferredLoadingLowering(coreTypes, loadingMap));
+
+  // May populate [loadingMap] by creating various [ModuleOutputData].
+  await moduleStrategy.processComponentAfterTfa(loadingMap);
 
   final moduleOutputData = moduleStrategy.buildModuleOutputData();
 
-  var translator = Translator(component, coreTypes, libraryIndex, recordClasses,
-      moduleOutputData, options.translatorOptions,
+  final translator = Translator(component, coreTypes, libraryIndex,
+      recordClasses, loadingMap, moduleOutputData, options.translatorOptions,
       mainModuleMetadata: mainModuleMetadata,
       enableDynamicModules: options.enableDynamicModules);
 
@@ -551,6 +562,11 @@ Future<CompilationResult> _runCodegenPhase(
     await serializeMainModuleMetadata(component, translator, options);
     await serializeMainModuleComponent(component, dynamicMainModuleUri!,
         optimized: true);
+  }
+
+  final loadIdsFile = options.loadsIdsUri;
+  if (loadIdsFile != null) {
+    await writeLoadIdsFile(component, coreTypes, options, loadingMap);
   }
 
   return CodegenResult(wasmModules, jsRuntime, supportJs);

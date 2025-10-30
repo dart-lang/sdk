@@ -186,26 +186,34 @@ const jsStringPolyfill = {
 
 final moduleLoadingHelperTemplate = Template(r'''
     const moduleLoadingHelper = {
-      "loadDeferredModule": async (moduleName) => {
+      "loadDeferredModules": async (moduleNames) => {
         if (!loadDeferredModule) {
           throw "No implementation of loadDeferredModule provided.";
         }
-        const source = await Promise.resolve(loadDeferredModule(moduleName));
-        const module = await ((source instanceof Response)
-            ? WebAssembly.compileStreaming(source, this.builtins)
-            : WebAssembly.compile(source, this.builtins));
-        await WebAssembly.instantiate(module, {
-          ...baseImports,
-          ...additionalImports,
-          <<JS_POLYFILL_IMPORT>>
-          "module0": dartInstance.exports,
-        });
+        const builtins = this.builtins;
+        async function fetchModule(moduleName) {
+          const source = await Promise.resolve(loadDeferredModule(moduleName));
+          const module = await ((source instanceof Response)
+              ? WebAssembly.compileStreaming(source, builtins)
+              : WebAssembly.compile(source, builtins));
+          await WebAssembly.instantiate(module, {
+            ...baseImports,
+            ...additionalImports,
+            <<JS_POLYFILL_IMPORT>>
+            "module0": dartInstance.exports,
+          });
+        }
+        const promises = [];
+        for (const moduleName of moduleNames) {
+          promises.push(fetchModule(moduleName));
+        }
+        await Promise.all(promises);
       },
       "loadDeferredId": async (loadId) => {
         if (!loadDeferredId) {
           throw "No implementation of loadDeferredId provided.";
         }
-        const sources = await Promise.resolve(loadDeferredId(loadId));
+        const sources = await Promise.resolve(loadDeferredId(loadId.toString()));
         for (const source of sources) {
           const module = await ((source instanceof Response)
               ? WebAssembly.compileStreaming(source, this.builtins)

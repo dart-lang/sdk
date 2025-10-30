@@ -6,150 +6,110 @@ part of "internal_patch.dart";
 
 /// Contains active futures for any entities (either module names or IDs)
 /// currently being loaded.
-final Map<String, Future<void>> _loading = {};
+final Map<int, Future<void>> _loading = {};
 
 /// Contains the set of entities (either modules or IDs) already loaded.
-final Set<String> _loaded = {};
-
-/// Only used when loading modules directly, contains the set of loaded
-/// prefixes for each importing library.
-final Map<String, Set<String>> _loadedLibraries = {};
+final Set<int> _loaded = {};
 
 /// Only used when loading modules directly, will get populated by the compiler.
-/// Maps importing library -> import prefix -> module set.
-Map<String, Map<String, List<String>>> get _importMapping => {};
+external ImmutableWasmArray<ImmutableWasmArray<WasmExternRef>> get _loadingMap;
 
-@pragma("wasm:import", "moduleLoadingHelper.loadDeferredModule")
-external WasmExternRef _loadDeferredModule(WasmExternRef moduleName);
+/// Maps load id to (import uri, import prefix).
+external ImmutableWasmArray<WasmExternRef> get _loadingMapNames;
+
+@pragma("wasm:import", "moduleLoadingHelper.loadDeferredModules")
+external WasmExternRef _loadDeferredModules(WasmExternRef moduleNames);
 
 @pragma("wasm:import", "moduleLoadingHelper.loadDeferredId")
-external WasmExternRef _loadDeferredId(WasmExternRef loadId);
+external WasmExternRef _loadDeferredId(WasmI32 loadId);
 
-class DeferredNotLoadedError extends Error implements NoSuchMethodError {
-  final String libraryName;
-  final String prefix;
+String _importUri(int loadId) =>
+    JSStringImpl.fromRefUnchecked(_loadingMapNames[2 * loadId + 0]);
+String _prefixName(int loadId) =>
+    JSStringImpl.fromRefUnchecked(_loadingMapNames[2 * loadId + 1]);
 
-  DeferredNotLoadedError(this.libraryName, this.prefix);
-
-  String toString() {
-    return 'Deferred library $libraryName has not loaded $prefix.';
-  }
+int _loadIdInJson(int loadId) {
+  // The load-id.json will contain 1-based indexing.
+  return loadId + 1;
 }
 
 class DeferredLoadIdNotLoadedError extends Error implements NoSuchMethodError {
-  final String loadId;
+  final int loadId;
 
   DeferredLoadIdNotLoadedError(this.loadId);
 
   String toString() {
-    return 'Deferred load id $loadId has not loaded.';
+    if (minify) {
+      return 'Deferred load id ${_loadIdInJson(loadId)} has not loaded.';
+    }
+    return 'Deferred library ${_importUri(loadId)} has not '
+        'loaded ${_prefixName(loadId)}.';
   }
 }
 
 // NOTE: We'll inject a `@pragma('wasm:entry-point')` before TFA if we need this
 // method at runtime.
-Future<void> loadLibraryFromLoadId(String loadId) {
-  return _loading.putIfAbsent(loadId, () {
-    // Start module load
-    final promise =
-        (_loadDeferredId(loadId.toJS.toExternRef!).toJS as JSPromise);
-    return promise.toDart.then(
-      (_) {
-        // Module loaded
-        _loaded.add(loadId);
-        _loading.remove(loadId);
-      },
-      onError: (e) {
-        throw DeferredLoadException('Error loading load ID: $loadId\n$e');
-      },
-    );
-  });
+bool checkLibraryIsLoadedFromLoadId(int loadId) {
+  if (_loaded.contains(loadId)) {
+    return true;
+  }
+  throw DeferredLoadIdNotLoadedError(loadId);
 }
 
 // NOTE: We'll inject a `@pragma('wasm:entry-point')` before TFA if we need this
 // method at runtime.
-bool checkLibraryIsLoadedFromLoadId(String loadId) {
-  if (!_loaded.contains(loadId)) {
-    throw DeferredLoadIdNotLoadedError(loadId);
-  }
-  return true;
-}
-
-// NOTE: We'll inject a `@pragma('wasm:entry-point')` before TFA if we need this
-// method at runtime.
-Future<void> loadLibrary(String enclosingLibraryOrLoadId, String importPrefix) {
-  if (_importMapping.isEmpty) {
-    // Only contains one unit.
-    (_loadedLibraries[enclosingLibraryOrLoadId] ??= {}).add(importPrefix);
-    return Future.value();
-  }
-  final loadedImports = _loadedLibraries[enclosingLibraryOrLoadId];
-  if (loadedImports != null && loadedImports.contains(importPrefix)) {
-    // Import already loaded.
-    return Future.value();
-  }
-  final importNameMapping = _importMapping[enclosingLibraryOrLoadId];
-  final moduleNames = importNameMapping?[importPrefix];
-
-  if (moduleNames == null) {
-    // Since loadLibrary calls get lowered to static invocations of this method,
-    // TFA will tree-shake libraries (and their associated imports) that are
-    // only referenced via a loadLibrary call. In this case, we won't have an
-    // import mapping for the lowered loadLibrary call.
-    // This can also occur in module test mode where all imports are deferred
-    // but loaded eagerly.
-    (_loadedLibraries[enclosingLibraryOrLoadId] ??= {}).add(importPrefix);
-    return Future.value();
-  }
-
+Future<void> loadLibraryFromLoadId(int loadId) {
   if (!deferredLoadingEnabled) {
-    throw DeferredLoadException('Compiler did not enable deferred loading.');
+    _loaded.add(loadId);
+    return Future.value();
   }
-
-  // Start loading modules
-  final List<Future> loadFutures = [];
-  for (final moduleName in moduleNames) {
-    if (_loaded.contains(moduleName)) {
-      // Already loaded module
-      continue;
-    }
-    final existingLoad = _loading[moduleName];
-    if (existingLoad != null) {
-      // Already loading module
-      loadFutures.add(existingLoad);
-      continue;
-    }
-
-    // Start module load
-    final promise =
-        (_loadDeferredModule(moduleName.toJS.toExternRef!).toJS as JSPromise);
-    final future = promise.toDart.then(
-      (_) {
-        // Module loaded
-        _loaded.add(moduleName);
-        _loading.remove(moduleName);
-      },
-      onError: (e) {
-        throw DeferredLoadException('Error loading module: $moduleName\n$e');
-      },
-    );
-    loadFutures.add(future);
-    _loading[moduleName] = future;
+  if (_loaded.contains(loadId)) {
+    return Future.value();
   }
-  return Future.wait(loadFutures).then((_) {
-    (_loadedLibraries[enclosingLibraryOrLoadId] ??= {}).add(importPrefix);
-  });
+  final existingFuture = _loading[loadId];
+  if (existingFuture != null) {
+    return existingFuture;
+  }
+  final future = deferredLoadingViaEmbedderLoadId
+      ? _loadLibraryViaEmbedderLoadId(loadId)
+      : _loadLibraryViaEmbedderModuleNames(loadId);
+  return _loading[loadId] = future.then(
+    (_) {
+      _loaded.add(loadId);
+      _loading.remove(loadId);
+    },
+    onError: (e) {
+      if (minify) {
+        throw DeferredLoadException(
+          'Error loading load ID: ${_loadIdInJson(loadId)}\n$e',
+        );
+      }
+      return 'Error loading ${_prefixName(loadId)} of library '
+          '${_importUri(loadId)}\n$e';
+    },
+  );
 }
 
-// NOTE: We'll inject a `@pragma('wasm:entry-point')` before TFA if we need this
-// method at runtime.
-bool checkLibraryIsLoaded(
-  String enclosingLibraryOrLoadId,
-  String importPrefix,
-) {
-  final loadedImports = _loadedLibraries[enclosingLibraryOrLoadId];
-  if (loadedImports == null || !loadedImports.contains(importPrefix)) {
-    throw DeferredNotLoadedError(enclosingLibraryOrLoadId, importPrefix);
+Future<void> _loadLibraryViaEmbedderLoadId(int loadId) {
+  final promise =
+      (_loadDeferredId(_loadIdInJson(loadId).toWasmI32()).toJS as JSPromise);
+  return promise.toDart;
+}
+
+Future<void> _loadLibraryViaEmbedderModuleNames(int loadId) {
+  assert(loadId < _loadingMap.length);
+
+  final ImmutableWasmArray<WasmExternRef> moduleNames = _loadingMap[loadId];
+  if (moduleNames.length == 0) {
+    // No modules to load.
+    return Future.value();
   }
-  return true;
+  final moduleNamesAsList = <JSString>[];
+  for (int i = 0; i < moduleNames.length; ++i) {
+    moduleNamesAsList.add(JSValue(moduleNames[i]) as JSString);
+  }
+  final promise =
+      (_loadDeferredModules(moduleNamesAsList.toJS.toExternRef!).toJS
+          as JSPromise);
+  return promise.toDart;
 }
