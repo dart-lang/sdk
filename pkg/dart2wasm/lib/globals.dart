@@ -39,6 +39,10 @@ class Globals {
     return null;
   }
 
+  void declareMainAppGlobalExportWithName(String name, w.Global exportable) {
+    _globalsModuleMap.exportDefinitionWithName(name, exportable);
+  }
+
   /// Reads the value of [w.Global] onto the stack in [b].
   ///
   /// Takes into account the calling module and the module the global belongs
@@ -81,8 +85,8 @@ class Globals {
       // then that's preferred as we can make the global as non-mutable.
       final Constant? init = _getConstantInitializer(field);
       if (init != null &&
-          !(translator.constants.ensureConstant(init, module)?.isLazy ??
-              false)) {
+          translator.constants
+              .tryInstantiateEagerlyFrom(module, init, fieldType)) {
         // Initialized to a constant
         final global = module.globals.define(
             w.GlobalType(fieldType, mutable: !field.isFinal), memberName);

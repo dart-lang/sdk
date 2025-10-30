@@ -443,6 +443,11 @@ class Translator with KernelNodes {
   w.ModuleBuilder moduleForReference(Reference reference) =>
       _outputToBuilder[_moduleOutputData.moduleForReference(reference)]!;
 
+  w.ModuleBuilder moduleForLoadId(Library enclosingLibrary, int loadId) {
+    return moduleForReference(
+        loadingMap.loadId2ImportedLibrary[loadId].reference);
+  }
+
   String nameForModule(w.ModuleBuilder module) =>
       _builderToOutput[module]!.moduleImportName;
 
@@ -450,6 +455,8 @@ class Translator with KernelNodes {
 
   /// Maps compiled members to their [Closures], with capture information.
   final Map<Member, Closures> _memberClosures = {};
+
+  final List<void Function()> linkingActions = [];
 
   Closures getClosures(Member member, {bool findCaptures = true}) =>
       findCaptures
@@ -532,12 +539,17 @@ class Translator with KernelNodes {
 
     dispatchTable.build();
     dynamicMainModuleDispatchTable?.build();
-
     functions.initialize();
 
     dynamicModuleInfo?.initSubmodule();
 
     drainCompletionQueue();
+
+    assert(compilationQueue.isEmpty);
+    for (final action in linkingActions) {
+      action();
+    }
+    assert(compilationQueue.isEmpty);
 
     dynamicModuleInfo?.finishDynamicModule();
 
@@ -547,18 +559,16 @@ class Translator with KernelNodes {
     initFunction.body.end();
 
     for (ConstantInfo info in constants.constantInfo.values) {
-      w.BaseFunction? function = info.function;
-      if (function != null) {
+      info.printInitializer((function) {
         _printFunction(function, info.constant);
-      } else {
+      }, (global) {
         if (options.printWasm) {
-          print("Global #${info.global.name}: ${info.constant}");
-          final global = info.global;
+          print("Global #${global.name}: ${info.constant}");
           if (global is w.GlobalBuilder) {
             print(global.initializer.trace);
           }
         }
-      }
+      });
     }
     _printFunction(initFunction, "init");
 
@@ -719,6 +729,11 @@ class Translator with KernelNodes {
       b.call_ref(function.type);
     }
     return b.emitUnreachableIfNoResult(function.type.outputs);
+  }
+
+  void declareMainAppFunctionExportWithName(
+      String name, w.BaseFunction exportable) {
+    _importedFunctions.exportDefinitionWithName(name, exportable);
   }
 
   void callDispatchTable(w.InstructionsBuilder b, SelectorInfo selector,
@@ -2749,6 +2764,22 @@ abstract class _WasmImporter<T extends w.Exportable> {
       String importName);
 
   Iterable<T> get imports => _map.values.expand((v) => v.values);
+
+  /// Declare that a module already exports [exportable] under [name].
+  ///
+  /// Normally the [_WasmImporter] class works by exporting in one module and
+  /// importing in another module on first cross-module access. That makes sense
+  /// if we build all modules simultaniously. But if we are e.g. building a
+  /// dynamic module then the main module already exports it. So one can use
+  /// this method for declaring such an existing export.
+  void exportDefinitionWithName(String name, T exportable) {
+    assert(!_map.containsKey(exportable));
+
+    final owningModule =
+        _translator.moduleToBuilder[exportable.enclosingModule]!;
+    owningModule.exports.export(name, exportable);
+    _map[exportable] = {};
+  }
 
   T get(T key, w.ModuleBuilder module) {
     final keyModuleBuilder = _translator.moduleToBuilder[key.enclosingModule]!;

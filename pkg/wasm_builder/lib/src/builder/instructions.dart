@@ -218,16 +218,17 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Stored stack traces leading to the instructions for watch points.
   final Map<ir.Instruction, StackTrace>? _stackTraces;
 
+  final List<_PatchableRegion> _patchPoints = [];
+
   /// Whether the instruction block is for a Wasm constant expression.
-  final bool _constantExpression;
+  final bool constantExpression;
 
   /// Create a new instruction sequence.
   InstructionsBuilder(
       this.moduleBuilder, List<ir.ValueType> inputs, List<ir.ValueType> outputs,
-      {bool constantExpression = false})
+      {this.constantExpression = false})
       : _stackTraces = moduleBuilder.watchPoints.isNotEmpty ? {} : null,
-        _sourceMappings = moduleBuilder.sourceMapUrl == null ? null : [],
-        _constantExpression = constantExpression {
+        _sourceMappings = moduleBuilder.sourceMapUrl == null ? null : [] {
     _labelStack.add(Expression(const [], outputs));
     for (ir.ValueType paramType in inputs) {
       _addParameter(paramType);
@@ -256,14 +257,81 @@ class InstructionsBuilder with Builder<ir.Instructions> {
         if (type != null) usedTypes.add(type);
       }
     }
+    for (final patch in _patchPoints) {
+      patch.patchBuilder.collectUsedTypes(usedTypes);
+    }
   }
 
   @override
-  ir.Instructions forceBuild() => ir.Instructions(locals, localNames,
-      _instructions, _stackTraces, _traceLines, _sourceMappings);
+  ir.Instructions forceBuild() {
+    if (_patchPoints.isEmpty) {
+      return ir.Instructions(locals, localNames, _instructions, _stackTraces,
+          _traceLines, _sourceMappings);
+    }
+
+    // We have to fill in the patched instructions & update stack maps.
+
+    final instructions = _instructions;
+    final newInstructions = <ir.Instruction>[];
+    final sourceMappings = _sourceMappings;
+    final newSourceMappings =
+        _sourceMappings == null ? null : <SourceMapping>[];
+
+    // The number of additional patch instructions emitted.
+    int shift = 0;
+    int ini = 0;
+    int smi = _sourceMappings != null ? 0 : -1;
+
+    for (final patch in _patchPoints) {
+      // Add all instructions before the patch starts.
+      while (ini < patch.start) {
+        newInstructions.add(instructions[ini++]);
+      }
+      // Advance current source mapping to be the last that covers the start of
+      // patchable region.
+      if (sourceMappings != null && smi < sourceMappings.length) {
+        while (smi < (sourceMappings.length - 1) &&
+            sourceMappings[smi + 1].instructionOffset <= patch.start) {
+          newSourceMappings!.add(sourceMappings[smi].shiftBy(shift));
+          smi++;
+        }
+      }
+      // Add patched instructions & update shift.
+      final replacement = patch.patchBuilder._instructions;
+      newInstructions.addAll(replacement);
+      shift += replacement.length;
+    }
+
+    // Add remaining instructions & shift remaining source map entries.
+    for (; ini < instructions.length; ini++) {
+      newInstructions.add(instructions[ini]);
+    }
+    if (sourceMappings != null && shift != 0) {
+      for (; smi < sourceMappings.length; smi++) {
+        newSourceMappings!.add(sourceMappings[smi].shiftBy(shift));
+      }
+    }
+
+    return ir.Instructions(locals, localNames, newInstructions, _stackTraces,
+        _traceLines, newSourceMappings);
+  }
+
+  /// Marks a region in the instruction stream (defined by instructions emitted
+  /// by [fun]) which will be updated in the link phase via the [linkFun].
+  InstructionsBuilder? createPatchableRegion(
+      List<ir.ValueType> inputs, List<ir.ValueType> outputs) {
+    assert(_verifyTypes(inputs, outputs, trace: ['<patchable region>']));
+    if (!_reachable) return null;
+
+    final patchBuilder = InstructionsBuilder(moduleBuilder, inputs, outputs,
+        constantExpression: constantExpression);
+    _patchPoints
+        .add(_PatchableRegion._PatchPoint(_instructions.length, patchBuilder));
+    return patchBuilder;
+  }
 
   void _add(ir.Instruction i) {
-    assert(!_constantExpression || i.isConstant,
+    assert(!constantExpression || i.isConstant,
         "Non-constant instruction $i added to constant expression");
     if (!_reachable) return;
     _instructions.add(i);
@@ -2485,4 +2553,11 @@ class InstructionsBuilder with Builder<ir.Instructions> {
         trace: const ['i64.trunc_sat_f64_u']));
     _add(const ir.I64TruncSatF64U());
   }
+}
+
+class _PatchableRegion {
+  final int start;
+  final InstructionsBuilder patchBuilder;
+
+  _PatchableRegion._PatchPoint(this.start, this.patchBuilder);
 }
