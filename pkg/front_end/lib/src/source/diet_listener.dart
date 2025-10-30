@@ -1216,7 +1216,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endEnum(
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,

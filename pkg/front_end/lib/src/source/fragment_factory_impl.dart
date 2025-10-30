@@ -121,8 +121,6 @@ class FragmentFactoryImpl implements FragmentFactory {
 
   LibraryFeatures get libraryFeatures => _compilationUnit.libraryFeatures;
 
-  final List<ConstructorReferenceBuilder> _constructorReferences = [];
-
   @override
   void beginClassOrNamedMixinApplicationHeader() {
     NominalParameterNameSpace nominalParameterNameSpace =
@@ -319,7 +317,7 @@ class FragmentFactoryImpl implements FragmentFactory {
   }
 
   @override
-  void beginEnumDeclarationHeader(String name) {
+  void beginEnumDeclarationHeader() {
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -1065,12 +1063,8 @@ class FragmentFactoryImpl implements FragmentFactory {
     declarationFragment.supertype = supertype;
     declarationFragment.mixins = mixins;
     declarationFragment.interfaces = interfaces;
-    declarationFragment.constructorReferences =
-        new List<ConstructorReferenceBuilder>.of(_constructorReferences);
     declarationFragment.startOffset = startOffset;
     declarationFragment.endOffset = endOffset;
-
-    _constructorReferences.clear();
 
     _addFragment(declarationFragment);
     offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
@@ -1093,12 +1087,8 @@ class FragmentFactoryImpl implements FragmentFactory {
     declarationFragment.metadata = metadata;
     declarationFragment.mixins = mixins;
     declarationFragment.interfaces = interfaces;
-    declarationFragment.constructorReferences =
-        new List<ConstructorReferenceBuilder>.of(_constructorReferences);
     declarationFragment.startOffset = startOffset;
     declarationFragment.endOffset = endOffset;
-
-    _constructorReferences.clear();
 
     _addFragment(declarationFragment);
 
@@ -1165,12 +1155,8 @@ class FragmentFactoryImpl implements FragmentFactory {
     declarationFragment.supertype = supertype;
     declarationFragment.mixins = mixins;
     declarationFragment.interfaces = interfaces;
-    declarationFragment.constructorReferences =
-        new List<ConstructorReferenceBuilder>.of(_constructorReferences);
     declarationFragment.startOffset = startOffset;
     declarationFragment.endOffset = endOffset;
-
-    _constructorReferences.clear();
 
     _addFragment(declarationFragment);
 
@@ -1242,8 +1228,6 @@ class FragmentFactoryImpl implements FragmentFactory {
     declarationFragment.startOffset = startOffset;
     declarationFragment.endOffset = endOffset;
 
-    _constructorReferences.clear();
-
     _addFragment(declarationFragment);
 
     if (identifier != null) {
@@ -1272,12 +1256,8 @@ class FragmentFactoryImpl implements FragmentFactory {
     declarationFragment.metadata = metadata;
     declarationFragment.modifiers = modifiers;
     declarationFragment.interfaces = interfaces;
-    declarationFragment.constructorReferences =
-        new List<ConstructorReferenceBuilder>.of(_constructorReferences);
     declarationFragment.startOffset = startOffset;
     declarationFragment.endOffset = endOffset;
-
-    _constructorReferences.clear();
 
     _addFragment(declarationFragment);
     offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
@@ -1708,7 +1688,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       _compilationUnit.fileUri,
       charOffset,
     );
-    _constructorReferences.add(ref);
+    _declarationFragments.current.constructorReferences.add(ref);
     return ref;
   }
 

@@ -328,7 +328,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endEnum(
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,

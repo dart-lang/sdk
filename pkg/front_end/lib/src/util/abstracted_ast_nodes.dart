@@ -404,7 +404,7 @@ class MixinMethod extends AstNode {
 
 class Enum extends AstNode {
   @override
-  final EnumEnd node;
+  final EnumDeclarationEnd node;
   final String name;
   final List<String> members;
   @override

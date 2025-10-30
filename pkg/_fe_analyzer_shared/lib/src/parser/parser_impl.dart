@@ -2598,20 +2598,26 @@ class Parser {
   /// ```
   Token parseEnum(Token beginToken, Token? augmentToken, Token enumKeyword) {
     assert(enumKeyword.isA(Keyword.ENUM));
-    listener.beginUncategorizedTopLevelDeclaration(enumKeyword);
+    listener.beginEnumDeclarationPrelude(enumKeyword);
     Token token = enumKeyword;
     Token? constToken;
     if (token.next!.isA(Keyword.CONST)) {
       token = constToken = token.next!;
     }
     token = ensureIdentifier(token, IdentifierContext.enumDeclaration);
-    String name = token.lexeme;
-    listener.beginEnum(enumKeyword);
+    Token nameToken = token;
+    String name = nameToken.lexeme;
     token = computeTypeParamOrArg(
       token,
       /* inDeclaration = */ true,
       /* allowsVariance = */ true,
     ).parseVariables(token, this);
+    listener.beginEnumDeclaration(
+      beginToken,
+      augmentToken,
+      enumKeyword,
+      nameToken,
+    );
     token = parsePrimaryConstructorOpt(token, constToken, false);
     token = parseEnumHeaderOpt(token, enumKeyword);
     Token leftBrace = token.next!;
@@ -2687,7 +2693,13 @@ class Parser {
       listener.endEnumBody(leftBrace, token);
     }
     assert(token.isA(TokenType.CLOSE_CURLY_BRACKET));
-    listener.endEnum(beginToken, enumKeyword, leftBrace, memberCount, token);
+    listener.endEnumDeclaration(
+      beginToken,
+      enumKeyword,
+      leftBrace,
+      memberCount,
+      token,
+    );
     return token;
   }
 

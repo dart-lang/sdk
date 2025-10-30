@@ -675,8 +675,8 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginEnum(Token enumKeyword) {
-    EnumBegin data = new EnumBegin(
+  void beginEnumDeclarationPrelude(Token enumKeyword) {
+    EnumDeclarationPreludeBegin data = new EnumDeclarationPreludeBegin(
       ParserAstType.BEGIN,
       enumKeyword: enumKeyword,
     );
@@ -684,14 +684,31 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endEnum(
+  void beginEnumDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token enumKeyword,
+    Token name,
+  ) {
+    EnumDeclarationBegin data = new EnumDeclarationBegin(
+      ParserAstType.BEGIN,
+      beginToken: beginToken,
+      augmentToken: augmentToken,
+      enumKeyword: enumKeyword,
+      name: name,
+    );
+    seen(data);
+  }
+
+  @override
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,
     int memberCount,
     Token endToken,
   ) {
-    EnumEnd data = new EnumEnd(
+    EnumDeclarationEnd data = new EnumDeclarationEnd(
       ParserAstType.END,
       beginToken: beginToken,
       enumKeyword: enumKeyword,
@@ -5230,20 +5247,48 @@ class WhileStatementBodyEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitWhileStatementBodyEnd(this);
 }
 
-class EnumBegin extends ParserAstNode {
+class EnumDeclarationPreludeBegin extends ParserAstNode {
   final Token enumKeyword;
 
-  EnumBegin(ParserAstType type, {required this.enumKeyword})
-    : super("Enum", type);
+  EnumDeclarationPreludeBegin(ParserAstType type, {required this.enumKeyword})
+    : super("EnumDeclarationPrelude", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"enumKeyword": enumKeyword};
 
   @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumBegin(this);
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitEnumDeclarationPreludeBegin(this);
 }
 
-class EnumEnd extends ParserAstNode implements BeginAndEndTokenParserAstNode {
+class EnumDeclarationBegin extends ParserAstNode {
+  final Token beginToken;
+  final Token? augmentToken;
+  final Token enumKeyword;
+  final Token name;
+
+  EnumDeclarationBegin(
+    ParserAstType type, {
+    required this.beginToken,
+    this.augmentToken,
+    required this.enumKeyword,
+    required this.name,
+  }) : super("EnumDeclaration", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "beginToken": beginToken,
+    "augmentToken": augmentToken,
+    "enumKeyword": enumKeyword,
+    "name": name,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumDeclarationBegin(this);
+}
+
+class EnumDeclarationEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   @override
   final Token beginToken;
   final Token enumKeyword;
@@ -5252,14 +5297,14 @@ class EnumEnd extends ParserAstNode implements BeginAndEndTokenParserAstNode {
   @override
   final Token endToken;
 
-  EnumEnd(
+  EnumDeclarationEnd(
     ParserAstType type, {
     required this.beginToken,
     required this.enumKeyword,
     required this.leftBrace,
     required this.memberCount,
     required this.endToken,
-  }) : super("Enum", type);
+  }) : super("EnumDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5271,7 +5316,7 @@ class EnumEnd extends ParserAstNode implements BeginAndEndTokenParserAstNode {
   };
 
   @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumEnd(this);
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumDeclarationEnd(this);
 }
 
 class EnumConstructorEnd extends ParserAstNode
@@ -11277,8 +11322,9 @@ abstract class ParserAstVisitor<R> {
   R visitDoWhileStatementBodyEnd(DoWhileStatementBodyEnd node);
   R visitWhileStatementBodyBegin(WhileStatementBodyBegin node);
   R visitWhileStatementBodyEnd(WhileStatementBodyEnd node);
-  R visitEnumBegin(EnumBegin node);
-  R visitEnumEnd(EnumEnd node);
+  R visitEnumDeclarationPreludeBegin(EnumDeclarationPreludeBegin node);
+  R visitEnumDeclarationBegin(EnumDeclarationBegin node);
+  R visitEnumDeclarationEnd(EnumDeclarationEnd node);
   R visitEnumConstructorEnd(EnumConstructorEnd node);
   R visitEnumElementsHandle(EnumElementsHandle node);
   R visitEnumHeaderHandle(EnumHeaderHandle node);
@@ -11848,10 +11894,16 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
       node.visitChildren(this);
 
   @override
-  void visitEnumBegin(EnumBegin node) => node.visitChildren(this);
+  void visitEnumDeclarationPreludeBegin(EnumDeclarationPreludeBegin node) =>
+      node.visitChildren(this);
 
   @override
-  void visitEnumEnd(EnumEnd node) => node.visitChildren(this);
+  void visitEnumDeclarationBegin(EnumDeclarationBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitEnumDeclarationEnd(EnumDeclarationEnd node) =>
+      node.visitChildren(this);
 
   @override
   void visitEnumConstructorEnd(EnumConstructorEnd node) =>
@@ -13298,10 +13350,17 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
       defaultNode(node);
 
   @override
-  Future<void> visitEnumBegin(EnumBegin node) => defaultNode(node);
+  Future<void> visitEnumDeclarationPreludeBegin(
+    EnumDeclarationPreludeBegin node,
+  ) => defaultNode(node);
 
   @override
-  Future<void> visitEnumEnd(EnumEnd node) => defaultNode(node);
+  Future<void> visitEnumDeclarationBegin(EnumDeclarationBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitEnumDeclarationEnd(EnumDeclarationEnd node) =>
+      defaultNode(node);
 
   @override
   Future<void> visitEnumConstructorEnd(EnumConstructorEnd node) =>
