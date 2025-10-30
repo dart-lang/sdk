@@ -193,9 +193,9 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     _defaultStartup();
 
     // Record a brief working period.
-    manager.analysisStatusChanged(true);
+    manager.analysisStatusChanged(isWorking: true, statistics: null);
     await Future<void>.delayed(const Duration(milliseconds: 2));
-    manager.analysisStatusChanged(false);
+    manager.analysisStatusChanged(isWorking: false, statistics: null);
 
     await manager.shutdown();
     analytics.assertEvents([
