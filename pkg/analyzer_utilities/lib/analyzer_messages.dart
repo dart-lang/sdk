@@ -16,10 +16,6 @@ const codesFile = GeneratedDiagnosticFile(
   parentLibrary: 'package:analyzer/src/error/codes.dart',
 );
 
-/// Enum representing the packages into which analyzer diagnostics can be
-/// generated.
-enum AnalyzerDiagnosticPackage { analyzer, analysisServer, linter }
-
 /// Information about all the classes derived from `DiagnosticCode` that are
 /// code-generated based on the contents of the analyzer and front end
 /// `messages.yaml` files.
@@ -318,6 +314,10 @@ class AliasMessage extends AnalyzerMessage {
     memberAccumulator.constants[constantName] = constant.toString();
   }
 }
+
+/// Enum representing the packages into which analyzer diagnostics can be
+/// generated.
+enum AnalyzerDiagnosticPackage { analyzer, analysisServer, linter }
 
 /// In-memory representation of diagnostic information obtained from the
 /// analyzer's `messages.yaml` file.
