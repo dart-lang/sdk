@@ -259,6 +259,13 @@ class DapTestClient {
         .map((e) => StoppedEventBody.fromJson(e.body as Map<String, Object?>));
   }
 
+  /// Returns the first 'exited' event.
+  Future<ExitedEventBody> get exitedEvent {
+    return event('exited').then(
+      (event) => ExitedEventBody.fromJson(event.body as Map<String, Object?>),
+    );
+  }
+
   /// Returns a stream for standard progress events.
   Stream<Event> standardProgressEvents() {
     const standardProgressEvents = {

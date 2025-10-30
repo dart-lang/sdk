@@ -402,6 +402,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// VM Service closing).
   bool _hasSentTerminatedEvent = false;
 
+  /// Whether we have already sent the [ExitedEvent] to the client.
+  bool _hasSentExitedEvent = false;
+
   /// Whether verbose internal logs (such as VM Service traffic) should be sent
   /// to the client in `dart.log` events.
   bool get sendLogsToClient => _sendLogsToClient;
@@ -1212,6 +1215,21 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   Future<void> handleDetach() async {
     isDetaching = true;
     await preventBreakingAndResume();
+  }
+
+  /// Sends an [ExitedEvent] if one has not already been sent.
+  ///
+  /// Waits for any in-progress output events to complete first.
+  void handleSessionExited(int exitCode) async {
+    await _waitForPendingOutputEvents();
+
+    if (_hasSentExitedEvent) {
+      return;
+    }
+
+    _hasSentExitedEvent = true;
+
+    sendEvent(ExitedEventBody(exitCode: exitCode));
   }
 
   /// Sends a [TerminatedEvent] if one has not already been sent.
