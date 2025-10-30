@@ -204,22 +204,6 @@ class Diagnostic {
   }
 }
 
-/// Private subtype of [DiagnosticCode] that supports runtime checking of
-/// parameter types.
-abstract class DiagnosticCodeWithExpectedTypes extends DiagnosticCode {
-  final List<ExpectedType>? expectedTypes;
-
-  const DiagnosticCodeWithExpectedTypes({
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.name,
-    required super.problemMessage,
-    required super.uniqueName,
-    this.expectedTypes,
-  });
-}
-
 /// An error code associated with an `AnalysisError`.
 ///
 /// Generally, messages should follow the [Guide for Writing
@@ -331,6 +315,22 @@ abstract class DiagnosticCode {
 
   @override
   String toString() => uniqueName;
+}
+
+/// Private subtype of [DiagnosticCode] that supports runtime checking of
+/// parameter types.
+abstract class DiagnosticCodeWithExpectedTypes extends DiagnosticCode {
+  final List<ExpectedType>? expectedTypes;
+
+  const DiagnosticCodeWithExpectedTypes({
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    required super.name,
+    required super.problemMessage,
+    required super.uniqueName,
+    this.expectedTypes,
+  });
 }
 
 /**
