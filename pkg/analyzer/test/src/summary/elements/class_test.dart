@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,7 +13,9 @@ import '../elements_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassElementTest_keepLinking);
+    defineReflectiveTests(ClassElementTest_keepLinking_declaringConstructors);
     defineReflectiveTests(ClassElementTest_fromBytes);
+    defineReflectiveTests(ClassElementTest_fromBytes_declaringConstructors);
     defineReflectiveTests(ClassElementTest_augmentation_keepLinking);
     defineReflectiveTests(ClassElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -31495,7 +31499,45 @@ class ClassElementTest_fromBytes extends ClassElementTest {
 }
 
 @reflectiveTest
+class ClassElementTest_fromBytes_declaringConstructors
+    extends ClassElementTest {
+  @override
+  bool get keepLinkingLibraries => false;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
+}
+
+@reflectiveTest
 class ClassElementTest_keepLinking extends ClassElementTest {
   @override
   bool get keepLinkingLibraries => true;
+}
+
+@reflectiveTest
+class ClassElementTest_keepLinking_declaringConstructors
+    extends ClassElementTest {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
 }

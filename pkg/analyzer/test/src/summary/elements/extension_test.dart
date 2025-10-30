@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
@@ -10,7 +12,11 @@ import '../elements_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionElementTest_keepLinking);
+    defineReflectiveTests(
+      ExtensionElementTest_keepLinking_declaringConstructors,
+    );
     defineReflectiveTests(ExtensionElementTest_fromBytes);
+    defineReflectiveTests(ExtensionElementTest_fromBytes_declaringConstructors);
     defineReflectiveTests(ExtensionElementTest_augmentation_keepLinking);
     defineReflectiveTests(ExtensionElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -2625,7 +2631,45 @@ class ExtensionElementTest_fromBytes extends ExtensionElementTest {
 }
 
 @reflectiveTest
+class ExtensionElementTest_fromBytes_declaringConstructors
+    extends ExtensionElementTest {
+  @override
+  bool get keepLinkingLibraries => false;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
+}
+
+@reflectiveTest
 class ExtensionElementTest_keepLinking extends ExtensionElementTest {
   @override
   bool get keepLinkingLibraries => true;
+}
+
+@reflectiveTest
+class ExtensionElementTest_keepLinking_declaringConstructors
+    extends ExtensionElementTest {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
 }

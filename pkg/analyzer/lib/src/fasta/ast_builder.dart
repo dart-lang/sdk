@@ -6825,7 +6825,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   });
 
   MixinDeclarationImpl build() {
-    ClassBodyImpl body;
+    BlockClassBodyImpl body;
     if (useDeclaringConstructorsAst) {
       body = BlockClassBodyImpl(
         leftBracket: leftBracket,
@@ -6833,7 +6833,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
         rightBracket: rightBracket,
       );
     } else {
-      body = ClassBodyImplStub();
+      body = BlockClassBodyImplStub();
     }
 
     return MixinDeclarationImpl(

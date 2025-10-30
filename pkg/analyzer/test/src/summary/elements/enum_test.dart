@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
@@ -10,7 +12,9 @@ import '../elements_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EnumElementTest_keepLinking);
+    defineReflectiveTests(EnumElementTest_keepLinking_declaringConstructors);
     defineReflectiveTests(EnumElementTest_fromBytes);
+    defineReflectiveTests(EnumElementTest_fromBytes_declaringConstructors);
     defineReflectiveTests(EnumElementTest_augmentation_keepLinking);
     defineReflectiveTests(EnumElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -15084,7 +15088,44 @@ class EnumElementTest_fromBytes extends EnumElementTest {
 }
 
 @reflectiveTest
+class EnumElementTest_fromBytes_declaringConstructors extends EnumElementTest {
+  @override
+  bool get keepLinkingLibraries => false;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
+}
+
+@reflectiveTest
 class EnumElementTest_keepLinking extends EnumElementTest {
   @override
   bool get keepLinkingLibraries => true;
+}
+
+@reflectiveTest
+class EnumElementTest_keepLinking_declaringConstructors
+    extends EnumElementTest {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
 }

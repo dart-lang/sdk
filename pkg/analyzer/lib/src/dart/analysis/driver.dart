@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -2487,7 +2488,9 @@ class AnalysisDriver {
   static Uint32List _calculateSaltForElements(
     DeclaredVariables declaredVariables,
   ) {
-    var buffer = ApiSignature()..addInt(DATA_VERSION);
+    var buffer = ApiSignature()
+      ..addInt(DATA_VERSION)
+      ..addBool(useDeclaringConstructorsAst);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
     return buffer.toUint32List();
   }
@@ -2500,6 +2503,7 @@ class AnalysisDriver {
     var buffer = ApiSignature()
       ..addInt(DATA_VERSION)
       ..addBool(enableIndex)
+      ..addBool(useDeclaringConstructorsAst)
       ..addBool(enableDebugResolutionMarkers);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
 
@@ -2512,7 +2516,8 @@ class AnalysisDriver {
   static Uint32List _calculateSaltForUnlinked({required bool enableIndex}) {
     var buffer = ApiSignature()
       ..addInt(DATA_VERSION)
-      ..addBool(enableIndex);
+      ..addBool(enableIndex)
+      ..addBool(useDeclaringConstructorsAst);
 
     return buffer.toUint32List();
   }

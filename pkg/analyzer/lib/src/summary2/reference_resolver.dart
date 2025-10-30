@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -65,6 +66,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitBlockClassBody(BlockClassBody node) {
+    node.members.accept(this);
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
@@ -79,7 +85,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    node.typeParameters?.accept(this);
+    if (useDeclaringConstructorsAst) {
+      node.namePart.typeParameters?.accept(this);
+    } else {
+      node.typeParameters?.accept(this);
+    }
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
@@ -87,7 +97,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = InstanceScope(scope, element.asElement2);
     LinkingNodeContext(node, scope);
 
-    node.members.accept(this);
+    if (useDeclaringConstructorsAst) {
+      node.body.accept(this);
+    } else {
+      node.members.accept(this);
+    }
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -143,6 +157,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitEmptyClassBody(EmptyClassBody node) {}
+
+  @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     var outerScope = scope;
 
@@ -155,14 +172,22 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    node.typeParameters?.accept(this);
+    if (useDeclaringConstructorsAst) {
+      node.namePart.typeParameters?.accept(this);
+    } else {
+      node.typeParameters?.accept(this);
+    }
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
     scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
 
-    node.members.accept(this);
+    if (useDeclaringConstructorsAst) {
+      node.body.members.accept(this);
+    } else {
+      node.members.accept(this);
+    }
     nodesToBuildType.addDeclaration(node);
 
     for (var field in fragment.fields) {
@@ -201,7 +226,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = ExtensionScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
 
-    node.members.accept(this);
+    if (useDeclaringConstructorsAst) {
+      node.body.members.accept(this);
+    } else {
+      node.members.accept(this);
+    }
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -226,15 +255,23 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    node.typeParameters?.accept(this);
-    node.representation.accept(this);
+    if (useDeclaringConstructorsAst) {
+      node.namePart.accept(this);
+    } else {
+      node.typeParameters?.accept(this);
+      node.representation.accept(this);
+    }
     node.implementsClause?.accept(this);
 
     scope = InstanceScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
-    LinkingNodeContext(node.representation, scope);
+    if (useDeclaringConstructorsAst) {
+      node.body.accept(this);
+    } else {
+      LinkingNodeContext(node.representation, scope);
+      node.members.accept(this);
+    }
 
-    node.members.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -431,7 +468,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = InstanceScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
 
-    node.members.accept(this);
+    if (useDeclaringConstructorsAst) {
+      node.body.members.accept(this);
+    } else {
+      node.members.accept(this);
+    }
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -489,6 +530,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       node.type = builder;
       nodesToBuildType.addTypeBuilder(builder);
     }
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(
+    covariant PrimaryConstructorDeclarationImpl node,
+  ) {
+    node.typeParameters?.accept(this);
+    node.formalParameters.accept(this);
   }
 
   @override

@@ -303,4 +303,4 @@ export 'package:analyzer/src/dart/ast/ast.dart'
 /// 8. [ExtensionTypeDeclaration.visitChildren] visits `namePart` and `body`,
 ///    and does not visit `typeParameters`, `representation`, or `members`.
 @experimental
-bool useDeclaringConstructorsAst = false;
+bool useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;

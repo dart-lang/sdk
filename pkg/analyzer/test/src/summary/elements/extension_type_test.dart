@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
@@ -10,7 +12,13 @@ import '../elements_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionTypeElementTest_keepLinking);
+    defineReflectiveTests(
+      ExtensionTypeElementTest_keepLinking_declaringConstructors,
+    );
     defineReflectiveTests(ExtensionTypeElementTest_fromBytes);
+    defineReflectiveTests(
+      ExtensionTypeElementTest_fromBytes_declaringConstructors,
+    );
     defineReflectiveTests(ExtensionTypeElementTest_augmentation_keepLinking);
     defineReflectiveTests(ExtensionTypeElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -6720,8 +6728,48 @@ class ExtensionTypeElementTest_fromBytes extends ElementsBaseTest
 }
 
 @reflectiveTest
+class ExtensionTypeElementTest_fromBytes_declaringConstructors
+    extends ElementsBaseTest
+    with ExtensionTypeElementMixin {
+  @override
+  bool get keepLinkingLibraries => false;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
+}
+
+@reflectiveTest
 class ExtensionTypeElementTest_keepLinking extends ElementsBaseTest
     with ExtensionTypeElementMixin {
   @override
   bool get keepLinkingLibraries => true;
+}
+
+@reflectiveTest
+class ExtensionTypeElementTest_keepLinking_declaringConstructors
+    extends ElementsBaseTest
+    with ExtensionTypeElementMixin {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
 }

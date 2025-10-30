@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -38,7 +39,7 @@ class _UnitApiSignatureComputer {
 
     signature.addInt(unit.declarations.length);
     for (var declaration in unit.declarations) {
-      if (declaration is ClassDeclaration) {
+      if (declaration is ClassDeclarationImpl) {
         _addClass(declaration);
       } else if (declaration is EnumDeclaration) {
         _addEnum(declaration);
@@ -61,14 +62,22 @@ class _UnitApiSignatureComputer {
     }
   }
 
-  void _addClass(ClassDeclaration node) {
-    _addTokens(node.beginToken, node.leftBracket);
+  void _addClass(ClassDeclarationImpl node) {
+    if (useDeclaringConstructorsAst) {
+      _addTokens(node.beginToken, node.body.beginToken);
+      bool hasConstConstructor = node.body.members.any(
+        (m) => m is ConstructorDeclarationImpl && m.constKeyword != null,
+      );
+      _addClassMembers(node.body.members, hasConstConstructor);
+    } else {
+      _addTokens(node.beginToken, node.leftBracket);
 
-    bool hasConstConstructor = node.members.any(
-      (m) => m is ConstructorDeclaration && m.constKeyword != null,
-    );
+      bool hasConstConstructor = node.members.any(
+        (m) => m is ConstructorDeclarationImpl && m.constKeyword != null,
+      );
 
-    _addClassMembers(node.members, hasConstConstructor);
+      _addClassMembers(node.members, hasConstConstructor);
+    }
   }
 
   void _addClassMembers(List<ClassMember> members, bool hasConstConstructor) {
@@ -94,7 +103,9 @@ class _UnitApiSignatureComputer {
   }
 
   void _addEnum(EnumDeclaration node) {
-    var members = node.members;
+    var members = useDeclaringConstructorsAst
+        ? node.body.members
+        : node.members;
 
     // If not enhanced, include the whole node.
     var firstMember = members.firstOrNull;
@@ -108,8 +119,13 @@ class _UnitApiSignatureComputer {
   }
 
   void _addExtension(ExtensionDeclaration node) {
-    _addTokens(node.beginToken, node.leftBracket);
-    _addClassMembers(node.members, false);
+    if (useDeclaringConstructorsAst) {
+      _addTokens(node.beginToken, node.body.beginToken);
+      _addClassMembers(node.body.members, false);
+    } else {
+      _addTokens(node.beginToken, node.leftBracket);
+      _addClassMembers(node.members, false);
+    }
   }
 
   void _addFieldDeclaration(FieldDeclaration node, bool hasConstConstructor) {
@@ -147,8 +163,13 @@ class _UnitApiSignatureComputer {
   }
 
   void _addMixin(MixinDeclaration node) {
-    _addTokens(node.beginToken, node.leftBracket);
-    _addClassMembers(node.members, false);
+    if (useDeclaringConstructorsAst) {
+      _addTokens(node.beginToken, node.body.beginToken);
+      _addClassMembers(node.body.members, false);
+    } else {
+      _addTokens(node.beginToken, node.leftBracket);
+      _addClassMembers(node.members, false);
+    }
     signature.addStringList(node.superInvokedNames);
   }
 

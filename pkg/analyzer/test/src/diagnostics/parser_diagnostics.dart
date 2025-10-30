@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
@@ -71,11 +72,11 @@ class ParserDiagnosticsTest {
   }
 
   void setUp() {
-    useDeclaringConstructorsAst = false;
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
   }
 
   void tearDown() {
-    useDeclaringConstructorsAst = false;
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
   }
 
   String _parsedNodeText(
