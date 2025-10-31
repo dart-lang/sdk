@@ -20,6 +20,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -289,7 +290,7 @@ class TransformSetParser {
   /// [node]. A list of [arguments] should be provided if the diagnostic message
   /// has parameters.
   void _reportError(
-    TransformSetErrorCode code,
+    DiagnosticCode code,
     YamlNode node, [
     List<String> arguments = const [],
   ]) {

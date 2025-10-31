@@ -295,12 +295,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Types that belong to JS interop libraries that are not available when
   /// compiling to Wasm are ignored. Nullability is also ignored for the purpose
   /// of this test.
-  LintCode? getInvalidJsInteropTypeTest(
+  DiagnosticCode? getInvalidJsInteropTypeTest(
     DartType leftType,
     DartType rightType, {
     required bool check,
   }) {
-    LintCode? lintCode;
+    DiagnosticCode? lintCode;
     (TypeImpl, TypeImpl) eraseTypes(TypeImpl left, TypeImpl right) {
       var erasedLeft = typeSystem.promoteToNonNull(
         eraseNonJsInteropTypes.perform(left),

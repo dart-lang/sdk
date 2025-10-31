@@ -537,7 +537,7 @@ class MemberDuplicateDefinitionVerifier {
         case _ScopeEntryElement(
           element: PropertyAccessorElementImpl staticMember2,
         ):
-          CompileTimeErrorCode errorCode;
+          DiagnosticCode errorCode;
           if (staticMember2.isSynthetic) {
             errorCode =
                 CompileTimeErrorCode.conflictingConstructorAndStaticField;

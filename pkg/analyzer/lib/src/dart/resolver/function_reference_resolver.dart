@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -117,7 +118,7 @@ class FunctionReferenceResolver {
     TypeArgumentList typeArgumentList,
     String? name,
     List<TypeParameterElement> typeParameters,
-    CompileTimeErrorCode errorCode,
+    DiagnosticCode errorCode,
   ) {
     if (typeArgumentList.arguments.length != typeParameters.length) {
       if (name == null &&

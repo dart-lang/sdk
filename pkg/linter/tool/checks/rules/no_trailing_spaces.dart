@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:linter/src/analyzer.dart';
 
 class NoTrailingSpaces extends LintRule {
-  static const LintCode code = LinterLintCode.noTrailingSpaces;
+  static const DiagnosticCode code = LinterLintCode.noTrailingSpaces;
 
   NoTrailingSpaces()
     : super(

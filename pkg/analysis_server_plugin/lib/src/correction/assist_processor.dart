@@ -105,7 +105,7 @@ class AssistProcessor {
   /// [lintCodes].
   bool _generatorAppliesToAnyLintRule(
     ProducerGenerator generator,
-    Set<LintCode> lintCodes,
+    Set<DiagnosticCode> lintCodes,
   ) {
     if (lintCodes.isEmpty) {
       return false;

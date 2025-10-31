@@ -1239,7 +1239,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForInvariantNullComparison(BinaryExpression node) {
-    WarningCode errorCode;
+    DiagnosticCode errorCode;
     if (node.operator.type == TokenType.BANG_EQ) {
       errorCode = WarningCode.unnecessaryNullComparisonNeverNullTrue;
     } else if (node.operator.type == TokenType.EQ_EQ) {

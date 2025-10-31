@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  LintCode getErrorCode(Object? type) => type == null
+  DiagnosticCode getErrorCode(Object? type) => type == null
       ? LinterLintCode.unnecessaryFinalWithoutType
       : LinterLintCode.unnecessaryFinalWithType;
 

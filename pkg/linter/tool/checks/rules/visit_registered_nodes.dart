@@ -12,7 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:linter/src/analyzer.dart';
 
 class VisitRegisteredNodes extends LintRule {
-  static const LintCode code = LinterLintCode.visitRegisteredNodes;
+  static const DiagnosticCode code = LinterLintCode.visitRegisteredNodes;
 
   VisitRegisteredNodes()
     : super(

@@ -1428,7 +1428,7 @@ abstract class ScannerTestBase {
    * [source] the source to be scanned to produce the error
    */
   Token _assertError(
-    ScannerErrorCode expectedError,
+    DiagnosticCode expectedError,
     int expectedOffset,
     String source, [
     List<Object>? arguments,
@@ -1451,7 +1451,7 @@ abstract class ScannerTestBase {
    * [expectedTokens] the tokens that are expected to be in the source
    */
   void _assertErrorAndTokens(
-    ScannerErrorCode expectedError,
+    DiagnosticCode expectedError,
     int expectedOffset,
     String source,
     List<Token> expectedTokens,

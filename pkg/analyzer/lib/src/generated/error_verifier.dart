@@ -3956,7 +3956,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// with it, and report it as an error if it does.
   void _checkForInvalidModifierOnBody(
     FunctionBody body,
-    CompileTimeErrorCode errorCode,
+    DiagnosticCode errorCode,
   ) {
     var keyword = body.keyword;
     if (keyword != null) {
