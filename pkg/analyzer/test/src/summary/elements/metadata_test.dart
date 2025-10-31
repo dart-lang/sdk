@@ -4395,6 +4395,7 @@ library
                 staticType: null
               element: <testLibrary>::@getter::foo
       extendedType: List<T>
+      onDeclaration: dart:core::@class::List
   topLevelVariables
     const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -6911,6 +6912,7 @@ library
       reference: <testLibrary>::@extension::E
       firstFragment: #F3
       extendedType: int
+      onDeclaration: dart:core::@class::int
       fields
         static const hasInitializer x
           reference: <testLibrary>::@extension::E::@field::x
@@ -6960,6 +6962,7 @@ library
       reference: <testLibrary>::@extension::0
       firstFragment: #F1
       extendedType: Object
+      onDeclaration: dart:core::@class::Object
       fields
         static const hasInitializer foo
           reference: <testLibrary>::@extension::0::@field::foo

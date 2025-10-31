@@ -827,10 +827,12 @@ library
       reference: <testLibrary>::@extension::E::@def::0
       firstFragment: #F1
       extendedType: int
+      onDeclaration: dart:core::@class::int
     extension E
       reference: <testLibrary>::@extension::E::@def::1
       firstFragment: #F2
       extendedType: int
+      onDeclaration: dart:core::@class::int
       fields
         static x
           reference: <testLibrary>::@extension::E::@def::1::@field::x
@@ -858,6 +860,7 @@ library
       reference: <testLibrary>::@extension::E::@def::2
       firstFragment: #F7
       extendedType: int
+      onDeclaration: dart:core::@class::int
       fields
         static hasInitializer y
           reference: <testLibrary>::@extension::E::@def::2::@field::y

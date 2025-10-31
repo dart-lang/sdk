@@ -1815,6 +1815,7 @@ library
       reference: <testLibrary>::@extension::E
       firstFragment: #F3
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
       methods
         static f
           reference: <testLibrary>::@extension::E::@method::f

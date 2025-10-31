@@ -2751,6 +2751,88 @@ PrefixedIdentifier
 ''');
   }
 
+  test_static_getter_failure_onDynamic() async {
+    await assertErrorsInCode(
+      '''
+extension E on dynamic {
+  static int get foo => 0;
+}
+
+void f() {
+  dynamic.foo;
+}
+''',
+      [error(CompileTimeErrorCode.undefinedGetter, 76, 3)],
+    );
+  }
+
+  test_static_getter_failure_onFutureOr() async {
+    await assertErrorsInCode(
+      '''
+import 'dart:async';
+
+extension E on FutureOr<dynamic> {
+  static int get foo => 0;
+}
+
+void f() {
+  FutureOr.foo;
+}
+''',
+      [error(CompileTimeErrorCode.undefinedGetter, 109, 3)],
+    );
+  }
+
+  test_static_getter_failure_onNever() async {
+    await assertErrorsInCode(
+      '''
+extension E on Never {
+  static int get foo => 0;
+}
+
+void f() {
+  Never.foo;
+}
+''',
+      [error(CompileTimeErrorCode.undefinedGetter, 72, 3)],
+    );
+  }
+
+  test_static_getter_failure_onTypeVariable() async {
+    await assertErrorsInCode(
+      '''
+extension E<X extends String> on X {
+  static int get foo => 0;
+}
+
+void f() {
+  String.foo;
+}
+''',
+      [error(CompileTimeErrorCode.undefinedGetter, 87, 3)],
+    );
+  }
+
+  test_static_getter_failure_onVoid() async {
+    await assertErrorsInCode(
+      '''
+extension E on void {
+  static int get foo => 0;
+}
+
+void f() {
+  void.foo;
+}
+''',
+      [
+        error(WarningCode.unusedLocalVariable, 57, 0),
+        error(ParserErrorCode.missingIdentifier, 69, 1),
+        error(ParserErrorCode.expectedToken, 69, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 70, 3),
+      ],
+    );
+  }
+
   test_static_getter_importedWithPrefix() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class C {}
@@ -2815,6 +2897,302 @@ PrefixedIdentifier
     element: <testLibrary>::@extension::E::@getter::a
     staticType: int
   element: <testLibrary>::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onClass_noTypeArguments() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onClass_typeArguments() async {
+    await assertNoErrorsInCode('''
+class A<X> {}
+
+extension E on A<String> {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onEnum_noTypeArguments() async {
+    await assertNoErrorsInCode('''
+enum A { element; }
+
+extension E on A {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@enum::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onEnum_typeArguments() async {
+    await assertNoErrorsInCode('''
+enum A<X> { element; }
+
+extension E on A<String> {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@enum::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onExtensionType_noTypeArguments() async {
+    await assertNoErrorsInCode('''
+extension type A(Object? it) {}
+
+extension E on A {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@extensionType::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onExtensionType_typeArguments() async {
+    await assertNoErrorsInCode('''
+extension type A<X>(Object? it) {}
+
+extension E on A<String> {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@extensionType::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onMixin_noTypeArguments() async {
+    await assertNoErrorsInCode('''
+mixin A {}
+
+extension E on A {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@mixin::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onMixin_typeArguments() async {
+    await assertNoErrorsInCode('''
+mixin A<X> {}
+
+extension E on A<String> {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@mixin::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_viaTypedef_noTypeArguments() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+typedef T = A;
+
+extension E on T {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+  T.foo;
+}
+''');
+    var node = findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_viaTypedef_typeArguments() async {
+    await assertNoErrorsInCode('''
+class A<X> {}
+
+typedef T<Y> = A<Y>;
+
+extension E on T<String> {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+  T.foo;
+}
+''');
+    var node = findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
   staticType: int
 ''');
   }

@@ -248,6 +248,7 @@ library
       reference: <testLibrary>::@extension::IntStringExtension
       firstFragment: #F1
       extendedType: (int, String)
+      onDeclaration: <null>
 ''');
   }
 
