@@ -89,7 +89,7 @@ class LspOverLegacyHandler extends LegacyHandler {
     } catch (e) {
       var errorMessage =
           'An error occurred while handling ${message.method} request: $e';
-      result = error(ServerErrorCodes.UnhandledError, errorMessage);
+      result = error(ServerErrorCodes.unhandledError, errorMessage);
     }
 
     var lspResponse = ResponseMessage(

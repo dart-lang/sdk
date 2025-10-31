@@ -31,7 +31,7 @@ class FormatOnTypeHandler
     var file = server.resourceProvider.getFile(path);
     if (!file.exists) {
       return error(
-        ServerErrorCodes.InvalidFilePath,
+        ServerErrorCodes.invalidFilePath,
         'File does not exist',
         path,
       );

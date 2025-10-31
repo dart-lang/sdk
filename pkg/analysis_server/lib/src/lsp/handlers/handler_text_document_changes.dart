@@ -57,7 +57,7 @@ class TextDocumentChangeHandler
     // and this is a serious failure.
     if (oldContents == null) {
       return error(
-        ServerErrorCodes.ClientServerInconsistentState,
+        ServerErrorCodes.clientServerInconsistentState,
         'Unable to edit document because the file was not previously opened: $path',
       );
     }

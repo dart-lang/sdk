@@ -472,7 +472,7 @@ Type: `String`''';
     await openFile(mainFileUri, '');
     await expectLater(
       () => getHover(mainFileUri, Position(line: 999, character: 999)),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)),
+      throwsA(isResponseError(ServerErrorCodes.invalidFileLineCol)),
     );
   }
 

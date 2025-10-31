@@ -240,7 +240,7 @@ mixin SharedDtdTests
       sendConnectToDtdRequest(),
       throwsA(
         isResponseError(
-          ServerErrorCodes.StateError,
+          ServerErrorCodes.stateError,
           message: 'Server is already connected to DTD',
         ),
       ),
@@ -451,7 +451,7 @@ FutureOr<void>? a;
         .having(
           (e) => e.code,
           'code',
-          ServerErrorCodes.InvalidFilePath.toJson(),
+          ServerErrorCodes.invalidFilePath.toJson(),
         )
         .having((e) => e.message, 'message', 'File does not exist')
         .having((e) => e.data, 'data', nonExistantFilePath);

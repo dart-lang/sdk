@@ -41,7 +41,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
   bool get isExperimental => false;
 
   @override
-  CodeActionKind get kind => DartCodeActionKind.RefactorMove;
+  CodeActionKind get kind => DartCodeActionKind.refactorMove;
 
   @override
   List<CommandParameter> get parameters => [

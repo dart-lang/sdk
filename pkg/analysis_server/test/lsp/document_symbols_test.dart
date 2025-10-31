@@ -219,7 +219,7 @@ class MyClass {
       getDocumentSymbols(mainFileUri),
       throwsA(
         isResponseError(
-          ServerErrorCodes.FileNotAnalyzed,
+          ServerErrorCodes.fileNotAnalyzed,
           message: 'File is not being analyzed',
         ),
       ),

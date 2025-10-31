@@ -160,12 +160,12 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
   InitializedStateMessageHandler(AnalysisServer server) : super(server) {
     reject(
       Method.initialize,
-      ServerErrorCodes.ServerAlreadyInitialized,
+      ServerErrorCodes.serverAlreadyInitialized,
       'Server already initialized',
     );
     reject(
       Method.initialized,
-      ServerErrorCodes.ServerAlreadyInitialized,
+      ServerErrorCodes.serverAlreadyInitialized,
       'Server already initialized',
     );
 
@@ -182,7 +182,7 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
   ) : super(server) {
     reject(
       Method.initialize,
-      ServerErrorCodes.ServerAlreadyInitialized,
+      ServerErrorCodes.serverAlreadyInitialized,
       'Server already initialized',
     );
     registerHandler(ShutdownMessageHandler(server));

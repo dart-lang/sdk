@@ -52,7 +52,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
 
     if (!editorClientCapabilities.applyEdit) {
       return error(
-        ServerErrorCodes.EditsUnsupportedByEditor,
+        ServerErrorCodes.editsUnsupportedByEditor,
         'The connected editor does not support applying edits',
       );
     }
@@ -86,7 +86,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       var invocationInfo = getInvocationInfo(result, offset);
       if (invocationInfo == null) {
         return error(
-          ServerErrorCodes.EditArgumentInvalidPosition,
+          ServerErrorCodes.editArgumentInvalidPosition,
           'No invocation was found at the provided position',
         );
       }
@@ -110,7 +110,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       );
       if (parameter == null) {
         return error(
-          ServerErrorCodes.EditArgumentInvalidParameter,
+          ServerErrorCodes.editArgumentInvalidParameter,
           "The parameter '$parameterName' was not found in this invocation. The available parameters are ${parameters.map((p) => p.name).join(', ')}",
         );
       }
@@ -135,7 +135,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
             notEditableReason.substring(0, 1).toLowerCase() +
             notEditableReason.substring(1);
         return error(
-          ServerErrorCodes.EditArgumentInvalidParameter,
+          ServerErrorCodes.editArgumentInvalidParameter,
           "The parameter '$parameterName' is not editable because $notEditableReasonLower",
         );
       }
@@ -210,7 +210,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         return success('null');
       } else {
         return error(
-          ServerErrorCodes.EditArgumentInvalidValue,
+          ServerErrorCodes.editArgumentInvalidValue,
           "The value for the parameter '${edit.name}' can't be null",
         );
       }
@@ -246,13 +246,13 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         );
       } else {
         return error(
-          ServerErrorCodes.EditArgumentInvalidValue,
+          ServerErrorCodes.editArgumentInvalidValue,
           "The value for the parameter '${edit.name}' should be one of ${getQualifiedEnumConstantNames(element).map((v) => "'$v'").join(', ')} but was '$value'",
         );
       }
     } else {
       return error(
-        ServerErrorCodes.EditArgumentInvalidValue,
+        ServerErrorCodes.editArgumentInvalidValue,
         "The value for the parameter '${edit.name}' should be $type but was ${value.runtimeType}",
       );
     }
@@ -343,7 +343,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     // Handle errors from the client.
     if (editResponse.error != null) {
       return error(
-        ServerErrorCodes.ClientFailedToApplyEdit,
+        ServerErrorCodes.clientFailedToApplyEdit,
         "The editor failed to apply the workspace edit '$editDescription'",
         editResponse.error.toString(),
       );
@@ -362,7 +362,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       // did not apply the edit. This might be because the version has
       // changed.
       return error(
-        ServerErrorCodes.ClientFailedToApplyEdit,
+        ServerErrorCodes.clientFailedToApplyEdit,
         "The editor did not apply the workspace edit '$editDescription' "
         '(reason: ${failureReason ?? 'not given'})',
         workspaceEdit.toString(),

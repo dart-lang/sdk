@@ -139,7 +139,7 @@ abstract class AbstractRefactorCommandHandler
           return success(refactor);
         }
         return error(
-          ServerErrorCodes.InvalidCommandArguments,
+          ServerErrorCodes.invalidCommandArguments,
           'Location supplied to $commandName $kind is no longer valid',
         );
 
@@ -155,13 +155,13 @@ abstract class AbstractRefactorCommandHandler
           return success(refactor);
         }
         return error(
-          ServerErrorCodes.InvalidCommandArguments,
+          ServerErrorCodes.invalidCommandArguments,
           'Location supplied to $commandName $kind is no longer valid',
         );
 
       default:
         return error(
-          ServerErrorCodes.InvalidCommandArguments,
+          ServerErrorCodes.invalidCommandArguments,
           'Unknown RefactoringKind $kind was supplied to $commandName',
         );
     }
@@ -188,7 +188,7 @@ abstract class AbstractRefactorCommandHandler
         (parameters['options'] is! Map<String, Object?>?)) {
       return ErrorOr.error(
         ResponseError(
-          code: ServerErrorCodes.InvalidCommandArguments,
+          code: ServerErrorCodes.invalidCommandArguments,
           message:
               '$commandName requires 6 parameters: '
               'kind: String (RefactoringKind), '
