@@ -677,14 +677,9 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   }) : super(
          name: name,
          problemMessage: problemMessage,
+         type: DiagnosticType.COMPILE_TIME_ERROR,
          uniqueName: 'FfiCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => type.severity;
-
-  @override
-  DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
 
   static LocatableDiagnostic
   _withArgumentsAbiSpecificIntegerMappingUnsupported({required String p0}) {

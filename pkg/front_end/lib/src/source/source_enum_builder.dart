@@ -412,7 +412,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // The super initializer for the synthesized default constructor is
     // inserted here if the enum's supertype is _Enum to preserve the legacy
     // behavior or having the old-style enum constants built in the outlines.
-    // Other constructors are handled in [BodyBuilder.finishConstructor] as
+    // Other constructors are handled in [Resolver._finishConstructor] as
     // they are processed via the pipeline for constructor parsing and
     // building.
     if (identical(this.supertypeBuilder, _underscoreEnumTypeBuilder)) {

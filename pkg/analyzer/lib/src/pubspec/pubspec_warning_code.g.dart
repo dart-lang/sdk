@@ -335,14 +335,9 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   }) : super(
          name: name,
          problemMessage: problemMessage,
+         type: DiagnosticType.STATIC_WARNING,
          uniqueName: 'PubspecWarningCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => type.severity;
-
-  @override
-  DiagnosticType get type => DiagnosticType.STATIC_WARNING;
 
   static LocatableDiagnostic _withArgumentsAssetDirectoryDoesNotExist({
     required String p0,

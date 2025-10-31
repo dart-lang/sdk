@@ -965,7 +965,7 @@ class ParserProxy extends analyzer.Parser {
   @override
   FunctionBody parseFunctionBody(
     bool mayBeEmpty,
-    ParserErrorCode emptyErrorCode,
+    DiagnosticCode emptyErrorCode,
     bool inExpression,
   ) {
     Token? lastToken;

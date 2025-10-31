@@ -8065,14 +8065,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   }) : super(
          name: name,
          problemMessage: problemMessage,
+         type: DiagnosticType.COMPILE_TIME_ERROR,
          uniqueName: 'CompileTimeErrorCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => type.severity;
-
-  @override
-  DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
 
   static LocatableDiagnostic _withArgumentsAbstractSuperMemberReference({
     required String memberKind,
@@ -11122,14 +11117,9 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
   }) : super(
          name: name,
          problemMessage: problemMessage,
+         type: DiagnosticType.STATIC_WARNING,
          uniqueName: 'StaticWarningCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => type.severity;
-
-  @override
-  DiagnosticType get type => DiagnosticType.STATIC_WARNING;
 
   static LocatableDiagnostic _withArgumentsInvalidNullAwareOperator({
     required String p0,
@@ -13461,14 +13451,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   }) : super(
          name: name,
          problemMessage: problemMessage,
+         type: DiagnosticType.STATIC_WARNING,
          uniqueName: 'WarningCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => type.severity;
-
-  @override
-  DiagnosticType get type => DiagnosticType.STATIC_WARNING;
 
   static LocatableDiagnostic
   _withArgumentsArgumentTypeNotAssignableToErrorHandler({

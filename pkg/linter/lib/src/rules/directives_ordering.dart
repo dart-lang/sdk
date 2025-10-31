@@ -61,7 +61,7 @@ bool _isRelativeDirective(NamespaceDirective node) =>
     !_isAbsoluteDirective(node);
 
 class DirectivesOrdering extends MultiAnalysisRule {
-  static const List<LintCode> allCodes = [
+  static const List<DiagnosticCode> allCodes = [
     LinterLintCode.directivesOrderingAlphabetical,
     LinterLintCode.directivesOrderingDart,
     LinterLintCode.directivesOrderingExports,

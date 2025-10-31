@@ -527,18 +527,18 @@ class _EnableExperimentsValidator extends OptionsValidator {
 
 /// Builds error reports with value proposals.
 class _ErrorBuilder {
-  static AnalysisOptionsWarningCode get noProposalCode =>
+  static DiagnosticCode get noProposalCode =>
       AnalysisOptionsWarningCode.unsupportedOptionWithoutValues;
 
-  static AnalysisOptionsWarningCode get pluralProposalCode =>
+  static DiagnosticCode get pluralProposalCode =>
       AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues;
 
-  static AnalysisOptionsWarningCode get singularProposalCode =>
+  static DiagnosticCode get singularProposalCode =>
       AnalysisOptionsWarningCode.unsupportedOptionWithLegalValue;
 
   final String proposal;
 
-  final AnalysisOptionsWarningCode code;
+  final DiagnosticCode code;
 
   /// Create a builder for the given [supportedOptions].
   factory _ErrorBuilder(Set<String> supportedOptions) {
@@ -1117,7 +1117,7 @@ class _TopLevelOptionValidator extends OptionsValidator {
   final String sectionName;
   final Set<String> supportedOptions;
   final String _valueProposal;
-  final AnalysisOptionsWarningCode _warningCode;
+  final DiagnosticCode _warningCode;
 
   _TopLevelOptionValidator(this.sectionName, this.supportedOptions)
     : assert(supportedOptions.isNotEmpty),

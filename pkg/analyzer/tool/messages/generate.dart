@@ -142,21 +142,12 @@ part of ${json.encode(file.parentLibrary)};
       constructor.writeln('}) : super(');
       constructor.writeln('name: name,');
       constructor.writeln('problemMessage: problemMessage,');
+      constructor.writeln('type: ${diagnosticClass.typeCode},');
       constructor.writeln(
         "uniqueName: '${diagnosticClass.name}.\${uniqueName ?? name}',",
       );
       constructor.writeln(');');
       memberAccumulator.constructors[''] = constructor.toString();
-
-      memberAccumulator.accessors['severity'] = '''
-@override
-DiagnosticSeverity get severity => type.severity;
-''';
-      memberAccumulator.accessors['type'] =
-          '''
-@override
-DiagnosticType get type => ${diagnosticClass.typeCode};
-''';
 
       memberAccumulator.writeTo(out);
       out.writeln('}');

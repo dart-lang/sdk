@@ -11,7 +11,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:linter/src/analyzer.dart';
 
 class NoSoloTests extends LintRule {
-  static const LintCode code = LinterLintCode.noSoloTests;
+  static const DiagnosticCode code = LinterLintCode.noSoloTests;
 
   NoSoloTests()
     : super(name: 'no_solo_tests', description: "Don't commit soloed tests.");

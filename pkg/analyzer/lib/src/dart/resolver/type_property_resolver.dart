@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -124,7 +125,7 @@ class TypePropertyResolver {
         }
       }
 
-      CompileTimeErrorCode errorCode;
+      DiagnosticCode errorCode;
       List<String> arguments;
       if (parentNode == null) {
         errorCode = CompileTimeErrorCode.uncheckedInvocationOfNullableValue;

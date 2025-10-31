@@ -1941,10 +1941,6 @@ class OutlineBuilder extends StackListenerImpl {
         beginToken.charOffset,
         noLength,
       );
-      if (declarationContext == DeclarationContext.Enum) {
-        // TODO(johnniwinther): Support primary constructors in enums.
-        return;
-      }
     }
 
     _builderFactory.addPrimaryConstructor(

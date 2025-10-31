@@ -35,6 +35,8 @@ import 'package:front_end/src/api_unstable/vm.dart'
         parseExperimentalFlags,
         printDiagnosticMessage,
         resolveInputUri;
+import 'package:front_end/src/api_prototype/dynamic_module_validator.dart'
+    show DynamicInterfaceYamlFile;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -640,6 +642,18 @@ Future<KernelCompilationResults> compileToKernel(
     args.environmentDefines,
   );
 
+  List<Uri> additionalSources = args.additionalSources;
+  final dynamicInterface = args.dynamicInterface;
+  if (dynamicInterface != null) {
+    final fileUri = await asFileUri(args.options!.fileSystem, dynamicInterface);
+    final contents = File(fileUri.toFilePath()).readAsStringSync();
+    final dynamicInterfaceYamlFile = DynamicInterfaceYamlFile(contents);
+    additionalSources = [
+      ...additionalSources,
+      ...dynamicInterfaceYamlFile.getUserLibraryUris(dynamicInterface),
+    ];
+  }
+
   CompilerResult? compilerResult;
   final fromDillFile = args.fromDillFile;
   Uri? usedPackageConfig;
@@ -651,7 +665,7 @@ Future<KernelCompilationResults> compileToKernel(
   } else {
     final processedOptions = new ProcessedOptions(
       options: options,
-      inputs: [args.source!, ...args.additionalSources],
+      inputs: [args.source!, ...additionalSources],
     );
     compilerResult = await CompilerContext.runWithOptions(processedOptions, (
       CompilerContext context,
@@ -660,11 +674,11 @@ Future<KernelCompilationResults> compileToKernel(
           ? await kernelForProgram(
             args.source!,
             options,
-            additionalSources: args.additionalSources,
+            additionalSources: additionalSources,
           )
           : await kernelForModule([
             args.source!,
-            ...args.additionalSources,
+            ...additionalSources,
           ], options);
     });
     usedPackageConfig = await processedOptions.resolvePackagesFileUri();

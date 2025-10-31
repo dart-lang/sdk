@@ -300,14 +300,9 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   }) : super(
          name: name,
          problemMessage: problemMessage,
+         type: DiagnosticType.COMPILE_TIME_ERROR,
          uniqueName: 'TransformSetErrorCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => type.severity;
-
-  @override
-  DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
 
   static LocatableDiagnostic _withArgumentsConflictingKey({
     required Object p0,

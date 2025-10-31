@@ -146,14 +146,9 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   }) : super(
          name: name,
          problemMessage: problemMessage,
+         type: DiagnosticType.STATIC_WARNING,
          uniqueName: 'ManifestWarningCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => type.severity;
-
-  @override
-  DiagnosticType get type => DiagnosticType.STATIC_WARNING;
 
   static LocatableDiagnostic
   _withArgumentsPermissionImpliesUnsupportedHardware({required Object p0}) {
