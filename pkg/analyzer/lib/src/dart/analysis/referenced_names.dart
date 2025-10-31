@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// Compute the set of external names referenced in the [unit].
 Set<String> computeReferencedNames(CompilationUnit unit) {
@@ -72,15 +73,26 @@ class _LocalNameScope {
 
   factory _LocalNameScope.forClass(
     _LocalNameScope enclosing,
-    ClassDeclaration node,
+    ClassDeclarationImpl node,
   ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
-    scope.addTypeParameters(node.typeParameters);
-    for (ClassMember member in node.members) {
-      if (member is FieldDeclaration) {
-        scope.addVariableNames(member.fields);
-      } else if (member is MethodDeclaration) {
-        scope.add(member.name);
+    if (useDeclaringConstructorsAst) {
+      scope.addTypeParameters(node.namePart.typeParameters);
+      for (ClassMember member in node.body.members) {
+        if (member is FieldDeclaration) {
+          scope.addVariableNames(member.fields);
+        } else if (member is MethodDeclaration) {
+          scope.add(member.name);
+        }
+      }
+    } else {
+      scope.addTypeParameters(node.typeParameters);
+      for (ClassMember member in node.members) {
+        if (member is FieldDeclaration) {
+          scope.addVariableNames(member.fields);
+        } else if (member is MethodDeclaration) {
+          scope.add(member.name);
+        }
       }
     }
     return scope;
@@ -106,15 +118,26 @@ class _LocalNameScope {
 
   factory _LocalNameScope.forExtensionType(
     _LocalNameScope enclosing,
-    ExtensionTypeDeclaration node,
+    ExtensionTypeDeclarationImpl node,
   ) {
     var scope = _LocalNameScope(enclosing);
-    scope.addTypeParameters(node.typeParameters);
-    for (var member in node.members) {
-      if (member is FieldDeclaration) {
-        scope.addVariableNames(member.fields);
-      } else if (member is MethodDeclaration) {
-        scope.add(member.name);
+    if (useDeclaringConstructorsAst) {
+      scope.addTypeParameters(node.namePart.typeParameters);
+      for (ClassMember member in node.body.members) {
+        if (member is FieldDeclaration) {
+          scope.addVariableNames(member.fields);
+        } else if (member is MethodDeclaration) {
+          scope.add(member.name);
+        }
+      }
+    } else {
+      scope.addTypeParameters(node.typeParameters);
+      for (var member in node.members) {
+        if (member is FieldDeclarationImpl) {
+          scope.addVariableNames(member.fields);
+        } else if (member is MethodDeclarationImpl) {
+          scope.add(member.name);
+        }
       }
     }
     return scope;
@@ -152,10 +175,29 @@ class _LocalNameScope {
   factory _LocalNameScope.forUnit(CompilationUnit node) {
     _LocalNameScope scope = _LocalNameScope(null);
     for (CompilationUnitMember declaration in node.declarations) {
-      if (declaration is NamedCompilationUnitMember) {
-        scope.add(declaration.name);
-      } else if (declaration is TopLevelVariableDeclaration) {
-        scope.addVariableNames(declaration.variables);
+      switch (declaration) {
+        case ClassDeclaration():
+          if (useDeclaringConstructorsAst) {
+            scope.add(declaration.namePart.typeName);
+          } else {
+            scope.add(declaration.name);
+          }
+        case EnumDeclaration():
+          if (useDeclaringConstructorsAst) {
+            scope.add(declaration.namePart.typeName);
+          } else {
+            scope.add(declaration.name);
+          }
+        case ExtensionTypeDeclaration():
+          if (useDeclaringConstructorsAst) {
+            scope.add(declaration.namePart.typeName);
+          } else {
+            scope.add(declaration.name);
+          }
+        case NamedCompilationUnitMember():
+          scope.add(declaration.name);
+        case TopLevelVariableDeclaration():
+          scope.addVariableNames(declaration.variables);
       }
     }
     return scope;
@@ -216,7 +258,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forClass(localScope, node);
@@ -262,7 +304,9 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
     var outerScope = localScope;
     try {
       localScope = _LocalNameScope.forExtensionType(localScope, node);

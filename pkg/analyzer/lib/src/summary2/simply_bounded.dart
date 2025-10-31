@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart'
     as graph
     show DependencyWalker, Node;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -95,7 +96,9 @@ class SimplyBoundedDependencyWalker
     if (graphNode == null) {
       var node = linker.getLinkingNode2(element.firstFragment);
       if (node is ClassDeclaration) {
-        var parameters = node.typeParameters?.typeParameters;
+        var parameters = useDeclaringConstructorsAst
+            ? node.namePart.typeParameters?.typeParameters
+            : node.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,
           node,
@@ -111,7 +114,9 @@ class SimplyBoundedDependencyWalker
           const <TypeAnnotation>[],
         );
       } else if (node is EnumDeclaration) {
-        var parameters = node.typeParameters?.typeParameters;
+        var parameters = useDeclaringConstructorsAst
+            ? node.namePart.typeParameters?.typeParameters
+            : node.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,
           node,
@@ -119,7 +124,9 @@ class SimplyBoundedDependencyWalker
           const <TypeAnnotation>[],
         );
       } else if (node is ExtensionTypeDeclaration) {
-        var parameters = node.typeParameters?.typeParameters;
+        var parameters = useDeclaringConstructorsAst
+            ? node.namePart.typeParameters?.typeParameters
+            : node.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,
           node,

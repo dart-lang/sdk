@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// Compute the [DefinedNames] for the given [unit].
 DefinedNames computeDefinedNames(CompilationUnit unit) {
@@ -28,21 +29,46 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
 
   void appendTopLevelName(CompilationUnitMember member) {
     if (member is NamedCompilationUnitMember) {
-      appendName(names.topLevelNames, member.name);
-      if (member is ClassDeclaration) {
-        member.members.forEach(appendClassMemberName);
-      }
-      if (member is EnumDeclaration) {
-        for (var constant in member.constants) {
-          appendName(names.classMemberNames, constant.name);
-        }
-        member.members.forEach(appendClassMemberName);
-      }
-      if (member is ExtensionTypeDeclaration) {
-        member.members.forEach(appendClassMemberName);
-      }
-      if (member is MixinDeclaration) {
-        member.members.forEach(appendClassMemberName);
+      switch (member) {
+        case ClassDeclarationImpl():
+          if (useDeclaringConstructorsAst) {
+            appendName(names.topLevelNames, member.namePart.typeName);
+            member.body.members.forEach(appendClassMemberName);
+          } else {
+            appendName(names.topLevelNames, member.name);
+            member.members.forEach(appendClassMemberName);
+          }
+        case EnumDeclaration():
+          if (useDeclaringConstructorsAst) {
+            appendName(names.topLevelNames, member.namePart.typeName);
+            for (var constant in member.body.constants) {
+              appendName(names.classMemberNames, constant.name);
+            }
+            member.body.members.forEach(appendClassMemberName);
+          } else {
+            appendName(names.topLevelNames, member.name);
+            for (var constant in member.constants) {
+              appendName(names.classMemberNames, constant.name);
+            }
+            member.members.forEach(appendClassMemberName);
+          }
+        case ExtensionTypeDeclarationImpl():
+          if (useDeclaringConstructorsAst) {
+            appendName(names.topLevelNames, member.namePart.typeName);
+            member.body.members.forEach(appendClassMemberName);
+          } else {
+            appendName(names.topLevelNames, member.name);
+            member.members.forEach(appendClassMemberName);
+          }
+        case MixinDeclaration():
+          appendName(names.topLevelNames, member.name);
+          if (useDeclaringConstructorsAst) {
+            member.body.members.forEach(appendClassMemberName);
+          } else {
+            member.members.forEach(appendClassMemberName);
+          }
+        default:
+          appendName(names.topLevelNames, member.name);
       }
     } else if (member is TopLevelVariableDeclaration) {
       for (VariableDeclaration variable in member.variables.variables) {

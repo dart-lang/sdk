@@ -1107,7 +1107,7 @@ package:analyzer/dart/ast/ast.dart:
     superclass (getter: NamedType)
   ExtensionDeclaration (class extends Object implements CompilationUnitMember):
     augmentKeyword (getter: Token?)
-    body (getter: BlockClassBody?, experimental)
+    body (getter: BlockClassBody, experimental)
     declaredFragment (getter: ExtensionFragment?)
     extensionKeyword (getter: Token)
     leftBracket (getter: Token)
@@ -1437,7 +1437,7 @@ package:analyzer/dart/ast/ast.dart:
   MixinDeclaration (class extends Object implements NamedCompilationUnitMember):
     augmentKeyword (getter: Token?)
     baseKeyword (getter: Token?)
-    body (getter: ClassBody, experimental)
+    body (getter: BlockClassBody, experimental)
     declaredFragment (getter: MixinFragment?)
     implementsClause (getter: ImplementsClause?)
     leftBracket (getter: Token)

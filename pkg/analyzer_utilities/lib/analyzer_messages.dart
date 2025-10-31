@@ -278,6 +278,46 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(
   return result;
 }
 
+/// Splits [text] on spaces using the given [maxWidth] (and [firstLineWidth] if
+/// given).
+List<String> _splitText(
+  String text, {
+  required int maxWidth,
+  int? firstLineWidth,
+}) {
+  firstLineWidth ??= maxWidth;
+  var lines = <String>[];
+  // The character width to use as a maximum width. This starts as
+  // [firstLineWidth] but becomes [maxWidth] on every iteration after the first.
+  var width = firstLineWidth;
+  var lineMaxEndIndex = width;
+  var lineStartIndex = 0;
+
+  while (true) {
+    if (lineMaxEndIndex >= text.length) {
+      lines.add(text.substring(lineStartIndex, text.length));
+      break;
+    } else {
+      var lastSpaceIndex = text.lastIndexOf(' ', lineMaxEndIndex);
+      if (lastSpaceIndex == -1 || lastSpaceIndex <= lineStartIndex) {
+        // No space between [lineStartIndex] and [lineMaxEndIndex]. Get the
+        // _next_ space.
+        lastSpaceIndex = text.indexOf(' ', lineMaxEndIndex);
+        if (lastSpaceIndex == -1) {
+          // No space at all after [lineStartIndex].
+          lines.add(text.substring(lineStartIndex));
+          break;
+        }
+      }
+      lines.add(text.substring(lineStartIndex, lastSpaceIndex + 1));
+      lineStartIndex = lastSpaceIndex + 1;
+      width = maxWidth;
+    }
+    lineMaxEndIndex = lineStartIndex + maxWidth;
+  }
+  return lines;
+}
+
 /// An [AnalyzerMessage] which is an alias for another, for incremental
 /// deprecation purposes.
 class AliasMessage extends AnalyzerMessage {
@@ -352,5 +392,185 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
       // Ignore extra keys understood by the linter.
       messageYaml.allowExtraKeys({'categories', 'deprecatedDetails', 'state'});
     }
+  }
+}
+
+/// Interface class for diagnostic messages that have an analyzer code, and thus
+/// can be reported by the analyzer.
+mixin MessageWithAnalyzerCode on Message {
+  /// The code used by the analyzer to refer to this diagnostic message.
+  AnalyzerCode get analyzerCode;
+
+  /// The name of the constant in analyzer code that should be used to refer to
+  /// this message.
+  String get constantName => analyzerCode.camelCaseName;
+
+  /// Whether diagnostics with this code have documentation for them that has
+  /// been published.
+  ///
+  /// `null` if the YAML doesn't contain this information.
+  bool get hasPublishedDocs;
+
+  void outputConstantHeader(StringSink out) {
+    out.write(toAnalyzerComments(indent: '  '));
+    if (deprecatedMessage != null) {
+      out.writeln('  @Deprecated("$deprecatedMessage")');
+    }
+  }
+
+  /// Generates a dart declaration for this diagnostic, suitable for inclusion
+  /// in the diagnostic class [className].
+  ///
+  /// [diagnosticCode] is the name of the diagnostic to be generated.
+  void toAnalyzerCode(
+    GeneratedDiagnosticClassInfo diagnosticClassInfo, {
+    String? sharedNameReference,
+    required MemberAccumulator memberAccumulator,
+  }) {
+    var diagnosticCode = analyzerCode.snakeCaseName;
+    var correctionMessage = this.correctionMessage;
+    var parameters = this.parameters;
+    var usesParameters = [problemMessage, correctionMessage].any(
+      (value) =>
+          value != null && value.any((part) => part is TemplateParameterPart),
+    );
+    String className;
+    String templateParameters = '';
+    String? withArgumentsName;
+    if (parameters.isNotEmpty && !usesParameters) {
+      throw 'Error code declares parameters using a `parameters` entry, but '
+          "doesn't use them";
+    } else if (parameters.values.any((p) => !p.type.isSupportedByAnalyzer)) {
+      // Do not generate literate API yet.
+      className = diagnosticClassInfo.name;
+    } else if (parameters.isNotEmpty) {
+      // Parameters are present so generate a diagnostic template (with
+      // `.withArguments` support).
+      className = diagnosticClassInfo.templateName;
+      var withArgumentsParams = parameters.entries
+          .map((p) => 'required ${p.value.type.analyzerName} ${p.key}')
+          .join(', ');
+      var argumentNames = parameters.keys.join(', ');
+      withArgumentsName = '_withArguments${analyzerCode.pascalCaseName}';
+      templateParameters =
+          '<LocatableDiagnostic Function({$withArgumentsParams})>';
+      var newIfNeeded = diagnosticClassInfo.file.shouldUseExplicitNewOrConst
+          ? 'new '
+          : '';
+      memberAccumulator.staticMethods[withArgumentsName] =
+          '''
+static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
+  return ${newIfNeeded}LocatableDiagnosticImpl(
+    ${diagnosticClassInfo.name}.$constantName, [$argumentNames]);
+}''';
+    } else {
+      // Parameters are not present so generate a "withoutArguments" constant.
+      className = diagnosticClassInfo.withoutArgumentsName;
+    }
+
+    var constant = StringBuffer();
+    outputConstantHeader(constant);
+    constant.writeln(
+      '  static const $className$templateParameters $constantName =',
+    );
+    if (diagnosticClassInfo.file.shouldUseExplicitNewOrConst) {
+      constant.writeln('const ');
+    }
+    constant.writeln('$className(');
+    constant.writeln(
+      '${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
+    );
+    var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
+    var messageAsCode = convertTemplate(problemMessage);
+    var messageLines = _splitText(
+      messageAsCode,
+      maxWidth: maxWidth,
+      firstLineWidth: maxWidth + 4,
+    );
+    constant.writeln('${messageLines.map(_encodeString).join('\n')},');
+    if (correctionMessage != null) {
+      constant.write('correctionMessage: ');
+      var code = convertTemplate(correctionMessage);
+      var codeLines = _splitText(code, maxWidth: maxWidth);
+      constant.writeln('${codeLines.map(_encodeString).join('\n')},');
+    }
+    if (hasPublishedDocs) {
+      constant.writeln('hasPublishedDocs:true,');
+    }
+    if (isUnresolvedIdentifier) {
+      constant.writeln('isUnresolvedIdentifier:true,');
+    }
+    if (sharedName != null) {
+      constant.writeln("uniqueName: '$diagnosticCode',");
+    }
+    if (withArgumentsName != null) {
+      constant.writeln('withArguments: $withArgumentsName,');
+    }
+    constant.writeln('expectedTypes: ${_computeExpectedTypes()},');
+    constant.writeln(');');
+    memberAccumulator.constants[constantName] = constant.toString();
+
+    if (diagnosticClassInfo.deprecatedSnakeCaseNames.contains(diagnosticCode)) {
+      memberAccumulator.constants[diagnosticCode] =
+          '''
+  @Deprecated("Please use $constantName")
+  static const ${diagnosticClassInfo.name} $diagnosticCode = $constantName;
+''';
+    }
+  }
+
+  /// Generates doc comments for this error code.
+  String toAnalyzerComments({String indent = ''}) {
+    // Start with the comment specified in `messages.yaml`.
+    var out = StringBuffer();
+    List<String> commentLines = switch (comment) {
+      null || '' => [],
+      var c => c.split('\n'),
+    };
+
+    // Add a `Parameters:` section to the bottom of the comment if appropriate.
+    switch (parameters) {
+      case Map(isEmpty: true):
+        if (commentLines.isNotEmpty) commentLines.add('');
+        commentLines.add('No parameters.');
+      default:
+        if (commentLines.isNotEmpty) commentLines.add('');
+        commentLines.add('Parameters:');
+        for (var MapEntry(key: name, value: p) in parameters.entries) {
+          var prefix = '${p.type.messagesYamlName} $name: ';
+          var extraIndent = ' ' * prefix.length;
+          var firstLineWidth = 80 - 4 - indent.length;
+          var lines = _splitText(
+            '$prefix${p.comment}',
+            maxWidth: firstLineWidth - prefix.length,
+            firstLineWidth: firstLineWidth,
+          );
+          commentLines.add(lines[0]);
+          for (var line in lines.skip(1)) {
+            commentLines.add('$extraIndent$line');
+          }
+        }
+    }
+
+    // Indent the result and prefix with `///`.
+    for (var line in commentLines) {
+      out.writeln('$indent///${line.isEmpty ? '' : ' '}$line');
+    }
+    return out.toString();
+  }
+
+  String _computeExpectedTypes() {
+    var expectedTypes = [
+      for (var parameter in parameters.values)
+        'ExpectedType.${parameter.type.name}',
+    ];
+    return '[${expectedTypes.join(', ')}]';
+  }
+
+  String _encodeString(String s) {
+    // JSON encoding gives us mostly what we need.
+    var jsonEncoded = json.encode(s);
+    // But we also need to escape `$`.
+    return jsonEncoded.replaceAll(r'$', r'\$');
   }
 }

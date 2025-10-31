@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -33,9 +34,12 @@ class DefaultTypesBuilder {
     for (var node in nodes) {
       if (node is ClassDeclarationImpl) {
         var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.typeParameters);
-        _breakRawTypeCycles(element, node.typeParameters);
-        _computeBounds(element, node.typeParameters);
+        var typeParameters = useDeclaringConstructorsAst
+            ? node.namePart.typeParameters
+            : node.typeParameters;
+        _breakSelfCycles(typeParameters);
+        _breakRawTypeCycles(element, typeParameters);
+        _computeBounds(element, typeParameters);
       } else if (node is ClassTypeAliasImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
@@ -43,9 +47,12 @@ class DefaultTypesBuilder {
         _computeBounds(element, node.typeParameters);
       } else if (node is EnumDeclarationImpl) {
         var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.typeParameters);
-        _breakRawTypeCycles(element, node.typeParameters);
-        _computeBounds(element, node.typeParameters);
+        var typeParameters = useDeclaringConstructorsAst
+            ? node.namePart.typeParameters
+            : node.typeParameters;
+        _breakSelfCycles(typeParameters);
+        _breakRawTypeCycles(element, typeParameters);
+        _computeBounds(element, typeParameters);
       } else if (node is ExtensionDeclarationImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
@@ -53,9 +60,12 @@ class DefaultTypesBuilder {
         _computeBounds(element, node.typeParameters);
       } else if (node is ExtensionTypeDeclarationImpl) {
         var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.typeParameters);
-        _breakRawTypeCycles(element, node.typeParameters);
-        _computeBounds(element, node.typeParameters);
+        var typeParameters = useDeclaringConstructorsAst
+            ? node.namePart.typeParameters
+            : node.typeParameters;
+        _breakSelfCycles(typeParameters);
+        _breakRawTypeCycles(element, typeParameters);
+        _computeBounds(element, typeParameters);
       } else if (node is FunctionTypeAliasImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
@@ -90,15 +100,27 @@ class DefaultTypesBuilder {
     }
     for (var node in nodes) {
       if (node is ClassDeclarationImpl) {
-        _build(node.typeParameters);
+        _build(
+          useDeclaringConstructorsAst
+              ? node.namePart.typeParameters
+              : node.typeParameters,
+        );
       } else if (node is ClassTypeAliasImpl) {
         _build(node.typeParameters);
       } else if (node is EnumDeclarationImpl) {
-        _build(node.typeParameters);
+        _build(
+          useDeclaringConstructorsAst
+              ? node.namePart.typeParameters
+              : node.typeParameters,
+        );
       } else if (node is ExtensionDeclarationImpl) {
         _build(node.typeParameters);
       } else if (node is ExtensionTypeDeclarationImpl) {
-        _build(node.typeParameters);
+        _build(
+          useDeclaringConstructorsAst
+              ? node.namePart.typeParameters
+              : node.typeParameters,
+        );
       } else if (node is FunctionTypeAliasImpl) {
         _build(node.typeParameters);
       } else if (node is GenericTypeAliasImpl) {

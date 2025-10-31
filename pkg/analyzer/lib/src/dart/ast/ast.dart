@@ -54,6 +54,9 @@ part 'ast.g.dart';
 /// Marker for declarations that are code generated.
 const generated = _Generated();
 
+/// The default value for [useDeclaringConstructorsAst].
+bool default_useDeclaringConstructorsAst = false;
+
 /// The type alias that allows using nullable type as type literals.
 typedef _TypeLiteral<X> = X;
 
@@ -2918,7 +2921,9 @@ class ChildEntity {
 @experimental
 sealed class ClassBody implements AstNode {}
 
-abstract final class ClassBodyImpl extends AstNodeImpl implements ClassBody {}
+abstract final class ClassBodyImpl extends AstNodeImpl implements ClassBody {
+  List<ClassMemberImpl> get members;
+}
 
 /// Stub of [ClassBodyImpl], used to pass to the [ClassDeclarationImpl] or
 /// [ExtensionTypeDeclarationImpl] constructor, but it never returned through
@@ -6941,6 +6946,9 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
     return semicolon;
   }
 
+  @override
+  List<ClassMemberImpl> get members => const [];
+
   @generated
   @override
   ChildEntities get _childEntities =>
@@ -8590,7 +8598,7 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   ///
   /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `false`.
   @experimental
-  BlockClassBody? get body;
+  BlockClassBody get body;
 
   @override
   ExtensionFragment? get declaredFragment;
@@ -16838,7 +16846,7 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
   ///
   /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `false`.
   @experimental
-  ClassBody get body;
+  BlockClassBody get body;
 
   @override
   MixinFragment? get declaredFragment;
@@ -16914,7 +16922,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   ImplementsClauseImpl? _implementsClause;
 
   @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
-  final ClassBodyImpl _body;
+  final BlockClassBodyImpl _body;
 
   @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   final Token _leftBracket;
@@ -16939,7 +16947,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required TypeParameterListImpl? typeParameters,
     required MixinOnClauseImpl? onClause,
     required ImplementsClauseImpl? implementsClause,
-    required ClassBodyImpl body,
+    required BlockClassBodyImpl body,
     required Token leftBracket,
     required List<ClassMemberImpl> members,
     required Token rightBracket,
@@ -16961,7 +16969,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  ClassBodyImpl get body {
+  BlockClassBodyImpl get body {
     if (!useDeclaringConstructorsAst) {
       throw UnsupportedError('Requires useDeclaringConstructorsAst = true');
     }
