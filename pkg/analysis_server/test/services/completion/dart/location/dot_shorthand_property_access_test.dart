@@ -125,6 +125,42 @@ suggestions
 ''');
   }
 
+  Future<void> test_class_functionExpression_futureOr() async {
+    allowedIdentifiers = {'getter'};
+    await computeSuggestions('''
+class C {
+  static C get getter => C();
+}
+
+Future<C> foo() async => .^;
+''');
+    assertResponse(r'''
+suggestions
+  getter
+    kind: getter
+''');
+  }
+
+  Future<void> test_class_switch_expression() async {
+    allowedIdentifiers = {'getter'};
+    await computeSuggestions('''
+class C {
+  static C get getter => C();
+}
+
+void foo(C c) {
+  int _ = switch (c) {
+    .^
+  };
+}
+''');
+    assertResponse(r'''
+suggestions
+  getter
+    kind: getter
+''');
+  }
+
   Future<void> test_class_withPrefix() async {
     allowedIdentifiers = {'getter', 'anotherGetter', 'notStatic'};
     await computeSuggestions('''
@@ -165,6 +201,66 @@ suggestions
 ''');
   }
 
+  Future<void> test_enum_functionExpression_futureOr() async {
+    allowedIdentifiers = {'red', 'blue', 'yellow'};
+    await computeSuggestions('''
+enum E { red, blue, yellow }
+
+Future<E> foo() async => .^;
+''');
+    assertResponse(r'''
+suggestions
+  blue
+    kind: enumConstant
+  red
+    kind: enumConstant
+  yellow
+    kind: enumConstant
+''');
+  }
+
+  Future<void> test_enum_parameter_futureOr() async {
+    allowedIdentifiers = {'red', 'blue', 'yellow'};
+    await computeSuggestions('''
+import 'dart:async';
+
+enum E { red, blue, yellow }
+
+void foo(FutureOr<E> e) {
+  foo(.^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  blue
+    kind: enumConstant
+  red
+    kind: enumConstant
+  yellow
+    kind: enumConstant
+''');
+  }
+
+  Future<void> test_enum_return_futureOr() async {
+    allowedIdentifiers = {'red', 'blue', 'yellow'};
+    await computeSuggestions('''
+enum E { red, blue, yellow }
+
+Future<E> foo() async {
+  return .^;
+}
+''');
+    assertResponse(r'''
+suggestions
+  blue
+    kind: enumConstant
+  red
+    kind: enumConstant
+  yellow
+    kind: enumConstant
+''');
+  }
+
   Future<void> test_enum_static() async {
     allowedIdentifiers = {'red', 'other'};
     await computeSuggestions('''
@@ -182,6 +278,78 @@ suggestions
   other
     kind: field
   red
+    kind: enumConstant
+''');
+  }
+
+  Future<void> test_enum_superCall() async {
+    allowedIdentifiers = {'red', 'blue', 'yellow'};
+    await computeSuggestions('''
+enum E { red, blue, yellow }
+
+class A {
+  A(this.e);
+  final E e;
+}
+
+class B extends A {
+  B() : super(.^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  blue
+    kind: enumConstant
+  red
+    kind: enumConstant
+  yellow
+    kind: enumConstant
+''');
+  }
+
+  Future<void> test_enum_switch_expression() async {
+    allowedIdentifiers = {'red', 'blue', 'yellow'};
+    await computeSuggestions('''
+enum E { red, blue, yellow }
+
+void foo(E e) {
+  int _ = switch (e) {
+    .red => 1,
+    .^
+  };
+}
+''');
+    assertResponse(r'''
+suggestions
+  blue
+    kind: enumConstant
+  red
+    kind: enumConstant
+  yellow
+    kind: enumConstant
+''');
+  }
+
+  Future<void> test_enum_switch_statement() async {
+    allowedIdentifiers = {'red', 'blue', 'yellow'};
+    await computeSuggestions('''
+enum E { red, blue, yellow }
+
+void foo(E e) {
+  switch (e) {
+    case .red:
+      return;
+    case .^
+  };
+}
+''');
+    assertResponse(r'''
+suggestions
+  blue
+    kind: enumConstant
+  red
+    kind: enumConstant
+  yellow
     kind: enumConstant
 ''');
   }
@@ -220,6 +388,42 @@ void f() {
 suggestions
   getter
     kind: getter
+''');
+  }
+
+  Future<void> test_extensionType_functionExpression_futureOr() async {
+    allowedIdentifiers = {'field'};
+    await computeSuggestions('''
+extension type Ext(int i) {
+  static Ext field = Ext(1);
+}
+
+Future<Ext> foo() async => .^;
+''');
+    assertResponse(r'''
+suggestions
+  field
+    kind: field
+''');
+  }
+
+  Future<void> test_extensionType_switch_statement() async {
+    allowedIdentifiers = {'field'};
+    await computeSuggestions('''
+extension type Ext(int i) {
+  static Ext field = Ext(1);
+}
+
+void foo(Ext e) {
+  switch (e) {
+    case .^
+  };
+}
+''');
+    assertResponse(r'''
+suggestions
+  field
+    kind: field
 ''');
   }
 
