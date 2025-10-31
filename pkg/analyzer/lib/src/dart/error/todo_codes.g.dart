@@ -87,14 +87,9 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   }) : super(
          name: name,
          problemMessage: problemMessage,
+         type: DiagnosticType.TODO,
          uniqueName: 'TodoCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => type.severity;
-
-  @override
-  DiagnosticType get type => DiagnosticType.TODO;
 
   static LocatableDiagnostic _withArgumentsFixme({required String message}) {
     return LocatableDiagnosticImpl(TodoCode.fixme, [message]);

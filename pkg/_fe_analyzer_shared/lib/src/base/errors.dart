@@ -317,9 +317,27 @@ abstract class DiagnosticCode {
   String toString() => uniqueName;
 }
 
+class DiagnosticCodeImpl extends DiagnosticCode {
+  @override
+  final DiagnosticType type;
+
+  const DiagnosticCodeImpl({
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    required super.name,
+    required super.problemMessage,
+    required this.type,
+    required super.uniqueName,
+  });
+
+  @override
+  DiagnosticSeverity get severity => type.severity;
+}
+
 /// Private subtype of [DiagnosticCode] that supports runtime checking of
 /// parameter types.
-abstract class DiagnosticCodeWithExpectedTypes extends DiagnosticCode {
+abstract class DiagnosticCodeWithExpectedTypes extends DiagnosticCodeImpl {
   final List<ExpectedType>? expectedTypes;
 
   const DiagnosticCodeWithExpectedTypes({
@@ -328,6 +346,7 @@ abstract class DiagnosticCodeWithExpectedTypes extends DiagnosticCode {
     super.isUnresolvedIdentifier = false,
     required super.name,
     required super.problemMessage,
+    required super.type,
     required super.uniqueName,
     this.expectedTypes,
   });
@@ -550,7 +569,7 @@ class DiagnosticType implements Comparable<DiagnosticType> {
 /// This class implements [LocatableDiagnostic], which means that instances can
 /// be associated with a location in the source code using the [at] method, and
 /// then the result can be passed to [DiagnosticReporter.reportError].
-base mixin DiagnosticWithoutArguments on DiagnosticCode
+base mixin DiagnosticWithoutArguments on DiagnosticCodeImpl
     implements LocatableDiagnostic {
   @override
   List<Object> get arguments => const [];

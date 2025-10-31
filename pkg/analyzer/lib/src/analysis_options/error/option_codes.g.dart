@@ -73,14 +73,9 @@ class AnalysisOptionsErrorCode extends DiagnosticCodeWithExpectedTypes {
   }) : super(
          name: name,
          problemMessage: problemMessage,
+         type: DiagnosticType.COMPILE_TIME_ERROR,
          uniqueName: 'AnalysisOptionsErrorCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => type.severity;
-
-  @override
-  DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
 
   static LocatableDiagnostic _withArgumentsIncludedFileParseError({
     required Object p0,
@@ -590,14 +585,9 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   }) : super(
          name: name,
          problemMessage: problemMessage,
+         type: DiagnosticType.STATIC_WARNING,
          uniqueName: 'AnalysisOptionsWarningCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => type.severity;
-
-  @override
-  DiagnosticType get type => DiagnosticType.STATIC_WARNING;
 
   static LocatableDiagnostic _withArgumentsAnalysisOptionDeprecated({
     required Object p0,

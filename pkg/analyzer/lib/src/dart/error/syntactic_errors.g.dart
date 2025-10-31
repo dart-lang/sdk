@@ -2717,14 +2717,9 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   }) : super(
          name: name,
          problemMessage: problemMessage,
+         type: DiagnosticType.SYNTACTIC_ERROR,
          uniqueName: 'ParserErrorCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => type.severity;
-
-  @override
-  DiagnosticType get type => DiagnosticType.SYNTACTIC_ERROR;
 
   static LocatableDiagnostic _withArgumentsBinaryOperatorWrittenOut({
     required String string,
@@ -3019,14 +3014,9 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
   }) : super(
          name: name,
          problemMessage: problemMessage,
+         type: DiagnosticType.SYNTACTIC_ERROR,
          uniqueName: 'ScannerErrorCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => type.severity;
-
-  @override
-  DiagnosticType get type => DiagnosticType.SYNTACTIC_ERROR;
 
   static LocatableDiagnostic _withArgumentsIllegalCharacter({
     required Object p0,

@@ -102,14 +102,9 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   }) : super(
          name: name,
          problemMessage: problemMessage,
+         type: DiagnosticType.HINT,
          uniqueName: 'HintCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => type.severity;
-
-  @override
-  DiagnosticType get type => DiagnosticType.HINT;
 
   static LocatableDiagnostic _withArgumentsDeprecatedMemberUse({
     required String p0,

@@ -55,28 +55,22 @@ class LintCode extends DiagnosticCode {
 /// types.
 class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
     implements LintCode {
-  @override
-  final DiagnosticSeverity severity;
-
   const LintCodeWithExpectedTypes(
     String name,
     String problemMessage, {
     super.correctionMessage,
     super.hasPublishedDocs,
     String? uniqueName,
-    this.severity = DiagnosticSeverity.INFO,
     required super.expectedTypes,
   }) : super(
          problemMessage: problemMessage,
          name: name,
+         type: DiagnosticType.LINT,
          uniqueName: uniqueName ?? 'LintCode.$name',
        );
 
   @override
   int get hashCode => uniqueName.hashCode;
-
-  @override
-  DiagnosticType get type => DiagnosticType.LINT;
 
   @override
   String? get url => null;
@@ -90,13 +84,18 @@ class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
 ///
 /// The primary difference from [LintCode]s is that these codes cannot be
 /// suppressed with `// ignore:` or `// ignore_for_file:` comments.
-class SecurityLintCode extends LintCode {
+class SecurityLintCode extends DiagnosticCodeImpl implements LintCode {
   const SecurityLintCode(
-    super.name,
-    super.problemMessage, {
+    String name,
+    String problemMessage, {
     String? uniqueName,
     super.correctionMessage,
-  }) : super(uniqueName: uniqueName ?? 'LintCode.$name');
+  }) : super(
+         name: name,
+         problemMessage: problemMessage,
+         type: DiagnosticType.LINT,
+         uniqueName: uniqueName ?? 'LintCode.$name',
+       );
 
   @override
   bool get isIgnorable => false;
