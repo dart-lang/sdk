@@ -611,6 +611,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       extendedType: int
+      onDeclaration: dart:core::@class::int
       methods
         foo
           reference: dart:foo::@extension::E::@method::foo

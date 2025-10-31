@@ -24,6 +24,18 @@ import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
+/// The result of a failed attempt to resolve an identifier to the single
+/// element with the given name, where the result is expected to come from an
+/// extension. [AmbiguousStaticExtensionResolutionError] covers the case where
+/// multiple matching extensions were found, resulting in an ambiguity.
+class AmbiguousStaticExtensionResolutionError
+    extends StaticExtensionResolutionResult {
+  const AmbiguousStaticExtensionResolutionError();
+
+  @override
+  InternalExecutableElement? get member => null;
+}
+
 class ExtensionMemberResolver {
   final ResolverVisitor _resolver;
 
@@ -144,6 +156,36 @@ class ExtensionMemberResolver {
       );
     }
     return ExtensionResolutionError.ambiguous;
+  }
+
+  /// Finds extensions applicable to [declaration] for static member lookups.
+  StaticExtensionResolutionResult findExtensionForDeclaration(
+    InterfaceElement declaration,
+    SyntacticEntity nameEntity,
+    Name name,
+  ) {
+    var extensions = [
+      for (var extension
+          in _resolver.libraryFragment.accessibleExtensions
+              .havingStaticMemberWithName(name))
+        if (extension.extension.onDeclaration == declaration) extension,
+    ];
+
+    if (extensions.isEmpty) {
+      return const NoneStaticExtensionResolutionError();
+    }
+
+    // When an extension is looked up for the declaration, only the exact match
+    // matters, since there is no inheritance of the static members. No attempts
+    // made to find the most precise match, and any ambiguity is treated as an
+    // error.
+    if (extensions.length == 1) {
+      var extension = extensions[0];
+      _resolver.libraryFragment.scope.notifyExtensionUsed(extension.extension);
+      return SingleStaticExtensionResolutionResult(member: extension.member);
+    }
+
+    return const AmbiguousStaticExtensionResolutionError();
   }
 
   /// Resolve the [name] (without `=`) to the corresponding getter and setter
@@ -506,6 +548,18 @@ enum ExtensionResolutionError implements ExtensionResolutionResult {
 /// result (if any) is known to come from an extension.
 sealed class ExtensionResolutionResult implements SimpleResolutionResult {}
 
+/// The result of a failed attempt to resolve an identifier to the single
+/// element with the given name, where the result is expected to come from an
+/// extension. [NoneStaticExtensionResolutionError] covers the case where no
+/// matching extensions were found.
+class NoneStaticExtensionResolutionError
+    extends StaticExtensionResolutionResult {
+  const NoneStaticExtensionResolutionError();
+
+  @override
+  InternalExecutableElement? get member => null;
+}
+
 /// The result of a successful attempt to resolve an identifier to elements,
 /// where the result (if any) is known to come from an extension.
 class SingleExtensionResolutionResult extends SimpleResolutionResult
@@ -514,4 +568,26 @@ class SingleExtensionResolutionResult extends SimpleResolutionResult
     required super.getter2,
     required super.setter2,
   }) : assert(getter2 != null || setter2 != null);
+}
+
+/// The result of a successful attempt to resolve an identifier to the single
+/// element with the given name, where the result (if any) is known to come from
+/// an extension.
+class SingleStaticExtensionResolutionResult
+    extends SimpleStaticExtensionResolutionResult
+    implements StaticExtensionResolutionResult {
+  SingleStaticExtensionResolutionResult({
+    required InternalExecutableElement member,
+  }) : super(member: member);
+
+  @override
+  InternalExecutableElement get member => super.member!;
+}
+
+/// The result of attempting to resolve an identifier to the single element with
+/// the given name, where the result (if any) is known to come from an
+/// extension.
+sealed class StaticExtensionResolutionResult
+    extends SimpleStaticExtensionResolutionResult {
+  const StaticExtensionResolutionResult({super.member});
 }

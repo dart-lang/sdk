@@ -5071,6 +5071,7 @@ library
       reference: <testLibrary>::@extension::0
       firstFragment: #F1
       extendedType: String
+      onDeclaration: dart:core::@class::String
       fields
         synthetic foo
           reference: <testLibrary>::@extension::0::@field::foo

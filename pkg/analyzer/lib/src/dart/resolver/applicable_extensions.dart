@@ -60,6 +60,13 @@ class InstantiatedExtensionWithoutMember {
   );
 }
 
+class _ExtensionWithMemberWithName {
+  final ExtensionElementImpl extension;
+  final InternalExecutableElement member;
+
+  _ExtensionWithMemberWithName({required this.extension, required this.member});
+}
+
 abstract class _NotInstantiatedExtension<R> {
   final ExtensionElementImpl extension;
 
@@ -127,7 +134,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
   }
 
   /// Returns the sublist of [ExtensionElement]s that have an instance member
-  /// named [baseName].
+  /// with basename [baseName].
   List<_NotInstantiatedExtensionWithMember> havingMemberWithBaseName(
     Name baseName,
   ) {
@@ -176,6 +183,54 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
             ),
           );
         }
+      }
+    }
+    return result;
+  }
+
+  /// Returns the sublist of [ExtensionElement]s that have a static member
+  /// with name [name].
+  List<_ExtensionWithMemberWithName> havingStaticMemberWithName(Name name) {
+    var result = <_ExtensionWithMemberWithName>[];
+    for (var extension in this) {
+      if (!name.isAccessibleFor(extension.library.uri)) {
+        continue;
+      }
+
+      var getter = extension.getGetter(name.name);
+      if (getter != null && getter.isStatic) {
+        result.add(
+          _ExtensionWithMemberWithName(
+            // TODO(paulberry): eliminate this cast by changing the
+            // extension to apply only to `Iterable<ExtensionElementImpl>`.
+            extension: extension as ExtensionElementImpl,
+            member: getter as GetterElementImpl,
+          ),
+        );
+      }
+
+      var setter = extension.getSetter(name.name);
+      if (setter != null && setter.isStatic) {
+        result.add(
+          _ExtensionWithMemberWithName(
+            // TODO(paulberry): eliminate this cast by changing the
+            // extension to apply only to `Iterable<ExtensionElementImpl>`.
+            extension: extension as ExtensionElementImpl,
+            member: setter as SetterElementImpl,
+          ),
+        );
+      }
+
+      var method = extension.getMethod(name.name);
+      if (method != null && method.isStatic) {
+        result.add(
+          _ExtensionWithMemberWithName(
+            // TODO(paulberry): eliminate this cast by changing the
+            // extension to apply only to `Iterable<ExtensionElementImpl>`.
+            extension: extension as ExtensionElementImpl,
+            member: method as MethodElementImpl,
+          ),
+        );
       }
     }
     return result;

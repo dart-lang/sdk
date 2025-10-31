@@ -1050,6 +1050,7 @@ class _Element2Writer extends _AbstractElementWriter {
           _elementPrinter.writeTypeList('interfaces', e.interfaces);
         case ExtensionElementImpl():
           _elementPrinter.writeNamedType('extendedType', e.extendedType);
+          _elementPrinter.writeNamedElement2('onDeclaration', e.onDeclaration);
         case ExtensionTypeElementImpl():
           expect(e.supertype, isNull);
           _elementPrinter.writeNamedElement2(

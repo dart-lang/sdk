@@ -2327,6 +2327,66 @@ class ExtensionElementImpl extends InstanceElementImpl
   @trackedIncludedInId
   ElementKind get kind => ElementKind.EXTENSION;
 
+  /// Computes the on-declaration of the extension.
+  ///
+  /// The on-declaration is computed a described in
+  /// https://github.com/dart-lang/language/blob/main/working/0723-static-extensions/feature-specification.md#syntax
+  /// In case the extension declaration doesn't have an on-declaration, `null`
+  /// is returned.
+  @trackedIndirectly
+  InterfaceElementImpl? get onDeclaration {
+    if (extendedType.nullabilitySuffix != NullabilitySuffix.question) {
+      switch (extendedType.element) {
+        // In an extension declaration of the form extension E on C {...} where C
+        // is an identifier (or an identifier with an import prefix) that denotes
+        // a class, mixin, enum, or extension type declaration, we say that the
+        // on-declaration of the extension is C.
+
+        // If C denotes a generic class then E is treated as extension E on C<T1
+        // ..  Tk> {...} where T1 .. Tk are obtained by instantiation to bound.
+
+        // In an extension of the form extension E on C<T1 .. Tk> {...} where C is
+        // an identifier or prefixed identifier that denotes a class, mixin, enum,
+        // or extension type declaration, we say that the on-declaration of E is
+        // C.
+
+        // In an extension of the form extension E on F<T1 .. Tk> {...} where F is
+        // a type alias whose transitive alias expansion denotes a class, mixin,
+        // enum, or extension type C, we say that the on-declaration of E is C,
+        // and the declaration is treated as if F<T1 .. Tk> were replaced by its
+        // transitive alias expansion.
+
+        // Implementation note: type aliases in [extendedType] are already
+        // unaliased at this point, so there's no need to consider them
+        // separately.
+
+        // For the purpose of identifying the on-declaration of a given extension,
+        // the types void, dynamic, and Never are not considered to be classes,
+        // and neither are record types or function types.
+
+        // Also note that none of the following types are classes:
+        //   * A type of the form T? or FutureOr<T>, for any type T.
+        //   * A type variable.
+        //   * An intersection type.
+        case ClassElementImpl() when !extendedType.isDartAsyncFutureOr:
+        case MixinElementImpl():
+        case EnumElementImpl():
+        case ExtensionTypeElementImpl():
+          return extendedType.element as InterfaceElementImpl;
+        default:
+          // In all other cases, an extension declaration does not have an
+          // on-declaration.
+          return null;
+      }
+    } else {
+      // Also note that none of the following types are classes:
+      //   * A type of the form T? or FutureOr<T>, for any type T.
+      //   * A type variable.
+      //   * An intersection type.
+      return null;
+    }
+  }
+
   @override
   @trackedIndirectly
   DartType get thisType => extendedType;

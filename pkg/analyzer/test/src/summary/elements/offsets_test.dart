@@ -848,30 +848,36 @@ library
       reference: <testLibrary>::@extension::Raw
       firstFragment: #F3
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
     extension HasDocComment
       reference: <testLibrary>::@extension::HasDocComment
       firstFragment: #F4
       documentationComment: /// Comment 1.\n/// Comment 2.
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
     extension HasAnnotation
       reference: <testLibrary>::@extension::HasAnnotation
       firstFragment: #F5
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
     extension AnnotationThenComment
       reference: <testLibrary>::@extension::AnnotationThenComment
       firstFragment: #F6
       documentationComment: /// Comment 1.\n/// Comment 2.
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
     extension CommentThenAnnotation
       reference: <testLibrary>::@extension::CommentThenAnnotation
       firstFragment: #F7
       documentationComment: /// Comment 1.\n/// Comment 2.
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
     extension CommentAroundAnnotation
       reference: <testLibrary>::@extension::CommentAroundAnnotation
       firstFragment: #F8
       documentationComment: /// Comment 2.
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
 ''');
   }
 
@@ -3010,6 +3016,7 @@ library
         #E0 T
           firstFragment: #F2
       extendedType: int
+      onDeclaration: dart:core::@class::int
 ''');
   }
 
