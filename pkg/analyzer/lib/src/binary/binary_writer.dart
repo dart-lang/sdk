@@ -11,7 +11,7 @@ import 'package:analyzer/src/fine/manifest_id.dart';
 
 /// Buffered writer for binary formats.
 class BinaryWriter {
-  static const int _SIZE = 128 * 1024;
+  static const int _SIZE = 5 * 1024;
   static const int _SAFE_LENGTH = _SIZE - 5;
 
   final BytesBuilder _builder = BytesBuilder(copy: false);
