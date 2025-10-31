@@ -626,6 +626,21 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   @override
   DartType? visitBinaryExpression(BinaryExpression node) {
     if (node.operator.end <= offset) {
+      if (node.operator.type == TokenType.EQ_EQ ||
+          node.operator.type == TokenType.BANG_EQ_EQ) {
+        // TODO(kallentu): Fix the parser implementation where dot shorthand
+        // const constructor declarations recover with a wrapping function
+        // expression invocation and then remove this.
+        var rightOperand = node.rightOperand;
+        if (rightOperand is FunctionExpressionInvocation &&
+            rightOperand.function is DotShorthandMixin) {
+          rightOperand = rightOperand.function;
+        }
+        if (rightOperand is DotShorthandMixin && rightOperand.isDotShorthand) {
+          return node.leftOperand.staticType;
+        }
+      }
+
       return node.rightOperand.correspondingParameter?.type;
     }
     return _visitParent(node);

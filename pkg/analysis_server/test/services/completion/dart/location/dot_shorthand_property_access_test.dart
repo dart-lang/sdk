@@ -125,6 +125,44 @@ suggestions
 ''');
   }
 
+  Future<void> test_class_equality() async {
+    allowedIdentifiers = {'getter', 'notStatic'};
+    await computeSuggestions('''
+class C {
+  static C get getter => C();
+  C get notStatic => C();
+}
+void f() {
+  print(C() == .^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  getter
+    kind: getter
+''');
+  }
+
+  Future<void> test_class_equality_withPrefix() async {
+    allowedIdentifiers = {'getter', 'gNotStatic'};
+    await computeSuggestions('''
+class C {
+  static C get getter => C();
+  C get gNotStatic => C();
+}
+void f() {
+  print(C() == .g^);
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  getter
+    kind: getter
+''');
+  }
+
   Future<void> test_class_functionExpression_futureOr() async {
     allowedIdentifiers = {'getter'};
     await computeSuggestions('''
@@ -188,6 +226,25 @@ suggestions
 enum E { red, blue, yellow }
 void f() {
   E e = .^
+}
+''');
+    assertResponse(r'''
+suggestions
+  blue
+    kind: enumConstant
+  red
+    kind: enumConstant
+  yellow
+    kind: enumConstant
+''');
+  }
+
+  Future<void> test_enum_equality() async {
+    allowedIdentifiers = {'red', 'blue', 'yellow'};
+    await computeSuggestions('''
+enum E { red, blue, yellow }
+void f() {
+  print(E.red == .^);
 }
 ''');
     assertResponse(r'''
@@ -382,6 +439,24 @@ extension type C(int x) {
 }
 void f() {
   C c = .^
+}
+''');
+    assertResponse(r'''
+suggestions
+  getter
+    kind: getter
+''');
+  }
+
+  Future<void> test_extensionType_equality() async {
+    allowedIdentifiers = {'getter', 'notStatic'};
+    await computeSuggestions('''
+extension type C(int x) {
+  static C get getter => C(1);
+  C get notStatic => C(1);
+}
+void f() {
+  print(C(1) == .^);
 }
 ''');
     assertResponse(r'''
