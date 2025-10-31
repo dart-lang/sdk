@@ -564,7 +564,7 @@ abstract class AnalysisServer {
     switch (dtd?.state) {
       case DtdConnectionState.Connecting || DtdConnectionState.Connected:
         return lsp.error(
-          lsp.ServerErrorCodes.StateError,
+          lsp.ServerErrorCodes.stateError,
           'Server is already connected to DTD',
         );
       case DtdConnectionState.Disconnected || DtdConnectionState.Error || null:

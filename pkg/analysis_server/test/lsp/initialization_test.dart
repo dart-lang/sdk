@@ -999,7 +999,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(response.error, isNotNull);
     expect(
       response.error!.code,
-      equals(ServerErrorCodes.ServerAlreadyInitialized),
+      equals(ServerErrorCodes.serverAlreadyInitialized),
     );
   }
 

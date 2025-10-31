@@ -210,7 +210,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       getHover(missingFileUri, startOfDocPos),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidFilePath,
+          ServerErrorCodes.invalidFilePath,
           message: 'File does not exist',
         ),
       ),
@@ -226,7 +226,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       ),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidFilePath,
+          ServerErrorCodes.invalidFilePath,
           message: 'URI does not contain a valid file path',
         ),
       ),
@@ -249,7 +249,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       getHover(missingDriveLetterFileUri, startOfDocPos),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidFilePath,
+          ServerErrorCodes.invalidFilePath,
           message:
               'URI does not contain an absolute file path (missing drive letter)',
         ),
@@ -264,7 +264,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       getHover(relativeFileUri, startOfDocPos),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidFilePath,
+          ServerErrorCodes.invalidFilePath,
           message:
               "URI scheme 'foo' is not supported. Allowed schemes are 'file'.",
         ),
@@ -281,7 +281,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       // 'a/b.dart' so will get the not-file-scheme error message.
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidFilePath,
+          ServerErrorCodes.invalidFilePath,
           message: 'URI is not a valid file:// URI',
         ),
       ),

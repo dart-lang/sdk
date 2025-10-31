@@ -765,7 +765,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
       --no-inline=*<noInline>*
 
-      --traps-never-happen
       -Os
     '''); // end of binaryenFlagsDeferredLoading
 

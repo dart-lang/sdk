@@ -58,7 +58,7 @@ class LspSocketServer implements AbstractSocketServer {
   void createAnalysisServer(LspServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
       var error = ResponseError(
-        code: ServerErrorCodes.ServerAlreadyStarted,
+        code: ServerErrorCodes.serverAlreadyStarted,
         message: 'Server already started',
       );
       serverChannel.sendNotification(

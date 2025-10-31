@@ -47,7 +47,7 @@ class RefactorCommandHandler extends SimpleEditCommandHandler<AnalysisServer> {
         arguments == null) {
       return ErrorOr.error(
         ResponseError(
-          code: ServerErrorCodes.InvalidCommandArguments,
+          code: ServerErrorCodes.invalidCommandArguments,
           message:
               'Refactoring operations require 4 parameters: '
               'filePath: String, '
@@ -123,7 +123,7 @@ class RefactorCommandHandler extends SimpleEditCommandHandler<AnalysisServer> {
       var reason = status.reason ?? 'Cannot compute the change. No details.';
       return ErrorOr.error(
         ResponseError(
-          code: ServerErrorCodes.RefactoringComputeStatusFailure,
+          code: ServerErrorCodes.refactoringComputeStatusFailure,
           message: reason,
         ),
       );
@@ -141,7 +141,7 @@ class RefactorCommandHandler extends SimpleEditCommandHandler<AnalysisServer> {
       if (fileResult is! FileResult) {
         return ErrorOr.error(
           ResponseError(
-            code: ServerErrorCodes.FileAnalysisFailed,
+            code: ServerErrorCodes.fileAnalysisFailed,
             message: 'Could not access "$path".',
           ),
         );

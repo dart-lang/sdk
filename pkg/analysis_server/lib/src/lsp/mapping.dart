@@ -1458,8 +1458,8 @@ ErrorOr<int> toOffset(
     return ErrorOr<int>.error(
       lsp.ResponseError(
         code: failureIsCritical
-            ? lsp.ServerErrorCodes.ClientServerInconsistentState
-            : lsp.ServerErrorCodes.InvalidFileLineCol,
+            ? lsp.ServerErrorCodes.clientServerInconsistentState
+            : lsp.ServerErrorCodes.invalidFileLineCol,
         message: 'Invalid line number',
         data: pos.line.toString(),
       ),
@@ -1483,8 +1483,8 @@ ErrorOr<int> toOffsetFromOffsetLineAndColumn(
     return ErrorOr<int>.error(
       lsp.ResponseError(
         code: failureIsCritical
-            ? lsp.ServerErrorCodes.ClientServerInconsistentState
-            : lsp.ServerErrorCodes.InvalidFileLineCol,
+            ? lsp.ServerErrorCodes.clientServerInconsistentState
+            : lsp.ServerErrorCodes.invalidFileLineCol,
         message: 'Invalid line number',
         data: originalLine.toString(),
       ),

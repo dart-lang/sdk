@@ -26,7 +26,7 @@ class DiagnosticServerHandler
     var diagnosticServer = server.diagnosticServer;
     if (diagnosticServer == null) {
       return error(
-        ServerErrorCodes.FeatureDisabled,
+        ServerErrorCodes.featureDisabled,
         'The diagnostic server is not available',
       );
     }

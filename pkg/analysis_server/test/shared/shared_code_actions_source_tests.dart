@@ -122,7 +122,7 @@ int minified(int x, int y) => min(x, y);
     // the test helper to make consuming success results simpler).
     await expectLater(
       executeCommand(command),
-      throwsA(isResponseError(ServerErrorCodes.FileHasErrors)),
+      throwsA(isResponseError(ServerErrorCodes.fileHasErrors)),
     );
   }
 
@@ -261,7 +261,7 @@ String? a;
     // the test helper to make consuming success results simpler).
     await expectLater(
       commandResponse,
-      throwsA(isResponseError(ServerErrorCodes.ClientFailedToApplyEdit)),
+      throwsA(isResponseError(ServerErrorCodes.clientFailedToApplyEdit)),
     );
   }
 
@@ -295,7 +295,7 @@ String? a;
     // the test helper to make consuming success results simpler).
     await expectLater(
       executeCommand(command),
-      throwsA(isResponseError(ServerErrorCodes.FileHasErrors)),
+      throwsA(isResponseError(ServerErrorCodes.fileHasErrors)),
     );
   }
 
@@ -381,9 +381,9 @@ mixin SharedSourceCodeActionsTests
       hasLength(serverSupportsFixAll ? 3 : 2),
     );
     expect(await ofKind(CodeActionKind.SourceOrganizeImports), hasLength(1));
-    expect(await ofKind(DartCodeActionKind.SortMembers), hasLength(1));
+    expect(await ofKind(DartCodeActionKind.sortMembers), hasLength(1));
     expect(
-      await ofKind(DartCodeActionKind.FixAll),
+      await ofKind(DartCodeActionKind.fixAll),
       hasLength(serverSupportsFixAll ? 1 : 0),
     );
     expect(await ofKind(CodeActionKind('source.foo')), isEmpty);

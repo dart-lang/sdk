@@ -283,7 +283,7 @@ void f()
     );
     await expectLater(
       formatRangeRequest,
-      throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)),
+      throwsA(isResponseError(ServerErrorCodes.invalidFileLineCol)),
     );
   }
 
@@ -801,7 +801,7 @@ void f() {
       formatDocument(toUri(join(projectFolderPath, 'missing.dart'))),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidFilePath,
+          ServerErrorCodes.invalidFilePath,
           message: 'File does not exist',
         ),
       ),
@@ -818,7 +818,7 @@ void f() {
       ),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidFilePath,
+          ServerErrorCodes.invalidFilePath,
           message: 'URI does not contain a valid file path',
         ),
       ),
@@ -832,7 +832,7 @@ void f() {
       formatDocument(Uri.parse('a:/a.dart')),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidFilePath,
+          ServerErrorCodes.invalidFilePath,
           message:
               "URI scheme 'a' is not supported. Allowed schemes are 'file'.",
         ),

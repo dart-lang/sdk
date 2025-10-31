@@ -782,7 +782,7 @@ class LegacyAnalysisServer extends AnalysisServer {
         : lsp.ResponseMessage(
             jsonrpc: lsp.jsonRpcVersion,
             error: lsp.ResponseError(
-              code: lsp.ServerErrorCodes.UnhandledError,
+              code: lsp.ServerErrorCodes.unhandledError,
               message:
                   "The client responded to a '$method' LSP request but"
                   ' did not include a valid response in the lspResponse field',

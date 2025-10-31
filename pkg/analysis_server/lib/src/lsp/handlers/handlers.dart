@@ -92,7 +92,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
   ).then((_) => server.analysisContextsRebuilt);
 
   ErrorOr<T> analysisFailedError<T>(String path) => error<T>(
-    ServerErrorCodes.FileAnalysisFailed,
+    ServerErrorCodes.fileAnalysisFailed,
     'Analysis failed for file',
     path,
   );
@@ -125,7 +125,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
   }
 
   ErrorOr<T> fileNotAnalyzedError<T>(String path) => error<T>(
-    ServerErrorCodes.FileNotAnalyzed,
+    ServerErrorCodes.fileNotAnalyzed,
     'File is not being analyzed',
     path,
   );
@@ -139,7 +139,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
 
     if (lineInfo == null) {
       return error(
-        ServerErrorCodes.InvalidFilePath,
+        ServerErrorCodes.invalidFilePath,
         'Unable to obtain line information for file',
         path,
       );
@@ -170,7 +170,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     if (uri == null) {
       return ErrorOr<String>.error(
         ResponseError(
-          code: ServerErrorCodes.InvalidFilePath,
+          code: ServerErrorCodes.invalidFilePath,
           message: 'Document URI was not supplied',
         ),
       );
@@ -181,7 +181,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     if (uri.scheme.isEmpty) {
       return ErrorOr<String>.error(
         ResponseError(
-          code: ServerErrorCodes.InvalidFilePath,
+          code: ServerErrorCodes.invalidFilePath,
           message: 'URI is not a valid file:// URI',
           data: uri.toString(),
         ),
@@ -196,7 +196,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
           : supportedSchemes.map((scheme) => "'$scheme'").join(', ');
       return ErrorOr<String>.error(
         ResponseError(
-          code: ServerErrorCodes.InvalidFilePath,
+          code: ServerErrorCodes.invalidFilePath,
           message:
               "URI scheme '${uri.scheme}' is not supported. "
               'Allowed schemes are $supportedSchemesString.',
@@ -222,7 +222,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
       if (isWindows && filePath.startsWith(r'\')) {
         return ErrorOr<String>.error(
           ResponseError(
-            code: ServerErrorCodes.InvalidFilePath,
+            code: ServerErrorCodes.invalidFilePath,
             message:
                 'URI does not contain an absolute file path '
                 '(missing drive letter)',
@@ -237,7 +237,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
       // Windows if there are invalid characters.
       return ErrorOr<String>.error(
         ResponseError(
-          code: ServerErrorCodes.InvalidFilePath,
+          code: ServerErrorCodes.invalidFilePath,
           message: 'URI does not contain a valid file path',
           data: uri.toString(),
         ),
@@ -304,7 +304,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
           : fileNotAnalyzedError(path);
     } else if (!result.exists) {
       return error(
-        ServerErrorCodes.InvalidFilePath,
+        ServerErrorCodes.invalidFilePath,
         'File does not exist',
         path,
       );

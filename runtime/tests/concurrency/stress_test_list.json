@@ -3502,7 +3502,6 @@
   "../../../tests/standalone/io/process_pid_test.dart",
   "../../../tests/standalone/io/process_segfault_test.dart",
   "../../../tests/standalone/io/process_start_exception_test.dart",
-  "../../../tests/standalone/io/raw_datagram_read_all_test.dart",
   "../../../tests/standalone/io/raw_datagram_zero_length_test.dart",
   "../../../tests/standalone/io/raw_server_socket_cancel_test.dart",
   "../../../tests/standalone/io/raw_socket_typed_data_test.dart",

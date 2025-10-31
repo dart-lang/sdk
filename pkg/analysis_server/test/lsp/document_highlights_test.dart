@@ -169,7 +169,7 @@ class C {
 
     await expectLater(
       request,
-      throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)),
+      throwsA(isResponseError(ServerErrorCodes.invalidFileLineCol)),
     );
   }
 

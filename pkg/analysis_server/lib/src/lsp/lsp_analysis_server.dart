@@ -559,7 +559,7 @@ class LspAnalysisServer extends AnalysisServer {
         sendErrorResponse(
           message,
           ResponseError(
-            code: ServerErrorCodes.UnhandledError,
+            code: ServerErrorCodes.unhandledError,
             message: errorMessage,
           ),
         );
@@ -787,7 +787,7 @@ class LspAnalysisServer extends AnalysisServer {
 
     // Handle fatal errors where the client/server state is out of sync and we
     // should not continue.
-    if (error.code == ServerErrorCodes.ClientServerInconsistentState) {
+    if (error.code == ServerErrorCodes.clientServerInconsistentState) {
       // Do not process any further messages.
       messageHandler = FailureStateMessageHandler(this);
 
