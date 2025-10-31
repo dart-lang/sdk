@@ -190,16 +190,21 @@ Future<CompilationResult> compile(
     switch (phase) {
       case compiler.CompilerPhase.cfe:
         lastResult = await _runCfePhase(
-            options, target, fileSystem, handleDiagnosticMessage);
+          options,
+          target,
+          fileSystem,
+          handleDiagnosticMessage,
+        );
         if (lastResult is! CfeResult) return lastResult;
         cfeResult = lastResult;
 
       case compiler.CompilerPhase.tfa:
         lastResult = await _runTfaPhase(
-            cfeResult ?? await _loadCfeResult(options),
-            options,
-            target,
-            fileSystem);
+          cfeResult ?? await _loadCfeResult(options),
+          options,
+          target,
+          fileSystem,
+        );
         if (lastResult is! TfaResult) return lastResult;
         tfaResult = lastResult;
 

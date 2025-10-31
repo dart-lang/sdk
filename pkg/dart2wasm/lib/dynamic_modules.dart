@@ -420,6 +420,7 @@ class DynamicModuleInfo {
     translator.getExceptionTag(submodule);
 
     if (isSubmodule) {
+      _initMainModuleConstantDefinitions();
       _initSubmoduleId();
       _initModuleRtt();
     } else {
@@ -428,6 +429,16 @@ class DynamicModuleInfo {
     }
 
     _initializeOverridableReferences();
+  }
+
+  void _initMainModuleConstantDefinitions() {
+    final mainAppConstants = translator.dynamicModuleConstants;
+    final constants = translator.constants;
+    mainAppConstants?.constantNames.forEach((constant, name) {
+      final initializerName =
+          mainAppConstants.constantInitializerNames[constant];
+      constants.defineMainAppConstant(constant, name, initializerName);
+    });
   }
 
   void _initModuleRtt() {
