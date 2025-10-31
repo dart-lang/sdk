@@ -5,8 +5,6 @@
 import '../../common/testing.dart' as helper;
 import 'package:expect/expect.dart';
 
-import 'shared/shared.dart'; // ignore: unused_import
-
 /// A dynamic module can reference a mixin application which
 /// could be de-duplicated.
 void main() async {

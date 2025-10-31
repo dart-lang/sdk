@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../common/testing.dart' as helper;
-// ignore: unused_import
-import 'shared/shared.dart';
 import 'package:expect/expect.dart';
 
 /// Verify that instance calls work when receiver has a dynamically loaded

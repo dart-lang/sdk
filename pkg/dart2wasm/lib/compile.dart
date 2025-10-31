@@ -7,6 +7,8 @@ import 'dart:typed_data';
 
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem, MultiRootFileSystemEntity;
+import 'package:front_end/src/api_prototype/dynamic_module_validator.dart'
+    show DynamicInterfaceYamlFile;
 import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
@@ -266,6 +268,23 @@ Future<CompilationResult> _runCfePhase(
     compilerOptions.compileSdk = true;
   }
 
+  List<Uri> additionalSources = const [];
+  final isDynamicMainModule =
+      options.dynamicModuleType == DynamicModuleType.main;
+  if (isDynamicMainModule) {
+    final dynamicInterfaceUri = options.dynamicInterfaceUri;
+    if (dynamicInterfaceUri != null) {
+      final resolvedDynamicInterfaceUri =
+          await _resolveUri(fileSystem, dynamicInterfaceUri);
+      final contents =
+          File.fromUri(resolvedDynamicInterfaceUri!).readAsStringSync();
+      final dynamicInterfaceYamlFile = DynamicInterfaceYamlFile(contents);
+      additionalSources = dynamicInterfaceYamlFile
+          .getUserLibraryUris(dynamicInterfaceUri)
+          .toList();
+    }
+  }
+
   final dynamicMainModuleUri =
       await _resolveUri(fileSystem, options.dynamicMainModuleUri);
   final isDynamicSubmodule =
@@ -284,7 +303,7 @@ Future<CompilationResult> _runCfePhase(
   CompilerResult? compilerResult;
   try {
     compilerResult = await kernelForProgram(options.mainUri, compilerOptions,
-        requireMain: !isDynamicSubmodule);
+        requireMain: !isDynamicSubmodule, additionalSources: additionalSources);
   } catch (e, s) {
     return CFECrashError(e, s);
   }
