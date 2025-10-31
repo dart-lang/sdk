@@ -42,7 +42,7 @@ library
             #F4 X (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::A::@method::X
               formalParameters
-                #F5 a (nameOffset:32) (firstTokenOffset:24) (offset:32)
+                #F5 optionalNamed a (nameOffset:32) (firstTokenOffset:24) (offset:32)
                   element: <testLibrary>::@class::A::@method::X::@formalParameter::a
                   initializer: expression_0
                     ListLiteral
@@ -67,7 +67,7 @@ library
           firstFragment: #F4
           hasEnclosingTypeParameterReference: true
           formalParameters
-            #E1 optionalNamed a
+            #E1 optionalNamed hasDefaultValue a
               firstFragment: #F5
               type: List<T>
               constantInitializer
@@ -106,7 +106,7 @@ library
               typeName: X
               typeNameOffset: 82
               formalParameters
-                #F4 this.f (nameOffset:90) (firstTokenOffset:85) (offset:90)
+                #F4 optionalNamed final this.f (nameOffset:90) (firstTokenOffset:85) (offset:90)
                   element: <testLibrary>::@class::X::@constructor::new::@formalParameter::f
                   initializer: expression_0
                     FunctionReference
@@ -133,7 +133,7 @@ library
             #F9 T (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: #E1 T
           formalParameters
-            #F10 v (nameOffset:44) (firstTokenOffset:42) (offset:44)
+            #F10 requiredPositional v (nameOffset:44) (firstTokenOffset:42) (offset:44)
               element: <testLibrary>::@function::defaultF::@formalParameter::v
   classes
     class X
@@ -153,7 +153,7 @@ library
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E2 optionalNamed final hasImplicitType f
+            #E2 optionalNamed final hasDefaultValue hasImplicitType this.f
               firstFragment: #F4
               type: void Function(dynamic)
                 alias: <testLibrary>::@typeAlias::F
@@ -162,6 +162,7 @@ library
               constantInitializer
                 fragment: #F4
                 expression: expression_0
+              field: <testLibrary>::@class::X::@field::f
       getters
         synthetic f
           reference: <testLibrary>::@class::X::@getter::f
@@ -230,7 +231,7 @@ library
             #F6 foo (nameOffset:45) (firstTokenOffset:40) (offset:45)
               element: <testLibrary>::@class::B::@method::foo
               formalParameters
-                #F7 a (nameOffset:50) (firstTokenOffset:50) (offset:50)
+                #F7 optionalNamed a (nameOffset:50) (firstTokenOffset:50) (offset:50)
                   element: <testLibrary>::@class::B::@method::foo::@formalParameter::a
                   initializer: expression_0
                     InstanceCreationExpression
@@ -284,7 +285,7 @@ library
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F6
           formalParameters
-            #E1 optionalNamed hasImplicitType a
+            #E1 optionalNamed hasDefaultValue hasImplicitType a
               firstFragment: #F7
               type: dynamic
               constantInitializer
@@ -308,10 +309,10 @@ library
         #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 g (nameOffset:8) (firstTokenOffset:8) (offset:8)
+            #F2 requiredPositional g (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: <testLibrary>::@function::f::@formalParameter::g
               parameters
-                #F3 a (nameOffset:11) (firstTokenOffset:11) (offset:11)
+                #F3 optionalNamed a (nameOffset:11) (firstTokenOffset:11) (offset:11)
                   element: a@11
   functions
     f
@@ -343,7 +344,7 @@ library
         #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 compare (nameOffset:22) (firstTokenOffset:8) (offset:22)
+            #F2 optionalPositional compare (nameOffset:22) (firstTokenOffset:8) (offset:22)
               element: <testLibrary>::@function::f::@formalParameter::compare
               initializer: expression_0
                 PrefixedIdentifier
@@ -363,7 +364,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        #E0 optionalPositional compare
+        #E0 optionalPositional hasDefaultValue compare
           firstFragment: #F2
           type: int Function(InvalidType, InvalidType)
             alias: dart:core::@typeAlias::Comparator
@@ -390,7 +391,7 @@ library
         #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 x (nameOffset:28) (firstTokenOffset:8) (offset:28)
+            #F2 optionalNamed x (nameOffset:28) (firstTokenOffset:8) (offset:28)
               element: <testLibrary>::@function::f::@formalParameter::x
               initializer: expression_0
                 RecordLiteral
@@ -423,7 +424,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        #E0 optionalNamed x
+        #E0 optionalNamed hasDefaultValue x
           firstFragment: #F2
           type: ({int f1, bool f2})
           constantInitializer
@@ -447,7 +448,7 @@ library
         #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 x (nameOffset:28) (firstTokenOffset:8) (offset:28)
+            #F2 optionalNamed x (nameOffset:28) (firstTokenOffset:8) (offset:28)
               element: <testLibrary>::@function::f::@formalParameter::x
               initializer: expression_0
                 RecordLiteral
@@ -481,7 +482,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        #E0 optionalNamed x
+        #E0 optionalNamed hasDefaultValue x
           firstFragment: #F2
           type: ({int f1, bool f2})
           constantInitializer
@@ -505,7 +506,7 @@ library
         #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 x (nameOffset:20) (firstTokenOffset:8) (offset:20)
+            #F2 optionalNamed x (nameOffset:20) (firstTokenOffset:8) (offset:20)
               element: <testLibrary>::@function::f::@formalParameter::x
               initializer: expression_0
                 RecordLiteral
@@ -524,7 +525,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        #E0 optionalNamed x
+        #E0 optionalNamed hasDefaultValue x
           firstFragment: #F2
           type: (int, bool)
           constantInitializer
@@ -548,7 +549,7 @@ library
         #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 x (nameOffset:20) (firstTokenOffset:8) (offset:20)
+            #F2 optionalNamed x (nameOffset:20) (firstTokenOffset:8) (offset:20)
               element: <testLibrary>::@function::f::@formalParameter::x
               initializer: expression_0
                 RecordLiteral
@@ -568,7 +569,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        #E0 optionalNamed x
+        #E0 optionalNamed hasDefaultValue x
           firstFragment: #F2
           type: (int, bool)
           constantInitializer
@@ -608,7 +609,7 @@ library
             #F5 g (nameOffset:65) (firstTokenOffset:53) (offset:65)
               element: <testLibrary>::@extension::E::@method::g
               formalParameters
-                #F6 p (nameOffset:75) (firstTokenOffset:68) (offset:75)
+                #F6 optionalPositional p (nameOffset:75) (firstTokenOffset:68) (offset:75)
                   element: <testLibrary>::@extension::E::@method::g::@formalParameter::p
                   initializer: expression_0
                     SimpleIdentifier
@@ -638,7 +639,7 @@ library
           reference: <testLibrary>::@extension::E::@method::g
           firstFragment: #F5
           formalParameters
-            #E0 optionalPositional p
+            #E0 optionalPositional hasDefaultValue p
               firstFragment: #F6
               type: Object
               constantInitializer
@@ -686,7 +687,7 @@ library
             #F7 foo (nameOffset:50) (firstTokenOffset:45) (offset:50)
               element: <testLibrary>::@class::C::@method::foo
               formalParameters
-                #F8 b (nameOffset:70) (firstTokenOffset:55) (offset:70)
+                #F8 optionalPositional b (nameOffset:70) (firstTokenOffset:55) (offset:70)
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
@@ -728,7 +729,7 @@ library
           reference: <testLibrary>::@class::C::@method::foo
           firstFragment: #F7
           formalParameters
-            #E2 optionalPositional b
+            #E2 optionalPositional hasDefaultValue b
               firstFragment: #F8
               type: B<int, double>
               constantInitializer
@@ -775,7 +776,7 @@ library
               typeName: C
               typeNameOffset: 49
               formalParameters
-                #F7 b (nameOffset:57) (firstTokenOffset:52) (offset:57)
+                #F7 optionalPositional b (nameOffset:57) (firstTokenOffset:52) (offset:57)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
@@ -814,7 +815,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F6
           formalParameters
-            #E2 optionalPositional b
+            #E2 optionalPositional hasDefaultValue b
               firstFragment: #F7
               type: B<T>
               constantInitializer
@@ -870,7 +871,7 @@ library
               typeName: C
               typeNameOffset: 114
               formalParameters
-                #F10 a (nameOffset:122) (firstTokenOffset:117) (offset:122)
+                #F10 optionalPositional a (nameOffset:122) (firstTokenOffset:117) (offset:122)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
                   initializer: expression_0
                     InstanceCreationExpression
@@ -923,7 +924,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F9
           formalParameters
-            #E3 optionalPositional a
+            #E3 optionalPositional hasDefaultValue a
               firstFragment: #F10
               type: A<T>
               constantInitializer
@@ -963,7 +964,7 @@ library
             #F5 T (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: #E1 T
           formalParameters
-            #F6 b (nameOffset:46) (firstTokenOffset:41) (offset:46)
+            #F6 optionalPositional b (nameOffset:46) (firstTokenOffset:41) (offset:46)
               element: <testLibrary>::@function::foo::@formalParameter::b
               initializer: expression_0
                 InstanceCreationExpression
@@ -999,7 +1000,7 @@ library
         #E1 T
           firstFragment: #F5
       formalParameters
-        #E2 optionalPositional b
+        #E2 optionalPositional hasDefaultValue b
           firstFragment: #F6
           type: B<T>
           constantInitializer
@@ -1048,7 +1049,7 @@ library
                 #F7 T (nameOffset:49) (firstTokenOffset:49) (offset:49)
                   element: #E1 T
               formalParameters
-                #F8 b (nameOffset:58) (firstTokenOffset:53) (offset:58)
+                #F8 optionalPositional b (nameOffset:58) (firstTokenOffset:53) (offset:58)
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
@@ -1091,7 +1092,7 @@ library
             #E1 T
               firstFragment: #F7
           formalParameters
-            #E2 optionalPositional b
+            #E2 optionalPositional hasDefaultValue b
               firstFragment: #F8
               type: B<T>
               constantInitializer
@@ -1145,7 +1146,7 @@ library
                 #F9 E2 (nameOffset:58) (firstTokenOffset:58) (offset:58)
                   element: #E3 E2
               formalParameters
-                #F10 b (nameOffset:73) (firstTokenOffset:63) (offset:73)
+                #F10 optionalPositional b (nameOffset:73) (firstTokenOffset:63) (offset:73)
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
@@ -1194,7 +1195,7 @@ library
             #E3 E2
               firstFragment: #F9
           formalParameters
-            #E4 optionalPositional b
+            #E4 optionalPositional hasDefaultValue b
               firstFragment: #F10
               type: B<E1, E2>
               constantInitializer
@@ -1243,7 +1244,7 @@ library
             #F7 foo (nameOffset:48) (firstTokenOffset:43) (offset:48)
               element: <testLibrary>::@class::C::@method::foo
               formalParameters
-                #F8 b (nameOffset:58) (firstTokenOffset:53) (offset:58)
+                #F8 optionalPositional b (nameOffset:58) (firstTokenOffset:53) (offset:58)
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
@@ -1287,7 +1288,7 @@ library
           firstFragment: #F7
           hasEnclosingTypeParameterReference: true
           formalParameters
-            #E2 optionalPositional b
+            #E2 optionalPositional hasDefaultValue b
               firstFragment: #F8
               type: B<T>
               constantInitializer
