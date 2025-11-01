@@ -560,7 +560,7 @@ library
             #F3 foo (nameOffset:35) (firstTokenOffset:30) (offset:35)
               element: <testLibrary>::@extension::E::@method::foo
               formalParameters
-                #F4 _ (nameOffset:41) (firstTokenOffset:39) (offset:41)
+                #F4 requiredPositional _ (nameOffset:41) (firstTokenOffset:39) (offset:41)
                   element: <testLibrary>::@extension::E::@method::foo::@formalParameter::_
   extensions
     extension E
@@ -650,7 +650,7 @@ library
             #F3 foo (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extension::E::@setter::foo
               formalParameters
-                #F4 value (nameOffset:35) (firstTokenOffset:31) (offset:35)
+                #F4 requiredPositional value (nameOffset:35) (firstTokenOffset:31) (offset:35)
                   element: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
   extensions
     extension E
@@ -862,7 +862,7 @@ library
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F5 this.it (nameOffset:25) (firstTokenOffset:16) (offset:25)
+                #F5 requiredPositional final this.it (nameOffset:25) (firstTokenOffset:16) (offset:25)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
@@ -891,9 +891,10 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional final hasImplicitType it
+            #E0 requiredPositional final hasImplicitType this.it
               firstFragment: #F5
               type: Object?
+              field: <testLibrary>::@extensionType::A::@field::it
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
@@ -1230,7 +1231,7 @@ library
             #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
         #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
@@ -1307,7 +1308,7 @@ library
             #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
         #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
@@ -1394,7 +1395,7 @@ library
             #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
         #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
@@ -1479,7 +1480,7 @@ library
             #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
               nextFragment: #F8
         #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
@@ -1490,7 +1491,7 @@ library
             #F8 augment foo (nameOffset:89) (firstTokenOffset:70) (offset:89)
               element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                #F10 _ (nameOffset:97) (firstTokenOffset:93) (offset:97)
+                #F10 requiredPositional _ (nameOffset:97) (firstTokenOffset:93) (offset:97)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::_
               previousFragment: #F6
         #F9 extension A (nameOffset:124) (firstTokenOffset:106) (offset:124)
@@ -1564,7 +1565,7 @@ library
             #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
         #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
@@ -1692,7 +1693,7 @@ library
             #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo1
               formalParameters
-                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo1::@formalParameter::value
         #F2 extension A (nameOffset:65) (firstTokenOffset:47) (offset:65)
           element: <testLibrary>::@extension::A
@@ -1707,7 +1708,7 @@ library
             #F9 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:82)
               element: <testLibrary>::@extension::A::@setter::foo2
               formalParameters
-                #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:82)
+                #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:82)
                   element: <testLibrary>::@extension::A::@setter::foo2::@formalParameter::value
   extensions
     extension A
@@ -1942,7 +1943,7 @@ library
             #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
         #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
@@ -2019,7 +2020,7 @@ library
             #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
         #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
@@ -2569,7 +2570,7 @@ library
             #F4 foo1 (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extension::A::@setter::foo1
               formalParameters
-                #F5 _ (nameOffset:36) (firstTokenOffset:32) (offset:36)
+                #F5 requiredPositional _ (nameOffset:36) (firstTokenOffset:32) (offset:36)
                   element: <testLibrary>::@extension::A::@setter::foo1::@formalParameter::_
         #F2 extension A (nameOffset:63) (firstTokenOffset:45) (offset:63)
           element: <testLibrary>::@extension::A
@@ -2581,7 +2582,7 @@ library
             #F7 foo2 (nameOffset:73) (firstTokenOffset:69) (offset:73)
               element: <testLibrary>::@extension::A::@setter::foo2
               formalParameters
-                #F8 _ (nameOffset:82) (firstTokenOffset:78) (offset:82)
+                #F8 requiredPositional _ (nameOffset:82) (firstTokenOffset:78) (offset:82)
                   element: <testLibrary>::@extension::A::@setter::foo2::@formalParameter::_
   extensions
     extension A
@@ -2653,7 +2654,7 @@ library
             #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
               nextFragment: #F7
         #F2 extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
@@ -2663,7 +2664,7 @@ library
             #F7 augment foo (nameOffset:89) (firstTokenOffset:70) (offset:89)
               element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                #F8 _ (nameOffset:97) (firstTokenOffset:93) (offset:97)
+                #F8 requiredPositional _ (nameOffset:97) (firstTokenOffset:93) (offset:97)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::_
               previousFragment: #F5
   extensions
@@ -2729,13 +2730,13 @@ library
             #F5 foo1 (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extension::A::@setter::foo1
               formalParameters
-                #F6 _ (nameOffset:36) (firstTokenOffset:32) (offset:36)
+                #F6 requiredPositional _ (nameOffset:36) (firstTokenOffset:32) (offset:36)
                   element: <testLibrary>::@extension::A::@setter::foo1::@formalParameter::_
               nextFragment: #F7
             #F8 foo2 (nameOffset:48) (firstTokenOffset:44) (offset:48)
               element: <testLibrary>::@extension::A::@setter::foo2
               formalParameters
-                #F9 _ (nameOffset:57) (firstTokenOffset:53) (offset:57)
+                #F9 requiredPositional _ (nameOffset:57) (firstTokenOffset:53) (offset:57)
                   element: <testLibrary>::@extension::A::@setter::foo2::@formalParameter::_
         #F2 extension A (nameOffset:84) (firstTokenOffset:66) (offset:84)
           element: <testLibrary>::@extension::A
@@ -2744,7 +2745,7 @@ library
             #F7 augment foo1 (nameOffset:102) (firstTokenOffset:90) (offset:102)
               element: <testLibrary>::@extension::A::@setter::foo1
               formalParameters
-                #F10 _ (nameOffset:111) (firstTokenOffset:107) (offset:111)
+                #F10 requiredPositional _ (nameOffset:111) (firstTokenOffset:107) (offset:111)
                   element: <testLibrary>::@extension::A::@setter::foo1::@formalParameter::_
               previousFragment: #F5
   extensions

@@ -111,7 +111,7 @@ library
             #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: dart:foo::@class::A::@setter::foo
               formalParameters
-                #F5 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+                #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
                   element: dart:foo::@class::A::@setter::foo::@formalParameter::value
   classes
     hasNonFinalField class A
@@ -330,7 +330,7 @@ library
             #F3 foo (nameOffset:57) (firstTokenOffset:53) (offset:57)
               element: dart:foo::@class::A::@setter::foo
               formalParameters
-                #F4 _ (nameOffset:65) (firstTokenOffset:61) (offset:65)
+                #F4 requiredPositional _ (nameOffset:65) (firstTokenOffset:61) (offset:65)
                   element: dart:foo::@class::A::@setter::foo::@formalParameter::_
   classes
     class A
@@ -819,9 +819,9 @@ library
         #F1 f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@function::f
           formalParameters
-            #F2 p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
+            #F2 requiredPositional p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
               element: dart:foo::@function::f::@formalParameter::p1
-            #F3 p2 (nameOffset:67) (firstTokenOffset:45) (offset:67)
+            #F3 optionalNamed p2 (nameOffset:67) (firstTokenOffset:45) (offset:67)
               element: dart:foo::@function::f::@formalParameter::p2
   functions
     f
@@ -859,9 +859,9 @@ library
         #F1 f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@function::f
           formalParameters
-            #F2 p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
+            #F2 requiredPositional p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
               element: dart:foo::@function::f::@formalParameter::p1
-            #F3 p2 (nameOffset:67) (firstTokenOffset:45) (offset:67)
+            #F3 optionalPositional p2 (nameOffset:67) (firstTokenOffset:45) (offset:67)
               element: dart:foo::@function::f::@formalParameter::p2
   functions
     f
