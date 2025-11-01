@@ -22,9 +22,9 @@
   (type $BoxedInt <...>)
   (func $print (import "module0" "func5") (param (ref null $#Top)) (result (ref null $#Top)))
   (func $JSStringImpl._interpolate (import "module0" "func6") (param (ref $Array<Object?>)) (result (ref $JSStringImpl)))
-  (global $module0.global0 (import "module0" "global0") (ref $JSStringImpl))
-  (global $module0.global5 (import "module0" "global5") (ref $_InterfaceType))
-  (global $module0.global7 (import "module0" "global7") (ref $_FunctionType))
+  (global $"C21 \")\"" (import "module0" "global0") (ref $JSStringImpl))
+  (global $"C28 _InterfaceType" (import "module0" "global5") (ref $_InterfaceType))
+  (global $"C455 _FunctionType" (import "module0" "global7") (ref $_FunctionType))
   (global $S.globalH1Bar< (import "S" "globalH1Bar<") (ref extern))
   (global $global7 (ref $#Vtable-1-1) <...>)
   (global $global4 (ref $#DummyStruct) <...>)
@@ -73,7 +73,7 @@
     local.get $var0
     global.get $"C464 \">(\""
     local.get $var1
-    global.get $module0.global0
+    global.get $"C21 \")\""
     array.new_fixed $Array<Object?> 5
     call $JSStringImpl._interpolate
     call $print
@@ -119,13 +119,13 @@
         global.set $"C460 globalH1Foo tear-off"
         local.get $var0
       end $label1
-      global.get $module0.global5
+      global.get $"C28 _InterfaceType"
       struct.new $#InstantiationContext-1-1
       ref.func $"dynamic call entry"
       ref.func $"#dummy function (ref struct) -> (ref null #Top)"
       ref.func $"instantiation constant trampoline"
       struct.new $#Vtable-0-1
-      global.get $module0.global7
+      global.get $"C455 _FunctionType"
       struct.new $#Closure-0-1
       local.tee $var1
       global.set $"C461 InstantiationConstant(globalH1Foo<int>)"

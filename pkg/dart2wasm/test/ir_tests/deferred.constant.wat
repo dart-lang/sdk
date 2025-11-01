@@ -6,12 +6,12 @@
     (field $field0 i32)
     (field $field1 (mut i32))
     (field $fun (ref $#Closure-0-1)))))
-  (type $type246 <...>)
-  (type $type249 <...>)
-  (type $type252 <...>)
-  (table $static1-0 (export "static1-0") 1 (ref null $type252))
-  (table $static2-0 (export "static2-0") 1 (ref null $type246))
-  (table $static3-0 (export "static3-0") 1 (ref null $type249))
+  (type $type245 <...>)
+  (type $type248 <...>)
+  (type $type251 <...>)
+  (table $static1-0 (export "static1-0") 1 (ref null $type251))
+  (table $static2-0 (export "static2-0") 1 (ref null $type245))
+  (table $static3-0 (export "static3-0") 1 (ref null $type248))
   (func $print (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
   (func $"modMainUseH0 <noInline>"
     i64.const 0

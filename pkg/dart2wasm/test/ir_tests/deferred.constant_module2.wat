@@ -4,7 +4,6 @@
   (type $Array<Object?> <...>)
   (type $JSStringImpl <...>)
   (type $Array<_Type> <...>)
-  (type $BoxedInt <...>)
   (type $_FunctionType <...>)
   (type $#ClosureBase <...>)
   (type $#Vtable-0-1 <...>)
@@ -15,7 +14,7 @@
     (field $fun (ref $#Closure-0-1)))))
   (type $#DummyStruct <...>)
   (func $print (import "module0" "func5") (param (ref null $#Top)) (result (ref null $#Top)))
-  (global $module0.global7 (import "module0" "global7") (ref $_FunctionType))
+  (global $"C455 _FunctionType" (import "module0" "global7") (ref $_FunctionType))
   (global $S.globalH0Foo (import "S" "globalH0Foo") (ref extern))
   (global $global6 (ref $#Vtable-0-1) <...>)
   (global $global3 (ref $#DummyStruct) <...>)
@@ -33,18 +32,10 @@
     call $print
   )
   (func $"globalH0Foo tear-off dynamic call entry" (param $var0 (ref $#ClosureBase)) (param $var1 (ref $Array<_Type>)) (param $var2 (ref $Array<Object?>)) (param $var3 (ref $Array<Object?>)) (result (ref null $#Top))
-    local.get $var2
-    i32.const 0
-    array.get $Array<Object?>
-    ref.cast $BoxedInt
-    drop
     global.get $"C467 \"globalH0Foo\""
     call $print
   )
   (func $"globalH0Foo tear-off trampoline" (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    local.get $var1
-    ref.cast $BoxedInt
-    drop
     global.get $"C467 \"globalH0Foo\""
     call $print
   )
@@ -60,7 +51,7 @@
       i32.const 0
       global.get $global3
       global.get $global6
-      global.get $module0.global7
+      global.get $"C455 _FunctionType"
       struct.new $#Closure-0-1
       local.tee $var0
       global.set $"C465 globalH0Foo tear-off"

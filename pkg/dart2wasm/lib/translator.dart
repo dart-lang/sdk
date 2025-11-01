@@ -2807,8 +2807,10 @@ class WasmFunctionImporter extends _WasmImporter<w.BaseFunction> {
   @override
   w.BaseFunction _import(w.ModuleBuilder importingModule,
       w.BaseFunction definition, String moduleName, String importName) {
-    return importingModule.functions
+    final function = importingModule.functions
         .import(moduleName, importName, definition.type, definition.name);
+    function.functionName = definition.functionName;
+    return function;
   }
 }
 
@@ -2818,8 +2820,10 @@ class WasmGlobalImporter extends _WasmImporter<w.Global> {
   @override
   w.Global _import(w.ModuleBuilder importingModule, w.Global definition,
       String moduleName, String importName) {
-    return importingModule.globals
-        .import(moduleName, importName, definition.type);
+    final global =
+        importingModule.globals.import(moduleName, importName, definition.type);
+    global.globalName = definition.globalName;
+    return global;
   }
 }
 
