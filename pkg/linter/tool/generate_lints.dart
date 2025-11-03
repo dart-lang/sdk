@@ -68,6 +68,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     name: 'removed_lint',
     problemMessage: 'Removed lint.',
     expectedTypes: [],
+    uniqueNameCheck: 'LintCode.removed_lint',
   );
 ''';
 
@@ -84,6 +85,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
          name: name,
          problemMessage: problemMessage,
          uniqueName: 'LintCode.\${uniqueName ?? name}',
+         uniqueNameCheck: null
        );
 ''';
 
@@ -91,6 +93,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   const LinterLintCode.internal({
     required super.name,
     required super.problemMessage,
+    required super.uniqueNameCheck,
     super.expectedTypes,
     super.correctionMessage,
     super.hasPublishedDocs,
@@ -121,6 +124,7 @@ final class LinterLintTemplate<T extends Function> extends LinterLintCode {
     required super.problemMessage,
     required this.withArguments,
     required super.expectedTypes,
+    required String super.uniqueNameCheck,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.uniqueName,
@@ -134,6 +138,7 @@ final class LinterLintWithoutArguments extends LinterLintCode
     required super.name,
     required super.problemMessage,
     required super.expectedTypes,
+    required String super.uniqueNameCheck,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.uniqueName,

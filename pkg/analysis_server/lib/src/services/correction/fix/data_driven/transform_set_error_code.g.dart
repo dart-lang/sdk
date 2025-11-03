@@ -29,6 +29,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   conflictingKey = TransformSetErrorTemplate(
     name: 'conflicting_key',
     problemMessage: "The key '{0}' can't be used when '{1}' is also used.",
+    uniqueNameCheck: 'TransformSetErrorCode.conflicting_key',
     withArguments: _withArgumentsConflictingKey,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -38,6 +39,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
       TransformSetErrorWithoutArguments(
         name: 'expected_primary',
         problemMessage: "Expected either an identifier or a string literal.",
+        uniqueNameCheck: 'TransformSetErrorCode.expected_primary',
         expectedTypes: [],
       );
 
@@ -51,6 +53,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'incompatible_element_kind',
     problemMessage:
         "An element of kind '{0}' can't be replaced by an element of kind '{1}'.",
+    uniqueNameCheck: 'TransformSetErrorCode.incompatible_element_kind',
     withArguments: _withArgumentsIncompatibleElementKind,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -65,6 +68,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'invalid_change_for_kind',
     problemMessage:
         "A change of type '{0}' can't be used for an element of kind '{1}'.",
+    uniqueNameCheck: 'TransformSetErrorCode.invalid_change_for_kind',
     withArguments: _withArgumentsInvalidChangeForKind,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -77,6 +81,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   invalidCharacter = TransformSetErrorTemplate(
     name: 'invalid_character',
     problemMessage: "Invalid character '{0}'.",
+    uniqueNameCheck: 'TransformSetErrorCode.invalid_character',
     withArguments: _withArgumentsInvalidCharacter,
     expectedTypes: [ExpectedType.object],
   );
@@ -89,6 +94,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   invalidKey = TransformSetErrorTemplate(
     name: 'invalid_key',
     problemMessage: "Keys must be of type 'String' but found the type '{0}'.",
+    uniqueNameCheck: 'TransformSetErrorCode.invalid_key',
     withArguments: _withArgumentsInvalidKey,
     expectedTypes: [ExpectedType.object],
   );
@@ -101,6 +107,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   invalidParameterStyle = TransformSetErrorTemplate(
     name: 'invalid_parameter_style',
     problemMessage: "The parameter style must be one of the following: {0}.",
+    uniqueNameCheck: 'TransformSetErrorCode.invalid_parameter_style',
     withArguments: _withArgumentsInvalidParameterStyle,
     expectedTypes: [ExpectedType.object],
   );
@@ -111,6 +118,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'invalid_required_if',
     problemMessage:
         "The key 'requiredIf' can only be used with optional named parameters.",
+    uniqueNameCheck: 'TransformSetErrorCode.invalid_required_if',
     expectedTypes: [],
   );
 
@@ -129,6 +137,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'invalid_value',
     problemMessage:
         "The value of '{0}' should be of type '{1}' but is of type '{2}'.",
+    uniqueNameCheck: 'TransformSetErrorCode.invalid_value',
     withArguments: _withArgumentsInvalidValue,
     expectedTypes: [
       ExpectedType.object,
@@ -146,6 +155,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   invalidValueOneOf = TransformSetErrorTemplate(
     name: 'invalid_value_one_of',
     problemMessage: "The value of '{0}' must be one of the following: '{1}'.",
+    uniqueNameCheck: 'TransformSetErrorCode.invalid_value_one_of',
     withArguments: _withArgumentsInvalidValueOneOf,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -158,6 +168,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   missingKey = TransformSetErrorTemplate(
     name: 'missing_key',
     problemMessage: "Missing the required key '{0}'.",
+    uniqueNameCheck: 'TransformSetErrorCode.missing_key',
     withArguments: _withArgumentsMissingKey,
     expectedTypes: [ExpectedType.object],
   );
@@ -170,6 +181,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   missingOneOfMultipleKeys = TransformSetErrorTemplate(
     name: 'missing_one_of_multiple_keys',
     problemMessage: "Exactly one of the following keys must be provided: {0}.",
+    uniqueNameCheck: 'TransformSetErrorCode.missing_one_of_multiple_keys',
     withArguments: _withArgumentsMissingOneOfMultipleKeys,
     expectedTypes: [ExpectedType.object],
   );
@@ -179,6 +191,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
       TransformSetErrorWithoutArguments(
         name: 'missing_template_end',
         problemMessage: "Missing the end brace for the template.",
+        uniqueNameCheck: 'TransformSetErrorCode.missing_template_end',
         expectedTypes: [],
       );
 
@@ -190,6 +203,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   missingToken = TransformSetErrorTemplate(
     name: 'missing_token',
     problemMessage: "Expected to find {0}.",
+    uniqueNameCheck: 'TransformSetErrorCode.missing_token',
     withArguments: _withArgumentsMissingToken,
     expectedTypes: [ExpectedType.object],
   );
@@ -199,6 +213,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
       TransformSetErrorWithoutArguments(
         name: 'missing_uri',
         problemMessage: "At least one URI must be provided.",
+        uniqueNameCheck: 'TransformSetErrorCode.missing_uri',
         expectedTypes: [],
       );
 
@@ -210,6 +225,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   undefinedVariable = TransformSetErrorTemplate(
     name: 'undefined_variable',
     problemMessage: "The variable '{0}' isn't defined.",
+    uniqueNameCheck: 'TransformSetErrorCode.undefined_variable',
     withArguments: _withArgumentsUndefinedVariable,
     expectedTypes: [ExpectedType.object],
   );
@@ -222,6 +238,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   unexpectedTransformSetToken = TransformSetErrorTemplate(
     name: 'unexpected_transform_set_token',
     problemMessage: "Didn't expect to find {0}.",
+    uniqueNameCheck: 'TransformSetErrorCode.unexpected_transform_set_token',
     withArguments: _withArgumentsUnexpectedTransformSetToken,
     expectedTypes: [ExpectedType.object],
   );
@@ -234,6 +251,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   unknownAccessor = TransformSetErrorTemplate(
     name: 'unknown_accessor',
     problemMessage: "The accessor '{0}' is invalid.",
+    uniqueNameCheck: 'TransformSetErrorCode.unknown_accessor',
     withArguments: _withArgumentsUnknownAccessor,
     expectedTypes: [ExpectedType.object],
   );
@@ -246,6 +264,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   unsupportedKey = TransformSetErrorTemplate(
     name: 'unsupported_key',
     problemMessage: "The key '{0}' isn't supported.",
+    uniqueNameCheck: 'TransformSetErrorCode.unsupported_key',
     withArguments: _withArgumentsUnsupportedKey,
     expectedTypes: [ExpectedType.object],
   );
@@ -257,6 +276,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage:
             "The key 'static' is only supported for elements in a class, enum, "
             "extension, or mixin.",
+        uniqueNameCheck: 'TransformSetErrorCode.unsupported_static',
         expectedTypes: [],
       );
 
@@ -265,6 +285,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
       TransformSetErrorWithoutArguments(
         name: 'unsupported_version',
         problemMessage: "Only version '1' is supported at this time.",
+        uniqueNameCheck: 'TransformSetErrorCode.unsupported_version',
         expectedTypes: [],
       );
 
@@ -277,6 +298,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   wrongToken = TransformSetErrorTemplate(
     name: 'wrong_token',
     problemMessage: "Expected to find {0}, but found {1}.",
+    uniqueNameCheck: 'TransformSetErrorCode.wrong_token',
     withArguments: _withArgumentsWrongToken,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -289,6 +311,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   yamlSyntaxError = TransformSetErrorTemplate(
     name: 'yaml_syntax_error',
     problemMessage: "Parse error: {0}",
+    uniqueNameCheck: 'TransformSetErrorCode.yaml_syntax_error',
     withArguments: _withArgumentsYamlSyntaxError,
     expectedTypes: [ExpectedType.object],
   );
@@ -301,6 +324,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required String super.uniqueNameCheck,
     required super.expectedTypes,
   }) : super(
          type: DiagnosticType.COMPILE_TIME_ERROR,
@@ -452,6 +476,7 @@ final class TransformSetErrorTemplate<T extends Function>
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
     required this.withArguments,
   });
@@ -467,6 +492,7 @@ final class TransformSetErrorWithoutArguments extends TransformSetErrorCode
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
   });
 }

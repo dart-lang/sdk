@@ -27,6 +27,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "field declaration.",
     hasPublishedDocs: true,
     uniqueName: 'ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER',
     expectedTypes: [],
   );
 
@@ -38,6 +40,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the initializer or the 'abstract' keyword.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER',
         expectedTypes: [],
       );
 
@@ -55,6 +58,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'ABSTRACT_SUPER_MEMBER_REFERENCE',
     problemMessage: "The {0} '{1}' is always abstract in the supertype.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE',
     withArguments: _withArgumentsAbstractSuperMemberReference,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -78,6 +82,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the export of one of the libraries, or explicitly hiding "
         "the name in one of the export directives.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.AMBIGUOUS_EXPORT',
     withArguments: _withArgumentsAmbiguousExport,
     expectedTypes: [ExpectedType.string, ExpectedType.uri, ExpectedType.uri],
   );
@@ -97,6 +102,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "be chosen.",
     hasPublishedDocs: true,
     uniqueName: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE',
     withArguments: _withArgumentsAmbiguousExtensionMemberAccessThreeOrMore,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -122,6 +129,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "be chosen.",
     hasPublishedDocs: true,
     uniqueName: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO',
     withArguments: _withArgumentsAmbiguousExtensionMemberAccessTwo,
     expectedTypes: [
       ExpectedType.string,
@@ -143,6 +152,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try using 'as prefix' for one of the import directives, or hiding the "
         "name from all but one of the imports.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.AMBIGUOUS_IMPORT',
     withArguments: _withArgumentsAmbiguousImport,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -159,6 +169,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing or changing some of the elements so that all of the "
         "elements are consistent.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
     expectedTypes: [],
   );
 
@@ -173,6 +184,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try adding type arguments to the literal (one for sets, two for "
         "maps).",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER',
     expectedTypes: [],
   );
 
@@ -194,6 +206,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The argument type '{0}' can't be assigned to the parameter type '{1}'. "
         "{2}",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE',
     withArguments: _withArgumentsArgumentTypeNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
   );
@@ -205,6 +218,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage:
             "A redirecting constructor can't have an 'assert' initializer.",
         hasPublishedDocs: true,
+        uniqueNameCheck:
+            'CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR',
         expectedTypes: [],
       );
 
@@ -218,6 +233,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the assignment, or remove the modifier 'const' from the "
         "variable.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.ASSIGNMENT_TO_CONST',
     expectedTypes: [],
   );
 
@@ -232,6 +248,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try finding a different setter, or making '{0}' non-final.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.ASSIGNMENT_TO_FINAL',
     withArguments: _withArgumentsAssignmentToFinal,
     expectedTypes: [ExpectedType.string],
   );
@@ -246,6 +263,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The final variable '{0}' can only be set once.",
     correctionMessage: "Try making '{0}' non-final.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL',
     withArguments: _withArgumentsAssignmentToFinalLocal,
     expectedTypes: [ExpectedType.string],
   );
@@ -263,6 +281,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the name to reference an existing setter, or declare "
         "the setter.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER',
     withArguments: _withArgumentsAssignmentToFinalNoSetter,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -273,6 +292,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'ASSIGNMENT_TO_FUNCTION',
         problemMessage: "Functions can't be assigned a value.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION',
         expectedTypes: [],
       );
 
@@ -282,6 +302,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'ASSIGNMENT_TO_METHOD',
         problemMessage: "Methods can't be assigned a value.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.ASSIGNMENT_TO_METHOD',
         expectedTypes: [],
       );
 
@@ -291,6 +312,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'ASSIGNMENT_TO_TYPE',
         problemMessage: "Types can't be assigned a value.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.ASSIGNMENT_TO_TYPE',
         expectedTypes: [],
       );
 
@@ -304,6 +326,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "Try marking the function body with either 'async' or 'async*', or "
             "removing the 'await' before the for-in loop.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT',
         expectedTypes: [],
       );
 
@@ -318,6 +341,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try removing the 'extends' clause, either here or in the augmentation "
         "target.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT',
     expectedTypes: [],
   );
 
@@ -333,6 +358,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "have.",
     correctionMessage:
         "Try removing the '{0}' modifier, or adding it to the declaration.",
+    uniqueNameCheck: 'CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA',
     withArguments: _withArgumentsAugmentationModifierExtra,
     expectedTypes: [ExpectedType.object],
   );
@@ -348,6 +374,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The augmentation is missing the '{0}' modifier that the declaration has.",
     correctionMessage:
         "Try adding the '{0}' modifier, or removing it from the declaration.",
+    uniqueNameCheck: 'CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING',
     withArguments: _withArgumentsAugmentationModifierMissing,
     expectedTypes: [ExpectedType.object],
   );
@@ -363,6 +390,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Can't augment a {0} with a {1}.",
     correctionMessage:
         "Try changing the augmentation to match the declaration kind.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND',
     withArguments: _withArgumentsAugmentationOfDifferentDeclarationKind,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -377,6 +406,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try changing the augmentation to match the declaration type "
             "parameters.",
+        uniqueNameCheck:
+            'CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND',
         expectedTypes: [],
       );
 
@@ -390,6 +421,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try changing the augmentation to match the declaration type "
         "parameters.",
+    uniqueNameCheck: 'CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT',
     expectedTypes: [],
   );
 
@@ -403,6 +435,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try changing the augmentation to match the declaration type "
             "parameters.",
+        uniqueNameCheck:
+            'CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME',
         expectedTypes: [],
       );
 
@@ -413,6 +447,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "The declaration being augmented doesn't exist.",
         correctionMessage:
             "Try changing the augmentation to match an existing declaration.",
+        uniqueNameCheck:
+            'CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION',
         expectedTypes: [],
       );
 
@@ -424,6 +460,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The augmented declaration is not a setter, it can't be used to write a "
         "value.",
     correctionMessage: "Try assigning a value to a setter.",
+    uniqueNameCheck: 'CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER',
     expectedTypes: [],
   );
 
@@ -434,6 +471,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The augmented declaration is a setter, it can't be used to read a value.",
     correctionMessage: "Try assigning a value to the augmented setter.",
+    uniqueNameCheck: 'CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER',
     expectedTypes: [],
   );
 
@@ -447,6 +485,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The enclosing augmentation doesn't augment the operator '{0}'.",
     correctionMessage: "Try augmenting or invoking the correct operator.",
+    uniqueNameCheck: 'CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR',
     withArguments: _withArgumentsAugmentedExpressionNotOperator,
     expectedTypes: [ExpectedType.object],
   );
@@ -462,6 +501,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the 'late' modifier, or rewriting the initializer "
         "without using the 'await' expression.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER',
     expectedTypes: [],
   );
 
@@ -477,6 +518,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "The await expression can only be used in an async function.",
         correctionMessage:
             "Try marking the function body with either 'async' or 'async*'.",
+        uniqueNameCheck: 'CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT',
         expectedTypes: [],
       );
 
@@ -491,6 +533,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the `await`, or updating the extension type to implement "
         "'Future'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE',
     expectedTypes: [],
   );
 
@@ -506,6 +549,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "a base class.",
     hasPublishedDocs: true,
     uniqueName: 'BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
     withArguments: _withArgumentsBaseClassImplementedOutsideOfLibrary,
     expectedTypes: [ExpectedType.string],
   );
@@ -522,6 +567,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "a base mixin.",
     hasPublishedDocs: true,
     uniqueName: 'BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
     withArguments: _withArgumentsBaseMixinImplementedOutsideOfLibrary,
     expectedTypes: [ExpectedType.string],
   );
@@ -539,6 +586,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try adding either a return or a throw statement at the end.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY',
     withArguments: _withArgumentsBodyMightCompleteNormally,
     expectedTypes: [ExpectedType.type],
   );
@@ -550,6 +598,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage:
             "A break label resolves to the 'case' or 'default' statement.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER',
         expectedTypes: [],
       );
 
@@ -565,6 +614,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try choosing a different name for the extension.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
     withArguments: _withArgumentsBuiltInIdentifierAsExtensionName,
     expectedTypes: [ExpectedType.string],
   );
@@ -581,6 +632,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try choosing a different name for the extension type.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME',
     withArguments: _withArgumentsBuiltInIdentifierAsExtensionTypeName,
     expectedTypes: [ExpectedType.string],
   );
@@ -597,6 +650,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try choosing a different name for the prefix.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_PREFIX_NAME',
+    uniqueNameCheck: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME',
     withArguments: _withArgumentsBuiltInIdentifierAsPrefixName,
     expectedTypes: [ExpectedType.string],
   );
@@ -611,6 +665,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The built-in identifier '{0}' can't be used as a type.",
     correctionMessage: "Try correcting the name to match an existing type.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
     withArguments: _withArgumentsBuiltInIdentifierAsType,
     expectedTypes: [ExpectedType.string],
   );
@@ -627,6 +682,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try choosing a different name for the typedef.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME',
+    uniqueNameCheck: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME',
     withArguments: _withArgumentsBuiltInIdentifierAsTypedefName,
     expectedTypes: [ExpectedType.string],
   );
@@ -643,6 +699,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try choosing a different name for the type.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_NAME',
+    uniqueNameCheck: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME',
     withArguments: _withArgumentsBuiltInIdentifierAsTypeName,
     expectedTypes: [ExpectedType.string],
   );
@@ -659,6 +716,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try choosing a different name for the type parameter.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
     withArguments: _withArgumentsBuiltInIdentifierAsTypeParameterName,
     expectedTypes: [ExpectedType.string],
   );
@@ -673,6 +732,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The switch case expression type '{0}' can't override the '==' operator.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
     withArguments: _withArgumentsCaseExpressionTypeImplementsEquals,
     expectedTypes: [ExpectedType.type],
   );
@@ -689,6 +750,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The switch case expression type '{0}' must be a subtype of the switch "
         "expression type '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
     withArguments: _withArgumentsCaseExpressionTypeIsNotSwitchExpressionSubtype,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -706,6 +769,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try changing the name to the name of an existing type, or creating a "
         "type with the name '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.CAST_TO_NON_TYPE',
     withArguments: _withArgumentsCastToNonType,
     expectedTypes: [ExpectedType.string],
   );
@@ -722,6 +786,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try changing the member name to the name of a constructor.",
     uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER',
     withArguments: _withArgumentsClassInstantiationAccessToInstanceMember,
     expectedTypes: [ExpectedType.string],
   );
@@ -739,6 +805,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the type arguments from the class name, or changing the "
         "member name to the name of a constructor.",
     uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER',
     withArguments: _withArgumentsClassInstantiationAccessToStaticMember,
     expectedTypes: [ExpectedType.string],
   );
@@ -756,6 +824,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try invoking a different constructor, or defining a constructor named "
         "'{1}'.",
     uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER',
     withArguments: _withArgumentsClassInstantiationAccessToUnknownMember,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -771,6 +841,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The class '{0}' can't be used as a mixin because it's neither a mixin "
         "class nor a mixin.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.CLASS_USED_AS_MIXIN',
     withArguments: _withArgumentsClassUsedAsMixin,
     expectedTypes: [ExpectedType.string],
   );
@@ -783,6 +854,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try specifying a different interface, or remove it from the list.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
     expectedTypes: [],
   );
 
@@ -798,6 +871,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{0}' must have a method body because '{1}' isn't abstract.",
     correctionMessage: "Try making '{1}' abstract, or adding a body to '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
     withArguments: _withArgumentsConcreteClassWithAbstractMember,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -815,6 +889,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try renaming either the constructor or the field.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD',
     withArguments: _withArgumentsConflictingConstructorAndStaticField,
     expectedTypes: [ExpectedType.string],
   );
@@ -832,6 +908,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try renaming either the constructor or the getter.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER',
     withArguments: _withArgumentsConflictingConstructorAndStaticGetter,
     expectedTypes: [ExpectedType.string],
   );
@@ -849,6 +927,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try renaming either the constructor or the method.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD',
     withArguments: _withArgumentsConflictingConstructorAndStaticMethod,
     expectedTypes: [ExpectedType.string],
   );
@@ -866,6 +946,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try renaming either the constructor or the setter.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER',
     withArguments: _withArgumentsConflictingConstructorAndStaticSetter,
     expectedTypes: [ExpectedType.string],
   );
@@ -894,6 +976,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try converting the getter to a method, or renaming the field to a "
         "name that doesn't conflict.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD',
     withArguments: _withArgumentsConflictingFieldAndMethod,
     expectedTypes: [
       ExpectedType.string,
@@ -922,6 +1005,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The {0} '{1}' can't implement both '{2}' and '{3}' because the type "
         "arguments are different.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES',
     withArguments: _withArgumentsConflictingGenericInterfaces,
     expectedTypes: [
       ExpectedType.string,
@@ -951,6 +1035,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'CONFLICTING_INHERITED_METHOD_AND_SETTER',
     problemMessage:
         "The {0} '{1}' can't inherit both a method and a setter named '{2}'.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER',
     withArguments: _withArgumentsConflictingInheritedMethodAndSetter,
     expectedTypes: [
       ExpectedType.string,
@@ -983,6 +1069,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try converting the method to a getter, or renaming the method to a "
         "name that doesn't conflict.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD',
     withArguments: _withArgumentsConflictingMethodAndField,
     expectedTypes: [
       ExpectedType.string,
@@ -1014,6 +1101,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{2}.{1}' with the same name.",
     correctionMessage:
         "Try renaming the member to a name that doesn't conflict.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE',
     withArguments: _withArgumentsConflictingStaticAndInstance,
     expectedTypes: [
       ExpectedType.string,
@@ -1035,6 +1123,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try renaming either the type parameter or the class.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_CLASS',
+    uniqueNameCheck: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS',
     withArguments: _withArgumentsConflictingTypeVariableAndClass,
     expectedTypes: [ExpectedType.string],
   );
@@ -1052,6 +1141,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try renaming either the type parameter or the enum.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_ENUM',
+    uniqueNameCheck: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM',
     withArguments: _withArgumentsConflictingTypeVariableAndEnum,
     expectedTypes: [ExpectedType.string],
   );
@@ -1070,6 +1160,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try renaming either the type parameter or the extension.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
     withArguments: _withArgumentsConflictingTypeVariableAndExtension,
     expectedTypes: [ExpectedType.string],
   );
@@ -1088,6 +1180,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try renaming either the type parameter or the extension.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE',
     withArguments: _withArgumentsConflictingTypeVariableAndExtensionType,
     expectedTypes: [ExpectedType.string],
   );
@@ -1105,6 +1199,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS',
     withArguments: _withArgumentsConflictingTypeVariableAndMemberClass,
     expectedTypes: [ExpectedType.string],
   );
@@ -1122,6 +1218,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM',
     withArguments: _withArgumentsConflictingTypeVariableAndMemberEnum,
     expectedTypes: [ExpectedType.string],
   );
@@ -1139,6 +1237,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
     withArguments: _withArgumentsConflictingTypeVariableAndMemberExtension,
     expectedTypes: [ExpectedType.string],
   );
@@ -1156,6 +1256,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE',
     withArguments: _withArgumentsConflictingTypeVariableAndMemberExtensionType,
     expectedTypes: [ExpectedType.string],
   );
@@ -1173,6 +1275,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN',
     withArguments: _withArgumentsConflictingTypeVariableAndMemberMixin,
     expectedTypes: [ExpectedType.string],
   );
@@ -1190,6 +1294,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try renaming either the type parameter or the mixin.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MIXIN',
+    uniqueNameCheck: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN',
     withArguments: _withArgumentsConflictingTypeVariableAndMixin,
     expectedTypes: [ExpectedType.string],
   );
@@ -1202,6 +1307,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The expression of a constant pattern must be a valid constant.",
     correctionMessage: "Try making the expression a valid constant.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION',
     expectedTypes: [],
   );
 
@@ -1217,6 +1324,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "keyword 'deferred' from the import.",
     hasPublishedDocs: true,
     uniqueName: 'CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY',
     expectedTypes: [],
   );
 
@@ -1240,6 +1349,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "In a const constructor, a value of type '{0}' can't be assigned to the "
         "field '{1}', which has type '{2}'.",
     correctionMessage: "Try using a subtype, or removing the keyword 'const'.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
     withArguments: _withArgumentsConstConstructorFieldTypeMismatch,
     expectedTypes: [
       ExpectedType.object,
@@ -1261,6 +1372,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "const constructor.",
     correctionMessage: "Try using a subtype, or removing the keyword 'const'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
     withArguments: _withArgumentsConstConstructorParamTypeMismatch,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -1275,6 +1388,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Const constructors can't throw exceptions.",
     correctionMessage:
         "Try removing the throw statement, or removing the keyword 'const'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION',
     expectedTypes: [],
   );
 
@@ -1292,6 +1406,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try initializing the field to a constant value, or removing the "
         "keyword 'const' from the constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST',
     withArguments: _withArgumentsConstConstructorWithFieldInitializedByNonConst,
     expectedTypes: [ExpectedType.string],
   );
@@ -1319,6 +1435,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try removing the 'const' keyword or removing the 'with' clause from "
         "the class declaration, or removing the field from the mixin class.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
     withArguments: _withArgumentsConstConstructorWithMixinWithField,
     expectedTypes: [ExpectedType.string],
   );
@@ -1347,6 +1465,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the 'const' keyword or removing the 'with' clause from "
         "the class declaration, or removing the fields from the mixin classes.",
     uniqueName: 'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS',
     withArguments: _withArgumentsConstConstructorWithMixinWithFields,
     expectedTypes: [ExpectedType.string],
   );
@@ -1365,6 +1485,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try calling a constant constructor in the superclass, or removing the "
         "keyword 'const' from the constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER',
     withArguments: _withArgumentsConstConstructorWithNonConstSuper,
     expectedTypes: [ExpectedType.string],
   );
@@ -1379,6 +1501,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try making all of the fields final, or removing the keyword 'const' "
         "from the constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD',
     expectedTypes: [],
   );
 
@@ -1391,6 +1515,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try using 'new' to create the instance, or changing the import to not "
         "be deferred.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
     expectedTypes: [],
   );
 
@@ -1399,6 +1524,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       CompileTimeErrorWithoutArguments(
         name: 'CONST_EVAL_ASSERTION_FAILURE',
         problemMessage: "The assertion in this constant expression failed.",
+        uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE',
         expectedTypes: [],
       );
 
@@ -1410,6 +1536,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   constEvalAssertionFailureWithMessage = CompileTimeErrorTemplate(
     name: 'CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
     problemMessage: "An assertion failed with message '{0}'.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
     withArguments: _withArgumentsConstEvalAssertionFailureWithMessage,
     expectedTypes: [ExpectedType.object],
   );
@@ -1420,6 +1548,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'CONST_EVAL_EXTENSION_METHOD',
         problemMessage:
             "Extension methods can't be used in constant expressions.",
+        uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD',
         expectedTypes: [],
       );
 
@@ -1429,6 +1558,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'CONST_EVAL_EXTENSION_TYPE_METHOD',
         problemMessage:
             "Extension type methods can't be used in constant expressions.",
+        uniqueNameCheck:
+            'CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD',
         expectedTypes: [],
       );
 
@@ -1439,6 +1570,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Constant expressions don't support 'for' elements.",
     correctionMessage:
         "Try replacing the 'for' element with a spread, or removing 'const'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT',
     expectedTypes: [],
   );
 
@@ -1447,6 +1579,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       CompileTimeErrorWithoutArguments(
         name: 'CONST_EVAL_METHOD_INVOCATION',
         problemMessage: "Methods can't be invoked in constant expressions.",
+        uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION',
         expectedTypes: [],
       );
 
@@ -1460,6 +1593,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "In constant expressions, operands of the equality operator must have "
         "primitive equality.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY',
     expectedTypes: [],
   );
 
@@ -1474,6 +1608,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The property '{0}' can't be accessed on the type '{1}' in a constant "
         "expression.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS',
     withArguments: _withArgumentsConstEvalPropertyAccess,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -1487,6 +1622,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'CONST_EVAL_THROWS_EXCEPTION',
         problemMessage:
             "Evaluation of this constant expression throws an exception.",
+        uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION',
         expectedTypes: [],
       );
 
@@ -1500,6 +1636,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage:
             "Evaluation of this constant expression throws an "
             "IntegerDivisionByZeroException.",
+        uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE',
         expectedTypes: [],
       );
 
@@ -1514,6 +1651,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "In constant expressions, operands of this operator must be of type "
         "'bool'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL',
     expectedTypes: [],
   );
 
@@ -1527,6 +1665,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "In constant expressions, operands of this operator must be of type 'bool' "
         "or 'int'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT',
     expectedTypes: [],
   );
 
@@ -1540,6 +1679,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "In constant expressions, operands of this operator must be of type "
         "'bool', 'num', 'String' or 'null'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING',
     expectedTypes: [],
   );
 
@@ -1553,6 +1693,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'CONST_EVAL_TYPE_INT',
     problemMessage:
         "In constant expressions, operands of this operator must be of type 'int'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_TYPE_INT',
     expectedTypes: [],
   );
 
@@ -1565,6 +1706,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'CONST_EVAL_TYPE_NUM',
     problemMessage:
         "In constant expressions, operands of this operator must be of type 'num'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_TYPE_NUM',
     expectedTypes: [],
   );
 
@@ -1578,6 +1720,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "In constant expressions, operands of this operator must be of type 'num' "
         "or 'String'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING',
     expectedTypes: [],
   );
 
@@ -1588,6 +1731,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "In constant expressions, operands of this operator must be of type "
         "'String'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_TYPE_STRING',
     expectedTypes: [],
   );
 
@@ -1598,6 +1742,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "In constant expressions, operands of this operator must be of type "
         "'Type'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE',
     expectedTypes: [],
   );
 
@@ -1615,6 +1760,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try using a subtype, or removing the 'const' keyword",
     hasPublishedDocs: true,
     uniqueName: 'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
     withArguments: _withArgumentsConstFieldInitializerNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -1628,6 +1775,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try changing the initializer to be a constant expression.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE',
     expectedTypes: [],
   );
 
@@ -1643,6 +1792,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "Try initializing the variable without referencing members of the "
             "deferred library, or changing the import to not be deferred.",
         hasPublishedDocs: true,
+        uniqueNameCheck:
+            'CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
         expectedTypes: [],
       );
 
@@ -1654,6 +1805,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try declaring the field as final, or adding the keyword 'static'.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.CONST_INSTANCE_FIELD',
         expectedTypes: [],
       );
 
@@ -1671,6 +1823,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try using a different value for the key, or removing the keyword "
         "'const' from the map.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY',
     withArguments: _withArgumentsConstMapKeyNotPrimitiveEquality,
     expectedTypes: [ExpectedType.type],
   );
@@ -1685,6 +1839,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The constant '{0}' must be initialized.",
     correctionMessage: "Try adding an initialization to the declaration.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_NOT_INITIALIZED',
     withArguments: _withArgumentsConstNotInitialized,
     expectedTypes: [ExpectedType.string],
   );
@@ -1703,6 +1858,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try using a different value for the element, or removing the keyword "
         "'const' from the set.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY',
     withArguments: _withArgumentsConstSetElementNotPrimitiveEquality,
     expectedTypes: [ExpectedType.type],
   );
@@ -1713,6 +1870,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'CONST_SPREAD_EXPECTED_LIST_OR_SET',
         problemMessage: "A list or a set is expected in this spread.",
         hasPublishedDocs: true,
+        uniqueNameCheck:
+            'CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET',
         expectedTypes: [],
       );
 
@@ -1722,6 +1881,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'CONST_SPREAD_EXPECTED_MAP',
         problemMessage: "A map is expected in this spread.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP',
         expectedTypes: [],
       );
 
@@ -1733,6 +1893,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "Type parameters can't be used in a constant expression.",
         correctionMessage:
             "Try replacing the type parameter with a different type.",
+        uniqueNameCheck: 'CompileTimeErrorCode.CONST_TYPE_PARAMETER',
         expectedTypes: [],
       );
 
@@ -1743,6 +1904,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The constructor being called isn't a const constructor.",
     correctionMessage: "Try removing 'const' from the constructor invocation.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_WITH_NON_CONST',
     expectedTypes: [],
   );
 
@@ -1756,6 +1918,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try making the argument a valid constant, or use 'new' to call the "
         "constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT',
     expectedTypes: [],
   );
 
@@ -1771,6 +1934,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     hasPublishedDocs: true,
     isUnresolvedIdentifier: true,
     uniqueName: 'CONST_WITH_NON_TYPE',
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_WITH_NON_TYPE',
     withArguments: _withArgumentsConstWithNonType,
     expectedTypes: [ExpectedType.string],
   );
@@ -1784,6 +1948,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try replacing the type parameter with a different type.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS',
     expectedTypes: [],
   );
 
@@ -1798,6 +1963,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try replacing the type parameter with a different type.",
     hasPublishedDocs: true,
     uniqueName: 'CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF',
     expectedTypes: [],
   );
 
@@ -1812,6 +1979,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try replacing the type parameter with a different type.",
     hasPublishedDocs: true,
     uniqueName: 'CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF',
     expectedTypes: [],
   );
 
@@ -1829,6 +1998,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The class '{0}' doesn't have a constant constructor '{1}'.",
     correctionMessage: "Try calling a different constructor.",
+    uniqueNameCheck: 'CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR',
     withArguments: _withArgumentsConstWithUndefinedConstructor,
     expectedTypes: [ExpectedType.object, ExpectedType.string],
   );
@@ -1846,6 +2016,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The class '{0}' doesn't have an unnamed constant constructor.",
     correctionMessage: "Try calling a different constructor.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
     withArguments: _withArgumentsConstWithUndefinedConstructorDefault,
     expectedTypes: [ExpectedType.string],
   );
@@ -1858,6 +2030,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The label used in a 'continue' statement must be defined on either a loop "
         "or a switch member.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.CONTINUE_LABEL_INVALID',
     expectedTypes: [],
   );
 
@@ -1870,6 +2043,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   couldNotInfer = CompileTimeErrorTemplate(
     name: 'COULD_NOT_INFER',
     problemMessage: "Couldn't infer type parameter '{0}'.{1}",
+    uniqueNameCheck: 'CompileTimeErrorCode.COULD_NOT_INFER',
     withArguments: _withArgumentsCouldNotInfer,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -1883,6 +2057,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "another constructor.",
     correctionMessage: "Try removing the default value.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR',
     expectedTypes: [],
   );
 
@@ -1894,6 +2070,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try removing either the default value or the 'required' modifier.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
     expectedTypes: [],
   );
 
@@ -1907,6 +2084,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "Try adding either a show combinator listing the names you need to "
             "reference or a hide combinator listing all of the extensions.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION',
         expectedTypes: [],
       );
 
@@ -1922,6 +2100,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Ensure that it is assigned on necessary execution paths.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE',
     withArguments: _withArgumentsDefinitelyUnassignedLateLocalVariable,
     expectedTypes: [ExpectedType.string],
   );
@@ -1938,6 +2118,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "generic type, generic function, generic instance method, or generic "
         "constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION',
     expectedTypes: [],
   );
 
@@ -1948,6 +2130,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage:
             "A dot shorthand can't be used where there is no context type.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT',
         expectedTypes: [],
       );
 
@@ -1967,6 +2150,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "defining a getter or field named '{0}'.",
     hasPublishedDocs: true,
     uniqueName: 'DOT_SHORTHAND_UNDEFINED_GETTER',
+    uniqueNameCheck: 'CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER',
     withArguments: _withArgumentsDotShorthandUndefinedGetter,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -1988,6 +2172,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "constructor, or defining a static method or constructor named '{0}'.",
     hasPublishedDocs: true,
     uniqueName: 'DOT_SHORTHAND_UNDEFINED_INVOCATION',
+    uniqueNameCheck: 'CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION',
     withArguments: _withArgumentsDotShorthandUndefinedInvocation,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -2000,6 +2185,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage: "Try giving one of the constructors a name.",
         hasPublishedDocs: true,
         uniqueName: 'DUPLICATE_CONSTRUCTOR_DEFAULT',
+        uniqueNameCheck: 'CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT',
         expectedTypes: [],
       );
 
@@ -2014,6 +2200,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try renaming one of the constructors.",
     hasPublishedDocs: true,
     uniqueName: 'DUPLICATE_CONSTRUCTOR_NAME',
+    uniqueNameCheck: 'CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME',
     withArguments: _withArgumentsDuplicateConstructorName,
     expectedTypes: [ExpectedType.string],
   );
@@ -2028,6 +2215,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The name '{0}' is already defined.",
     correctionMessage: "Try renaming one of the declarations.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.DUPLICATE_DEFINITION',
     withArguments: _withArgumentsDuplicateDefinition,
     expectedTypes: [ExpectedType.object],
   );
@@ -2045,6 +2233,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try removing one of the parameters, or using different fields.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER',
     withArguments: _withArgumentsDuplicateFieldFormalParameter,
     expectedTypes: [ExpectedType.object],
   );
@@ -2059,6 +2248,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The field name '{0}' is already used in this record.",
     correctionMessage: "Try renaming the field.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.DUPLICATE_FIELD_NAME',
     withArguments: _withArgumentsDuplicateFieldName,
     expectedTypes: [ExpectedType.object],
   );
@@ -2076,6 +2266,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing one of the named arguments, or correcting one of the "
         "names to reference a different named parameter.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT',
     withArguments: _withArgumentsDuplicateNamedArgument,
     expectedTypes: [ExpectedType.string],
   );
@@ -2091,6 +2282,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try removing all except one of the duplicated part directives.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.DUPLICATE_PART',
     withArguments: _withArgumentsDuplicatePart,
     expectedTypes: [ExpectedType.uri],
   );
@@ -2105,6 +2297,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The variable '{0}' is already assigned in this pattern.",
     correctionMessage: "Try renaming the variable.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
     withArguments: _withArgumentsDuplicatePatternAssignmentVariable,
     expectedTypes: [ExpectedType.object],
   );
@@ -2119,6 +2313,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The field '{0}' is already matched in this pattern.",
     correctionMessage: "Try removing the duplicate field.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD',
     withArguments: _withArgumentsDuplicatePatternField,
     expectedTypes: [ExpectedType.object],
   );
@@ -2131,6 +2326,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "At most one rest element is allowed in a list or map pattern.",
         correctionMessage: "Try removing the duplicate rest element.",
         hasPublishedDocs: true,
+        uniqueNameCheck:
+            'CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN',
         expectedTypes: [],
       );
 
@@ -2144,6 +2341,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The variable '{0}' is already defined in this pattern.",
     correctionMessage: "Try renaming the variable.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN',
     withArguments: _withArgumentsDuplicateVariablePattern,
     expectedTypes: [ExpectedType.object],
   );
@@ -2155,6 +2353,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "A map pattern must have at least one entry.",
         correctionMessage: "Try replacing it with an object pattern 'Map()'.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.EMPTY_MAP_PATTERN',
         expectedTypes: [],
       );
 
@@ -2164,6 +2363,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
     problemMessage: "An enum value can't invoke a factory constructor.",
     correctionMessage: "Try using a generative constructor.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
     expectedTypes: [],
   );
 
@@ -2175,6 +2376,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The name of the enum value can't be the same as the enum's name.",
     correctionMessage: "Try renaming the constant.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
     expectedTypes: [],
   );
 
@@ -2185,19 +2388,21 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The result of instantiating the enum to bounds is not well-bounded.",
     correctionMessage: "Try using different bounds for type parameters.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
     expectedTypes: [],
   );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments enumMixinWithInstanceVariable =
-      CompileTimeErrorWithoutArguments(
-        name: 'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
-        problemMessage:
-            "Mixins applied to enums can't have instance variables.",
-        correctionMessage: "Try replacing the instance variables with getters.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+  static const CompileTimeErrorWithoutArguments
+  enumMixinWithInstanceVariable = CompileTimeErrorWithoutArguments(
+    name: 'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
+    problemMessage: "Mixins applied to enums can't have instance variables.",
+    correctionMessage: "Try replacing the instance variables with getters.",
+    hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
+    expectedTypes: [],
+  );
 
   /// Parameters:
   /// String p0: the name of the abstract method
@@ -2210,6 +2415,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "'{0}' must have a method body because '{1}' is an enum.",
     correctionMessage: "Try adding a body to '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER',
     withArguments: _withArgumentsEnumWithAbstractMember,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -2221,6 +2427,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "The name 'values' is not a valid name for an enum.",
         correctionMessage: "Try using a different name.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.ENUM_WITH_NAME_VALUES',
         expectedTypes: [],
       );
 
@@ -2230,6 +2437,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'ENUM_WITHOUT_CONSTANTS',
         problemMessage: "The enum must have at least one enum constant.",
         correctionMessage: "Try declaring an enum constant.",
+        uniqueNameCheck: 'CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS',
         expectedTypes: [],
       );
 
@@ -2241,6 +2449,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "Two elements in a constant set literal can't be equal.",
         correctionMessage: "Change or remove the duplicate element.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET',
         expectedTypes: [],
       );
 
@@ -2251,6 +2460,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Two keys in a constant map literal can't be equal.",
         correctionMessage: "Change or remove the duplicate key.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP',
         expectedTypes: [],
       );
 
@@ -2261,6 +2471,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Two keys in a map pattern can't be equal.",
         correctionMessage: "Change or remove the duplicate key.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN',
         expectedTypes: [],
       );
 
@@ -2275,6 +2486,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "List patterns require one type argument or none, but {0} found.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
     withArguments: _withArgumentsExpectedOneListPatternTypeArguments,
     expectedTypes: [ExpectedType.int],
   );
@@ -2290,6 +2503,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "List literals require one type argument or none, but {0} found.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
     withArguments: _withArgumentsExpectedOneListTypeArguments,
     expectedTypes: [ExpectedType.int],
   );
@@ -2305,6 +2519,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Set literals require one type argument or none, but {0} were found.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS',
     withArguments: _withArgumentsExpectedOneSetTypeArguments,
     expectedTypes: [ExpectedType.int],
   );
@@ -2320,6 +2535,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Map patterns require two type arguments or none, but {0} found.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS',
     withArguments: _withArgumentsExpectedTwoMapPatternTypeArguments,
     expectedTypes: [ExpectedType.int],
   );
@@ -2335,6 +2552,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Map literals require two type arguments or none, but {0} found.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
     withArguments: _withArgumentsExpectedTwoMapTypeArguments,
     expectedTypes: [ExpectedType.int],
   );
@@ -2348,6 +2566,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'EXPORT_INTERNAL_LIBRARY',
     problemMessage: "The library '{0}' is internal and can't be exported.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
     withArguments: _withArgumentsExportInternalLibrary,
     expectedTypes: [ExpectedType.string],
   );
@@ -2363,6 +2582,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The exported library '{0}' can't have a part-of directive.",
     correctionMessage: "Try exporting the library that the part is a part of.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY',
     withArguments: _withArgumentsExportOfNonLibrary,
     expectedTypes: [ExpectedType.string],
   );
@@ -2375,6 +2595,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the expression or converting it to be a map entry.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.EXPRESSION_IN_MAP',
         expectedTypes: [],
       );
 
@@ -2388,6 +2609,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "clause.",
         hasPublishedDocs: true,
         uniqueName: 'EXTENDS_DEFERRED_CLASS',
+        uniqueNameCheck: 'CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS',
         expectedTypes: [],
       );
 
@@ -2404,6 +2626,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "clause.",
     hasPublishedDocs: true,
     uniqueName: 'EXTENDS_DISALLOWED_CLASS',
+    uniqueNameCheck: 'CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS',
     withArguments: _withArgumentsExtendsDisallowedClass,
     expectedTypes: [ExpectedType.type],
   );
@@ -2418,6 +2641,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "clause.",
         hasPublishedDocs: true,
         isUnresolvedIdentifier: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.EXTENDS_NON_CLASS',
         expectedTypes: [],
       );
 
@@ -2433,6 +2657,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "clause.",
     hasPublishedDocs: true,
     uniqueName: 'EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
     expectedTypes: [],
   );
 
@@ -2446,6 +2672,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Extension '{0}' can't be used as an expression.",
     correctionMessage: "Try replacing it with a valid expression.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.EXTENSION_AS_EXPRESSION',
     withArguments: _withArgumentsExtensionAsExpression,
     expectedTypes: [ExpectedType.string],
   );
@@ -2463,6 +2690,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try renaming the member to a name that doesn't conflict.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
     withArguments: _withArgumentsExtensionConflictingStaticAndInstance,
     expectedTypes: [ExpectedType.string],
   );
@@ -2474,6 +2703,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Extensions can't declare instance fields.",
         correctionMessage: "Try replacing the field with a getter.",
         hasPublishedDocs: true,
+        uniqueNameCheck:
+            'CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD',
         expectedTypes: [],
       );
 
@@ -2486,6 +2717,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "by 'Object'.",
     correctionMessage: "Try specifying a different name for the member.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT',
     expectedTypes: [],
   );
 
@@ -2498,6 +2730,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "extension.",
     correctionMessage: "Try using just the name of the extension.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
     expectedTypes: [],
   );
 
@@ -2513,6 +2747,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The type of the argument to the extension override '{0}' isn't assignable "
         "to the extended type '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
     withArguments: _withArgumentsExtensionOverrideArgumentNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -2526,6 +2762,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "of a cascade expression.",
     correctionMessage: "Try using '.' instead of '..'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE',
     expectedTypes: [],
   );
 
@@ -2537,6 +2774,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "An extension override can only be used to access instance members.",
     correctionMessage: "Consider adding an access to an instance member.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS',
     expectedTypes: [],
   );
 
@@ -2550,20 +2788,23 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the super formal parameter declaration.",
         hasPublishedDocs: true,
+        uniqueNameCheck:
+            'CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
         expectedTypes: [],
       );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
-  extensionTypeConstructorWithSuperInvocation =
-      CompileTimeErrorWithoutArguments(
-        name: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
-        problemMessage:
-            "Extension type constructors can't include super initializers.",
-        correctionMessage: "Try removing the super constructor invocation.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+  extensionTypeConstructorWithSuperInvocation = CompileTimeErrorWithoutArguments(
+    name: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
+    problemMessage:
+        "Extension type constructors can't include super initializers.",
+    correctionMessage: "Try removing the super constructor invocation.",
+    hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
@@ -2572,6 +2813,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Extension types can't declare instance fields.",
     correctionMessage: "Try replacing the field with a getter.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
     expectedTypes: [],
   );
 
@@ -2584,6 +2827,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "declared by 'Object'.",
     correctionMessage: "Try specifying a different name for the member.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT',
     expectedTypes: [],
   );
 
@@ -2598,6 +2843,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try specifying a different type, or remove the type from the list.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
     withArguments: _withArgumentsExtensionTypeImplementsDisallowedType,
     expectedTypes: [ExpectedType.type],
   );
@@ -2610,6 +2857,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try removing the superinterface that references this extension type.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF',
     expectedTypes: [],
   );
 
@@ -2626,6 +2874,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try specifying a different type, or remove the type from the list.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE',
     withArguments: _withArgumentsExtensionTypeImplementsNotSupertype,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -2651,6 +2901,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try specifying a different type, or remove the type from the list.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE',
     withArguments:
         _withArgumentsExtensionTypeImplementsRepresentationNotSupertype,
     expectedTypes: [
@@ -2675,6 +2927,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try redeclaring the corresponding member in this extension type.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT',
     withArguments: _withArgumentsExtensionTypeInheritedMemberConflict,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -2686,6 +2940,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The extension type representation can't depend on itself.",
     correctionMessage: "Try specifying a different type.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
     expectedTypes: [],
   );
 
@@ -2696,6 +2952,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The representation type can't be a bottom type.",
     correctionMessage: "Try specifying a different type.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM',
     expectedTypes: [],
   );
 
@@ -2711,6 +2969,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{0}' must have a method body because '{1}' is an extension type.",
     correctionMessage: "Try adding a body to '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
     withArguments: _withArgumentsExtensionTypeWithAbstractMember,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -2725,6 +2984,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "field declaration.",
     hasPublishedDocs: true,
     uniqueName: 'EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
     expectedTypes: [],
   );
 
@@ -2737,6 +2998,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "Try removing the initializer or the 'external' keyword.",
         hasPublishedDocs: true,
         uniqueName: 'EXTERNAL_FIELD_INITIALIZER',
+        uniqueNameCheck: 'CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER',
         expectedTypes: [],
       );
 
@@ -2749,6 +3011,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "Try removing the initializer or the 'external' keyword.",
         hasPublishedDocs: true,
         uniqueName: 'EXTERNAL_VARIABLE_INITIALIZER',
+        uniqueNameCheck: 'CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER',
         expectedTypes: [],
       );
 
@@ -2764,6 +3027,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Too many positional arguments: {0} expected, but {1} found.",
     correctionMessage: "Try removing the extra arguments.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS',
     withArguments: _withArgumentsExtraPositionalArguments,
     expectedTypes: [ExpectedType.int, ExpectedType.int],
   );
@@ -2782,6 +3046,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the extra positional arguments, or specifying the name "
         "for named arguments.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
     withArguments: _withArgumentsExtraPositionalArgumentsCouldBeNamed,
     expectedTypes: [ExpectedType.int, ExpectedType.int],
   );
@@ -2797,6 +3063,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The field '{0}' can't be initialized twice in the same constructor.",
     correctionMessage: "Try removing one of the initializations.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS',
     withArguments: _withArgumentsFieldInitializedByMultipleInitializers,
     expectedTypes: [ExpectedType.string],
   );
@@ -2810,6 +3078,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "already initialized at their declaration.",
     correctionMessage: "Try removing one of the initializations.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
     expectedTypes: [],
   );
 
@@ -2822,6 +3092,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "initializers.",
     correctionMessage: "Try removing one of the initializations.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER',
     expectedTypes: [],
   );
 
@@ -2833,6 +3105,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Initializing formal parameters can't be used in factory constructors.",
     correctionMessage: "Try using a normal parameter.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR',
     expectedTypes: [],
   );
 
@@ -2847,6 +3121,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The initializer type '{0}' can't be assigned to the field type '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE',
     withArguments: _withArgumentsFieldInitializerNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -2859,6 +3134,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Field formal parameters can only be used in a constructor.",
     correctionMessage: "Try removing 'this.'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
     expectedTypes: [],
   );
 
@@ -2871,6 +3148,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try initializing the field in the constructor being redirected to.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
     expectedTypes: [],
   );
 
@@ -2888,6 +3167,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try changing or removing the parameter's type, or changing the "
         "field's type.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
     withArguments: _withArgumentsFieldInitializingFormalNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -2904,6 +3185,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "final class.",
     hasPublishedDocs: true,
     uniqueName: 'FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
     withArguments: _withArgumentsFinalClassExtendedOutsideOfLibrary,
     expectedTypes: [ExpectedType.string],
   );
@@ -2920,6 +3203,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "a final class.",
     hasPublishedDocs: true,
     uniqueName: 'FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
     withArguments: _withArgumentsFinalClassImplementedOutsideOfLibrary,
     expectedTypes: [ExpectedType.string],
   );
@@ -2937,6 +3222,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "its library because it's a final class.",
     hasPublishedDocs: true,
     uniqueName: 'FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY',
     withArguments:
         _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary,
     expectedTypes: [ExpectedType.string],
@@ -2954,6 +3241,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "set to a new value.",
     correctionMessage: "Try removing one of the initializations.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
     withArguments: _withArgumentsFinalInitializedInDeclarationAndConstructor,
     expectedTypes: [ExpectedType.string],
   );
@@ -2968,6 +3257,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The final variable '{0}' must be initialized.",
     correctionMessage: "Try initializing the variable.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.FINAL_NOT_INITIALIZED',
     withArguments: _withArgumentsFinalNotInitialized,
     expectedTypes: [ExpectedType.string],
   );
@@ -2983,6 +3273,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try adding an initializer for the field.",
     hasPublishedDocs: true,
     uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
+    uniqueNameCheck: 'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
     withArguments: _withArgumentsFinalNotInitializedConstructor1,
     expectedTypes: [ExpectedType.string],
   );
@@ -3000,6 +3291,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try adding initializers for the fields.",
     hasPublishedDocs: true,
     uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
+    uniqueNameCheck: 'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
     withArguments: _withArgumentsFinalNotInitializedConstructor2,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -3024,6 +3316,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try adding initializers for the fields.",
     hasPublishedDocs: true,
     uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS',
     withArguments: _withArgumentsFinalNotInitializedConstructor3Plus,
     expectedTypes: [ExpectedType.string, ExpectedType.string, ExpectedType.int],
   );
@@ -3046,6 +3340,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The type '{0}' used in the 'for' loop must implement '{1}' with a type "
         "argument that can be assigned to '{2}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE',
     withArguments: _withArgumentsForInOfInvalidElementType,
     expectedTypes: [ExpectedType.type, ExpectedType.string, ExpectedType.type],
   );
@@ -3062,6 +3357,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The type '{0}' used in the 'for' loop must implement '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE',
     withArguments: _withArgumentsForInOfInvalidType,
     expectedTypes: [ExpectedType.type, ExpectedType.string],
   );
@@ -3075,6 +3371,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "Try removing the 'const' modifier from the variable, or use a "
             "different variable.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE',
         expectedTypes: [],
       );
 
@@ -3090,6 +3387,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try making the free variable in the function type part of the larger "
         "declaration signature.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
     expectedTypes: [],
   );
 
@@ -3104,6 +3403,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try removing type parameters from the generic function type, or using "
         "'dynamic' as the type argument here.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
     expectedTypes: [],
   );
 
@@ -3118,6 +3419,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Specify the type of the receiver, or remove the type arguments from "
         "the method tear-off.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC',
     expectedTypes: [],
   );
 
@@ -3140,6 +3443,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The return type of getter '{0}' is '{1}' which isn't assignable to the "
         "type '{2}' of its setter '{3}'.",
     correctionMessage: "Try changing the types so that they are compatible.",
+    uniqueNameCheck: 'CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES',
     withArguments: _withArgumentsGetterNotAssignableSetterTypes,
     expectedTypes: [
       ExpectedType.object,
@@ -3169,6 +3473,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "type '{2}' of its setter '{3}'.",
     correctionMessage: "Try changing the types so that they are compatible.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES',
     withArguments: _withArgumentsGetterNotSubtypeSetterTypes,
     expectedTypes: [
       ExpectedType.object,
@@ -3186,6 +3491,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Constant values from a deferred library can't be used as values in an if "
         "condition inside a const collection literal.",
     correctionMessage: "Try making the deferred import non-deferred.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
     expectedTypes: [],
   );
 
@@ -3200,6 +3507,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try fixing the return type of the function, or removing the modifier "
         "'async*' from the function body.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
     expectedTypes: [],
   );
 
@@ -3214,6 +3522,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try fixing the return type of the function, or removing the modifier "
         "'async' from the function body.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE',
     expectedTypes: [],
   );
 
@@ -3230,6 +3539,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try using a different name.",
     hasPublishedDocs: true,
     uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION',
     withArguments: _withArgumentsIllegalConcreteEnumMemberDeclaration,
     expectedTypes: [ExpectedType.string],
   );
@@ -3248,6 +3559,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try using a different name.",
     hasPublishedDocs: true,
     uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE',
     withArguments: _withArgumentsIllegalConcreteEnumMemberInheritance,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -3262,6 +3575,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try using a different name.",
     hasPublishedDocs: true,
     uniqueName: 'ILLEGAL_ENUM_VALUES_DECLARATION',
+    uniqueNameCheck: 'CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION',
     expectedTypes: [],
   );
 
@@ -3278,6 +3592,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try using a different name.",
     hasPublishedDocs: true,
     uniqueName: 'ILLEGAL_ENUM_VALUES_INHERITANCE',
+    uniqueNameCheck: 'CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE',
     withArguments: _withArgumentsIllegalEnumValuesInheritance,
     expectedTypes: [ExpectedType.string],
   );
@@ -3292,6 +3607,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The language version must be {0}.",
     correctionMessage:
         "Try removing the language version override and migrating the code.",
+    uniqueNameCheck: 'CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
     withArguments: _withArgumentsIllegalLanguageVersionOverride,
     expectedTypes: [ExpectedType.string],
   );
@@ -3307,6 +3623,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try fixing the return type of the function, or removing the modifier "
         "'sync*' from the function body.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
     expectedTypes: [],
   );
 
@@ -3320,6 +3637,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "list, or changing the import to not be deferred.",
         hasPublishedDocs: true,
         uniqueName: 'IMPLEMENTS_DEFERRED_CLASS',
+        uniqueNameCheck: 'CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS',
         expectedTypes: [],
       );
 
@@ -3336,6 +3654,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "list.",
     hasPublishedDocs: true,
     uniqueName: 'IMPLEMENTS_DISALLOWED_CLASS',
+    uniqueNameCheck: 'CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS',
     withArguments: _withArgumentsImplementsDisallowedClass,
     expectedTypes: [ExpectedType.type],
   );
@@ -3349,6 +3668,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try specifying a class or mixin, or remove the name from the list.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.IMPLEMENTS_NON_CLASS',
     expectedTypes: [],
   );
 
@@ -3362,6 +3682,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "'{0}' can only be implemented once.",
     correctionMessage: "Try removing all but one occurrence of the class name.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.IMPLEMENTS_REPEATED',
     withArguments: _withArgumentsImplementsRepeated,
     expectedTypes: [ExpectedType.string],
   );
@@ -3378,6 +3699,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{0}' can't be used in both the 'extends' and 'implements' clauses.",
     correctionMessage: "Try removing one of the occurrences.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS',
     withArguments: _withArgumentsImplementsSuperClass,
     expectedTypes: [ExpectedType.element],
   );
@@ -3391,6 +3713,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try specifying a class or mixin, or removing the list.",
     hasPublishedDocs: true,
     uniqueName: 'IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
     expectedTypes: [],
   );
 
@@ -3407,6 +3731,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try adding an explicit super parameter with the required arguments.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
     withArguments: _withArgumentsImplicitSuperInitializerMissingArguments,
     expectedTypes: [ExpectedType.type],
   );
@@ -3424,6 +3750,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try replacing the reference to the instance member with a different "
         "expression",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER',
     withArguments: _withArgumentsImplicitThisReferenceInInitializer,
     expectedTypes: [ExpectedType.string],
   );
@@ -3437,6 +3765,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'IMPORT_INTERNAL_LIBRARY',
     problemMessage: "The library '{0}' is internal and can't be imported.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY',
     withArguments: _withArgumentsImportInternalLibrary,
     expectedTypes: [ExpectedType.string],
   );
@@ -3452,6 +3781,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The imported library '{0}' can't have a part-of directive.",
     correctionMessage: "Try importing the library that the part is a part of.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY',
     withArguments: _withArgumentsImportOfNonLibrary,
     expectedTypes: [ExpectedType.string],
   );
@@ -3470,6 +3800,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INCONSISTENT_CASE_EXPRESSION_TYPES',
     problemMessage:
         "Case expressions must have the same types, '{0}' isn't a '{1}'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES',
     withArguments: _withArgumentsInconsistentCaseExpressionTypes,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -3488,6 +3819,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try adding an explicit override that is consistent with all of the "
         "inherited members.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INCONSISTENT_INHERITANCE',
     withArguments: _withArgumentsInconsistentInheritance,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -3519,6 +3851,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try adjusting the supertypes of this class to remove the "
         "inconsistency.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD',
     withArguments: _withArgumentsInconsistentInheritanceGetterAndMethod,
     expectedTypes: [
       ExpectedType.string,
@@ -3535,6 +3869,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Parts must have exactly the same language version override as the "
         "library.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
     expectedTypes: [],
   );
 
@@ -3552,6 +3888,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try declaring the variable pattern with the same type and finality in "
         "both branches.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR',
     withArguments: _withArgumentsInconsistentPatternVariableLogicalOr,
     expectedTypes: [ExpectedType.string],
   );
@@ -3569,6 +3907,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the name to match an existing field, or defining a "
         "field named '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD',
     withArguments: _withArgumentsInitializerForNonExistentField,
     expectedTypes: [ExpectedType.string],
   );
@@ -3586,6 +3925,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "constructor can't be static.",
     correctionMessage: "Try removing the initialization.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD',
     withArguments: _withArgumentsInitializerForStaticField,
     expectedTypes: [ExpectedType.string],
   );
@@ -3603,6 +3943,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the name to match an existing field, or defining a "
         "field named '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD',
     withArguments: _withArgumentsInitializingFormalForNonExistentField,
     expectedTypes: [ExpectedType.string],
   );
@@ -3628,6 +3970,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The static {1} '{0}' can't be accessed through an instance.",
     correctionMessage: "Try using the {3} '{2}' to access the {1}.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER',
     withArguments: _withArgumentsInstanceAccessToStaticMember,
     expectedTypes: [
       ExpectedType.string,
@@ -3650,6 +3993,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The static {1} '{0}' can't be accessed through an instance.",
     hasPublishedDocs: true,
     uniqueName: 'INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION',
     withArguments: _withArgumentsInstanceAccessToStaticMemberOfUnnamedExtension,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -3662,6 +4007,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Instance members can't be accessed from a factory constructor.",
     correctionMessage: "Try removing the reference to the instance member.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY',
     expectedTypes: [],
   );
 
@@ -3674,6 +4020,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the reference to the instance member, or removing the "
         "keyword 'static' from the method.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC',
     expectedTypes: [],
   );
 
@@ -3684,6 +4031,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Abstract classes can't be instantiated.",
         correctionMessage: "Try creating an instance of a concrete subtype.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS',
         expectedTypes: [],
       );
 
@@ -3694,6 +4042,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Enums can't be instantiated.",
         correctionMessage: "Try using one of the defined constants.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.INSTANTIATE_ENUM',
         expectedTypes: [],
       );
 
@@ -3705,6 +4054,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Type aliases that expand to a type parameter can't be instantiated.",
     correctionMessage: "Try replacing it with a class.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
     expectedTypes: [],
   );
 
@@ -3723,6 +4074,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try using the class 'BigInt', or switch to the closest valid double: "
         "'{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
     withArguments: _withArgumentsIntegerLiteralImpreciseAsDouble,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -3739,6 +4091,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try using the 'BigInt' class if you need an integer larger than "
         "9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE',
     withArguments: _withArgumentsIntegerLiteralOutOfRange,
     expectedTypes: [ExpectedType.string],
   );
@@ -3755,6 +4108,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "interface class.",
     hasPublishedDocs: true,
     uniqueName: 'INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
     withArguments: _withArgumentsInterfaceClassExtendedOutsideOfLibrary,
     expectedTypes: [ExpectedType.string],
   );
@@ -3767,22 +4122,24 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Annotation must be either a const variable reference or const constructor "
         "invocation.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_ANNOTATION',
     expectedTypes: [],
   );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
-  invalidAnnotationConstantValueFromDeferredLibrary =
-      CompileTimeErrorWithoutArguments(
-        name: 'INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
-        problemMessage:
-            "Constant values from a deferred library can't be used in annotations.",
-        correctionMessage:
-            "Try moving the constant from the deferred library, or removing "
-            "'deferred' from the import.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+  invalidAnnotationConstantValueFromDeferredLibrary = CompileTimeErrorWithoutArguments(
+    name: 'INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
+    problemMessage:
+        "Constant values from a deferred library can't be used in annotations.",
+    correctionMessage:
+        "Try moving the constant from the deferred library, or removing "
+        "'deferred' from the import.",
+    hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
@@ -3794,6 +4151,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the annotation, or changing the import to not be "
         "deferred.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY',
     expectedTypes: [],
   );
 
@@ -3811,6 +4170,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try changing the type of the variable, or casting the right-hand type "
         "to '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_ASSIGNMENT',
     withArguments: _withArgumentsInvalidAssignment,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -3833,6 +4193,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The function '{0}' has type '{1}' that isn't of expected type '{2}'. This "
         "means its parameter or return type doesn't match what is expected.",
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_CAST_FUNCTION',
     withArguments: _withArgumentsInvalidCastFunction,
     expectedTypes: [
       ExpectedType.object,
@@ -3855,6 +4216,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The function expression type '{0}' isn't of type '{1}'. This means its "
         "parameter or return type doesn't match what is expected. Consider "
         "changing parameter type(s) or the returned type(s).",
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR',
     withArguments: _withArgumentsInvalidCastFunctionExpr,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -3876,6 +4238,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INVALID_CAST_LITERAL',
     problemMessage:
         "The literal '{0}' with type '{1}' isn't of expected type '{2}'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_CAST_LITERAL',
     withArguments: _withArgumentsInvalidCastLiteral,
     expectedTypes: [
       ExpectedType.object,
@@ -3898,6 +4261,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The list literal type '{0}' isn't of expected type '{1}'. The list's type "
         "can be changed with an explicit generic type argument or by changing "
         "the element types.",
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST',
     withArguments: _withArgumentsInvalidCastLiteralList,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -3916,6 +4280,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The map literal type '{0}' isn't of expected type '{1}'. The map's type "
         "can be changed with an explicit generic type arguments or by changing "
         "the key and value types.",
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP',
     withArguments: _withArgumentsInvalidCastLiteralMap,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -3934,6 +4299,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The set literal type '{0}' isn't of expected type '{1}'. The set's type "
         "can be changed with an explicit generic type argument or by changing "
         "the element types.",
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_CAST_LITERAL_SET',
     withArguments: _withArgumentsInvalidCastLiteralSet,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -3957,6 +4323,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The method tear-off '{0}' has type '{1}' that isn't of expected type "
         "'{2}'. This means its parameter or return type doesn't match what is "
         "expected.",
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_CAST_METHOD',
     withArguments: _withArgumentsInvalidCastMethod,
     expectedTypes: [
       ExpectedType.object,
@@ -3977,6 +4344,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INVALID_CAST_NEW_EXPR',
     problemMessage:
         "The constructor returns type '{0}' that isn't of expected type '{1}'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_CAST_NEW_EXPR',
     withArguments: _withArgumentsInvalidCastNewExpr,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -3992,6 +4360,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       CompileTimeErrorWithoutArguments(
         name: 'INVALID_CONSTANT',
         problemMessage: "Invalid constant value.",
+        uniqueNameCheck: 'CompileTimeErrorCode.INVALID_CONSTANT',
         expectedTypes: [],
       );
 
@@ -4004,6 +4373,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "in the extension method.",
     correctionMessage: "Try specifying exactly one argument.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT',
     expectedTypes: [],
   );
 
@@ -4015,6 +4385,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The name of a factory constructor must be the same as the name of the "
         "immediately enclosing class.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS',
     expectedTypes: [],
   );
 
@@ -4027,6 +4398,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage: "Try using a different name for the field.",
         hasPublishedDocs: true,
         uniqueName: 'INVALID_FIELD_NAME_FROM_OBJECT',
+        uniqueNameCheck: 'CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT',
         expectedTypes: [],
       );
 
@@ -4040,6 +4412,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try using a different name for the field.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_FIELD_NAME_POSITIONAL',
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL',
     expectedTypes: [],
   );
 
@@ -4051,6 +4424,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage: "Try removing the leading underscore.",
         hasPublishedDocs: true,
         uniqueName: 'INVALID_FIELD_NAME_PRIVATE',
+        uniqueNameCheck: 'CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE',
         expectedTypes: [],
       );
 
@@ -4078,6 +4452,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' "
         "('{4}').",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE',
     withArguments: _withArgumentsInvalidImplementationOverride,
     expectedTypes: [
       ExpectedType.object,
@@ -4113,6 +4488,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{3}.{0}' ('{4}').",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_IMPLEMENTATION_OVERRIDE_SETTER',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER',
     withArguments: _withArgumentsInvalidImplementationOverrideSetter,
     expectedTypes: [
       ExpectedType.object,
@@ -4134,6 +4511,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try using a generic function type (returnType 'Function(' parameters "
         "')').",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE',
     expectedTypes: [],
   );
 
@@ -4148,6 +4526,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The modifier '{0}' can't be applied to the body of a constructor.",
     correctionMessage: "Try removing the modifier.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR',
     withArguments: _withArgumentsInvalidModifierOnConstructor,
     expectedTypes: [ExpectedType.string],
   );
@@ -4159,6 +4538,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Setters can't use 'async', 'async*', or 'sync*'.",
         correctionMessage: "Try removing the modifier.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER',
         expectedTypes: [],
       );
 
@@ -4182,6 +4562,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_OVERRIDE',
     withArguments: _withArgumentsInvalidOverride,
     expectedTypes: [
       ExpectedType.string,
@@ -4213,6 +4594,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_OVERRIDE_SETTER',
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_OVERRIDE_SETTER',
     withArguments: _withArgumentsInvalidOverrideSetter,
     expectedTypes: [
       ExpectedType.object,
@@ -4231,6 +4613,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Generative enum constructors can only be used to create an enum constant.",
     correctionMessage: "Try using an enum value, or a factory constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
     expectedTypes: [],
   );
 
@@ -4243,6 +4627,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage: "Try using an enum value, or a factory constructor.",
         hasPublishedDocs: true,
         uniqueName: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF',
+        uniqueNameCheck:
+            'CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF',
         expectedTypes: [],
       );
 
@@ -4252,6 +4638,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'INVALID_REFERENCE_TO_THIS',
         problemMessage: "Invalid reference to 'this' expression.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS',
         expectedTypes: [],
       );
 
@@ -4266,6 +4653,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the 'super' modifier, or changing the constructor to be "
         "non-redirecting and generative.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION',
     expectedTypes: [],
   );
 
@@ -4283,6 +4672,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try replacing the type parameter with a different type.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_TYPE_ARGUMENT_IN_CONST_LIST',
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST',
     withArguments: _withArgumentsInvalidTypeArgumentInConstList,
     expectedTypes: [ExpectedType.object],
   );
@@ -4301,6 +4691,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try replacing the type parameter with a different type.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_TYPE_ARGUMENT_IN_CONST_MAP',
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP',
     withArguments: _withArgumentsInvalidTypeArgumentInConstMap,
     expectedTypes: [ExpectedType.object],
   );
@@ -4319,6 +4710,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try replacing the type parameter with a different type.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_TYPE_ARGUMENT_IN_CONST_SET',
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET',
     withArguments: _withArgumentsInvalidTypeArgumentInConstSet,
     expectedTypes: [ExpectedType.string],
   );
@@ -4332,6 +4724,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INVALID_URI',
     problemMessage: "Invalid URI syntax: '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_URI',
     withArguments: _withArgumentsInvalidUri,
     expectedTypes: [ExpectedType.string],
   );
@@ -4346,6 +4739,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The 'covariant' keyword can only be used for parameters in instance "
         "methods or before non-final instance fields.",
     correctionMessage: "Try removing the 'covariant' keyword.",
+    uniqueNameCheck: 'CompileTimeErrorCode.INVALID_USE_OF_COVARIANT',
     expectedTypes: [],
   );
 
@@ -4357,6 +4751,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "An expression whose value is always 'null' can't be dereferenced.",
         correctionMessage: "Try changing the type of the expression.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE',
         expectedTypes: [],
       );
 
@@ -4371,6 +4766,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The extension '{0}' doesn't define a 'call' method so the override can't "
         "be used in an invocation.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL',
     withArguments: _withArgumentsInvocationOfExtensionWithoutCall,
     expectedTypes: [ExpectedType.string],
   );
@@ -4387,6 +4784,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the name to match an existing function, or define a "
         "method or function named '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION',
     withArguments: _withArgumentsInvocationOfNonFunction,
     expectedTypes: [ExpectedType.string],
   );
@@ -4398,6 +4796,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The expression doesn't evaluate to a function, so it can't be invoked.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION',
     expectedTypes: [],
   );
 
@@ -4410,6 +4810,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'LABEL_IN_OUTER_SCOPE',
     problemMessage: "Can't reference label '{0}' declared in an outer method.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE',
     withArguments: _withArgumentsLabelInOuterScope,
     expectedTypes: [ExpectedType.string],
   );
@@ -4426,6 +4827,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try defining the label, or correcting the name to match an existing "
         "label.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.LABEL_UNDEFINED',
     withArguments: _withArgumentsLabelUndefined,
     expectedTypes: [ExpectedType.string],
   );
@@ -4441,6 +4843,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the 'late' modifier, or don't declare 'const' "
         "constructors.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
     expectedTypes: [],
   );
 
@@ -4452,6 +4856,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the 'final' modifier, or don't reassign the value.",
         hasPublishedDocs: true,
+        uniqueNameCheck:
+            'CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
         expectedTypes: [],
       );
 
@@ -4466,6 +4872,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The element type '{0}' can't be assigned to the list type '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
     withArguments: _withArgumentsListElementTypeNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -4482,6 +4889,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The element type '{0}' can't be assigned to the list type '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
     withArguments: _withArgumentsListElementTypeNotAssignableNullability,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -4495,6 +4904,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "a supertype of 'List<String>'.",
     correctionMessage: "Try changing the type of the parameter.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE',
     expectedTypes: [],
   );
 
@@ -4508,6 +4919,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "Try using a different name for the function, or removing the "
             "'required' modifier.",
         hasPublishedDocs: true,
+        uniqueNameCheck:
+            'CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS',
         expectedTypes: [],
       );
 
@@ -4522,6 +4935,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try using a different name for the function, or removing extra "
         "parameters.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
     expectedTypes: [],
   );
 
@@ -4532,6 +4947,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "The declaration named 'main' must be a function.",
         correctionMessage: "Try using a different name for this declaration.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION',
         expectedTypes: [],
       );
 
@@ -4543,6 +4959,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try converting the collection to a map or removing the map entry.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP',
         expectedTypes: [],
       );
 
@@ -4557,6 +4974,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The element type '{0}' can't be assigned to the map key type '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE',
     withArguments: _withArgumentsMapKeyTypeNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -4573,6 +4991,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The element type '{0}' can't be assigned to the map key type '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY',
     withArguments: _withArgumentsMapKeyTypeNotAssignableNullability,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -4588,6 +5008,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The element type '{0}' can't be assigned to the map value type '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE',
     withArguments: _withArgumentsMapValueTypeNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -4604,6 +5025,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The element type '{0}' can't be assigned to the map value type '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY',
     withArguments: _withArgumentsMapValueTypeNotAssignableNullability,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -4619,6 +5042,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'MISSING_CONST_IN_LIST_LITERAL',
         problemMessage:
             "Seeing this message constitutes a bug. Please report it.",
+        uniqueNameCheck: 'CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL',
         expectedTypes: [],
       );
 
@@ -4633,6 +5057,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'MISSING_CONST_IN_MAP_LITERAL',
         problemMessage:
             "Seeing this message constitutes a bug. Please report it.",
+        uniqueNameCheck: 'CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL',
         expectedTypes: [],
       );
 
@@ -4647,6 +5072,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'MISSING_CONST_IN_SET_LITERAL',
         problemMessage:
             "Seeing this message constitutes a bug. Please report it.",
+        uniqueNameCheck: 'CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL',
         expectedTypes: [],
       );
 
@@ -4660,6 +5086,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Required library '{0}' is missing.",
     correctionMessage: "Re-install the Dart or Flutter SDK.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.MISSING_DART_LIBRARY',
     withArguments: _withArgumentsMissingDartLibrary,
     expectedTypes: [ExpectedType.object],
   );
@@ -4678,6 +5105,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try adding either an explicit non-'null' default value or the "
         "'required' modifier.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER',
     withArguments: _withArgumentsMissingDefaultValueForParameter,
     expectedTypes: [ExpectedType.string],
   );
@@ -4695,23 +5123,26 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try adding an explicit non-'null' default value.",
     hasPublishedDocs: true,
     uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL',
     withArguments: _withArgumentsMissingDefaultValueForParameterPositional,
     expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
-  missingDefaultValueForParameterWithAnnotation =
-      CompileTimeErrorWithoutArguments(
-        name: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
-        problemMessage:
-            "With null safety, use the 'required' keyword, not the '@required' "
-            "annotation.",
-        correctionMessage: "Try removing the '@'.",
-        hasPublishedDocs: true,
-        uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
-        expectedTypes: [],
-      );
+  missingDefaultValueForParameterWithAnnotation = CompileTimeErrorWithoutArguments(
+    name: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+    problemMessage:
+        "With null safety, use the 'required' keyword, not the '@required' "
+        "annotation.",
+    correctionMessage: "Try removing the '@'.",
+    hasPublishedDocs: true,
+    uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
@@ -4724,6 +5155,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try specifying the getter name explicitly, or using a variable "
         "pattern.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME',
     expectedTypes: [],
   );
 
@@ -4739,6 +5171,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "argument.",
     correctionMessage: "Try adding the required argument.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT',
     withArguments: _withArgumentsMissingRequiredArgument,
     expectedTypes: [ExpectedType.string],
   );
@@ -4755,6 +5188,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "pattern.",
     correctionMessage: "Try declaring this variable pattern in the branch.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.MISSING_VARIABLE_PATTERN',
     withArguments: _withArgumentsMissingVariablePattern,
     expectedTypes: [ExpectedType.string],
   );
@@ -4777,6 +5211,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The super-invoked member '{0}' has the type '{1}', and the concrete "
         "member in the class has the type '{2}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
     withArguments: _withArgumentsMixinApplicationConcreteSuperInvokedMemberType,
     expectedTypes: [ExpectedType.string, ExpectedType.type, ExpectedType.type],
   );
@@ -4793,6 +5229,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The class doesn't have a concrete implementation of the super-invoked "
         "member '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
     withArguments: _withArgumentsMixinApplicationNoConcreteSuperInvokedMember,
     expectedTypes: [ExpectedType.string],
   );
@@ -4810,6 +5248,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "setter '{0}'.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER',
     withArguments: _withArgumentsMixinApplicationNoConcreteSuperInvokedSetter,
     expectedTypes: [ExpectedType.string],
   );
@@ -4831,6 +5271,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{0}' can't be mixed onto '{1}' because '{1}' doesn't implement '{2}'.",
     correctionMessage: "Try extending the class '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
     withArguments: _withArgumentsMixinApplicationNotImplementedInterface,
     expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.type],
   );
@@ -4849,6 +5291,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the 'mixin' modifier or changing the superclass to "
         "'Object'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT',
     withArguments: _withArgumentsMixinClassDeclarationExtendsNotObject,
     expectedTypes: [ExpectedType.string],
   );
@@ -4864,6 +5308,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The class '{0}' can't be used as a mixin because it declares a "
         "constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR',
     withArguments: _withArgumentsMixinClassDeclaresConstructor,
     expectedTypes: [ExpectedType.string],
   );
@@ -4876,6 +5321,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage: "Try changing the import to not be deferred.",
         hasPublishedDocs: true,
         uniqueName: 'MIXIN_DEFERRED_CLASS',
+        uniqueNameCheck: 'CompileTimeErrorCode.MIXIN_DEFERRED_CLASS',
         expectedTypes: [],
       );
 
@@ -4890,6 +5336,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The class '{0}' can't be used as a mixin because it extends a class other "
         "than 'Object'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT',
     withArguments: _withArgumentsMixinInheritsFromNotObject,
     expectedTypes: [ExpectedType.string],
   );
@@ -4900,6 +5347,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'MIXIN_INSTANTIATE',
         problemMessage: "Mixins can't be instantiated.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.MIXIN_INSTANTIATE',
         expectedTypes: [],
       );
 
@@ -4916,6 +5364,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "mixin from the list.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_OF_DISALLOWED_CLASS',
+    uniqueNameCheck: 'CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS',
     withArguments: _withArgumentsMixinOfDisallowedClass,
     expectedTypes: [ExpectedType.type],
   );
@@ -4926,6 +5375,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'MIXIN_OF_NON_CLASS',
         problemMessage: "Classes can only mix in mixins and classes.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.MIXIN_OF_NON_CLASS',
         expectedTypes: [],
       );
 
@@ -4937,6 +5387,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "A type alias that expands to a type parameter can't be mixed in.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
     expectedTypes: [],
   );
 
@@ -4949,6 +5401,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "superclass constraint.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
     expectedTypes: [],
   );
 
@@ -4965,6 +5419,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try removing one of the occurrences.",
     hasPublishedDocs: true,
     uniqueName: 'MIXINS_SUPER_CLASS',
+    uniqueNameCheck: 'CompileTimeErrorCode.MIXINS_SUPER_CLASS',
     withArguments: _withArgumentsMixinsSuperClass,
     expectedTypes: [ExpectedType.element],
   );
@@ -4981,6 +5436,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The mixin '{0}' must be 'base' because the supertype '{1}' is 'base'.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE',
+    uniqueNameCheck: 'CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE',
     withArguments: _withArgumentsMixinSubtypeOfBaseIsNotBase,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -4997,6 +5453,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The mixin '{0}' must be 'base' because the supertype '{1}' is 'final'.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE',
+    uniqueNameCheck: 'CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE',
     withArguments: _withArgumentsMixinSubtypeOfFinalIsNotBase,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -5008,6 +5465,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Deferred classes can't be used as superclass constraints.",
     correctionMessage: "Try changing the import to not be deferred.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
     expectedTypes: [],
   );
 
@@ -5024,6 +5483,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "clause.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
     withArguments: _withArgumentsMixinSuperClassConstraintDisallowedClass,
     expectedTypes: [ExpectedType.type],
   );
@@ -5035,6 +5496,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "Only classes and mixins can be used as superclass constraints.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE',
     expectedTypes: [],
   );
 
@@ -5046,6 +5509,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       CompileTimeErrorWithoutArguments(
         name: 'MIXIN_WITH_NON_CLASS_SUPERCLASS',
         problemMessage: "Mixin can only be applied to class.",
+        uniqueNameCheck: 'CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS',
         expectedTypes: [],
       );
 
@@ -5057,6 +5521,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Constructors can have only one 'this' redirection, at most.",
     correctionMessage: "Try removing all but one of the redirections.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS',
     expectedTypes: [],
   );
 
@@ -5067,6 +5533,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "A constructor can have at most one 'super' initializer.",
     correctionMessage: "Try removing all but one of the 'super' initializers.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS',
     expectedTypes: [],
   );
 
@@ -5082,6 +5549,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     hasPublishedDocs: true,
     isUnresolvedIdentifier: true,
     uniqueName: 'NEW_WITH_NON_TYPE',
+    uniqueNameCheck: 'CompileTimeErrorCode.NEW_WITH_NON_TYPE',
     withArguments: _withArgumentsNewWithNonType,
     expectedTypes: [ExpectedType.string],
   );
@@ -5110,6 +5578,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try invoking a different constructor, or define a constructor named "
         "'{1}'.",
+    uniqueNameCheck: 'CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR',
     withArguments: _withArgumentsNewWithUndefinedConstructor,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -5125,6 +5594,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try using one of the named constructors defined in '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
     withArguments: _withArgumentsNewWithUndefinedConstructorDefault,
     expectedTypes: [ExpectedType.string],
   );
@@ -5136,6 +5607,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Annotation creation must have arguments.",
     correctionMessage: "Try adding an empty argument list.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS',
     expectedTypes: [],
   );
 
@@ -5153,6 +5625,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try providing explicit types for this method's parameters and return "
         "type.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE',
     withArguments: _withArgumentsNoCombinedSuperSignature,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -5171,6 +5644,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try declaring a zero argument constructor in '{0}', or explicitly "
         "invoking a different constructor in '{0}'.",
     uniqueName: 'NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
     withArguments: _withArgumentsNoDefaultSuperConstructorExplicit,
     expectedTypes: [ExpectedType.object],
   );
@@ -5191,6 +5666,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try declaring a zero argument constructor in '{0}', or declaring a "
         "constructor in {1} that explicitly invokes a constructor in '{0}'.",
     uniqueName: 'NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
     withArguments: _withArgumentsNoDefaultSuperConstructorImplicit,
     expectedTypes: [ExpectedType.type, ExpectedType.string],
   );
@@ -5212,6 +5689,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "constructor to the superclass '{1}', or a factory constructor to the "
         "subclass.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
     withArguments: _withArgumentsNoGenerativeConstructorsInSuperclass,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -5240,6 +5719,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try implementing the missing methods, or make the class abstract.",
     hasPublishedDocs: true,
     uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
     withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberFivePlus,
     expectedTypes: [
       ExpectedType.string,
@@ -5271,6 +5752,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try implementing the missing methods, or make the class abstract.",
     hasPublishedDocs: true,
     uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
     withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberFour,
     expectedTypes: [
       ExpectedType.string,
@@ -5292,6 +5775,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try implementing the missing method, or make the class abstract.",
     hasPublishedDocs: true,
     uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
     withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberOne,
     expectedTypes: [ExpectedType.string],
   );
@@ -5315,6 +5800,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try implementing the missing methods, or make the class abstract.",
     hasPublishedDocs: true,
     uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
     withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberThree,
     expectedTypes: [
       ExpectedType.string,
@@ -5336,6 +5823,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try implementing the missing methods, or make the class abstract.",
     hasPublishedDocs: true,
     uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
     withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberTwo,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -5347,6 +5836,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Conditions must have a static type of 'bool'.",
         correctionMessage: "Try changing the condition.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_BOOL_CONDITION',
         expectedTypes: [],
       );
 
@@ -5357,6 +5847,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "The expression in an assert must be of type 'bool'.",
         correctionMessage: "Try changing the expression.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_BOOL_EXPRESSION',
         expectedTypes: [],
       );
 
@@ -5367,6 +5858,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "A negation operand must have a static type of 'bool'.",
         correctionMessage: "Try changing the operand to the '!' operator.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION',
         expectedTypes: [],
       );
 
@@ -5380,6 +5872,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The operands of the operator '{0}' must be assignable to 'bool'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NON_BOOL_OPERAND',
     withArguments: _withArgumentsNonBoolOperand,
     expectedTypes: [ExpectedType.string],
   );
@@ -5390,6 +5883,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
     problemMessage: "Annotation creation can only call a const constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
     expectedTypes: [],
   );
 
@@ -5399,6 +5893,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'NON_CONSTANT_CASE_EXPRESSION',
         problemMessage: "Case expressions must be constant.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION',
         expectedTypes: [],
       );
 
@@ -5413,6 +5908,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try re-writing the switch as a series of if statements, or changing "
         "the import to not be deferred.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
     expectedTypes: [],
   );
 
@@ -5423,6 +5920,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage:
             "The default value of an optional parameter must be constant.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE',
         expectedTypes: [],
       );
 
@@ -5437,6 +5935,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try leaving the default as 'null' and initializing the parameter "
         "inside the function body.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY',
     expectedTypes: [],
   );
 
@@ -5448,6 +5948,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the keyword 'const' from the list literal.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT',
         expectedTypes: [],
       );
 
@@ -5463,6 +5964,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "the keyword 'deferred' from the import.",
     hasPublishedDocs: true,
     uniqueName: 'NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY',
     expectedTypes: [],
   );
 
@@ -5474,6 +5977,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the keyword 'const' from the map literal.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT',
         expectedTypes: [],
       );
 
@@ -5485,6 +5989,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the keyword 'const' from the map literal.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_CONSTANT_MAP_KEY',
         expectedTypes: [],
       );
 
@@ -5500,6 +6005,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "keyword 'deferred' from the import.",
     hasPublishedDocs: true,
     uniqueName: 'NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY',
     expectedTypes: [],
   );
 
@@ -5510,6 +6017,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Key expressions in map patterns must be constants.",
         correctionMessage: "Try using constants instead.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY',
         expectedTypes: [],
       );
 
@@ -5521,6 +6029,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the keyword 'const' from the map literal.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE',
         expectedTypes: [],
       );
 
@@ -5536,6 +6045,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "keyword 'deferred' from the import.",
     hasPublishedDocs: true,
     uniqueName: 'NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY',
     expectedTypes: [],
   );
 
@@ -5547,6 +6058,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "The fields in a const record literal must be constants.",
         correctionMessage:
             "Try removing the keyword 'const' from the record literal.",
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD',
         expectedTypes: [],
       );
 
@@ -5560,6 +6072,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try removing the keyword 'const' from the record literal or removing "
         "the keyword 'deferred' from the import.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY',
     expectedTypes: [],
   );
 
@@ -5570,6 +6084,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The relational pattern expression must be a constant.",
     correctionMessage: "Try using a constant instead.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION',
     expectedTypes: [],
   );
 
@@ -5581,6 +6097,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the keyword 'const' from the set literal.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT',
         expectedTypes: [],
       );
 
@@ -5591,6 +6108,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Generative enum constructors must be 'const'.",
     correctionMessage: "Try adding the keyword 'const'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
     expectedTypes: [],
   );
 
@@ -5605,6 +6124,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "A non-constant map or set literal without type arguments can't be used as "
         "an expression statement.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
     expectedTypes: [],
   );
 
@@ -5620,6 +6141,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "Try removing the type parameters from function parameter types and "
             "type parameter bounds.",
         hasPublishedDocs: true,
+        uniqueNameCheck:
+            'CompileTimeErrorCode.NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
         expectedTypes: [],
       );
 
@@ -5642,6 +6165,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try adding a wildcard pattern or cases that match '{2}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION',
     withArguments: _withArgumentsNonExhaustiveSwitchExpression,
     expectedTypes: [
       ExpectedType.type,
@@ -5668,6 +6192,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "doesn't match the pattern '{1}'.",
     correctionMessage: "Try adding a default case or cases that match '{2}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT',
     withArguments: _withArgumentsNonExhaustiveSwitchStatement,
     expectedTypes: [
       ExpectedType.type,
@@ -5683,6 +6208,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Enums can only declare final fields.",
         correctionMessage: "Try making the field final.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM',
         expectedTypes: [],
       );
 
@@ -5699,6 +6225,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try calling a different constructor of the superclass, or making the "
         "called constructor not be a factory constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR',
     withArguments: _withArgumentsNonGenerativeConstructor,
     expectedTypes: [ExpectedType.element],
   );
@@ -5725,6 +6252,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "superinitializer or changing the superclass constructor '{2}' to not "
         "be a factory constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
     withArguments: _withArgumentsNonGenerativeImplicitConstructor,
     expectedTypes: [
       ExpectedType.string,
@@ -5740,6 +6268,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage:
             "Factory bodies can't use 'async', 'async*', or 'sync*'.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_SYNC_FACTORY',
         expectedTypes: [],
       );
 
@@ -5757,6 +6286,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{0}'.",
     hasPublishedDocs: true,
     isUnresolvedIdentifier: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT',
     withArguments: _withArgumentsNonTypeAsTypeArgument,
     expectedTypes: [ExpectedType.string],
   );
@@ -5772,6 +6302,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The name '{0}' isn't a type and can't be used in an on-catch clause.",
     correctionMessage: "Try correcting the name to match an existing class.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE',
     withArguments: _withArgumentsNonTypeInCatchClause,
     expectedTypes: [ExpectedType.string],
   );
@@ -5783,6 +6314,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "The return type of the operator []= must be 'void'.",
         correctionMessage: "Try changing the return type to 'void'.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR',
         expectedTypes: [],
       );
 
@@ -5796,6 +6328,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "Try removing the return type, or define a method rather than a "
             "setter.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER',
         expectedTypes: [],
       );
 
@@ -5813,6 +6346,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try giving it an initializer expression, or ensure that it's assigned "
         "on every execution path.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
     withArguments: _withArgumentsNotAssignedPotentiallyNonNullableLocalVariable,
     expectedTypes: [ExpectedType.string],
   );
@@ -5827,6 +6362,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "{0} isn't a type.",
     correctionMessage: "Try correcting the name to match an existing type.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NOT_A_TYPE',
     withArguments: _withArgumentsNotAType,
     expectedTypes: [ExpectedType.string],
   );
@@ -5840,6 +6376,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'NOT_BINARY_OPERATOR',
     problemMessage: "'{0}' isn't a binary operator.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NOT_BINARY_OPERATOR',
     withArguments: _withArgumentsNotBinaryOperator,
     expectedTypes: [ExpectedType.string],
   );
@@ -5862,6 +6399,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try adding the missing arguments.",
     hasPublishedDocs: true,
     uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL',
     withArguments: _withArgumentsNotEnoughPositionalArgumentsNamePlural,
     expectedTypes: [ExpectedType.int, ExpectedType.int, ExpectedType.string],
   );
@@ -5877,6 +6416,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try adding the missing argument.",
     hasPublishedDocs: true,
     uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR',
     withArguments: _withArgumentsNotEnoughPositionalArgumentsNameSingular,
     expectedTypes: [ExpectedType.string],
   );
@@ -5893,6 +6434,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try adding the missing arguments.",
     hasPublishedDocs: true,
     uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL',
     withArguments: _withArgumentsNotEnoughPositionalArgumentsPlural,
     expectedTypes: [ExpectedType.int, ExpectedType.int],
   );
@@ -5905,6 +6448,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try adding the missing argument.",
     hasPublishedDocs: true,
     uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR',
     expectedTypes: [],
   );
 
@@ -5920,6 +6465,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try adding an initializer expression, or a generative constructor "
         "that initializes it, or mark it 'late'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
     withArguments: _withArgumentsNotInitializedNonNullableInstanceField,
     expectedTypes: [ExpectedType.string],
   );
@@ -5937,6 +6484,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "this constructor, or mark it 'late'.",
     hasPublishedDocs: true,
     uniqueName: 'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR',
     withArguments:
         _withArgumentsNotInitializedNonNullableInstanceFieldConstructor,
     expectedTypes: [ExpectedType.string],
@@ -5952,6 +6501,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The non-nullable variable '{0}' must be initialized.",
     correctionMessage: "Try adding an initializer expression.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE',
     withArguments: _withArgumentsNotInitializedNonNullableVariable,
     expectedTypes: [ExpectedType.string],
   );
@@ -5963,6 +6514,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Type parameter bound types must be instantiated.",
         correctionMessage:
             "Try adding type arguments to the type parameter bound.",
+        uniqueNameCheck: 'CompileTimeErrorCode.NOT_INSTANTIATED_BOUND',
         expectedTypes: [],
       );
 
@@ -5973,6 +6525,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "Spread elements in list or set literals must implement 'Iterable'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NOT_ITERABLE_SPREAD',
     expectedTypes: [],
   );
 
@@ -5982,6 +6535,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'NOT_MAP_SPREAD',
         problemMessage: "Spread elements in map literals must implement 'Map'.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NOT_MAP_SPREAD',
         expectedTypes: [],
       );
 
@@ -5991,6 +6545,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'NOT_NULL_AWARE_NULL_SPREAD',
     problemMessage:
         "The Null-typed expression can't be used with a non-null-aware spread.",
+    uniqueNameCheck: 'CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD',
     expectedTypes: [],
   );
 
@@ -6001,6 +6556,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "A class can't extend a nullable type.",
         correctionMessage: "Try removing the question mark.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
         expectedTypes: [],
       );
 
@@ -6012,6 +6568,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "A class, mixin, or extension type can't implement a nullable type.",
     correctionMessage: "Try removing the question mark.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
     expectedTypes: [],
   );
 
@@ -6023,6 +6580,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "A mixin can't have a nullable type as a superclass constraint.",
         correctionMessage: "Try removing the question mark.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE',
         expectedTypes: [],
       );
 
@@ -6033,6 +6591,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "A class or mixin can't mix in a nullable type.",
         correctionMessage: "Try removing the question mark.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE',
         expectedTypes: [],
       );
 
@@ -6044,6 +6603,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       CompileTimeErrorWithoutArguments(
         name: 'OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
         problemMessage: "The class 'Object' can't extend any other class.",
+        uniqueNameCheck:
+            'CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
         expectedTypes: [],
       );
 
@@ -6056,6 +6617,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "supported.",
     correctionMessage: "Try replacing the colon with an equal sign.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE',
     expectedTypes: [],
   );
 
@@ -6071,6 +6633,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try removing all except one occurrence of the type name.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.ON_REPEATED',
     withArguments: _withArgumentsOnRepeated,
     expectedTypes: [ExpectedType.string],
   );
@@ -6083,6 +6646,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "Optional parameters aren't allowed when defining an operator.",
         correctionMessage: "Try removing the optional parameters.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR',
         expectedTypes: [],
       );
 
@@ -6100,6 +6664,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try including a different part, or changing the name of the library "
         "in the part's part-of directive.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY',
     withArguments: _withArgumentsPartOfDifferentLibrary,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -6114,6 +6679,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The included part '{0}' must have a part-of directive.",
     correctionMessage: "Try adding a part-of directive to '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.PART_OF_NON_PART',
     withArguments: _withArgumentsPartOfNonPart,
     expectedTypes: [ExpectedType.string],
   );
@@ -6133,6 +6699,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try changing the part-of directive to a URI, or try including a "
         "different part.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY',
     withArguments: _withArgumentsPartOfUnnamedLibrary,
     expectedTypes: [ExpectedType.string],
   );
@@ -6145,6 +6712,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Only local variables can be assigned in pattern assignments.",
     correctionMessage: "Try assigning to a local variable.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE',
     expectedTypes: [],
   );
 
@@ -6156,6 +6725,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Constant values from a deferred library can't be used in patterns.",
     correctionMessage: "Try removing the keyword 'deferred' from the import.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY',
     expectedTypes: [],
   );
 
@@ -6174,6 +6745,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try changing the required type of the pattern, or the matched value "
         "type.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT',
     withArguments: _withArgumentsPatternTypeMismatchInIrrefutableContext,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -6187,6 +6760,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "guarded pattern.",
     correctionMessage: "Try assigning to a different variable.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD',
     expectedTypes: [],
   );
 
@@ -6205,6 +6780,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "all cases.",
     hasPublishedDocs: true,
     uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE',
     withArguments:
         _withArgumentsPatternVariableSharedCaseScopeDifferentFinalityOrType,
     expectedTypes: [ExpectedType.string],
@@ -6225,6 +6802,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "body.",
     hasPublishedDocs: true,
     uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL',
     withArguments: _withArgumentsPatternVariableSharedCaseScopeHasLabel,
     expectedTypes: [ExpectedType.string],
   );
@@ -6244,6 +6823,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "all cases.",
     hasPublishedDocs: true,
     uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES',
     withArguments: _withArgumentsPatternVariableSharedCaseScopeNotAllCases,
     expectedTypes: [ExpectedType.string],
   );
@@ -6255,23 +6836,26 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Object patterns can only use named fields.",
         correctionMessage: "Try specifying the field name.",
         hasPublishedDocs: true,
+        uniqueNameCheck:
+            'CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN',
         expectedTypes: [],
       );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
-  positionalSuperFormalParameterWithPositionalArgument =
-      CompileTimeErrorWithoutArguments(
-        name: 'POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
-        problemMessage:
-            "Positional super parameters can't be used when the super constructor "
-            "invocation has a positional argument.",
-        correctionMessage:
-            "Try making all the positional parameters passed to the super "
-            "constructor be either all super parameters or all normal parameters.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+  positionalSuperFormalParameterWithPositionalArgument = CompileTimeErrorWithoutArguments(
+    name: 'POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
+    problemMessage:
+        "Positional super parameters can't be used when the super constructor "
+        "invocation has a positional argument.",
+    correctionMessage:
+        "Try making all the positional parameters passed to the super "
+        "constructor be either all super parameters or all normal parameters.",
+    hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
+    expectedTypes: [],
+  );
 
   /// Parameters:
   /// Object p0: the name of the prefix
@@ -6286,6 +6870,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try renaming either the top-level element or the prefix.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
     withArguments: _withArgumentsPrefixCollidesWithTopLevelMember,
     expectedTypes: [ExpectedType.object],
   );
@@ -6303,6 +6889,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the name to refer to something other than a prefix, or "
         "renaming the prefix.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
     withArguments: _withArgumentsPrefixIdentifierNotFollowedByDot,
     expectedTypes: [ExpectedType.string],
   );
@@ -6320,6 +6908,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try renaming either the prefix or the local declaration.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
     withArguments: _withArgumentsPrefixShadowedByLocalDeclaration,
     expectedTypes: [ExpectedType.string],
   );
@@ -6342,6 +6932,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "defined by '{2}'.",
     correctionMessage: "Try removing '{1}' from the 'with' clause.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
     withArguments: _withArgumentsPrivateCollisionInMixinApplication,
     expectedTypes: [
       ExpectedType.string,
@@ -6362,6 +6954,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "that declares it.",
     correctionMessage: "Try making it public.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.PRIVATE_SETTER',
     withArguments: _withArgumentsPrivateSetter,
     expectedTypes: [ExpectedType.string],
   );
@@ -6379,6 +6972,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Ensure that it is assigned on necessary execution paths.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL',
     withArguments: _withArgumentsReadPotentiallyUnassignedFinal,
     expectedTypes: [ExpectedType.string],
   );
@@ -6390,17 +6984,18 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
-  recordLiteralOnePositionalNoTrailingCommaByType =
-      CompileTimeErrorWithoutArguments(
-        name: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
-        problemMessage:
-            "A record literal with exactly one positional field requires a trailing "
-            "comma.",
-        correctionMessage: "Try adding a trailing comma.",
-        hasPublishedDocs: true,
-        uniqueName: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE',
-        expectedTypes: [],
-      );
+  recordLiteralOnePositionalNoTrailingCommaByType = CompileTimeErrorWithoutArguments(
+    name: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+    problemMessage:
+        "A record literal with exactly one positional field requires a trailing "
+        "comma.",
+    correctionMessage: "Try adding a trailing comma.",
+    hasPublishedDocs: true,
+    uniqueName: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE',
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments recursiveCompileTimeConstant =
@@ -6409,6 +7004,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage:
             "The compile-time constant expression depends on itself.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT',
         expectedTypes: [],
       );
 
@@ -6417,6 +7013,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       CompileTimeErrorWithoutArguments(
         name: 'RECURSIVE_CONSTANT_CONSTRUCTOR',
         problemMessage: "The constant constructor depends on itself.",
+        uniqueNameCheck: 'CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR',
         expectedTypes: [],
       );
 
@@ -6435,6 +7032,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try changing one of the constructors in the loop to not redirect.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT',
     expectedTypes: [],
   );
 
@@ -6448,6 +7046,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try changing one of the constructors in the loop to not redirect.",
     hasPublishedDocs: true,
     uniqueName: 'RECURSIVE_FACTORY_REDIRECT',
+    uniqueNameCheck: 'CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT',
     expectedTypes: [],
   );
 
@@ -6461,6 +7060,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     name: 'RECURSIVE_INTERFACE_INHERITANCE',
     problemMessage: "'{0}' can't be a superinterface of itself: {1}.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE',
     withArguments: _withArgumentsRecursiveInterfaceInheritance,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -6484,6 +7084,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "'{0}' can't extend itself.",
     hasPublishedDocs: true,
     uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_EXTENDS',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS',
     withArguments: _withArgumentsRecursiveInterfaceInheritanceExtends,
     expectedTypes: [ExpectedType.string],
   );
@@ -6507,6 +7109,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "'{0}' can't implement itself.",
     hasPublishedDocs: true,
     uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS',
     withArguments: _withArgumentsRecursiveInterfaceInheritanceImplements,
     expectedTypes: [ExpectedType.string],
   );
@@ -6521,6 +7125,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "'{0}' can't use itself as a superclass constraint.",
     hasPublishedDocs: true,
     uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_ON',
+    uniqueNameCheck: 'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON',
     withArguments: _withArgumentsRecursiveInterfaceInheritanceOn,
     expectedTypes: [ExpectedType.string],
   );
@@ -6544,6 +7149,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "'{0}' can't use itself as a mixin.",
     hasPublishedDocs: true,
     uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_WITH',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH',
     withArguments: _withArgumentsRecursiveInterfaceInheritanceWith,
     expectedTypes: [ExpectedType.string],
   );
@@ -6561,21 +7168,24 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try redirecting to a different constructor, or defining the "
         "constructor named '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
     withArguments: _withArgumentsRedirectGenerativeToMissingConstructor,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
-  redirectGenerativeToNonGenerativeConstructor =
-      CompileTimeErrorWithoutArguments(
-        name: 'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
-        problemMessage:
-            "Generative constructors can't redirect to a factory constructor.",
-        correctionMessage: "Try redirecting to a different constructor.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+  redirectGenerativeToNonGenerativeConstructor = CompileTimeErrorWithoutArguments(
+    name: 'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
+    problemMessage:
+        "Generative constructors can't redirect to a factory constructor.",
+    correctionMessage: "Try redirecting to a different constructor.",
+    hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
+    expectedTypes: [],
+  );
 
   /// Parameters:
   /// String p0: the name of the redirecting constructor
@@ -6591,6 +7201,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "abstract class '{1}'.",
     correctionMessage: "Try redirecting to a constructor of a different class.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
     withArguments: _withArgumentsRedirectToAbstractClassConstructor,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -6607,6 +7219,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The redirected constructor '{0}' has incompatible parameters with '{1}'.",
     correctionMessage: "Try redirecting to a different constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.REDIRECT_TO_INVALID_FUNCTION_TYPE',
     withArguments: _withArgumentsRedirectToInvalidFunctionType,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -6624,6 +7237,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{1}'.",
     correctionMessage: "Try redirecting to a different constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE',
     withArguments: _withArgumentsRedirectToInvalidReturnType,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -6641,6 +7255,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try redirecting to a different constructor, or define the constructor "
         "named '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR',
     withArguments: _withArgumentsRedirectToMissingConstructor,
     expectedTypes: [ExpectedType.string, ExpectedType.type],
   );
@@ -6657,6 +7272,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "constructor.",
     correctionMessage: "Try redirecting to a different constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.REDIRECT_TO_NON_CLASS',
     withArguments: _withArgumentsRedirectToNonClass,
     expectedTypes: [ExpectedType.string],
   );
@@ -6670,6 +7286,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "constructor.",
     correctionMessage: "Try redirecting to a different constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR',
     expectedTypes: [],
   );
 
@@ -6682,6 +7299,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "a type parameter.",
     correctionMessage: "Try replacing it with a class.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
     expectedTypes: [],
   );
 
@@ -6699,6 +7318,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "local variable so that it doesn't hide a name from an enclosing "
         "scope.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION',
     withArguments: _withArgumentsReferencedBeforeDeclaration,
     expectedTypes: [ExpectedType.object],
   );
@@ -6713,6 +7333,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try using an if-case, a 'switch' statement, or a 'switch' expression "
         "instead.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT',
     expectedTypes: [],
   );
 
@@ -6733,6 +7355,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The constant expression type '{0}' is not assignable to the parameter "
         "type '{1}' of the '{2}' operator.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE',
     withArguments: _withArgumentsRelationalPatternOperandTypeNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
   );
@@ -6748,6 +7372,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try updating the operator declaration to return 'bool'.",
         hasPublishedDocs: true,
+        uniqueNameCheck:
+            'CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL',
         expectedTypes: [],
       );
 
@@ -6758,6 +7384,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "A map pattern can't contain a rest pattern.",
         correctionMessage: "Try removing the rest pattern.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN',
         expectedTypes: [],
       );
 
@@ -6770,6 +7397,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "Try moving the expression into a catch clause, or using a 'throw' "
             "expression.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH',
         expectedTypes: [],
       );
 
@@ -6781,6 +7409,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the return statement or using a factory constructor.",
         hasPublishedDocs: true,
+        uniqueNameCheck:
+            'CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR',
         expectedTypes: [],
       );
 
@@ -6795,6 +7425,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try replacing 'return' with 'yield', using a block function body, or "
         "changing the method body modifier.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.RETURN_IN_GENERATOR',
     expectedTypes: [],
   );
 
@@ -6810,6 +7441,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The returned type '{0}' isn't returnable from a '{1}' function, as "
         "required by the closure's context.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
     withArguments: _withArgumentsReturnOfInvalidTypeFromClosure,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -6832,6 +7464,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "because it has a return type of '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
     withArguments: _withArgumentsReturnOfInvalidTypeFromConstructor,
     expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
   );
@@ -6854,6 +7488,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "it has a return type of '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
     withArguments: _withArgumentsReturnOfInvalidTypeFromFunction,
     expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
   );
@@ -6876,6 +7512,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "has a return type of '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_METHOD',
+    uniqueNameCheck: 'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD',
     withArguments: _withArgumentsReturnOfInvalidTypeFromMethod,
     expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
   );
@@ -6886,6 +7523,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'RETURN_WITHOUT_VALUE',
         problemMessage: "The return value is missing after 'return'.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.RETURN_WITHOUT_VALUE',
         expectedTypes: [],
       );
 
@@ -6902,6 +7540,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "its library because it's a sealed class.",
     hasPublishedDocs: true,
     uniqueName: 'SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY',
     withArguments: _withArgumentsSealedClassSubtypeOutsideOfLibrary,
     expectedTypes: [ExpectedType.string],
   );
@@ -6918,6 +7558,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "keyword 'deferred' from the import.",
     hasPublishedDocs: true,
     uniqueName: 'SET_ELEMENT_FROM_DEFERRED_LIBRARY',
+    uniqueNameCheck: 'CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY',
     expectedTypes: [],
   );
 
@@ -6932,6 +7573,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The element type '{0}' can't be assigned to the set type '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
     withArguments: _withArgumentsSetElementTypeNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -6948,6 +7590,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The element type '{0}' can't be assigned to the set type '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
     withArguments: _withArgumentsSetElementTypeNotAssignableNullability,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -6960,6 +7604,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The prefix of a deferred import can't be used in other import directives.",
     correctionMessage: "Try renaming one of the prefixes.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.SHARED_DEFERRED_PREFIX',
     expectedTypes: [],
   );
 
@@ -6971,6 +7616,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Constant values from a deferred library can't be spread into a const "
         "literal.",
     correctionMessage: "Try making the deferred import non-deferred.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
     expectedTypes: [],
   );
 
@@ -6984,6 +7631,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "Instance member '{0}' can't be accessed using static access.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER',
     withArguments: _withArgumentsStaticAccessToInstanceMember,
     expectedTypes: [ExpectedType.string],
   );
@@ -7002,6 +7650,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{1}' is 'base'.",
     hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED',
     withArguments: _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -7020,6 +7670,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{1}' is 'final'.",
     hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
     withArguments: _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -7038,6 +7690,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try removing the explicit type annotation from the parameter.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
     withArguments:
         _withArgumentsSuperFormalParameterTypeIsNotSubtypeOfAssociated,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
@@ -7052,21 +7706,24 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try changing the name to the name of an existing named super "
         "constructor parameter, or creating such named parameter.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
     expectedTypes: [],
   );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
-  superFormalParameterWithoutAssociatedPositional =
-      CompileTimeErrorWithoutArguments(
-        name: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
-        problemMessage: "No associated positional super constructor parameter.",
-        correctionMessage:
-            "Try using a normal parameter, or adding more positional parameters to "
-            "the super constructor.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+  superFormalParameterWithoutAssociatedPositional = CompileTimeErrorWithoutArguments(
+    name: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
+    problemMessage: "No associated positional super constructor parameter.",
+    correctionMessage:
+        "Try using a normal parameter, or adding more positional parameters to "
+        "the super constructor.",
+    hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments superInEnumConstructor =
@@ -7076,6 +7733,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "The enum constructor can't have a 'super' initializer.",
         correctionMessage: "Try removing the 'super' invocation.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR',
         expectedTypes: [],
       );
 
@@ -7087,6 +7745,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The 'super' keyword can't be used in an extension because an extension "
         "doesn't have a superclass.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.SUPER_IN_EXTENSION',
     expectedTypes: [],
   );
 
@@ -7098,6 +7757,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
             "The 'super' keyword can't be used in an extension type because an "
             "extension type doesn't have a superclass.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE',
         expectedTypes: [],
       );
 
@@ -7107,6 +7767,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'SUPER_IN_INVALID_CONTEXT',
         problemMessage: "Invalid context for 'super' invocation.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT',
         expectedTypes: [],
       );
 
@@ -7120,6 +7781,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'SUPER_INITIALIZER_IN_OBJECT',
         problemMessage:
             "The class 'Object' can't invoke a constructor from a superclass.",
+        uniqueNameCheck: 'CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT',
         expectedTypes: [],
       );
 
@@ -7130,6 +7792,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage:
             "The redirecting constructor can't have a 'super' initializer.",
         hasPublishedDocs: true,
+        uniqueNameCheck:
+            'CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR',
         expectedTypes: [],
       );
 
@@ -7143,6 +7807,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The superconstructor call must be last in an initializer list: '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST',
     withArguments: _withArgumentsSuperInvocationNotLast,
     expectedTypes: [ExpectedType.string],
   );
@@ -7154,22 +7819,24 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "The 'case' shouldn't complete normally.",
         correctionMessage: "Try adding 'break', 'return', or 'throw'.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY',
         expectedTypes: [],
       );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
-  tearoffOfGenerativeConstructorOfAbstractClass =
-      CompileTimeErrorWithoutArguments(
-        name: 'TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
-        problemMessage:
-            "A generative constructor of an abstract class can't be torn off.",
-        correctionMessage:
-            "Try tearing off a constructor of a concrete class, or a "
-            "non-generative constructor.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+  tearoffOfGenerativeConstructorOfAbstractClass = CompileTimeErrorWithoutArguments(
+    name: 'TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
+    problemMessage:
+        "A generative constructor of an abstract class can't be torn off.",
+    correctionMessage:
+        "Try tearing off a constructor of a concrete class, or a "
+        "non-generative constructor.",
+    hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
+    expectedTypes: [],
+  );
 
   /// Parameters:
   /// Type p0: the type that can't be thrown
@@ -7181,6 +7848,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The type '{0}' of the thrown expression must be assignable to 'Object'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.THROW_OF_INVALID_TYPE',
     withArguments: _withArgumentsThrowOfInvalidType,
     expectedTypes: [ExpectedType.type],
   );
@@ -7200,6 +7868,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try adding an explicit type to one or more of the variables in the "
         "cycle in order to break the cycle.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.TOP_LEVEL_CYCLE',
     withArguments: _withArgumentsTopLevelCycle,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -7212,6 +7881,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Typedefs can't reference themselves directly or recursively via another "
         "typedef.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
     expectedTypes: [],
   );
 
@@ -7230,6 +7900,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try using a different type, or changing the import to not be "
         "deferred.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS',
     withArguments: _withArgumentsTypeAnnotationDeferredClass,
     expectedTypes: [ExpectedType.string],
   );
@@ -7252,6 +7923,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{0}' doesn't conform to the bound '{2}' of the type parameter '{1}'.",
     correctionMessage: "Try using a type that is or is a subclass of '{2}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS',
     withArguments: _withArgumentsTypeArgumentNotMatchingBounds,
     expectedTypes: [ExpectedType.type, ExpectedType.string, ExpectedType.type],
   );
@@ -7266,6 +7938,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the reference to the type parameter, or making the "
         "member an instance member.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC',
     expectedTypes: [],
   );
 
@@ -7283,6 +7956,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try using a type that is the same as or a subclass of '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
     withArguments: _withArgumentsTypeParameterSupertypeOfItsBound,
     expectedTypes: [ExpectedType.string, ExpectedType.type],
   );
@@ -7298,6 +7973,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "The name '{0}' isn't a type and can't be used in an 'is' expression.",
     correctionMessage: "Try correcting the name to match an existing type.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE',
     withArguments: _withArgumentsTypeTestWithNonType,
     expectedTypes: [ExpectedType.string],
   );
@@ -7315,6 +7991,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try changing the name to the name of an existing type, or creating a "
         "type with the name '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME',
     withArguments: _withArgumentsTypeTestWithUndefinedName,
     expectedTypes: [ExpectedType.string],
   );
@@ -7328,6 +8005,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try adding a null check ('!').",
     hasPublishedDocs: true,
     uniqueName: 'UNCHECKED_INVOCATION_OF_NULLABLE_VALUE',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE',
     expectedTypes: [],
   );
 
@@ -7346,6 +8025,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "to the target ('!').",
     hasPublishedDocs: true,
     uniqueName: 'UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE',
     withArguments: _withArgumentsUncheckedMethodInvocationOfNullableValue,
     expectedTypes: [ExpectedType.string],
   );
@@ -7363,6 +8044,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try adding a null check to the target ('!').",
     hasPublishedDocs: true,
     uniqueName: 'UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE',
     withArguments: _withArgumentsUncheckedOperatorInvocationOfNullableValue,
     expectedTypes: [ExpectedType.string],
   );
@@ -7382,6 +8065,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "to the target ('!').",
     hasPublishedDocs: true,
     uniqueName: 'UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE',
     withArguments: _withArgumentsUncheckedPropertyAccessOfNullableValue,
     expectedTypes: [ExpectedType.string],
   );
@@ -7396,6 +8081,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "condition.",
     hasPublishedDocs: true,
     uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION',
     expectedTypes: [],
   );
 
@@ -7410,6 +8097,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "iterator.",
     hasPublishedDocs: true,
     uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR',
     expectedTypes: [],
   );
 
@@ -7423,6 +8112,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "or use a null-aware spread.",
     hasPublishedDocs: true,
     uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD',
     expectedTypes: [],
   );
 
@@ -7437,6 +8128,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "yield-each statement.",
     hasPublishedDocs: true,
     uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH',
     expectedTypes: [],
   );
 
@@ -7452,6 +8145,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try defining the name or importing it from another library.",
     hasPublishedDocs: true,
     isUnresolvedIdentifier: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_ANNOTATION',
     withArguments: _withArgumentsUndefinedAnnotation,
     expectedTypes: [ExpectedType.string],
   );
@@ -7469,6 +8163,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "class with the name '{0}'.",
     hasPublishedDocs: true,
     isUnresolvedIdentifier: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_CLASS',
     withArguments: _withArgumentsUndefinedClass,
     expectedTypes: [ExpectedType.string],
   );
@@ -7488,6 +8183,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     hasPublishedDocs: true,
     isUnresolvedIdentifier: true,
     uniqueName: 'UNDEFINED_CLASS_BOOLEAN',
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN',
     withArguments: _withArgumentsUndefinedClassBoolean,
     expectedTypes: [ExpectedType.string],
   );
@@ -7506,6 +8202,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try defining a constructor named '{1}' in '{0}', or invoking a "
         "different constructor.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
     withArguments: _withArgumentsUndefinedConstructorInInitializer,
     expectedTypes: [ExpectedType.type, ExpectedType.string],
   );
@@ -7524,6 +8222,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "constructor.",
     hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT',
     withArguments: _withArgumentsUndefinedConstructorInInitializerDefault,
     expectedTypes: [ExpectedType.object],
   );
@@ -7541,6 +8241,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the name to the name of an existing constant, or "
         "defining a constant named '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT',
     withArguments: _withArgumentsUndefinedEnumConstant,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -7558,6 +8259,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "defining constructor with the name '{0}'.",
     hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_NAMED',
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED',
     withArguments: _withArgumentsUndefinedEnumConstructorNamed,
     expectedTypes: [ExpectedType.string],
   );
@@ -7572,6 +8274,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "unnamed constructor.",
     hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED',
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED',
     expectedTypes: [],
   );
 
@@ -7588,6 +8291,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the name to the name of an existing getter, or "
         "defining a getter named '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER',
     withArguments: _withArgumentsUndefinedExtensionGetter,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -7605,6 +8309,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the name to the name of an existing method, or "
         "defining a method named '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD',
     withArguments: _withArgumentsUndefinedExtensionMethod,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -7620,6 +8325,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The operator '{0}' isn't defined for the extension '{1}'.",
     correctionMessage: "Try defining the operator '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR',
     withArguments: _withArgumentsUndefinedExtensionOperator,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -7637,6 +8343,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the name to the name of an existing setter, or "
         "defining a setter named '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER',
     withArguments: _withArgumentsUndefinedExtensionSetter,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -7654,6 +8361,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "the name of an existing function, or defining a function named '{0}'.",
     hasPublishedDocs: true,
     isUnresolvedIdentifier: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_FUNCTION',
     withArguments: _withArgumentsUndefinedFunction,
     expectedTypes: [ExpectedType.string],
   );
@@ -7673,6 +8381,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "the name of an existing getter, or defining a getter or field named "
         "'{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_GETTER',
     withArguments: _withArgumentsUndefinedGetter,
     expectedTypes: [ExpectedType.string, ExpectedType.object],
   );
@@ -7692,6 +8401,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "access '{0}' as an extension getter on 'Type'.",
     hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_GETTER_ON_FUNCTION_TYPE',
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE',
     withArguments: _withArgumentsUndefinedGetterOnFunctionType,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -7708,6 +8418,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the name to one that is defined, or defining the name.",
     hasPublishedDocs: true,
     isUnresolvedIdentifier: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_IDENTIFIER',
     withArguments: _withArgumentsUndefinedIdentifier,
     expectedTypes: [ExpectedType.string],
   );
@@ -7722,6 +8433,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the name to one that is defined, defining the name, or "
         "adding 'async' to the enclosing function body.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
     expectedTypes: [],
   );
 
@@ -7738,6 +8450,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the name to the name of an existing method, or "
         "defining a method named '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_METHOD',
     withArguments: _withArgumentsUndefinedMethod,
     expectedTypes: [ExpectedType.string, ExpectedType.object],
   );
@@ -7757,6 +8470,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "access '{0}' as an extension method on 'Type'.",
     hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_METHOD_ON_FUNCTION_TYPE',
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE',
     withArguments: _withArgumentsUndefinedMethodOnFunctionType,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -7773,6 +8487,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the name to an existing named parameter's name, or "
         "defining a named parameter with the name '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER',
     withArguments: _withArgumentsUndefinedNamedParameter,
     expectedTypes: [ExpectedType.string],
   );
@@ -7789,6 +8504,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The operator '{0}' isn't defined for the type '{1}'.",
     correctionMessage: "Try defining the operator '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_OPERATOR',
     withArguments: _withArgumentsUndefinedOperator,
     expectedTypes: [ExpectedType.string, ExpectedType.type],
   );
@@ -7808,6 +8524,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try correcting the prefix or importing the library that defines "
         "'{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME',
     withArguments: _withArgumentsUndefinedPrefixedName,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -7827,6 +8544,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "the name of an existing setter, or defining a setter or field named "
         "'{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_SETTER',
     withArguments: _withArgumentsUndefinedSetter,
     expectedTypes: [ExpectedType.string, ExpectedType.type],
   );
@@ -7846,6 +8564,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "access '{0}' as an extension getter on 'Type'.",
     hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_SETTER_ON_FUNCTION_TYPE',
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE',
     withArguments: _withArgumentsUndefinedSetterOnFunctionType,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -7865,6 +8584,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "defining a getter or field named '{0}' in a superclass.",
     hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_SUPER_GETTER',
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_SUPER_GETTER',
     withArguments: _withArgumentsUndefinedSuperGetter,
     expectedTypes: [ExpectedType.string, ExpectedType.type],
   );
@@ -7883,6 +8603,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "defining a method named '{0}' in a superclass.",
     hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_SUPER_METHOD',
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_SUPER_METHOD',
     withArguments: _withArgumentsUndefinedSuperMethod,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -7901,6 +8622,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try defining the operator '{0}' in a superclass.",
     hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_SUPER_OPERATOR',
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR',
     withArguments: _withArgumentsUndefinedSuperOperator,
     expectedTypes: [ExpectedType.string, ExpectedType.type],
   );
@@ -7920,6 +8642,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "defining a setter or field named '{0}' in a superclass.",
     hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_SUPER_SETTER',
+    uniqueNameCheck: 'CompileTimeErrorCode.UNDEFINED_SUPER_SETTER',
     withArguments: _withArgumentsUndefinedSuperSetter,
     expectedTypes: [ExpectedType.string, ExpectedType.type],
   );
@@ -7940,6 +8663,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "defining type.",
     correctionMessage: "Try adding '{0}.' before the name.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
     withArguments: _withArgumentsUnqualifiedReferenceToNonLocalStaticMember,
     expectedTypes: [ExpectedType.string],
   );
@@ -7956,6 +8681,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "qualified by the name of the defining type.",
     correctionMessage: "Try adding '{0}.' before the name.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
     withArguments:
         _withArgumentsUnqualifiedReferenceToStaticMemberOfExtendedType,
     expectedTypes: [ExpectedType.string],
@@ -7973,6 +8700,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try creating the file referenced by the URI, or try using a URI for a "
         "file that does exist.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.URI_DOES_NOT_EXIST',
     withArguments: _withArgumentsUriDoesNotExist,
     expectedTypes: [ExpectedType.string],
   );
@@ -7989,6 +8717,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try running the generator that will generate the file referenced by "
         "the URI.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED',
     withArguments: _withArgumentsUriHasNotBeenGenerated,
     expectedTypes: [ExpectedType.string],
   );
@@ -7999,6 +8728,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         name: 'URI_WITH_INTERPOLATION',
         problemMessage: "URIs can't use string interpolation.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.URI_WITH_INTERPOLATION',
         expectedTypes: [],
       );
 
@@ -8010,6 +8740,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Dart native extensions are deprecated and aren't available in Dart 2.15.",
     correctionMessage: "Try using dart:ffi for C interop.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION',
     expectedTypes: [],
   );
 
@@ -8024,6 +8755,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "function or call that returns void you didn't expect. Also check type "
         "parameters and variables which might also be void.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.USE_OF_VOID_RESULT',
     expectedTypes: [],
   );
 
@@ -8034,6 +8766,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "A member named 'values' can't be declared in an enum.",
         correctionMessage: "Try using a different name.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM',
         expectedTypes: [],
       );
 
@@ -8050,6 +8783,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{1}'.",
     correctionMessage: "Try using a subtype, or removing the 'const' keyword",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH',
     withArguments: _withArgumentsVariableTypeMismatch,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -8085,6 +8819,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try using 'in' type parameters in 'in' positions and 'out' type "
         "parameters in 'out' positions in the superinterface.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
     withArguments:
         _withArgumentsWrongExplicitTypeParameterVarianceInSuperinterface,
     expectedTypes: [
@@ -8111,6 +8847,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "Operator '{0}' should declare exactly {1} parameters, but {2} found.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
     withArguments: _withArgumentsWrongNumberOfParametersForOperator,
     expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
   );
@@ -8129,6 +8867,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Operator '-' should declare 0 or 1 parameter, but {0} found.",
     hasPublishedDocs: true,
     uniqueName: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS',
     withArguments: _withArgumentsWrongNumberOfParametersForOperatorMinus,
     expectedTypes: [ExpectedType.int],
   );
@@ -8153,6 +8893,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try adjusting the number of type arguments to match the number of "
         "type parameters.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS',
     withArguments: _withArgumentsWrongNumberOfTypeArguments,
     expectedTypes: [ExpectedType.object, ExpectedType.int, ExpectedType.int],
   );
@@ -8172,6 +8913,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try adjusting the number of type arguments to match the number of "
         "type parameters.",
     uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION',
     withArguments: _withArgumentsWrongNumberOfTypeArgumentsAnonymousFunction,
     expectedTypes: [ExpectedType.int, ExpectedType.int],
   );
@@ -8187,6 +8930,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The constructor '{0}.{1}' doesn't have type parameters.",
     correctionMessage: "Try moving type arguments to after the type name.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
     withArguments: _withArgumentsWrongNumberOfTypeArgumentsConstructor,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -8205,6 +8950,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "the type arguments, then the constructor name.",
     hasPublishedDocs: true,
     uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR',
+    uniqueNameCheck:
+        'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR',
     withArguments:
         _withArgumentsWrongNumberOfTypeArgumentsDotShorthandConstructor,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -8223,6 +8970,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "were given.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
     withArguments: _withArgumentsWrongNumberOfTypeArgumentsEnum,
     expectedTypes: [ExpectedType.int, ExpectedType.int],
   );
@@ -8245,6 +8993,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "arguments were given.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
     withArguments: _withArgumentsWrongNumberOfTypeArgumentsExtension,
     expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
   );
@@ -8268,6 +9018,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try adjusting the number of type arguments to match the number of "
         "type parameters.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
     withArguments: _withArgumentsWrongNumberOfTypeArgumentsFunction,
     expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
   );
@@ -8290,6 +9042,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "arguments are given.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
     withArguments: _withArgumentsWrongNumberOfTypeArgumentsMethod,
     expectedTypes: [ExpectedType.type, ExpectedType.int, ExpectedType.int],
   );
@@ -8312,6 +9066,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try not using class type parameters in types of formal parameters of "
         "function types, nor in explicitly contravariant or invariant "
         "superinterfaces.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
     withArguments: _withArgumentsWrongTypeParameterVarianceInSuperinterface,
     expectedTypes: [ExpectedType.string, ExpectedType.type],
   );
@@ -8347,6 +9103,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the type parameter or change the explicit variance "
         "modifier declaration for the type parameter to another one of 'in', "
         "'out', or 'inout'.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
     withArguments: _withArgumentsWrongTypeParameterVariancePosition,
     expectedTypes: [
       ExpectedType.object,
@@ -8366,6 +9124,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "Try adding 'async*' or 'sync*' to the enclosing function.",
     hasPublishedDocs: true,
     uniqueName: 'YIELD_EACH_IN_NON_GENERATOR',
+    uniqueNameCheck: 'CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR',
     expectedTypes: [],
   );
 
@@ -8382,6 +9141,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
         "'{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'YIELD_EACH_OF_INVALID_TYPE',
+    uniqueNameCheck: 'CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE',
     withArguments: _withArgumentsYieldEachOfInvalidType,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -8399,6 +9159,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try adding 'async*' or 'sync*' to the enclosing function.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.YIELD_IN_NON_GENERATOR',
     expectedTypes: [],
   );
 
@@ -8413,6 +9174,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "A yielded value of type '{0}' must be assignable to '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'CompileTimeErrorCode.YIELD_OF_INVALID_TYPE',
     withArguments: _withArgumentsYieldOfInvalidType,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -8425,6 +9187,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required String super.uniqueNameCheck,
     required super.expectedTypes,
   }) : super(
          type: DiagnosticType.COMPILE_TIME_ERROR,
@@ -11317,6 +12080,7 @@ final class CompileTimeErrorTemplate<T extends Function>
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
     required this.withArguments,
   });
@@ -11332,6 +12096,7 @@ final class CompileTimeErrorWithoutArguments extends CompileTimeErrorCode
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
   });
 }
@@ -11345,6 +12110,7 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
         "The left operand can't be null, so the right operand is never executed.",
     correctionMessage: "Try removing the operator and the right operand.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',
     expectedTypes: [],
   );
 
@@ -11357,6 +12123,7 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try removing the operator '?'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_NULL_AWARE_ELEMENT',
+    uniqueNameCheck: 'StaticWarningCode.INVALID_NULL_AWARE_ELEMENT',
     expectedTypes: [],
   );
 
@@ -11370,6 +12137,7 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try removing the operator '?'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_KEY',
+    uniqueNameCheck: 'StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY',
     expectedTypes: [],
   );
 
@@ -11383,6 +12151,7 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try removing the operator '?'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_VALUE',
+    uniqueNameCheck: 'StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE',
     expectedTypes: [],
   );
 
@@ -11400,6 +12169,7 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
         "unnecessary.",
     correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'StaticWarningCode.INVALID_NULL_AWARE_OPERATOR',
     withArguments: _withArgumentsInvalidNullAwareOperator,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -11419,6 +12189,8 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
+    uniqueNameCheck:
+        'StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
     withArguments: _withArgumentsInvalidNullAwareOperatorAfterShortCircuit,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -11435,6 +12207,7 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try adding a case clause for the missing constant, or adding a "
         "default clause.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH',
     withArguments: _withArgumentsMissingEnumConstantInSwitch,
     expectedTypes: [ExpectedType.string],
   );
@@ -11447,6 +12220,7 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
             "The '!' will have no effect because the receiver can't be null.",
         correctionMessage: "Try removing the '!' operator.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION',
         expectedTypes: [],
       );
 
@@ -11460,6 +12234,7 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try replacing the null-assert pattern with its nested pattern.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN',
     expectedTypes: [],
   );
 
@@ -11473,6 +12248,7 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try replacing the null-check pattern with its nested pattern.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN',
     expectedTypes: [],
   );
 
@@ -11484,6 +12260,7 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required String super.uniqueNameCheck,
     required super.expectedTypes,
   }) : super(
          type: DiagnosticType.STATIC_WARNING,
@@ -11533,6 +12310,7 @@ final class StaticWarningTemplate<T extends Function>
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
     required this.withArguments,
   });
@@ -11548,6 +12326,7 @@ final class StaticWarningWithoutArguments extends StaticWarningCode
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
   });
 }
@@ -11565,6 +12344,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The argument type '{0}' can't be assigned to the parameter type '{1} "
         "Function(Object)' or '{1} Function(Object, StackTrace)'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
     withArguments: _withArgumentsArgumentTypeNotAssignableToErrorHandler,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -11583,6 +12364,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "top-level variable.",
     correctionMessage: "Try removing the assignment.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.ASSIGNMENT_OF_DO_NOT_STORE',
     withArguments: _withArgumentsAssignmentOfDoNotStore,
     expectedTypes: [ExpectedType.string],
   );
@@ -11599,6 +12381,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "without returning a value.",
     correctionMessage: "Try adding a return statement.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
     withArguments: _withArgumentsBodyMightCompleteNormallyCatchError,
     expectedTypes: [ExpectedType.type],
   );
@@ -11617,6 +12400,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try adding a return statement, or if no value is ever returned, try "
         "changing the return type to 'void'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
     withArguments: _withArgumentsBodyMightCompleteNormallyNullable,
     expectedTypes: [ExpectedType.type],
   );
@@ -11635,6 +12419,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try giving it an initializer expression, or ensure that it's assigned "
         "on every execution path.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS',
     withArguments: _withArgumentsCastFromNullableAlwaysFails,
     expectedTypes: [ExpectedType.string],
   );
@@ -11647,6 +12432,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "This cast always throws an exception because the expression always "
         "evaluates to 'null'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.CAST_FROM_NULL_ALWAYS_FAILS',
     expectedTypes: [],
   );
 
@@ -11664,6 +12450,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try a constant of the same type as the matched value type.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE',
     withArguments: _withArgumentsConstantPatternNeverMatchesValueType,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -11679,6 +12466,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the code, or fixing the code before it so that it can be "
         "reached.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.DEAD_CODE',
     expectedTypes: [],
   );
 
@@ -11696,6 +12484,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try reordering the catch clauses so that they can be reached, or "
         "removing the unreachable catch clauses.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH',
     expectedTypes: [],
   );
 
@@ -11711,6 +12500,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "variable to a non-wildcard.",
     hasPublishedDocs: true,
     uniqueName: 'DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER',
+    uniqueNameCheck: 'WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER',
     expectedTypes: [],
   );
 
@@ -11733,6 +12523,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try reordering the catch clauses so that this block can be reached, "
         "or removing the unreachable catch clause.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE',
     withArguments: _withArgumentsDeadCodeOnCatchSubtype,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -11747,6 +12538,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The ability to import '{0}' indirectly is deprecated.",
     correctionMessage: "Try importing '{0}' directly.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.DEPRECATED_EXPORT_USE',
     withArguments: _withArgumentsDeprecatedExportUse,
     expectedTypes: [ExpectedType.string],
   );
@@ -11761,6 +12553,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Extending '{0}' is deprecated.",
     correctionMessage: "Try removing the 'extends' clause.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.DEPRECATED_EXTEND',
     withArguments: _withArgumentsDeprecatedExtend,
     expectedTypes: [ExpectedType.object],
   );
@@ -11773,6 +12566,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage: "Try removing 'Function' from the 'extends' clause.",
         hasPublishedDocs: true,
         uniqueName: 'DEPRECATED_EXTENDS_FUNCTION',
+        uniqueNameCheck: 'WarningCode.DEPRECATED_EXTENDS_FUNCTION',
         expectedTypes: [],
       );
 
@@ -11786,6 +12580,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Implementing '{0}' is deprecated.",
     correctionMessage: "Try removing '{0}' from the 'implements' clause.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.DEPRECATED_IMPLEMENT',
     withArguments: _withArgumentsDeprecatedImplement,
     expectedTypes: [ExpectedType.object],
   );
@@ -11799,6 +12594,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
             "Try removing 'Function' from the 'implements' clause.",
         hasPublishedDocs: true,
         uniqueName: 'DEPRECATED_IMPLEMENTS_FUNCTION',
+        uniqueNameCheck: 'WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION',
         expectedTypes: [],
       );
 
@@ -11812,6 +12608,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Instantiating '{0}' is deprecated.",
     correctionMessage: "Try instantiating a non-abstract class.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.DEPRECATED_INSTANTIATE',
     withArguments: _withArgumentsDeprecatedInstantiate,
     expectedTypes: [ExpectedType.object],
   );
@@ -11825,6 +12622,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'DEPRECATED_MIXIN',
     problemMessage: "Mixing in '{0}' is deprecated.",
     correctionMessage: "Try removing '{0}' from the 'with' clause.",
+    uniqueNameCheck: 'WarningCode.DEPRECATED_MIXIN',
     withArguments: _withArgumentsDeprecatedMixin,
     expectedTypes: [ExpectedType.object],
   );
@@ -11837,6 +12635,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage: "Try removing 'Function' from the 'with' clause.",
         hasPublishedDocs: true,
         uniqueName: 'DEPRECATED_MIXIN_FUNCTION',
+        uniqueNameCheck: 'WarningCode.DEPRECATED_MIXIN_FUNCTION',
         expectedTypes: [],
       );
 
@@ -11848,6 +12647,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
             "Using the 'new' keyword in a comment reference is deprecated.",
         correctionMessage: "Try referring to a constructor by its name.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE',
         expectedTypes: [],
       );
 
@@ -11861,6 +12661,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "Omitting an argument for the '{0}' parameter is deprecated.",
     correctionMessage: "Try passing an argument for '{0}'.",
+    uniqueNameCheck: 'WarningCode.DEPRECATED_OPTIONAL',
     withArguments: _withArgumentsDeprecatedOptional,
     expectedTypes: [ExpectedType.object],
   );
@@ -11877,6 +12678,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the 'extends' clause, or removing '{0}' from the "
         "'implements' clause.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.DEPRECATED_SUBCLASS',
     withArguments: _withArgumentsDeprecatedSubclass,
     expectedTypes: [ExpectedType.object],
   );
@@ -11891,6 +12693,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
     problemMessage: "The '{0}' argument must be formatted as {1}.",
     correctionMessage: "Try formatting '{0}' as {1}.",
+    uniqueNameCheck: 'WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
     withArguments: _withArgumentsDocDirectiveArgumentWrongFormat,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -11911,6 +12714,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The '{0}' directive has '{1}' arguments, but only '{2}' are expected.",
     correctionMessage: "Try removing the extra arguments.",
+    uniqueNameCheck: 'WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
     withArguments: _withArgumentsDocDirectiveHasExtraArguments,
     expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
   );
@@ -11926,6 +12730,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The '{0}' directive has an unexpected named argument, '{1}'.",
     correctionMessage: "Try removing the unexpected argument.",
+    uniqueNameCheck: 'WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT',
     withArguments: _withArgumentsDocDirectiveHasUnexpectedNamedArgument,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -11936,6 +12741,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         name: 'DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
         problemMessage: "Doc directive is missing a closing curly brace ('}').",
         correctionMessage: "Try closing the directive with a curly brace.",
+        uniqueNameCheck: 'WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
         expectedTypes: [],
       );
 
@@ -11949,6 +12755,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Doc directive is missing a closing tag.",
     correctionMessage:
         "Try closing the directive with the appropriate closing tag, '{0}'.",
+    uniqueNameCheck: 'WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG',
     withArguments: _withArgumentsDocDirectiveMissingClosingTag,
     expectedTypes: [ExpectedType.string],
   );
@@ -11964,6 +12771,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The '{0}' directive is missing a '{1}' argument.",
     correctionMessage: "Try adding a '{1}' argument before the closing '}'.",
     uniqueName: 'DOC_DIRECTIVE_MISSING_ONE_ARGUMENT',
+    uniqueNameCheck: 'WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT',
     withArguments: _withArgumentsDocDirectiveMissingOneArgument,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -11978,6 +12786,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Doc directive is missing an opening tag.",
     correctionMessage:
         "Try opening the directive with the appropriate opening tag, '{0}'.",
+    uniqueNameCheck: 'WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG',
     withArguments: _withArgumentsDocDirectiveMissingOpeningTag,
     expectedTypes: [ExpectedType.string],
   );
@@ -12002,6 +12811,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try adding the missing arguments before the closing '}'.",
     uniqueName: 'DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS',
+    uniqueNameCheck: 'WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS',
     withArguments: _withArgumentsDocDirectiveMissingThreeArguments,
     expectedTypes: [
       ExpectedType.string,
@@ -12029,6 +12839,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try adding the missing arguments before the closing '}'.",
     uniqueName: 'DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS',
+    uniqueNameCheck: 'WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS',
     withArguments: _withArgumentsDocDirectiveMissingTwoArguments,
     expectedTypes: [
       ExpectedType.string,
@@ -12046,6 +12857,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'DOC_DIRECTIVE_UNKNOWN',
     problemMessage: "Doc directive '{0}' is unknown.",
     correctionMessage: "Try using one of the supported doc directives.",
+    uniqueNameCheck: 'WarningCode.DOC_DIRECTIVE_UNKNOWN',
     withArguments: _withArgumentsDocDirectiveUnknown,
     expectedTypes: [ExpectedType.string],
   );
@@ -12057,6 +12869,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Doc imports can't be deferred.",
         correctionMessage: "Try removing the 'deferred' keyword.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED',
         expectedTypes: [],
       );
 
@@ -12067,6 +12880,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Doc imports can't have show or hide combinators.",
         correctionMessage: "Try removing the combinator.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
         expectedTypes: [],
       );
 
@@ -12077,6 +12891,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Doc imports can't have configurations.",
         correctionMessage: "Try removing the configurations.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
         expectedTypes: [],
       );
 
@@ -12087,6 +12902,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Doc imports can't have prefixes.",
         correctionMessage: "Try removing the prefix.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX',
         expectedTypes: [],
       );
 
@@ -12099,6 +12915,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Duplicate export.",
         correctionMessage: "Try removing all but one export of the library.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.DUPLICATE_EXPORT',
         expectedTypes: [],
       );
 
@@ -12110,6 +12927,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the repeated name from the list of hidden members.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.DUPLICATE_HIDDEN_NAME',
         expectedTypes: [],
       );
 
@@ -12127,6 +12945,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the name from the list, or removing the whole comment if "
         "this is the only name in the list.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.DUPLICATE_IGNORE',
     withArguments: _withArgumentsDuplicateIgnore,
     expectedTypes: [ExpectedType.string],
   );
@@ -12140,6 +12959,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Duplicate import.",
         correctionMessage: "Try removing all but one import of the library.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.DUPLICATE_IMPORT',
         expectedTypes: [],
       );
 
@@ -12151,6 +12971,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the repeated name from the list of shown members.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.DUPLICATE_SHOWN_NAME',
         expectedTypes: [],
       );
 
@@ -12161,6 +12982,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Two elements in a set literal shouldn't be equal.",
         correctionMessage: "Change or remove the duplicate element.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.EQUAL_ELEMENTS_IN_SET',
         expectedTypes: [],
       );
 
@@ -12170,6 +12992,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Two keys in a map literal shouldn't be equal.",
     correctionMessage: "Change or remove the duplicate key.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.EQUAL_KEYS_IN_MAP',
     expectedTypes: [],
   );
 
@@ -12182,6 +13005,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'EXPERIMENTAL_MEMBER_USE',
     problemMessage:
         "'{0}' is experimental and could be removed or changed at any time.",
+    uniqueNameCheck: 'WarningCode.EXPERIMENTAL_MEMBER_USE',
     withArguments: _withArgumentsExperimentalMemberUse,
     expectedTypes: [ExpectedType.string],
   );
@@ -12198,6 +13022,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
     problemMessage: "The type argument(s) of '{0}' can't be inferred.",
     correctionMessage: "Use explicit type argument(s) for '{0}'.",
+    uniqueNameCheck: 'WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
     withArguments: _withArgumentsInferenceFailureOnCollectionLiteral,
     expectedTypes: [ExpectedType.string],
   );
@@ -12215,6 +13040,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The type argument(s) of the function '{0}' can't be inferred.",
     correctionMessage: "Use explicit type argument(s) for '{0}'.",
+    uniqueNameCheck: 'WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
     withArguments: _withArgumentsInferenceFailureOnFunctionInvocation,
     expectedTypes: [ExpectedType.string],
   );
@@ -12235,6 +13061,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
     problemMessage: "The return type of '{0}' can't be inferred.",
     correctionMessage: "Declare the return type of '{0}'.",
+    uniqueNameCheck: 'WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
     withArguments: _withArgumentsInferenceFailureOnFunctionReturnType,
     expectedTypes: [ExpectedType.string],
   );
@@ -12253,6 +13080,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The type argument(s) of the generic function type '{0}' can't be "
         "inferred.",
     correctionMessage: "Use explicit type argument(s) for '{0}'.",
+    uniqueNameCheck: 'WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
     withArguments: _withArgumentsInferenceFailureOnGenericInvocation,
     expectedTypes: [ExpectedType.string],
   );
@@ -12271,6 +13099,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The type argument(s) of the constructor '{0}' can't be inferred.",
     correctionMessage: "Use explicit type argument(s) for '{0}'.",
+    uniqueNameCheck: 'WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION',
     withArguments: _withArgumentsInferenceFailureOnInstanceCreation,
     expectedTypes: [ExpectedType.string],
   );
@@ -12288,6 +13117,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The type of {0} can't be inferred without either a type or initializer.",
     correctionMessage: "Try specifying the type of the variable.",
+    uniqueNameCheck: 'WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
     withArguments: _withArgumentsInferenceFailureOnUninitializedVariable,
     expectedTypes: [ExpectedType.string],
   );
@@ -12305,6 +13135,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The type of {0} can't be inferred; a type must be explicitly provided.",
     correctionMessage: "Try specifying the type of the parameter.",
+    uniqueNameCheck: 'WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
     withArguments: _withArgumentsInferenceFailureOnUntypedParameter,
     expectedTypes: [ExpectedType.string],
   );
@@ -12319,6 +13150,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INVALID_ANNOTATION_TARGET',
     problemMessage: "The annotation '{0}' can only be used on {1}.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_ANNOTATION_TARGET',
     withArguments: _withArgumentsInvalidAnnotationTarget,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -12331,6 +13163,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
             "The annotation 'awaitNotRequired' can only be applied to a "
             "Future-returning function, or a Future-typed field.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION',
         expectedTypes: [],
       );
 
@@ -12343,6 +13176,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "classes.",
     correctionMessage: "Try removing the '@Deprecated.extend' annotation.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION',
     expectedTypes: [],
   );
 
@@ -12356,6 +13190,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the '@Deprecated.implement' annotation.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION',
         expectedTypes: [],
       );
 
@@ -12367,6 +13202,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The annotation '@Deprecated.instantiate' can only be applied to classes.",
     correctionMessage: "Try removing the '@Deprecated.instantiate' annotation.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_DEPRECATED_INSTANTIATE_ANNOTATION',
     expectedTypes: [],
   );
 
@@ -12380,6 +13216,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The annotation '@Deprecated.mixin' can only be applied to classes.",
     correctionMessage: "Try removing the '@Deprecated.mixin' annotation.",
+    uniqueNameCheck: 'WarningCode.INVALID_DEPRECATED_MIXIN_ANNOTATION',
     expectedTypes: [],
   );
 
@@ -12395,6 +13232,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "parameters.",
     correctionMessage: "Try removing the '@Deprecated.optional' annotation.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_DEPRECATED_OPTIONAL_ANNOTATION',
     expectedTypes: [],
   );
 
@@ -12407,6 +13245,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "classes and mixins.",
     correctionMessage: "Try removing the '@Deprecated.subclass' annotation.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION',
     expectedTypes: [],
   );
 
@@ -12421,6 +13260,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The member '{0}' can't be exported as a part of a package's public API.",
     correctionMessage: "Try using a hide clause to hide '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT',
     withArguments: _withArgumentsInvalidExportOfInternalElement,
     expectedTypes: [ExpectedType.string],
   );
@@ -12439,6 +13279,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "but is indirectly exported as part of the signature of '{1}'.",
     correctionMessage: "Try using a hide clause to hide '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck:
+        'WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
     withArguments: _withArgumentsInvalidExportOfInternalElementIndirectly,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -12452,6 +13294,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INVALID_FACTORY_METHOD_DECL',
     problemMessage: "Factory method '{0}' must have a return type.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_FACTORY_METHOD_DECL',
     withArguments: _withArgumentsInvalidFactoryMethodDecl,
     expectedTypes: [ExpectedType.string],
   );
@@ -12466,6 +13309,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "Factory method '{0}' doesn't return a newly allocated object.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_FACTORY_METHOD_IMPL',
     withArguments: _withArgumentsInvalidFactoryMethodImpl,
     expectedTypes: [ExpectedType.string],
   );
@@ -12478,6 +13322,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Only public elements in a package's private API can be annotated as being "
         "internal.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_INTERNAL_ANNOTATION',
     expectedTypes: [],
   );
 
@@ -12492,6 +13337,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "@dart = 2.0'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
+    uniqueNameCheck: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
     expectedTypes: [],
   );
 
@@ -12507,6 +13353,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "@dart = 2.0'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
+    uniqueNameCheck: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
     expectedTypes: [],
   );
 
@@ -12524,6 +13371,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try removing the language version override.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
+    uniqueNameCheck: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
     withArguments: _withArgumentsInvalidLanguageVersionOverrideGreater,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -12539,6 +13387,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try moving the language version override to the top of the file.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
+    uniqueNameCheck: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
     expectedTypes: [],
   );
 
@@ -12554,6 +13403,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "@dart = 2.0'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
+    uniqueNameCheck: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
     expectedTypes: [],
   );
 
@@ -12569,6 +13419,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "@dart = 2.0'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
+    uniqueNameCheck: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
     expectedTypes: [],
   );
 
@@ -12584,6 +13435,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "@dart = 2.0'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
+    uniqueNameCheck: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
     expectedTypes: [],
   );
 
@@ -12599,6 +13451,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "@dart = 2.0'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
+    uniqueNameCheck:
+        'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
     expectedTypes: [],
   );
 
@@ -12614,6 +13468,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "@dart = 2.0'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
+    uniqueNameCheck:
+        'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
     expectedTypes: [],
   );
 
@@ -12624,6 +13480,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage:
             "Only const constructors can have the `@literal` annotation.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.INVALID_LITERAL_ANNOTATION',
         expectedTypes: [],
       );
 
@@ -12639,6 +13496,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "member.",
     correctionMessage: "Try removing '@nonVirtual'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_NON_VIRTUAL_ANNOTATION',
     expectedTypes: [],
   );
 
@@ -12657,6 +13515,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The member '{0}' is declared non-virtual in '{1}' and can't be overridden "
         "in subclasses.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
     withArguments: _withArgumentsInvalidOverrideOfNonVirtualMember,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -12673,6 +13532,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "capabilities that the supertype intentionally disallows.",
     correctionMessage: "Try removing the '@reopen' annotation.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_REOPEN_ANNOTATION',
     expectedTypes: [],
   );
 
@@ -12686,6 +13546,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Uses of '{0}' should not be submitted to source control.",
     correctionMessage: "Try removing the reference to '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
     withArguments: _withArgumentsInvalidUseOfDoNotSubmitMember,
     expectedTypes: [ExpectedType.string],
   );
@@ -12699,6 +13560,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INVALID_USE_OF_INTERNAL_MEMBER',
     problemMessage: "The member '{0}' can only be used within its package.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_USE_OF_INTERNAL_MEMBER',
     withArguments: _withArgumentsInvalidUseOfInternalMember,
     expectedTypes: [ExpectedType.string],
   );
@@ -12718,6 +13580,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The member '{0}' can only be used within instance members of subclasses "
         "of '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_USE_OF_PROTECTED_MEMBER',
     withArguments: _withArgumentsInvalidUseOfProtectedMember,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -12731,6 +13594,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
     problemMessage: "The member '{0}' can only be used for overriding.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
     withArguments: _withArgumentsInvalidUseOfVisibleForOverridingMember,
     expectedTypes: [ExpectedType.string],
   );
@@ -12748,6 +13612,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
     problemMessage:
         "The member '{0}' can only be used within '{1}' or a template library.",
+    uniqueNameCheck: 'WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
     withArguments: _withArgumentsInvalidUseOfVisibleForTemplateMember,
     expectedTypes: [ExpectedType.string, ExpectedType.uri],
   );
@@ -12765,6 +13630,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
     problemMessage: "The member '{0}' can only be used within '{1}' or a test.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
     withArguments: _withArgumentsInvalidUseOfVisibleForTestingMember,
     expectedTypes: [ExpectedType.string, ExpectedType.uri],
   );
@@ -12784,6 +13650,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The member '{0}' is annotated with '{1}', but this annotation is only "
         "meaningful on declarations of public members.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_VISIBILITY_ANNOTATION',
     withArguments: _withArgumentsInvalidVisibilityAnnotation,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -12796,6 +13663,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The annotation 'visibleForOverriding' can only be applied to a public "
         "instance member that can be overridden.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION',
     expectedTypes: [],
   );
 
@@ -12808,6 +13676,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "of a class, enum, or mixin that is annotated with "
         "'visibleForTemplate'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION',
     expectedTypes: [],
   );
 
@@ -12819,6 +13688,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The '@Preview(...)' annotation can only be applied to public, statically "
         "accessible constructors and functions.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION',
     expectedTypes: [],
   );
 
@@ -12835,6 +13705,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "public symbols.",
     correctionMessage: "Rename private symbol '{0}' to '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT',
     withArguments: _withArgumentsInvalidWidgetPreviewPrivateArgument,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -12850,6 +13721,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try overriding the missing member.",
     hasPublishedDocs: true,
     uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE',
+    uniqueNameCheck: 'WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE',
     withArguments: _withArgumentsMissingOverrideOfMustBeOverriddenOne,
     expectedTypes: [ExpectedType.string],
   );
@@ -12872,6 +13744,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try overriding the missing members.",
     hasPublishedDocs: true,
     uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS',
+    uniqueNameCheck:
+        'WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS',
     withArguments: _withArgumentsMissingOverrideOfMustBeOverriddenThreePlus,
     expectedTypes: [
       ExpectedType.string,
@@ -12892,6 +13766,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try overriding the missing members.",
     hasPublishedDocs: true,
     uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
+    uniqueNameCheck: 'WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
     withArguments: _withArgumentsMissingOverrideOfMustBeOverriddenTwo,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -12908,6 +13783,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'MISSING_REQUIRED_PARAM',
     problemMessage: "The parameter '{0}' is required.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.MISSING_REQUIRED_PARAM',
     withArguments: _withArgumentsMissingRequiredParam,
     expectedTypes: [ExpectedType.string],
   );
@@ -12926,6 +13802,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The parameter '{0}' is required. {1}.",
     hasPublishedDocs: true,
     uniqueName: 'MISSING_REQUIRED_PARAM_WITH_DETAILS',
+    uniqueNameCheck: 'WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS',
     withArguments: _withArgumentsMissingRequiredParamWithDetails,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -12948,6 +13825,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try composing with this class, or refer to its documentation for more "
         "information.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.MIXIN_ON_SEALED_CLASS',
     withArguments: _withArgumentsMixinOnSealedClass,
     expectedTypes: [ExpectedType.string],
   );
@@ -12961,6 +13839,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "produces surprising results.",
     correctionMessage: "Try using a single combinator.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.MULTIPLE_COMBINATORS',
     expectedTypes: [],
   );
 
@@ -12979,6 +13858,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "'@immutable', but one or more of its instance fields aren't final: "
         "{0}",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.MUST_BE_IMMUTABLE',
     withArguments: _withArgumentsMustBeImmutable,
     expectedTypes: [ExpectedType.string],
   );
@@ -12994,6 +13874,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "This method overrides a method annotated as '@mustCallSuper' in '{0}', "
         "but doesn't invoke the overridden method.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.MUST_CALL_SUPER',
     withArguments: _withArgumentsMustCallSuper,
     expectedTypes: [ExpectedType.string],
   );
@@ -13008,6 +13889,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Argument '{0}' must be a constant.",
     correctionMessage: "Try replacing the argument with a constant.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
     withArguments: _withArgumentsNonConstArgumentForConstParameter,
     expectedTypes: [ExpectedType.string],
   );
@@ -13027,6 +13909,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "marked as '@literal'.",
     correctionMessage: "Try adding a 'const' keyword.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
     withArguments: _withArgumentsNonConstCallToLiteralConstructor,
     expectedTypes: [ExpectedType.string],
   );
@@ -13047,6 +13930,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try replacing the 'new' keyword with 'const'.",
     hasPublishedDocs: true,
     uniqueName: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
+    uniqueNameCheck:
+        'WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
     withArguments: _withArgumentsNonConstCallToLiteralConstructorUsingNew,
     expectedTypes: [ExpectedType.string],
   );
@@ -13059,6 +13944,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
             "The parameter type of '==' operators should be non-nullable.",
         correctionMessage: "Try using a non-nullable type.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.NON_NULLABLE_EQUALS_PARAMETER',
         expectedTypes: [],
       );
 
@@ -13071,6 +13957,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "isn't valid to throw a nullable expression.",
     correctionMessage: "Try using a non-nullable type.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE',
     expectedTypes: [],
   );
 
@@ -13087,6 +13974,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "type argument '{1}'.",
     correctionMessage: "Try adding a non-null argument.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE',
     withArguments: _withArgumentsNullArgumentToNonNullType,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -13099,6 +13987,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "This null-check will always throw an exception because the expression "
         "will always evaluate to 'null'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.NULL_CHECK_ALWAYS_FAILS',
     expectedTypes: [],
   );
 
@@ -13115,6 +14004,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
             "override annotation.",
         hasPublishedDocs: true,
         uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_FIELD',
+        uniqueNameCheck: 'WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD',
         expectedTypes: [],
       );
 
@@ -13130,6 +14020,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
             "override annotation.",
         hasPublishedDocs: true,
         uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_GETTER',
+        uniqueNameCheck: 'WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER',
         expectedTypes: [],
       );
 
@@ -13145,6 +14036,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
             "override annotation.",
         hasPublishedDocs: true,
         uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_METHOD',
+        uniqueNameCheck: 'WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD',
         expectedTypes: [],
       );
 
@@ -13160,6 +14052,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
             "override annotation.",
         hasPublishedDocs: true,
         uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_SETTER',
+        uniqueNameCheck: 'WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER',
         expectedTypes: [],
       );
 
@@ -13174,6 +14067,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The matched value type '{0}' can never match the required type '{1}'.",
     correctionMessage: "Try using a different pattern.",
+    uniqueNameCheck: 'WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE',
     withArguments: _withArgumentsPatternNeverMatchesValueType,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -13197,6 +14091,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The receiver is of type 'Never', and will never complete with a value.",
     correctionMessage:
         "Try checking for throw expressions or type errors in the receiver",
+    uniqueNameCheck: 'WarningCode.RECEIVER_OF_TYPE_NEVER',
     expectedTypes: [],
   );
 
@@ -13215,6 +14110,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try updating this member to match a declaration in a superinterface, "
         "or removing the redeclare annotation.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER',
     withArguments: _withArgumentsRedeclareOnNonRedeclaringMember,
     expectedTypes: [ExpectedType.string],
   );
@@ -13231,6 +14127,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'REMOVED_LINT_USE',
     problemMessage: "'{0}' was removed in Dart '{1}'",
     correctionMessage: "Remove the reference to '{0}'.",
+    uniqueNameCheck: 'WarningCode.REMOVED_LINT_USE',
     withArguments: _withArgumentsRemovedLintUse,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -13252,6 +14149,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'REPLACED_LINT_USE',
     problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'.",
     correctionMessage: "Replace '{0}' with '{1}'.",
+    uniqueNameCheck: 'WarningCode.REPLACED_LINT_USE',
     withArguments: _withArgumentsReplacedLintUse,
     expectedTypes: [
       ExpectedType.object,
@@ -13273,6 +14171,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "'{1}' is also annotated.",
     correctionMessage: "Annotate '{1}' with 'doNotStore'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.RETURN_OF_DO_NOT_STORE',
     withArguments: _withArgumentsReturnOfDoNotStore,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -13290,6 +14189,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "it must be assignable to '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR',
+    uniqueNameCheck: 'WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR',
     withArguments: _withArgumentsReturnOfInvalidTypeFromCatchError,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -13307,6 +14207,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "'Future.catchError'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
+    uniqueNameCheck: 'WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
     withArguments: _withArgumentsReturnTypeInvalidForCatchError,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
@@ -13327,6 +14228,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try updating your 'pubspec.yaml' to set the minimum SDK constraint to "
         "2.15 or higher, and running 'pub get'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS',
     expectedTypes: [],
   );
 
@@ -13339,6 +14241,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "is required to be able to run on earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR',
     expectedTypes: [],
   );
 
@@ -13354,6 +14257,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "This API is available since SDK {0}, but constraints '{1}' don't "
         "guarantee it.",
     correctionMessage: "Try updating the SDK constraints.",
+    uniqueNameCheck: 'WarningCode.SDK_VERSION_SINCE',
     withArguments: _withArgumentsSdkVersionSince,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -13373,6 +14277,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The generic type '{0}' should have explicit type arguments but doesn't.",
     correctionMessage: "Use explicit type arguments for '{0}'.",
+    uniqueNameCheck: 'WarningCode.STRICT_RAW_TYPE',
     withArguments: _withArgumentsStrictRawType,
     expectedTypes: [ExpectedType.type],
   );
@@ -13391,6 +14296,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try composing instead of inheriting, or refer to the documentation of "
         "'{0}' for more information.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.SUBTYPE_OF_SEALED_CLASS',
     withArguments: _withArgumentsSubtypeOfSealedClass,
     expectedTypes: [ExpectedType.string],
   );
@@ -13409,6 +14315,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the code point or using the Unicode escape sequence "
         "'\\u{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
     withArguments: _withArgumentsTextDirectionCodePointInComment,
     expectedTypes: [ExpectedType.string],
   );
@@ -13427,6 +14334,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the code point or using the Unicode escape sequence "
         "'\\u{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
     withArguments: _withArgumentsTextDirectionCodePointInLiteral,
     expectedTypes: [ExpectedType.string],
   );
@@ -13439,6 +14347,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage: "Try replacing the 'is! Null' check with '!= null'.",
         hasPublishedDocs: true,
         uniqueName: 'TYPE_CHECK_IS_NOT_NULL',
+        uniqueNameCheck: 'WarningCode.TYPE_CHECK_IS_NOT_NULL',
         expectedTypes: [],
       );
 
@@ -13450,6 +14359,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage: "Try replacing the 'is Null' check with '== null'.",
         hasPublishedDocs: true,
         uniqueName: 'TYPE_CHECK_IS_NULL',
+        uniqueNameCheck: 'WarningCode.TYPE_CHECK_IS_NULL',
         expectedTypes: [],
       );
 
@@ -13465,6 +14375,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The library '{0}' doesn't export a member with the hidden name '{1}'.",
     correctionMessage: "Try removing the name from the list of hidden members.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNDEFINED_HIDDEN_NAME',
     withArguments: _withArgumentsUndefinedHiddenName,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -13479,6 +14390,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'UNDEFINED_REFERENCED_PARAMETER',
     problemMessage: "The parameter '{0}' isn't defined by '{1}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNDEFINED_REFERENCED_PARAMETER',
     withArguments: _withArgumentsUndefinedReferencedParameter,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -13495,6 +14407,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The library '{0}' doesn't export a member with the shown name '{1}'.",
     correctionMessage: "Try removing the name from the list of shown members.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNDEFINED_SHOWN_NAME',
     withArguments: _withArgumentsUndefinedShownName,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -13510,6 +14423,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try removing the name from the list, or removing the whole comment if "
         "this is the only name in the list.",
+    uniqueNameCheck: 'WarningCode.UNIGNORABLE_IGNORE',
     withArguments: _withArgumentsUnignorableIgnore,
     expectedTypes: [ExpectedType.object],
   );
@@ -13521,6 +14435,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Unnecessary cast.",
         correctionMessage: "Try removing the cast.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.UNNECESSARY_CAST',
         expectedTypes: [],
       );
 
@@ -13530,6 +14445,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         name: 'UNNECESSARY_CAST_PATTERN',
         problemMessage: "Unnecessary cast pattern.",
         correctionMessage: "Try removing the cast pattern.",
+        uniqueNameCheck: 'WarningCode.UNNECESSARY_CAST_PATTERN',
         expectedTypes: [],
       );
 
@@ -13542,6 +14458,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "'final'.",
     correctionMessage: "Try removing the 'final'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNNECESSARY_FINAL',
     expectedTypes: [],
   );
 
@@ -13554,6 +14471,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try using 'double.isNan', or removing the condition.",
     hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_NAN_COMPARISON_FALSE',
+    uniqueNameCheck: 'WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE',
     expectedTypes: [],
   );
 
@@ -13566,6 +14484,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Try using 'double.isNan', or removing the condition.",
     hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_NAN_COMPARISON_TRUE',
+    uniqueNameCheck: 'WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE',
     expectedTypes: [],
   );
 
@@ -13576,6 +14495,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Unnecessary 'noSuchMethod' declaration.",
         correctionMessage: "Try removing the declaration of 'noSuchMethod'.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.UNNECESSARY_NO_SUCH_METHOD',
         expectedTypes: [],
       );
 
@@ -13588,6 +14508,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage: "Remove the condition.",
     hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE',
+    uniqueNameCheck:
+        'WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE',
     expectedTypes: [],
   );
 
@@ -13600,6 +14522,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage: "Remove the condition.",
         hasPublishedDocs: true,
         uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE',
+        uniqueNameCheck:
+            'WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE',
         expectedTypes: [],
       );
 
@@ -13614,6 +14538,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
             "conditional statement.",
         hasPublishedDocs: true,
         uniqueName: 'UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE',
+        uniqueNameCheck:
+            'WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE',
         expectedTypes: [],
       );
 
@@ -13626,6 +14552,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage: "Remove the condition.",
         hasPublishedDocs: true,
         uniqueName: 'UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE',
+        uniqueNameCheck:
+            'WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE',
         expectedTypes: [],
       );
 
@@ -13639,6 +14567,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The '?' is unnecessary because '{0}' is nullable without it.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNNECESSARY_QUESTION_MARK',
     withArguments: _withArgumentsUnnecessaryQuestionMark,
     expectedTypes: [ExpectedType.string],
   );
@@ -13652,6 +14581,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         correctionMessage:
             "Try removing the set literal around the expression.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.UNNECESSARY_SET_LITERAL',
         expectedTypes: [],
       );
 
@@ -13664,6 +14594,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
             "Try correcting the type check, or removing the type check.",
         hasPublishedDocs: true,
         uniqueName: 'UNNECESSARY_TYPE_CHECK_FALSE',
+        uniqueNameCheck: 'WarningCode.UNNECESSARY_TYPE_CHECK_FALSE',
         expectedTypes: [],
       );
 
@@ -13676,6 +14607,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
             "Try correcting the type check, or removing the type check.",
         hasPublishedDocs: true,
         uniqueName: 'UNNECESSARY_TYPE_CHECK_TRUE',
+        uniqueNameCheck: 'WarningCode.UNNECESSARY_TYPE_CHECK_TRUE',
         expectedTypes: [],
       );
 
@@ -13686,6 +14618,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Unnecessary wildcard pattern.",
         correctionMessage: "Try removing the wildcard pattern.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.UNNECESSARY_WILDCARD_PATTERN',
         expectedTypes: [],
       );
 
@@ -13698,6 +14631,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
             "Try removing the case clause, or restructuring the preceding "
             "patterns.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.UNREACHABLE_SWITCH_CASE',
         expectedTypes: [],
       );
 
@@ -13710,6 +14644,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
             "Try removing the default clause, or restructuring the preceding "
             "patterns.",
         hasPublishedDocs: true,
+        uniqueNameCheck: 'WarningCode.UNREACHABLE_SWITCH_DEFAULT',
         expectedTypes: [],
       );
 
@@ -13725,6 +14660,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "removed.",
     correctionMessage: "Try removing the catch clause.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNUSED_CATCH_CLAUSE',
     withArguments: _withArgumentsUnusedCatchClause,
     expectedTypes: [ExpectedType.object],
   );
@@ -13740,6 +14676,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The stack trace variable '{0}' isn't used and can be removed.",
     correctionMessage: "Try removing the stack trace variable, or using it.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNUSED_CATCH_STACK',
     withArguments: _withArgumentsUnusedCatchStack,
     expectedTypes: [ExpectedType.object],
   );
@@ -13754,6 +14691,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The declaration '{0}' isn't referenced.",
     correctionMessage: "Try removing the declaration of '{0}'.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNUSED_ELEMENT',
     withArguments: _withArgumentsUnusedElement,
     expectedTypes: [ExpectedType.object],
   );
@@ -13768,6 +14706,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "A value for optional parameter '{0}' isn't ever given.",
     correctionMessage: "Try removing the unused parameter.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNUSED_ELEMENT_PARAMETER',
     withArguments: _withArgumentsUnusedElementParameter,
     expectedTypes: [ExpectedType.object],
   );
@@ -13782,6 +14721,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The value of the field '{0}' isn't used.",
     correctionMessage: "Try removing the field, or using it.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNUSED_FIELD',
     withArguments: _withArgumentsUnusedField,
     expectedTypes: [ExpectedType.object],
   );
@@ -13796,6 +14736,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Unused import: '{0}'.",
     correctionMessage: "Try removing the import directive.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNUSED_IMPORT',
     withArguments: _withArgumentsUnusedImport,
     expectedTypes: [ExpectedType.string],
   );
@@ -13812,6 +14753,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing the label, or using it in either a 'break' or 'continue' "
         "statement.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNUSED_LABEL',
     withArguments: _withArgumentsUnusedLabel,
     expectedTypes: [ExpectedType.string],
   );
@@ -13826,6 +14768,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The value of the local variable '{0}' isn't used.",
     correctionMessage: "Try removing the variable or using it.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNUSED_LOCAL_VARIABLE',
     withArguments: _withArgumentsUnusedLocalVariable,
     expectedTypes: [ExpectedType.object],
   );
@@ -13842,6 +14785,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try using the result by invoking a member, passing it to a function, "
         "or returning it from this function.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNUSED_RESULT',
     withArguments: _withArgumentsUnusedResult,
     expectedTypes: [ExpectedType.string],
   );
@@ -13864,6 +14808,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "or returning it from this function.",
     hasPublishedDocs: true,
     uniqueName: 'UNUSED_RESULT_WITH_MESSAGE',
+    uniqueNameCheck: 'WarningCode.UNUSED_RESULT_WITH_MESSAGE',
     withArguments: _withArgumentsUnusedResultWithMessage,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -13878,6 +14823,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The name {0} is shown, but isn't used.",
     correctionMessage: "Try removing the name from the list of shown members.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.UNUSED_SHOWN_NAME',
     withArguments: _withArgumentsUnusedShownName,
     expectedTypes: [ExpectedType.string],
   );
@@ -13894,6 +14840,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try creating the file referenced by the URI, or try using a URI for a "
         "file that does exist.",
     hasPublishedDocs: true,
+    uniqueNameCheck: 'WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
     withArguments: _withArgumentsUriDoesNotExistInDocImport,
     expectedTypes: [ExpectedType.string],
   );
@@ -13906,6 +14853,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required String super.uniqueNameCheck,
     required super.expectedTypes,
   }) : super(
          type: DiagnosticType.STATIC_WARNING,
@@ -14632,6 +15580,7 @@ final class WarningTemplate<T extends Function> extends WarningCode {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
     required this.withArguments,
   });
@@ -14647,6 +15596,7 @@ final class WarningWithoutArguments extends WarningCode
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
   });
 }
