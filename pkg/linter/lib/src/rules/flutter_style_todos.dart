@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -15,7 +16,7 @@ const _desc =
     r'Use Flutter TODO format: '
     '// TODO(username): message, https://URL-to-issue.';
 
-class FlutterStyleTodos extends LintRule {
+class FlutterStyleTodos extends AnalysisRule {
   static final _todoRegExp = RegExp(r'//+\s*TODO\b', caseSensitive: false);
 
   static final RegExp _todoExpectedRegExp = RegExp(
@@ -44,7 +45,7 @@ class FlutterStyleTodos extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

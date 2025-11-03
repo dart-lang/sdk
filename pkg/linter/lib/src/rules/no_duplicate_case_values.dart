@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,7 +14,7 @@ import '../analyzer.dart';
 
 const _desc = r"Don't use more than one case with same value.";
 
-class NoDuplicateCaseValues extends LintRule {
+class NoDuplicateCaseValues extends AnalysisRule {
   NoDuplicateCaseValues()
     : super(name: LintNames.no_duplicate_case_values, description: _desc);
 

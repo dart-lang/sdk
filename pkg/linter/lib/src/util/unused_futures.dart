@@ -1,12 +1,12 @@
 // Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
-import '../analyzer.dart';
 import '../extensions.dart';
 
 /// A function that returns whether a given [Expression] is "interesting," and
@@ -20,14 +20,14 @@ typedef IsInterestingFilter = bool Function(Expression node);
 /// predicates (`discarded_futures` is concerned with _synchronous_ functions;
 /// `unawaited_futures` is concerned with _asynchronous_ functions).
 class UnusedFuturesVisitor extends SimpleAstVisitor<void> {
-  final LintRule _rule;
+  final AnalysisRule _rule;
 
   /// Returns whether an [Expression] is "interesting," that is, whether we
   /// might report on it.
   final IsInterestingFilter _isInteresting;
 
   UnusedFuturesVisitor({
-    required LintRule rule,
+    required AnalysisRule rule,
     required IsInterestingFilter isInteresting,
   }) : _rule = rule,
        _isInteresting = isInteresting;

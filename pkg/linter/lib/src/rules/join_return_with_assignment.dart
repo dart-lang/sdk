@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -30,7 +31,7 @@ Expression? _getExpressionFromAssignmentStatement(Statement node) {
 Expression? _getExpressionFromReturnStatement(Statement node) =>
     node is ReturnStatement ? node.expression : null;
 
-class JoinReturnWithAssignment extends LintRule {
+class JoinReturnWithAssignment extends AnalysisRule {
   JoinReturnWithAssignment()
     : super(name: LintNames.join_return_with_assignment, description: _desc);
 
@@ -48,7 +49,7 @@ class JoinReturnWithAssignment extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

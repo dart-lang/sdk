@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -18,7 +19,7 @@ const _desc = "Avoid switch statements on a 'Type'.";
 
 const _objectToStringName = 'toString';
 
-class SwitchOnType extends LintRule {
+class SwitchOnType extends AnalysisRule {
   SwitchOnType() : super(name: LintNames.switch_on_type, description: _desc);
 
   @override
@@ -37,7 +38,7 @@ class SwitchOnType extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   final RuleContext context;
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: file_names
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -15,7 +16,7 @@ import '../analyzer.dart';
 
 const _desc = r'Avoid calling `toString()` on `runtimeType`.';
 
-class NoRuntimeTypeToString extends LintRule {
+class NoRuntimeTypeToString extends AnalysisRule {
   NoRuntimeTypeToString()
     : super(name: LintNames.no_runtimeType_toString, description: _desc);
 
@@ -34,7 +35,7 @@ class NoRuntimeTypeToString extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

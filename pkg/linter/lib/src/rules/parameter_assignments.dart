@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -26,7 +27,7 @@ bool _isFormalParameterReassigned(
       leftHandSide.element == parameter.declaredFragment?.element;
 }
 
-class ParameterAssignments extends LintRule {
+class ParameterAssignments extends AnalysisRule {
   ParameterAssignments()
     : super(name: LintNames.parameter_assignments, description: _desc);
 
@@ -46,7 +47,7 @@ class ParameterAssignments extends LintRule {
 
 class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   final FormalParameter parameter;
-  final LintRule rule;
+  final AnalysisRule rule;
   final bool paramIsNotNullByDefault;
   final bool paramDefaultsToNull;
   bool hasBeenAssigned = false;
@@ -141,7 +142,7 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

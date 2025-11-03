@@ -27,14 +27,14 @@ void main() {
   });
 }
 
-const LintCode _customCode = LinterLintCode(
+const LintCode _customCode = LinterLintCode.internal(
   'hash_and_equals',
   'Override `==` if overriding `hashCode`.',
   correctionMessage: 'Implement `==`.',
   expectedTypes: [],
 );
 
-const LintCode _customCodeWithDocs = LinterLintCode(
+const LintCode _customCodeWithDocs = LinterLintCode.internal(
   'hash_and_equals',
   'Override `==` if overriding `hashCode`.',
   correctionMessage: 'Implement `==`.',

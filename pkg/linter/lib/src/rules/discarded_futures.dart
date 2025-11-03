@@ -1,6 +1,7 @@
 // Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,7 +14,7 @@ const _desc =
     'There should be no `Future`-returning calls in synchronous functions unless they '
     'are assigned or returned.';
 
-class DiscardedFutures extends LintRule {
+class DiscardedFutures extends AnalysisRule {
   DiscardedFutures()
     : super(name: LintNames.discarded_futures, description: _desc);
 

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -20,7 +21,6 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
@@ -101304,7 +101304,7 @@ void f(A _) {}
 }
 
 /// A lint that is always reported for all linted files.
-class _AlwaysReportedLint extends LintRule {
+class _AlwaysReportedLint extends AnalysisRule {
   static final instance = _AlwaysReportedLint();
 
   static const LintCode code = LintCode(
@@ -101329,7 +101329,7 @@ class _AlwaysReportedLint extends LintRule {
 
 /// A visitor for [_AlwaysReportedLint] that reports the lint for all files.
 class _AlwaysReportedLintVisitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _AlwaysReportedLintVisitor(this.rule);
 

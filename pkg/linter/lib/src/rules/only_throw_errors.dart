@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -29,7 +30,7 @@ bool _isThrowable(DartType? type) {
       typeForInterfaceCheck.implementsAnyInterface(_interfaceDefinitions);
 }
 
-class OnlyThrowErrors extends LintRule {
+class OnlyThrowErrors extends AnalysisRule {
   OnlyThrowErrors()
     : super(name: LintNames.only_throw_errors, description: _desc);
 
@@ -47,7 +48,7 @@ class OnlyThrowErrors extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

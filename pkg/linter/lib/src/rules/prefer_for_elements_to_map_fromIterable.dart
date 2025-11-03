@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: file_names
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,7 +14,7 @@ import '../analyzer.dart';
 
 const _desc = r'Prefer `for` elements when building maps from iterables.';
 
-class PreferForElementsToMapFromIterable extends LintRule {
+class PreferForElementsToMapFromIterable extends AnalysisRule {
   PreferForElementsToMapFromIterable()
     : super(
         name: LintNames.prefer_for_elements_to_map_fromIterable,
@@ -35,7 +36,7 @@ class PreferForElementsToMapFromIterable extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   final RuleContext context;
 
   _Visitor(this.rule, this.context);

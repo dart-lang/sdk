@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -15,7 +16,7 @@ import '../extensions.dart';
 const _desc =
     r"Don't use the Null type, unless you are positive that you don't want void.";
 
-class PreferVoidToNull extends LintRule {
+class PreferVoidToNull extends AnalysisRule {
   PreferVoidToNull()
     : super(name: LintNames.prefer_void_to_null, description: _desc);
 
@@ -33,7 +34,7 @@ class PreferVoidToNull extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   final RuleContext context;
   _Visitor(this.rule, this.context);
 

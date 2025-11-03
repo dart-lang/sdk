@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
 
@@ -11,7 +12,7 @@ const _desc =
     r'Avoid returning null from members whose return type is bool, double, int,'
     r' or num.';
 
-class AvoidReturningNull extends LintRule {
+class AvoidReturningNull extends AnalysisRule {
   AvoidReturningNull()
     : super(
         name: LintNames.avoid_returning_null,
