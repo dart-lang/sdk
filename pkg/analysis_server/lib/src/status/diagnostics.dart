@@ -177,7 +177,7 @@ abstract class DiagnosticPage extends Page {
     <div class="container">
       <span class="masthead-logo">
       <span class="mega-octicon octicon-dashboard"></span>
-        ${site.title} Diagnostics
+        ${site.title} Insights
       </span>
 
       <nav class="masthead-nav">

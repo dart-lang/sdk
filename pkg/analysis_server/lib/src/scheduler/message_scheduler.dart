@@ -130,6 +130,7 @@ final class MessageScheduler {
         // response was added to the queue then this process could deadlock.
         listener?.addActiveMessage(message);
         (server as LspAnalysisServer).handleMessage(msg, null);
+        listener?.messageCompleted(message);
         return;
       } else if (msg is lsp.NotificationMessage) {
         var method = msg.method;
@@ -142,6 +143,7 @@ final class MessageScheduler {
           // aren't provided because the request was cancelled.
           listener?.addActiveMessage(message);
           _processCancellation(msg);
+          listener?.messageCompleted(message);
           return;
         } else if (method == lsp.Method.textDocument_didChange) {
           // Document change notifications are _not_ handled immediately, but
