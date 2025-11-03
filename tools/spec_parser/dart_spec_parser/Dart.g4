@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.57 Update constructor declaration syntax to allow `constructorHead`.
+// Recatogerize 'factory' to be a reserved word and not a built-in identifier.
+//
 // v0.56 Use `typeWithParameters` consistently, simplify primary constructor
 // rule.
 //
@@ -435,7 +438,7 @@ typeWithParameters
 
 classDeclaration
     :    AUGMENT? (classModifiers | mixinClassModifiers)
-         CLASS classNamePart superclass? interfaces? classBody
+         CLASS classNameMaybePrimary superclass? interfaces? classBody
     |    classModifiers MIXIN? CLASS mixinApplicationClass
     ;
 
@@ -444,7 +447,7 @@ primaryConstructor
          declaringParameterList
     ;
 
-classNamePart
+classNameMaybePrimary
     :    primaryConstructor
     |    typeWithParameters
     ;
@@ -492,7 +495,7 @@ mixinDeclaration
     ;
 
 extensionTypeDeclaration
-    :    EXTENSION TYPE classNamePart interfaces? extensionTypeBody
+    :    EXTENSION TYPE classNameMaybePrimary interfaces? extensionTypeBody
     |    AUGMENT EXTENSION TYPE typeWithParameters interfaces?
          extensionTypeBody
     ;
@@ -571,16 +574,17 @@ setterSignature
     ;
 
 constructorSignature
-    :    constructorName formalParameterList
+    :    constructorName formalParameterList // Old form.
+    |    constructorHead formalParameterList // New form.
     |    declaringConstructorSignature
     ;
 
 declaringConstructorSignature
-    :    THIS ('.' identifierOrNew)? declaringParameterList?
+    :    THIS identifier? declaringParameterList? // New form only.
     ;
 
 declaringConstantConstructorSignature
-    :    CONST THIS ('.' identifierOrNew)? declaringParameterList
+    :    CONST THIS identifier? declaringParameterList // New form only.
     ;
 
 declaringParameterList
@@ -640,12 +644,15 @@ defaultDeclaringNamedParameter
     ;
 
 constructorName
-    :    typeIdentifierOrNew ('.' identifierOrNew)?
+    :    typeIdentifier ('.' identifierOrNew)?
     ;
 
-typeIdentifierOrNew
-    :    typeIdentifier
-    |    NEW
+constructorHead
+    :    NEW identifier?
+    ;
+
+factoryConstructorHead
+    :    FACTORY identifier?
     ;
 
 identifierOrNew
@@ -680,16 +687,20 @@ initializerExpression
     ;
 
 factoryConstructorSignature
-    :    CONST? FACTORY constructorName formalParameterList
+    :    CONST? FACTORY constructorName formalParameterList // Old form.
+    |    CONST? factoryConstructorHead formalParameterList // New form.
     ;
 
 redirectingFactoryConstructorSignature
     :    CONST? FACTORY constructorName formalParameterList '='
-         constructorDesignation
+         constructorDesignation // Old form.
+    |    CONST? factoryConstructorHead formalParameterList '='
+         constructorDesignation // New form.
     ;
 
 constantConstructorSignature
-    :    CONST constructorName formalParameterList
+    :    CONST constructorName formalParameterList // Old form.
+    |    CONST constructorHead formalParameterList // New form.
     |    declaringConstantConstructorSignature
     ;
 
@@ -698,7 +709,7 @@ mixinApplication
     ;
 
 enumType
-    :    AUGMENT? ENUM classNamePart mixins? interfaces? LBRACE
+    :    AUGMENT? ENUM classNameMaybePrimary mixins? interfaces? LBRACE
          enumEntry (',' enumEntry)* ','?
          (';' (metadata memberDeclaration)*)?
          RBRACE
@@ -1834,7 +1845,7 @@ EXPONENT
 
 fragment
 DIGITS
-    : DIGIT ('_'* DIGIT)*
+    :    DIGIT ('_'* DIGIT)*
     ;
 
 fragment

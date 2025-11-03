@@ -1,0 +1,50 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Getter/setter from superclass.
+
+sources:
+  main.dart: |
+    import 'dart:developer';
+    import 'lib.dart';
+
+    class _A extends B {
+      void foo() {
+        debugger();
+        print("hello");
+      }
+    }
+
+    void main() {
+      _A().foo();
+    }
+  lib.dart: |
+    import 'lib2.dart';
+    abstract class B extends C {
+      Object? get _a => null;
+      set _b(dynamic x) {}
+    }
+  lib2.dart: |
+    abstract class C {
+      set _a(dynamic x) {}
+      Object? get _b => null;
+    }
+
+definitions: []
+definition_types: []
+type_definitions: []
+type_bounds: []
+type_defaults: []
+position: "#_A"
+method: "foo"
+static: false
+offset: 85
+scriptUri: main.dart
+expression: |
+  () {
+    this._a;
+    this._a = 42;
+    this._b;
+    this._b = 42;
+  }()

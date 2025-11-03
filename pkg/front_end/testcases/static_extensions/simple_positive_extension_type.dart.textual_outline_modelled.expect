@@ -1,0 +1,22 @@
+expectDoesntThrow(Function() f) {}
+
+expectEqual(a, b) {}
+
+expectThrows(Function() f) {}
+
+extension E on A {
+  static String extensionMethod() => "E.extensionMethod";
+  static String extensionTypeMethod() => "E.extensionTypeMethod";
+  static String get extensionGetter => "E.extensionGetter";
+  static String get extensionTypeGetter => "E.extensionTypeGetter";
+  static void set extensionSetter(bool value) {}
+  static void set extensionTypeSetter(num value) {}
+}
+
+extension type A(Object? it) {
+  static String extensionTypeMethod() => "A.extensionTypeMethod";
+  static String get extensionTypeGetter => "A.extensionTypeGetter";
+  static void set extensionTypeSetter(num value) {}
+}
+
+main() {}
