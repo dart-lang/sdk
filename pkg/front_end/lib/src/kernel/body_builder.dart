@@ -6980,18 +6980,26 @@ class BodyBuilderImpl extends StackListenerImpl
         } else {
           target = constructorBuilder.invokeTarget;
         }
-        if (typeDeclarationBuilder.isEnum &&
-            !(libraryFeatures.enhancedEnums.isEnabled &&
-                target is Procedure &&
-                target.kind == ProcedureKind.Factory)) {
-          return new ErroneousConstructorResolutionResult(
-            errorExpression: buildProblem(
-              message: cfe.codeEnumInstantiation,
-              fileUri: uri,
-              fileOffset: nameToken.charOffset,
-              length: nameToken.length,
-            ),
-          );
+        if (typeDeclarationBuilder.isEnum) {
+          if (libraryFeatures.staticExtensions.isEnabled && target == null) {
+            return new UnresolvedConstructorResolutionResult(
+              errorName: debugName(typeDeclarationBuilder.name, name),
+              charOffset: nameLastToken.charOffset,
+              helper: this,
+            );
+          }
+          if (!(libraryFeatures.enhancedEnums.isEnabled &&
+              target is Procedure &&
+              target.kind == ProcedureKind.Factory)) {
+            return new ErroneousConstructorResolutionResult(
+              errorExpression: buildProblem(
+                message: cfe.codeEnumInstantiation,
+                fileUri: uri,
+                fileOffset: nameToken.charOffset,
+                length: nameToken.length,
+              ),
+            );
+          }
         }
         if (target is Constructor ||
             (target is Procedure && target.kind == ProcedureKind.Factory)) {
