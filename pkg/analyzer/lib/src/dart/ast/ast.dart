@@ -12174,6 +12174,10 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionTypedFormalParameter
     implements NormalFormalParameter {
+  /// The token representing either the `final` or `var` keyword, or
+  /// `null` if no keyword was used.
+  Token? get keyword;
+
   @override
   Token get name;
 
@@ -12199,6 +12203,7 @@ abstract final class FunctionTypedFormalParameter
   childEntitiesOrder: [
     GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('requiredKeyword', isSuper: true),
+    GenerateNodeProperty('keyword'),
     GenerateNodeProperty('returnType'),
     GenerateNodeProperty('name', isSuper: true, superNullAssertOverride: true),
     GenerateNodeProperty('typeParameters'),
@@ -12208,6 +12213,10 @@ abstract final class FunctionTypedFormalParameter
 )
 final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     implements FunctionTypedFormalParameter {
+  @generated
+  @override
+  final Token? keyword;
+
   @generated
   TypeAnnotationImpl? _returnType;
 
@@ -12227,6 +12236,7 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     required super.metadata,
     required super.covariantKeyword,
     required super.requiredKeyword,
+    required this.keyword,
     required TypeAnnotationImpl? returnType,
     required super.name,
     required TypeParameterListImpl? typeParameters,
@@ -12257,6 +12267,9 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     }
     if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
+    }
+    if (keyword case var keyword?) {
+      return keyword;
     }
     if (returnType case var returnType?) {
       return returnType.beginToken;
@@ -12309,6 +12322,7 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   ChildEntities get _childEntities => super._childEntities
     ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('keyword', keyword)
     ..addNode('returnType', returnType)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)

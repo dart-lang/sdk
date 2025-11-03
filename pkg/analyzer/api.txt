@@ -1256,6 +1256,7 @@ package:analyzer/dart/ast/ast.dart:
     returnType (getter: TypeAnnotation?)
     typeParameters (getter: TypeParameterList?)
   FunctionTypedFormalParameter (class extends Object implements NormalFormalParameter):
+    keyword (getter: Token?)
     name (getter: Token)
     parameters (getter: FormalParameterList)
     question (getter: Token?)

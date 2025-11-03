@@ -144,6 +144,130 @@ ConstructorDeclaration
 ''');
   }
 
+  test_constructor_formalParameter_functionTyped_const() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A(const int a(String x));
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.extraneousModifier, 14, 5),
+      error(ParserErrorCode.functionTypedParameterVar, 14, 5),
+    ]);
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  returnType: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: FunctionTypedFormalParameter
+      returnType: NamedType
+        name: int
+      name: a
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: String
+          name: x
+        rightParenthesis: )
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_formalParameter_functionTyped_final() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A(final int a(String x));
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.functionTypedParameterVar, 14, 5),
+    ]);
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  returnType: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: FunctionTypedFormalParameter
+      keyword: final
+      returnType: NamedType
+        name: int
+      name: a
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: String
+          name: x
+        rightParenthesis: )
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_formalParameter_simple_const() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A(const int a);
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.extraneousModifier, 14, 5),
+    ]);
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  returnType: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      keyword: const
+      type: NamedType
+        name: int
+      name: a
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_formalParameter_simple_final() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A(final int a);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  returnType: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      keyword: final
+      type: NamedType
+        name: int
+      name: a
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_nameWithTypeParameters_hasTypeParameters() {
     useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
@@ -605,6 +729,39 @@ ClassDeclaration
 ''');
   }
 
+  test_primaryConstructor_declaringFormalParameter_functionTyped_const() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+class A(const int a(String x)) {}
+''');
+    parseResult.assertErrors([error(ParserErrorCode.extraneousModifier, 8, 5)]);
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: FunctionTypedFormalParameter
+        returnType: NamedType
+          name: int
+        name: a
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: String
+            name: x
+          rightParenthesis: )
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_primaryConstructor_declaringFormalParameter_functionTyped_final() {
     useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
@@ -621,6 +778,7 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: FunctionTypedFormalParameter
+        keyword: final
         returnType: NamedType
           name: int
         name: a
@@ -654,6 +812,7 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: FunctionTypedFormalParameter
+        keyword: var
         returnType: NamedType
           name: int
         name: a
@@ -664,6 +823,33 @@ ClassDeclaration
               name: String
             name: x
           rightParenthesis: )
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_declaringFormalParameter_simple_const() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+class A(const int a) {}
+''');
+    parseResult.assertErrors([error(ParserErrorCode.extraneousModifier, 8, 5)]);
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        keyword: const
+        type: NamedType
+          name: int
+        name: a
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
