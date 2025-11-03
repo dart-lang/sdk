@@ -12,10 +12,10 @@ import '../elements_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionTypeElementTest_keepLinking);
+    defineReflectiveTests(ExtensionTypeElementTest_fromBytes);
     defineReflectiveTests(
       ExtensionTypeElementTest_keepLinking_declaringConstructors,
     );
-    defineReflectiveTests(ExtensionTypeElementTest_fromBytes);
     defineReflectiveTests(
       ExtensionTypeElementTest_fromBytes_declaringConstructors,
     );
@@ -45,7 +45,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:22) (firstTokenOffset:16) (offset:22)
+            #F2 it (nameOffset:22) (firstTokenOffset:17) (offset:22)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
@@ -53,7 +53,7 @@ library
         #F4 extension type B (nameOffset:44) (firstTokenOffset:29) (offset:44)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:50) (firstTokenOffset:45) (offset:50)
+            #F5 it (nameOffset:50) (firstTokenOffset:46) (offset:50)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
@@ -121,15 +121,15 @@ library
         #F1 extension type A (nameOffset:21) (firstTokenOffset:0) (offset:21)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:27) (firstTokenOffset:22) (offset:27)
+            #F2 it (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 const new (nameOffset:<null>) (firstTokenOffset:22) (offset:21)
+            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional final this.it (nameOffset:27) (firstTokenOffset:22) (offset:27)
+                #F4 requiredPositional final this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
@@ -181,18 +181,18 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:27) (firstTokenOffset:16) (offset:27)
+            #F2 it (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 named (nameOffset:17) (firstTokenOffset:16) (offset:17)
+            #F3 named (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@extensionType::A::@constructor::named
-              codeOffset: 16
-              codeLength: 14
+              codeOffset: 15
+              codeLength: 15
               typeName: A
               typeNameOffset: 15
               periodOffset: 16
               formalParameters
-                #F4 requiredPositional final this.it (nameOffset:27) (firstTokenOffset:16) (offset:27)
+                #F4 requiredPositional final this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
             #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
@@ -245,15 +245,15 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
             #F5 named (nameOffset:31) (firstTokenOffset:29) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::named
@@ -322,15 +322,15 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
             #F5 named (nameOffset:31) (firstTokenOffset:29) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::named
@@ -399,15 +399,15 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
             #F5 const named (nameOffset:37) (firstTokenOffset:29) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::named
@@ -485,17 +485,17 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
-              codeOffset: 16
-              codeLength: 8
+              codeOffset: 15
+              codeLength: 9
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -548,15 +548,15 @@ library
         #F1 extension type A (nameOffset:24) (firstTokenOffset:0) (offset:24)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:30) (firstTokenOffset:25) (offset:30)
+            #F2 it (nameOffset:30) (firstTokenOffset:26) (offset:30)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:25) (offset:24)
+            #F3 new (nameOffset:<null>) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 24
               formalParameters
-                #F4 requiredPositional final this.it (nameOffset:30) (firstTokenOffset:25) (offset:30)
+                #F4 requiredPositional final this.it (nameOffset:30) (firstTokenOffset:26) (offset:30)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
@@ -611,7 +611,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
             #F3 hasInitializer foo (nameOffset:46) (firstTokenOffset:46) (offset:46)
               element: <testLibrary>::@extensionType::A::@field::foo
@@ -677,7 +677,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
             #F3 hasInitializer foo (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@extensionType::A::@field::foo
@@ -743,7 +743,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
             #F3 hasInitializer foo (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: <testLibrary>::@extensionType::A::@field::foo
@@ -806,15 +806,15 @@ library
         #F1 extension type A (nameOffset:32) (firstTokenOffset:17) (offset:32)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:43) (firstTokenOffset:33) (offset:43)
+            #F2 it (nameOffset:43) (firstTokenOffset:34) (offset:43)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:33) (offset:32)
+            #F3 new (nameOffset:<null>) (firstTokenOffset:32) (offset:32)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 32
               formalParameters
-                #F4 requiredPositional final this.it (nameOffset:43) (firstTokenOffset:33) (offset:43)
+                #F4 requiredPositional final this.it (nameOffset:43) (firstTokenOffset:34) (offset:43)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
@@ -868,7 +868,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
             #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo
@@ -935,7 +935,7 @@ library
         #F4 extension type X (nameOffset:64) (firstTokenOffset:49) (offset:64)
           element: <testLibrary>::@extensionType::X
           fields
-            #F5 it (nameOffset:68) (firstTokenOffset:65) (offset:68)
+            #F5 it (nameOffset:68) (firstTokenOffset:66) (offset:68)
               element: <testLibrary>::@extensionType::X::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
@@ -995,7 +995,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1003,7 +1003,7 @@ library
         #F4 extension type B (nameOffset:56) (firstTokenOffset:41) (offset:56)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:62) (firstTokenOffset:57) (offset:62)
+            #F5 it (nameOffset:62) (firstTokenOffset:58) (offset:62)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
@@ -1068,7 +1068,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1114,7 +1114,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1122,7 +1122,7 @@ library
         #F4 extension type B (nameOffset:43) (firstTokenOffset:28) (offset:43)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:49) (firstTokenOffset:44) (offset:49)
+            #F5 it (nameOffset:49) (firstTokenOffset:45) (offset:49)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
@@ -1185,7 +1185,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1230,7 +1230,7 @@ library
         #F1 extension type X (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::X
           fields
-            #F2 it (nameOffset:22) (firstTokenOffset:16) (offset:22)
+            #F2 it (nameOffset:22) (firstTokenOffset:17) (offset:22)
               element: <testLibrary>::@extensionType::X::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
@@ -1276,7 +1276,7 @@ library
             #F2 T (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: #E0 T
           fields
-            #F3 it (nameOffset:22) (firstTokenOffset:19) (offset:22)
+            #F3 it (nameOffset:22) (firstTokenOffset:20) (offset:22)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F4 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
@@ -1325,7 +1325,7 @@ library
         #F1 extension type X (nameOffset:33) (firstTokenOffset:18) (offset:33)
           element: <testLibrary>::@extensionType::X
           fields
-            #F2 it (nameOffset:39) (firstTokenOffset:34) (offset:39)
+            #F2 it (nameOffset:39) (firstTokenOffset:35) (offset:39)
               element: <testLibrary>::@extensionType::X::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
@@ -1426,15 +1426,15 @@ library
         #F1 extension type A (nameOffset:37) (firstTokenOffset:17) (offset:37)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:43) (firstTokenOffset:38) (offset:43)
+            #F2 it (nameOffset:43) (firstTokenOffset:39) (offset:43)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:38) (offset:37)
+            #F3 new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 37
               formalParameters
-                #F4 requiredPositional final this.it (nameOffset:43) (firstTokenOffset:38) (offset:43)
+                #F4 requiredPositional final this.it (nameOffset:43) (firstTokenOffset:39) (offset:43)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
@@ -1488,7 +1488,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1548,7 +1548,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1613,7 +1613,7 @@ library
         #F1 extension type <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@extensionType::0
           fields
-            #F2 it (nameOffset:20) (firstTokenOffset:15) (offset:20)
+            #F2 it (nameOffset:20) (firstTokenOffset:16) (offset:20)
               element: <testLibrary>::@extensionType::0::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
@@ -1656,20 +1656,20 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 <null-name> (nameOffset:<null>) (firstTokenOffset:16) (offset:16)
+            #F2 <null-name> (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@extensionType::A::@field::0
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
-              codeOffset: 16
-              codeLength: 2
+              codeOffset: 15
+              codeLength: 3
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F4 requiredPositional final this.<null-name> (nameOffset:<null>) (firstTokenOffset:16) (offset:16)
+                #F4 requiredPositional final this.<null-name> (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::<null-name>
           getters
-            #F5 synthetic <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 synthetic <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@extensionType::A::@getter::1
   extensionTypes
     extension type A
@@ -1721,7 +1721,7 @@ library
             #F2 T (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: #E0 T
           fields
-            #F3 it (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F3 it (nameOffset:34) (firstTokenOffset:30) (offset:34)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F4 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
@@ -1770,7 +1770,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
             #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo
@@ -1838,7 +1838,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:19) (firstTokenOffset:16) (offset:19)
+            #F2 it (nameOffset:19) (firstTokenOffset:17) (offset:19)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -1846,7 +1846,7 @@ library
         #F4 extension type B (nameOffset:42) (firstTokenOffset:27) (offset:42)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:46) (firstTokenOffset:43) (offset:46)
+            #F5 it (nameOffset:46) (firstTokenOffset:44) (offset:46)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
@@ -1909,7 +1909,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:19) (firstTokenOffset:16) (offset:19)
+            #F2 it (nameOffset:19) (firstTokenOffset:17) (offset:19)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -1917,7 +1917,7 @@ library
         #F4 extension type B (nameOffset:42) (firstTokenOffset:27) (offset:42)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:52) (firstTokenOffset:43) (offset:52)
+            #F5 it (nameOffset:52) (firstTokenOffset:44) (offset:52)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
@@ -1978,7 +1978,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:19) (firstTokenOffset:16) (offset:19)
+            #F2 it (nameOffset:19) (firstTokenOffset:17) (offset:19)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -2023,7 +2023,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -2031,7 +2031,7 @@ library
         #F4 extension type B (nameOffset:44) (firstTokenOffset:29) (offset:44)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:62) (firstTokenOffset:45) (offset:62)
+            #F5 it (nameOffset:62) (firstTokenOffset:46) (offset:62)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
@@ -2097,7 +2097,7 @@ library
             #F2 T (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: #E0 T
           fields
-            #F3 it (nameOffset:22) (firstTokenOffset:19) (offset:22)
+            #F3 it (nameOffset:22) (firstTokenOffset:20) (offset:22)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F4 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
@@ -2105,7 +2105,7 @@ library
         #F5 extension type B (nameOffset:45) (firstTokenOffset:30) (offset:45)
           element: <testLibrary>::@extensionType::B
           fields
-            #F6 it (nameOffset:57) (firstTokenOffset:46) (offset:57)
+            #F6 it (nameOffset:57) (firstTokenOffset:47) (offset:57)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F7 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
@@ -2173,7 +2173,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -2181,7 +2181,7 @@ library
         #F4 extension type B (nameOffset:44) (firstTokenOffset:29) (offset:44)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:54) (firstTokenOffset:45) (offset:54)
+            #F5 it (nameOffset:54) (firstTokenOffset:46) (offset:54)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
@@ -2242,7 +2242,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -2289,15 +2289,15 @@ library
             #F3 U (nameOffset:32) (firstTokenOffset:32) (offset:32)
               element: #E1 U
           fields
-            #F4 it (nameOffset:45) (firstTokenOffset:34) (offset:45)
+            #F4 it (nameOffset:45) (firstTokenOffset:35) (offset:45)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:34) (offset:15)
+            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F6 requiredPositional final this.it (nameOffset:45) (firstTokenOffset:34) (offset:45)
+                #F6 requiredPositional final this.it (nameOffset:45) (firstTokenOffset:35) (offset:45)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F7 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
@@ -2364,16 +2364,16 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F7
               nextFragment: #F8
@@ -2385,17 +2385,17 @@ library
           previousFragment: #F1
           nextFragment: #F10
           fields
-            #F4 augment it (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F4 augment it (nameOffset:58) (firstTokenOffset:54) (offset:58)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F11
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:53) (offset:52)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:52) (offset:52)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 52
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:58) (firstTokenOffset:53) (offset:58)
+                #F7 requiredPositional final this.it (nameOffset:58) (firstTokenOffset:54) (offset:58)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F6
                   nextFragment: #F12
@@ -2405,16 +2405,16 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F11 augment it (nameOffset:95) (firstTokenOffset:90) (offset:95)
+            #F11 augment it (nameOffset:95) (firstTokenOffset:91) (offset:95)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F13 augment new (nameOffset:<null>) (firstTokenOffset:90) (offset:89)
+            #F13 augment new (nameOffset:<null>) (firstTokenOffset:89) (offset:89)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 89
               formalParameters
-                #F12 requiredPositional final this.it (nameOffset:95) (firstTokenOffset:90) (offset:95)
+                #F12 requiredPositional final this.it (nameOffset:95) (firstTokenOffset:91) (offset:95)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F7
               previousFragment: #F8
@@ -2475,16 +2475,16 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 augment it (nameOffset:29) (firstTokenOffset:24) (offset:29)
+            #F3 augment it (nameOffset:29) (firstTokenOffset:25) (offset:29)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 augment new (nameOffset:<null>) (firstTokenOffset:24) (offset:23)
+            #F5 augment new (nameOffset:<null>) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 23
               formalParameters
-                #F6 requiredPositional final this.it (nameOffset:29) (firstTokenOffset:24) (offset:29)
+                #F6 requiredPositional final this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F7
               nextFragment: #F8
@@ -2498,16 +2498,16 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:84) (firstTokenOffset:79) (offset:84)
+            #F4 augment it (nameOffset:84) (firstTokenOffset:80) (offset:84)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:79) (offset:78)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:84) (firstTokenOffset:79) (offset:84)
+                #F7 requiredPositional final this.it (nameOffset:84) (firstTokenOffset:80) (offset:84)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F6
               previousFragment: #F5
@@ -2574,16 +2574,16 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F7
               nextFragment: #F8
@@ -2594,16 +2594,16 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F4 augment it (nameOffset:58) (firstTokenOffset:54) (offset:58)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:53) (offset:52)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:52) (offset:52)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 52
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:58) (firstTokenOffset:53) (offset:58)
+                #F7 requiredPositional final this.it (nameOffset:58) (firstTokenOffset:54) (offset:58)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F6
               previousFragment: #F5
@@ -2670,16 +2670,16 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:19) (offset:15)
+            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+                #F8 requiredPositional final this.it (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F9
               nextFragment: #F10
@@ -2694,16 +2694,16 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F6 augment it (nameOffset:64) (firstTokenOffset:59) (offset:64)
+            #F6 augment it (nameOffset:64) (firstTokenOffset:60) (offset:64)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:59) (offset:55)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:55) (offset:55)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 55
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:64) (firstTokenOffset:59) (offset:64)
+                #F9 requiredPositional final this.it (nameOffset:64) (firstTokenOffset:60) (offset:64)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
               previousFragment: #F7
@@ -2776,17 +2776,17 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:27) (firstTokenOffset:16) (offset:27)
+            #F3 it (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 named (nameOffset:17) (firstTokenOffset:16) (offset:17)
+            #F5 named (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 15
               periodOffset: 16
               formalParameters
-                #F6 requiredPositional final this.it (nameOffset:27) (firstTokenOffset:16) (offset:27)
+                #F6 requiredPositional final this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
                   nextFragment: #F7
               nextFragment: #F8
@@ -2797,17 +2797,17 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:70) (firstTokenOffset:59) (offset:70)
+            #F4 augment it (nameOffset:70) (firstTokenOffset:66) (offset:70)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment named (nameOffset:60) (firstTokenOffset:59) (offset:60)
+            #F8 augment named (nameOffset:60) (firstTokenOffset:58) (offset:60)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 58
               periodOffset: 59
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:70) (firstTokenOffset:59) (offset:70)
+                #F7 requiredPositional final this.it (nameOffset:70) (firstTokenOffset:66) (offset:70)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
                   previousFragment: #F6
               previousFragment: #F5
@@ -2871,19 +2871,19 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F9
               nextFragment: #F10
@@ -2902,19 +2902,19 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
             #F6 augment hasInitializer foo (nameOffset:108) (firstTokenOffset:108) (offset:108)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F9 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
               previousFragment: #F7
@@ -2996,19 +2996,19 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F9
               nextFragment: #F10
@@ -3028,7 +3028,7 @@ library
           previousFragment: #F1
           nextFragment: #F15
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F16
@@ -3037,12 +3037,12 @@ library
               previousFragment: #F5
               nextFragment: #F17
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F9 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
                   nextFragment: #F18
@@ -3052,19 +3052,19 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F16 augment it (nameOffset:149) (firstTokenOffset:144) (offset:149)
+            #F16 augment it (nameOffset:149) (firstTokenOffset:145) (offset:149)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
             #F17 augment hasInitializer foo (nameOffset:176) (firstTokenOffset:176) (offset:176)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F6
           constructors
-            #F19 augment new (nameOffset:<null>) (firstTokenOffset:144) (offset:143)
+            #F19 augment new (nameOffset:<null>) (firstTokenOffset:143) (offset:143)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 143
               formalParameters
-                #F18 requiredPositional final this.it (nameOffset:149) (firstTokenOffset:144) (offset:149)
+                #F18 requiredPositional final this.it (nameOffset:149) (firstTokenOffset:145) (offset:149)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F9
               previousFragment: #F10
@@ -3146,19 +3146,19 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F9
               nextFragment: #F10
@@ -3179,17 +3179,17 @@ library
           previousFragment: #F1
           nextFragment: #F16
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F17
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F9 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
                   nextFragment: #F18
@@ -3203,19 +3203,19 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F17 augment it (nameOffset:154) (firstTokenOffset:149) (offset:154)
+            #F17 augment it (nameOffset:154) (firstTokenOffset:150) (offset:154)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
             #F6 augment hasInitializer foo (nameOffset:181) (firstTokenOffset:181) (offset:181)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F19 augment new (nameOffset:<null>) (firstTokenOffset:149) (offset:148)
+            #F19 augment new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
               formalParameters
-                #F18 requiredPositional final this.it (nameOffset:154) (firstTokenOffset:149) (offset:154)
+                #F18 requiredPositional final this.it (nameOffset:154) (firstTokenOffset:150) (offset:154)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F9
               previousFragment: #F10
@@ -3297,19 +3297,19 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F9
               nextFragment: #F10
@@ -3330,17 +3330,17 @@ library
           previousFragment: #F1
           nextFragment: #F16
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F17
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F9 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
                   nextFragment: #F18
@@ -3357,19 +3357,19 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F17 augment it (nameOffset:154) (firstTokenOffset:149) (offset:154)
+            #F17 augment it (nameOffset:154) (firstTokenOffset:150) (offset:154)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
             #F6 augment hasInitializer foo (nameOffset:181) (firstTokenOffset:181) (offset:181)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F19 augment new (nameOffset:<null>) (firstTokenOffset:149) (offset:148)
+            #F19 augment new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
               formalParameters
-                #F18 requiredPositional final this.it (nameOffset:154) (firstTokenOffset:149) (offset:154)
+                #F18 requiredPositional final this.it (nameOffset:154) (firstTokenOffset:150) (offset:154)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F9
               previousFragment: #F10
@@ -3447,19 +3447,19 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F9
               nextFragment: #F10
@@ -3478,19 +3478,19 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
             #F6 augment hasInitializer foo (nameOffset:111) (firstTokenOffset:111) (offset:111)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F9 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
               previousFragment: #F7
@@ -3570,19 +3570,19 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F9
               nextFragment: #F10
@@ -3595,19 +3595,19 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:86) (firstTokenOffset:81) (offset:86)
+            #F4 augment it (nameOffset:86) (firstTokenOffset:82) (offset:86)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
             #F6 augment hasInitializer foo (nameOffset:113) (firstTokenOffset:113) (offset:113)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:81) (offset:80)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:80) (offset:80)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 80
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:86) (firstTokenOffset:81) (offset:86)
+                #F9 requiredPositional final this.it (nameOffset:86) (firstTokenOffset:82) (offset:86)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
               previousFragment: #F7
@@ -3674,18 +3674,18 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 hasInitializer foo1 (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F8
               nextFragment: #F9
@@ -3704,18 +3704,18 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:82) (firstTokenOffset:77) (offset:82)
+            #F4 augment it (nameOffset:82) (firstTokenOffset:78) (offset:82)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
             #F14 hasInitializer foo2 (nameOffset:101) (firstTokenOffset:101) (offset:101)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:77) (offset:76)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:76)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 76
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:82) (firstTokenOffset:77) (offset:82)
+                #F8 requiredPositional final this.it (nameOffset:82) (firstTokenOffset:78) (offset:82)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F7
               previousFragment: #F6
@@ -3822,18 +3822,18 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F8
               nextFragment: #F9
@@ -3846,18 +3846,18 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:80) (firstTokenOffset:75) (offset:80)
+            #F4 augment it (nameOffset:80) (firstTokenOffset:76) (offset:80)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
             #F12 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:74)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 74
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:80) (firstTokenOffset:75) (offset:80)
+                #F8 requiredPositional final this.it (nameOffset:80) (firstTokenOffset:76) (offset:80)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F7
               previousFragment: #F6
@@ -3941,18 +3941,18 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
             #F7 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
-            #F8 new (nameOffset:<null>) (firstTokenOffset:19) (offset:15)
+            #F8 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+                #F9 requiredPositional final this.it (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F10
               nextFragment: #F11
@@ -3969,18 +3969,18 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F6 augment it (nameOffset:79) (firstTokenOffset:74) (offset:79)
+            #F6 augment it (nameOffset:79) (firstTokenOffset:75) (offset:79)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
             #F14 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F11 augment new (nameOffset:<null>) (firstTokenOffset:74) (offset:70)
+            #F11 augment new (nameOffset:<null>) (firstTokenOffset:70) (offset:70)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 70
               formalParameters
-                #F10 requiredPositional final this.it (nameOffset:79) (firstTokenOffset:74) (offset:79)
+                #F10 requiredPositional final this.it (nameOffset:79) (firstTokenOffset:75) (offset:79)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F9
               previousFragment: #F8
@@ -4067,18 +4067,18 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F8
               nextFragment: #F9
@@ -4098,16 +4098,16 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F8 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F7
               previousFragment: #F6
@@ -4193,18 +4193,18 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F8
               nextFragment: #F9
@@ -4225,17 +4225,17 @@ library
           previousFragment: #F1
           nextFragment: #F15
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F16
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F8 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F7
                   nextFragment: #F17
@@ -4250,16 +4250,16 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F16 augment it (nameOffset:154) (firstTokenOffset:149) (offset:154)
+            #F16 augment it (nameOffset:154) (firstTokenOffset:150) (offset:154)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F18 augment new (nameOffset:<null>) (firstTokenOffset:149) (offset:148)
+            #F18 augment new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
               formalParameters
-                #F17 requiredPositional final this.it (nameOffset:154) (firstTokenOffset:149) (offset:154)
+                #F17 requiredPositional final this.it (nameOffset:154) (firstTokenOffset:150) (offset:154)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
               previousFragment: #F9
@@ -4342,7 +4342,7 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
@@ -4350,12 +4350,12 @@ library
             #F6 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F9
               nextFragment: #F10
@@ -4371,16 +4371,16 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:101) (firstTokenOffset:96) (offset:101)
+            #F4 augment it (nameOffset:101) (firstTokenOffset:97) (offset:101)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:96) (offset:95)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:101) (firstTokenOffset:96) (offset:101)
+                #F9 requiredPositional final this.it (nameOffset:101) (firstTokenOffset:97) (offset:101)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
               previousFragment: #F7
@@ -4465,18 +4465,18 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F8
               nextFragment: #F9
@@ -4491,17 +4491,17 @@ library
           previousFragment: #F1
           nextFragment: #F13
           fields
-            #F4 augment it (nameOffset:79) (firstTokenOffset:74) (offset:79)
+            #F4 augment it (nameOffset:79) (firstTokenOffset:75) (offset:79)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F14
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:74) (offset:73)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:73) (offset:73)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 73
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:79) (firstTokenOffset:74) (offset:79)
+                #F8 requiredPositional final this.it (nameOffset:79) (firstTokenOffset:75) (offset:79)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F7
                   nextFragment: #F15
@@ -4516,16 +4516,16 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F14 augment it (nameOffset:145) (firstTokenOffset:140) (offset:145)
+            #F14 augment it (nameOffset:145) (firstTokenOffset:141) (offset:145)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F16 augment new (nameOffset:<null>) (firstTokenOffset:140) (offset:139)
+            #F16 augment new (nameOffset:<null>) (firstTokenOffset:139) (offset:139)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 139
               formalParameters
-                #F15 requiredPositional final this.it (nameOffset:145) (firstTokenOffset:140) (offset:145)
+                #F15 requiredPositional final this.it (nameOffset:145) (firstTokenOffset:141) (offset:145)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
               previousFragment: #F9
@@ -4595,7 +4595,7 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           getters
@@ -4604,7 +4604,7 @@ library
         #F6 extension type I1 (nameOffset:57) (firstTokenOffset:42) (offset:57)
           element: <testLibrary>::@extensionType::I1
           fields
-            #F7 it (nameOffset:64) (firstTokenOffset:59) (offset:64)
+            #F7 it (nameOffset:64) (firstTokenOffset:60) (offset:64)
               element: <testLibrary>::@extensionType::I1::@field::it
           getters
             #F8 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
@@ -4613,13 +4613,13 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:101) (firstTokenOffset:96) (offset:101)
+            #F4 augment it (nameOffset:101) (firstTokenOffset:97) (offset:101)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
         #F9 extension type I2 (nameOffset:137) (firstTokenOffset:122) (offset:137)
           element: <testLibrary>::@extensionType::I2
           fields
-            #F10 it (nameOffset:144) (firstTokenOffset:139) (offset:144)
+            #F10 it (nameOffset:144) (firstTokenOffset:140) (offset:144)
               element: <testLibrary>::@extensionType::I2::@field::it
           getters
             #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:144)
@@ -4708,16 +4708,16 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F7
               nextFragment: #F8
@@ -4727,15 +4727,15 @@ library
         #F10 extension type I1 (nameOffset:57) (firstTokenOffset:42) (offset:57)
           element: <testLibrary>::@extensionType::I1
           fields
-            #F11 it (nameOffset:64) (firstTokenOffset:59) (offset:64)
+            #F11 it (nameOffset:64) (firstTokenOffset:60) (offset:64)
               element: <testLibrary>::@extensionType::I1::@field::it
           constructors
-            #F12 new (nameOffset:<null>) (firstTokenOffset:59) (offset:57)
+            #F12 new (nameOffset:<null>) (firstTokenOffset:57) (offset:57)
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 57
               formalParameters
-                #F13 requiredPositional final this.it (nameOffset:64) (firstTokenOffset:59) (offset:64)
+                #F13 requiredPositional final this.it (nameOffset:64) (firstTokenOffset:60) (offset:64)
                   element: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
           getters
             #F14 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
@@ -4745,17 +4745,17 @@ library
           previousFragment: #F1
           nextFragment: #F15
           fields
-            #F4 augment it (nameOffset:101) (firstTokenOffset:96) (offset:101)
+            #F4 augment it (nameOffset:101) (firstTokenOffset:97) (offset:101)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F16
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:96) (offset:95)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:101) (firstTokenOffset:96) (offset:101)
+                #F7 requiredPositional final this.it (nameOffset:101) (firstTokenOffset:97) (offset:101)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F6
                   nextFragment: #F17
@@ -4764,15 +4764,15 @@ library
         #F19 extension type I2 (nameOffset:137) (firstTokenOffset:122) (offset:137)
           element: <testLibrary>::@extensionType::I2
           fields
-            #F20 it (nameOffset:144) (firstTokenOffset:139) (offset:144)
+            #F20 it (nameOffset:144) (firstTokenOffset:140) (offset:144)
               element: <testLibrary>::@extensionType::I2::@field::it
           constructors
-            #F21 new (nameOffset:<null>) (firstTokenOffset:139) (offset:137)
+            #F21 new (nameOffset:<null>) (firstTokenOffset:137) (offset:137)
               element: <testLibrary>::@extensionType::I2::@constructor::new
               typeName: I2
               typeNameOffset: 137
               formalParameters
-                #F22 requiredPositional final this.it (nameOffset:144) (firstTokenOffset:139) (offset:144)
+                #F22 requiredPositional final this.it (nameOffset:144) (firstTokenOffset:140) (offset:144)
                   element: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
           getters
             #F23 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:144)
@@ -4781,31 +4781,31 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F16 augment it (nameOffset:181) (firstTokenOffset:176) (offset:181)
+            #F16 augment it (nameOffset:181) (firstTokenOffset:177) (offset:181)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F18 augment new (nameOffset:<null>) (firstTokenOffset:176) (offset:175)
+            #F18 augment new (nameOffset:<null>) (firstTokenOffset:175) (offset:175)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 175
               formalParameters
-                #F17 requiredPositional final this.it (nameOffset:181) (firstTokenOffset:176) (offset:181)
+                #F17 requiredPositional final this.it (nameOffset:181) (firstTokenOffset:177) (offset:181)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F7
               previousFragment: #F8
         #F24 extension type I3 (nameOffset:217) (firstTokenOffset:202) (offset:217)
           element: <testLibrary>::@extensionType::I3
           fields
-            #F25 it (nameOffset:224) (firstTokenOffset:219) (offset:224)
+            #F25 it (nameOffset:224) (firstTokenOffset:220) (offset:224)
               element: <testLibrary>::@extensionType::I3::@field::it
           constructors
-            #F26 new (nameOffset:<null>) (firstTokenOffset:219) (offset:217)
+            #F26 new (nameOffset:<null>) (firstTokenOffset:217) (offset:217)
               element: <testLibrary>::@extensionType::I3::@constructor::new
               typeName: I3
               typeNameOffset: 217
               formalParameters
-                #F27 requiredPositional final this.it (nameOffset:224) (firstTokenOffset:219) (offset:224)
+                #F27 requiredPositional final this.it (nameOffset:224) (firstTokenOffset:220) (offset:224)
                   element: <testLibrary>::@extensionType::I3::@constructor::new::@formalParameter::it
           getters
             #F28 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:224)
@@ -4950,16 +4950,16 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:19) (offset:15)
+            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+                #F8 requiredPositional final this.it (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F9
               nextFragment: #F10
@@ -4969,15 +4969,15 @@ library
         #F12 extension type I1 (nameOffset:60) (firstTokenOffset:45) (offset:60)
           element: <testLibrary>::@extensionType::I1
           fields
-            #F13 it (nameOffset:67) (firstTokenOffset:62) (offset:67)
+            #F13 it (nameOffset:67) (firstTokenOffset:63) (offset:67)
               element: <testLibrary>::@extensionType::I1::@field::it
           constructors
-            #F14 new (nameOffset:<null>) (firstTokenOffset:62) (offset:60)
+            #F14 new (nameOffset:<null>) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 60
               formalParameters
-                #F15 requiredPositional final this.it (nameOffset:67) (firstTokenOffset:62) (offset:67)
+                #F15 requiredPositional final this.it (nameOffset:67) (firstTokenOffset:63) (offset:67)
                   element: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
           getters
             #F16 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
@@ -4990,16 +4990,16 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F6 augment it (nameOffset:107) (firstTokenOffset:102) (offset:107)
+            #F6 augment it (nameOffset:107) (firstTokenOffset:103) (offset:107)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:102) (offset:98)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:98) (offset:98)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 98
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:107) (firstTokenOffset:102) (offset:107)
+                #F9 requiredPositional final this.it (nameOffset:107) (firstTokenOffset:103) (offset:107)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
               previousFragment: #F7
@@ -5009,15 +5009,15 @@ library
             #F18 E (nameOffset:149) (firstTokenOffset:149) (offset:149)
               element: #E1 E
           fields
-            #F19 it (nameOffset:156) (firstTokenOffset:151) (offset:156)
+            #F19 it (nameOffset:156) (firstTokenOffset:152) (offset:156)
               element: <testLibrary>::@extensionType::I2::@field::it
           constructors
-            #F20 new (nameOffset:<null>) (firstTokenOffset:151) (offset:146)
+            #F20 new (nameOffset:<null>) (firstTokenOffset:146) (offset:146)
               element: <testLibrary>::@extensionType::I2::@constructor::new
               typeName: I2
               typeNameOffset: 146
               formalParameters
-                #F21 requiredPositional final this.it (nameOffset:156) (firstTokenOffset:151) (offset:156)
+                #F21 requiredPositional final this.it (nameOffset:156) (firstTokenOffset:152) (offset:156)
                   element: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
           getters
             #F22 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:156)
@@ -5140,16 +5140,16 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:19) (offset:15)
+            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+                #F8 requiredPositional final this.it (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F9
               nextFragment: #F10
@@ -5159,15 +5159,15 @@ library
         #F12 extension type I1 (nameOffset:60) (firstTokenOffset:45) (offset:60)
           element: <testLibrary>::@extensionType::I1
           fields
-            #F13 it (nameOffset:67) (firstTokenOffset:62) (offset:67)
+            #F13 it (nameOffset:67) (firstTokenOffset:63) (offset:67)
               element: <testLibrary>::@extensionType::I1::@field::it
           constructors
-            #F14 new (nameOffset:<null>) (firstTokenOffset:62) (offset:60)
+            #F14 new (nameOffset:<null>) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 60
               formalParameters
-                #F15 requiredPositional final this.it (nameOffset:67) (firstTokenOffset:62) (offset:67)
+                #F15 requiredPositional final this.it (nameOffset:67) (firstTokenOffset:63) (offset:67)
                   element: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
           getters
             #F16 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
@@ -5180,16 +5180,16 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F6 augment it (nameOffset:110) (firstTokenOffset:105) (offset:110)
+            #F6 augment it (nameOffset:110) (firstTokenOffset:106) (offset:110)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:105) (offset:98)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:98) (offset:98)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 98
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:110) (firstTokenOffset:105) (offset:110)
+                #F9 requiredPositional final this.it (nameOffset:110) (firstTokenOffset:106) (offset:110)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
               previousFragment: #F7
@@ -5199,15 +5199,15 @@ library
             #F18 E (nameOffset:152) (firstTokenOffset:152) (offset:152)
               element: #E1 E
           fields
-            #F19 it (nameOffset:159) (firstTokenOffset:154) (offset:159)
+            #F19 it (nameOffset:159) (firstTokenOffset:155) (offset:159)
               element: <testLibrary>::@extensionType::I2::@field::it
           constructors
-            #F20 new (nameOffset:<null>) (firstTokenOffset:154) (offset:149)
+            #F20 new (nameOffset:<null>) (firstTokenOffset:149) (offset:149)
               element: <testLibrary>::@extensionType::I2::@constructor::new
               typeName: I2
               typeNameOffset: 149
               formalParameters
-                #F21 requiredPositional final this.it (nameOffset:159) (firstTokenOffset:154) (offset:159)
+                #F21 requiredPositional final this.it (nameOffset:159) (firstTokenOffset:155) (offset:159)
                   element: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
           getters
             #F22 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:159)
@@ -5328,16 +5328,16 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F7
               nextFragment: #F8
@@ -5351,16 +5351,16 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:75) (firstTokenOffset:70) (offset:75)
+            #F4 augment it (nameOffset:75) (firstTokenOffset:71) (offset:75)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:70) (offset:69)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:69) (offset:69)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 69
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:75) (firstTokenOffset:70) (offset:75)
+                #F7 requiredPositional final this.it (nameOffset:75) (firstTokenOffset:71) (offset:75)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F6
               previousFragment: #F5
@@ -5430,16 +5430,16 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F7
               nextFragment: #F8
@@ -5456,16 +5456,16 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:93) (firstTokenOffset:88) (offset:93)
+            #F4 augment it (nameOffset:93) (firstTokenOffset:89) (offset:93)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:88) (offset:87)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:87) (offset:87)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 87
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:93) (firstTokenOffset:88) (offset:93)
+                #F7 requiredPositional final this.it (nameOffset:93) (firstTokenOffset:89) (offset:93)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F6
               previousFragment: #F5
@@ -5539,16 +5539,16 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F7
               nextFragment: #F8
@@ -5564,17 +5564,17 @@ library
           previousFragment: #F1
           nextFragment: #F12
           fields
-            #F4 augment it (nameOffset:75) (firstTokenOffset:70) (offset:75)
+            #F4 augment it (nameOffset:75) (firstTokenOffset:71) (offset:75)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F13
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:70) (offset:69)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:69) (offset:69)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 69
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:75) (firstTokenOffset:70) (offset:75)
+                #F7 requiredPositional final this.it (nameOffset:75) (firstTokenOffset:71) (offset:75)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F6
                   nextFragment: #F14
@@ -5589,16 +5589,16 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F13 augment it (nameOffset:137) (firstTokenOffset:132) (offset:137)
+            #F13 augment it (nameOffset:137) (firstTokenOffset:133) (offset:137)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F15 augment new (nameOffset:<null>) (firstTokenOffset:132) (offset:131)
+            #F15 augment new (nameOffset:<null>) (firstTokenOffset:131) (offset:131)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 131
               formalParameters
-                #F14 requiredPositional final this.it (nameOffset:137) (firstTokenOffset:132) (offset:137)
+                #F14 requiredPositional final this.it (nameOffset:137) (firstTokenOffset:133) (offset:137)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F7
               previousFragment: #F8
@@ -5668,16 +5668,16 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:19) (offset:15)
+            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+                #F8 requiredPositional final this.it (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F9
               nextFragment: #F10
@@ -5695,16 +5695,16 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F6 augment it (nameOffset:87) (firstTokenOffset:82) (offset:87)
+            #F6 augment it (nameOffset:87) (firstTokenOffset:83) (offset:87)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:82) (offset:78)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:87) (firstTokenOffset:82) (offset:87)
+                #F9 requiredPositional final this.it (nameOffset:87) (firstTokenOffset:83) (offset:87)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
               previousFragment: #F7
@@ -5782,16 +5782,16 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:19) (offset:15)
+            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+                #F8 requiredPositional final this.it (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F9
               nextFragment: #F10
@@ -5810,16 +5810,16 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F6 augment it (nameOffset:87) (firstTokenOffset:82) (offset:87)
+            #F6 augment it (nameOffset:87) (firstTokenOffset:83) (offset:87)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:82) (offset:78)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:87) (firstTokenOffset:82) (offset:87)
+                #F9 requiredPositional final this.it (nameOffset:87) (firstTokenOffset:83) (offset:87)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
               previousFragment: #F7
@@ -5890,16 +5890,16 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F6 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F7
               nextFragment: #F8
@@ -5916,16 +5916,16 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:94) (firstTokenOffset:89) (offset:94)
+            #F4 augment it (nameOffset:94) (firstTokenOffset:90) (offset:94)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:89) (offset:85)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:85) (offset:85)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 85
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:94) (firstTokenOffset:89) (offset:94)
+                #F7 requiredPositional final this.it (nameOffset:94) (firstTokenOffset:90) (offset:94)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F6
               previousFragment: #F5
@@ -5995,18 +5995,18 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F8
               nextFragment: #F9
@@ -6023,18 +6023,18 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:80) (firstTokenOffset:75) (offset:80)
+            #F4 augment it (nameOffset:80) (firstTokenOffset:76) (offset:80)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
             #F13 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:74)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 74
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:80) (firstTokenOffset:75) (offset:80)
+                #F8 requiredPositional final this.it (nameOffset:80) (firstTokenOffset:76) (offset:80)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F7
               previousFragment: #F6
@@ -6126,18 +6126,18 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F7 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F8
               nextFragment: #F9
@@ -6157,16 +6157,16 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F8 requiredPositional final this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F7
               previousFragment: #F6
@@ -6252,7 +6252,7 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
             #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
@@ -6260,12 +6260,12 @@ library
             #F6 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F8 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   nextFragment: #F9
               nextFragment: #F10
@@ -6288,16 +6288,16 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:101) (firstTokenOffset:96) (offset:101)
+            #F4 augment it (nameOffset:101) (firstTokenOffset:97) (offset:101)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:96) (offset:95)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:101) (firstTokenOffset:96) (offset:101)
+                #F9 requiredPositional final this.it (nameOffset:101) (firstTokenOffset:97) (offset:101)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
               previousFragment: #F7
@@ -6395,7 +6395,7 @@ library
         #F3 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F4 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F4 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -6449,7 +6449,7 @@ library
         #F2 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A::@def::0
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@def::0::@field::it
           getters
             #F4 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -6457,7 +6457,7 @@ library
         #F5 extension type A (nameOffset:72) (firstTokenOffset:49) (offset:72)
           element: <testLibrary>::@extensionType::A::@def::1
           fields
-            #F6 augment it (nameOffset:78) (firstTokenOffset:73) (offset:78)
+            #F6 augment it (nameOffset:78) (firstTokenOffset:74) (offset:78)
               element: <testLibrary>::@extensionType::A::@def::1::@field::it
           getters
             #F7 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
@@ -6529,7 +6529,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           getters
@@ -6545,7 +6545,7 @@ library
               previousFragment: #F3
               nextFragment: #F9
           fields
-            #F6 augment it (nameOffset:63) (firstTokenOffset:58) (offset:63)
+            #F6 augment it (nameOffset:63) (firstTokenOffset:59) (offset:63)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
               nextFragment: #F10
@@ -6557,7 +6557,7 @@ library
               element: #E0 T
               previousFragment: #F4
           fields
-            #F10 augment it (nameOffset:102) (firstTokenOffset:97) (offset:102)
+            #F10 augment it (nameOffset:102) (firstTokenOffset:98) (offset:102)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F6
   extensionTypes
@@ -6608,7 +6608,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:19) (offset:24)
+            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           getters
@@ -6624,7 +6624,7 @@ library
               previousFragment: #F3
               nextFragment: #F9
           fields
-            #F6 augment it (nameOffset:66) (firstTokenOffset:61) (offset:66)
+            #F6 augment it (nameOffset:66) (firstTokenOffset:62) (offset:66)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
               nextFragment: #F10
@@ -6636,7 +6636,7 @@ library
               element: #E0 T
               previousFragment: #F4
           fields
-            #F10 augment it (nameOffset:105) (firstTokenOffset:100) (offset:105)
+            #F10 augment it (nameOffset:105) (firstTokenOffset:101) (offset:105)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F6
   extensionTypes
@@ -6690,7 +6690,7 @@ library
               element: #E1 U
               nextFragment: #F6
           fields
-            #F7 it (nameOffset:27) (firstTokenOffset:22) (offset:27)
+            #F7 it (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F8
           getters
@@ -6710,7 +6710,7 @@ library
               previousFragment: #F5
               nextFragment: #F12
           fields
-            #F8 augment it (nameOffset:66) (firstTokenOffset:61) (offset:66)
+            #F8 augment it (nameOffset:66) (firstTokenOffset:62) (offset:66)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F7
               nextFragment: #F13
@@ -6725,7 +6725,7 @@ library
               element: #E1 U
               previousFragment: #F6
           fields
-            #F13 augment it (nameOffset:108) (firstTokenOffset:103) (offset:108)
+            #F13 augment it (nameOffset:108) (firstTokenOffset:104) (offset:108)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F8
   extensionTypes

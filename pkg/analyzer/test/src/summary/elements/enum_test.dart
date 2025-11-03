@@ -2638,7 +2638,7 @@ library
         #F8 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
           element: <testLibrary>::@extensionType::B
           fields
-            #F9 it (nameOffset:32) (firstTokenOffset:27) (offset:32)
+            #F9 it (nameOffset:32) (firstTokenOffset:28) (offset:32)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
@@ -3434,7 +3434,7 @@ library
         #F8 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
           element: <testLibrary>::@extensionType::B
           fields
-            #F9 it (nameOffset:32) (firstTokenOffset:27) (offset:32)
+            #F9 it (nameOffset:32) (firstTokenOffset:28) (offset:32)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)

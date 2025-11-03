@@ -12259,6 +12259,14 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     return parameters.endToken;
   }
 
+  /// If [keyword] is `final`, returns it.
+  Token? get finalKeyword {
+    if (keyword?.keyword == Keyword.FINAL) {
+      return keyword;
+    }
+    return null;
+  }
+
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -12284,7 +12292,7 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   bool get isExplicitlyTyped => true;
 
   @override
-  bool get isFinal => false;
+  bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @generated
   @override
@@ -12315,6 +12323,14 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
     _typeParameters = _becomeParentOf(typeParameters);
+  }
+
+  /// If [keyword] is `var`, returns it.
+  Token? get varKeyword {
+    if (keyword?.keyword == Keyword.VAR) {
+      return keyword;
+    }
+    return null;
   }
 
   @generated
@@ -22211,6 +22227,14 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     throw StateError('Expected at least one non-null');
   }
 
+  /// If [keyword] is `final`, returns it.
+  Token? get finalKeyword {
+    if (keyword?.keyword == Keyword.FINAL) {
+      return keyword;
+    }
+    return null;
+  }
+
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -22248,6 +22272,14 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   @generated
   set type(TypeAnnotationImpl? type) {
     _type = _becomeParentOf(type);
+  }
+
+  /// If [keyword] is `var`, returns it.
+  Token? get varKeyword {
+    if (keyword?.keyword == Keyword.VAR) {
+      return keyword;
+    }
+    return null;
   }
 
   @generated
