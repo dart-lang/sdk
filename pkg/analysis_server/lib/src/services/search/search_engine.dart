@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// The `MatchKind` enum names currently match the names of `SearchResultKind`
+// values, including case. This is asserted in `test/protocol_server_test.dart`,
+// but it's not clear whether it's actually important.
+// ignore_for_file: constant_identifier_names
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -12,61 +17,47 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Instances of the enum [MatchKind] represent the kind of reference that was
 /// found when a match represents a reference to an element.
-class MatchKind {
+enum MatchKind {
   /// A declaration of an element.
-  static const MatchKind DECLARATION = MatchKind('DECLARATION');
+  DECLARATION(),
 
   /// A reference to an element in which it is being read.
-  static const MatchKind READ = MatchKind('READ');
+  READ(),
 
   /// A reference to an element in which it is being both read and written.
-  static const MatchKind READ_WRITE = MatchKind('READ_WRITE');
+  READ_WRITE(),
 
   /// A reference to an element in which it is being written.
-  static const MatchKind WRITE = MatchKind('WRITE');
+  WRITE(),
 
   /// A reference to an element in which it is being invoked.
-  static const MatchKind INVOCATION = MatchKind('INVOCATION');
+  INVOCATION(),
 
   /// An invocation of an enum constructor from an enum constant without
   /// arguments.
-  static const MatchKind INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS =
-      MatchKind('INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS');
+  INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS(),
 
   /// A reference to an element in which it is referenced.
-  static const MatchKind REFERENCE = MatchKind.reference('REFERENCE');
+  REFERENCE(isReference: true),
 
   /// A tear-off reference to a constructor.
-  static const MatchKind REFERENCE_BY_CONSTRUCTOR_TEAR_OFF =
-      MatchKind.reference('REFERENCE_BY_CONSTRUCTOR_TEAR_OFF');
+  REFERENCE_BY_CONSTRUCTOR_TEAR_OFF(isReference: true),
 
   /// A reference to an element in an extends clause.
-  static const MatchKind REFERENCE_IN_EXTENDS_CLAUSE = MatchKind.reference(
-    'REFERENCE_IN_EXTENDS_CLAUSE',
-  );
+  REFERENCE_IN_EXTENDS_CLAUSE(isReference: true),
 
   /// A reference to an element in an implements clause.
-  static const MatchKind REFERENCE_IN_IMPLEMENTS_CLAUSE = MatchKind.reference(
-    'REFERENCE_IN_IMPLEMENTS_CLAUSE',
-  );
+  REFERENCE_IN_IMPLEMENTS_CLAUSE(isReference: true),
 
   /// A reference to an element in a with clause.
-  static const MatchKind REFERENCE_IN_WITH_CLAUSE = MatchKind.reference(
-    'REFERENCE_IN_WITH_CLAUSE',
-  );
+  REFERENCE_IN_WITH_CLAUSE(isReference: true),
 
   /// A reference to an element in an on clause.
-  static const MatchKind REFERENCE_IN_ON_CLAUSE = MatchKind.reference(
-    'REFERENCE_IN_ON_CLAUSE',
-  );
-
-  final String name;
+  REFERENCE_IN_ON_CLAUSE(isReference: true);
 
   final bool isReference;
 
-  const MatchKind(this.name) : isReference = false;
-
-  const MatchKind.reference(this.name) : isReference = true;
+  const MatchKind({this.isReference = false});
 
   @override
   String toString() => name;
