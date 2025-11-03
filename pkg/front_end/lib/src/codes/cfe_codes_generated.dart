@@ -13938,6 +13938,14 @@ const MessageCode codePositionalSuperParametersAndArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+codePrivateNamedParameterWithoutPublicName = const MessageCode(
+  "PrivateNamedParameterWithoutPublicName",
+  problemMessage:
+      """A private named parameter must have a corresponding public name.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRecordFieldsCantBePrivate = const MessageCode(
   "RecordFieldsCantBePrivate",
   problemMessage: """Record field names can't be private.""",

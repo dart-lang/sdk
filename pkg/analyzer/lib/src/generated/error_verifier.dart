@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/parser/util.dart' as shared;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -930,6 +931,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     _checkForValidField(node);
+    _checkPrivateOptionalParameter(node);
     _checkForFieldInitializingFormalRedirectingConstructor(node);
     _checkForTypeAnnotationDeferredClass(node.type);
     var fieldElement = node.declaredFragment?.element.field;
@@ -5989,6 +5991,37 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [superElement],
         );
       }
+    }
+  }
+
+  /// Check that a private named [parameter] has a valid public name.
+  void _checkPrivateOptionalParameter(FormalParameter parameter) {
+    // The parser has already reported an error if private named parameters are
+    // disabled or we're in a context where one isn't allowed. Only report the
+    // more precise error on a private named parameter with no public name if
+    // the feature is enabled.
+    if (!_currentLibrary.featureSet.isEnabled(
+      Feature.private_named_parameters,
+    )) {
+      return;
+    }
+
+    // Must be a named parameter.
+    if (!parameter.isNamed) {
+      return;
+    }
+
+    // Must be private.
+    var name = parameter.name;
+    if (name == null || name.isSynthetic || !name.lexeme.startsWith('_')) {
+      return;
+    }
+
+    if (correspondingPublicName(name.lexeme) == null) {
+      diagnosticReporter.atToken(
+        name,
+        CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
+      );
     }
   }
 

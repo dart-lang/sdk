@@ -1,0 +1,12 @@
+class C {
+  C.notIdentifier({this._123});
+  C.onlyUnderscore({this._});
+  C.reservedWord({this._for});
+  C.stillPrivate({this.__extraPrivate});
+  int? _;
+  int? _123;
+  int? __extraPrivate;
+  int? _for;
+}
+
+main() {}

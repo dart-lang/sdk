@@ -6942,6 +6942,18 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     ],
   );
 
+  /// No parameters.
+  static const CompileTimeErrorWithoutArguments
+  privateNamedParameterWithoutPublicName = CompileTimeErrorWithoutArguments(
+    name: 'PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME',
+    problemMessage:
+        "A private named parameter must be a public identifier after removing the "
+        "leading underscore.",
+    uniqueNameCheck:
+        'CompileTimeErrorCode.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME',
+    expectedTypes: [],
+  );
+
   /// Parameters:
   /// String p0: the name of the setter
   static const CompileTimeErrorTemplate<

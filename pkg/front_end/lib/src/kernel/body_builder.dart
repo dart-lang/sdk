@@ -30,7 +30,11 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Keyword, Token, TokenIsAExtension, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
-    show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
+    show
+        isBinaryOperator,
+        isMinusOperator,
+        isUserDefinableOperator,
+        correspondingPublicName;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
@@ -5400,6 +5404,27 @@ class BodyBuilderImpl extends StackListenerImpl
       return;
     }
     Identifier? name = nameNode as Identifier?;
+
+    // If it's a private named parameter, handle the public name.
+    if (libraryFeatures.privateNamedParameters.isEnabled &&
+        kind.isNamed &&
+        name != null &&
+        name.name.startsWith('_')) {
+      // TODO(rnystrom): Also handle declaring field parameters.
+      bool refersToField = thisKeyword != null;
+
+      // If you can't even use a private named parameter here at all, the
+      // parser has already reported an error about that. Don't bother reporting
+      // a second error about it being a bad private name.
+      if (refersToField && correspondingPublicName(name.name) == null) {
+        handleRecoverableError(
+          cfe.codePrivateNamedParameterWithoutPublicName,
+          nameToken,
+          nameToken,
+        );
+      }
+    }
+
     FormalParameterBuilder? parameter;
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
