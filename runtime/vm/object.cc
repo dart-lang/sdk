@@ -5431,14 +5431,16 @@ void Class::EnsureDeclarationLoaded() const {
 
 // Ensure that top level parsing of the class has been done.
 ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
-  ASSERT(!IsNull());
-  if (is_finalized()) {
-    return Error::null();
-  }
 #if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
-  UNREACHABLE();
+  RELEASE_ASSERT(is_finalized());
   return Error::null();
 #else
+  {
+    SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+    if (is_finalized()) {
+      return Error::null();
+    }
+  }
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (is_finalized()) {
     return Error::null();
