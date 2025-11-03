@@ -4,6 +4,7 @@
 
 import 'dart:mirrors';
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -11,7 +12,6 @@ import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
@@ -916,7 +916,7 @@ version: 0.0.1
   }
 }
 
-class TestRule extends LintRule {
+class TestRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'fantastic_test_rule',
     'Fantastic test rule.',

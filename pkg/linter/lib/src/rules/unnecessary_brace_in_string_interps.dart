@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -19,7 +20,7 @@ final RegExp identifierPart = RegExp('[a-zA-Z0-9_]');
 bool isIdentifierPart(Token? token) =>
     token is StringToken && token.lexeme.startsWith(identifierPart);
 
-class UnnecessaryBraceInStringInterps extends LintRule {
+class UnnecessaryBraceInStringInterps extends AnalysisRule {
   UnnecessaryBraceInStringInterps()
     : super(
         name: LintNames.unnecessary_brace_in_string_interps,
@@ -41,7 +42,7 @@ class UnnecessaryBraceInStringInterps extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

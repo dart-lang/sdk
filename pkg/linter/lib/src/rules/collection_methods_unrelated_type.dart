@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -19,7 +20,7 @@ const _desc =
     'Invocation of various collection methods with arguments of '
     'unrelated types.';
 
-class CollectionMethodsUnrelatedType extends LintRule {
+class CollectionMethodsUnrelatedType extends AnalysisRule {
   CollectionMethodsUnrelatedType()
     : super(
         name: LintNames.collection_methods_unrelated_type,
@@ -116,7 +117,7 @@ class _MethodDefinitionForName extends _MethodDefinition {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   final TypeSystem typeSystem;
   final TypeProvider typeProvider;

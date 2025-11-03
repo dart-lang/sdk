@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -18,7 +19,7 @@ const _desc =
 bool _hasNewInvocation(DartType returnType, FunctionBody body) =>
     _BodyVisitor(returnType).containsInstanceCreation(body);
 
-class PreferConstructorsOverStaticMethods extends LintRule {
+class PreferConstructorsOverStaticMethods extends AnalysisRule {
   PreferConstructorsOverStaticMethods()
     : super(
         name: LintNames.prefer_constructors_over_static_methods,
@@ -63,7 +64,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

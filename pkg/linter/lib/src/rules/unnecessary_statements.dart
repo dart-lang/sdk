@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -14,7 +15,7 @@ import '../analyzer.dart';
 
 const _desc = r'Avoid using unnecessary statements.';
 
-class UnnecessaryStatements extends LintRule {
+class UnnecessaryStatements extends AnalysisRule {
   UnnecessaryStatements()
     : super(name: LintNames.unnecessary_statements, description: _desc);
 
@@ -48,7 +49,7 @@ class UnnecessaryStatements extends LintRule {
 /// descend. We descend into only a few node types, like binary expressions and
 /// conditional expressions.
 class _ReportNoClearEffectVisitor extends UnifyingAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _ReportNoClearEffectVisitor(this.rule);
 

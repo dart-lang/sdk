@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
@@ -25,7 +26,7 @@ bool _isPrivateExtension(AstNode parent) {
   return parentName == null || Identifier.isPrivateName(parentName);
 }
 
-class UseLateForPrivateFieldsAndVariables extends LintRule {
+class UseLateForPrivateFieldsAndVariables extends AnalysisRule {
   UseLateForPrivateFieldsAndVariables()
     : super(
         name: LintNames.use_late_for_private_fields_and_variables,
@@ -54,7 +55,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   final Set<Element> nullableAccess = <Element>{};
 
-  final LintRule rule;
+  final AnalysisRule rule;
   final RuleContext context;
 
   /// The "current" [LibraryFragment], which is set by

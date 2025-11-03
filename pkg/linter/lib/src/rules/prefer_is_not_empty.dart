@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart'
@@ -15,7 +16,7 @@ import '../analyzer.dart';
 
 const _desc = r'Use `isNotEmpty` for `Iterable`s and `Map`s.';
 
-class PreferIsNotEmpty extends LintRule {
+class PreferIsNotEmpty extends AnalysisRule {
   PreferIsNotEmpty()
     : super(name: LintNames.prefer_is_not_empty, description: _desc);
 
@@ -33,7 +34,7 @@ class PreferIsNotEmpty extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

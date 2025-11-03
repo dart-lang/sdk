@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -17,7 +18,7 @@ import '../extensions.dart';
 
 const _desc = r"Don't rename parameters of overridden methods.";
 
-class AvoidRenamingMethodParameters extends LintRule {
+class AvoidRenamingMethodParameters extends AnalysisRule {
   AvoidRenamingMethodParameters()
     : super(
         name: LintNames.avoid_renaming_method_parameters,
@@ -44,7 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Whether the `wildcard_variables` feature is enabled.
   final bool _wildCardVariablesEnabled;
 
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule, RuleContext context)
     : _wildCardVariablesEnabled = context.isFeatureEnabled(

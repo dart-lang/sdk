@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -15,7 +16,7 @@ const _desc =
     r'Prefer an 8-digit hexadecimal integer (for example, 0xFFFFFFFF) to '
     'instantiate a Color.';
 
-class UseFullHexValuesForFlutterColors extends LintRule {
+class UseFullHexValuesForFlutterColors extends AnalysisRule {
   UseFullHexValuesForFlutterColors()
     : super(
         name: LintNames.use_full_hex_values_for_flutter_colors,
@@ -39,7 +40,7 @@ class UseFullHexValuesForFlutterColors extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   static final _underscoresPattern = RegExp('_+');
 
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

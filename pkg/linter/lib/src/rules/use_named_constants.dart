@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -14,7 +15,7 @@ import '../analyzer.dart';
 
 const _desc = r'Use predefined named constants.';
 
-class UseNamedConstants extends LintRule {
+class UseNamedConstants extends AnalysisRule {
   UseNamedConstants()
     : super(name: LintNames.use_named_constants, description: _desc);
 
@@ -32,7 +33,7 @@ class UseNamedConstants extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -15,7 +16,7 @@ import '../extensions.dart';
 
 const _desc = r'Avoid using private types in public APIs.';
 
-class LibraryPrivateTypesInPublicApi extends LintRule {
+class LibraryPrivateTypesInPublicApi extends AnalysisRule {
   LibraryPrivateTypesInPublicApi()
     : super(
         name: LintNames.library_private_types_in_public_api,
@@ -37,7 +38,7 @@ class LibraryPrivateTypesInPublicApi extends LintRule {
 }
 
 class Validator extends SimpleAstVisitor<void> {
-  LintRule rule;
+  AnalysisRule rule;
 
   Validator(this.rule);
 
@@ -290,7 +291,7 @@ class Validator extends SimpleAstVisitor<void> {
 }
 
 class Visitor extends SimpleAstVisitor<void> {
-  LintRule rule;
+  AnalysisRule rule;
 
   Visitor(this.rule);
 

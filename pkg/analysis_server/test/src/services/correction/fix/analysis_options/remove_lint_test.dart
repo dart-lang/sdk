@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -17,7 +17,7 @@ void main() {
   });
 }
 
-class DeprecatedRule extends LintRule {
+class DeprecatedRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'deprecated_rule',
     'Deprecated rule.',
@@ -35,7 +35,7 @@ class DeprecatedRule extends LintRule {
   DiagnosticCode get diagnosticCode => code;
 }
 
-class RemovedRule extends LintRule {
+class RemovedRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'removed_rule',
     'Removed rule.',
