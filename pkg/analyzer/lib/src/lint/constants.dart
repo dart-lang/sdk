@@ -26,45 +26,42 @@ class _ConstantDiagnosticListener extends DiagnosticListener {
   @override
   void onDiagnostic(Diagnostic diagnostic) {
     DiagnosticCode diagnosticCode = diagnostic.diagnosticCode;
-    if (diagnosticCode is CompileTimeErrorCode) {
-      switch (diagnosticCode) {
-        case CompileTimeErrorCode.constConstructorConstantFromDeferredLibrary:
-        case CompileTimeErrorCode
-            .constConstructorWithFieldInitializedByNonConst:
-        case CompileTimeErrorCode.constEvalExtensionMethod:
-        case CompileTimeErrorCode.constEvalExtensionTypeMethod:
-        case CompileTimeErrorCode.constEvalMethodInvocation:
-        case CompileTimeErrorCode.constEvalPropertyAccess:
-        case CompileTimeErrorCode.constEvalTypeBool:
-        case CompileTimeErrorCode.constEvalTypeBoolInt:
-        case CompileTimeErrorCode.constEvalTypeBoolNumString:
-        case CompileTimeErrorCode.constEvalTypeInt:
-        case CompileTimeErrorCode.constEvalTypeNum:
-        case CompileTimeErrorCode.constEvalTypeNumString:
-        case CompileTimeErrorCode.constEvalTypeString:
-        case CompileTimeErrorCode.constEvalThrowsException:
-        case CompileTimeErrorCode.constEvalThrowsIdbze:
-        case CompileTimeErrorCode.constEvalForElement:
-        case CompileTimeErrorCode.constMapKeyNotPrimitiveEquality:
-        case CompileTimeErrorCode.constSetElementNotPrimitiveEquality:
-        case CompileTimeErrorCode.constTypeParameter:
-        case CompileTimeErrorCode.constWithNonConst:
-        case CompileTimeErrorCode.constWithNonConstantArgument:
-        case CompileTimeErrorCode.constWithTypeParameters:
-        case CompileTimeErrorCode.constWithTypeParametersConstructorTearoff:
-        case CompileTimeErrorCode.invalidConstant:
-        case CompileTimeErrorCode.missingConstInListLiteral:
-        case CompileTimeErrorCode.missingConstInMapLiteral:
-        case CompileTimeErrorCode.missingConstInSetLiteral:
-        case CompileTimeErrorCode.nonBoolCondition:
-        case CompileTimeErrorCode.nonConstantListElement:
-        case CompileTimeErrorCode.nonConstantMapElement:
-        case CompileTimeErrorCode.nonConstantMapKey:
-        case CompileTimeErrorCode.nonConstantMapValue:
-        case CompileTimeErrorCode.nonConstantRecordField:
-        case CompileTimeErrorCode.nonConstantSetElement:
-          hasConstError = true;
-      }
+    switch (diagnosticCode) {
+      case CompileTimeErrorCode.constConstructorConstantFromDeferredLibrary:
+      case CompileTimeErrorCode.constConstructorWithFieldInitializedByNonConst:
+      case CompileTimeErrorCode.constEvalExtensionMethod:
+      case CompileTimeErrorCode.constEvalExtensionTypeMethod:
+      case CompileTimeErrorCode.constEvalMethodInvocation:
+      case CompileTimeErrorCode.constEvalPropertyAccess:
+      case CompileTimeErrorCode.constEvalTypeBool:
+      case CompileTimeErrorCode.constEvalTypeBoolInt:
+      case CompileTimeErrorCode.constEvalTypeBoolNumString:
+      case CompileTimeErrorCode.constEvalTypeInt:
+      case CompileTimeErrorCode.constEvalTypeNum:
+      case CompileTimeErrorCode.constEvalTypeNumString:
+      case CompileTimeErrorCode.constEvalTypeString:
+      case CompileTimeErrorCode.constEvalThrowsException:
+      case CompileTimeErrorCode.constEvalThrowsIdbze:
+      case CompileTimeErrorCode.constEvalForElement:
+      case CompileTimeErrorCode.constMapKeyNotPrimitiveEquality:
+      case CompileTimeErrorCode.constSetElementNotPrimitiveEquality:
+      case CompileTimeErrorCode.constTypeParameter:
+      case CompileTimeErrorCode.constWithNonConst:
+      case CompileTimeErrorCode.constWithNonConstantArgument:
+      case CompileTimeErrorCode.constWithTypeParameters:
+      case CompileTimeErrorCode.constWithTypeParametersConstructorTearoff:
+      case CompileTimeErrorCode.invalidConstant:
+      case CompileTimeErrorCode.missingConstInListLiteral:
+      case CompileTimeErrorCode.missingConstInMapLiteral:
+      case CompileTimeErrorCode.missingConstInSetLiteral:
+      case CompileTimeErrorCode.nonBoolCondition:
+      case CompileTimeErrorCode.nonConstantListElement:
+      case CompileTimeErrorCode.nonConstantMapElement:
+      case CompileTimeErrorCode.nonConstantMapKey:
+      case CompileTimeErrorCode.nonConstantMapValue:
+      case CompileTimeErrorCode.nonConstantRecordField:
+      case CompileTimeErrorCode.nonConstantSetElement:
+        hasConstError = true;
     }
   }
 }
