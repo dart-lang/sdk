@@ -14,6 +14,7 @@ import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -280,6 +281,7 @@ abstract class AbstractLspAnalysisServerTest
       AnalyticsManager(NoOpAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
       errorNotifier,
+      SessionLogger(),
       httpClient: httpClient,
       processRunner: processRunner,
       dartFixPromptManager: dartFixPromptManager,

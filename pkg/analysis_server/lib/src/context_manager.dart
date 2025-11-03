@@ -9,6 +9,8 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
+import 'package:analysis_server/src/session_logger/process_id.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/listener.dart';
@@ -214,6 +216,9 @@ class ContextManagerImpl implements ContextManager {
   /// The instrumentation service used to report instrumentation data.
   final InstrumentationService _instrumentationService;
 
+  /// The session logger.
+  final SessionLogger _sessionLogger;
+
   @override
   ContextManagerCallbacks callbacks = NoopContextManagerCallbacks();
 
@@ -275,7 +280,8 @@ class ContextManagerImpl implements ContextManager {
     this._unlinkedUnitStore,
     this._performanceLog,
     this._scheduler,
-    this._instrumentationService, {
+    this._instrumentationService,
+    this._sessionLogger, {
     required bool enableBlazeWatcher,
     this.withFineDependencies = false,
   }) : pathContext = resourceProvider.pathContext {
@@ -825,6 +831,11 @@ class ContextManagerImpl implements ContextManager {
     var type = event.type;
 
     _instrumentationService.logWatchEvent('<unknown>', path, type.toString());
+    _sessionLogger.logMessage(
+      from: ProcessId.watcher,
+      to: ProcessId.server,
+      message: {'path': path, 'type': type.toString()},
+    );
 
     var isPubspec = file_paths.isPubspecYaml(pathContext, path);
     if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||

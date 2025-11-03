@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -85,6 +86,7 @@ class SocketServerTest {
       DartSdkManager(''),
       CrashReportingAttachmentsBuilder.empty,
       errorNotifier,
+      SessionLogger(),
       null,
       null,
       AnalyticsManager(NoOpAnalytics()),

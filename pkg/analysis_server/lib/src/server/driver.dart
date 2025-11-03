@@ -26,6 +26,8 @@ import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/starter.dart';
@@ -96,6 +98,10 @@ class Driver implements ServerStarter {
   static const String protocolTrafficLogAliasOption =
       'instrumentation-log-file';
 
+  /// The name of the option used to cause a log of the session to be written to
+  /// a file.
+  static const String sessionLogOption = 'session-log';
+
   /// The name of the option used to specify if [print] should print to the
   /// console instead of being intercepted.
   static const String internalPrintToConsoleOption =
@@ -154,6 +160,9 @@ class Driver implements ServerStarter {
 
   /// The instrumentation service that is to be used by the analysis server.
   late final InstrumentationService _instrumentationService;
+
+  /// The session logger.
+  late final SessionLogger _sessionLogger;
 
   /// Use the given command-line [arguments] to start this server.
   ///
@@ -323,6 +332,13 @@ class Driver implements ServerStarter {
     );
     AnalysisEngine.instance.instrumentationService = _instrumentationService;
 
+    // Initialize the session logging service.
+    var sessionLogFilePath = results.option(sessionLogOption);
+    _sessionLogger = SessionLogger();
+    if (sessionLogFilePath != null) {
+      _sessionLogger.sink = SessionLoggerFileSink(sessionLogFilePath);
+    }
+
     int? diagnosticServerPort;
     var portValue =
         results.option(diagnosticPortOption) ??
@@ -354,6 +370,7 @@ class Driver implements ServerStarter {
         dartSdkManager,
         analyticsManager,
         _instrumentationService,
+        _sessionLogger,
         diagnosticServerPort,
         errorNotifier,
       );
@@ -366,6 +383,7 @@ class Driver implements ServerStarter {
         analyticsManager,
         crashReportingAttachmentsBuilder,
         _instrumentationService,
+        _sessionLogger,
         RequestStatisticsHelper(),
         diagnosticServerPort,
         errorNotifier,
@@ -387,6 +405,7 @@ class Driver implements ServerStarter {
     AnalyticsManager analyticsManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService,
+    SessionLogger sessionLogger,
     RequestStatisticsHelper requestStatistics,
     int? diagnosticServerPort,
     ErrorNotifier errorNotifier,
@@ -417,6 +436,7 @@ class Driver implements ServerStarter {
       dartSdkManager,
       crashReportingAttachmentsBuilder,
       instrumentationService,
+      sessionLogger,
       requestStatistics,
       diagnosticServer,
       analyticsManager,
@@ -506,6 +526,7 @@ class Driver implements ServerStarter {
     DartSdkManager dartSdkManager,
     AnalyticsManager analyticsManager,
     InstrumentationService instrumentationService,
+    SessionLogger sessionLogger,
     int? diagnosticServerPort,
     ErrorNotifier errorNotifier,
   ) {
@@ -525,6 +546,7 @@ class Driver implements ServerStarter {
       analyticsManager,
       dartSdkManager,
       instrumentationService,
+      sessionLogger,
       detachableFileSystemManager,
     );
     errorNotifier.server = socketServer.analysisServer;
@@ -661,6 +683,7 @@ class Driver implements ServerStarter {
       protocolTrafficLogAliasOption,
       reportProtocolVersionOption,
       serverProtocolOption,
+      sessionLogOption,
       suppressAnalyticsFlag,
       trainUsingOption,
       'useAnalysisHighlight2',
@@ -816,6 +839,12 @@ class Driver implements ServerStarter {
       help: 'Write server protocol traffic to the given file.',
     );
     parser.addOption(protocolTrafficLogAliasOption, hide: true);
+
+    parser.addOption(
+      sessionLogOption,
+      valueHelp: 'file path',
+      help: 'Write a server session log to the given file.',
+    );
 
     parser.addOption(
       analysisDriverLogOption,

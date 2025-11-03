@@ -97,6 +97,7 @@ import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/extensions/resource_provider.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
@@ -392,7 +393,8 @@ class LegacyAnalysisServer extends AnalysisServer {
     DartSdkManager sdkManager,
     AnalyticsManager analyticsManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
-    InstrumentationService instrumentationService, {
+    InstrumentationService instrumentationService,
+    SessionLogger sessionLogger, {
     http.Client? httpClient,
     ProcessRunner? processRunner,
     super.requestStatistics,
@@ -414,6 +416,7 @@ class LegacyAnalysisServer extends AnalysisServer {
          crashReportingAttachmentsBuilder,
          baseResourceProvider,
          instrumentationService,
+         sessionLogger,
          httpClient,
          processRunner,
          NotificationManager(channel, baseResourceProvider.pathContext),

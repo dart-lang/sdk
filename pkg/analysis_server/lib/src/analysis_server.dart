@@ -45,6 +45,7 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
@@ -189,6 +190,9 @@ abstract class AnalysisServer {
   /// The instrumentation service that is to be used by this analysis server.
   InstrumentationService instrumentationService;
 
+  /// The session logger that is to be used by this analysis server.
+  SessionLogger sessionLogger;
+
   /// Performance information after initial analysis is complete
   /// or `null` if the initial analysis is not yet complete
   ServerPerformance? performanceAfterStartup;
@@ -286,6 +290,7 @@ abstract class AnalysisServer {
     this.crashReportingAttachmentsBuilder,
     ResourceProvider baseResourceProvider,
     this.instrumentationService,
+    this.sessionLogger,
     http.Client? httpClient,
     ProcessRunner? processRunner,
     this.notificationManager, {
@@ -382,6 +387,7 @@ abstract class AnalysisServer {
       analysisPerformanceLogger,
       analysisDriverScheduler,
       instrumentationService,
+      sessionLogger,
       enableBlazeWatcher: enableBlazeWatcher,
       withFineDependencies: options.withFineDependencies,
     );

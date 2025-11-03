@@ -6,8 +6,6 @@
 /// and notifications that are part of the analysis server's wire protocol.
 library;
 
-import 'dart:convert' hide JsonDecoder;
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
@@ -209,36 +207,6 @@ class Request extends RequestOrResponse {
     if (params is Map<String, Object?>?) {
       return Request(id, method, params, time);
     } else {
-      return null;
-    }
-  }
-
-  /// Returns a request parsed from the given [data], or `null` if the [data] is
-  /// not a valid JSON representation of a request. The [data] is expected to
-  /// have the following format:
-  ///
-  ///     {
-  ///       'clientRequestTime': millisecondsSinceEpoch
-  ///       'id': String,
-  ///       'method': methodName,
-  ///       'params': {
-  ///         parameter_name: value
-  ///       }
-  ///     }
-  ///
-  /// where both the parameters and `clientRequestTime` are optional.
-  ///
-  /// The parameters can contain any number of name/value pairs. The
-  /// `clientRequestTime` must be an int representing the time at which the
-  /// client issued the request (milliseconds since epoch).
-  static Request? fromString(String data) {
-    try {
-      var result = json.decode(data);
-      if (result is Map<String, Object?>) {
-        return Request.fromJson(result);
-      }
-      return null;
-    } catch (exception) {
       return null;
     }
   }
@@ -635,32 +603,6 @@ class Response extends RequestOrResponse {
       }
 
       return Response(id, error: decodedError, result: decodedResult);
-    } catch (exception) {
-      return null;
-    }
-  }
-
-  /// Return a response parsed from the given [data], or `null` if the [data] is
-  /// not a valid json representation of a response. The [data] is expected to
-  /// have the following format:
-  ///
-  ///   {
-  ///     'id': String,
-  ///     'result': {
-  ///       parameter_name: value
-  ///     }
-  ///   }
-  ///
-  /// where the result is optional.
-  ///
-  /// The result can contain any number of name/value pairs.
-  static Response? fromString(String data) {
-    try {
-      var result = json.decode(data);
-      if (result is Map<String, Object?>) {
-        return Response.fromJson(result);
-      }
-      return null;
     } catch (exception) {
       return null;
     }
