@@ -3685,6 +3685,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             target: target,
             name: name,
             receiverType: receiverType,
+            setter: false,
           );
       if (overWritten != null) {
         target = overWritten.target;
@@ -5111,6 +5112,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             target: readTarget,
             name: propertyName,
             receiverType: receiverType,
+            setter: false,
           );
       if (overWritten != null) {
         readTarget = overWritten.target;

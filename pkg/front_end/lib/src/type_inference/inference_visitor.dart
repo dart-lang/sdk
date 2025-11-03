@@ -10399,6 +10399,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             target: binaryTarget,
             name: binaryName,
             receiverType: leftType,
+            setter: false,
           );
       if (overWritten != null) {
         binaryTarget = overWritten.target;
@@ -10593,6 +10594,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             target: unaryTarget,
             name: unaryName,
             receiverType: expressionType,
+            setter: false,
           );
       if (overWritten != null) {
         unaryTarget = overWritten.target;
@@ -10754,6 +10756,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             target: readTarget,
             name: indexGetName,
             receiverType: receiverType,
+            setter: false,
           );
       if (overWritten != null) {
         readTarget = overWritten.target;
@@ -10909,6 +10912,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             target: writeTarget,
             name: indexSetName,
             receiverType: receiverType,
+            setter: true,
           );
       if (overWritten != null) {
         writeTarget = overWritten.target;
@@ -11126,6 +11130,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             target: writeTarget,
             name: propertyName,
             receiverType: receiverType,
+            setter: true,
           );
       if (overWritten != null) {
         writeTarget = overWritten.target;
@@ -16843,6 +16848,7 @@ abstract class ExpressionEvaluationHelper {
     required ObjectAccessTarget target,
     required DartType receiverType,
     required Name name,
+    required bool setter,
   });
 }
 

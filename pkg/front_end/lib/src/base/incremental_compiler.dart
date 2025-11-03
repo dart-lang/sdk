@@ -56,8 +56,8 @@ import 'package:kernel/kernel.dart'
         VariableSet,
         VisitorDefault,
         VisitorVoidMixin,
-        Member,
-        TypeParameterType;
+        TypeParameterType,
+        Field;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
@@ -2551,6 +2551,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
     required ObjectAccessTarget target,
     required DartType receiverType,
     required Name name,
+    required bool setter,
   }) {
     // On a missing target, rewrite to a dynamic target instead.
     if (target.kind == ObjectAccessTargetKind.missing) {
@@ -2565,14 +2566,37 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
         ClassHierarchySubtypes subtypeInformation = hierarchy
             .computeSubtypesInformation();
         Set<Library> foundMatchInLibrary = {};
+        Set<Class> visited = {};
+        nextSubtype:
         for (Class cls in subtypeInformation.getSubtypesOf(
           receiverType.classNode,
         )) {
-          for (Member member in cls.members) {
-            if (member.name.text == name.text) {
-              foundMatchInLibrary.add(cls.enclosingLibrary);
-              break;
+          if (cls.isAbstract) continue;
+          Class? clsOrSuper = cls;
+          while (clsOrSuper != null) {
+            if (!visited.add(clsOrSuper)) break;
+            for (Procedure procedure in clsOrSuper.procedures) {
+              if (procedure.name.text == name.text) {
+                // Name match.
+                if (procedure.isAbstract) continue;
+                if (setter && !procedure.isSetter) {
+                  continue;
+                } else if (!setter && procedure.isSetter) {
+                  continue;
+                }
+                foundMatchInLibrary.add(clsOrSuper.enclosingLibrary);
+                continue nextSubtype;
+              }
             }
+            for (Field field in clsOrSuper.fields) {
+              if (field.name.text == name.text) {
+                // Name match.
+                if (setter && !field.hasSetter) continue;
+                foundMatchInLibrary.add(clsOrSuper.enclosingLibrary);
+                continue nextSubtype;
+              }
+            }
+            clsOrSuper = clsOrSuper.superclass;
           }
         }
         // If we only found one such library we overwrite the name so the VM
