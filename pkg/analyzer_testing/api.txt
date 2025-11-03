@@ -3,7 +3,9 @@ package:analyzer_testing/analysis_rule/analysis_rule.dart:
   error (function: ExpectedDiagnostic Function(DiagnosticCode, int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, deprecated Pattern? messageContains, List<Pattern> messageContainsAll}))
   AnalysisRuleTest (class extends PubPackageResolutionTest):
     new (constructor: AnalysisRuleTest Function())
-    analysisRule (getter: String)
+    analysisRule (getter: String, deprecated)
+    rule (getter: AbstractAnalysisRule)
+    rule= (setter: AbstractAnalysisRule)
     assertNoPubspecDiagnostics (method: Future<void> Function(String))
     assertPubspecDiagnostics (method: Future<void> Function(String, List<ExpectedDiagnostic>))
     correctionMessage (method: String Function(List<Diagnostic>))
@@ -84,6 +86,8 @@ dart:core:
 package:_fe_analyzer_shared/src/base/errors.dart:
   Diagnostic (referenced)
   DiagnosticCode (referenced)
+package:analyzer/analysis_rule/analysis_rule.dart:
+  AbstractAnalysisRule (referenced)
 package:analyzer/file_system/file_system.dart:
   File (referenced)
   Folder (referenced)

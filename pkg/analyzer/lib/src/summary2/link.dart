@@ -5,10 +5,10 @@
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
@@ -45,6 +45,19 @@ LinkResult link({
   return LinkResult(resolutionBytes: linker.resolutionBytes);
 }
 
+/// Information about a declaring formal parameter, used while linking.
+class DeclaringFormalParameterInfo {
+  final ast.FormalParameterImpl node;
+  final FieldFragmentImpl fieldFragment;
+  final FormalParameterFragmentImpl formalFragment;
+
+  DeclaringFormalParameterInfo({
+    required this.node,
+    required this.fieldFragment,
+    required this.formalFragment,
+  });
+}
+
 class Linker {
   final LinkedElementFactory elementFactory;
   final String apiSignature;
@@ -53,6 +66,9 @@ class Linker {
   final Map<Uri, LibraryBuilder> builders = {};
 
   final Map<Object, ast.AstNode> elementNodes = Map.identity();
+
+  final Map<ast.FormalParameterImpl, DeclaringFormalParameterInfo>
+  declaringFormalParameters = Map.identity();
 
   late InheritanceManager3 inheritance; // TODO(scheglov): cache it
 

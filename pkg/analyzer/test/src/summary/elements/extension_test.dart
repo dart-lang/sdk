@@ -854,15 +854,15 @@ library
         #F2 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F3 it (nameOffset:25) (firstTokenOffset:16) (offset:25)
+            #F3 it (nameOffset:25) (firstTokenOffset:17) (offset:25)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F4 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F4 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F5 requiredPositional final this.it (nameOffset:25) (firstTokenOffset:16) (offset:25)
+                #F5 requiredPositional final this.it (nameOffset:25) (firstTokenOffset:17) (offset:25)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)

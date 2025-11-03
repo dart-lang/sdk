@@ -20,8 +20,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   abstractFieldConstructorInitializer = CompileTimeErrorWithoutArguments(
-    'ABSTRACT_FIELD_INITIALIZER',
-    "Abstract fields can't have initializers.",
+    name: 'ABSTRACT_FIELD_INITIALIZER',
+    problemMessage: "Abstract fields can't have initializers.",
     correctionMessage:
         "Try removing the field initializer or the 'abstract' keyword from the "
         "field declaration.",
@@ -33,8 +33,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments abstractFieldInitializer =
       CompileTimeErrorWithoutArguments(
-        'ABSTRACT_FIELD_INITIALIZER',
-        "Abstract fields can't have initializers.",
+        name: 'ABSTRACT_FIELD_INITIALIZER',
+        problemMessage: "Abstract fields can't have initializers.",
         correctionMessage:
             "Try removing the initializer or the 'abstract' keyword.",
         hasPublishedDocs: true,
@@ -52,8 +52,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   abstractSuperMemberReference = CompileTimeErrorTemplate(
-    'ABSTRACT_SUPER_MEMBER_REFERENCE',
-    "The {0} '{1}' is always abstract in the supertype.",
+    name: 'ABSTRACT_SUPER_MEMBER_REFERENCE',
+    problemMessage: "The {0} '{1}' is always abstract in the supertype.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsAbstractSuperMemberReference,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -71,8 +71,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   ambiguousExport = CompileTimeErrorTemplate(
-    'AMBIGUOUS_EXPORT',
-    "The name '{0}' is defined in the libraries '{1}' and '{2}'.",
+    name: 'AMBIGUOUS_EXPORT',
+    problemMessage:
+        "The name '{0}' is defined in the libraries '{1}' and '{2}'.",
     correctionMessage:
         "Try removing the export of one of the libraries, or explicitly hiding "
         "the name in one of the export directives.",
@@ -88,8 +89,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   ambiguousExtensionMemberAccessThreeOrMore = CompileTimeErrorTemplate(
-    'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
-    "A member named '{0}' is defined in {1}, and none are more specific.",
+    name: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
+    problemMessage:
+        "A member named '{0}' is defined in {1}, and none are more specific.",
     correctionMessage:
         "Try using an extension override to specify the extension you want to "
         "be chosen.",
@@ -111,8 +113,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   ambiguousExtensionMemberAccessTwo = CompileTimeErrorTemplate(
-    'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
-    "A member named '{0}' is defined in '{1}' and '{2}', and neither is more "
+    name: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
+    problemMessage:
+        "A member named '{0}' is defined in '{1}' and '{2}', and neither is more "
         "specific.",
     correctionMessage:
         "Try using an extension override to specify the extension you want to "
@@ -134,8 +137,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   ambiguousImport = CompileTimeErrorTemplate(
-    'AMBIGUOUS_IMPORT',
-    "The name '{0}' is defined in the libraries {1}.",
+    name: 'AMBIGUOUS_IMPORT',
+    problemMessage: "The name '{0}' is defined in the libraries {1}.",
     correctionMessage:
         "Try using 'as prefix' for one of the import directives, or hiding the "
         "name from all but one of the imports.",
@@ -147,8 +150,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   ambiguousSetOrMapLiteralBoth = CompileTimeErrorWithoutArguments(
-    'AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
-    "The literal can't be either a map or a set because it contains at least "
+    name: 'AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
+    problemMessage:
+        "The literal can't be either a map or a set because it contains at least "
         "one literal map entry or a spread operator spreading a 'Map', and at "
         "least one element which is neither of these.",
     correctionMessage:
@@ -161,8 +165,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   ambiguousSetOrMapLiteralEither = CompileTimeErrorWithoutArguments(
-    'AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER',
-    "This literal must be either a map or a set, but the elements don't have "
+    name: 'AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER',
+    problemMessage:
+        "This literal must be either a map or a set, but the elements don't have "
         "enough information for type inference to work.",
     correctionMessage:
         "Try adding type arguments to the literal (one for sets, two for "
@@ -184,8 +189,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   argumentTypeNotAssignable = CompileTimeErrorTemplate(
-    'ARGUMENT_TYPE_NOT_ASSIGNABLE',
-    "The argument type '{0}' can't be assigned to the parameter type '{1}'. "
+    name: 'ARGUMENT_TYPE_NOT_ASSIGNABLE',
+    problemMessage:
+        "The argument type '{0}' can't be assigned to the parameter type '{1}'. "
         "{2}",
     hasPublishedDocs: true,
     withArguments: _withArgumentsArgumentTypeNotAssignable,
@@ -195,8 +201,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments assertInRedirectingConstructor =
       CompileTimeErrorWithoutArguments(
-        'ASSERT_IN_REDIRECTING_CONSTRUCTOR',
-        "A redirecting constructor can't have an 'assert' initializer.",
+        name: 'ASSERT_IN_REDIRECTING_CONSTRUCTOR',
+        problemMessage:
+            "A redirecting constructor can't have an 'assert' initializer.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -204,8 +211,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   assignmentToConst = CompileTimeErrorWithoutArguments(
-    'ASSIGNMENT_TO_CONST',
-    "Constant variables can't be assigned a value after initialization.",
+    name: 'ASSIGNMENT_TO_CONST',
+    problemMessage:
+        "Constant variables can't be assigned a value after initialization.",
     correctionMessage:
         "Try removing the assignment, or remove the modifier 'const' from the "
         "variable.",
@@ -219,8 +227,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   assignmentToFinal = CompileTimeErrorTemplate(
-    'ASSIGNMENT_TO_FINAL',
-    "'{0}' can't be used as a setter because it's final.",
+    name: 'ASSIGNMENT_TO_FINAL',
+    problemMessage: "'{0}' can't be used as a setter because it's final.",
     correctionMessage:
         "Try finding a different setter, or making '{0}' non-final.",
     hasPublishedDocs: true,
@@ -234,8 +242,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   assignmentToFinalLocal = CompileTimeErrorTemplate(
-    'ASSIGNMENT_TO_FINAL_LOCAL',
-    "The final variable '{0}' can only be set once.",
+    name: 'ASSIGNMENT_TO_FINAL_LOCAL',
+    problemMessage: "The final variable '{0}' can only be set once.",
     correctionMessage: "Try making '{0}' non-final.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsAssignmentToFinalLocal,
@@ -249,8 +257,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   assignmentToFinalNoSetter = CompileTimeErrorTemplate(
-    'ASSIGNMENT_TO_FINAL_NO_SETTER',
-    "There isn't a setter named '{0}' in class '{1}'.",
+    name: 'ASSIGNMENT_TO_FINAL_NO_SETTER',
+    problemMessage: "There isn't a setter named '{0}' in class '{1}'.",
     correctionMessage:
         "Try correcting the name to reference an existing setter, or declare "
         "the setter.",
@@ -262,8 +270,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments assignmentToFunction =
       CompileTimeErrorWithoutArguments(
-        'ASSIGNMENT_TO_FUNCTION',
-        "Functions can't be assigned a value.",
+        name: 'ASSIGNMENT_TO_FUNCTION',
+        problemMessage: "Functions can't be assigned a value.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -271,8 +279,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments assignmentToMethod =
       CompileTimeErrorWithoutArguments(
-        'ASSIGNMENT_TO_METHOD',
-        "Methods can't be assigned a value.",
+        name: 'ASSIGNMENT_TO_METHOD',
+        problemMessage: "Methods can't be assigned a value.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -280,8 +288,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments assignmentToType =
       CompileTimeErrorWithoutArguments(
-        'ASSIGNMENT_TO_TYPE',
-        "Types can't be assigned a value.",
+        name: 'ASSIGNMENT_TO_TYPE',
+        problemMessage: "Types can't be assigned a value.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -289,8 +297,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments asyncForInWrongContext =
       CompileTimeErrorWithoutArguments(
-        'ASYNC_FOR_IN_WRONG_CONTEXT',
-        "The async for-in loop can only be used in an async function.",
+        name: 'ASYNC_FOR_IN_WRONG_CONTEXT',
+        problemMessage:
+            "The async for-in loop can only be used in an async function.",
         correctionMessage:
             "Try marking the function body with either 'async' or 'async*', or "
             "removing the 'await' before the for-in loop.",
@@ -301,8 +310,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   augmentationExtendsClauseAlreadyPresent = CompileTimeErrorWithoutArguments(
-    'AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT',
-    "The augmentation has an 'extends' clause, but an augmentation target "
+    name: 'AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT',
+    problemMessage:
+        "The augmentation has an 'extends' clause, but an augmentation target "
         "already includes an 'extends' clause and it isn't allowed to be "
         "repeated or changed.",
     correctionMessage:
@@ -317,8 +327,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   augmentationModifierExtra = CompileTimeErrorTemplate(
-    'AUGMENTATION_MODIFIER_EXTRA',
-    "The augmentation has the '{0}' modifier that the declaration doesn't "
+    name: 'AUGMENTATION_MODIFIER_EXTRA',
+    problemMessage:
+        "The augmentation has the '{0}' modifier that the declaration doesn't "
         "have.",
     correctionMessage:
         "Try removing the '{0}' modifier, or adding it to the declaration.",
@@ -332,8 +343,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   augmentationModifierMissing = CompileTimeErrorTemplate(
-    'AUGMENTATION_MODIFIER_MISSING',
-    "The augmentation is missing the '{0}' modifier that the declaration has.",
+    name: 'AUGMENTATION_MODIFIER_MISSING',
+    problemMessage:
+        "The augmentation is missing the '{0}' modifier that the declaration has.",
     correctionMessage:
         "Try adding the '{0}' modifier, or removing it from the declaration.",
     withArguments: _withArgumentsAugmentationModifierMissing,
@@ -347,8 +359,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   augmentationOfDifferentDeclarationKind = CompileTimeErrorTemplate(
-    'AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND',
-    "Can't augment a {0} with a {1}.",
+    name: 'AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND',
+    problemMessage: "Can't augment a {0} with a {1}.",
     correctionMessage:
         "Try changing the augmentation to match the declaration kind.",
     withArguments: _withArgumentsAugmentationOfDifferentDeclarationKind,
@@ -358,8 +370,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments augmentationTypeParameterBound =
       CompileTimeErrorWithoutArguments(
-        'AUGMENTATION_TYPE_PARAMETER_BOUND',
-        "The augmentation type parameter must have the same bound as the "
+        name: 'AUGMENTATION_TYPE_PARAMETER_BOUND',
+        problemMessage:
+            "The augmentation type parameter must have the same bound as the "
             "corresponding type parameter of the declaration.",
         correctionMessage:
             "Try changing the augmentation to match the declaration type "
@@ -368,22 +381,24 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments augmentationTypeParameterCount =
-      CompileTimeErrorWithoutArguments(
-        'AUGMENTATION_TYPE_PARAMETER_COUNT',
+  static const CompileTimeErrorWithoutArguments
+  augmentationTypeParameterCount = CompileTimeErrorWithoutArguments(
+    name: 'AUGMENTATION_TYPE_PARAMETER_COUNT',
+    problemMessage:
         "The augmentation must have the same number of type parameters as the "
-            "declaration.",
-        correctionMessage:
-            "Try changing the augmentation to match the declaration type "
-            "parameters.",
-        expectedTypes: [],
-      );
+        "declaration.",
+    correctionMessage:
+        "Try changing the augmentation to match the declaration type "
+        "parameters.",
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments augmentationTypeParameterName =
       CompileTimeErrorWithoutArguments(
-        'AUGMENTATION_TYPE_PARAMETER_NAME',
-        "The augmentation type parameter must have the same name as the "
+        name: 'AUGMENTATION_TYPE_PARAMETER_NAME',
+        problemMessage:
+            "The augmentation type parameter must have the same name as the "
             "corresponding type parameter of the declaration.",
         correctionMessage:
             "Try changing the augmentation to match the declaration type "
@@ -394,8 +409,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments augmentationWithoutDeclaration =
       CompileTimeErrorWithoutArguments(
-        'AUGMENTATION_WITHOUT_DECLARATION',
-        "The declaration being augmented doesn't exist.",
+        name: 'AUGMENTATION_WITHOUT_DECLARATION',
+        problemMessage: "The declaration being augmented doesn't exist.",
         correctionMessage:
             "Try changing the augmentation to match an existing declaration.",
         expectedTypes: [],
@@ -404,8 +419,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   augmentedExpressionIsNotSetter = CompileTimeErrorWithoutArguments(
-    'AUGMENTED_EXPRESSION_IS_NOT_SETTER',
-    "The augmented declaration is not a setter, it can't be used to write a "
+    name: 'AUGMENTED_EXPRESSION_IS_NOT_SETTER',
+    problemMessage:
+        "The augmented declaration is not a setter, it can't be used to write a "
         "value.",
     correctionMessage: "Try assigning a value to a setter.",
     expectedTypes: [],
@@ -414,8 +430,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   augmentedExpressionIsSetter = CompileTimeErrorWithoutArguments(
-    'AUGMENTED_EXPRESSION_IS_SETTER',
-    "The augmented declaration is a setter, it can't be used to read a value.",
+    name: 'AUGMENTED_EXPRESSION_IS_SETTER',
+    problemMessage:
+        "The augmented declaration is a setter, it can't be used to read a value.",
     correctionMessage: "Try assigning a value to the augmented setter.",
     expectedTypes: [],
   );
@@ -426,8 +443,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   augmentedExpressionNotOperator = CompileTimeErrorTemplate(
-    'AUGMENTED_EXPRESSION_NOT_OPERATOR',
-    "The enclosing augmentation doesn't augment the operator '{0}'.",
+    name: 'AUGMENTED_EXPRESSION_NOT_OPERATOR',
+    problemMessage:
+        "The enclosing augmentation doesn't augment the operator '{0}'.",
     correctionMessage: "Try augmenting or invoking the correct operator.",
     withArguments: _withArgumentsAugmentedExpressionNotOperator,
     expectedTypes: [ExpectedType.object],
@@ -436,8 +454,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   awaitInLateLocalVariableInitializer = CompileTimeErrorWithoutArguments(
-    'AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER',
-    "The 'await' expression can't be used in a 'late' local variable's "
+    name: 'AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER',
+    problemMessage:
+        "The 'await' expression can't be used in a 'late' local variable's "
         "initializer.",
     correctionMessage:
         "Try removing the 'late' modifier, or rewriting the initializer "
@@ -453,8 +472,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments awaitInWrongContext =
       CompileTimeErrorWithoutArguments(
-        'AWAIT_IN_WRONG_CONTEXT',
-        "The await expression can only be used in an async function.",
+        name: 'AWAIT_IN_WRONG_CONTEXT',
+        problemMessage:
+            "The await expression can only be used in an async function.",
         correctionMessage:
             "Try marking the function body with either 'async' or 'async*'.",
         expectedTypes: [],
@@ -463,8 +483,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   awaitOfIncompatibleType = CompileTimeErrorWithoutArguments(
-    'AWAIT_OF_INCOMPATIBLE_TYPE',
-    "The 'await' expression can't be used for an expression with an extension "
+    name: 'AWAIT_OF_INCOMPATIBLE_TYPE',
+    problemMessage:
+        "The 'await' expression can't be used for an expression with an extension "
         "type that is not a subtype of 'Future'.",
     correctionMessage:
         "Try removing the `await`, or updating the extension type to implement "
@@ -479,8 +500,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String implementedClassName})
   >
   baseClassImplementedOutsideOfLibrary = CompileTimeErrorTemplate(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The class '{0}' can't be implemented outside of its library because it's "
+    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    problemMessage:
+        "The class '{0}' can't be implemented outside of its library because it's "
         "a base class.",
     hasPublishedDocs: true,
     uniqueName: 'BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
@@ -494,8 +516,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String implementedMixinName})
   >
   baseMixinImplementedOutsideOfLibrary = CompileTimeErrorTemplate(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The mixin '{0}' can't be implemented outside of its library because it's "
+    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    problemMessage:
+        "The mixin '{0}' can't be implemented outside of its library because it's "
         "a base mixin.",
     hasPublishedDocs: true,
     uniqueName: 'BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
@@ -509,8 +532,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   bodyMightCompleteNormally = CompileTimeErrorTemplate(
-    'BODY_MIGHT_COMPLETE_NORMALLY',
-    "The body might complete normally, causing 'null' to be returned, but the "
+    name: 'BODY_MIGHT_COMPLETE_NORMALLY',
+    problemMessage:
+        "The body might complete normally, causing 'null' to be returned, but the "
         "return type, '{0}', is a potentially non-nullable type.",
     correctionMessage:
         "Try adding either a return or a throw statement at the end.",
@@ -522,8 +546,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments breakLabelOnSwitchMember =
       CompileTimeErrorWithoutArguments(
-        'BREAK_LABEL_ON_SWITCH_MEMBER',
-        "A break label resolves to the 'case' or 'default' statement.",
+        name: 'BREAK_LABEL_ON_SWITCH_MEMBER',
+        problemMessage:
+            "A break label resolves to the 'case' or 'default' statement.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -534,8 +559,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   builtInIdentifierAsExtensionName = CompileTimeErrorTemplate(
-    'BUILT_IN_IDENTIFIER_IN_DECLARATION',
-    "The built-in identifier '{0}' can't be used as an extension name.",
+    name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+    problemMessage:
+        "The built-in identifier '{0}' can't be used as an extension name.",
     correctionMessage: "Try choosing a different name for the extension.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
@@ -549,8 +575,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   builtInIdentifierAsExtensionTypeName = CompileTimeErrorTemplate(
-    'BUILT_IN_IDENTIFIER_IN_DECLARATION',
-    "The built-in identifier '{0}' can't be used as an extension type name.",
+    name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+    problemMessage:
+        "The built-in identifier '{0}' can't be used as an extension type name.",
     correctionMessage: "Try choosing a different name for the extension type.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME',
@@ -564,8 +591,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   builtInIdentifierAsPrefixName = CompileTimeErrorTemplate(
-    'BUILT_IN_IDENTIFIER_IN_DECLARATION',
-    "The built-in identifier '{0}' can't be used as a prefix name.",
+    name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+    problemMessage:
+        "The built-in identifier '{0}' can't be used as a prefix name.",
     correctionMessage: "Try choosing a different name for the prefix.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_PREFIX_NAME',
@@ -579,8 +607,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   builtInIdentifierAsType = CompileTimeErrorTemplate(
-    'BUILT_IN_IDENTIFIER_AS_TYPE',
-    "The built-in identifier '{0}' can't be used as a type.",
+    name: 'BUILT_IN_IDENTIFIER_AS_TYPE',
+    problemMessage: "The built-in identifier '{0}' can't be used as a type.",
     correctionMessage: "Try correcting the name to match an existing type.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsBuiltInIdentifierAsType,
@@ -593,8 +621,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   builtInIdentifierAsTypedefName = CompileTimeErrorTemplate(
-    'BUILT_IN_IDENTIFIER_IN_DECLARATION',
-    "The built-in identifier '{0}' can't be used as a typedef name.",
+    name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+    problemMessage:
+        "The built-in identifier '{0}' can't be used as a typedef name.",
     correctionMessage: "Try choosing a different name for the typedef.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME',
@@ -608,8 +637,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   builtInIdentifierAsTypeName = CompileTimeErrorTemplate(
-    'BUILT_IN_IDENTIFIER_IN_DECLARATION',
-    "The built-in identifier '{0}' can't be used as a type name.",
+    name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+    problemMessage:
+        "The built-in identifier '{0}' can't be used as a type name.",
     correctionMessage: "Try choosing a different name for the type.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_NAME',
@@ -623,8 +653,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   builtInIdentifierAsTypeParameterName = CompileTimeErrorTemplate(
-    'BUILT_IN_IDENTIFIER_IN_DECLARATION',
-    "The built-in identifier '{0}' can't be used as a type parameter name.",
+    name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+    problemMessage:
+        "The built-in identifier '{0}' can't be used as a type parameter name.",
     correctionMessage: "Try choosing a different name for the type parameter.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
@@ -638,8 +669,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   caseExpressionTypeImplementsEquals = CompileTimeErrorTemplate(
-    'CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
-    "The switch case expression type '{0}' can't override the '==' operator.",
+    name: 'CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
+    problemMessage:
+        "The switch case expression type '{0}' can't override the '==' operator.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsCaseExpressionTypeImplementsEquals,
     expectedTypes: [ExpectedType.type],
@@ -652,8 +684,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   caseExpressionTypeIsNotSwitchExpressionSubtype = CompileTimeErrorTemplate(
-    'CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
-    "The switch case expression type '{0}' must be a subtype of the switch "
+    name: 'CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
+    problemMessage:
+        "The switch case expression type '{0}' must be a subtype of the switch "
         "expression type '{1}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsCaseExpressionTypeIsNotSwitchExpressionSubtype,
@@ -666,8 +699,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   castToNonType = CompileTimeErrorTemplate(
-    'CAST_TO_NON_TYPE',
-    "The name '{0}' isn't a type, so it can't be used in an 'as' expression.",
+    name: 'CAST_TO_NON_TYPE',
+    problemMessage:
+        "The name '{0}' isn't a type, so it can't be used in an 'as' expression.",
     correctionMessage:
         "Try changing the name to the name of an existing type, or creating a "
         "type with the name '{0}'.",
@@ -682,8 +716,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   classInstantiationAccessToInstanceMember = CompileTimeErrorTemplate(
-    'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
-    "The instance member '{0}' can't be accessed on a class instantiation.",
+    name: 'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
+    problemMessage:
+        "The instance member '{0}' can't be accessed on a class instantiation.",
     correctionMessage:
         "Try changing the member name to the name of a constructor.",
     uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER',
@@ -697,8 +732,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   classInstantiationAccessToStaticMember = CompileTimeErrorTemplate(
-    'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
-    "The static member '{0}' can't be accessed on a class instantiation.",
+    name: 'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
+    problemMessage:
+        "The static member '{0}' can't be accessed on a class instantiation.",
     correctionMessage:
         "Try removing the type arguments from the class name, or changing the "
         "member name to the name of a constructor.",
@@ -714,8 +750,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   classInstantiationAccessToUnknownMember = CompileTimeErrorTemplate(
-    'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
-    "The class '{0}' doesn't have a constructor named '{1}'.",
+    name: 'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
+    problemMessage: "The class '{0}' doesn't have a constructor named '{1}'.",
     correctionMessage:
         "Try invoking a different constructor, or defining a constructor named "
         "'{1}'.",
@@ -730,8 +766,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   classUsedAsMixin = CompileTimeErrorTemplate(
-    'CLASS_USED_AS_MIXIN',
-    "The class '{0}' can't be used as a mixin because it's neither a mixin "
+    name: 'CLASS_USED_AS_MIXIN',
+    problemMessage:
+        "The class '{0}' can't be used as a mixin because it's neither a mixin "
         "class nor a mixin.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsClassUsedAsMixin,
@@ -741,8 +778,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   concreteClassHasEnumSuperinterface = CompileTimeErrorWithoutArguments(
-    'CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
-    "Concrete classes can't have 'Enum' as a superinterface.",
+    name: 'CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
+    problemMessage: "Concrete classes can't have 'Enum' as a superinterface.",
     correctionMessage:
         "Try specifying a different interface, or remove it from the list.",
     hasPublishedDocs: true,
@@ -756,8 +793,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   concreteClassWithAbstractMember = CompileTimeErrorTemplate(
-    'CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
-    "'{0}' must have a method body because '{1}' isn't abstract.",
+    name: 'CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
+    problemMessage:
+        "'{0}' must have a method body because '{1}' isn't abstract.",
     correctionMessage: "Try making '{1}' abstract, or adding a body to '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsConcreteClassWithAbstractMember,
@@ -770,8 +808,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingConstructorAndStaticField = CompileTimeErrorTemplate(
-    'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
-    "'{0}' can't be used to name both a constructor and a static field in this "
+    name: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+    problemMessage:
+        "'{0}' can't be used to name both a constructor and a static field in this "
         "class.",
     correctionMessage: "Try renaming either the constructor or the field.",
     hasPublishedDocs: true,
@@ -786,8 +825,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingConstructorAndStaticGetter = CompileTimeErrorTemplate(
-    'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
-    "'{0}' can't be used to name both a constructor and a static getter in "
+    name: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+    problemMessage:
+        "'{0}' can't be used to name both a constructor and a static getter in "
         "this class.",
     correctionMessage: "Try renaming either the constructor or the getter.",
     hasPublishedDocs: true,
@@ -802,8 +842,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingConstructorAndStaticMethod = CompileTimeErrorTemplate(
-    'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
-    "'{0}' can't be used to name both a constructor and a static method in "
+    name: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+    problemMessage:
+        "'{0}' can't be used to name both a constructor and a static method in "
         "this class.",
     correctionMessage: "Try renaming either the constructor or the method.",
     hasPublishedDocs: true,
@@ -818,8 +859,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingConstructorAndStaticSetter = CompileTimeErrorTemplate(
-    'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
-    "'{0}' can't be used to name both a constructor and a static setter in "
+    name: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+    problemMessage:
+        "'{0}' can't be used to name both a constructor and a static setter in "
         "this class.",
     correctionMessage: "Try renaming either the constructor or the setter.",
     hasPublishedDocs: true,
@@ -845,8 +887,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   conflictingFieldAndMethod = CompileTimeErrorTemplate(
-    'CONFLICTING_FIELD_AND_METHOD',
-    "Class '{0}' can't define field '{1}' and have method '{2}.{1}' with the "
+    name: 'CONFLICTING_FIELD_AND_METHOD',
+    problemMessage:
+        "Class '{0}' can't define field '{1}' and have method '{2}.{1}' with the "
         "same name.",
     correctionMessage:
         "Try converting the getter to a method, or renaming the field to a "
@@ -874,8 +917,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   conflictingGenericInterfaces = CompileTimeErrorTemplate(
-    'CONFLICTING_GENERIC_INTERFACES',
-    "The {0} '{1}' can't implement both '{2}' and '{3}' because the type "
+    name: 'CONFLICTING_GENERIC_INTERFACES',
+    problemMessage:
+        "The {0} '{1}' can't implement both '{2}' and '{3}' because the type "
         "arguments are different.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsConflictingGenericInterfaces,
@@ -904,8 +948,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   conflictingInheritedMethodAndSetter = CompileTimeErrorTemplate(
-    'CONFLICTING_INHERITED_METHOD_AND_SETTER',
-    "The {0} '{1}' can't inherit both a method and a setter named '{2}'.",
+    name: 'CONFLICTING_INHERITED_METHOD_AND_SETTER',
+    problemMessage:
+        "The {0} '{1}' can't inherit both a method and a setter named '{2}'.",
     withArguments: _withArgumentsConflictingInheritedMethodAndSetter,
     expectedTypes: [
       ExpectedType.string,
@@ -931,8 +976,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   conflictingMethodAndField = CompileTimeErrorTemplate(
-    'CONFLICTING_METHOD_AND_FIELD',
-    "Class '{0}' can't define method '{1}' and have field '{2}.{1}' with the "
+    name: 'CONFLICTING_METHOD_AND_FIELD',
+    problemMessage:
+        "Class '{0}' can't define method '{1}' and have field '{2}.{1}' with the "
         "same name.",
     correctionMessage:
         "Try converting the method to a getter, or renaming the method to a "
@@ -962,8 +1008,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   conflictingStaticAndInstance = CompileTimeErrorTemplate(
-    'CONFLICTING_STATIC_AND_INSTANCE',
-    "Class '{0}' can't define static member '{1}' and have instance member "
+    name: 'CONFLICTING_STATIC_AND_INSTANCE',
+    problemMessage:
+        "Class '{0}' can't define static member '{1}' and have instance member "
         "'{2}.{1}' with the same name.",
     correctionMessage:
         "Try renaming the member to a name that doesn't conflict.",
@@ -981,8 +1028,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingTypeVariableAndClass = CompileTimeErrorTemplate(
-    'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    "'{0}' can't be used to name both a type parameter and the class in which "
+    name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+    problemMessage:
+        "'{0}' can't be used to name both a type parameter and the class in which "
         "the type parameter is defined.",
     correctionMessage: "Try renaming either the type parameter or the class.",
     hasPublishedDocs: true,
@@ -997,8 +1045,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingTypeVariableAndEnum = CompileTimeErrorTemplate(
-    'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    "'{0}' can't be used to name both a type parameter and the enum in which "
+    name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+    problemMessage:
+        "'{0}' can't be used to name both a type parameter and the enum in which "
         "the type parameter is defined.",
     correctionMessage: "Try renaming either the type parameter or the enum.",
     hasPublishedDocs: true,
@@ -1013,8 +1062,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingTypeVariableAndExtension = CompileTimeErrorTemplate(
-    'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    "'{0}' can't be used to name both a type parameter and the extension in "
+    name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+    problemMessage:
+        "'{0}' can't be used to name both a type parameter and the extension in "
         "which the type parameter is defined.",
     correctionMessage:
         "Try renaming either the type parameter or the extension.",
@@ -1030,8 +1080,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingTypeVariableAndExtensionType = CompileTimeErrorTemplate(
-    'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    "'{0}' can't be used to name both a type parameter and the extension type "
+    name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+    problemMessage:
+        "'{0}' can't be used to name both a type parameter and the extension type "
         "in which the type parameter is defined.",
     correctionMessage:
         "Try renaming either the type parameter or the extension.",
@@ -1047,8 +1098,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingTypeVariableAndMemberClass = CompileTimeErrorTemplate(
-    'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    "'{0}' can't be used to name both a type parameter and a member in this "
+    name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+    problemMessage:
+        "'{0}' can't be used to name both a type parameter and a member in this "
         "class.",
     correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
@@ -1063,8 +1115,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingTypeVariableAndMemberEnum = CompileTimeErrorTemplate(
-    'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    "'{0}' can't be used to name both a type parameter and a member in this "
+    name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+    problemMessage:
+        "'{0}' can't be used to name both a type parameter and a member in this "
         "enum.",
     correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
@@ -1079,8 +1132,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingTypeVariableAndMemberExtension = CompileTimeErrorTemplate(
-    'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    "'{0}' can't be used to name both a type parameter and a member in this "
+    name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+    problemMessage:
+        "'{0}' can't be used to name both a type parameter and a member in this "
         "extension.",
     correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
@@ -1095,8 +1149,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingTypeVariableAndMemberExtensionType = CompileTimeErrorTemplate(
-    'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    "'{0}' can't be used to name both a type parameter and a member in this "
+    name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+    problemMessage:
+        "'{0}' can't be used to name both a type parameter and a member in this "
         "extension type.",
     correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
@@ -1111,8 +1166,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingTypeVariableAndMemberMixin = CompileTimeErrorTemplate(
-    'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    "'{0}' can't be used to name both a type parameter and a member in this "
+    name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+    problemMessage:
+        "'{0}' can't be used to name both a type parameter and a member in this "
         "mixin.",
     correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
@@ -1127,8 +1183,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   conflictingTypeVariableAndMixin = CompileTimeErrorTemplate(
-    'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    "'{0}' can't be used to name both a type parameter and the mixin in which "
+    name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+    problemMessage:
+        "'{0}' can't be used to name both a type parameter and the mixin in which "
         "the type parameter is defined.",
     correctionMessage: "Try renaming either the type parameter or the mixin.",
     hasPublishedDocs: true,
@@ -1140,8 +1197,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constantPatternWithNonConstantExpression = CompileTimeErrorWithoutArguments(
-    'CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION',
-    "The expression of a constant pattern must be a valid constant.",
+    name: 'CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION',
+    problemMessage:
+        "The expression of a constant pattern must be a valid constant.",
     correctionMessage: "Try making the expression a valid constant.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -1150,8 +1208,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constConstructorConstantFromDeferredLibrary = CompileTimeErrorWithoutArguments(
-    'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
-    "Constant values from a deferred library can't be used as values in a "
+    name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
+    problemMessage:
+        "Constant values from a deferred library can't be used as values in a "
         "'const' constructor.",
     correctionMessage:
         "Try removing the keyword 'const' from the constructor or removing the "
@@ -1176,8 +1235,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   constConstructorFieldTypeMismatch = CompileTimeErrorTemplate(
-    'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
-    "In a const constructor, a value of type '{0}' can't be assigned to the "
+    name: 'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
+    problemMessage:
+        "In a const constructor, a value of type '{0}' can't be assigned to the "
         "field '{1}', which has type '{2}'.",
     correctionMessage: "Try using a subtype, or removing the keyword 'const'.",
     withArguments: _withArgumentsConstConstructorFieldTypeMismatch,
@@ -1195,8 +1255,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   constConstructorParamTypeMismatch = CompileTimeErrorTemplate(
-    'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
-    "A value of type '{0}' can't be assigned to a parameter of type '{1}' in a "
+    name: 'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
+    problemMessage:
+        "A value of type '{0}' can't be assigned to a parameter of type '{1}' in a "
         "const constructor.",
     correctionMessage: "Try using a subtype, or removing the keyword 'const'.",
     hasPublishedDocs: true,
@@ -1210,8 +1271,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constConstructorThrowsException = CompileTimeErrorWithoutArguments(
-    'CONST_CONSTRUCTOR_THROWS_EXCEPTION',
-    "Const constructors can't throw exceptions.",
+    name: 'CONST_CONSTRUCTOR_THROWS_EXCEPTION',
+    problemMessage: "Const constructors can't throw exceptions.",
     correctionMessage:
         "Try removing the throw statement, or removing the keyword 'const'.",
     expectedTypes: [],
@@ -1223,8 +1284,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   constConstructorWithFieldInitializedByNonConst = CompileTimeErrorTemplate(
-    'CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST',
-    "Can't define the 'const' constructor because the field '{0}' is "
+    name: 'CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST',
+    problemMessage:
+        "Can't define the 'const' constructor because the field '{0}' is "
         "initialized with a non-constant value.",
     correctionMessage:
         "Try initializing the field to a constant value, or removing the "
@@ -1250,8 +1312,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   constConstructorWithMixinWithField = CompileTimeErrorTemplate(
-    'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
-    "This constructor can't be declared 'const' because a mixin adds the "
+    name: 'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
+    problemMessage:
+        "This constructor can't be declared 'const' because a mixin adds the "
         "instance field: {0}.",
     correctionMessage:
         "Try removing the 'const' keyword or removing the 'with' clause from "
@@ -1276,8 +1339,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   constConstructorWithMixinWithFields = CompileTimeErrorTemplate(
-    'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
-    "This constructor can't be declared 'const' because the mixins add the "
+    name: 'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
+    problemMessage:
+        "This constructor can't be declared 'const' because the mixins add the "
         "instance fields: {0}.",
     correctionMessage:
         "Try removing the 'const' keyword or removing the 'with' clause from "
@@ -1293,8 +1357,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   constConstructorWithNonConstSuper = CompileTimeErrorTemplate(
-    'CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER',
-    "A constant constructor can't call a non-constant super constructor of "
+    name: 'CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER',
+    problemMessage:
+        "A constant constructor can't call a non-constant super constructor of "
         "'{0}'.",
     correctionMessage:
         "Try calling a constant constructor in the superclass, or removing the "
@@ -1307,8 +1372,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constConstructorWithNonFinalField = CompileTimeErrorWithoutArguments(
-    'CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD',
-    "Can't define a const constructor for a class with non-final fields.",
+    name: 'CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD',
+    problemMessage:
+        "Can't define a const constructor for a class with non-final fields.",
     correctionMessage:
         "Try making all of the fields final, or removing the keyword 'const' "
         "from the constructor.",
@@ -1319,8 +1385,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constDeferredClass = CompileTimeErrorWithoutArguments(
-    'CONST_DEFERRED_CLASS',
-    "Deferred classes can't be created with 'const'.",
+    name: 'CONST_DEFERRED_CLASS',
+    problemMessage: "Deferred classes can't be created with 'const'.",
     correctionMessage:
         "Try using 'new' to create the instance, or changing the import to not "
         "be deferred.",
@@ -1331,8 +1397,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments constEvalAssertionFailure =
       CompileTimeErrorWithoutArguments(
-        'CONST_EVAL_ASSERTION_FAILURE',
-        "The assertion in this constant expression failed.",
+        name: 'CONST_EVAL_ASSERTION_FAILURE',
+        problemMessage: "The assertion in this constant expression failed.",
         expectedTypes: [],
       );
 
@@ -1342,8 +1408,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   constEvalAssertionFailureWithMessage = CompileTimeErrorTemplate(
-    'CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
-    "An assertion failed with message '{0}'.",
+    name: 'CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
+    problemMessage: "An assertion failed with message '{0}'.",
     withArguments: _withArgumentsConstEvalAssertionFailureWithMessage,
     expectedTypes: [ExpectedType.object],
   );
@@ -1351,24 +1417,26 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments constEvalExtensionMethod =
       CompileTimeErrorWithoutArguments(
-        'CONST_EVAL_EXTENSION_METHOD',
-        "Extension methods can't be used in constant expressions.",
+        name: 'CONST_EVAL_EXTENSION_METHOD',
+        problemMessage:
+            "Extension methods can't be used in constant expressions.",
         expectedTypes: [],
       );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments constEvalExtensionTypeMethod =
       CompileTimeErrorWithoutArguments(
-        'CONST_EVAL_EXTENSION_TYPE_METHOD',
-        "Extension type methods can't be used in constant expressions.",
+        name: 'CONST_EVAL_EXTENSION_TYPE_METHOD',
+        problemMessage:
+            "Extension type methods can't be used in constant expressions.",
         expectedTypes: [],
       );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constEvalForElement = CompileTimeErrorWithoutArguments(
-    'CONST_EVAL_FOR_ELEMENT',
-    "Constant expressions don't support 'for' elements.",
+    name: 'CONST_EVAL_FOR_ELEMENT',
+    problemMessage: "Constant expressions don't support 'for' elements.",
     correctionMessage:
         "Try replacing the 'for' element with a spread, or removing 'const'.",
     expectedTypes: [],
@@ -1377,8 +1445,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments constEvalMethodInvocation =
       CompileTimeErrorWithoutArguments(
-        'CONST_EVAL_METHOD_INVOCATION',
-        "Methods can't be invoked in constant expressions.",
+        name: 'CONST_EVAL_METHOD_INVOCATION',
+        problemMessage: "Methods can't be invoked in constant expressions.",
         expectedTypes: [],
       );
 
@@ -1386,13 +1454,14 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// for text about "An expression of the form e1 == e2".
   ///
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments constEvalPrimitiveEquality =
-      CompileTimeErrorWithoutArguments(
-        'CONST_EVAL_PRIMITIVE_EQUALITY',
+  static const CompileTimeErrorWithoutArguments
+  constEvalPrimitiveEquality = CompileTimeErrorWithoutArguments(
+    name: 'CONST_EVAL_PRIMITIVE_EQUALITY',
+    problemMessage:
         "In constant expressions, operands of the equality operator must have "
-            "primitive equality.",
-        expectedTypes: [],
-      );
+        "primitive equality.",
+    expectedTypes: [],
+  );
 
   /// Parameters:
   /// String p0: the name of the property being accessed
@@ -1401,8 +1470,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   constEvalPropertyAccess = CompileTimeErrorTemplate(
-    'CONST_EVAL_PROPERTY_ACCESS',
-    "The property '{0}' can't be accessed on the type '{1}' in a constant "
+    name: 'CONST_EVAL_PROPERTY_ACCESS',
+    problemMessage:
+        "The property '{0}' can't be accessed on the type '{1}' in a constant "
         "expression.",
     withArguments: _withArgumentsConstEvalPropertyAccess,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -1414,8 +1484,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments constEvalThrowsException =
       CompileTimeErrorWithoutArguments(
-        'CONST_EVAL_THROWS_EXCEPTION',
-        "Evaluation of this constant expression throws an exception.",
+        name: 'CONST_EVAL_THROWS_EXCEPTION',
+        problemMessage:
+            "Evaluation of this constant expression throws an exception.",
         expectedTypes: [],
       );
 
@@ -1425,8 +1496,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments constEvalThrowsIdbze =
       CompileTimeErrorWithoutArguments(
-        'CONST_EVAL_THROWS_IDBZE',
-        "Evaluation of this constant expression throws an "
+        name: 'CONST_EVAL_THROWS_IDBZE',
+        problemMessage:
+            "Evaluation of this constant expression throws an "
             "IntegerDivisionByZeroException.",
         expectedTypes: [],
       );
@@ -1436,13 +1508,14 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// e1 && e2", and "An expression of the form e1 || e2".
   ///
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments constEvalTypeBool =
-      CompileTimeErrorWithoutArguments(
-        'CONST_EVAL_TYPE_BOOL',
+  static const CompileTimeErrorWithoutArguments
+  constEvalTypeBool = CompileTimeErrorWithoutArguments(
+    name: 'CONST_EVAL_TYPE_BOOL',
+    problemMessage:
         "In constant expressions, operands of this operator must be of type "
-            "'bool'.",
-        expectedTypes: [],
-      );
+        "'bool'.",
+    expectedTypes: [],
+  );
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form e1 & e2".
@@ -1450,8 +1523,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constEvalTypeBoolInt = CompileTimeErrorWithoutArguments(
-    'CONST_EVAL_TYPE_BOOL_INT',
-    "In constant expressions, operands of this operator must be of type 'bool' "
+    name: 'CONST_EVAL_TYPE_BOOL_INT',
+    problemMessage:
+        "In constant expressions, operands of this operator must be of type 'bool' "
         "or 'int'.",
     expectedTypes: [],
   );
@@ -1460,13 +1534,14 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// for text about "A literal string".
   ///
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments constEvalTypeBoolNumString =
-      CompileTimeErrorWithoutArguments(
-        'CONST_EVAL_TYPE_BOOL_NUM_STRING',
+  static const CompileTimeErrorWithoutArguments
+  constEvalTypeBoolNumString = CompileTimeErrorWithoutArguments(
+    name: 'CONST_EVAL_TYPE_BOOL_NUM_STRING',
+    problemMessage:
         "In constant expressions, operands of this operator must be of type "
-            "'bool', 'num', 'String' or 'null'.",
-        expectedTypes: [],
-      );
+        "'bool', 'num', 'String' or 'null'.",
+    expectedTypes: [],
+  );
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form ~e1", "An expression of one of
@@ -1475,8 +1550,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constEvalTypeInt = CompileTimeErrorWithoutArguments(
-    'CONST_EVAL_TYPE_INT',
-    "In constant expressions, operands of this operator must be of type 'int'.",
+    name: 'CONST_EVAL_TYPE_INT',
+    problemMessage:
+        "In constant expressions, operands of this operator must be of type 'int'.",
     expectedTypes: [],
   );
 
@@ -1486,8 +1562,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constEvalTypeNum = CompileTimeErrorWithoutArguments(
-    'CONST_EVAL_TYPE_NUM',
-    "In constant expressions, operands of this operator must be of type 'num'.",
+    name: 'CONST_EVAL_TYPE_NUM',
+    problemMessage:
+        "In constant expressions, operands of this operator must be of type 'num'.",
     expectedTypes: [],
   );
 
@@ -1497,29 +1574,32 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constEvalTypeNumString = CompileTimeErrorWithoutArguments(
-    'CONST_EVAL_TYPE_NUM_STRING',
-    "In constant expressions, operands of this operator must be of type 'num' "
+    name: 'CONST_EVAL_TYPE_NUM_STRING',
+    problemMessage:
+        "In constant expressions, operands of this operator must be of type 'num' "
         "or 'String'.",
     expectedTypes: [],
   );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments constEvalTypeString =
-      CompileTimeErrorWithoutArguments(
-        'CONST_EVAL_TYPE_STRING',
+  static const CompileTimeErrorWithoutArguments
+  constEvalTypeString = CompileTimeErrorWithoutArguments(
+    name: 'CONST_EVAL_TYPE_STRING',
+    problemMessage:
         "In constant expressions, operands of this operator must be of type "
-            "'String'.",
-        expectedTypes: [],
-      );
+        "'String'.",
+    expectedTypes: [],
+  );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments constEvalTypeType =
-      CompileTimeErrorWithoutArguments(
-        'CONST_EVAL_TYPE_TYPE',
+  static const CompileTimeErrorWithoutArguments
+  constEvalTypeType = CompileTimeErrorWithoutArguments(
+    name: 'CONST_EVAL_TYPE_TYPE',
+    problemMessage:
         "In constant expressions, operands of this operator must be of type "
-            "'Type'.",
-        expectedTypes: [],
-      );
+        "'Type'.",
+    expectedTypes: [],
+  );
 
   /// Parameters:
   /// Type p0: the name of the type of the initializer expression
@@ -1528,8 +1608,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   constFieldInitializerNotAssignable = CompileTimeErrorTemplate(
-    'FIELD_INITIALIZER_NOT_ASSIGNABLE',
-    "The initializer type '{0}' can't be assigned to the field type '{1}' in a "
+    name: 'FIELD_INITIALIZER_NOT_ASSIGNABLE',
+    problemMessage:
+        "The initializer type '{0}' can't be assigned to the field type '{1}' in a "
         "const constructor.",
     correctionMessage: "Try using a subtype, or removing the 'const' keyword",
     hasPublishedDocs: true,
@@ -1541,8 +1622,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constInitializedWithNonConstantValue = CompileTimeErrorWithoutArguments(
-    'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE',
-    "Const variables must be initialized with a constant value.",
+    name: 'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE',
+    problemMessage:
+        "Const variables must be initialized with a constant value.",
     correctionMessage:
         "Try changing the initializer to be a constant expression.",
     hasPublishedDocs: true,
@@ -1553,8 +1635,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   constInitializedWithNonConstantValueFromDeferredLibrary =
       CompileTimeErrorWithoutArguments(
-        'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
-        "Constant values from a deferred library can't be used to initialize a "
+        name: 'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
+        problemMessage:
+            "Constant values from a deferred library can't be used to initialize a "
             "'const' variable.",
         correctionMessage:
             "Try initializing the variable without referencing members of the "
@@ -1566,8 +1649,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments constInstanceField =
       CompileTimeErrorWithoutArguments(
-        'CONST_INSTANCE_FIELD',
-        "Only static fields can be declared as const.",
+        name: 'CONST_INSTANCE_FIELD',
+        problemMessage: "Only static fields can be declared as const.",
         correctionMessage:
             "Try declaring the field as final, or adding the keyword 'static'.",
         hasPublishedDocs: true,
@@ -1580,8 +1663,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   constMapKeyNotPrimitiveEquality = CompileTimeErrorTemplate(
-    'CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY',
-    "The type of a key in a constant map can't override the '==' operator, or "
+    name: 'CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY',
+    problemMessage:
+        "The type of a key in a constant map can't override the '==' operator, or "
         "'hashCode', but the class '{0}' does.",
     correctionMessage:
         "Try using a different value for the key, or removing the keyword "
@@ -1597,8 +1681,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   constNotInitialized = CompileTimeErrorTemplate(
-    'CONST_NOT_INITIALIZED',
-    "The constant '{0}' must be initialized.",
+    name: 'CONST_NOT_INITIALIZED',
+    problemMessage: "The constant '{0}' must be initialized.",
     correctionMessage: "Try adding an initialization to the declaration.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsConstNotInitialized,
@@ -1611,8 +1695,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   constSetElementNotPrimitiveEquality = CompileTimeErrorTemplate(
-    'CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY',
-    "An element in a constant set can't override the '==' operator, or "
+    name: 'CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY',
+    problemMessage:
+        "An element in a constant set can't override the '==' operator, or "
         "'hashCode', but the type '{0}' does.",
     correctionMessage:
         "Try using a different value for the element, or removing the keyword "
@@ -1625,8 +1710,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments constSpreadExpectedListOrSet =
       CompileTimeErrorWithoutArguments(
-        'CONST_SPREAD_EXPECTED_LIST_OR_SET',
-        "A list or a set is expected in this spread.",
+        name: 'CONST_SPREAD_EXPECTED_LIST_OR_SET',
+        problemMessage: "A list or a set is expected in this spread.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -1634,8 +1719,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments constSpreadExpectedMap =
       CompileTimeErrorWithoutArguments(
-        'CONST_SPREAD_EXPECTED_MAP',
-        "A map is expected in this spread.",
+        name: 'CONST_SPREAD_EXPECTED_MAP',
+        problemMessage: "A map is expected in this spread.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -1643,29 +1728,30 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments constTypeParameter =
       CompileTimeErrorWithoutArguments(
-        'CONST_TYPE_PARAMETER',
-        "Type parameters can't be used in a constant expression.",
+        name: 'CONST_TYPE_PARAMETER',
+        problemMessage:
+            "Type parameters can't be used in a constant expression.",
         correctionMessage:
             "Try replacing the type parameter with a different type.",
         expectedTypes: [],
       );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments constWithNonConst =
-      CompileTimeErrorWithoutArguments(
-        'CONST_WITH_NON_CONST',
-        "The constructor being called isn't a const constructor.",
-        correctionMessage:
-            "Try removing 'const' from the constructor invocation.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+  static const CompileTimeErrorWithoutArguments
+  constWithNonConst = CompileTimeErrorWithoutArguments(
+    name: 'CONST_WITH_NON_CONST',
+    problemMessage: "The constructor being called isn't a const constructor.",
+    correctionMessage: "Try removing 'const' from the constructor invocation.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constWithNonConstantArgument = CompileTimeErrorWithoutArguments(
-    'CONST_WITH_NON_CONSTANT_ARGUMENT',
-    "Arguments of a constant creation must be constant expressions.",
+    name: 'CONST_WITH_NON_CONSTANT_ARGUMENT',
+    problemMessage:
+        "Arguments of a constant creation must be constant expressions.",
     correctionMessage:
         "Try making the argument a valid constant, or use 'new' to call the "
         "constructor.",
@@ -1679,8 +1765,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   constWithNonType = CompileTimeErrorTemplate(
-    'CREATION_WITH_NON_TYPE',
-    "The name '{0}' isn't a class.",
+    name: 'CREATION_WITH_NON_TYPE',
+    problemMessage: "The name '{0}' isn't a class.",
     correctionMessage: "Try correcting the name to match an existing class.",
     hasPublishedDocs: true,
     isUnresolvedIdentifier: true,
@@ -1690,21 +1776,23 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments constWithTypeParameters =
-      CompileTimeErrorWithoutArguments(
-        'CONST_WITH_TYPE_PARAMETERS',
+  static const CompileTimeErrorWithoutArguments
+  constWithTypeParameters = CompileTimeErrorWithoutArguments(
+    name: 'CONST_WITH_TYPE_PARAMETERS',
+    problemMessage:
         "A constant creation can't use a type parameter as a type argument.",
-        correctionMessage:
-            "Try replacing the type parameter with a different type.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+    correctionMessage:
+        "Try replacing the type parameter with a different type.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constWithTypeParametersConstructorTearoff = CompileTimeErrorWithoutArguments(
-    'CONST_WITH_TYPE_PARAMETERS',
-    "A constant constructor tearoff can't use a type parameter as a type "
+    name: 'CONST_WITH_TYPE_PARAMETERS',
+    problemMessage:
+        "A constant constructor tearoff can't use a type parameter as a type "
         "argument.",
     correctionMessage:
         "Try replacing the type parameter with a different type.",
@@ -1716,8 +1804,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   constWithTypeParametersFunctionTearoff = CompileTimeErrorWithoutArguments(
-    'CONST_WITH_TYPE_PARAMETERS',
-    "A constant function tearoff can't use a type parameter as a type "
+    name: 'CONST_WITH_TYPE_PARAMETERS',
+    problemMessage:
+        "A constant function tearoff can't use a type parameter as a type "
         "argument.",
     correctionMessage:
         "Try replacing the type parameter with a different type.",
@@ -1736,8 +1825,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required String p1})
   >
   constWithUndefinedConstructor = CompileTimeErrorTemplate(
-    'CONST_WITH_UNDEFINED_CONSTRUCTOR',
-    "The class '{0}' doesn't have a constant constructor '{1}'.",
+    name: 'CONST_WITH_UNDEFINED_CONSTRUCTOR',
+    problemMessage:
+        "The class '{0}' doesn't have a constant constructor '{1}'.",
     correctionMessage: "Try calling a different constructor.",
     withArguments: _withArgumentsConstWithUndefinedConstructor,
     expectedTypes: [ExpectedType.object, ExpectedType.string],
@@ -1752,8 +1842,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   constWithUndefinedConstructorDefault = CompileTimeErrorTemplate(
-    'CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
-    "The class '{0}' doesn't have an unnamed constant constructor.",
+    name: 'CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
+    problemMessage:
+        "The class '{0}' doesn't have an unnamed constant constructor.",
     correctionMessage: "Try calling a different constructor.",
     withArguments: _withArgumentsConstWithUndefinedConstructorDefault,
     expectedTypes: [ExpectedType.string],
@@ -1762,8 +1853,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   continueLabelInvalid = CompileTimeErrorWithoutArguments(
-    'CONTINUE_LABEL_INVALID',
-    "The label used in a 'continue' statement must be defined on either a loop "
+    name: 'CONTINUE_LABEL_INVALID',
+    problemMessage:
+        "The label used in a 'continue' statement must be defined on either a loop "
         "or a switch member.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -1776,8 +1868,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   couldNotInfer = CompileTimeErrorTemplate(
-    'COULD_NOT_INFER',
-    "Couldn't infer type parameter '{0}'.{1}",
+    name: 'COULD_NOT_INFER',
+    problemMessage: "Couldn't infer type parameter '{0}'.{1}",
     withArguments: _withArgumentsCouldNotInfer,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -1785,8 +1877,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   defaultValueInRedirectingFactoryConstructor = CompileTimeErrorWithoutArguments(
-    'DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR',
-    "Default values aren't allowed in factory constructors that redirect to "
+    name: 'DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR',
+    problemMessage:
+        "Default values aren't allowed in factory constructors that redirect to "
         "another constructor.",
     correctionMessage: "Try removing the default value.",
     hasPublishedDocs: true,
@@ -1796,8 +1889,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   defaultValueOnRequiredParameter = CompileTimeErrorWithoutArguments(
-    'DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
-    "Required named parameters can't have a default value.",
+    name: 'DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
+    problemMessage: "Required named parameters can't have a default value.",
     correctionMessage:
         "Try removing either the default value or the 'required' modifier.",
     hasPublishedDocs: true,
@@ -1807,8 +1900,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments deferredImportOfExtension =
       CompileTimeErrorWithoutArguments(
-        'DEFERRED_IMPORT_OF_EXTENSION',
-        "Imports of deferred libraries must hide all extensions.",
+        name: 'DEFERRED_IMPORT_OF_EXTENSION',
+        problemMessage:
+            "Imports of deferred libraries must hide all extensions.",
         correctionMessage:
             "Try adding either a show combinator listing the names you need to "
             "reference or a hide combinator listing all of the extensions.",
@@ -1822,8 +1916,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   definitelyUnassignedLateLocalVariable = CompileTimeErrorTemplate(
-    'DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE',
-    "The late local variable '{0}' is definitely unassigned at this point.",
+    name: 'DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE',
+    problemMessage:
+        "The late local variable '{0}' is definitely unassigned at this point.",
     correctionMessage:
         "Ensure that it is assigned on necessary execution paths.",
     hasPublishedDocs: true,
@@ -1834,8 +1929,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   disallowedTypeInstantiationExpression = CompileTimeErrorWithoutArguments(
-    'DISALLOWED_TYPE_INSTANTIATION_EXPRESSION',
-    "Only a generic type, generic function, generic instance method, or "
+    name: 'DISALLOWED_TYPE_INSTANTIATION_EXPRESSION',
+    problemMessage:
+        "Only a generic type, generic function, generic instance method, or "
         "generic constructor can have type arguments.",
     correctionMessage:
         "Try removing the type arguments, or instantiating the type(s) of a "
@@ -1848,8 +1944,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments dotShorthandMissingContext =
       CompileTimeErrorWithoutArguments(
-        'DOT_SHORTHAND_MISSING_CONTEXT',
-        "A dot shorthand can't be used where there is no context type.",
+        name: 'DOT_SHORTHAND_MISSING_CONTEXT',
+        problemMessage:
+            "A dot shorthand can't be used where there is no context type.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -1862,8 +1959,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   dotShorthandUndefinedGetter = CompileTimeErrorTemplate(
-    'DOT_SHORTHAND_UNDEFINED_MEMBER',
-    "The static getter '{0}' isn't defined for the context type '{1}'.",
+    name: 'DOT_SHORTHAND_UNDEFINED_MEMBER',
+    problemMessage:
+        "The static getter '{0}' isn't defined for the context type '{1}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing static getter, or "
         "defining a getter or field named '{0}'.",
@@ -1881,8 +1979,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   dotShorthandUndefinedInvocation = CompileTimeErrorTemplate(
-    'DOT_SHORTHAND_UNDEFINED_MEMBER',
-    "The static method or constructor '{0}' isn't defined for the context type "
+    name: 'DOT_SHORTHAND_UNDEFINED_MEMBER',
+    problemMessage:
+        "The static method or constructor '{0}' isn't defined for the context type "
         "'{1}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing static method or "
@@ -1896,8 +1995,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments duplicateConstructorDefault =
       CompileTimeErrorWithoutArguments(
-        'DUPLICATE_CONSTRUCTOR',
-        "The unnamed constructor is already defined.",
+        name: 'DUPLICATE_CONSTRUCTOR',
+        problemMessage: "The unnamed constructor is already defined.",
         correctionMessage: "Try giving one of the constructors a name.",
         hasPublishedDocs: true,
         uniqueName: 'DUPLICATE_CONSTRUCTOR_DEFAULT',
@@ -1910,8 +2009,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   duplicateConstructorName = CompileTimeErrorTemplate(
-    'DUPLICATE_CONSTRUCTOR',
-    "The constructor with name '{0}' is already defined.",
+    name: 'DUPLICATE_CONSTRUCTOR',
+    problemMessage: "The constructor with name '{0}' is already defined.",
     correctionMessage: "Try renaming one of the constructors.",
     hasPublishedDocs: true,
     uniqueName: 'DUPLICATE_CONSTRUCTOR_NAME',
@@ -1925,8 +2024,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   duplicateDefinition = CompileTimeErrorTemplate(
-    'DUPLICATE_DEFINITION',
-    "The name '{0}' is already defined.",
+    name: 'DUPLICATE_DEFINITION',
+    problemMessage: "The name '{0}' is already defined.",
     correctionMessage: "Try renaming one of the declarations.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDuplicateDefinition,
@@ -1939,8 +2038,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   duplicateFieldFormalParameter = CompileTimeErrorTemplate(
-    'DUPLICATE_FIELD_FORMAL_PARAMETER',
-    "The field '{0}' can't be initialized by multiple parameters in the same "
+    name: 'DUPLICATE_FIELD_FORMAL_PARAMETER',
+    problemMessage:
+        "The field '{0}' can't be initialized by multiple parameters in the same "
         "constructor.",
     correctionMessage:
         "Try removing one of the parameters, or using different fields.",
@@ -1955,8 +2055,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   duplicateFieldName = CompileTimeErrorTemplate(
-    'DUPLICATE_FIELD_NAME',
-    "The field name '{0}' is already used in this record.",
+    name: 'DUPLICATE_FIELD_NAME',
+    problemMessage: "The field name '{0}' is already used in this record.",
     correctionMessage: "Try renaming the field.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDuplicateFieldName,
@@ -1969,8 +2069,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   duplicateNamedArgument = CompileTimeErrorTemplate(
-    'DUPLICATE_NAMED_ARGUMENT',
-    "The argument for the named parameter '{0}' was already specified.",
+    name: 'DUPLICATE_NAMED_ARGUMENT',
+    problemMessage:
+        "The argument for the named parameter '{0}' was already specified.",
     correctionMessage:
         "Try removing one of the named arguments, or correcting one of the "
         "names to reference a different named parameter.",
@@ -1985,8 +2086,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Uri p0})
   >
   duplicatePart = CompileTimeErrorTemplate(
-    'DUPLICATE_PART',
-    "The library already contains a part with the URI '{0}'.",
+    name: 'DUPLICATE_PART',
+    problemMessage: "The library already contains a part with the URI '{0}'.",
     correctionMessage:
         "Try removing all except one of the duplicated part directives.",
     hasPublishedDocs: true,
@@ -2000,8 +2101,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   duplicatePatternAssignmentVariable = CompileTimeErrorTemplate(
-    'DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
-    "The variable '{0}' is already assigned in this pattern.",
+    name: 'DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
+    problemMessage: "The variable '{0}' is already assigned in this pattern.",
     correctionMessage: "Try renaming the variable.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDuplicatePatternAssignmentVariable,
@@ -2014,8 +2115,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   duplicatePatternField = CompileTimeErrorTemplate(
-    'DUPLICATE_PATTERN_FIELD',
-    "The field '{0}' is already matched in this pattern.",
+    name: 'DUPLICATE_PATTERN_FIELD',
+    problemMessage: "The field '{0}' is already matched in this pattern.",
     correctionMessage: "Try removing the duplicate field.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDuplicatePatternField,
@@ -2025,8 +2126,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments duplicateRestElementInPattern =
       CompileTimeErrorWithoutArguments(
-        'DUPLICATE_REST_ELEMENT_IN_PATTERN',
-        "At most one rest element is allowed in a list or map pattern.",
+        name: 'DUPLICATE_REST_ELEMENT_IN_PATTERN',
+        problemMessage:
+            "At most one rest element is allowed in a list or map pattern.",
         correctionMessage: "Try removing the duplicate rest element.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -2038,8 +2140,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   duplicateVariablePattern = CompileTimeErrorTemplate(
-    'DUPLICATE_VARIABLE_PATTERN',
-    "The variable '{0}' is already defined in this pattern.",
+    name: 'DUPLICATE_VARIABLE_PATTERN',
+    problemMessage: "The variable '{0}' is already defined in this pattern.",
     correctionMessage: "Try renaming the variable.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDuplicateVariablePattern,
@@ -2049,8 +2151,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments emptyMapPattern =
       CompileTimeErrorWithoutArguments(
-        'EMPTY_MAP_PATTERN',
-        "A map pattern must have at least one entry.",
+        name: 'EMPTY_MAP_PATTERN',
+        problemMessage: "A map pattern must have at least one entry.",
         correctionMessage: "Try replacing it with an object pattern 'Map()'.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -2059,8 +2161,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   enumConstantInvokesFactoryConstructor = CompileTimeErrorWithoutArguments(
-    'ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
-    "An enum value can't invoke a factory constructor.",
+    name: 'ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
+    problemMessage: "An enum value can't invoke a factory constructor.",
     correctionMessage: "Try using a generative constructor.",
     expectedTypes: [],
   );
@@ -2068,8 +2170,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   enumConstantSameNameAsEnclosing = CompileTimeErrorWithoutArguments(
-    'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
-    "The name of the enum value can't be the same as the enum's name.",
+    name: 'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
+    problemMessage:
+        "The name of the enum value can't be the same as the enum's name.",
     correctionMessage: "Try renaming the constant.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -2078,8 +2181,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   enumInstantiatedToBoundsIsNotWellBounded = CompileTimeErrorWithoutArguments(
-    'ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
-    "The result of instantiating the enum to bounds is not well-bounded.",
+    name: 'ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
+    problemMessage:
+        "The result of instantiating the enum to bounds is not well-bounded.",
     correctionMessage: "Try using different bounds for type parameters.",
     expectedTypes: [],
   );
@@ -2087,8 +2191,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments enumMixinWithInstanceVariable =
       CompileTimeErrorWithoutArguments(
-        'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
-        "Mixins applied to enums can't have instance variables.",
+        name: 'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
+        problemMessage:
+            "Mixins applied to enums can't have instance variables.",
         correctionMessage: "Try replacing the instance variables with getters.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -2101,8 +2206,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   enumWithAbstractMember = CompileTimeErrorTemplate(
-    'ENUM_WITH_ABSTRACT_MEMBER',
-    "'{0}' must have a method body because '{1}' is an enum.",
+    name: 'ENUM_WITH_ABSTRACT_MEMBER',
+    problemMessage: "'{0}' must have a method body because '{1}' is an enum.",
     correctionMessage: "Try adding a body to '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsEnumWithAbstractMember,
@@ -2112,8 +2217,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments enumWithNameValues =
       CompileTimeErrorWithoutArguments(
-        'ENUM_WITH_NAME_VALUES',
-        "The name 'values' is not a valid name for an enum.",
+        name: 'ENUM_WITH_NAME_VALUES',
+        problemMessage: "The name 'values' is not a valid name for an enum.",
         correctionMessage: "Try using a different name.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -2122,8 +2227,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments enumWithoutConstants =
       CompileTimeErrorWithoutArguments(
-        'ENUM_WITHOUT_CONSTANTS',
-        "The enum must have at least one enum constant.",
+        name: 'ENUM_WITHOUT_CONSTANTS',
+        problemMessage: "The enum must have at least one enum constant.",
         correctionMessage: "Try declaring an enum constant.",
         expectedTypes: [],
       );
@@ -2131,8 +2236,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments equalElementsInConstSet =
       CompileTimeErrorWithoutArguments(
-        'EQUAL_ELEMENTS_IN_CONST_SET',
-        "Two elements in a constant set literal can't be equal.",
+        name: 'EQUAL_ELEMENTS_IN_CONST_SET',
+        problemMessage:
+            "Two elements in a constant set literal can't be equal.",
         correctionMessage: "Change or remove the duplicate element.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -2141,8 +2247,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments equalKeysInConstMap =
       CompileTimeErrorWithoutArguments(
-        'EQUAL_KEYS_IN_CONST_MAP',
-        "Two keys in a constant map literal can't be equal.",
+        name: 'EQUAL_KEYS_IN_CONST_MAP',
+        problemMessage: "Two keys in a constant map literal can't be equal.",
         correctionMessage: "Change or remove the duplicate key.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -2151,8 +2257,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments equalKeysInMapPattern =
       CompileTimeErrorWithoutArguments(
-        'EQUAL_KEYS_IN_MAP_PATTERN',
-        "Two keys in a map pattern can't be equal.",
+        name: 'EQUAL_KEYS_IN_MAP_PATTERN',
+        problemMessage: "Two keys in a map pattern can't be equal.",
         correctionMessage: "Change or remove the duplicate key.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -2164,8 +2270,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required int p0})
   >
   expectedOneListPatternTypeArguments = CompileTimeErrorTemplate(
-    'EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
-    "List patterns require one type argument or none, but {0} found.",
+    name: 'EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
+    problemMessage:
+        "List patterns require one type argument or none, but {0} found.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsExpectedOneListPatternTypeArguments,
@@ -2178,8 +2285,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required int p0})
   >
   expectedOneListTypeArguments = CompileTimeErrorTemplate(
-    'EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
-    "List literals require one type argument or none, but {0} found.",
+    name: 'EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
+    problemMessage:
+        "List literals require one type argument or none, but {0} found.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsExpectedOneListTypeArguments,
@@ -2192,8 +2300,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required int p0})
   >
   expectedOneSetTypeArguments = CompileTimeErrorTemplate(
-    'EXPECTED_ONE_SET_TYPE_ARGUMENTS',
-    "Set literals require one type argument or none, but {0} were found.",
+    name: 'EXPECTED_ONE_SET_TYPE_ARGUMENTS',
+    problemMessage:
+        "Set literals require one type argument or none, but {0} were found.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsExpectedOneSetTypeArguments,
@@ -2206,8 +2315,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required int p0})
   >
   expectedTwoMapPatternTypeArguments = CompileTimeErrorTemplate(
-    'EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS',
-    "Map patterns require two type arguments or none, but {0} found.",
+    name: 'EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS',
+    problemMessage:
+        "Map patterns require two type arguments or none, but {0} found.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsExpectedTwoMapPatternTypeArguments,
@@ -2220,8 +2330,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required int p0})
   >
   expectedTwoMapTypeArguments = CompileTimeErrorTemplate(
-    'EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
-    "Map literals require two type arguments or none, but {0} found.",
+    name: 'EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
+    problemMessage:
+        "Map literals require two type arguments or none, but {0} found.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsExpectedTwoMapTypeArguments,
@@ -2234,8 +2345,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   exportInternalLibrary = CompileTimeErrorTemplate(
-    'EXPORT_INTERNAL_LIBRARY',
-    "The library '{0}' is internal and can't be exported.",
+    name: 'EXPORT_INTERNAL_LIBRARY',
+    problemMessage: "The library '{0}' is internal and can't be exported.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsExportInternalLibrary,
     expectedTypes: [ExpectedType.string],
@@ -2247,8 +2358,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   exportOfNonLibrary = CompileTimeErrorTemplate(
-    'EXPORT_OF_NON_LIBRARY',
-    "The exported library '{0}' can't have a part-of directive.",
+    name: 'EXPORT_OF_NON_LIBRARY',
+    problemMessage:
+        "The exported library '{0}' can't have a part-of directive.",
     correctionMessage: "Try exporting the library that the part is a part of.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsExportOfNonLibrary,
@@ -2258,8 +2370,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments expressionInMap =
       CompileTimeErrorWithoutArguments(
-        'EXPRESSION_IN_MAP',
-        "Expressions can't be used in a map literal.",
+        name: 'EXPRESSION_IN_MAP',
+        problemMessage: "Expressions can't be used in a map literal.",
         correctionMessage:
             "Try removing the expression or converting it to be a map entry.",
         hasPublishedDocs: true,
@@ -2269,8 +2381,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments extendsDeferredClass =
       CompileTimeErrorWithoutArguments(
-        'SUBTYPE_OF_DEFERRED_CLASS',
-        "Classes can't extend deferred classes.",
+        name: 'SUBTYPE_OF_DEFERRED_CLASS',
+        problemMessage: "Classes can't extend deferred classes.",
         correctionMessage:
             "Try specifying a different superclass, or removing the extends "
             "clause.",
@@ -2285,8 +2397,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   extendsDisallowedClass = CompileTimeErrorTemplate(
-    'SUBTYPE_OF_DISALLOWED_TYPE',
-    "Classes can't extend '{0}'.",
+    name: 'SUBTYPE_OF_DISALLOWED_TYPE',
+    problemMessage: "Classes can't extend '{0}'.",
     correctionMessage:
         "Try specifying a different superclass, or removing the extends "
         "clause.",
@@ -2299,8 +2411,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments extendsNonClass =
       CompileTimeErrorWithoutArguments(
-        'EXTENDS_NON_CLASS',
-        "Classes can only extend other classes.",
+        name: 'EXTENDS_NON_CLASS',
+        problemMessage: "Classes can only extend other classes.",
         correctionMessage:
             "Try specifying a different superclass, or removing the extends "
             "clause.",
@@ -2312,8 +2424,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   extendsTypeAliasExpandsToTypeParameter = CompileTimeErrorWithoutArguments(
-    'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
-    "A type alias that expands to a type parameter can't be used as a "
+    name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
+    problemMessage:
+        "A type alias that expands to a type parameter can't be used as a "
         "superclass.",
     correctionMessage:
         "Try specifying a different superclass, or removing the extends "
@@ -2329,8 +2442,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   extensionAsExpression = CompileTimeErrorTemplate(
-    'EXTENSION_AS_EXPRESSION',
-    "Extension '{0}' can't be used as an expression.",
+    name: 'EXTENSION_AS_EXPRESSION',
+    problemMessage: "Extension '{0}' can't be used as an expression.",
     correctionMessage: "Try replacing it with a valid expression.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsExtensionAsExpression,
@@ -2343,8 +2456,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   extensionConflictingStaticAndInstance = CompileTimeErrorTemplate(
-    'EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
-    "An extension can't define static member '{0}' and an instance member with "
+    name: 'EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
+    problemMessage:
+        "An extension can't define static member '{0}' and an instance member with "
         "the same name.",
     correctionMessage:
         "Try renaming the member to a name that doesn't conflict.",
@@ -2356,8 +2470,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments extensionDeclaresInstanceField =
       CompileTimeErrorWithoutArguments(
-        'EXTENSION_DECLARES_INSTANCE_FIELD',
-        "Extensions can't declare instance fields.",
+        name: 'EXTENSION_DECLARES_INSTANCE_FIELD',
+        problemMessage: "Extensions can't declare instance fields.",
         correctionMessage: "Try replacing the field with a getter.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -2366,8 +2480,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   extensionDeclaresMemberOfObject = CompileTimeErrorWithoutArguments(
-    'EXTENSION_DECLARES_MEMBER_OF_OBJECT',
-    "Extensions can't declare members with the same name as a member declared "
+    name: 'EXTENSION_DECLARES_MEMBER_OF_OBJECT',
+    problemMessage:
+        "Extensions can't declare members with the same name as a member declared "
         "by 'Object'.",
     correctionMessage: "Try specifying a different name for the member.",
     hasPublishedDocs: true,
@@ -2377,8 +2492,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   extensionOverrideAccessToStaticMember = CompileTimeErrorWithoutArguments(
-    'EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
-    "An extension override can't be used to access a static member from an "
+    name: 'EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
+    problemMessage:
+        "An extension override can't be used to access a static member from an "
         "extension.",
     correctionMessage: "Try using just the name of the extension.",
     hasPublishedDocs: true,
@@ -2392,8 +2508,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   extensionOverrideArgumentNotAssignable = CompileTimeErrorTemplate(
-    'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
-    "The type of the argument to the extension override '{0}' isn't assignable "
+    name: 'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
+    problemMessage:
+        "The type of the argument to the extension override '{0}' isn't assignable "
         "to the extended type '{1}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsExtensionOverrideArgumentNotAssignable,
@@ -2403,8 +2520,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   extensionOverrideWithCascade = CompileTimeErrorWithoutArguments(
-    'EXTENSION_OVERRIDE_WITH_CASCADE',
-    "Extension overrides have no value so they can't be used as the receiver "
+    name: 'EXTENSION_OVERRIDE_WITH_CASCADE',
+    problemMessage:
+        "Extension overrides have no value so they can't be used as the receiver "
         "of a cascade expression.",
     correctionMessage: "Try using '.' instead of '..'.",
     hasPublishedDocs: true,
@@ -2412,21 +2530,23 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments extensionOverrideWithoutAccess =
-      CompileTimeErrorWithoutArguments(
-        'EXTENSION_OVERRIDE_WITHOUT_ACCESS',
+  static const CompileTimeErrorWithoutArguments
+  extensionOverrideWithoutAccess = CompileTimeErrorWithoutArguments(
+    name: 'EXTENSION_OVERRIDE_WITHOUT_ACCESS',
+    problemMessage:
         "An extension override can only be used to access instance members.",
-        correctionMessage: "Consider adding an access to an instance member.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+    correctionMessage: "Consider adding an access to an instance member.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   extensionTypeConstructorWithSuperFormalParameter =
       CompileTimeErrorWithoutArguments(
-        'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
-        "Extension type constructors can't declare super formal parameters.",
+        name: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
+        problemMessage:
+            "Extension type constructors can't declare super formal parameters.",
         correctionMessage:
             "Try removing the super formal parameter declaration.",
         hasPublishedDocs: true,
@@ -2437,8 +2557,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   extensionTypeConstructorWithSuperInvocation =
       CompileTimeErrorWithoutArguments(
-        'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
-        "Extension type constructors can't include super initializers.",
+        name: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
+        problemMessage:
+            "Extension type constructors can't include super initializers.",
         correctionMessage: "Try removing the super constructor invocation.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -2447,8 +2568,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   extensionTypeDeclaresInstanceField = CompileTimeErrorWithoutArguments(
-    'EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
-    "Extension types can't declare instance fields.",
+    name: 'EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
+    problemMessage: "Extension types can't declare instance fields.",
     correctionMessage: "Try replacing the field with a getter.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -2457,8 +2578,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   extensionTypeDeclaresMemberOfObject = CompileTimeErrorWithoutArguments(
-    'EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT',
-    "Extension types can't declare members with the same name as a member "
+    name: 'EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT',
+    problemMessage:
+        "Extension types can't declare members with the same name as a member "
         "declared by 'Object'.",
     correctionMessage: "Try specifying a different name for the member.",
     hasPublishedDocs: true,
@@ -2471,8 +2593,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   extensionTypeImplementsDisallowedType = CompileTimeErrorTemplate(
-    'EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
-    "Extension types can't implement '{0}'.",
+    name: 'EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
+    problemMessage: "Extension types can't implement '{0}'.",
     correctionMessage:
         "Try specifying a different type, or remove the type from the list.",
     hasPublishedDocs: true,
@@ -2483,8 +2605,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   extensionTypeImplementsItself = CompileTimeErrorWithoutArguments(
-    'EXTENSION_TYPE_IMPLEMENTS_ITSELF',
-    "The extension type can't implement itself.",
+    name: 'EXTENSION_TYPE_IMPLEMENTS_ITSELF',
+    problemMessage: "The extension type can't implement itself.",
     correctionMessage:
         "Try removing the superinterface that references this extension type.",
     hasPublishedDocs: true,
@@ -2498,8 +2620,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   extensionTypeImplementsNotSupertype = CompileTimeErrorTemplate(
-    'EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE',
-    "'{0}' is not a supertype of '{1}', the representation type.",
+    name: 'EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE',
+    problemMessage:
+        "'{0}' is not a supertype of '{1}', the representation type.",
     correctionMessage:
         "Try specifying a different type, or remove the type from the list.",
     hasPublishedDocs: true,
@@ -2521,8 +2644,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   extensionTypeImplementsRepresentationNotSupertype = CompileTimeErrorTemplate(
-    'EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE',
-    "'{0}', the representation type of '{1}', is not a supertype of '{2}', the "
+    name: 'EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE',
+    problemMessage:
+        "'{0}', the representation type of '{1}', is not a supertype of '{2}', the "
         "representation type of '{3}'.",
     correctionMessage:
         "Try specifying a different type, or remove the type from the list.",
@@ -2544,8 +2668,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   extensionTypeInheritedMemberConflict = CompileTimeErrorTemplate(
-    'EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT',
-    "The extension type '{0}' has more than one distinct member named '{1}' "
+    name: 'EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT',
+    problemMessage:
+        "The extension type '{0}' has more than one distinct member named '{1}' "
         "from implemented types.",
     correctionMessage:
         "Try redeclaring the corresponding member in this extension type.",
@@ -2557,8 +2682,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   extensionTypeRepresentationDependsOnItself = CompileTimeErrorWithoutArguments(
-    'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
-    "The extension type representation can't depend on itself.",
+    name: 'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
+    problemMessage: "The extension type representation can't depend on itself.",
     correctionMessage: "Try specifying a different type.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -2567,8 +2692,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   extensionTypeRepresentationTypeBottom = CompileTimeErrorWithoutArguments(
-    'EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM',
-    "The representation type can't be a bottom type.",
+    name: 'EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM',
+    problemMessage: "The representation type can't be a bottom type.",
     correctionMessage: "Try specifying a different type.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -2581,8 +2706,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   extensionTypeWithAbstractMember = CompileTimeErrorTemplate(
-    'EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
-    "'{0}' must have a method body because '{1}' is an extension type.",
+    name: 'EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
+    problemMessage:
+        "'{0}' must have a method body because '{1}' is an extension type.",
     correctionMessage: "Try adding a body to '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsExtensionTypeWithAbstractMember,
@@ -2592,8 +2718,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   externalFieldConstructorInitializer = CompileTimeErrorWithoutArguments(
-    'EXTERNAL_WITH_INITIALIZER',
-    "External fields can't have initializers.",
+    name: 'EXTERNAL_WITH_INITIALIZER',
+    problemMessage: "External fields can't have initializers.",
     correctionMessage:
         "Try removing the field initializer or the 'external' keyword from the "
         "field declaration.",
@@ -2605,8 +2731,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments externalFieldInitializer =
       CompileTimeErrorWithoutArguments(
-        'EXTERNAL_WITH_INITIALIZER',
-        "External fields can't have initializers.",
+        name: 'EXTERNAL_WITH_INITIALIZER',
+        problemMessage: "External fields can't have initializers.",
         correctionMessage:
             "Try removing the initializer or the 'external' keyword.",
         hasPublishedDocs: true,
@@ -2617,8 +2743,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments externalVariableInitializer =
       CompileTimeErrorWithoutArguments(
-        'EXTERNAL_WITH_INITIALIZER',
-        "External variables can't have initializers.",
+        name: 'EXTERNAL_WITH_INITIALIZER',
+        problemMessage: "External variables can't have initializers.",
         correctionMessage:
             "Try removing the initializer or the 'external' keyword.",
         hasPublishedDocs: true,
@@ -2633,8 +2759,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required int p0, required int p1})
   >
   extraPositionalArguments = CompileTimeErrorTemplate(
-    'EXTRA_POSITIONAL_ARGUMENTS',
-    "Too many positional arguments: {0} expected, but {1} found.",
+    name: 'EXTRA_POSITIONAL_ARGUMENTS',
+    problemMessage:
+        "Too many positional arguments: {0} expected, but {1} found.",
     correctionMessage: "Try removing the extra arguments.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsExtraPositionalArguments,
@@ -2648,8 +2775,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required int p0, required int p1})
   >
   extraPositionalArgumentsCouldBeNamed = CompileTimeErrorTemplate(
-    'EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
-    "Too many positional arguments: {0} expected, but {1} found.",
+    name: 'EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
+    problemMessage:
+        "Too many positional arguments: {0} expected, but {1} found.",
     correctionMessage:
         "Try removing the extra positional arguments, or specifying the name "
         "for named arguments.",
@@ -2664,8 +2792,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   fieldInitializedByMultipleInitializers = CompileTimeErrorTemplate(
-    'FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS',
-    "The field '{0}' can't be initialized twice in the same constructor.",
+    name: 'FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS',
+    problemMessage:
+        "The field '{0}' can't be initialized twice in the same constructor.",
     correctionMessage: "Try removing one of the initializations.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsFieldInitializedByMultipleInitializers,
@@ -2675,8 +2804,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   fieldInitializedInInitializerAndDeclaration = CompileTimeErrorWithoutArguments(
-    'FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
-    "Fields can't be initialized in the constructor if they are final and were "
+    name: 'FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
+    problemMessage:
+        "Fields can't be initialized in the constructor if they are final and were "
         "already initialized at their declaration.",
     correctionMessage: "Try removing one of the initializations.",
     hasPublishedDocs: true,
@@ -2686,8 +2816,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   fieldInitializedInParameterAndInitializer = CompileTimeErrorWithoutArguments(
-    'FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER',
-    "Fields can't be initialized in both the parameter list and the "
+    name: 'FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER',
+    problemMessage:
+        "Fields can't be initialized in both the parameter list and the "
         "initializers.",
     correctionMessage: "Try removing one of the initializations.",
     hasPublishedDocs: true,
@@ -2697,8 +2828,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   fieldInitializerFactoryConstructor = CompileTimeErrorWithoutArguments(
-    'FIELD_INITIALIZER_FACTORY_CONSTRUCTOR',
-    "Initializing formal parameters can't be used in factory constructors.",
+    name: 'FIELD_INITIALIZER_FACTORY_CONSTRUCTOR',
+    problemMessage:
+        "Initializing formal parameters can't be used in factory constructors.",
     correctionMessage: "Try using a normal parameter.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -2711,8 +2843,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   fieldInitializerNotAssignable = CompileTimeErrorTemplate(
-    'FIELD_INITIALIZER_NOT_ASSIGNABLE',
-    "The initializer type '{0}' can't be assigned to the field type '{1}'.",
+    name: 'FIELD_INITIALIZER_NOT_ASSIGNABLE',
+    problemMessage:
+        "The initializer type '{0}' can't be assigned to the field type '{1}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsFieldInitializerNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
@@ -2721,8 +2854,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   fieldInitializerOutsideConstructor = CompileTimeErrorWithoutArguments(
-    'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
-    "Field formal parameters can only be used in a constructor.",
+    name: 'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
+    problemMessage:
+        "Field formal parameters can only be used in a constructor.",
     correctionMessage: "Try removing 'this.'.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -2731,8 +2865,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   fieldInitializerRedirectingConstructor = CompileTimeErrorWithoutArguments(
-    'FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
-    "The redirecting constructor can't have a field initializer.",
+    name: 'FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
+    problemMessage:
+        "The redirecting constructor can't have a field initializer.",
     correctionMessage:
         "Try initializing the field in the constructor being redirected to.",
     hasPublishedDocs: true,
@@ -2746,8 +2881,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   fieldInitializingFormalNotAssignable = CompileTimeErrorTemplate(
-    'FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
-    "The parameter type '{0}' is incompatible with the field type '{1}'.",
+    name: 'FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
+    problemMessage:
+        "The parameter type '{0}' is incompatible with the field type '{1}'.",
     correctionMessage:
         "Try changing or removing the parameter's type, or changing the "
         "field's type.",
@@ -2762,8 +2898,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   finalClassExtendedOutsideOfLibrary = CompileTimeErrorTemplate(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The class '{0}' can't be extended outside of its library because it's a "
+    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    problemMessage:
+        "The class '{0}' can't be extended outside of its library because it's a "
         "final class.",
     hasPublishedDocs: true,
     uniqueName: 'FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
@@ -2777,8 +2914,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   finalClassImplementedOutsideOfLibrary = CompileTimeErrorTemplate(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The class '{0}' can't be implemented outside of its library because it's "
+    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    problemMessage:
+        "The class '{0}' can't be implemented outside of its library because it's "
         "a final class.",
     hasPublishedDocs: true,
     uniqueName: 'FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
@@ -2793,8 +2931,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   finalClassUsedAsMixinConstraintOutsideOfLibrary = CompileTimeErrorTemplate(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The class '{0}' can't be used as a mixin superclass constraint outside of "
+    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    problemMessage:
+        "The class '{0}' can't be used as a mixin superclass constraint outside of "
         "its library because it's a final class.",
     hasPublishedDocs: true,
     uniqueName: 'FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY',
@@ -2809,8 +2948,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   finalInitializedInDeclarationAndConstructor = CompileTimeErrorTemplate(
-    'FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
-    "'{0}' is final and was given a value when it was declared, so it can't be "
+    name: 'FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
+    problemMessage:
+        "'{0}' is final and was given a value when it was declared, so it can't be "
         "set to a new value.",
     correctionMessage: "Try removing one of the initializations.",
     hasPublishedDocs: true,
@@ -2824,8 +2964,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   finalNotInitialized = CompileTimeErrorTemplate(
-    'FINAL_NOT_INITIALIZED',
-    "The final variable '{0}' must be initialized.",
+    name: 'FINAL_NOT_INITIALIZED',
+    problemMessage: "The final variable '{0}' must be initialized.",
     correctionMessage: "Try initializing the variable.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsFinalNotInitialized,
@@ -2838,8 +2978,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   finalNotInitializedConstructor1 = CompileTimeErrorTemplate(
-    'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-    "All final variables must be initialized, but '{0}' isn't.",
+    name: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
+    problemMessage: "All final variables must be initialized, but '{0}' isn't.",
     correctionMessage: "Try adding an initializer for the field.",
     hasPublishedDocs: true,
     uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
@@ -2854,8 +2994,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   finalNotInitializedConstructor2 = CompileTimeErrorTemplate(
-    'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-    "All final variables must be initialized, but '{0}' and '{1}' aren't.",
+    name: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
+    problemMessage:
+        "All final variables must be initialized, but '{0}' and '{1}' aren't.",
     correctionMessage: "Try adding initializers for the fields.",
     hasPublishedDocs: true,
     uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
@@ -2876,8 +3017,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   finalNotInitializedConstructor3Plus = CompileTimeErrorTemplate(
-    'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-    "All final variables must be initialized, but '{0}', '{1}', and {2} others "
+    name: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
+    problemMessage:
+        "All final variables must be initialized, but '{0}', '{1}', and {2} others "
         "aren't.",
     correctionMessage: "Try adding initializers for the fields.",
     hasPublishedDocs: true,
@@ -2899,8 +3041,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   forInOfInvalidElementType = CompileTimeErrorTemplate(
-    'FOR_IN_OF_INVALID_ELEMENT_TYPE',
-    "The type '{0}' used in the 'for' loop must implement '{1}' with a type "
+    name: 'FOR_IN_OF_INVALID_ELEMENT_TYPE',
+    problemMessage:
+        "The type '{0}' used in the 'for' loop must implement '{1}' with a type "
         "argument that can be assigned to '{2}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsForInOfInvalidElementType,
@@ -2915,8 +3058,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required String p1})
   >
   forInOfInvalidType = CompileTimeErrorTemplate(
-    'FOR_IN_OF_INVALID_TYPE',
-    "The type '{0}' used in the 'for' loop must implement '{1}'.",
+    name: 'FOR_IN_OF_INVALID_TYPE',
+    problemMessage:
+        "The type '{0}' used in the 'for' loop must implement '{1}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsForInOfInvalidType,
     expectedTypes: [ExpectedType.type, ExpectedType.string],
@@ -2925,8 +3069,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments forInWithConstVariable =
       CompileTimeErrorWithoutArguments(
-        'FOR_IN_WITH_CONST_VARIABLE',
-        "A for-in loop variable can't be a 'const'.",
+        name: 'FOR_IN_WITH_CONST_VARIABLE',
+        problemMessage: "A for-in loop variable can't be a 'const'.",
         correctionMessage:
             "Try removing the 'const' modifier from the variable, or use a "
             "different variable.",
@@ -2940,8 +3084,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   genericFunctionTypeCannotBeBound = CompileTimeErrorWithoutArguments(
-    'GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
-    "Generic function types can't be used as type parameter bounds.",
+    name: 'GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
+    problemMessage:
+        "Generic function types can't be used as type parameter bounds.",
     correctionMessage:
         "Try making the free variable in the function type part of the larger "
         "declaration signature.",
@@ -2954,8 +3099,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   genericFunctionTypeCannotBeTypeArgument = CompileTimeErrorWithoutArguments(
-    'GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
-    "A generic function type can't be a type argument.",
+    name: 'GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
+    problemMessage: "A generic function type can't be a type argument.",
     correctionMessage:
         "Try removing type parameters from the generic function type, or using "
         "'dynamic' as the type argument here.",
@@ -2965,8 +3110,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   genericMethodTypeInstantiationOnDynamic = CompileTimeErrorWithoutArguments(
-    'GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC',
-    "A method tear-off on a receiver whose type is 'dynamic' can't have type "
+    name: 'GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC',
+    problemMessage:
+        "A method tear-off on a receiver whose type is 'dynamic' can't have type "
         "arguments.",
     correctionMessage:
         "Specify the type of the receiver, or remove the type arguments from "
@@ -2989,8 +3135,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   getterNotAssignableSetterTypes = CompileTimeErrorTemplate(
-    'GETTER_NOT_ASSIGNABLE_SETTER_TYPES',
-    "The return type of getter '{0}' is '{1}' which isn't assignable to the "
+    name: 'GETTER_NOT_ASSIGNABLE_SETTER_TYPES',
+    problemMessage:
+        "The return type of getter '{0}' is '{1}' which isn't assignable to the "
         "type '{2}' of its setter '{3}'.",
     correctionMessage: "Try changing the types so that they are compatible.",
     withArguments: _withArgumentsGetterNotAssignableSetterTypes,
@@ -3016,8 +3163,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   getterNotSubtypeSetterTypes = CompileTimeErrorTemplate(
-    'GETTER_NOT_SUBTYPE_SETTER_TYPES',
-    "The return type of getter '{0}' is '{1}' which isn't a subtype of the "
+    name: 'GETTER_NOT_SUBTYPE_SETTER_TYPES',
+    problemMessage:
+        "The return type of getter '{0}' is '{1}' which isn't a subtype of the "
         "type '{2}' of its setter '{3}'.",
     correctionMessage: "Try changing the types so that they are compatible.",
     hasPublishedDocs: true,
@@ -3033,8 +3181,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   ifElementConditionFromDeferredLibrary = CompileTimeErrorWithoutArguments(
-    'IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
-    "Constant values from a deferred library can't be used as values in an if "
+    name: 'IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
+    problemMessage:
+        "Constant values from a deferred library can't be used as values in an if "
         "condition inside a const collection literal.",
     correctionMessage: "Try making the deferred import non-deferred.",
     expectedTypes: [],
@@ -3043,8 +3192,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   illegalAsyncGeneratorReturnType = CompileTimeErrorWithoutArguments(
-    'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
-    "Functions marked 'async*' must have a return type that is a supertype of "
+    name: 'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
+    problemMessage:
+        "Functions marked 'async*' must have a return type that is a supertype of "
         "'Stream<T>' for some type 'T'.",
     correctionMessage:
         "Try fixing the return type of the function, or removing the modifier "
@@ -3056,8 +3206,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   illegalAsyncReturnType = CompileTimeErrorWithoutArguments(
-    'ILLEGAL_ASYNC_RETURN_TYPE',
-    "Functions marked 'async' must have a return type which is a supertype of "
+    name: 'ILLEGAL_ASYNC_RETURN_TYPE',
+    problemMessage:
+        "Functions marked 'async' must have a return type which is a supertype of "
         "'Future'.",
     correctionMessage:
         "Try fixing the return type of the function, or removing the modifier "
@@ -3072,8 +3223,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   illegalConcreteEnumMemberDeclaration = CompileTimeErrorTemplate(
-    'ILLEGAL_CONCRETE_ENUM_MEMBER',
-    "A concrete instance member named '{0}' can't be declared in a class that "
+    name: 'ILLEGAL_CONCRETE_ENUM_MEMBER',
+    problemMessage:
+        "A concrete instance member named '{0}' can't be declared in a class that "
         "implements 'Enum'.",
     correctionMessage: "Try using a different name.",
     hasPublishedDocs: true,
@@ -3089,8 +3241,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   illegalConcreteEnumMemberInheritance = CompileTimeErrorTemplate(
-    'ILLEGAL_CONCRETE_ENUM_MEMBER',
-    "A concrete instance member named '{0}' can't be inherited from '{1}' in a "
+    name: 'ILLEGAL_CONCRETE_ENUM_MEMBER',
+    problemMessage:
+        "A concrete instance member named '{0}' can't be inherited from '{1}' in a "
         "class that implements 'Enum'.",
     correctionMessage: "Try using a different name.",
     hasPublishedDocs: true,
@@ -3100,16 +3253,17 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments illegalEnumValuesDeclaration =
-      CompileTimeErrorWithoutArguments(
-        'ILLEGAL_ENUM_VALUES',
+  static const CompileTimeErrorWithoutArguments
+  illegalEnumValuesDeclaration = CompileTimeErrorWithoutArguments(
+    name: 'ILLEGAL_ENUM_VALUES',
+    problemMessage:
         "An instance member named 'values' can't be declared in a class that "
-            "implements 'Enum'.",
-        correctionMessage: "Try using a different name.",
-        hasPublishedDocs: true,
-        uniqueName: 'ILLEGAL_ENUM_VALUES_DECLARATION',
-        expectedTypes: [],
-      );
+        "implements 'Enum'.",
+    correctionMessage: "Try using a different name.",
+    hasPublishedDocs: true,
+    uniqueName: 'ILLEGAL_ENUM_VALUES_DECLARATION',
+    expectedTypes: [],
+  );
 
   /// Parameters:
   /// String p0: the name of the class that declares 'values'
@@ -3117,8 +3271,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   illegalEnumValuesInheritance = CompileTimeErrorTemplate(
-    'ILLEGAL_ENUM_VALUES',
-    "An instance member named 'values' can't be inherited from '{0}' in a "
+    name: 'ILLEGAL_ENUM_VALUES',
+    problemMessage:
+        "An instance member named 'values' can't be inherited from '{0}' in a "
         "class that implements 'Enum'.",
     correctionMessage: "Try using a different name.",
     hasPublishedDocs: true,
@@ -3133,8 +3288,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   illegalLanguageVersionOverride = CompileTimeErrorTemplate(
-    'ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
-    "The language version must be {0}.",
+    name: 'ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
+    problemMessage: "The language version must be {0}.",
     correctionMessage:
         "Try removing the language version override and migrating the code.",
     withArguments: _withArgumentsIllegalLanguageVersionOverride,
@@ -3144,8 +3299,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   illegalSyncGeneratorReturnType = CompileTimeErrorWithoutArguments(
-    'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
-    "Functions marked 'sync*' must have a return type that is a supertype of "
+    name: 'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
+    problemMessage:
+        "Functions marked 'sync*' must have a return type that is a supertype of "
         "'Iterable<T>' for some type 'T'.",
     correctionMessage:
         "Try fixing the return type of the function, or removing the modifier "
@@ -3157,8 +3313,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments implementsDeferredClass =
       CompileTimeErrorWithoutArguments(
-        'SUBTYPE_OF_DEFERRED_CLASS',
-        "Classes and mixins can't implement deferred classes.",
+        name: 'SUBTYPE_OF_DEFERRED_CLASS',
+        problemMessage: "Classes and mixins can't implement deferred classes.",
         correctionMessage:
             "Try specifying a different interface, removing the class from the "
             "list, or changing the import to not be deferred.",
@@ -3173,8 +3329,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   implementsDisallowedClass = CompileTimeErrorTemplate(
-    'SUBTYPE_OF_DISALLOWED_TYPE',
-    "Classes and mixins can't implement '{0}'.",
+    name: 'SUBTYPE_OF_DISALLOWED_TYPE',
+    problemMessage: "Classes and mixins can't implement '{0}'.",
     correctionMessage:
         "Try specifying a different interface, or remove the class from the "
         "list.",
@@ -3187,8 +3343,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   implementsNonClass = CompileTimeErrorWithoutArguments(
-    'IMPLEMENTS_NON_CLASS',
-    "Classes and mixins can only implement other classes and mixins.",
+    name: 'IMPLEMENTS_NON_CLASS',
+    problemMessage:
+        "Classes and mixins can only implement other classes and mixins.",
     correctionMessage:
         "Try specifying a class or mixin, or remove the name from the list.",
     hasPublishedDocs: true,
@@ -3201,8 +3358,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   implementsRepeated = CompileTimeErrorTemplate(
-    'IMPLEMENTS_REPEATED',
-    "'{0}' can only be implemented once.",
+    name: 'IMPLEMENTS_REPEATED',
+    problemMessage: "'{0}' can only be implemented once.",
     correctionMessage: "Try removing all but one occurrence of the class name.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsImplementsRepeated,
@@ -3216,8 +3373,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Element p0})
   >
   implementsSuperClass = CompileTimeErrorTemplate(
-    'IMPLEMENTS_SUPER_CLASS',
-    "'{0}' can't be used in both the 'extends' and 'implements' clauses.",
+    name: 'IMPLEMENTS_SUPER_CLASS',
+    problemMessage:
+        "'{0}' can't be used in both the 'extends' and 'implements' clauses.",
     correctionMessage: "Try removing one of the occurrences.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsImplementsSuperClass,
@@ -3227,8 +3385,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   implementsTypeAliasExpandsToTypeParameter = CompileTimeErrorWithoutArguments(
-    'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
-    "A type alias that expands to a type parameter can't be implemented.",
+    name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
+    problemMessage:
+        "A type alias that expands to a type parameter can't be implemented.",
     correctionMessage: "Try specifying a class or mixin, or removing the list.",
     hasPublishedDocs: true,
     uniqueName: 'IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
@@ -3241,8 +3400,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   implicitSuperInitializerMissingArguments = CompileTimeErrorTemplate(
-    'IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
-    "The implicitly invoked unnamed constructor from '{0}' has required "
+    name: 'IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
+    problemMessage:
+        "The implicitly invoked unnamed constructor from '{0}' has required "
         "parameters.",
     correctionMessage:
         "Try adding an explicit super parameter with the required arguments.",
@@ -3257,8 +3417,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   implicitThisReferenceInInitializer = CompileTimeErrorTemplate(
-    'IMPLICIT_THIS_REFERENCE_IN_INITIALIZER',
-    "The instance member '{0}' can't be accessed in an initializer.",
+    name: 'IMPLICIT_THIS_REFERENCE_IN_INITIALIZER',
+    problemMessage:
+        "The instance member '{0}' can't be accessed in an initializer.",
     correctionMessage:
         "Try replacing the reference to the instance member with a different "
         "expression",
@@ -3273,8 +3434,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   importInternalLibrary = CompileTimeErrorTemplate(
-    'IMPORT_INTERNAL_LIBRARY',
-    "The library '{0}' is internal and can't be imported.",
+    name: 'IMPORT_INTERNAL_LIBRARY',
+    problemMessage: "The library '{0}' is internal and can't be imported.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsImportInternalLibrary,
     expectedTypes: [ExpectedType.string],
@@ -3286,8 +3447,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   importOfNonLibrary = CompileTimeErrorTemplate(
-    'IMPORT_OF_NON_LIBRARY',
-    "The imported library '{0}' can't have a part-of directive.",
+    name: 'IMPORT_OF_NON_LIBRARY',
+    problemMessage:
+        "The imported library '{0}' can't have a part-of directive.",
     correctionMessage: "Try importing the library that the part is a part of.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsImportOfNonLibrary,
@@ -3305,8 +3467,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   inconsistentCaseExpressionTypes = CompileTimeErrorTemplate(
-    'INCONSISTENT_CASE_EXPRESSION_TYPES',
-    "Case expressions must have the same types, '{0}' isn't a '{1}'.",
+    name: 'INCONSISTENT_CASE_EXPRESSION_TYPES',
+    problemMessage:
+        "Case expressions must have the same types, '{0}' isn't a '{1}'.",
     withArguments: _withArgumentsInconsistentCaseExpressionTypes,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -3318,8 +3481,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   inconsistentInheritance = CompileTimeErrorTemplate(
-    'INCONSISTENT_INHERITANCE',
-    "Superinterfaces don't have a valid override for '{0}': {1}.",
+    name: 'INCONSISTENT_INHERITANCE',
+    problemMessage:
+        "Superinterfaces don't have a valid override for '{0}': {1}.",
     correctionMessage:
         "Try adding an explicit override that is consistent with all of the "
         "inherited members.",
@@ -3348,8 +3512,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   inconsistentInheritanceGetterAndMethod = CompileTimeErrorTemplate(
-    'INCONSISTENT_INHERITANCE_GETTER_AND_METHOD',
-    "'{0}' is inherited as a getter (from '{1}') and also a method (from "
+    name: 'INCONSISTENT_INHERITANCE_GETTER_AND_METHOD',
+    problemMessage:
+        "'{0}' is inherited as a getter (from '{1}') and also a method (from "
         "'{2}').",
     correctionMessage:
         "Try adjusting the supertypes of this class to remove the "
@@ -3365,8 +3530,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   inconsistentLanguageVersionOverride = CompileTimeErrorWithoutArguments(
-    'INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
-    "Parts must have exactly the same language version override as the "
+    name: 'INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
+    problemMessage:
+        "Parts must have exactly the same language version override as the "
         "library.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -3378,8 +3544,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   inconsistentPatternVariableLogicalOr = CompileTimeErrorTemplate(
-    'INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR',
-    "The variable '{0}' has a different type and/or finality in this branch of "
+    name: 'INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR',
+    problemMessage:
+        "The variable '{0}' has a different type and/or finality in this branch of "
         "the logical-or pattern.",
     correctionMessage:
         "Try declaring the variable pattern with the same type and finality in "
@@ -3396,8 +3563,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   initializerForNonExistentField = CompileTimeErrorTemplate(
-    'INITIALIZER_FOR_NON_EXISTENT_FIELD',
-    "'{0}' isn't a field in the enclosing class.",
+    name: 'INITIALIZER_FOR_NON_EXISTENT_FIELD',
+    problemMessage: "'{0}' isn't a field in the enclosing class.",
     correctionMessage:
         "Try correcting the name to match an existing field, or defining a "
         "field named '{0}'.",
@@ -3413,8 +3580,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   initializerForStaticField = CompileTimeErrorTemplate(
-    'INITIALIZER_FOR_STATIC_FIELD',
-    "'{0}' is a static field in the enclosing class. Fields initialized in a "
+    name: 'INITIALIZER_FOR_STATIC_FIELD',
+    problemMessage:
+        "'{0}' is a static field in the enclosing class. Fields initialized in a "
         "constructor can't be static.",
     correctionMessage: "Try removing the initialization.",
     hasPublishedDocs: true,
@@ -3429,8 +3597,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   initializingFormalForNonExistentField = CompileTimeErrorTemplate(
-    'INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD',
-    "'{0}' isn't a field in the enclosing class.",
+    name: 'INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD',
+    problemMessage: "'{0}' isn't a field in the enclosing class.",
     correctionMessage:
         "Try correcting the name to match an existing field, or defining a "
         "field named '{0}'.",
@@ -3455,8 +3623,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   instanceAccessToStaticMember = CompileTimeErrorTemplate(
-    'INSTANCE_ACCESS_TO_STATIC_MEMBER',
-    "The static {1} '{0}' can't be accessed through an instance.",
+    name: 'INSTANCE_ACCESS_TO_STATIC_MEMBER',
+    problemMessage:
+        "The static {1} '{0}' can't be accessed through an instance.",
     correctionMessage: "Try using the {3} '{2}' to access the {1}.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInstanceAccessToStaticMember,
@@ -3476,8 +3645,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   instanceAccessToStaticMemberOfUnnamedExtension = CompileTimeErrorTemplate(
-    'INSTANCE_ACCESS_TO_STATIC_MEMBER',
-    "The static {1} '{0}' can't be accessed through an instance.",
+    name: 'INSTANCE_ACCESS_TO_STATIC_MEMBER',
+    problemMessage:
+        "The static {1} '{0}' can't be accessed through an instance.",
     hasPublishedDocs: true,
     uniqueName: 'INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION',
     withArguments: _withArgumentsInstanceAccessToStaticMemberOfUnnamedExtension,
@@ -3487,8 +3657,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   instanceMemberAccessFromFactory = CompileTimeErrorWithoutArguments(
-    'INSTANCE_MEMBER_ACCESS_FROM_FACTORY',
-    "Instance members can't be accessed from a factory constructor.",
+    name: 'INSTANCE_MEMBER_ACCESS_FROM_FACTORY',
+    problemMessage:
+        "Instance members can't be accessed from a factory constructor.",
     correctionMessage: "Try removing the reference to the instance member.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -3497,8 +3668,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   instanceMemberAccessFromStatic = CompileTimeErrorWithoutArguments(
-    'INSTANCE_MEMBER_ACCESS_FROM_STATIC',
-    "Instance members can't be accessed from a static method.",
+    name: 'INSTANCE_MEMBER_ACCESS_FROM_STATIC',
+    problemMessage: "Instance members can't be accessed from a static method.",
     correctionMessage:
         "Try removing the reference to the instance member, or removing the "
         "keyword 'static' from the method.",
@@ -3509,8 +3680,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments instantiateAbstractClass =
       CompileTimeErrorWithoutArguments(
-        'INSTANTIATE_ABSTRACT_CLASS',
-        "Abstract classes can't be instantiated.",
+        name: 'INSTANTIATE_ABSTRACT_CLASS',
+        problemMessage: "Abstract classes can't be instantiated.",
         correctionMessage: "Try creating an instance of a concrete subtype.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -3519,8 +3690,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments instantiateEnum =
       CompileTimeErrorWithoutArguments(
-        'INSTANTIATE_ENUM',
-        "Enums can't be instantiated.",
+        name: 'INSTANTIATE_ENUM',
+        problemMessage: "Enums can't be instantiated.",
         correctionMessage: "Try using one of the defined constants.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -3529,8 +3700,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   instantiateTypeAliasExpandsToTypeParameter = CompileTimeErrorWithoutArguments(
-    'INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-    "Type aliases that expand to a type parameter can't be instantiated.",
+    name: 'INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+    problemMessage:
+        "Type aliases that expand to a type parameter can't be instantiated.",
     correctionMessage: "Try replacing it with a class.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -3543,8 +3715,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   integerLiteralImpreciseAsDouble = CompileTimeErrorTemplate(
-    'INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
-    "The integer literal is being used as a double, but can't be represented "
+    name: 'INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
+    problemMessage:
+        "The integer literal is being used as a double, but can't be represented "
         "as a 64-bit double without overflow or loss of precision: '{0}'.",
     correctionMessage:
         "Try using the class 'BigInt', or switch to the closest valid double: "
@@ -3560,8 +3733,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   integerLiteralOutOfRange = CompileTimeErrorTemplate(
-    'INTEGER_LITERAL_OUT_OF_RANGE',
-    "The integer literal {0} can't be represented in 64 bits.",
+    name: 'INTEGER_LITERAL_OUT_OF_RANGE',
+    problemMessage: "The integer literal {0} can't be represented in 64 bits.",
     correctionMessage:
         "Try using the 'BigInt' class if you need an integer larger than "
         "9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.",
@@ -3576,8 +3749,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   interfaceClassExtendedOutsideOfLibrary = CompileTimeErrorTemplate(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The class '{0}' can't be extended outside of its library because it's an "
+    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    problemMessage:
+        "The class '{0}' can't be extended outside of its library because it's an "
         "interface class.",
     hasPublishedDocs: true,
     uniqueName: 'INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
@@ -3588,8 +3762,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   invalidAnnotation = CompileTimeErrorWithoutArguments(
-    'INVALID_ANNOTATION',
-    "Annotation must be either a const variable reference or const constructor "
+    name: 'INVALID_ANNOTATION',
+    problemMessage:
+        "Annotation must be either a const variable reference or const constructor "
         "invocation.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -3599,8 +3774,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   invalidAnnotationConstantValueFromDeferredLibrary =
       CompileTimeErrorWithoutArguments(
-        'INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
-        "Constant values from a deferred library can't be used in annotations.",
+        name: 'INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
+        problemMessage:
+            "Constant values from a deferred library can't be used in annotations.",
         correctionMessage:
             "Try moving the constant from the deferred library, or removing "
             "'deferred' from the import.",
@@ -3611,8 +3787,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   invalidAnnotationFromDeferredLibrary = CompileTimeErrorWithoutArguments(
-    'INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY',
-    "Constant values from a deferred library can't be used as annotations.",
+    name: 'INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY',
+    problemMessage:
+        "Constant values from a deferred library can't be used as annotations.",
     correctionMessage:
         "Try removing the annotation, or changing the import to not be "
         "deferred.",
@@ -3627,8 +3804,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   invalidAssignment = CompileTimeErrorTemplate(
-    'INVALID_ASSIGNMENT',
-    "A value of type '{0}' can't be assigned to a variable of type '{1}'.",
+    name: 'INVALID_ASSIGNMENT',
+    problemMessage:
+        "A value of type '{0}' can't be assigned to a variable of type '{1}'.",
     correctionMessage:
         "Try changing the type of the variable, or casting the right-hand type "
         "to '{1}'.",
@@ -3651,8 +3829,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   invalidCastFunction = CompileTimeErrorTemplate(
-    'INVALID_CAST_FUNCTION',
-    "The function '{0}' has type '{1}' that isn't of expected type '{2}'. This "
+    name: 'INVALID_CAST_FUNCTION',
+    problemMessage:
+        "The function '{0}' has type '{1}' that isn't of expected type '{2}'. This "
         "means its parameter or return type doesn't match what is expected.",
     withArguments: _withArgumentsInvalidCastFunction,
     expectedTypes: [
@@ -3671,8 +3850,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   invalidCastFunctionExpr = CompileTimeErrorTemplate(
-    'INVALID_CAST_FUNCTION_EXPR',
-    "The function expression type '{0}' isn't of type '{1}'. This means its "
+    name: 'INVALID_CAST_FUNCTION_EXPR',
+    problemMessage:
+        "The function expression type '{0}' isn't of type '{1}'. This means its "
         "parameter or return type doesn't match what is expected. Consider "
         "changing parameter type(s) or the returned type(s).",
     withArguments: _withArgumentsInvalidCastFunctionExpr,
@@ -3693,8 +3873,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   invalidCastLiteral = CompileTimeErrorTemplate(
-    'INVALID_CAST_LITERAL',
-    "The literal '{0}' with type '{1}' isn't of expected type '{2}'.",
+    name: 'INVALID_CAST_LITERAL',
+    problemMessage:
+        "The literal '{0}' with type '{1}' isn't of expected type '{2}'.",
     withArguments: _withArgumentsInvalidCastLiteral,
     expectedTypes: [
       ExpectedType.object,
@@ -3712,8 +3893,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   invalidCastLiteralList = CompileTimeErrorTemplate(
-    'INVALID_CAST_LITERAL_LIST',
-    "The list literal type '{0}' isn't of expected type '{1}'. The list's type "
+    name: 'INVALID_CAST_LITERAL_LIST',
+    problemMessage:
+        "The list literal type '{0}' isn't of expected type '{1}'. The list's type "
         "can be changed with an explicit generic type argument or by changing "
         "the element types.",
     withArguments: _withArgumentsInvalidCastLiteralList,
@@ -3729,8 +3911,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   invalidCastLiteralMap = CompileTimeErrorTemplate(
-    'INVALID_CAST_LITERAL_MAP',
-    "The map literal type '{0}' isn't of expected type '{1}'. The map's type "
+    name: 'INVALID_CAST_LITERAL_MAP',
+    problemMessage:
+        "The map literal type '{0}' isn't of expected type '{1}'. The map's type "
         "can be changed with an explicit generic type arguments or by changing "
         "the key and value types.",
     withArguments: _withArgumentsInvalidCastLiteralMap,
@@ -3746,8 +3929,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   invalidCastLiteralSet = CompileTimeErrorTemplate(
-    'INVALID_CAST_LITERAL_SET',
-    "The set literal type '{0}' isn't of expected type '{1}'. The set's type "
+    name: 'INVALID_CAST_LITERAL_SET',
+    problemMessage:
+        "The set literal type '{0}' isn't of expected type '{1}'. The set's type "
         "can be changed with an explicit generic type argument or by changing "
         "the element types.",
     withArguments: _withArgumentsInvalidCastLiteralSet,
@@ -3768,8 +3952,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   invalidCastMethod = CompileTimeErrorTemplate(
-    'INVALID_CAST_METHOD',
-    "The method tear-off '{0}' has type '{1}' that isn't of expected type "
+    name: 'INVALID_CAST_METHOD',
+    problemMessage:
+        "The method tear-off '{0}' has type '{1}' that isn't of expected type "
         "'{2}'. This means its parameter or return type doesn't match what is "
         "expected.",
     withArguments: _withArgumentsInvalidCastMethod,
@@ -3789,8 +3974,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   invalidCastNewExpr = CompileTimeErrorTemplate(
-    'INVALID_CAST_NEW_EXPR',
-    "The constructor returns type '{0}' that isn't of expected type '{1}'.",
+    name: 'INVALID_CAST_NEW_EXPR',
+    problemMessage:
+        "The constructor returns type '{0}' that isn't of expected type '{1}'.",
     withArguments: _withArgumentsInvalidCastNewExpr,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -3804,16 +3990,17 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments invalidConstant =
       CompileTimeErrorWithoutArguments(
-        'INVALID_CONSTANT',
-        "Invalid constant value.",
+        name: 'INVALID_CONSTANT',
+        problemMessage: "Invalid constant value.",
         expectedTypes: [],
       );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   invalidExtensionArgumentCount = CompileTimeErrorWithoutArguments(
-    'INVALID_EXTENSION_ARGUMENT_COUNT',
-    "Extension overrides must have exactly one argument: the value of 'this' "
+    name: 'INVALID_EXTENSION_ARGUMENT_COUNT',
+    problemMessage:
+        "Extension overrides must have exactly one argument: the value of 'this' "
         "in the extension method.",
     correctionMessage: "Try specifying exactly one argument.",
     hasPublishedDocs: true,
@@ -3821,20 +4008,22 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments invalidFactoryNameNotAClass =
-      CompileTimeErrorWithoutArguments(
-        'INVALID_FACTORY_NAME_NOT_A_CLASS',
+  static const CompileTimeErrorWithoutArguments
+  invalidFactoryNameNotAClass = CompileTimeErrorWithoutArguments(
+    name: 'INVALID_FACTORY_NAME_NOT_A_CLASS',
+    problemMessage:
         "The name of a factory constructor must be the same as the name of the "
-            "immediately enclosing class.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+        "immediately enclosing class.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments invalidFieldNameFromObject =
       CompileTimeErrorWithoutArguments(
-        'INVALID_FIELD_NAME',
-        "Record field names can't be the same as a member from 'Object'.",
+        name: 'INVALID_FIELD_NAME',
+        problemMessage:
+            "Record field names can't be the same as a member from 'Object'.",
         correctionMessage: "Try using a different name for the field.",
         hasPublishedDocs: true,
         uniqueName: 'INVALID_FIELD_NAME_FROM_OBJECT',
@@ -3844,8 +4033,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   invalidFieldNamePositional = CompileTimeErrorWithoutArguments(
-    'INVALID_FIELD_NAME',
-    "Record field names can't be a dollar sign followed by an integer when the "
+    name: 'INVALID_FIELD_NAME',
+    problemMessage:
+        "Record field names can't be a dollar sign followed by an integer when the "
         "integer is the index of a positional field.",
     correctionMessage: "Try using a different name for the field.",
     hasPublishedDocs: true,
@@ -3856,8 +4046,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments invalidFieldNamePrivate =
       CompileTimeErrorWithoutArguments(
-        'INVALID_FIELD_NAME',
-        "Record field names can't be private.",
+        name: 'INVALID_FIELD_NAME',
+        problemMessage: "Record field names can't be private.",
         correctionMessage: "Try removing the leading underscore.",
         hasPublishedDocs: true,
         uniqueName: 'INVALID_FIELD_NAME_PRIVATE',
@@ -3883,8 +4073,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   invalidImplementationOverride = CompileTimeErrorTemplate(
-    'INVALID_IMPLEMENTATION_OVERRIDE',
-    "'{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' "
+    name: 'INVALID_IMPLEMENTATION_OVERRIDE',
+    problemMessage:
+        "'{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' "
         "('{4}').",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidImplementationOverride,
@@ -3916,8 +4107,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   invalidImplementationOverrideSetter = CompileTimeErrorTemplate(
-    'INVALID_IMPLEMENTATION_OVERRIDE',
-    "The setter '{1}.{0}' ('{2}') isn't a valid concrete implementation of "
+    name: 'INVALID_IMPLEMENTATION_OVERRIDE',
+    problemMessage:
+        "The setter '{1}.{0}' ('{2}') isn't a valid concrete implementation of "
         "'{3}.{0}' ('{4}').",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_IMPLEMENTATION_OVERRIDE_SETTER',
@@ -3934,8 +4126,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   invalidInlineFunctionType = CompileTimeErrorWithoutArguments(
-    'INVALID_INLINE_FUNCTION_TYPE',
-    "Inline function types can't be used for parameters in a generic function "
+    name: 'INVALID_INLINE_FUNCTION_TYPE',
+    problemMessage:
+        "Inline function types can't be used for parameters in a generic function "
         "type.",
     correctionMessage:
         "Try using a generic function type (returnType 'Function(' parameters "
@@ -3950,8 +4143,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   invalidModifierOnConstructor = CompileTimeErrorTemplate(
-    'INVALID_MODIFIER_ON_CONSTRUCTOR',
-    "The modifier '{0}' can't be applied to the body of a constructor.",
+    name: 'INVALID_MODIFIER_ON_CONSTRUCTOR',
+    problemMessage:
+        "The modifier '{0}' can't be applied to the body of a constructor.",
     correctionMessage: "Try removing the modifier.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidModifierOnConstructor,
@@ -3961,8 +4155,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments invalidModifierOnSetter =
       CompileTimeErrorWithoutArguments(
-        'INVALID_MODIFIER_ON_SETTER',
-        "Setters can't use 'async', 'async*', or 'sync*'.",
+        name: 'INVALID_MODIFIER_ON_SETTER',
+        problemMessage: "Setters can't use 'async', 'async*', or 'sync*'.",
         correctionMessage: "Try removing the modifier.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -3984,8 +4178,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   invalidOverride = CompileTimeErrorTemplate(
-    'INVALID_OVERRIDE',
-    "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
+    name: 'INVALID_OVERRIDE',
+    problemMessage:
+        "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidOverride,
     expectedTypes: [
@@ -4013,8 +4208,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   invalidOverrideSetter = CompileTimeErrorTemplate(
-    'INVALID_OVERRIDE',
-    "The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
+    name: 'INVALID_OVERRIDE',
+    problemMessage:
+        "The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_OVERRIDE_SETTER',
     withArguments: _withArgumentsInvalidOverrideSetter,
@@ -4030,8 +4226,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   invalidReferenceToGenerativeEnumConstructor = CompileTimeErrorWithoutArguments(
-    'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
-    "Generative enum constructors can only be used to create an enum constant.",
+    name: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
+    problemMessage:
+        "Generative enum constructors can only be used to create an enum constant.",
     correctionMessage: "Try using an enum value, or a factory constructor.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -4041,8 +4238,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   invalidReferenceToGenerativeEnumConstructorTearoff =
       CompileTimeErrorWithoutArguments(
-        'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
-        "Generative enum constructors can't be torn off.",
+        name: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
+        problemMessage: "Generative enum constructors can't be torn off.",
         correctionMessage: "Try using an enum value, or a factory constructor.",
         hasPublishedDocs: true,
         uniqueName: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF',
@@ -4052,8 +4249,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments invalidReferenceToThis =
       CompileTimeErrorWithoutArguments(
-        'INVALID_REFERENCE_TO_THIS',
-        "Invalid reference to 'this' expression.",
+        name: 'INVALID_REFERENCE_TO_THIS',
+        problemMessage: "Invalid reference to 'this' expression.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -4061,8 +4258,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   invalidSuperFormalParameterLocation = CompileTimeErrorWithoutArguments(
-    'INVALID_SUPER_FORMAL_PARAMETER_LOCATION',
-    "Super parameters can only be used in non-redirecting generative "
+    name: 'INVALID_SUPER_FORMAL_PARAMETER_LOCATION',
+    problemMessage:
+        "Super parameters can only be used in non-redirecting generative "
         "constructors.",
     correctionMessage:
         "Try removing the 'super' modifier, or changing the constructor to be "
@@ -4077,8 +4275,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   invalidTypeArgumentInConstList = CompileTimeErrorTemplate(
-    'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-    "Constant list literals can't use a type parameter in a type argument, "
+    name: 'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
+    problemMessage:
+        "Constant list literals can't use a type parameter in a type argument, "
         "such as '{0}'.",
     correctionMessage:
         "Try replacing the type parameter with a different type.",
@@ -4094,8 +4293,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   invalidTypeArgumentInConstMap = CompileTimeErrorTemplate(
-    'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-    "Constant map literals can't use a type parameter in a type argument, such "
+    name: 'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
+    problemMessage:
+        "Constant map literals can't use a type parameter in a type argument, such "
         "as '{0}'.",
     correctionMessage:
         "Try replacing the type parameter with a different type.",
@@ -4111,8 +4311,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   invalidTypeArgumentInConstSet = CompileTimeErrorTemplate(
-    'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-    "Constant set literals can't use a type parameter in a type argument, such "
+    name: 'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
+    problemMessage:
+        "Constant set literals can't use a type parameter in a type argument, such "
         "as '{0}'.",
     correctionMessage:
         "Try replacing the type parameter with a different type.",
@@ -4128,8 +4329,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   invalidUri = CompileTimeErrorTemplate(
-    'INVALID_URI',
-    "Invalid URI syntax: '{0}'.",
+    name: 'INVALID_URI',
+    problemMessage: "Invalid URI syntax: '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidUri,
     expectedTypes: [ExpectedType.string],
@@ -4138,20 +4339,22 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// The 'covariant' keyword was found in an inappropriate location.
   ///
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments invalidUseOfCovariant =
-      CompileTimeErrorWithoutArguments(
-        'INVALID_USE_OF_COVARIANT',
+  static const CompileTimeErrorWithoutArguments
+  invalidUseOfCovariant = CompileTimeErrorWithoutArguments(
+    name: 'INVALID_USE_OF_COVARIANT',
+    problemMessage:
         "The 'covariant' keyword can only be used for parameters in instance "
-            "methods or before non-final instance fields.",
-        correctionMessage: "Try removing the 'covariant' keyword.",
-        expectedTypes: [],
-      );
+        "methods or before non-final instance fields.",
+    correctionMessage: "Try removing the 'covariant' keyword.",
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments invalidUseOfNullValue =
       CompileTimeErrorWithoutArguments(
-        'INVALID_USE_OF_NULL_VALUE',
-        "An expression whose value is always 'null' can't be dereferenced.",
+        name: 'INVALID_USE_OF_NULL_VALUE',
+        problemMessage:
+            "An expression whose value is always 'null' can't be dereferenced.",
         correctionMessage: "Try changing the type of the expression.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -4163,8 +4366,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   invocationOfExtensionWithoutCall = CompileTimeErrorTemplate(
-    'INVOCATION_OF_EXTENSION_WITHOUT_CALL',
-    "The extension '{0}' doesn't define a 'call' method so the override can't "
+    name: 'INVOCATION_OF_EXTENSION_WITHOUT_CALL',
+    problemMessage:
+        "The extension '{0}' doesn't define a 'call' method so the override can't "
         "be used in an invocation.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvocationOfExtensionWithoutCall,
@@ -4177,8 +4381,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   invocationOfNonFunction = CompileTimeErrorTemplate(
-    'INVOCATION_OF_NON_FUNCTION',
-    "'{0}' isn't a function.",
+    name: 'INVOCATION_OF_NON_FUNCTION',
+    problemMessage: "'{0}' isn't a function.",
     correctionMessage:
         "Try correcting the name to match an existing function, or define a "
         "method or function named '{0}'.",
@@ -4190,8 +4394,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   invocationOfNonFunctionExpression = CompileTimeErrorWithoutArguments(
-    'INVOCATION_OF_NON_FUNCTION_EXPRESSION',
-    "The expression doesn't evaluate to a function, so it can't be invoked.",
+    name: 'INVOCATION_OF_NON_FUNCTION_EXPRESSION',
+    problemMessage:
+        "The expression doesn't evaluate to a function, so it can't be invoked.",
     hasPublishedDocs: true,
     expectedTypes: [],
   );
@@ -4202,8 +4407,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   labelInOuterScope = CompileTimeErrorTemplate(
-    'LABEL_IN_OUTER_SCOPE',
-    "Can't reference label '{0}' declared in an outer method.",
+    name: 'LABEL_IN_OUTER_SCOPE',
+    problemMessage: "Can't reference label '{0}' declared in an outer method.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsLabelInOuterScope,
     expectedTypes: [ExpectedType.string],
@@ -4215,8 +4420,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   labelUndefined = CompileTimeErrorTemplate(
-    'LABEL_UNDEFINED',
-    "Can't reference an undefined label '{0}'.",
+    name: 'LABEL_UNDEFINED',
+    problemMessage: "Can't reference an undefined label '{0}'.",
     correctionMessage:
         "Try defining the label, or correcting the name to match an existing "
         "label.",
@@ -4228,8 +4433,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   lateFinalFieldWithConstConstructor = CompileTimeErrorWithoutArguments(
-    'LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
-    "Can't have a late final field in a class with a generative const "
+    name: 'LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
+    problemMessage:
+        "Can't have a late final field in a class with a generative const "
         "constructor.",
     correctionMessage:
         "Try removing the 'late' modifier, or don't declare 'const' "
@@ -4241,8 +4447,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments lateFinalLocalAlreadyAssigned =
       CompileTimeErrorWithoutArguments(
-        'LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
-        "The late final local variable is already assigned.",
+        name: 'LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
+        problemMessage: "The late final local variable is already assigned.",
         correctionMessage:
             "Try removing the 'final' modifier, or don't reassign the value.",
         hasPublishedDocs: true,
@@ -4256,8 +4462,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   listElementTypeNotAssignable = CompileTimeErrorTemplate(
-    'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
-    "The element type '{0}' can't be assigned to the list type '{1}'.",
+    name: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
+    problemMessage:
+        "The element type '{0}' can't be assigned to the list type '{1}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsListElementTypeNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
@@ -4270,8 +4477,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   listElementTypeNotAssignableNullability = CompileTimeErrorTemplate(
-    'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
-    "The element type '{0}' can't be assigned to the list type '{1}'.",
+    name: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
+    problemMessage:
+        "The element type '{0}' can't be assigned to the list type '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
     withArguments: _withArgumentsListElementTypeNotAssignableNullability,
@@ -4281,8 +4489,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   mainFirstPositionalParameterType = CompileTimeErrorWithoutArguments(
-    'MAIN_FIRST_POSITIONAL_PARAMETER_TYPE',
-    "The type of the first positional parameter of the 'main' function must be "
+    name: 'MAIN_FIRST_POSITIONAL_PARAMETER_TYPE',
+    problemMessage:
+        "The type of the first positional parameter of the 'main' function must be "
         "a supertype of 'List<String>'.",
     correctionMessage: "Try changing the type of the parameter.",
     hasPublishedDocs: true,
@@ -4292,8 +4501,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments mainHasRequiredNamedParameters =
       CompileTimeErrorWithoutArguments(
-        'MAIN_HAS_REQUIRED_NAMED_PARAMETERS',
-        "The function 'main' can't have any required named parameters.",
+        name: 'MAIN_HAS_REQUIRED_NAMED_PARAMETERS',
+        problemMessage:
+            "The function 'main' can't have any required named parameters.",
         correctionMessage:
             "Try using a different name for the function, or removing the "
             "'required' modifier.",
@@ -4304,8 +4514,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   mainHasTooManyRequiredPositionalParameters = CompileTimeErrorWithoutArguments(
-    'MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
-    "The function 'main' can't have more than two required positional "
+    name: 'MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
+    problemMessage:
+        "The function 'main' can't have more than two required positional "
         "parameters.",
     correctionMessage:
         "Try using a different name for the function, or removing extra "
@@ -4317,8 +4528,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments mainIsNotFunction =
       CompileTimeErrorWithoutArguments(
-        'MAIN_IS_NOT_FUNCTION',
-        "The declaration named 'main' must be a function.",
+        name: 'MAIN_IS_NOT_FUNCTION',
+        problemMessage: "The declaration named 'main' must be a function.",
         correctionMessage: "Try using a different name for this declaration.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -4327,8 +4538,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments mapEntryNotInMap =
       CompileTimeErrorWithoutArguments(
-        'MAP_ENTRY_NOT_IN_MAP',
-        "Map entries can only be used in a map literal.",
+        name: 'MAP_ENTRY_NOT_IN_MAP',
+        problemMessage: "Map entries can only be used in a map literal.",
         correctionMessage:
             "Try converting the collection to a map or removing the map entry.",
         hasPublishedDocs: true,
@@ -4342,8 +4553,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   mapKeyTypeNotAssignable = CompileTimeErrorTemplate(
-    'MAP_KEY_TYPE_NOT_ASSIGNABLE',
-    "The element type '{0}' can't be assigned to the map key type '{1}'.",
+    name: 'MAP_KEY_TYPE_NOT_ASSIGNABLE',
+    problemMessage:
+        "The element type '{0}' can't be assigned to the map key type '{1}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMapKeyTypeNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
@@ -4356,8 +4568,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   mapKeyTypeNotAssignableNullability = CompileTimeErrorTemplate(
-    'MAP_KEY_TYPE_NOT_ASSIGNABLE',
-    "The element type '{0}' can't be assigned to the map key type '{1}'.",
+    name: 'MAP_KEY_TYPE_NOT_ASSIGNABLE',
+    problemMessage:
+        "The element type '{0}' can't be assigned to the map key type '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY',
     withArguments: _withArgumentsMapKeyTypeNotAssignableNullability,
@@ -4371,8 +4584,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   mapValueTypeNotAssignable = CompileTimeErrorTemplate(
-    'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
-    "The element type '{0}' can't be assigned to the map value type '{1}'.",
+    name: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
+    problemMessage:
+        "The element type '{0}' can't be assigned to the map value type '{1}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMapValueTypeNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
@@ -4385,8 +4599,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   mapValueTypeNotAssignableNullability = CompileTimeErrorTemplate(
-    'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
-    "The element type '{0}' can't be assigned to the map value type '{1}'.",
+    name: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
+    problemMessage:
+        "The element type '{0}' can't be assigned to the map value type '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY',
     withArguments: _withArgumentsMapValueTypeNotAssignableNullability,
@@ -4401,8 +4616,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments missingConstInListLiteral =
       CompileTimeErrorWithoutArguments(
-        'MISSING_CONST_IN_LIST_LITERAL',
-        "Seeing this message constitutes a bug. Please report it.",
+        name: 'MISSING_CONST_IN_LIST_LITERAL',
+        problemMessage:
+            "Seeing this message constitutes a bug. Please report it.",
         expectedTypes: [],
       );
 
@@ -4414,8 +4630,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments missingConstInMapLiteral =
       CompileTimeErrorWithoutArguments(
-        'MISSING_CONST_IN_MAP_LITERAL',
-        "Seeing this message constitutes a bug. Please report it.",
+        name: 'MISSING_CONST_IN_MAP_LITERAL',
+        problemMessage:
+            "Seeing this message constitutes a bug. Please report it.",
         expectedTypes: [],
       );
 
@@ -4427,8 +4644,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments missingConstInSetLiteral =
       CompileTimeErrorWithoutArguments(
-        'MISSING_CONST_IN_SET_LITERAL',
-        "Seeing this message constitutes a bug. Please report it.",
+        name: 'MISSING_CONST_IN_SET_LITERAL',
+        problemMessage:
+            "Seeing this message constitutes a bug. Please report it.",
         expectedTypes: [],
       );
 
@@ -4438,8 +4656,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   missingDartLibrary = CompileTimeErrorTemplate(
-    'MISSING_DART_LIBRARY',
-    "Required library '{0}' is missing.",
+    name: 'MISSING_DART_LIBRARY',
+    problemMessage: "Required library '{0}' is missing.",
     correctionMessage: "Re-install the Dart or Flutter SDK.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMissingDartLibrary,
@@ -4452,8 +4670,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   missingDefaultValueForParameter = CompileTimeErrorTemplate(
-    'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
-    "The parameter '{0}' can't have a value of 'null' because of its type, but "
+    name: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+    problemMessage:
+        "The parameter '{0}' can't have a value of 'null' because of its type, but "
         "the implicit default value is 'null'.",
     correctionMessage:
         "Try adding either an explicit non-'null' default value or the "
@@ -4469,8 +4688,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   missingDefaultValueForParameterPositional = CompileTimeErrorTemplate(
-    'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
-    "The parameter '{0}' can't have a value of 'null' because of its type, but "
+    name: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+    problemMessage:
+        "The parameter '{0}' can't have a value of 'null' because of its type, but "
         "the implicit default value is 'null'.",
     correctionMessage: "Try adding an explicit non-'null' default value.",
     hasPublishedDocs: true,
@@ -4483,8 +4703,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   missingDefaultValueForParameterWithAnnotation =
       CompileTimeErrorWithoutArguments(
-        'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
-        "With null safety, use the 'required' keyword, not the '@required' "
+        name: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+        problemMessage:
+            "With null safety, use the 'required' keyword, not the '@required' "
             "annotation.",
         correctionMessage: "Try removing the '@'.",
         hasPublishedDocs: true,
@@ -4493,17 +4714,18 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments missingNamedPatternFieldName =
-      CompileTimeErrorWithoutArguments(
-        'MISSING_NAMED_PATTERN_FIELD_NAME',
+  static const CompileTimeErrorWithoutArguments
+  missingNamedPatternFieldName = CompileTimeErrorWithoutArguments(
+    name: 'MISSING_NAMED_PATTERN_FIELD_NAME',
+    problemMessage:
         "The getter name is not specified explicitly, and the pattern is not a "
-            "variable.",
-        correctionMessage:
-            "Try specifying the getter name explicitly, or using a variable "
-            "pattern.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+        "variable.",
+    correctionMessage:
+        "Try specifying the getter name explicitly, or using a variable "
+        "pattern.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// Parameters:
   /// String p0: the name of the parameter
@@ -4511,8 +4733,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   missingRequiredArgument = CompileTimeErrorTemplate(
-    'MISSING_REQUIRED_ARGUMENT',
-    "The named parameter '{0}' is required, but there's no corresponding "
+    name: 'MISSING_REQUIRED_ARGUMENT',
+    problemMessage:
+        "The named parameter '{0}' is required, but there's no corresponding "
         "argument.",
     correctionMessage: "Try adding the required argument.",
     hasPublishedDocs: true,
@@ -4526,8 +4749,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   missingVariablePattern = CompileTimeErrorTemplate(
-    'MISSING_VARIABLE_PATTERN',
-    "Variable pattern '{0}' is missing in this branch of the logical-or "
+    name: 'MISSING_VARIABLE_PATTERN',
+    problemMessage:
+        "Variable pattern '{0}' is missing in this branch of the logical-or "
         "pattern.",
     correctionMessage: "Try declaring this variable pattern in the branch.",
     hasPublishedDocs: true,
@@ -4548,8 +4772,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   mixinApplicationConcreteSuperInvokedMemberType = CompileTimeErrorTemplate(
-    'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
-    "The super-invoked member '{0}' has the type '{1}', and the concrete "
+    name: 'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
+    problemMessage:
+        "The super-invoked member '{0}' has the type '{1}', and the concrete "
         "member in the class has the type '{2}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMixinApplicationConcreteSuperInvokedMemberType,
@@ -4563,8 +4788,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   mixinApplicationNoConcreteSuperInvokedMember = CompileTimeErrorTemplate(
-    'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
-    "The class doesn't have a concrete implementation of the super-invoked "
+    name: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
+    problemMessage:
+        "The class doesn't have a concrete implementation of the super-invoked "
         "member '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMixinApplicationNoConcreteSuperInvokedMember,
@@ -4578,8 +4804,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   mixinApplicationNoConcreteSuperInvokedSetter = CompileTimeErrorTemplate(
-    'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
-    "The class doesn't have a concrete implementation of the super-invoked "
+    name: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
+    problemMessage:
+        "The class doesn't have a concrete implementation of the super-invoked "
         "setter '{0}'.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER',
@@ -4599,8 +4826,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   mixinApplicationNotImplementedInterface = CompileTimeErrorTemplate(
-    'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
-    "'{0}' can't be mixed onto '{1}' because '{1}' doesn't implement '{2}'.",
+    name: 'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
+    problemMessage:
+        "'{0}' can't be mixed onto '{1}' because '{1}' doesn't implement '{2}'.",
     correctionMessage: "Try extending the class '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMixinApplicationNotImplementedInterface,
@@ -4613,8 +4841,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   mixinClassDeclarationExtendsNotObject = CompileTimeErrorTemplate(
-    'MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT',
-    "The class '{0}' can't be declared a mixin because it extends a class "
+    name: 'MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT',
+    problemMessage:
+        "The class '{0}' can't be declared a mixin because it extends a class "
         "other than 'Object'.",
     correctionMessage:
         "Try removing the 'mixin' modifier or changing the superclass to "
@@ -4630,8 +4859,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   mixinClassDeclaresConstructor = CompileTimeErrorTemplate(
-    'MIXIN_CLASS_DECLARES_CONSTRUCTOR',
-    "The class '{0}' can't be used as a mixin because it declares a "
+    name: 'MIXIN_CLASS_DECLARES_CONSTRUCTOR',
+    problemMessage:
+        "The class '{0}' can't be used as a mixin because it declares a "
         "constructor.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMixinClassDeclaresConstructor,
@@ -4641,8 +4871,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments mixinDeferredClass =
       CompileTimeErrorWithoutArguments(
-        'SUBTYPE_OF_DEFERRED_CLASS',
-        "Classes can't mixin deferred classes.",
+        name: 'SUBTYPE_OF_DEFERRED_CLASS',
+        problemMessage: "Classes can't mixin deferred classes.",
         correctionMessage: "Try changing the import to not be deferred.",
         hasPublishedDocs: true,
         uniqueName: 'MIXIN_DEFERRED_CLASS',
@@ -4655,8 +4885,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   mixinInheritsFromNotObject = CompileTimeErrorTemplate(
-    'MIXIN_INHERITS_FROM_NOT_OBJECT',
-    "The class '{0}' can't be used as a mixin because it extends a class other "
+    name: 'MIXIN_INHERITS_FROM_NOT_OBJECT',
+    problemMessage:
+        "The class '{0}' can't be used as a mixin because it extends a class other "
         "than 'Object'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMixinInheritsFromNotObject,
@@ -4666,8 +4897,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments mixinInstantiate =
       CompileTimeErrorWithoutArguments(
-        'MIXIN_INSTANTIATE',
-        "Mixins can't be instantiated.",
+        name: 'MIXIN_INSTANTIATE',
+        problemMessage: "Mixins can't be instantiated.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -4678,8 +4909,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   mixinOfDisallowedClass = CompileTimeErrorTemplate(
-    'SUBTYPE_OF_DISALLOWED_TYPE',
-    "Classes can't mixin '{0}'.",
+    name: 'SUBTYPE_OF_DISALLOWED_TYPE',
+    problemMessage: "Classes can't mixin '{0}'.",
     correctionMessage:
         "Try specifying a different class or mixin, or remove the class or "
         "mixin from the list.",
@@ -4692,8 +4923,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments mixinOfNonClass =
       CompileTimeErrorWithoutArguments(
-        'MIXIN_OF_NON_CLASS',
-        "Classes can only mix in mixins and classes.",
+        name: 'MIXIN_OF_NON_CLASS',
+        problemMessage: "Classes can only mix in mixins and classes.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -4701,8 +4932,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   mixinOfTypeAliasExpandsToTypeParameter = CompileTimeErrorWithoutArguments(
-    'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
-    "A type alias that expands to a type parameter can't be mixed in.",
+    name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
+    problemMessage:
+        "A type alias that expands to a type parameter can't be mixed in.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
     expectedTypes: [],
@@ -4711,8 +4943,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   mixinOnTypeAliasExpandsToTypeParameter = CompileTimeErrorWithoutArguments(
-    'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
-    "A type alias that expands to a type parameter can't be used as a "
+    name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
+    problemMessage:
+        "A type alias that expands to a type parameter can't be used as a "
         "superclass constraint.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
@@ -4726,8 +4959,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Element p0})
   >
   mixinsSuperClass = CompileTimeErrorTemplate(
-    'IMPLEMENTS_SUPER_CLASS',
-    "'{0}' can't be used in both the 'extends' and 'with' clauses.",
+    name: 'IMPLEMENTS_SUPER_CLASS',
+    problemMessage:
+        "'{0}' can't be used in both the 'extends' and 'with' clauses.",
     correctionMessage: "Try removing one of the occurrences.",
     hasPublishedDocs: true,
     uniqueName: 'MIXINS_SUPER_CLASS',
@@ -4742,8 +4976,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   mixinSubtypeOfBaseIsNotBase = CompileTimeErrorTemplate(
-    'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
-    "The mixin '{0}' must be 'base' because the supertype '{1}' is 'base'.",
+    name: 'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+    problemMessage:
+        "The mixin '{0}' must be 'base' because the supertype '{1}' is 'base'.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE',
     withArguments: _withArgumentsMixinSubtypeOfBaseIsNotBase,
@@ -4757,8 +4992,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   mixinSubtypeOfFinalIsNotBase = CompileTimeErrorTemplate(
-    'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
-    "The mixin '{0}' must be 'base' because the supertype '{1}' is 'final'.",
+    name: 'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+    problemMessage:
+        "The mixin '{0}' must be 'base' because the supertype '{1}' is 'final'.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE',
     withArguments: _withArgumentsMixinSubtypeOfFinalIsNotBase,
@@ -4768,8 +5004,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   mixinSuperClassConstraintDeferredClass = CompileTimeErrorWithoutArguments(
-    'MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
-    "Deferred classes can't be used as superclass constraints.",
+    name: 'MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
+    problemMessage: "Deferred classes can't be used as superclass constraints.",
     correctionMessage: "Try changing the import to not be deferred.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -4781,8 +5017,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   mixinSuperClassConstraintDisallowedClass = CompileTimeErrorTemplate(
-    'SUBTYPE_OF_DISALLOWED_TYPE',
-    "'{0}' can't be used as a superclass constraint.",
+    name: 'SUBTYPE_OF_DISALLOWED_TYPE',
+    problemMessage: "'{0}' can't be used as a superclass constraint.",
     correctionMessage:
         "Try specifying a different super-class constraint, or remove the 'on' "
         "clause.",
@@ -4795,8 +5031,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   mixinSuperClassConstraintNonInterface = CompileTimeErrorWithoutArguments(
-    'MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE',
-    "Only classes and mixins can be used as superclass constraints.",
+    name: 'MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE',
+    problemMessage:
+        "Only classes and mixins can be used as superclass constraints.",
     hasPublishedDocs: true,
     expectedTypes: [],
   );
@@ -4807,31 +5044,31 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments mixinWithNonClassSuperclass =
       CompileTimeErrorWithoutArguments(
-        'MIXIN_WITH_NON_CLASS_SUPERCLASS',
-        "Mixin can only be applied to class.",
+        name: 'MIXIN_WITH_NON_CLASS_SUPERCLASS',
+        problemMessage: "Mixin can only be applied to class.",
         expectedTypes: [],
       );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   multipleRedirectingConstructorInvocations = CompileTimeErrorWithoutArguments(
-    'MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS',
-    "Constructors can have only one 'this' redirection, at most.",
+    name: 'MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS',
+    problemMessage:
+        "Constructors can have only one 'this' redirection, at most.",
     correctionMessage: "Try removing all but one of the redirections.",
     hasPublishedDocs: true,
     expectedTypes: [],
   );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments multipleSuperInitializers =
-      CompileTimeErrorWithoutArguments(
-        'MULTIPLE_SUPER_INITIALIZERS',
-        "A constructor can have at most one 'super' initializer.",
-        correctionMessage:
-            "Try removing all but one of the 'super' initializers.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+  static const CompileTimeErrorWithoutArguments
+  multipleSuperInitializers = CompileTimeErrorWithoutArguments(
+    name: 'MULTIPLE_SUPER_INITIALIZERS',
+    problemMessage: "A constructor can have at most one 'super' initializer.",
+    correctionMessage: "Try removing all but one of the 'super' initializers.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// Parameters:
   /// String p0: the name of the non-type element
@@ -4839,8 +5076,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   newWithNonType = CompileTimeErrorTemplate(
-    'CREATION_WITH_NON_TYPE',
-    "The name '{0}' isn't a class.",
+    name: 'CREATION_WITH_NON_TYPE',
+    problemMessage: "The name '{0}' isn't a class.",
     correctionMessage: "Try correcting the name to match an existing class.",
     hasPublishedDocs: true,
     isUnresolvedIdentifier: true,
@@ -4868,8 +5105,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   newWithUndefinedConstructor = CompileTimeErrorTemplate(
-    'NEW_WITH_UNDEFINED_CONSTRUCTOR',
-    "The class '{0}' doesn't have a constructor named '{1}'.",
+    name: 'NEW_WITH_UNDEFINED_CONSTRUCTOR',
+    problemMessage: "The class '{0}' doesn't have a constructor named '{1}'.",
     correctionMessage:
         "Try invoking a different constructor, or define a constructor named "
         "'{1}'.",
@@ -4883,8 +5120,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   newWithUndefinedConstructorDefault = CompileTimeErrorTemplate(
-    'NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
-    "The class '{0}' doesn't have an unnamed constructor.",
+    name: 'NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
+    problemMessage: "The class '{0}' doesn't have an unnamed constructor.",
     correctionMessage:
         "Try using one of the named constructors defined in '{0}'.",
     hasPublishedDocs: true,
@@ -4895,8 +5132,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   noAnnotationConstructorArguments = CompileTimeErrorWithoutArguments(
-    'NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS',
-    "Annotation creation must have arguments.",
+    name: 'NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS',
+    problemMessage: "Annotation creation must have arguments.",
     correctionMessage: "Try adding an empty argument list.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -4909,8 +5146,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   noCombinedSuperSignature = CompileTimeErrorTemplate(
-    'NO_COMBINED_SUPER_SIGNATURE',
-    "Can't infer missing types in '{0}' from overridden methods: {1}.",
+    name: 'NO_COMBINED_SUPER_SIGNATURE',
+    problemMessage:
+        "Can't infer missing types in '{0}' from overridden methods: {1}.",
     correctionMessage:
         "Try providing explicit types for this method's parameters and return "
         "type.",
@@ -4926,8 +5164,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   noDefaultSuperConstructorExplicit = CompileTimeErrorTemplate(
-    'NO_DEFAULT_SUPER_CONSTRUCTOR',
-    "The superclass '{0}' doesn't have a zero argument constructor.",
+    name: 'NO_DEFAULT_SUPER_CONSTRUCTOR',
+    problemMessage:
+        "The superclass '{0}' doesn't have a zero argument constructor.",
     correctionMessage:
         "Try declaring a zero argument constructor in '{0}', or explicitly "
         "invoking a different constructor in '{0}'.",
@@ -4945,8 +5184,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required String p1})
   >
   noDefaultSuperConstructorImplicit = CompileTimeErrorTemplate(
-    'NO_DEFAULT_SUPER_CONSTRUCTOR',
-    "The superclass '{0}' doesn't have a zero argument constructor.",
+    name: 'NO_DEFAULT_SUPER_CONSTRUCTOR',
+    problemMessage:
+        "The superclass '{0}' doesn't have a zero argument constructor.",
     correctionMessage:
         "Try declaring a zero argument constructor in '{0}', or declaring a "
         "constructor in {1} that explicitly invokes a constructor in '{0}'.",
@@ -4962,8 +5202,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   noGenerativeConstructorsInSuperclass = CompileTimeErrorTemplate(
-    'NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
-    "The class '{0}' can't extend '{1}' because '{1}' only has factory "
+    name: 'NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
+    problemMessage:
+        "The class '{0}' can't extend '{1}' because '{1}' only has factory "
         "constructors (no generative constructors), and '{0}' has at least one "
         "generative constructor.",
     correctionMessage:
@@ -4991,8 +5232,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   nonAbstractClassInheritsAbstractMemberFivePlus = CompileTimeErrorTemplate(
-    'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-    "Missing concrete implementations of '{0}', '{1}', '{2}', '{3}', and {4} "
+    name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+    problemMessage:
+        "Missing concrete implementations of '{0}', '{1}', '{2}', '{3}', and {4} "
         "more.",
     correctionMessage:
         "Try implementing the missing methods, or make the class abstract.",
@@ -5022,8 +5264,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   nonAbstractClassInheritsAbstractMemberFour = CompileTimeErrorTemplate(
-    'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-    "Missing concrete implementations of '{0}', '{1}', '{2}', and '{3}'.",
+    name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+    problemMessage:
+        "Missing concrete implementations of '{0}', '{1}', '{2}', and '{3}'.",
     correctionMessage:
         "Try implementing the missing methods, or make the class abstract.",
     hasPublishedDocs: true,
@@ -5043,8 +5286,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   nonAbstractClassInheritsAbstractMemberOne = CompileTimeErrorTemplate(
-    'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-    "Missing concrete implementation of '{0}'.",
+    name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+    problemMessage: "Missing concrete implementation of '{0}'.",
     correctionMessage:
         "Try implementing the missing method, or make the class abstract.",
     hasPublishedDocs: true,
@@ -5065,8 +5308,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   nonAbstractClassInheritsAbstractMemberThree = CompileTimeErrorTemplate(
-    'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-    "Missing concrete implementations of '{0}', '{1}', and '{2}'.",
+    name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+    problemMessage:
+        "Missing concrete implementations of '{0}', '{1}', and '{2}'.",
     correctionMessage:
         "Try implementing the missing methods, or make the class abstract.",
     hasPublishedDocs: true,
@@ -5086,8 +5330,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   nonAbstractClassInheritsAbstractMemberTwo = CompileTimeErrorTemplate(
-    'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-    "Missing concrete implementations of '{0}' and '{1}'.",
+    name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+    problemMessage: "Missing concrete implementations of '{0}' and '{1}'.",
     correctionMessage:
         "Try implementing the missing methods, or make the class abstract.",
     hasPublishedDocs: true,
@@ -5099,8 +5343,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonBoolCondition =
       CompileTimeErrorWithoutArguments(
-        'NON_BOOL_CONDITION',
-        "Conditions must have a static type of 'bool'.",
+        name: 'NON_BOOL_CONDITION',
+        problemMessage: "Conditions must have a static type of 'bool'.",
         correctionMessage: "Try changing the condition.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -5109,8 +5353,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonBoolExpression =
       CompileTimeErrorWithoutArguments(
-        'NON_BOOL_EXPRESSION',
-        "The expression in an assert must be of type 'bool'.",
+        name: 'NON_BOOL_EXPRESSION',
+        problemMessage: "The expression in an assert must be of type 'bool'.",
         correctionMessage: "Try changing the expression.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -5119,8 +5363,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonBoolNegationExpression =
       CompileTimeErrorWithoutArguments(
-        'NON_BOOL_NEGATION_EXPRESSION',
-        "A negation operand must have a static type of 'bool'.",
+        name: 'NON_BOOL_NEGATION_EXPRESSION',
+        problemMessage: "A negation operand must have a static type of 'bool'.",
         correctionMessage: "Try changing the operand to the '!' operator.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -5132,8 +5376,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   nonBoolOperand = CompileTimeErrorTemplate(
-    'NON_BOOL_OPERAND',
-    "The operands of the operator '{0}' must be assignable to 'bool'.",
+    name: 'NON_BOOL_OPERAND',
+    problemMessage:
+        "The operands of the operator '{0}' must be assignable to 'bool'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNonBoolOperand,
     expectedTypes: [ExpectedType.string],
@@ -5142,8 +5387,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   nonConstantAnnotationConstructor = CompileTimeErrorWithoutArguments(
-    'NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
-    "Annotation creation can only call a const constructor.",
+    name: 'NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
+    problemMessage: "Annotation creation can only call a const constructor.",
     hasPublishedDocs: true,
     expectedTypes: [],
   );
@@ -5151,8 +5396,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonConstantCaseExpression =
       CompileTimeErrorWithoutArguments(
-        'NON_CONSTANT_CASE_EXPRESSION',
-        "Case expressions must be constant.",
+        name: 'NON_CONSTANT_CASE_EXPRESSION',
+        problemMessage: "Case expressions must be constant.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -5160,8 +5405,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   nonConstantCaseExpressionFromDeferredLibrary = CompileTimeErrorWithoutArguments(
-    'NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
-    "Constant values from a deferred library can't be used as a case "
+    name: 'NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
+    problemMessage:
+        "Constant values from a deferred library can't be used as a case "
         "expression.",
     correctionMessage:
         "Try re-writing the switch as a series of if statements, or changing "
@@ -5173,8 +5419,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonConstantDefaultValue =
       CompileTimeErrorWithoutArguments(
-        'NON_CONSTANT_DEFAULT_VALUE',
-        "The default value of an optional parameter must be constant.",
+        name: 'NON_CONSTANT_DEFAULT_VALUE',
+        problemMessage:
+            "The default value of an optional parameter must be constant.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -5182,8 +5429,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   nonConstantDefaultValueFromDeferredLibrary = CompileTimeErrorWithoutArguments(
-    'NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY',
-    "Constant values from a deferred library can't be used as a default "
+    name: 'NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY',
+    problemMessage:
+        "Constant values from a deferred library can't be used as a default "
         "parameter value.",
     correctionMessage:
         "Try leaving the default as 'null' and initializing the parameter "
@@ -5195,8 +5443,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonConstantListElement =
       CompileTimeErrorWithoutArguments(
-        'NON_CONSTANT_LIST_ELEMENT',
-        "The values in a const list literal must be constants.",
+        name: 'NON_CONSTANT_LIST_ELEMENT',
+        problemMessage: "The values in a const list literal must be constants.",
         correctionMessage:
             "Try removing the keyword 'const' from the list literal.",
         hasPublishedDocs: true,
@@ -5206,8 +5454,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   nonConstantListElementFromDeferredLibrary = CompileTimeErrorWithoutArguments(
-    'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
-    "Constant values from a deferred library can't be used as values in a "
+    name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
+    problemMessage:
+        "Constant values from a deferred library can't be used as values in a "
         "'const' list literal.",
     correctionMessage:
         "Try removing the keyword 'const' from the list literal or removing "
@@ -5220,8 +5469,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonConstantMapElement =
       CompileTimeErrorWithoutArguments(
-        'NON_CONSTANT_MAP_ELEMENT',
-        "The elements in a const map literal must be constant.",
+        name: 'NON_CONSTANT_MAP_ELEMENT',
+        problemMessage: "The elements in a const map literal must be constant.",
         correctionMessage:
             "Try removing the keyword 'const' from the map literal.",
         hasPublishedDocs: true,
@@ -5231,8 +5480,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonConstantMapKey =
       CompileTimeErrorWithoutArguments(
-        'NON_CONSTANT_MAP_KEY',
-        "The keys in a const map literal must be constant.",
+        name: 'NON_CONSTANT_MAP_KEY',
+        problemMessage: "The keys in a const map literal must be constant.",
         correctionMessage:
             "Try removing the keyword 'const' from the map literal.",
         hasPublishedDocs: true,
@@ -5242,8 +5491,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   nonConstantMapKeyFromDeferredLibrary = CompileTimeErrorWithoutArguments(
-    'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
-    "Constant values from a deferred library can't be used as keys in a "
+    name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
+    problemMessage:
+        "Constant values from a deferred library can't be used as keys in a "
         "'const' map literal.",
     correctionMessage:
         "Try removing the keyword 'const' from the map literal or removing the "
@@ -5256,8 +5506,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonConstantMapPatternKey =
       CompileTimeErrorWithoutArguments(
-        'NON_CONSTANT_MAP_PATTERN_KEY',
-        "Key expressions in map patterns must be constants.",
+        name: 'NON_CONSTANT_MAP_PATTERN_KEY',
+        problemMessage: "Key expressions in map patterns must be constants.",
         correctionMessage: "Try using constants instead.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -5266,8 +5516,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonConstantMapValue =
       CompileTimeErrorWithoutArguments(
-        'NON_CONSTANT_MAP_VALUE',
-        "The values in a const map literal must be constant.",
+        name: 'NON_CONSTANT_MAP_VALUE',
+        problemMessage: "The values in a const map literal must be constant.",
         correctionMessage:
             "Try removing the keyword 'const' from the map literal.",
         hasPublishedDocs: true,
@@ -5277,8 +5527,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   nonConstantMapValueFromDeferredLibrary = CompileTimeErrorWithoutArguments(
-    'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
-    "Constant values from a deferred library can't be used as values in a "
+    name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
+    problemMessage:
+        "Constant values from a deferred library can't be used as values in a "
         "'const' map literal.",
     correctionMessage:
         "Try removing the keyword 'const' from the map literal or removing the "
@@ -5291,8 +5542,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonConstantRecordField =
       CompileTimeErrorWithoutArguments(
-        'NON_CONSTANT_RECORD_FIELD',
-        "The fields in a const record literal must be constants.",
+        name: 'NON_CONSTANT_RECORD_FIELD',
+        problemMessage:
+            "The fields in a const record literal must be constants.",
         correctionMessage:
             "Try removing the keyword 'const' from the record literal.",
         expectedTypes: [],
@@ -5301,8 +5553,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   nonConstantRecordFieldFromDeferredLibrary = CompileTimeErrorWithoutArguments(
-    'NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY',
-    "Constant values from a deferred library can't be used as fields in a "
+    name: 'NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY',
+    problemMessage:
+        "Constant values from a deferred library can't be used as fields in a "
         "'const' record literal.",
     correctionMessage:
         "Try removing the keyword 'const' from the record literal or removing "
@@ -5313,8 +5566,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   nonConstantRelationalPatternExpression = CompileTimeErrorWithoutArguments(
-    'NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION',
-    "The relational pattern expression must be a constant.",
+    name: 'NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION',
+    problemMessage: "The relational pattern expression must be a constant.",
     correctionMessage: "Try using a constant instead.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -5323,8 +5576,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonConstantSetElement =
       CompileTimeErrorWithoutArguments(
-        'NON_CONSTANT_SET_ELEMENT',
-        "The values in a const set literal must be constants.",
+        name: 'NON_CONSTANT_SET_ELEMENT',
+        problemMessage: "The values in a const set literal must be constants.",
         correctionMessage:
             "Try removing the keyword 'const' from the set literal.",
         hasPublishedDocs: true,
@@ -5334,8 +5587,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   nonConstGenerativeEnumConstructor = CompileTimeErrorWithoutArguments(
-    'NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
-    "Generative enum constructors must be 'const'.",
+    name: 'NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
+    problemMessage: "Generative enum constructors must be 'const'.",
     correctionMessage: "Try adding the keyword 'const'.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -5348,8 +5601,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   nonConstMapAsExpressionStatement = CompileTimeErrorWithoutArguments(
-    'NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
-    "A non-constant map or set literal without type arguments can't be used as "
+    name: 'NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
+    problemMessage:
+        "A non-constant map or set literal without type arguments can't be used as "
         "an expression statement.",
     expectedTypes: [],
   );
@@ -5358,8 +5612,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   nonCovariantTypeParameterPositionInRepresentationType =
       CompileTimeErrorWithoutArguments(
-        'NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
-        "An extension type parameter can't be used in a non-covariant position of "
+        name: 'NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
+        problemMessage:
+            "An extension type parameter can't be used in a non-covariant position of "
             "its representation type.",
         correctionMessage:
             "Try removing the type parameters from function parameter types and "
@@ -5380,8 +5635,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   nonExhaustiveSwitchExpression = CompileTimeErrorTemplate(
-    'NON_EXHAUSTIVE_SWITCH_EXPRESSION',
-    "The type '{0}' isn't exhaustively matched by the switch cases since it "
+    name: 'NON_EXHAUSTIVE_SWITCH_EXPRESSION',
+    problemMessage:
+        "The type '{0}' isn't exhaustively matched by the switch cases since it "
         "doesn't match the pattern '{1}'.",
     correctionMessage:
         "Try adding a wildcard pattern or cases that match '{2}'.",
@@ -5406,8 +5662,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   nonExhaustiveSwitchStatement = CompileTimeErrorTemplate(
-    'NON_EXHAUSTIVE_SWITCH_STATEMENT',
-    "The type '{0}' isn't exhaustively matched by the switch cases since it "
+    name: 'NON_EXHAUSTIVE_SWITCH_STATEMENT',
+    problemMessage:
+        "The type '{0}' isn't exhaustively matched by the switch cases since it "
         "doesn't match the pattern '{1}'.",
     correctionMessage: "Try adding a default case or cases that match '{2}'.",
     hasPublishedDocs: true,
@@ -5422,8 +5679,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonFinalFieldInEnum =
       CompileTimeErrorWithoutArguments(
-        'NON_FINAL_FIELD_IN_ENUM',
-        "Enums can only declare final fields.",
+        name: 'NON_FINAL_FIELD_IN_ENUM',
+        problemMessage: "Enums can only declare final fields.",
         correctionMessage: "Try making the field final.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -5435,8 +5692,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Element p0})
   >
   nonGenerativeConstructor = CompileTimeErrorTemplate(
-    'NON_GENERATIVE_CONSTRUCTOR',
-    "The generative constructor '{0}' is expected, but a factory was found.",
+    name: 'NON_GENERATIVE_CONSTRUCTOR',
+    problemMessage:
+        "The generative constructor '{0}' is expected, but a factory was found.",
     correctionMessage:
         "Try calling a different constructor of the superclass, or making the "
         "called constructor not be a factory constructor.",
@@ -5457,8 +5715,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   nonGenerativeImplicitConstructor = CompileTimeErrorTemplate(
-    'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
-    "The unnamed constructor of superclass '{0}' (called by the default "
+    name: 'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
+    problemMessage:
+        "The unnamed constructor of superclass '{0}' (called by the default "
         "constructor of '{1}') must be a generative constructor, but factory "
         "found.",
     correctionMessage:
@@ -5477,8 +5736,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonSyncFactory =
       CompileTimeErrorWithoutArguments(
-        'NON_SYNC_FACTORY',
-        "Factory bodies can't use 'async', 'async*', or 'sync*'.",
+        name: 'NON_SYNC_FACTORY',
+        problemMessage:
+            "Factory bodies can't use 'async', 'async*', or 'sync*'.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -5489,8 +5749,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   nonTypeAsTypeArgument = CompileTimeErrorTemplate(
-    'NON_TYPE_AS_TYPE_ARGUMENT',
-    "The name '{0}' isn't a type, so it can't be used as a type argument.",
+    name: 'NON_TYPE_AS_TYPE_ARGUMENT',
+    problemMessage:
+        "The name '{0}' isn't a type, so it can't be used as a type argument.",
     correctionMessage:
         "Try correcting the name to an existing type, or defining a type named "
         "'{0}'.",
@@ -5506,8 +5767,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   nonTypeInCatchClause = CompileTimeErrorTemplate(
-    'NON_TYPE_IN_CATCH_CLAUSE',
-    "The name '{0}' isn't a type and can't be used in an on-catch clause.",
+    name: 'NON_TYPE_IN_CATCH_CLAUSE',
+    problemMessage:
+        "The name '{0}' isn't a type and can't be used in an on-catch clause.",
     correctionMessage: "Try correcting the name to match an existing class.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNonTypeInCatchClause,
@@ -5517,8 +5779,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonVoidReturnForOperator =
       CompileTimeErrorWithoutArguments(
-        'NON_VOID_RETURN_FOR_OPERATOR',
-        "The return type of the operator []= must be 'void'.",
+        name: 'NON_VOID_RETURN_FOR_OPERATOR',
+        problemMessage: "The return type of the operator []= must be 'void'.",
         correctionMessage: "Try changing the return type to 'void'.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -5527,8 +5789,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nonVoidReturnForSetter =
       CompileTimeErrorWithoutArguments(
-        'NON_VOID_RETURN_FOR_SETTER',
-        "The return type of the setter must be 'void' or absent.",
+        name: 'NON_VOID_RETURN_FOR_SETTER',
+        problemMessage:
+            "The return type of the setter must be 'void' or absent.",
         correctionMessage:
             "Try removing the return type, or define a method rather than a "
             "setter.",
@@ -5542,8 +5805,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   notAssignedPotentiallyNonNullableLocalVariable = CompileTimeErrorTemplate(
-    'NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
-    "The non-nullable local variable '{0}' must be assigned before it can be "
+    name: 'NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
+    problemMessage:
+        "The non-nullable local variable '{0}' must be assigned before it can be "
         "used.",
     correctionMessage:
         "Try giving it an initializer expression, or ensure that it's assigned "
@@ -5559,8 +5823,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   notAType = CompileTimeErrorTemplate(
-    'NOT_A_TYPE',
-    "{0} isn't a type.",
+    name: 'NOT_A_TYPE',
+    problemMessage: "{0} isn't a type.",
     correctionMessage: "Try correcting the name to match an existing type.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNotAType,
@@ -5573,8 +5837,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   notBinaryOperator = CompileTimeErrorTemplate(
-    'NOT_BINARY_OPERATOR',
-    "'{0}' isn't a binary operator.",
+    name: 'NOT_BINARY_OPERATOR',
+    problemMessage: "'{0}' isn't a binary operator.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNotBinaryOperator,
     expectedTypes: [ExpectedType.string],
@@ -5592,8 +5856,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   notEnoughPositionalArgumentsNamePlural = CompileTimeErrorTemplate(
-    'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-    "{0} positional arguments expected by '{2}', but {1} found.",
+    name: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    problemMessage:
+        "{0} positional arguments expected by '{2}', but {1} found.",
     correctionMessage: "Try adding the missing arguments.",
     hasPublishedDocs: true,
     uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL',
@@ -5607,8 +5872,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   notEnoughPositionalArgumentsNameSingular = CompileTimeErrorTemplate(
-    'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-    "1 positional argument expected by '{0}', but 0 found.",
+    name: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    problemMessage: "1 positional argument expected by '{0}', but 0 found.",
     correctionMessage: "Try adding the missing argument.",
     hasPublishedDocs: true,
     uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR',
@@ -5623,8 +5888,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required int p0, required int p1})
   >
   notEnoughPositionalArgumentsPlural = CompileTimeErrorTemplate(
-    'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-    "{0} positional arguments expected, but {1} found.",
+    name: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    problemMessage: "{0} positional arguments expected, but {1} found.",
     correctionMessage: "Try adding the missing arguments.",
     hasPublishedDocs: true,
     uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL',
@@ -5635,8 +5900,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   notEnoughPositionalArgumentsSingular = CompileTimeErrorWithoutArguments(
-    'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-    "1 positional argument expected, but 0 found.",
+    name: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    problemMessage: "1 positional argument expected, but 0 found.",
     correctionMessage: "Try adding the missing argument.",
     hasPublishedDocs: true,
     uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR',
@@ -5649,8 +5914,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   notInitializedNonNullableInstanceField = CompileTimeErrorTemplate(
-    'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
-    "Non-nullable instance field '{0}' must be initialized.",
+    name: 'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
+    problemMessage: "Non-nullable instance field '{0}' must be initialized.",
     correctionMessage:
         "Try adding an initializer expression, or a generative constructor "
         "that initializes it, or mark it 'late'.",
@@ -5665,8 +5930,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   notInitializedNonNullableInstanceFieldConstructor = CompileTimeErrorTemplate(
-    'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
-    "Non-nullable instance field '{0}' must be initialized.",
+    name: 'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
+    problemMessage: "Non-nullable instance field '{0}' must be initialized.",
     correctionMessage:
         "Try adding an initializer expression, or add a field initializer in "
         "this constructor, or mark it 'late'.",
@@ -5683,8 +5948,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   notInitializedNonNullableVariable = CompileTimeErrorTemplate(
-    'NOT_INITIALIZED_NON_NULLABLE_VARIABLE',
-    "The non-nullable variable '{0}' must be initialized.",
+    name: 'NOT_INITIALIZED_NON_NULLABLE_VARIABLE',
+    problemMessage: "The non-nullable variable '{0}' must be initialized.",
     correctionMessage: "Try adding an initializer expression.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNotInitializedNonNullableVariable,
@@ -5694,64 +5959,68 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments notInstantiatedBound =
       CompileTimeErrorWithoutArguments(
-        'NOT_INSTANTIATED_BOUND',
-        "Type parameter bound types must be instantiated.",
+        name: 'NOT_INSTANTIATED_BOUND',
+        problemMessage: "Type parameter bound types must be instantiated.",
         correctionMessage:
             "Try adding type arguments to the type parameter bound.",
         expectedTypes: [],
       );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments notIterableSpread =
-      CompileTimeErrorWithoutArguments(
-        'NOT_ITERABLE_SPREAD',
+  static const CompileTimeErrorWithoutArguments
+  notIterableSpread = CompileTimeErrorWithoutArguments(
+    name: 'NOT_ITERABLE_SPREAD',
+    problemMessage:
         "Spread elements in list or set literals must implement 'Iterable'.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments notMapSpread =
       CompileTimeErrorWithoutArguments(
-        'NOT_MAP_SPREAD',
-        "Spread elements in map literals must implement 'Map'.",
+        name: 'NOT_MAP_SPREAD',
+        problemMessage: "Spread elements in map literals must implement 'Map'.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments notNullAwareNullSpread =
-      CompileTimeErrorWithoutArguments(
-        'NOT_NULL_AWARE_NULL_SPREAD',
+  static const CompileTimeErrorWithoutArguments
+  notNullAwareNullSpread = CompileTimeErrorWithoutArguments(
+    name: 'NOT_NULL_AWARE_NULL_SPREAD',
+    problemMessage:
         "The Null-typed expression can't be used with a non-null-aware spread.",
-        expectedTypes: [],
-      );
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nullableTypeInExtendsClause =
       CompileTimeErrorWithoutArguments(
-        'NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
-        "A class can't extend a nullable type.",
+        name: 'NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
+        problemMessage: "A class can't extend a nullable type.",
         correctionMessage: "Try removing the question mark.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments nullableTypeInImplementsClause =
-      CompileTimeErrorWithoutArguments(
-        'NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
+  static const CompileTimeErrorWithoutArguments
+  nullableTypeInImplementsClause = CompileTimeErrorWithoutArguments(
+    name: 'NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
+    problemMessage:
         "A class, mixin, or extension type can't implement a nullable type.",
-        correctionMessage: "Try removing the question mark.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+    correctionMessage: "Try removing the question mark.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nullableTypeInOnClause =
       CompileTimeErrorWithoutArguments(
-        'NULLABLE_TYPE_IN_ON_CLAUSE',
-        "A mixin can't have a nullable type as a superclass constraint.",
+        name: 'NULLABLE_TYPE_IN_ON_CLAUSE',
+        problemMessage:
+            "A mixin can't have a nullable type as a superclass constraint.",
         correctionMessage: "Try removing the question mark.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -5760,8 +6029,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments nullableTypeInWithClause =
       CompileTimeErrorWithoutArguments(
-        'NULLABLE_TYPE_IN_WITH_CLAUSE',
-        "A class or mixin can't mix in a nullable type.",
+        name: 'NULLABLE_TYPE_IN_WITH_CLAUSE',
+        problemMessage: "A class or mixin can't mix in a nullable type.",
         correctionMessage: "Try removing the question mark.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -5773,21 +6042,22 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments objectCannotExtendAnotherClass =
       CompileTimeErrorWithoutArguments(
-        'OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
-        "The class 'Object' can't extend any other class.",
+        name: 'OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
+        problemMessage: "The class 'Object' can't extend any other class.",
         expectedTypes: [],
       );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments obsoleteColonForDefaultValue =
-      CompileTimeErrorWithoutArguments(
-        'OBSOLETE_COLON_FOR_DEFAULT_VALUE',
+  static const CompileTimeErrorWithoutArguments
+  obsoleteColonForDefaultValue = CompileTimeErrorWithoutArguments(
+    name: 'OBSOLETE_COLON_FOR_DEFAULT_VALUE',
+    problemMessage:
         "Using a colon as the separator before a default value is no longer "
-            "supported.",
-        correctionMessage: "Try replacing the colon with an equal sign.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+        "supported.",
+    correctionMessage: "Try replacing the colon with an equal sign.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// Parameters:
   /// String p0: the name of the interface that is implemented more than once
@@ -5795,8 +6065,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   onRepeated = CompileTimeErrorTemplate(
-    'ON_REPEATED',
-    "The type '{0}' can be included in the superclass constraints only once.",
+    name: 'ON_REPEATED',
+    problemMessage:
+        "The type '{0}' can be included in the superclass constraints only once.",
     correctionMessage:
         "Try removing all except one occurrence of the type name.",
     hasPublishedDocs: true,
@@ -5807,8 +6078,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments optionalParameterInOperator =
       CompileTimeErrorWithoutArguments(
-        'OPTIONAL_PARAMETER_IN_OPERATOR',
-        "Optional parameters aren't allowed when defining an operator.",
+        name: 'OPTIONAL_PARAMETER_IN_OPERATOR',
+        problemMessage:
+            "Optional parameters aren't allowed when defining an operator.",
         correctionMessage: "Try removing the optional parameters.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -5822,8 +6094,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   partOfDifferentLibrary = CompileTimeErrorTemplate(
-    'PART_OF_DIFFERENT_LIBRARY',
-    "Expected this library to be part of '{0}', not '{1}'.",
+    name: 'PART_OF_DIFFERENT_LIBRARY',
+    problemMessage: "Expected this library to be part of '{0}', not '{1}'.",
     correctionMessage:
         "Try including a different part, or changing the name of the library "
         "in the part's part-of directive.",
@@ -5838,8 +6110,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   partOfNonPart = CompileTimeErrorTemplate(
-    'PART_OF_NON_PART',
-    "The included part '{0}' must have a part-of directive.",
+    name: 'PART_OF_NON_PART',
+    problemMessage: "The included part '{0}' must have a part-of directive.",
     correctionMessage: "Try adding a part-of directive to '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsPartOfNonPart,
@@ -5853,8 +6125,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   partOfUnnamedLibrary = CompileTimeErrorTemplate(
-    'PART_OF_UNNAMED_LIBRARY',
-    "The library is unnamed. A URI is expected, not a library name '{0}', in "
+    name: 'PART_OF_UNNAMED_LIBRARY',
+    problemMessage:
+        "The library is unnamed. A URI is expected, not a library name '{0}', in "
         "the part-of directive.",
     correctionMessage:
         "Try changing the part-of directive to a URI, or try including a "
@@ -5867,8 +6140,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   patternAssignmentNotLocalVariable = CompileTimeErrorWithoutArguments(
-    'PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE',
-    "Only local variables can be assigned in pattern assignments.",
+    name: 'PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE',
+    problemMessage:
+        "Only local variables can be assigned in pattern assignments.",
     correctionMessage: "Try assigning to a local variable.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -5877,8 +6151,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   patternConstantFromDeferredLibrary = CompileTimeErrorWithoutArguments(
-    'PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY',
-    "Constant values from a deferred library can't be used in patterns.",
+    name: 'PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY',
+    problemMessage:
+        "Constant values from a deferred library can't be used in patterns.",
     correctionMessage: "Try removing the keyword 'deferred' from the import.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -5891,8 +6166,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   patternTypeMismatchInIrrefutableContext = CompileTimeErrorTemplate(
-    'PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT',
-    "The matched value of type '{0}' isn't assignable to the required type "
+    name: 'PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT',
+    problemMessage:
+        "The matched value of type '{0}' isn't assignable to the required type "
         "'{1}'.",
     correctionMessage:
         "Try changing the required type of the pattern, or the matched value "
@@ -5905,8 +6181,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   patternVariableAssignmentInsideGuard = CompileTimeErrorWithoutArguments(
-    'PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD',
-    "Pattern variables can't be assigned inside the guard of the enclosing "
+    name: 'PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD',
+    problemMessage:
+        "Pattern variables can't be assigned inside the guard of the enclosing "
         "guarded pattern.",
     correctionMessage: "Try assigning to a different variable.",
     hasPublishedDocs: true,
@@ -5919,8 +6196,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   patternVariableSharedCaseScopeDifferentFinalityOrType = CompileTimeErrorTemplate(
-    'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
-    "The variable '{0}' doesn't have the same type and/or finality in all "
+    name: 'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
+    problemMessage:
+        "The variable '{0}' doesn't have the same type and/or finality in all "
         "cases that share this body.",
     correctionMessage:
         "Try declaring the variable pattern with the same type and finality in "
@@ -5938,8 +6216,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   patternVariableSharedCaseScopeHasLabel = CompileTimeErrorTemplate(
-    'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
-    "The variable '{0}' is not available because there is a label or 'default' "
+    name: 'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
+    problemMessage:
+        "The variable '{0}' is not available because there is a label or 'default' "
         "case.",
     correctionMessage:
         "Try removing the label, or providing the 'default' case with its own "
@@ -5956,8 +6235,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   patternVariableSharedCaseScopeNotAllCases = CompileTimeErrorTemplate(
-    'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
-    "The variable '{0}' is available in some, but not all cases that share "
+    name: 'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
+    problemMessage:
+        "The variable '{0}' is available in some, but not all cases that share "
         "this body.",
     correctionMessage:
         "Try declaring the variable pattern with the same type and finality in "
@@ -5971,8 +6251,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments positionalFieldInObjectPattern =
       CompileTimeErrorWithoutArguments(
-        'POSITIONAL_FIELD_IN_OBJECT_PATTERN',
-        "Object patterns can only use named fields.",
+        name: 'POSITIONAL_FIELD_IN_OBJECT_PATTERN',
+        problemMessage: "Object patterns can only use named fields.",
         correctionMessage: "Try specifying the field name.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -5982,8 +6262,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   positionalSuperFormalParameterWithPositionalArgument =
       CompileTimeErrorWithoutArguments(
-        'POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
-        "Positional super parameters can't be used when the super constructor "
+        name: 'POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
+        problemMessage:
+            "Positional super parameters can't be used when the super constructor "
             "invocation has a positional argument.",
         correctionMessage:
             "Try making all the positional parameters passed to the super "
@@ -5998,8 +6279,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   prefixCollidesWithTopLevelMember = CompileTimeErrorTemplate(
-    'PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
-    "The name '{0}' is already used as an import prefix and can't be used to "
+    name: 'PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
+    problemMessage:
+        "The name '{0}' is already used as an import prefix and can't be used to "
         "name a top-level element.",
     correctionMessage:
         "Try renaming either the top-level element or the prefix.",
@@ -6014,8 +6296,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   prefixIdentifierNotFollowedByDot = CompileTimeErrorTemplate(
-    'PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
-    "The name '{0}' refers to an import prefix, so it must be followed by '.'.",
+    name: 'PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
+    problemMessage:
+        "The name '{0}' refers to an import prefix, so it must be followed by '.'.",
     correctionMessage:
         "Try correcting the name to refer to something other than a prefix, or "
         "renaming the prefix.",
@@ -6030,8 +6313,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   prefixShadowedByLocalDeclaration = CompileTimeErrorTemplate(
-    'PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
-    "The prefix '{0}' can't be used here because it's shadowed by a local "
+    name: 'PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
+    problemMessage:
+        "The prefix '{0}' can't be used here because it's shadowed by a local "
         "declaration.",
     correctionMessage:
         "Try renaming either the prefix or the local declaration.",
@@ -6052,8 +6336,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   privateCollisionInMixinApplication = CompileTimeErrorTemplate(
-    'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
-    "The private name '{0}', defined by '{1}', conflicts with the same name "
+    name: 'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
+    problemMessage:
+        "The private name '{0}', defined by '{1}', conflicts with the same name "
         "defined by '{2}'.",
     correctionMessage: "Try removing '{1}' from the 'with' clause.",
     hasPublishedDocs: true,
@@ -6071,8 +6356,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   privateSetter = CompileTimeErrorTemplate(
-    'PRIVATE_SETTER',
-    "The setter '{0}' is private and can't be accessed outside the library "
+    name: 'PRIVATE_SETTER',
+    problemMessage:
+        "The setter '{0}' is private and can't be accessed outside the library "
         "that declares it.",
     correctionMessage: "Try making it public.",
     hasPublishedDocs: true,
@@ -6086,8 +6372,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   readPotentiallyUnassignedFinal = CompileTimeErrorTemplate(
-    'READ_POTENTIALLY_UNASSIGNED_FINAL',
-    "The final variable '{0}' can't be read because it's potentially "
+    name: 'READ_POTENTIALLY_UNASSIGNED_FINAL',
+    problemMessage:
+        "The final variable '{0}' can't be read because it's potentially "
         "unassigned at this point.",
     correctionMessage:
         "Ensure that it is assigned on necessary execution paths.",
@@ -6105,8 +6392,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   recordLiteralOnePositionalNoTrailingCommaByType =
       CompileTimeErrorWithoutArguments(
-        'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
-        "A record literal with exactly one positional field requires a trailing "
+        name: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+        problemMessage:
+            "A record literal with exactly one positional field requires a trailing "
             "comma.",
         correctionMessage: "Try adding a trailing comma.",
         hasPublishedDocs: true,
@@ -6117,8 +6405,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments recursiveCompileTimeConstant =
       CompileTimeErrorWithoutArguments(
-        'RECURSIVE_COMPILE_TIME_CONSTANT',
-        "The compile-time constant expression depends on itself.",
+        name: 'RECURSIVE_COMPILE_TIME_CONSTANT',
+        problemMessage:
+            "The compile-time constant expression depends on itself.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -6126,8 +6415,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments recursiveConstantConstructor =
       CompileTimeErrorWithoutArguments(
-        'RECURSIVE_CONSTANT_CONSTRUCTOR',
-        "The constant constructor depends on itself.",
+        name: 'RECURSIVE_CONSTANT_CONSTRUCTOR',
+        problemMessage: "The constant constructor depends on itself.",
         expectedTypes: [],
       );
 
@@ -6140,8 +6429,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   recursiveConstructorRedirect = CompileTimeErrorWithoutArguments(
-    'RECURSIVE_CONSTRUCTOR_REDIRECT',
-    "Constructors can't redirect to themselves either directly or indirectly.",
+    name: 'RECURSIVE_CONSTRUCTOR_REDIRECT',
+    problemMessage:
+        "Constructors can't redirect to themselves either directly or indirectly.",
     correctionMessage:
         "Try changing one of the constructors in the loop to not redirect.",
     hasPublishedDocs: true,
@@ -6151,8 +6441,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   recursiveFactoryRedirect = CompileTimeErrorWithoutArguments(
-    'RECURSIVE_CONSTRUCTOR_REDIRECT',
-    "Constructors can't redirect to themselves either directly or indirectly.",
+    name: 'RECURSIVE_CONSTRUCTOR_REDIRECT',
+    problemMessage:
+        "Constructors can't redirect to themselves either directly or indirectly.",
     correctionMessage:
         "Try changing one of the constructors in the loop to not redirect.",
     hasPublishedDocs: true,
@@ -6167,8 +6458,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   recursiveInterfaceInheritance = CompileTimeErrorTemplate(
-    'RECURSIVE_INTERFACE_INHERITANCE',
-    "'{0}' can't be a superinterface of itself: {1}.",
+    name: 'RECURSIVE_INTERFACE_INHERITANCE',
+    problemMessage: "'{0}' can't be a superinterface of itself: {1}.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsRecursiveInterfaceInheritance,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -6189,8 +6480,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   recursiveInterfaceInheritanceExtends = CompileTimeErrorTemplate(
-    'RECURSIVE_INTERFACE_INHERITANCE',
-    "'{0}' can't extend itself.",
+    name: 'RECURSIVE_INTERFACE_INHERITANCE',
+    problemMessage: "'{0}' can't extend itself.",
     hasPublishedDocs: true,
     uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_EXTENDS',
     withArguments: _withArgumentsRecursiveInterfaceInheritanceExtends,
@@ -6212,8 +6503,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   recursiveInterfaceInheritanceImplements = CompileTimeErrorTemplate(
-    'RECURSIVE_INTERFACE_INHERITANCE',
-    "'{0}' can't implement itself.",
+    name: 'RECURSIVE_INTERFACE_INHERITANCE',
+    problemMessage: "'{0}' can't implement itself.",
     hasPublishedDocs: true,
     uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS',
     withArguments: _withArgumentsRecursiveInterfaceInheritanceImplements,
@@ -6226,8 +6517,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   recursiveInterfaceInheritanceOn = CompileTimeErrorTemplate(
-    'RECURSIVE_INTERFACE_INHERITANCE',
-    "'{0}' can't use itself as a superclass constraint.",
+    name: 'RECURSIVE_INTERFACE_INHERITANCE',
+    problemMessage: "'{0}' can't use itself as a superclass constraint.",
     hasPublishedDocs: true,
     uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_ON',
     withArguments: _withArgumentsRecursiveInterfaceInheritanceOn,
@@ -6249,8 +6540,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   recursiveInterfaceInheritanceWith = CompileTimeErrorTemplate(
-    'RECURSIVE_INTERFACE_INHERITANCE',
-    "'{0}' can't use itself as a mixin.",
+    name: 'RECURSIVE_INTERFACE_INHERITANCE',
+    problemMessage: "'{0}' can't use itself as a mixin.",
     hasPublishedDocs: true,
     uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_WITH',
     withArguments: _withArgumentsRecursiveInterfaceInheritanceWith,
@@ -6264,8 +6555,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   redirectGenerativeToMissingConstructor = CompileTimeErrorTemplate(
-    'REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
-    "The constructor '{0}' couldn't be found in '{1}'.",
+    name: 'REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
+    problemMessage: "The constructor '{0}' couldn't be found in '{1}'.",
     correctionMessage:
         "Try redirecting to a different constructor, or defining the "
         "constructor named '{0}'.",
@@ -6278,8 +6569,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   redirectGenerativeToNonGenerativeConstructor =
       CompileTimeErrorWithoutArguments(
-        'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
-        "Generative constructors can't redirect to a factory constructor.",
+        name: 'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
+        problemMessage:
+            "Generative constructors can't redirect to a factory constructor.",
         correctionMessage: "Try redirecting to a different constructor.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -6293,8 +6585,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   redirectToAbstractClassConstructor = CompileTimeErrorTemplate(
-    'REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
-    "The redirecting constructor '{0}' can't redirect to a constructor of the "
+    name: 'REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
+    problemMessage:
+        "The redirecting constructor '{0}' can't redirect to a constructor of the "
         "abstract class '{1}'.",
     correctionMessage: "Try redirecting to a constructor of a different class.",
     hasPublishedDocs: true,
@@ -6309,8 +6602,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   redirectToInvalidFunctionType = CompileTimeErrorTemplate(
-    'REDIRECT_TO_INVALID_FUNCTION_TYPE',
-    "The redirected constructor '{0}' has incompatible parameters with '{1}'.",
+    name: 'REDIRECT_TO_INVALID_FUNCTION_TYPE',
+    problemMessage:
+        "The redirected constructor '{0}' has incompatible parameters with '{1}'.",
     correctionMessage: "Try redirecting to a different constructor.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsRedirectToInvalidFunctionType,
@@ -6324,8 +6618,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   redirectToInvalidReturnType = CompileTimeErrorTemplate(
-    'REDIRECT_TO_INVALID_RETURN_TYPE',
-    "The return type '{0}' of the redirected constructor isn't a subtype of "
+    name: 'REDIRECT_TO_INVALID_RETURN_TYPE',
+    problemMessage:
+        "The return type '{0}' of the redirected constructor isn't a subtype of "
         "'{1}'.",
     correctionMessage: "Try redirecting to a different constructor.",
     hasPublishedDocs: true,
@@ -6340,8 +6635,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
   redirectToMissingConstructor = CompileTimeErrorTemplate(
-    'REDIRECT_TO_MISSING_CONSTRUCTOR',
-    "The constructor '{0}' couldn't be found in '{1}'.",
+    name: 'REDIRECT_TO_MISSING_CONSTRUCTOR',
+    problemMessage: "The constructor '{0}' couldn't be found in '{1}'.",
     correctionMessage:
         "Try redirecting to a different constructor, or define the constructor "
         "named '{0}'.",
@@ -6356,8 +6651,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   redirectToNonClass = CompileTimeErrorTemplate(
-    'REDIRECT_TO_NON_CLASS',
-    "The name '{0}' isn't a type and can't be used in a redirected "
+    name: 'REDIRECT_TO_NON_CLASS',
+    problemMessage:
+        "The name '{0}' isn't a type and can't be used in a redirected "
         "constructor.",
     correctionMessage: "Try redirecting to a different constructor.",
     hasPublishedDocs: true,
@@ -6366,21 +6662,23 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const CompileTimeErrorWithoutArguments redirectToNonConstConstructor =
-      CompileTimeErrorWithoutArguments(
-        'REDIRECT_TO_NON_CONST_CONSTRUCTOR',
+  static const CompileTimeErrorWithoutArguments
+  redirectToNonConstConstructor = CompileTimeErrorWithoutArguments(
+    name: 'REDIRECT_TO_NON_CONST_CONSTRUCTOR',
+    problemMessage:
         "A constant redirecting constructor can't redirect to a non-constant "
-            "constructor.",
-        correctionMessage: "Try redirecting to a different constructor.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+        "constructor.",
+    correctionMessage: "Try redirecting to a different constructor.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   redirectToTypeAliasExpandsToTypeParameter = CompileTimeErrorWithoutArguments(
-    'REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-    "A redirecting constructor can't redirect to a type alias that expands to "
+    name: 'REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+    problemMessage:
+        "A redirecting constructor can't redirect to a type alias that expands to "
         "a type parameter.",
     correctionMessage: "Try replacing it with a class.",
     hasPublishedDocs: true,
@@ -6393,8 +6691,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   referencedBeforeDeclaration = CompileTimeErrorTemplate(
-    'REFERENCED_BEFORE_DECLARATION',
-    "Local variable '{0}' can't be referenced before it is declared.",
+    name: 'REFERENCED_BEFORE_DECLARATION',
+    problemMessage:
+        "Local variable '{0}' can't be referenced before it is declared.",
     correctionMessage:
         "Try moving the declaration to before the first use, or renaming the "
         "local variable so that it doesn't hide a name from an enclosing "
@@ -6407,8 +6706,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   refutablePatternInIrrefutableContext = CompileTimeErrorWithoutArguments(
-    'REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT',
-    "Refutable patterns can't be used in an irrefutable context.",
+    name: 'REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT',
+    problemMessage:
+        "Refutable patterns can't be used in an irrefutable context.",
     correctionMessage:
         "Try using an if-case, a 'switch' statement, or a 'switch' expression "
         "instead.",
@@ -6428,8 +6728,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   relationalPatternOperandTypeNotAssignable = CompileTimeErrorTemplate(
-    'RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE',
-    "The constant expression type '{0}' is not assignable to the parameter "
+    name: 'RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE',
+    problemMessage:
+        "The constant expression type '{0}' is not assignable to the parameter "
         "type '{1}' of the '{2}' operator.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsRelationalPatternOperandTypeNotAssignable,
@@ -6440,8 +6741,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   relationalPatternOperatorReturnTypeNotAssignableToBool =
       CompileTimeErrorWithoutArguments(
-        'RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL',
-        "The return type of operators used in relational patterns must be "
+        name: 'RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL',
+        problemMessage:
+            "The return type of operators used in relational patterns must be "
             "assignable to 'bool'.",
         correctionMessage:
             "Try updating the operator declaration to return 'bool'.",
@@ -6452,8 +6754,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments restElementInMapPattern =
       CompileTimeErrorWithoutArguments(
-        'REST_ELEMENT_IN_MAP_PATTERN',
-        "A map pattern can't contain a rest pattern.",
+        name: 'REST_ELEMENT_IN_MAP_PATTERN',
+        problemMessage: "A map pattern can't contain a rest pattern.",
         correctionMessage: "Try removing the rest pattern.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -6462,8 +6764,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments rethrowOutsideCatch =
       CompileTimeErrorWithoutArguments(
-        'RETHROW_OUTSIDE_CATCH',
-        "A rethrow must be inside of a catch clause.",
+        name: 'RETHROW_OUTSIDE_CATCH',
+        problemMessage: "A rethrow must be inside of a catch clause.",
         correctionMessage:
             "Try moving the expression into a catch clause, or using a 'throw' "
             "expression.",
@@ -6474,8 +6776,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments returnInGenerativeConstructor =
       CompileTimeErrorWithoutArguments(
-        'RETURN_IN_GENERATIVE_CONSTRUCTOR',
-        "Constructors can't return values.",
+        name: 'RETURN_IN_GENERATIVE_CONSTRUCTOR',
+        problemMessage: "Constructors can't return values.",
         correctionMessage:
             "Try removing the return statement or using a factory constructor.",
         hasPublishedDocs: true,
@@ -6485,8 +6787,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   returnInGenerator = CompileTimeErrorWithoutArguments(
-    'RETURN_IN_GENERATOR',
-    "Can't return a value from a generator function that uses the 'async*' or "
+    name: 'RETURN_IN_GENERATOR',
+    problemMessage:
+        "Can't return a value from a generator function that uses the 'async*' or "
         "'sync*' modifier.",
     correctionMessage:
         "Try replacing 'return' with 'yield', using a block function body, or "
@@ -6502,8 +6805,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   returnOfInvalidTypeFromClosure = CompileTimeErrorTemplate(
-    'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
-    "The returned type '{0}' isn't returnable from a '{1}' function, as "
+    name: 'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
+    problemMessage:
+        "The returned type '{0}' isn't returnable from a '{1}' function, as "
         "required by the closure's context.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsReturnOfInvalidTypeFromClosure,
@@ -6522,8 +6826,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   returnOfInvalidTypeFromConstructor = CompileTimeErrorTemplate(
-    'RETURN_OF_INVALID_TYPE',
-    "A value of type '{0}' can't be returned from the constructor '{2}' "
+    name: 'RETURN_OF_INVALID_TYPE',
+    problemMessage:
+        "A value of type '{0}' can't be returned from the constructor '{2}' "
         "because it has a return type of '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
@@ -6543,8 +6848,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   returnOfInvalidTypeFromFunction = CompileTimeErrorTemplate(
-    'RETURN_OF_INVALID_TYPE',
-    "A value of type '{0}' can't be returned from the function '{2}' because "
+    name: 'RETURN_OF_INVALID_TYPE',
+    problemMessage:
+        "A value of type '{0}' can't be returned from the function '{2}' because "
         "it has a return type of '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
@@ -6564,8 +6870,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   returnOfInvalidTypeFromMethod = CompileTimeErrorTemplate(
-    'RETURN_OF_INVALID_TYPE',
-    "A value of type '{0}' can't be returned from the method '{2}' because it "
+    name: 'RETURN_OF_INVALID_TYPE',
+    problemMessage:
+        "A value of type '{0}' can't be returned from the method '{2}' because it "
         "has a return type of '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_METHOD',
@@ -6576,8 +6883,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments returnWithoutValue =
       CompileTimeErrorWithoutArguments(
-        'RETURN_WITHOUT_VALUE',
-        "The return value is missing after 'return'.",
+        name: 'RETURN_WITHOUT_VALUE',
+        problemMessage: "The return value is missing after 'return'.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -6589,8 +6896,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   sealedClassSubtypeOutsideOfLibrary = CompileTimeErrorTemplate(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The class '{0}' can't be extended, implemented, or mixed in outside of "
+    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    problemMessage:
+        "The class '{0}' can't be extended, implemented, or mixed in outside of "
         "its library because it's a sealed class.",
     hasPublishedDocs: true,
     uniqueName: 'SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY',
@@ -6601,8 +6909,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   setElementFromDeferredLibrary = CompileTimeErrorWithoutArguments(
-    'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
-    "Constant values from a deferred library can't be used as values in a "
+    name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
+    problemMessage:
+        "Constant values from a deferred library can't be used as values in a "
         "'const' set literal.",
     correctionMessage:
         "Try removing the keyword 'const' from the set literal or removing the "
@@ -6619,8 +6928,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   setElementTypeNotAssignable = CompileTimeErrorTemplate(
-    'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
-    "The element type '{0}' can't be assigned to the set type '{1}'.",
+    name: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
+    problemMessage:
+        "The element type '{0}' can't be assigned to the set type '{1}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsSetElementTypeNotAssignable,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
@@ -6633,8 +6943,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   setElementTypeNotAssignableNullability = CompileTimeErrorTemplate(
-    'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
-    "The element type '{0}' can't be assigned to the set type '{1}'.",
+    name: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
+    problemMessage:
+        "The element type '{0}' can't be assigned to the set type '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
     withArguments: _withArgumentsSetElementTypeNotAssignableNullability,
@@ -6644,8 +6955,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   sharedDeferredPrefix = CompileTimeErrorWithoutArguments(
-    'SHARED_DEFERRED_PREFIX',
-    "The prefix of a deferred import can't be used in other import directives.",
+    name: 'SHARED_DEFERRED_PREFIX',
+    problemMessage:
+        "The prefix of a deferred import can't be used in other import directives.",
     correctionMessage: "Try renaming one of the prefixes.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -6654,8 +6966,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   spreadExpressionFromDeferredLibrary = CompileTimeErrorWithoutArguments(
-    'SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
-    "Constant values from a deferred library can't be spread into a const "
+    name: 'SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
+    problemMessage:
+        "Constant values from a deferred library can't be spread into a const "
         "literal.",
     correctionMessage: "Try making the deferred import non-deferred.",
     expectedTypes: [],
@@ -6667,8 +6980,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   staticAccessToInstanceMember = CompileTimeErrorTemplate(
-    'STATIC_ACCESS_TO_INSTANCE_MEMBER',
-    "Instance member '{0}' can't be accessed using static access.",
+    name: 'STATIC_ACCESS_TO_INSTANCE_MEMBER',
+    problemMessage:
+        "Instance member '{0}' can't be accessed using static access.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsStaticAccessToInstanceMember,
     expectedTypes: [ExpectedType.string],
@@ -6682,8 +6996,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   subtypeOfBaseIsNotBaseFinalOrSealed = CompileTimeErrorTemplate(
-    'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
-    "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype "
+    name: 'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+    problemMessage:
+        "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype "
         "'{1}' is 'base'.",
     hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED',
@@ -6699,8 +7014,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   subtypeOfFinalIsNotBaseFinalOrSealed = CompileTimeErrorTemplate(
-    'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
-    "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype "
+    name: 'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+    problemMessage:
+        "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype "
         "'{1}' is 'final'.",
     hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
@@ -6715,8 +7031,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   superFormalParameterTypeIsNotSubtypeOfAssociated = CompileTimeErrorTemplate(
-    'SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
-    "The type '{0}' of this parameter isn't a subtype of the type '{1}' of the "
+    name: 'SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
+    problemMessage:
+        "The type '{0}' of this parameter isn't a subtype of the type '{1}' of the "
         "associated super constructor parameter.",
     correctionMessage:
         "Try removing the explicit type annotation from the parameter.",
@@ -6729,8 +7046,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   superFormalParameterWithoutAssociatedNamed = CompileTimeErrorWithoutArguments(
-    'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
-    "No associated named super constructor parameter.",
+    name: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
+    problemMessage: "No associated named super constructor parameter.",
     correctionMessage:
         "Try changing the name to the name of an existing named super "
         "constructor parameter, or creating such named parameter.",
@@ -6742,8 +7059,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   superFormalParameterWithoutAssociatedPositional =
       CompileTimeErrorWithoutArguments(
-        'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
-        "No associated positional super constructor parameter.",
+        name: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
+        problemMessage: "No associated positional super constructor parameter.",
         correctionMessage:
             "Try using a normal parameter, or adding more positional parameters to "
             "the super constructor.",
@@ -6754,8 +7071,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments superInEnumConstructor =
       CompileTimeErrorWithoutArguments(
-        'SUPER_IN_ENUM_CONSTRUCTOR',
-        "The enum constructor can't have a 'super' initializer.",
+        name: 'SUPER_IN_ENUM_CONSTRUCTOR',
+        problemMessage:
+            "The enum constructor can't have a 'super' initializer.",
         correctionMessage: "Try removing the 'super' invocation.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -6764,8 +7082,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   superInExtension = CompileTimeErrorWithoutArguments(
-    'SUPER_IN_EXTENSION',
-    "The 'super' keyword can't be used in an extension because an extension "
+    name: 'SUPER_IN_EXTENSION',
+    problemMessage:
+        "The 'super' keyword can't be used in an extension because an extension "
         "doesn't have a superclass.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -6774,8 +7093,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments superInExtensionType =
       CompileTimeErrorWithoutArguments(
-        'SUPER_IN_EXTENSION_TYPE',
-        "The 'super' keyword can't be used in an extension type because an "
+        name: 'SUPER_IN_EXTENSION_TYPE',
+        problemMessage:
+            "The 'super' keyword can't be used in an extension type because an "
             "extension type doesn't have a superclass.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -6784,8 +7104,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments superInInvalidContext =
       CompileTimeErrorWithoutArguments(
-        'SUPER_IN_INVALID_CONTEXT',
-        "Invalid context for 'super' invocation.",
+        name: 'SUPER_IN_INVALID_CONTEXT',
+        problemMessage: "Invalid context for 'super' invocation.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -6797,16 +7117,18 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments superInitializerInObject =
       CompileTimeErrorWithoutArguments(
-        'SUPER_INITIALIZER_IN_OBJECT',
-        "The class 'Object' can't invoke a constructor from a superclass.",
+        name: 'SUPER_INITIALIZER_IN_OBJECT',
+        problemMessage:
+            "The class 'Object' can't invoke a constructor from a superclass.",
         expectedTypes: [],
       );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments superInRedirectingConstructor =
       CompileTimeErrorWithoutArguments(
-        'SUPER_IN_REDIRECTING_CONSTRUCTOR',
-        "The redirecting constructor can't have a 'super' initializer.",
+        name: 'SUPER_IN_REDIRECTING_CONSTRUCTOR',
+        problemMessage:
+            "The redirecting constructor can't have a 'super' initializer.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -6817,8 +7139,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   superInvocationNotLast = CompileTimeErrorTemplate(
-    'SUPER_INVOCATION_NOT_LAST',
-    "The superconstructor call must be last in an initializer list: '{0}'.",
+    name: 'SUPER_INVOCATION_NOT_LAST',
+    problemMessage:
+        "The superconstructor call must be last in an initializer list: '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsSuperInvocationNotLast,
     expectedTypes: [ExpectedType.string],
@@ -6827,8 +7150,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments switchCaseCompletesNormally =
       CompileTimeErrorWithoutArguments(
-        'SWITCH_CASE_COMPLETES_NORMALLY',
-        "The 'case' shouldn't complete normally.",
+        name: 'SWITCH_CASE_COMPLETES_NORMALLY',
+        problemMessage: "The 'case' shouldn't complete normally.",
         correctionMessage: "Try adding 'break', 'return', or 'throw'.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -6838,8 +7161,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   tearoffOfGenerativeConstructorOfAbstractClass =
       CompileTimeErrorWithoutArguments(
-        'TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
-        "A generative constructor of an abstract class can't be torn off.",
+        name: 'TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
+        problemMessage:
+            "A generative constructor of an abstract class can't be torn off.",
         correctionMessage:
             "Try tearing off a constructor of a concrete class, or a "
             "non-generative constructor.",
@@ -6853,8 +7177,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   throwOfInvalidType = CompileTimeErrorTemplate(
-    'THROW_OF_INVALID_TYPE',
-    "The type '{0}' of the thrown expression must be assignable to 'Object'.",
+    name: 'THROW_OF_INVALID_TYPE',
+    problemMessage:
+        "The type '{0}' of the thrown expression must be assignable to 'Object'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsThrowOfInvalidType,
     expectedTypes: [ExpectedType.type],
@@ -6867,8 +7192,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   topLevelCycle = CompileTimeErrorTemplate(
-    'TOP_LEVEL_CYCLE',
-    "The type of '{0}' can't be inferred because it depends on itself through "
+    name: 'TOP_LEVEL_CYCLE',
+    problemMessage:
+        "The type of '{0}' can't be inferred because it depends on itself through "
         "the cycle: {1}.",
     correctionMessage:
         "Try adding an explicit type to one or more of the variables in the "
@@ -6881,8 +7207,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   typeAliasCannotReferenceItself = CompileTimeErrorWithoutArguments(
-    'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
-    "Typedefs can't reference themselves directly or recursively via another "
+    name: 'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
+    problemMessage:
+        "Typedefs can't reference themselves directly or recursively via another "
         "typedef.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -6895,8 +7222,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   typeAnnotationDeferredClass = CompileTimeErrorTemplate(
-    'TYPE_ANNOTATION_DEFERRED_CLASS',
-    "The deferred type '{0}' can't be used in a declaration, cast, or type "
+    name: 'TYPE_ANNOTATION_DEFERRED_CLASS',
+    problemMessage:
+        "The deferred type '{0}' can't be used in a declaration, cast, or type "
         "test.",
     correctionMessage:
         "Try using a different type, or changing the import to not be "
@@ -6919,8 +7247,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   typeArgumentNotMatchingBounds = CompileTimeErrorTemplate(
-    'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS',
-    "'{0}' doesn't conform to the bound '{2}' of the type parameter '{1}'.",
+    name: 'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS',
+    problemMessage:
+        "'{0}' doesn't conform to the bound '{2}' of the type parameter '{1}'.",
     correctionMessage: "Try using a type that is or is a subclass of '{2}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsTypeArgumentNotMatchingBounds,
@@ -6930,8 +7259,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   typeParameterReferencedByStatic = CompileTimeErrorWithoutArguments(
-    'TYPE_PARAMETER_REFERENCED_BY_STATIC',
-    "Static members can't reference type parameters of the class.",
+    name: 'TYPE_PARAMETER_REFERENCED_BY_STATIC',
+    problemMessage:
+        "Static members can't reference type parameters of the class.",
     correctionMessage:
         "Try removing the reference to the type parameter, or making the "
         "member an instance member.",
@@ -6948,8 +7278,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
   typeParameterSupertypeOfItsBound = CompileTimeErrorTemplate(
-    'TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
-    "'{0}' can't be a supertype of its upper bound.",
+    name: 'TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
+    problemMessage: "'{0}' can't be a supertype of its upper bound.",
     correctionMessage:
         "Try using a type that is the same as or a subclass of '{1}'.",
     hasPublishedDocs: true,
@@ -6963,8 +7293,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   typeTestWithNonType = CompileTimeErrorTemplate(
-    'TYPE_TEST_WITH_NON_TYPE',
-    "The name '{0}' isn't a type and can't be used in an 'is' expression.",
+    name: 'TYPE_TEST_WITH_NON_TYPE',
+    problemMessage:
+        "The name '{0}' isn't a type and can't be used in an 'is' expression.",
     correctionMessage: "Try correcting the name to match an existing type.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsTypeTestWithNonType,
@@ -6977,8 +7308,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   typeTestWithUndefinedName = CompileTimeErrorTemplate(
-    'TYPE_TEST_WITH_UNDEFINED_NAME',
-    "The name '{0}' isn't defined, so it can't be used in an 'is' expression.",
+    name: 'TYPE_TEST_WITH_UNDEFINED_NAME',
+    problemMessage:
+        "The name '{0}' isn't defined, so it can't be used in an 'is' expression.",
     correctionMessage:
         "Try changing the name to the name of an existing type, or creating a "
         "type with the name '{0}'.",
@@ -6990,8 +7322,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   uncheckedInvocationOfNullableValue = CompileTimeErrorWithoutArguments(
-    'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    "The function can't be unconditionally invoked because it can be 'null'.",
+    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+    problemMessage:
+        "The function can't be unconditionally invoked because it can be 'null'.",
     correctionMessage: "Try adding a null check ('!').",
     hasPublishedDocs: true,
     uniqueName: 'UNCHECKED_INVOCATION_OF_NULLABLE_VALUE',
@@ -7004,8 +7337,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   uncheckedMethodInvocationOfNullableValue = CompileTimeErrorTemplate(
-    'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    "The method '{0}' can't be unconditionally invoked because the receiver "
+    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+    problemMessage:
+        "The method '{0}' can't be unconditionally invoked because the receiver "
         "can be 'null'.",
     correctionMessage:
         "Try making the call conditional (using '?.') or adding a null check "
@@ -7022,8 +7356,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   uncheckedOperatorInvocationOfNullableValue = CompileTimeErrorTemplate(
-    'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    "The operator '{0}' can't be unconditionally invoked because the receiver "
+    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+    problemMessage:
+        "The operator '{0}' can't be unconditionally invoked because the receiver "
         "can be 'null'.",
     correctionMessage: "Try adding a null check to the target ('!').",
     hasPublishedDocs: true,
@@ -7038,8 +7373,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   uncheckedPropertyAccessOfNullableValue = CompileTimeErrorTemplate(
-    'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    "The property '{0}' can't be unconditionally accessed because the receiver "
+    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+    problemMessage:
+        "The property '{0}' can't be unconditionally accessed because the receiver "
         "can be 'null'.",
     correctionMessage:
         "Try making the access conditional (using '?.') or adding a null check "
@@ -7053,8 +7389,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   uncheckedUseOfNullableValueAsCondition = CompileTimeErrorWithoutArguments(
-    'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    "A nullable expression can't be used as a condition.",
+    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+    problemMessage: "A nullable expression can't be used as a condition.",
     correctionMessage:
         "Try checking that the value isn't 'null' before using it as a "
         "condition.",
@@ -7066,8 +7402,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   uncheckedUseOfNullableValueAsIterator = CompileTimeErrorWithoutArguments(
-    'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    "A nullable expression can't be used as an iterator in a for-in loop.",
+    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+    problemMessage:
+        "A nullable expression can't be used as an iterator in a for-in loop.",
     correctionMessage:
         "Try checking that the value isn't 'null' before using it as an "
         "iterator.",
@@ -7079,8 +7416,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   uncheckedUseOfNullableValueInSpread = CompileTimeErrorWithoutArguments(
-    'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    "A nullable expression can't be used in a spread.",
+    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+    problemMessage: "A nullable expression can't be used in a spread.",
     correctionMessage:
         "Try checking that the value isn't 'null' before using it in a spread, "
         "or use a null-aware spread.",
@@ -7092,8 +7429,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   uncheckedUseOfNullableValueInYieldEach = CompileTimeErrorWithoutArguments(
-    'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    "A nullable expression can't be used in a yield-each statement.",
+    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+    problemMessage:
+        "A nullable expression can't be used in a yield-each statement.",
     correctionMessage:
         "Try checking that the value isn't 'null' before using it in a "
         "yield-each statement.",
@@ -7108,8 +7446,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   undefinedAnnotation = CompileTimeErrorTemplate(
-    'UNDEFINED_ANNOTATION',
-    "Undefined name '{0}' used as an annotation.",
+    name: 'UNDEFINED_ANNOTATION',
+    problemMessage: "Undefined name '{0}' used as an annotation.",
     correctionMessage:
         "Try defining the name or importing it from another library.",
     hasPublishedDocs: true,
@@ -7124,8 +7462,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   undefinedClass = CompileTimeErrorTemplate(
-    'UNDEFINED_CLASS',
-    "Undefined class '{0}'.",
+    name: 'UNDEFINED_CLASS',
+    problemMessage: "Undefined class '{0}'.",
     correctionMessage:
         "Try changing the name to the name of an existing class, or creating a "
         "class with the name '{0}'.",
@@ -7144,8 +7482,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   undefinedClassBoolean = CompileTimeErrorTemplate(
-    'UNDEFINED_CLASS',
-    "Undefined class '{0}'.",
+    name: 'UNDEFINED_CLASS',
+    problemMessage: "Undefined class '{0}'.",
     correctionMessage: "Try using the type 'bool'.",
     hasPublishedDocs: true,
     isUnresolvedIdentifier: true,
@@ -7162,8 +7500,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required String p1})
   >
   undefinedConstructorInInitializer = CompileTimeErrorTemplate(
-    'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
-    "The class '{0}' doesn't have a constructor named '{1}'.",
+    name: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
+    problemMessage: "The class '{0}' doesn't have a constructor named '{1}'.",
     correctionMessage:
         "Try defining a constructor named '{1}' in '{0}', or invoking a "
         "different constructor.",
@@ -7179,8 +7517,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   undefinedConstructorInInitializerDefault = CompileTimeErrorTemplate(
-    'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
-    "The class '{0}' doesn't have an unnamed constructor.",
+    name: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
+    problemMessage: "The class '{0}' doesn't have an unnamed constructor.",
     correctionMessage:
         "Try defining an unnamed constructor in '{0}', or invoking a different "
         "constructor.",
@@ -7197,8 +7535,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   undefinedEnumConstant = CompileTimeErrorTemplate(
-    'UNDEFINED_ENUM_CONSTANT',
-    "There's no constant named '{0}' in '{1}'.",
+    name: 'UNDEFINED_ENUM_CONSTANT',
+    problemMessage: "There's no constant named '{0}' in '{1}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing constant, or "
         "defining a constant named '{0}'.",
@@ -7213,8 +7551,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   undefinedEnumConstructorNamed = CompileTimeErrorTemplate(
-    'UNDEFINED_ENUM_CONSTRUCTOR',
-    "The enum doesn't have a constructor named '{0}'.",
+    name: 'UNDEFINED_ENUM_CONSTRUCTOR',
+    problemMessage: "The enum doesn't have a constructor named '{0}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing constructor, or "
         "defining constructor with the name '{0}'.",
@@ -7227,8 +7565,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   undefinedEnumConstructorUnnamed = CompileTimeErrorWithoutArguments(
-    'UNDEFINED_ENUM_CONSTRUCTOR',
-    "The enum doesn't have an unnamed constructor.",
+    name: 'UNDEFINED_ENUM_CONSTRUCTOR',
+    problemMessage: "The enum doesn't have an unnamed constructor.",
     correctionMessage:
         "Try adding the name of an existing constructor, or defining an "
         "unnamed constructor.",
@@ -7244,8 +7582,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   undefinedExtensionGetter = CompileTimeErrorTemplate(
-    'UNDEFINED_EXTENSION_GETTER',
-    "The getter '{0}' isn't defined for the extension '{1}'.",
+    name: 'UNDEFINED_EXTENSION_GETTER',
+    problemMessage: "The getter '{0}' isn't defined for the extension '{1}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing getter, or "
         "defining a getter named '{0}'.",
@@ -7261,8 +7599,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   undefinedExtensionMethod = CompileTimeErrorTemplate(
-    'UNDEFINED_EXTENSION_METHOD',
-    "The method '{0}' isn't defined for the extension '{1}'.",
+    name: 'UNDEFINED_EXTENSION_METHOD',
+    problemMessage: "The method '{0}' isn't defined for the extension '{1}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing method, or "
         "defining a method named '{0}'.",
@@ -7278,8 +7616,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   undefinedExtensionOperator = CompileTimeErrorTemplate(
-    'UNDEFINED_EXTENSION_OPERATOR',
-    "The operator '{0}' isn't defined for the extension '{1}'.",
+    name: 'UNDEFINED_EXTENSION_OPERATOR',
+    problemMessage: "The operator '{0}' isn't defined for the extension '{1}'.",
     correctionMessage: "Try defining the operator '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUndefinedExtensionOperator,
@@ -7293,8 +7631,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   undefinedExtensionSetter = CompileTimeErrorTemplate(
-    'UNDEFINED_EXTENSION_SETTER',
-    "The setter '{0}' isn't defined for the extension '{1}'.",
+    name: 'UNDEFINED_EXTENSION_SETTER',
+    problemMessage: "The setter '{0}' isn't defined for the extension '{1}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing setter, or "
         "defining a setter named '{0}'.",
@@ -7309,8 +7647,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   undefinedFunction = CompileTimeErrorTemplate(
-    'UNDEFINED_FUNCTION',
-    "The function '{0}' isn't defined.",
+    name: 'UNDEFINED_FUNCTION',
+    problemMessage: "The function '{0}' isn't defined.",
     correctionMessage:
         "Try importing the library that defines '{0}', correcting the name to "
         "the name of an existing function, or defining a function named '{0}'.",
@@ -7328,8 +7666,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required Object p1})
   >
   undefinedGetter = CompileTimeErrorTemplate(
-    'UNDEFINED_GETTER',
-    "The getter '{0}' isn't defined for the type '{1}'.",
+    name: 'UNDEFINED_GETTER',
+    problemMessage: "The getter '{0}' isn't defined for the type '{1}'.",
     correctionMessage:
         "Try importing the library that defines '{0}', correcting the name to "
         "the name of an existing getter, or defining a getter or field named "
@@ -7346,8 +7684,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   undefinedGetterOnFunctionType = CompileTimeErrorTemplate(
-    'UNDEFINED_GETTER',
-    "The getter '{0}' isn't defined for the '{1}' function type.",
+    name: 'UNDEFINED_GETTER',
+    problemMessage:
+        "The getter '{0}' isn't defined for the '{1}' function type.",
     correctionMessage:
         "Try wrapping the function type alias in parentheses in order to "
         "access '{0}' as an extension getter on 'Type'.",
@@ -7363,8 +7702,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   undefinedIdentifier = CompileTimeErrorTemplate(
-    'UNDEFINED_IDENTIFIER',
-    "Undefined name '{0}'.",
+    name: 'UNDEFINED_IDENTIFIER',
+    problemMessage: "Undefined name '{0}'.",
     correctionMessage:
         "Try correcting the name to one that is defined, or defining the name.",
     hasPublishedDocs: true,
@@ -7376,8 +7715,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   undefinedIdentifierAwait = CompileTimeErrorWithoutArguments(
-    'UNDEFINED_IDENTIFIER_AWAIT',
-    "Undefined name 'await' in function body not marked with 'async'.",
+    name: 'UNDEFINED_IDENTIFIER_AWAIT',
+    problemMessage:
+        "Undefined name 'await' in function body not marked with 'async'.",
     correctionMessage:
         "Try correcting the name to one that is defined, defining the name, or "
         "adding 'async' to the enclosing function body.",
@@ -7392,8 +7732,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required Object p1})
   >
   undefinedMethod = CompileTimeErrorTemplate(
-    'UNDEFINED_METHOD',
-    "The method '{0}' isn't defined for the type '{1}'.",
+    name: 'UNDEFINED_METHOD',
+    problemMessage: "The method '{0}' isn't defined for the type '{1}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing method, or "
         "defining a method named '{0}'.",
@@ -7409,8 +7749,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   undefinedMethodOnFunctionType = CompileTimeErrorTemplate(
-    'UNDEFINED_METHOD',
-    "The method '{0}' isn't defined for the '{1}' function type.",
+    name: 'UNDEFINED_METHOD',
+    problemMessage:
+        "The method '{0}' isn't defined for the '{1}' function type.",
     correctionMessage:
         "Try wrapping the function type alias in parentheses in order to "
         "access '{0}' as an extension method on 'Type'.",
@@ -7426,8 +7767,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   undefinedNamedParameter = CompileTimeErrorTemplate(
-    'UNDEFINED_NAMED_PARAMETER',
-    "The named parameter '{0}' isn't defined.",
+    name: 'UNDEFINED_NAMED_PARAMETER',
+    problemMessage: "The named parameter '{0}' isn't defined.",
     correctionMessage:
         "Try correcting the name to an existing named parameter's name, or "
         "defining a named parameter with the name '{0}'.",
@@ -7444,8 +7785,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
   undefinedOperator = CompileTimeErrorTemplate(
-    'UNDEFINED_OPERATOR',
-    "The operator '{0}' isn't defined for the type '{1}'.",
+    name: 'UNDEFINED_OPERATOR',
+    problemMessage: "The operator '{0}' isn't defined for the type '{1}'.",
     correctionMessage: "Try defining the operator '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUndefinedOperator,
@@ -7459,8 +7800,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   undefinedPrefixedName = CompileTimeErrorTemplate(
-    'UNDEFINED_PREFIXED_NAME',
-    "The name '{0}' is being referenced through the prefix '{1}', but it isn't "
+    name: 'UNDEFINED_PREFIXED_NAME',
+    problemMessage:
+        "The name '{0}' is being referenced through the prefix '{1}', but it isn't "
         "defined in any of the libraries imported using that prefix.",
     correctionMessage:
         "Try correcting the prefix or importing the library that defines "
@@ -7478,8 +7820,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
   undefinedSetter = CompileTimeErrorTemplate(
-    'UNDEFINED_SETTER',
-    "The setter '{0}' isn't defined for the type '{1}'.",
+    name: 'UNDEFINED_SETTER',
+    problemMessage: "The setter '{0}' isn't defined for the type '{1}'.",
     correctionMessage:
         "Try importing the library that defines '{0}', correcting the name to "
         "the name of an existing setter, or defining a setter or field named "
@@ -7496,8 +7838,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   undefinedSetterOnFunctionType = CompileTimeErrorTemplate(
-    'UNDEFINED_SETTER',
-    "The setter '{0}' isn't defined for the '{1}' function type.",
+    name: 'UNDEFINED_SETTER',
+    problemMessage:
+        "The setter '{0}' isn't defined for the '{1}' function type.",
     correctionMessage:
         "Try wrapping the function type alias in parentheses in order to "
         "access '{0}' as an extension getter on 'Type'.",
@@ -7515,8 +7858,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
   undefinedSuperGetter = CompileTimeErrorTemplate(
-    'UNDEFINED_SUPER_MEMBER',
-    "The getter '{0}' isn't defined in a superclass of '{1}'.",
+    name: 'UNDEFINED_SUPER_MEMBER',
+    problemMessage: "The getter '{0}' isn't defined in a superclass of '{1}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing getter, or "
         "defining a getter or field named '{0}' in a superclass.",
@@ -7533,8 +7876,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   undefinedSuperMethod = CompileTimeErrorTemplate(
-    'UNDEFINED_SUPER_MEMBER',
-    "The method '{0}' isn't defined in a superclass of '{1}'.",
+    name: 'UNDEFINED_SUPER_MEMBER',
+    problemMessage: "The method '{0}' isn't defined in a superclass of '{1}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing method, or "
         "defining a method named '{0}' in a superclass.",
@@ -7552,8 +7895,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
   undefinedSuperOperator = CompileTimeErrorTemplate(
-    'UNDEFINED_SUPER_MEMBER',
-    "The operator '{0}' isn't defined in a superclass of '{1}'.",
+    name: 'UNDEFINED_SUPER_MEMBER',
+    problemMessage:
+        "The operator '{0}' isn't defined in a superclass of '{1}'.",
     correctionMessage: "Try defining the operator '{0}' in a superclass.",
     hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_SUPER_OPERATOR',
@@ -7569,8 +7913,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
   undefinedSuperSetter = CompileTimeErrorTemplate(
-    'UNDEFINED_SUPER_MEMBER',
-    "The setter '{0}' isn't defined in a superclass of '{1}'.",
+    name: 'UNDEFINED_SUPER_MEMBER',
+    problemMessage: "The setter '{0}' isn't defined in a superclass of '{1}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing setter, or "
         "defining a setter or field named '{0}' in a superclass.",
@@ -7590,8 +7934,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   unqualifiedReferenceToNonLocalStaticMember = CompileTimeErrorTemplate(
-    'UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
-    "Static members from supertypes must be qualified by the name of the "
+    name: 'UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
+    problemMessage:
+        "Static members from supertypes must be qualified by the name of the "
         "defining type.",
     correctionMessage: "Try adding '{0}.' before the name.",
     hasPublishedDocs: true,
@@ -7605,8 +7950,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   unqualifiedReferenceToStaticMemberOfExtendedType = CompileTimeErrorTemplate(
-    'UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
-    "Static members from the extended type or one of its superclasses must be "
+    name: 'UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
+    problemMessage:
+        "Static members from the extended type or one of its superclasses must be "
         "qualified by the name of the defining type.",
     correctionMessage: "Try adding '{0}.' before the name.",
     hasPublishedDocs: true,
@@ -7621,8 +7967,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   uriDoesNotExist = CompileTimeErrorTemplate(
-    'URI_DOES_NOT_EXIST',
-    "Target of URI doesn't exist: '{0}'.",
+    name: 'URI_DOES_NOT_EXIST',
+    problemMessage: "Target of URI doesn't exist: '{0}'.",
     correctionMessage:
         "Try creating the file referenced by the URI, or try using a URI for a "
         "file that does exist.",
@@ -7637,8 +7983,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   uriHasNotBeenGenerated = CompileTimeErrorTemplate(
-    'URI_HAS_NOT_BEEN_GENERATED',
-    "Target of URI hasn't been generated: '{0}'.",
+    name: 'URI_HAS_NOT_BEEN_GENERATED',
+    problemMessage: "Target of URI hasn't been generated: '{0}'.",
     correctionMessage:
         "Try running the generator that will generate the file referenced by "
         "the URI.",
@@ -7650,8 +7996,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments uriWithInterpolation =
       CompileTimeErrorWithoutArguments(
-        'URI_WITH_INTERPOLATION',
-        "URIs can't use string interpolation.",
+        name: 'URI_WITH_INTERPOLATION',
+        problemMessage: "URIs can't use string interpolation.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -7659,8 +8005,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   useOfNativeExtension = CompileTimeErrorWithoutArguments(
-    'USE_OF_NATIVE_EXTENSION',
-    "Dart native extensions are deprecated and aren't available in Dart 2.15.",
+    name: 'USE_OF_NATIVE_EXTENSION',
+    problemMessage:
+        "Dart native extensions are deprecated and aren't available in Dart 2.15.",
     correctionMessage: "Try using dart:ffi for C interop.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -7669,8 +8016,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   useOfVoidResult = CompileTimeErrorWithoutArguments(
-    'USE_OF_VOID_RESULT',
-    "This expression has a type of 'void' so its value can't be used.",
+    name: 'USE_OF_VOID_RESULT',
+    problemMessage:
+        "This expression has a type of 'void' so its value can't be used.",
     correctionMessage:
         "Try checking to see if you're using the correct API; there might be a "
         "function or call that returns void you didn't expect. Also check type "
@@ -7682,8 +8030,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments valuesDeclarationInEnum =
       CompileTimeErrorWithoutArguments(
-        'VALUES_DECLARATION_IN_ENUM',
-        "A member named 'values' can't be declared in an enum.",
+        name: 'VALUES_DECLARATION_IN_ENUM',
+        problemMessage: "A member named 'values' can't be declared in an enum.",
         correctionMessage: "Try using a different name.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -7696,8 +8044,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   variableTypeMismatch = CompileTimeErrorTemplate(
-    'VARIABLE_TYPE_MISMATCH',
-    "A value of type '{0}' can't be assigned to a const variable of type "
+    name: 'VARIABLE_TYPE_MISMATCH',
+    problemMessage:
+        "A value of type '{0}' can't be assigned to a const variable of type "
         "'{1}'.",
     correctionMessage: "Try using a subtype, or removing the 'const' keyword",
     hasPublishedDocs: true,
@@ -7729,8 +8078,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   wrongExplicitTypeParameterVarianceInSuperinterface = CompileTimeErrorTemplate(
-    'WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
-    "'{0}' is an '{1}' type parameter and can't be used in an '{2}' position "
+    name: 'WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
+    problemMessage:
+        "'{0}' is an '{1}' type parameter and can't be used in an '{2}' position "
         "in '{3}'.",
     correctionMessage:
         "Try using 'in' type parameters in 'in' positions and 'out' type "
@@ -7757,8 +8107,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   wrongNumberOfParametersForOperator = CompileTimeErrorTemplate(
-    'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
-    "Operator '{0}' should declare exactly {1} parameters, but {2} found.",
+    name: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
+    problemMessage:
+        "Operator '{0}' should declare exactly {1} parameters, but {2} found.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsWrongNumberOfParametersForOperator,
     expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
@@ -7773,8 +8124,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required int p0})
   >
   wrongNumberOfParametersForOperatorMinus = CompileTimeErrorTemplate(
-    'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
-    "Operator '-' should declare 0 or 1 parameter, but {0} found.",
+    name: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
+    problemMessage:
+        "Operator '-' should declare 0 or 1 parameter, but {0} found.",
     hasPublishedDocs: true,
     uniqueName: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS',
     withArguments: _withArgumentsWrongNumberOfParametersForOperatorMinus,
@@ -7793,8 +8145,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   wrongNumberOfTypeArguments = CompileTimeErrorTemplate(
-    'WRONG_NUMBER_OF_TYPE_ARGUMENTS',
-    "The type '{0}' is declared with {1} type parameters, but {2} type "
+    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS',
+    problemMessage:
+        "The type '{0}' is declared with {1} type parameters, but {2} type "
         "arguments were given.",
     correctionMessage:
         "Try adjusting the number of type arguments to match the number of "
@@ -7811,8 +8164,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required int p0, required int p1})
   >
   wrongNumberOfTypeArgumentsAnonymousFunction = CompileTimeErrorTemplate(
-    'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
-    "This function is declared with {0} type parameters, but {1} type "
+    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
+    problemMessage:
+        "This function is declared with {0} type parameters, but {1} type "
         "arguments were given.",
     correctionMessage:
         "Try adjusting the number of type arguments to match the number of "
@@ -7829,8 +8183,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   wrongNumberOfTypeArgumentsConstructor = CompileTimeErrorTemplate(
-    'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
-    "The constructor '{0}.{1}' doesn't have type parameters.",
+    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
+    problemMessage: "The constructor '{0}.{1}' doesn't have type parameters.",
     correctionMessage: "Try moving type arguments to after the type name.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsWrongNumberOfTypeArgumentsConstructor,
@@ -7844,8 +8198,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   wrongNumberOfTypeArgumentsDotShorthandConstructor = CompileTimeErrorTemplate(
-    'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
-    "The constructor '{0}.{1}` doesn't have type parameters.",
+    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
+    problemMessage: "The constructor '{0}.{1}` doesn't have type parameters.",
     correctionMessage:
         "Try removing the type arguments, or adding a class name, followed by "
         "the type arguments, then the constructor name.",
@@ -7863,8 +8217,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required int p0, required int p1})
   >
   wrongNumberOfTypeArgumentsEnum = CompileTimeErrorTemplate(
-    'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
-    "The enum is declared with {0} type parameters, but {1} type arguments "
+    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
+    problemMessage:
+        "The enum is declared with {0} type parameters, but {1} type arguments "
         "were given.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
@@ -7884,8 +8239,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   wrongNumberOfTypeArgumentsExtension = CompileTimeErrorTemplate(
-    'WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
-    "The extension '{0}' is declared with {1} type parameters, but {2} type "
+    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
+    problemMessage:
+        "The extension '{0}' is declared with {1} type parameters, but {2} type "
         "arguments were given.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
@@ -7905,8 +8261,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   wrongNumberOfTypeArgumentsFunction = CompileTimeErrorTemplate(
-    'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
-    "The function '{0}' is declared with {1} type parameters, but {2} type "
+    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
+    problemMessage:
+        "The function '{0}' is declared with {1} type parameters, but {2} type "
         "arguments were given.",
     correctionMessage:
         "Try adjusting the number of type arguments to match the number of "
@@ -7927,8 +8284,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   wrongNumberOfTypeArgumentsMethod = CompileTimeErrorTemplate(
-    'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
-    "The method '{0}' is declared with {1} type parameters, but {2} type "
+    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
+    problemMessage:
+        "The method '{0}' is declared with {1} type parameters, but {2} type "
         "arguments are given.",
     correctionMessage: "Try adjusting the number of type arguments.",
     hasPublishedDocs: true,
@@ -7947,8 +8305,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
   wrongTypeParameterVarianceInSuperinterface = CompileTimeErrorTemplate(
-    'WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
-    "'{0}' can't be used contravariantly or invariantly in '{1}'.",
+    name: 'WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
+    problemMessage:
+        "'{0}' can't be used contravariantly or invariantly in '{1}'.",
     correctionMessage:
         "Try not using class type parameters in types of formal parameters of "
         "function types, nor in explicitly contravariant or invariant "
@@ -7981,8 +8340,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   wrongTypeParameterVariancePosition = CompileTimeErrorTemplate(
-    'WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
-    "The '{0}' type parameter '{1}' can't be used in an '{2}' position.",
+    name: 'WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
+    problemMessage:
+        "The '{0}' type parameter '{1}' can't be used in an '{2}' position.",
     correctionMessage:
         "Try removing the type parameter or change the explicit variance "
         "modifier declaration for the type parameter to another one of 'in', "
@@ -7998,8 +8358,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   yieldEachInNonGenerator = CompileTimeErrorWithoutArguments(
-    'YIELD_IN_NON_GENERATOR',
-    "Yield-each statements must be in a generator function (one marked with "
+    name: 'YIELD_IN_NON_GENERATOR',
+    problemMessage:
+        "Yield-each statements must be in a generator function (one marked with "
         "either 'async*' or 'sync*').",
     correctionMessage:
         "Try adding 'async*' or 'sync*' to the enclosing function.",
@@ -8015,8 +8376,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   yieldEachOfInvalidType = CompileTimeErrorTemplate(
-    'YIELD_OF_INVALID_TYPE',
-    "The type '{0}' implied by the 'yield*' expression must be assignable to "
+    name: 'YIELD_OF_INVALID_TYPE',
+    problemMessage:
+        "The type '{0}' implied by the 'yield*' expression must be assignable to "
         "'{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'YIELD_EACH_OF_INVALID_TYPE',
@@ -8030,8 +8392,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   yieldInNonGenerator = CompileTimeErrorWithoutArguments(
-    'YIELD_IN_NON_GENERATOR',
-    "Yield statements must be in a generator function (one marked with either "
+    name: 'YIELD_IN_NON_GENERATOR',
+    problemMessage:
+        "Yield statements must be in a generator function (one marked with either "
         "'async*' or 'sync*').",
     correctionMessage:
         "Try adding 'async*' or 'sync*' to the enclosing function.",
@@ -8046,25 +8409,24 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   yieldOfInvalidType = CompileTimeErrorTemplate(
-    'YIELD_OF_INVALID_TYPE',
-    "A yielded value of type '{0}' must be assignable to '{1}'.",
+    name: 'YIELD_OF_INVALID_TYPE',
+    problemMessage:
+        "A yielded value of type '{0}' must be assignable to '{1}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsYieldOfInvalidType,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
   );
 
   /// Initialize a newly created error code to have the given [name].
-  const CompileTimeErrorCode(
-    String name,
-    String problemMessage, {
+  const CompileTimeErrorCode({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
     required super.expectedTypes,
   }) : super(
-         name: name,
-         problemMessage: problemMessage,
          type: DiagnosticType.COMPILE_TIME_ERROR,
          uniqueName: 'CompileTimeErrorCode.${uniqueName ?? name}',
        );
@@ -10948,9 +11310,9 @@ final class CompileTimeErrorTemplate<T extends Function>
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
-  const CompileTimeErrorTemplate(
-    super.name,
-    super.problemMessage, {
+  const CompileTimeErrorTemplate({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
@@ -10963,9 +11325,9 @@ final class CompileTimeErrorTemplate<T extends Function>
 final class CompileTimeErrorWithoutArguments extends CompileTimeErrorCode
     with DiagnosticWithoutArguments {
   /// Initialize a newly created error code to have the given [name].
-  const CompileTimeErrorWithoutArguments(
-    super.name,
-    super.problemMessage, {
+  const CompileTimeErrorWithoutArguments({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
@@ -10978,8 +11340,9 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const StaticWarningWithoutArguments
   deadNullAwareExpression = StaticWarningWithoutArguments(
-    'DEAD_NULL_AWARE_EXPRESSION',
-    "The left operand can't be null, so the right operand is never executed.",
+    name: 'DEAD_NULL_AWARE_EXPRESSION',
+    problemMessage:
+        "The left operand can't be null, so the right operand is never executed.",
     correctionMessage: "Try removing the operator and the right operand.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -10988,8 +11351,9 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const StaticWarningWithoutArguments
   invalidNullAwareElement = StaticWarningWithoutArguments(
-    'INVALID_NULL_AWARE_OPERATOR',
-    "The element can't be null, so the null-aware operator '?' is unnecessary.",
+    name: 'INVALID_NULL_AWARE_OPERATOR',
+    problemMessage:
+        "The element can't be null, so the null-aware operator '?' is unnecessary.",
     correctionMessage: "Try removing the operator '?'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_NULL_AWARE_ELEMENT',
@@ -10997,28 +11361,30 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const StaticWarningWithoutArguments invalidNullAwareMapEntryKey =
-      StaticWarningWithoutArguments(
-        'INVALID_NULL_AWARE_OPERATOR',
+  static const StaticWarningWithoutArguments
+  invalidNullAwareMapEntryKey = StaticWarningWithoutArguments(
+    name: 'INVALID_NULL_AWARE_OPERATOR',
+    problemMessage:
         "The map entry key can't be null, so the null-aware operator '?' is "
-            "unnecessary.",
-        correctionMessage: "Try removing the operator '?'.",
-        hasPublishedDocs: true,
-        uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_KEY',
-        expectedTypes: [],
-      );
+        "unnecessary.",
+    correctionMessage: "Try removing the operator '?'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_KEY',
+    expectedTypes: [],
+  );
 
   /// No parameters.
-  static const StaticWarningWithoutArguments invalidNullAwareMapEntryValue =
-      StaticWarningWithoutArguments(
-        'INVALID_NULL_AWARE_OPERATOR',
+  static const StaticWarningWithoutArguments
+  invalidNullAwareMapEntryValue = StaticWarningWithoutArguments(
+    name: 'INVALID_NULL_AWARE_OPERATOR',
+    problemMessage:
         "The map entry value can't be null, so the null-aware operator '?' is "
-            "unnecessary.",
-        correctionMessage: "Try removing the operator '?'.",
-        hasPublishedDocs: true,
-        uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_VALUE',
-        expectedTypes: [],
-      );
+        "unnecessary.",
+    correctionMessage: "Try removing the operator '?'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_VALUE',
+    expectedTypes: [],
+  );
 
   /// Parameters:
   /// String p0: the null-aware operator that is invalid
@@ -11028,8 +11394,9 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   invalidNullAwareOperator = StaticWarningTemplate(
-    'INVALID_NULL_AWARE_OPERATOR',
-    "The receiver can't be null, so the null-aware operator '{0}' is "
+    name: 'INVALID_NULL_AWARE_OPERATOR',
+    problemMessage:
+        "The receiver can't be null, so the null-aware operator '{0}' is "
         "unnecessary.",
     correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
     hasPublishedDocs: true,
@@ -11045,8 +11412,9 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   invalidNullAwareOperatorAfterShortCircuit = StaticWarningTemplate(
-    'INVALID_NULL_AWARE_OPERATOR',
-    "The receiver can't be 'null' because of short-circuiting, so the "
+    name: 'INVALID_NULL_AWARE_OPERATOR',
+    problemMessage:
+        "The receiver can't be 'null' because of short-circuiting, so the "
         "null-aware operator '{0}' can't be used.",
     correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
     hasPublishedDocs: true,
@@ -11061,8 +11429,8 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   missingEnumConstantInSwitch = StaticWarningTemplate(
-    'MISSING_ENUM_CONSTANT_IN_SWITCH',
-    "Missing case clause for '{0}'.",
+    name: 'MISSING_ENUM_CONSTANT_IN_SWITCH',
+    problemMessage: "Missing case clause for '{0}'.",
     correctionMessage:
         "Try adding a case clause for the missing constant, or adding a "
         "default clause.",
@@ -11074,30 +11442,33 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const StaticWarningWithoutArguments unnecessaryNonNullAssertion =
       StaticWarningWithoutArguments(
-        'UNNECESSARY_NON_NULL_ASSERTION',
-        "The '!' will have no effect because the receiver can't be null.",
+        name: 'UNNECESSARY_NON_NULL_ASSERTION',
+        problemMessage:
+            "The '!' will have no effect because the receiver can't be null.",
         correctionMessage: "Try removing the '!' operator.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
 
   /// No parameters.
-  static const StaticWarningWithoutArguments unnecessaryNullAssertPattern =
-      StaticWarningWithoutArguments(
-        'UNNECESSARY_NULL_ASSERT_PATTERN',
+  static const StaticWarningWithoutArguments
+  unnecessaryNullAssertPattern = StaticWarningWithoutArguments(
+    name: 'UNNECESSARY_NULL_ASSERT_PATTERN',
+    problemMessage:
         "The null-assert pattern will have no effect because the matched type "
-            "isn't nullable.",
-        correctionMessage:
-            "Try replacing the null-assert pattern with its nested pattern.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+        "isn't nullable.",
+    correctionMessage:
+        "Try replacing the null-assert pattern with its nested pattern.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const StaticWarningWithoutArguments
   unnecessaryNullCheckPattern = StaticWarningWithoutArguments(
-    'UNNECESSARY_NULL_CHECK_PATTERN',
-    "The null-check pattern will have no effect because the matched type isn't "
+    name: 'UNNECESSARY_NULL_CHECK_PATTERN',
+    problemMessage:
+        "The null-check pattern will have no effect because the matched type isn't "
         "nullable.",
     correctionMessage:
         "Try replacing the null-check pattern with its nested pattern.",
@@ -11106,17 +11477,15 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Initialize a newly created error code to have the given [name].
-  const StaticWarningCode(
-    String name,
-    String problemMessage, {
+  const StaticWarningCode({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
     required super.expectedTypes,
   }) : super(
-         name: name,
-         problemMessage: problemMessage,
          type: DiagnosticType.STATIC_WARNING,
          uniqueName: 'StaticWarningCode.${uniqueName ?? name}',
        );
@@ -11157,9 +11526,9 @@ final class StaticWarningTemplate<T extends Function>
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
-  const StaticWarningTemplate(
-    super.name,
-    super.problemMessage, {
+  const StaticWarningTemplate({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
@@ -11172,9 +11541,9 @@ final class StaticWarningTemplate<T extends Function>
 final class StaticWarningWithoutArguments extends StaticWarningCode
     with DiagnosticWithoutArguments {
   /// Initialize a newly created error code to have the given [name].
-  const StaticWarningWithoutArguments(
-    super.name,
-    super.problemMessage, {
+  const StaticWarningWithoutArguments({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
@@ -11191,8 +11560,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   argumentTypeNotAssignableToErrorHandler = WarningTemplate(
-    'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
-    "The argument type '{0}' can't be assigned to the parameter type '{1} "
+    name: 'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
+    problemMessage:
+        "The argument type '{0}' can't be assigned to the parameter type '{1} "
         "Function(Object)' or '{1} Function(Object, StackTrace)'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsArgumentTypeNotAssignableToErrorHandler,
@@ -11207,8 +11577,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   assignmentOfDoNotStore = WarningTemplate(
-    'ASSIGNMENT_OF_DO_NOT_STORE',
-    "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or "
+    name: 'ASSIGNMENT_OF_DO_NOT_STORE',
+    problemMessage:
+        "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or "
         "top-level variable.",
     correctionMessage: "Try removing the assignment.",
     hasPublishedDocs: true,
@@ -11222,8 +11593,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   bodyMightCompleteNormallyCatchError = WarningTemplate(
-    'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
-    "This 'onError' handler must return a value assignable to '{0}', but ends "
+    name: 'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
+    problemMessage:
+        "This 'onError' handler must return a value assignable to '{0}', but ends "
         "without returning a value.",
     correctionMessage: "Try adding a return statement.",
     hasPublishedDocs: true,
@@ -11237,8 +11609,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   bodyMightCompleteNormallyNullable = WarningTemplate(
-    'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
-    "This function has a nullable return type of '{0}', but ends without "
+    name: 'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
+    problemMessage:
+        "This function has a nullable return type of '{0}', but ends without "
         "returning a value.",
     correctionMessage:
         "Try adding a return statement, or if no value is ever returned, try "
@@ -11254,8 +11627,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   castFromNullableAlwaysFails = WarningTemplate(
-    'CAST_FROM_NULLABLE_ALWAYS_FAILS',
-    "This cast will always throw an exception because the nullable local "
+    name: 'CAST_FROM_NULLABLE_ALWAYS_FAILS',
+    problemMessage:
+        "This cast will always throw an exception because the nullable local "
         "variable '{0}' is not assigned.",
     correctionMessage:
         "Try giving it an initializer expression, or ensure that it's assigned "
@@ -11266,14 +11640,15 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const WarningWithoutArguments castFromNullAlwaysFails =
-      WarningWithoutArguments(
-        'CAST_FROM_NULL_ALWAYS_FAILS',
+  static const WarningWithoutArguments
+  castFromNullAlwaysFails = WarningWithoutArguments(
+    name: 'CAST_FROM_NULL_ALWAYS_FAILS',
+    problemMessage:
         "This cast always throws an exception because the expression always "
-            "evaluates to 'null'.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+        "evaluates to 'null'.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// Parameters:
   /// Type p0: the matched value type
@@ -11282,8 +11657,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   constantPatternNeverMatchesValueType = WarningTemplate(
-    'CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE',
-    "The matched value type '{0}' can never be equal to this constant of type "
+    name: 'CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE',
+    problemMessage:
+        "The matched value type '{0}' can never be equal to this constant of type "
         "'{1}'.",
     correctionMessage:
         "Try a constant of the same type as the matched value type.",
@@ -11297,8 +11673,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// No parameters.
   static const WarningWithoutArguments deadCode = WarningWithoutArguments(
-    'DEAD_CODE',
-    "Dead code.",
+    name: 'DEAD_CODE',
+    problemMessage: "Dead code.",
     correctionMessage:
         "Try removing the code, or fixing the code before it so that it can be "
         "reached.",
@@ -11312,8 +11688,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   deadCodeCatchFollowingCatch = WarningWithoutArguments(
-    'DEAD_CODE_CATCH_FOLLOWING_CATCH',
-    "Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' "
+    name: 'DEAD_CODE_CATCH_FOLLOWING_CATCH',
+    problemMessage:
+        "Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' "
         "are never reached.",
     correctionMessage:
         "Try reordering the catch clauses so that they can be reached, or "
@@ -11325,8 +11702,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   deadCodeLateWildcardVariableInitializer = WarningWithoutArguments(
-    'DEAD_CODE',
-    "Dead code: The assigned-to wildcard variable is marked late and can never "
+    name: 'DEAD_CODE',
+    problemMessage:
+        "Dead code: The assigned-to wildcard variable is marked late and can never "
         "be referenced so this initializer will never be evaluated.",
     correctionMessage:
         "Try removing the code, removing the late modifier or changing the "
@@ -11347,8 +11725,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   deadCodeOnCatchSubtype = WarningTemplate(
-    'DEAD_CODE_ON_CATCH_SUBTYPE',
-    "Dead code: This on-catch block won't be executed because '{0}' is a "
+    name: 'DEAD_CODE_ON_CATCH_SUBTYPE',
+    problemMessage:
+        "Dead code: This on-catch block won't be executed because '{0}' is a "
         "subtype of '{1}' and hence will have been caught already.",
     correctionMessage:
         "Try reordering the catch clauses so that this block can be reached, "
@@ -11364,8 +11743,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   deprecatedExportUse = WarningTemplate(
-    'DEPRECATED_EXPORT_USE',
-    "The ability to import '{0}' indirectly is deprecated.",
+    name: 'DEPRECATED_EXPORT_USE',
+    problemMessage: "The ability to import '{0}' indirectly is deprecated.",
     correctionMessage: "Try importing '{0}' directly.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDeprecatedExportUse,
@@ -11378,8 +11757,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object typeName})
   >
   deprecatedExtend = WarningTemplate(
-    'DEPRECATED_EXTEND',
-    "Extending '{0}' is deprecated.",
+    name: 'DEPRECATED_EXTEND',
+    problemMessage: "Extending '{0}' is deprecated.",
     correctionMessage: "Try removing the 'extends' clause.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDeprecatedExtend,
@@ -11389,8 +11768,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments deprecatedExtendsFunction =
       WarningWithoutArguments(
-        'DEPRECATED_SUBTYPE_OF_FUNCTION',
-        "Extending 'Function' is deprecated.",
+        name: 'DEPRECATED_SUBTYPE_OF_FUNCTION',
+        problemMessage: "Extending 'Function' is deprecated.",
         correctionMessage: "Try removing 'Function' from the 'extends' clause.",
         hasPublishedDocs: true,
         uniqueName: 'DEPRECATED_EXTENDS_FUNCTION',
@@ -11403,8 +11782,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object typeName})
   >
   deprecatedImplement = WarningTemplate(
-    'DEPRECATED_IMPLEMENT',
-    "Implementing '{0}' is deprecated.",
+    name: 'DEPRECATED_IMPLEMENT',
+    problemMessage: "Implementing '{0}' is deprecated.",
     correctionMessage: "Try removing '{0}' from the 'implements' clause.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDeprecatedImplement,
@@ -11414,8 +11793,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments deprecatedImplementsFunction =
       WarningWithoutArguments(
-        'DEPRECATED_SUBTYPE_OF_FUNCTION',
-        "Implementing 'Function' has no effect.",
+        name: 'DEPRECATED_SUBTYPE_OF_FUNCTION',
+        problemMessage: "Implementing 'Function' has no effect.",
         correctionMessage:
             "Try removing 'Function' from the 'implements' clause.",
         hasPublishedDocs: true,
@@ -11429,8 +11808,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object typeName})
   >
   deprecatedInstantiate = WarningTemplate(
-    'DEPRECATED_INSTANTIATE',
-    "Instantiating '{0}' is deprecated.",
+    name: 'DEPRECATED_INSTANTIATE',
+    problemMessage: "Instantiating '{0}' is deprecated.",
     correctionMessage: "Try instantiating a non-abstract class.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDeprecatedInstantiate,
@@ -11443,8 +11822,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object typeName})
   >
   deprecatedMixin = WarningTemplate(
-    'DEPRECATED_MIXIN',
-    "Mixing in '{0}' is deprecated.",
+    name: 'DEPRECATED_MIXIN',
+    problemMessage: "Mixing in '{0}' is deprecated.",
     correctionMessage: "Try removing '{0}' from the 'with' clause.",
     withArguments: _withArgumentsDeprecatedMixin,
     expectedTypes: [ExpectedType.object],
@@ -11453,8 +11832,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments deprecatedMixinFunction =
       WarningWithoutArguments(
-        'DEPRECATED_SUBTYPE_OF_FUNCTION',
-        "Mixing in 'Function' is deprecated.",
+        name: 'DEPRECATED_SUBTYPE_OF_FUNCTION',
+        problemMessage: "Mixing in 'Function' is deprecated.",
         correctionMessage: "Try removing 'Function' from the 'with' clause.",
         hasPublishedDocs: true,
         uniqueName: 'DEPRECATED_MIXIN_FUNCTION',
@@ -11464,8 +11843,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments deprecatedNewInCommentReference =
       WarningWithoutArguments(
-        'DEPRECATED_NEW_IN_COMMENT_REFERENCE',
-        "Using the 'new' keyword in a comment reference is deprecated.",
+        name: 'DEPRECATED_NEW_IN_COMMENT_REFERENCE',
+        problemMessage:
+            "Using the 'new' keyword in a comment reference is deprecated.",
         correctionMessage: "Try referring to a constructor by its name.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -11477,8 +11857,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object parameterName})
   >
   deprecatedOptional = WarningTemplate(
-    'DEPRECATED_OPTIONAL',
-    "Omitting an argument for the '{0}' parameter is deprecated.",
+    name: 'DEPRECATED_OPTIONAL',
+    problemMessage:
+        "Omitting an argument for the '{0}' parameter is deprecated.",
     correctionMessage: "Try passing an argument for '{0}'.",
     withArguments: _withArgumentsDeprecatedOptional,
     expectedTypes: [ExpectedType.object],
@@ -11490,8 +11871,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object typeName})
   >
   deprecatedSubclass = WarningTemplate(
-    'DEPRECATED_SUBCLASS',
-    "Subclassing '{0}' is deprecated.",
+    name: 'DEPRECATED_SUBCLASS',
+    problemMessage: "Subclassing '{0}' is deprecated.",
     correctionMessage:
         "Try removing the 'extends' clause, or removing '{0}' from the "
         "'implements' clause.",
@@ -11507,8 +11888,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   docDirectiveArgumentWrongFormat = WarningTemplate(
-    'DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
-    "The '{0}' argument must be formatted as {1}.",
+    name: 'DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
+    problemMessage: "The '{0}' argument must be formatted as {1}.",
     correctionMessage: "Try formatting '{0}' as {1}.",
     withArguments: _withArgumentsDocDirectiveArgumentWrongFormat,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -11526,8 +11907,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   docDirectiveHasExtraArguments = WarningTemplate(
-    'DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
-    "The '{0}' directive has '{1}' arguments, but only '{2}' are expected.",
+    name: 'DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
+    problemMessage:
+        "The '{0}' directive has '{1}' arguments, but only '{2}' are expected.",
     correctionMessage: "Try removing the extra arguments.",
     withArguments: _withArgumentsDocDirectiveHasExtraArguments,
     expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
@@ -11540,8 +11922,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   docDirectiveHasUnexpectedNamedArgument = WarningTemplate(
-    'DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT',
-    "The '{0}' directive has an unexpected named argument, '{1}'.",
+    name: 'DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT',
+    problemMessage:
+        "The '{0}' directive has an unexpected named argument, '{1}'.",
     correctionMessage: "Try removing the unexpected argument.",
     withArguments: _withArgumentsDocDirectiveHasUnexpectedNamedArgument,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -11550,8 +11933,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments docDirectiveMissingClosingBrace =
       WarningWithoutArguments(
-        'DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
-        "Doc directive is missing a closing curly brace ('}').",
+        name: 'DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
+        problemMessage: "Doc directive is missing a closing curly brace ('}').",
         correctionMessage: "Try closing the directive with a curly brace.",
         expectedTypes: [],
       );
@@ -11562,8 +11945,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   docDirectiveMissingClosingTag = WarningTemplate(
-    'DOC_DIRECTIVE_MISSING_CLOSING_TAG',
-    "Doc directive is missing a closing tag.",
+    name: 'DOC_DIRECTIVE_MISSING_CLOSING_TAG',
+    problemMessage: "Doc directive is missing a closing tag.",
     correctionMessage:
         "Try closing the directive with the appropriate closing tag, '{0}'.",
     withArguments: _withArgumentsDocDirectiveMissingClosingTag,
@@ -11577,8 +11960,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   docDirectiveMissingOneArgument = WarningTemplate(
-    'DOC_DIRECTIVE_MISSING_ARGUMENT',
-    "The '{0}' directive is missing a '{1}' argument.",
+    name: 'DOC_DIRECTIVE_MISSING_ARGUMENT',
+    problemMessage: "The '{0}' directive is missing a '{1}' argument.",
     correctionMessage: "Try adding a '{1}' argument before the closing '}'.",
     uniqueName: 'DOC_DIRECTIVE_MISSING_ONE_ARGUMENT',
     withArguments: _withArgumentsDocDirectiveMissingOneArgument,
@@ -11591,8 +11974,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   docDirectiveMissingOpeningTag = WarningTemplate(
-    'DOC_DIRECTIVE_MISSING_OPENING_TAG',
-    "Doc directive is missing an opening tag.",
+    name: 'DOC_DIRECTIVE_MISSING_OPENING_TAG',
+    problemMessage: "Doc directive is missing an opening tag.",
     correctionMessage:
         "Try opening the directive with the appropriate opening tag, '{0}'.",
     withArguments: _withArgumentsDocDirectiveMissingOpeningTag,
@@ -11613,8 +11996,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   docDirectiveMissingThreeArguments = WarningTemplate(
-    'DOC_DIRECTIVE_MISSING_ARGUMENT',
-    "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument.",
+    name: 'DOC_DIRECTIVE_MISSING_ARGUMENT',
+    problemMessage:
+        "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument.",
     correctionMessage:
         "Try adding the missing arguments before the closing '}'.",
     uniqueName: 'DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS',
@@ -11639,8 +12023,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   docDirectiveMissingTwoArguments = WarningTemplate(
-    'DOC_DIRECTIVE_MISSING_ARGUMENT',
-    "The '{0}' directive is missing a '{1}' and a '{2}' argument.",
+    name: 'DOC_DIRECTIVE_MISSING_ARGUMENT',
+    problemMessage:
+        "The '{0}' directive is missing a '{1}' and a '{2}' argument.",
     correctionMessage:
         "Try adding the missing arguments before the closing '}'.",
     uniqueName: 'DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS',
@@ -11658,8 +12043,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   docDirectiveUnknown = WarningTemplate(
-    'DOC_DIRECTIVE_UNKNOWN',
-    "Doc directive '{0}' is unknown.",
+    name: 'DOC_DIRECTIVE_UNKNOWN',
+    problemMessage: "Doc directive '{0}' is unknown.",
     correctionMessage: "Try using one of the supported doc directives.",
     withArguments: _withArgumentsDocDirectiveUnknown,
     expectedTypes: [ExpectedType.string],
@@ -11668,8 +12053,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments docImportCannotBeDeferred =
       WarningWithoutArguments(
-        'DOC_IMPORT_CANNOT_BE_DEFERRED',
-        "Doc imports can't be deferred.",
+        name: 'DOC_IMPORT_CANNOT_BE_DEFERRED',
+        problemMessage: "Doc imports can't be deferred.",
         correctionMessage: "Try removing the 'deferred' keyword.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -11678,8 +12063,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments docImportCannotHaveCombinators =
       WarningWithoutArguments(
-        'DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
-        "Doc imports can't have show or hide combinators.",
+        name: 'DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
+        problemMessage: "Doc imports can't have show or hide combinators.",
         correctionMessage: "Try removing the combinator.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -11688,8 +12073,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments docImportCannotHaveConfigurations =
       WarningWithoutArguments(
-        'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
-        "Doc imports can't have configurations.",
+        name: 'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
+        problemMessage: "Doc imports can't have configurations.",
         correctionMessage: "Try removing the configurations.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -11698,8 +12083,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments docImportCannotHavePrefix =
       WarningWithoutArguments(
-        'DOC_IMPORT_CANNOT_HAVE_PREFIX',
-        "Doc imports can't have prefixes.",
+        name: 'DOC_IMPORT_CANNOT_HAVE_PREFIX',
+        problemMessage: "Doc imports can't have prefixes.",
         correctionMessage: "Try removing the prefix.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -11710,8 +12095,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments duplicateExport =
       WarningWithoutArguments(
-        'DUPLICATE_EXPORT',
-        "Duplicate export.",
+        name: 'DUPLICATE_EXPORT',
+        problemMessage: "Duplicate export.",
         correctionMessage: "Try removing all but one export of the library.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -11720,8 +12105,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments duplicateHiddenName =
       WarningWithoutArguments(
-        'DUPLICATE_HIDDEN_NAME',
-        "Duplicate hidden name.",
+        name: 'DUPLICATE_HIDDEN_NAME',
+        problemMessage: "Duplicate hidden name.",
         correctionMessage:
             "Try removing the repeated name from the list of hidden members.",
         hasPublishedDocs: true,
@@ -11734,8 +12119,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   duplicateIgnore = WarningTemplate(
-    'DUPLICATE_IGNORE',
-    "The diagnostic '{0}' doesn't need to be ignored here because it's already "
+    name: 'DUPLICATE_IGNORE',
+    problemMessage:
+        "The diagnostic '{0}' doesn't need to be ignored here because it's already "
         "being ignored.",
     correctionMessage:
         "Try removing the name from the list, or removing the whole comment if "
@@ -11750,8 +12136,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments duplicateImport =
       WarningWithoutArguments(
-        'DUPLICATE_IMPORT',
-        "Duplicate import.",
+        name: 'DUPLICATE_IMPORT',
+        problemMessage: "Duplicate import.",
         correctionMessage: "Try removing all but one import of the library.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -11760,8 +12146,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments duplicateShownName =
       WarningWithoutArguments(
-        'DUPLICATE_SHOWN_NAME',
-        "Duplicate shown name.",
+        name: 'DUPLICATE_SHOWN_NAME',
+        problemMessage: "Duplicate shown name.",
         correctionMessage:
             "Try removing the repeated name from the list of shown members.",
         hasPublishedDocs: true,
@@ -11771,8 +12157,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments equalElementsInSet =
       WarningWithoutArguments(
-        'EQUAL_ELEMENTS_IN_SET',
-        "Two elements in a set literal shouldn't be equal.",
+        name: 'EQUAL_ELEMENTS_IN_SET',
+        problemMessage: "Two elements in a set literal shouldn't be equal.",
         correctionMessage: "Change or remove the duplicate element.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -11780,8 +12166,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
 
   /// No parameters.
   static const WarningWithoutArguments equalKeysInMap = WarningWithoutArguments(
-    'EQUAL_KEYS_IN_MAP',
-    "Two keys in a map literal shouldn't be equal.",
+    name: 'EQUAL_KEYS_IN_MAP',
+    problemMessage: "Two keys in a map literal shouldn't be equal.",
     correctionMessage: "Change or remove the duplicate key.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -11793,8 +12179,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String member})
   >
   experimentalMemberUse = WarningTemplate(
-    'EXPERIMENTAL_MEMBER_USE',
-    "'{0}' is experimental and could be removed or changed at any time.",
+    name: 'EXPERIMENTAL_MEMBER_USE',
+    problemMessage:
+        "'{0}' is experimental and could be removed or changed at any time.",
     withArguments: _withArgumentsExperimentalMemberUse,
     expectedTypes: [ExpectedType.string],
   );
@@ -11808,8 +12195,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   inferenceFailureOnCollectionLiteral = WarningTemplate(
-    'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
-    "The type argument(s) of '{0}' can't be inferred.",
+    name: 'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
+    problemMessage: "The type argument(s) of '{0}' can't be inferred.",
     correctionMessage: "Use explicit type argument(s) for '{0}'.",
     withArguments: _withArgumentsInferenceFailureOnCollectionLiteral,
     expectedTypes: [ExpectedType.string],
@@ -11824,8 +12211,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   inferenceFailureOnFunctionInvocation = WarningTemplate(
-    'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
-    "The type argument(s) of the function '{0}' can't be inferred.",
+    name: 'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
+    problemMessage:
+        "The type argument(s) of the function '{0}' can't be inferred.",
     correctionMessage: "Use explicit type argument(s) for '{0}'.",
     withArguments: _withArgumentsInferenceFailureOnFunctionInvocation,
     expectedTypes: [ExpectedType.string],
@@ -11844,8 +12232,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   inferenceFailureOnFunctionReturnType = WarningTemplate(
-    'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
-    "The return type of '{0}' can't be inferred.",
+    name: 'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
+    problemMessage: "The return type of '{0}' can't be inferred.",
     correctionMessage: "Declare the return type of '{0}'.",
     withArguments: _withArgumentsInferenceFailureOnFunctionReturnType,
     expectedTypes: [ExpectedType.string],
@@ -11860,8 +12248,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   inferenceFailureOnGenericInvocation = WarningTemplate(
-    'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
-    "The type argument(s) of the generic function type '{0}' can't be "
+    name: 'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
+    problemMessage:
+        "The type argument(s) of the generic function type '{0}' can't be "
         "inferred.",
     correctionMessage: "Use explicit type argument(s) for '{0}'.",
     withArguments: _withArgumentsInferenceFailureOnGenericInvocation,
@@ -11878,8 +12267,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   inferenceFailureOnInstanceCreation = WarningTemplate(
-    'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
-    "The type argument(s) of the constructor '{0}' can't be inferred.",
+    name: 'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
+    problemMessage:
+        "The type argument(s) of the constructor '{0}' can't be inferred.",
     correctionMessage: "Use explicit type argument(s) for '{0}'.",
     withArguments: _withArgumentsInferenceFailureOnInstanceCreation,
     expectedTypes: [ExpectedType.string],
@@ -11894,8 +12284,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   inferenceFailureOnUninitializedVariable = WarningTemplate(
-    'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
-    "The type of {0} can't be inferred without either a type or initializer.",
+    name: 'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
+    problemMessage:
+        "The type of {0} can't be inferred without either a type or initializer.",
     correctionMessage: "Try specifying the type of the variable.",
     withArguments: _withArgumentsInferenceFailureOnUninitializedVariable,
     expectedTypes: [ExpectedType.string],
@@ -11910,8 +12301,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   inferenceFailureOnUntypedParameter = WarningTemplate(
-    'INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
-    "The type of {0} can't be inferred; a type must be explicitly provided.",
+    name: 'INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
+    problemMessage:
+        "The type of {0} can't be inferred; a type must be explicitly provided.",
     correctionMessage: "Try specifying the type of the parameter.",
     withArguments: _withArgumentsInferenceFailureOnUntypedParameter,
     expectedTypes: [ExpectedType.string],
@@ -11924,8 +12316,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   invalidAnnotationTarget = WarningTemplate(
-    'INVALID_ANNOTATION_TARGET',
-    "The annotation '{0}' can only be used on {1}.",
+    name: 'INVALID_ANNOTATION_TARGET',
+    problemMessage: "The annotation '{0}' can only be used on {1}.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidAnnotationTarget,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -11934,29 +12326,32 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments invalidAwaitNotRequiredAnnotation =
       WarningWithoutArguments(
-        'INVALID_AWAIT_NOT_REQUIRED_ANNOTATION',
-        "The annotation 'awaitNotRequired' can only be applied to a "
+        name: 'INVALID_AWAIT_NOT_REQUIRED_ANNOTATION',
+        problemMessage:
+            "The annotation 'awaitNotRequired' can only be applied to a "
             "Future-returning function, or a Future-typed field.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
 
   /// No parameters.
-  static const WarningWithoutArguments invalidDeprecatedExtendAnnotation =
-      WarningWithoutArguments(
-        'INVALID_DEPRECATED_EXTEND_ANNOTATION',
+  static const WarningWithoutArguments
+  invalidDeprecatedExtendAnnotation = WarningWithoutArguments(
+    name: 'INVALID_DEPRECATED_EXTEND_ANNOTATION',
+    problemMessage:
         "The annotation '@Deprecated.extend' can only be applied to extendable "
-            "classes.",
-        correctionMessage: "Try removing the '@Deprecated.extend' annotation.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+        "classes.",
+    correctionMessage: "Try removing the '@Deprecated.extend' annotation.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const WarningWithoutArguments invalidDeprecatedImplementAnnotation =
       WarningWithoutArguments(
-        'INVALID_DEPRECATED_IMPLEMENT_ANNOTATION',
-        "The annotation '@Deprecated.implement' can only be applied to "
+        name: 'INVALID_DEPRECATED_IMPLEMENT_ANNOTATION',
+        problemMessage:
+            "The annotation '@Deprecated.implement' can only be applied to "
             "implementable classes.",
         correctionMessage:
             "Try removing the '@Deprecated.implement' annotation.",
@@ -11967,8 +12362,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   invalidDeprecatedInstantiateAnnotation = WarningWithoutArguments(
-    'INVALID_DEPRECATED_INSTANTIATE_ANNOTATION',
-    "The annotation '@Deprecated.instantiate' can only be applied to classes.",
+    name: 'INVALID_DEPRECATED_INSTANTIATE_ANNOTATION',
+    problemMessage:
+        "The annotation '@Deprecated.instantiate' can only be applied to classes.",
     correctionMessage: "Try removing the '@Deprecated.instantiate' annotation.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -11978,34 +12374,36 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// something other than a mixin class.
   ///
   /// No parameters.
-  static const WarningWithoutArguments invalidDeprecatedMixinAnnotation =
-      WarningWithoutArguments(
-        'INVALID_DEPRECATED_MIXIN_ANNOTATION',
+  static const WarningWithoutArguments
+  invalidDeprecatedMixinAnnotation = WarningWithoutArguments(
+    name: 'INVALID_DEPRECATED_MIXIN_ANNOTATION',
+    problemMessage:
         "The annotation '@Deprecated.mixin' can only be applied to classes.",
-        correctionMessage: "Try removing the '@Deprecated.mixin' annotation.",
-        expectedTypes: [],
-      );
+    correctionMessage: "Try removing the '@Deprecated.mixin' annotation.",
+    expectedTypes: [],
+  );
 
   /// This warning is generated anywhere where `@Deprecated.optional`
   /// annotates something other than an optional parameter.
   ///
   /// No parameters.
-  static const WarningWithoutArguments invalidDeprecatedOptionalAnnotation =
-      WarningWithoutArguments(
-        'INVALID_DEPRECATED_OPTIONAL_ANNOTATION',
+  static const WarningWithoutArguments
+  invalidDeprecatedOptionalAnnotation = WarningWithoutArguments(
+    name: 'INVALID_DEPRECATED_OPTIONAL_ANNOTATION',
+    problemMessage:
         "The annotation '@Deprecated.optional' can only be applied to optional "
-            "parameters.",
-        correctionMessage:
-            "Try removing the '@Deprecated.optional' annotation.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+        "parameters.",
+    correctionMessage: "Try removing the '@Deprecated.optional' annotation.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const WarningWithoutArguments
   invalidDeprecatedSubclassAnnotation = WarningWithoutArguments(
-    'INVALID_DEPRECATED_SUBCLASS_ANNOTATION',
-    "The annotation '@Deprecated.subclass' can only be applied to subclassable "
+    name: 'INVALID_DEPRECATED_SUBCLASS_ANNOTATION',
+    problemMessage:
+        "The annotation '@Deprecated.subclass' can only be applied to subclassable "
         "classes and mixins.",
     correctionMessage: "Try removing the '@Deprecated.subclass' annotation.",
     hasPublishedDocs: true,
@@ -12018,8 +12416,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   invalidExportOfInternalElement = WarningTemplate(
-    'INVALID_EXPORT_OF_INTERNAL_ELEMENT',
-    "The member '{0}' can't be exported as a part of a package's public API.",
+    name: 'INVALID_EXPORT_OF_INTERNAL_ELEMENT',
+    problemMessage:
+        "The member '{0}' can't be exported as a part of a package's public API.",
     correctionMessage: "Try using a hide clause to hide '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidExportOfInternalElement,
@@ -12034,8 +12433,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   invalidExportOfInternalElementIndirectly = WarningTemplate(
-    'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
-    "The member '{0}' can't be exported as a part of a package's public API, "
+    name: 'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
+    problemMessage:
+        "The member '{0}' can't be exported as a part of a package's public API, "
         "but is indirectly exported as part of the signature of '{1}'.",
     correctionMessage: "Try using a hide clause to hide '{0}'.",
     hasPublishedDocs: true,
@@ -12049,8 +12449,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   invalidFactoryMethodDecl = WarningTemplate(
-    'INVALID_FACTORY_METHOD_DECL',
-    "Factory method '{0}' must have a return type.",
+    name: 'INVALID_FACTORY_METHOD_DECL',
+    problemMessage: "Factory method '{0}' must have a return type.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidFactoryMethodDecl,
     expectedTypes: [ExpectedType.string],
@@ -12062,8 +12462,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   invalidFactoryMethodImpl = WarningTemplate(
-    'INVALID_FACTORY_METHOD_IMPL',
-    "Factory method '{0}' doesn't return a newly allocated object.",
+    name: 'INVALID_FACTORY_METHOD_IMPL',
+    problemMessage:
+        "Factory method '{0}' doesn't return a newly allocated object.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidFactoryMethodImpl,
     expectedTypes: [ExpectedType.string],
@@ -12072,31 +12473,34 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   invalidInternalAnnotation = WarningWithoutArguments(
-    'INVALID_INTERNAL_ANNOTATION',
-    "Only public elements in a package's private API can be annotated as being "
+    name: 'INVALID_INTERNAL_ANNOTATION',
+    problemMessage:
+        "Only public elements in a package's private API can be annotated as being "
         "internal.",
     hasPublishedDocs: true,
     expectedTypes: [],
   );
 
   /// No parameters.
-  static const WarningWithoutArguments invalidLanguageVersionOverrideAtSign =
-      WarningWithoutArguments(
-        'INVALID_LANGUAGE_VERSION_OVERRIDE',
+  static const WarningWithoutArguments
+  invalidLanguageVersionOverrideAtSign = WarningWithoutArguments(
+    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    problemMessage:
         "The Dart language version override number must begin with '@dart'.",
-        correctionMessage:
-            "Specify a Dart language version override with a comment like '// "
-            "@dart = 2.0'.",
-        hasPublishedDocs: true,
-        uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
-        expectedTypes: [],
-      );
+    correctionMessage:
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const WarningWithoutArguments
   invalidLanguageVersionOverrideEquals = WarningWithoutArguments(
-    'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The Dart language version override comment must be specified with an '=' "
+    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    problemMessage:
+        "The Dart language version override comment must be specified with an '=' "
         "character.",
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
@@ -12113,8 +12517,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   invalidLanguageVersionOverrideGreater = WarningTemplate(
-    'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The language version override can't specify a version greater than the "
+    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    problemMessage:
+        "The language version override can't specify a version greater than the "
         "latest known language version: {0}.{1}.",
     correctionMessage: "Try removing the language version override.",
     hasPublishedDocs: true,
@@ -12126,8 +12531,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   invalidLanguageVersionOverrideLocation = WarningWithoutArguments(
-    'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The language version override must be specified before any declaration or "
+    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    problemMessage:
+        "The language version override must be specified before any declaration or "
         "directive.",
     correctionMessage:
         "Try moving the language version override to the top of the file.",
@@ -12137,52 +12543,56 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const WarningWithoutArguments invalidLanguageVersionOverrideLowerCase =
-      WarningWithoutArguments(
-        'INVALID_LANGUAGE_VERSION_OVERRIDE',
+  static const WarningWithoutArguments
+  invalidLanguageVersionOverrideLowerCase = WarningWithoutArguments(
+    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    problemMessage:
         "The Dart language version override comment must be specified with the "
-            "word 'dart' in all lower case.",
-        correctionMessage:
-            "Specify a Dart language version override with a comment like '// "
-            "@dart = 2.0'.",
-        hasPublishedDocs: true,
-        uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
-        expectedTypes: [],
-      );
+        "word 'dart' in all lower case.",
+    correctionMessage:
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
+    expectedTypes: [],
+  );
 
   /// No parameters.
-  static const WarningWithoutArguments invalidLanguageVersionOverrideNumber =
-      WarningWithoutArguments(
-        'INVALID_LANGUAGE_VERSION_OVERRIDE',
+  static const WarningWithoutArguments
+  invalidLanguageVersionOverrideNumber = WarningWithoutArguments(
+    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    problemMessage:
         "The Dart language version override comment must be specified with a "
-            "version number, like '2.0', after the '=' character.",
-        correctionMessage:
-            "Specify a Dart language version override with a comment like '// "
-            "@dart = 2.0'.",
-        hasPublishedDocs: true,
-        uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
-        expectedTypes: [],
-      );
+        "version number, like '2.0', after the '=' character.",
+    correctionMessage:
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
+    expectedTypes: [],
+  );
 
   /// No parameters.
-  static const WarningWithoutArguments invalidLanguageVersionOverridePrefix =
-      WarningWithoutArguments(
-        'INVALID_LANGUAGE_VERSION_OVERRIDE',
+  static const WarningWithoutArguments
+  invalidLanguageVersionOverridePrefix = WarningWithoutArguments(
+    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    problemMessage:
         "The Dart language version override number can't be prefixed with a "
-            "letter.",
-        correctionMessage:
-            "Specify a Dart language version override with a comment like '// "
-            "@dart = 2.0'.",
-        hasPublishedDocs: true,
-        uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
-        expectedTypes: [],
-      );
+        "letter.",
+    correctionMessage:
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const WarningWithoutArguments
   invalidLanguageVersionOverrideTrailingCharacters = WarningWithoutArguments(
-    'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The Dart language version override comment can't be followed by any "
+    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    problemMessage:
+        "The Dart language version override comment can't be followed by any "
         "non-whitespace characters.",
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
@@ -12195,8 +12605,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   invalidLanguageVersionOverrideTwoSlashes = WarningWithoutArguments(
-    'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The Dart language version override comment must be specified with exactly "
+    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    problemMessage:
+        "The Dart language version override comment must be specified with exactly "
         "two slashes.",
     correctionMessage:
         "Specify a Dart language version override with a comment like '// "
@@ -12209,8 +12620,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments invalidLiteralAnnotation =
       WarningWithoutArguments(
-        'INVALID_LITERAL_ANNOTATION',
-        "Only const constructors can have the `@literal` annotation.",
+        name: 'INVALID_LITERAL_ANNOTATION',
+        problemMessage:
+            "Only const constructors can have the `@literal` annotation.",
         hasPublishedDocs: true,
         expectedTypes: [],
       );
@@ -12221,8 +12633,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   invalidNonVirtualAnnotation = WarningWithoutArguments(
-    'INVALID_NON_VIRTUAL_ANNOTATION',
-    "The annotation '@nonVirtual' can only be applied to a concrete instance "
+    name: 'INVALID_NON_VIRTUAL_ANNOTATION',
+    problemMessage:
+        "The annotation '@nonVirtual' can only be applied to a concrete instance "
         "member.",
     correctionMessage: "Try removing '@nonVirtual'.",
     hasPublishedDocs: true,
@@ -12239,8 +12652,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   invalidOverrideOfNonVirtualMember = WarningTemplate(
-    'INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
-    "The member '{0}' is declared non-virtual in '{1}' and can't be overridden "
+    name: 'INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
+    problemMessage:
+        "The member '{0}' is declared non-virtual in '{1}' and can't be overridden "
         "in subclasses.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidOverrideOfNonVirtualMember,
@@ -12251,15 +12665,16 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// did not reopen any type.
   ///
   /// No parameters.
-  static const WarningWithoutArguments invalidReopenAnnotation =
-      WarningWithoutArguments(
-        'INVALID_REOPEN_ANNOTATION',
+  static const WarningWithoutArguments
+  invalidReopenAnnotation = WarningWithoutArguments(
+    name: 'INVALID_REOPEN_ANNOTATION',
+    problemMessage:
         "The annotation '@reopen' can only be applied to a class that opens "
-            "capabilities that the supertype intentionally disallows.",
-        correctionMessage: "Try removing the '@reopen' annotation.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+        "capabilities that the supertype intentionally disallows.",
+    correctionMessage: "Try removing the '@reopen' annotation.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// Parameters:
   /// String p0: the name of the member
@@ -12267,8 +12682,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   invalidUseOfDoNotSubmitMember = WarningTemplate(
-    'INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
-    "Uses of '{0}' should not be submitted to source control.",
+    name: 'INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
+    problemMessage: "Uses of '{0}' should not be submitted to source control.",
     correctionMessage: "Try removing the reference to '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidUseOfDoNotSubmitMember,
@@ -12281,8 +12696,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   invalidUseOfInternalMember = WarningTemplate(
-    'INVALID_USE_OF_INTERNAL_MEMBER',
-    "The member '{0}' can only be used within its package.",
+    name: 'INVALID_USE_OF_INTERNAL_MEMBER',
+    problemMessage: "The member '{0}' can only be used within its package.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidUseOfInternalMember,
     expectedTypes: [ExpectedType.string],
@@ -12298,8 +12713,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   invalidUseOfProtectedMember = WarningTemplate(
-    'INVALID_USE_OF_PROTECTED_MEMBER',
-    "The member '{0}' can only be used within instance members of subclasses "
+    name: 'INVALID_USE_OF_PROTECTED_MEMBER',
+    problemMessage:
+        "The member '{0}' can only be used within instance members of subclasses "
         "of '{1}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidUseOfProtectedMember,
@@ -12312,8 +12728,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   invalidUseOfVisibleForOverridingMember = WarningTemplate(
-    'INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
-    "The member '{0}' can only be used for overriding.",
+    name: 'INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
+    problemMessage: "The member '{0}' can only be used for overriding.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidUseOfVisibleForOverridingMember,
     expectedTypes: [ExpectedType.string],
@@ -12329,8 +12745,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required Uri p1})
   >
   invalidUseOfVisibleForTemplateMember = WarningTemplate(
-    'INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
-    "The member '{0}' can only be used within '{1}' or a template library.",
+    name: 'INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
+    problemMessage:
+        "The member '{0}' can only be used within '{1}' or a template library.",
     withArguments: _withArgumentsInvalidUseOfVisibleForTemplateMember,
     expectedTypes: [ExpectedType.string, ExpectedType.uri],
   );
@@ -12345,8 +12762,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required Uri p1})
   >
   invalidUseOfVisibleForTestingMember = WarningTemplate(
-    'INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
-    "The member '{0}' can only be used within '{1}' or a test.",
+    name: 'INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
+    problemMessage: "The member '{0}' can only be used within '{1}' or a test.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidUseOfVisibleForTestingMember,
     expectedTypes: [ExpectedType.string, ExpectedType.uri],
@@ -12362,8 +12779,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   invalidVisibilityAnnotation = WarningTemplate(
-    'INVALID_VISIBILITY_ANNOTATION',
-    "The member '{0}' is annotated with '{1}', but this annotation is only "
+    name: 'INVALID_VISIBILITY_ANNOTATION',
+    problemMessage:
+        "The member '{0}' is annotated with '{1}', but this annotation is only "
         "meaningful on declarations of public members.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidVisibilityAnnotation,
@@ -12371,20 +12789,22 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const WarningWithoutArguments invalidVisibleForOverridingAnnotation =
-      WarningWithoutArguments(
-        'INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION',
+  static const WarningWithoutArguments
+  invalidVisibleForOverridingAnnotation = WarningWithoutArguments(
+    name: 'INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION',
+    problemMessage:
         "The annotation 'visibleForOverriding' can only be applied to a public "
-            "instance member that can be overridden.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+        "instance member that can be overridden.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const WarningWithoutArguments
   invalidVisibleOutsideTemplateAnnotation = WarningWithoutArguments(
-    'INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION',
-    "The annotation 'visibleOutsideTemplate' can only be applied to a member "
+    name: 'INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION',
+    problemMessage:
+        "The annotation 'visibleOutsideTemplate' can only be applied to a member "
         "of a class, enum, or mixin that is annotated with "
         "'visibleForTemplate'.",
     hasPublishedDocs: true,
@@ -12394,8 +12814,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   invalidWidgetPreviewApplication = WarningWithoutArguments(
-    'INVALID_WIDGET_PREVIEW_APPLICATION',
-    "The '@Preview(...)' annotation can only be applied to public, statically "
+    name: 'INVALID_WIDGET_PREVIEW_APPLICATION',
+    problemMessage:
+        "The '@Preview(...)' annotation can only be applied to public, statically "
         "accessible constructors and functions.",
     hasPublishedDocs: true,
     expectedTypes: [],
@@ -12408,8 +12829,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   invalidWidgetPreviewPrivateArgument = WarningTemplate(
-    'INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT',
-    "'@Preview(...)' can only accept arguments that consist of literals and "
+    name: 'INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT',
+    problemMessage:
+        "'@Preview(...)' can only accept arguments that consist of literals and "
         "public symbols.",
     correctionMessage: "Rename private symbol '{0}' to '{1}'.",
     hasPublishedDocs: true,
@@ -12423,8 +12845,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   missingOverrideOfMustBeOverriddenOne = WarningTemplate(
-    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
-    "Missing concrete implementation of '{0}'.",
+    name: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    problemMessage: "Missing concrete implementation of '{0}'.",
     correctionMessage: "Try overriding the missing member.",
     hasPublishedDocs: true,
     uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE',
@@ -12444,8 +12866,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   missingOverrideOfMustBeOverriddenThreePlus = WarningTemplate(
-    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
-    "Missing concrete implementations of '{0}', '{1}', and {2} more.",
+    name: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    problemMessage:
+        "Missing concrete implementations of '{0}', '{1}', and {2} more.",
     correctionMessage: "Try overriding the missing members.",
     hasPublishedDocs: true,
     uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS',
@@ -12464,8 +12887,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   missingOverrideOfMustBeOverriddenTwo = WarningTemplate(
-    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
-    "Missing concrete implementations of '{0}' and '{1}'.",
+    name: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    problemMessage: "Missing concrete implementations of '{0}' and '{1}'.",
     correctionMessage: "Try overriding the missing members.",
     hasPublishedDocs: true,
     uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
@@ -12482,8 +12905,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   missingRequiredParam = WarningTemplate(
-    'MISSING_REQUIRED_PARAM',
-    "The parameter '{0}' is required.",
+    name: 'MISSING_REQUIRED_PARAM',
+    problemMessage: "The parameter '{0}' is required.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMissingRequiredParam,
     expectedTypes: [ExpectedType.string],
@@ -12499,8 +12922,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   missingRequiredParamWithDetails = WarningTemplate(
-    'MISSING_REQUIRED_PARAM',
-    "The parameter '{0}' is required. {1}.",
+    name: 'MISSING_REQUIRED_PARAM',
+    problemMessage: "The parameter '{0}' is required. {1}.",
     hasPublishedDocs: true,
     uniqueName: 'MISSING_REQUIRED_PARAM_WITH_DETAILS',
     withArguments: _withArgumentsMissingRequiredParamWithDetails,
@@ -12516,8 +12939,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   mixinOnSealedClass = WarningTemplate(
-    'MIXIN_ON_SEALED_CLASS',
-    "The class '{0}' shouldn't be used as a mixin constraint because it is "
+    name: 'MIXIN_ON_SEALED_CLASS',
+    problemMessage:
+        "The class '{0}' shouldn't be used as a mixin constraint because it is "
         "sealed, and any class mixing in this mixin must have '{0}' as a "
         "superclass.",
     correctionMessage:
@@ -12531,8 +12955,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   multipleCombinators = WarningWithoutArguments(
-    'MULTIPLE_COMBINATORS',
-    "Using multiple 'hide' or 'show' combinators is never necessary and often "
+    name: 'MULTIPLE_COMBINATORS',
+    problemMessage:
+        "Using multiple 'hide' or 'show' combinators is never necessary and often "
         "produces surprising results.",
     correctionMessage: "Try using a single combinator.",
     hasPublishedDocs: true,
@@ -12548,8 +12973,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   mustBeImmutable = WarningTemplate(
-    'MUST_BE_IMMUTABLE',
-    "This class (or a class that this class inherits from) is marked as "
+    name: 'MUST_BE_IMMUTABLE',
+    problemMessage:
+        "This class (or a class that this class inherits from) is marked as "
         "'@immutable', but one or more of its instance fields aren't final: "
         "{0}",
     hasPublishedDocs: true,
@@ -12563,8 +12989,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   mustCallSuper = WarningTemplate(
-    'MUST_CALL_SUPER',
-    "This method overrides a method annotated as '@mustCallSuper' in '{0}', "
+    name: 'MUST_CALL_SUPER',
+    problemMessage:
+        "This method overrides a method annotated as '@mustCallSuper' in '{0}', "
         "but doesn't invoke the overridden method.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMustCallSuper,
@@ -12577,8 +13004,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   nonConstArgumentForConstParameter = WarningTemplate(
-    'NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
-    "Argument '{0}' must be a constant.",
+    name: 'NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
+    problemMessage: "Argument '{0}' must be a constant.",
     correctionMessage: "Try replacing the argument with a constant.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNonConstArgumentForConstParameter,
@@ -12594,8 +13021,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   nonConstCallToLiteralConstructor = WarningTemplate(
-    'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
-    "This instance creation must be 'const', because the {0} constructor is "
+    name: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
+    problemMessage:
+        "This instance creation must be 'const', because the {0} constructor is "
         "marked as '@literal'.",
     correctionMessage: "Try adding a 'const' keyword.",
     hasPublishedDocs: true,
@@ -12612,8 +13040,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   nonConstCallToLiteralConstructorUsingNew = WarningTemplate(
-    'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
-    "This instance creation must be 'const', because the {0} constructor is "
+    name: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
+    problemMessage:
+        "This instance creation must be 'const', because the {0} constructor is "
         "marked as '@literal'.",
     correctionMessage: "Try replacing the 'new' keyword with 'const'.",
     hasPublishedDocs: true,
@@ -12625,8 +13054,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments nonNullableEqualsParameter =
       WarningWithoutArguments(
-        'NON_NULLABLE_EQUALS_PARAMETER',
-        "The parameter type of '==' operators should be non-nullable.",
+        name: 'NON_NULLABLE_EQUALS_PARAMETER',
+        problemMessage:
+            "The parameter type of '==' operators should be non-nullable.",
         correctionMessage: "Try using a non-nullable type.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -12635,8 +13065,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   nullableTypeInCatchClause = WarningWithoutArguments(
-    'NULLABLE_TYPE_IN_CATCH_CLAUSE',
-    "A potentially nullable type can't be used in an 'on' clause because it "
+    name: 'NULLABLE_TYPE_IN_CATCH_CLAUSE',
+    problemMessage:
+        "A potentially nullable type can't be used in an 'on' clause because it "
         "isn't valid to throw a nullable expression.",
     correctionMessage: "Try using a non-nullable type.",
     hasPublishedDocs: true,
@@ -12650,8 +13081,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   nullArgumentToNonNullType = WarningTemplate(
-    'NULL_ARGUMENT_TO_NON_NULL_TYPE',
-    "'{0}' shouldn't be called with a 'null' argument for the non-nullable "
+    name: 'NULL_ARGUMENT_TO_NON_NULL_TYPE',
+    problemMessage:
+        "'{0}' shouldn't be called with a 'null' argument for the non-nullable "
         "type argument '{1}'.",
     correctionMessage: "Try adding a non-null argument.",
     hasPublishedDocs: true,
@@ -12660,22 +13092,24 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const WarningWithoutArguments nullCheckAlwaysFails =
-      WarningWithoutArguments(
-        'NULL_CHECK_ALWAYS_FAILS',
+  static const WarningWithoutArguments
+  nullCheckAlwaysFails = WarningWithoutArguments(
+    name: 'NULL_CHECK_ALWAYS_FAILS',
+    problemMessage:
         "This null-check will always throw an exception because the expression "
-            "will always evaluate to 'null'.",
-        hasPublishedDocs: true,
-        expectedTypes: [],
-      );
+        "will always evaluate to 'null'.",
+    hasPublishedDocs: true,
+    expectedTypes: [],
+  );
 
   /// A field with the override annotation does not override a getter or setter.
   ///
   /// No parameters.
   static const WarningWithoutArguments overrideOnNonOverridingField =
       WarningWithoutArguments(
-        'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
-        "The field doesn't override an inherited getter or setter.",
+        name: 'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+        problemMessage:
+            "The field doesn't override an inherited getter or setter.",
         correctionMessage:
             "Try updating this class to match the superclass, or removing the "
             "override annotation.",
@@ -12689,8 +13123,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments overrideOnNonOverridingGetter =
       WarningWithoutArguments(
-        'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
-        "The getter doesn't override an inherited getter.",
+        name: 'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+        problemMessage: "The getter doesn't override an inherited getter.",
         correctionMessage:
             "Try updating this class to match the superclass, or removing the "
             "override annotation.",
@@ -12704,8 +13138,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments overrideOnNonOverridingMethod =
       WarningWithoutArguments(
-        'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
-        "The method doesn't override an inherited method.",
+        name: 'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+        problemMessage: "The method doesn't override an inherited method.",
         correctionMessage:
             "Try updating this class to match the superclass, or removing the "
             "override annotation.",
@@ -12719,8 +13153,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments overrideOnNonOverridingSetter =
       WarningWithoutArguments(
-        'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
-        "The setter doesn't override an inherited setter.",
+        name: 'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+        problemMessage: "The setter doesn't override an inherited setter.",
         correctionMessage:
             "Try updating this class to match the superclass, or removing the "
             "override annotation.",
@@ -12736,8 +13170,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   patternNeverMatchesValueType = WarningTemplate(
-    'PATTERN_NEVER_MATCHES_VALUE_TYPE',
-    "The matched value type '{0}' can never match the required type '{1}'.",
+    name: 'PATTERN_NEVER_MATCHES_VALUE_TYPE',
+    problemMessage:
+        "The matched value type '{0}' can never match the required type '{1}'.",
     correctionMessage: "Try using a different pattern.",
     withArguments: _withArgumentsPatternNeverMatchesValueType,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
@@ -12757,8 +13192,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   receiverOfTypeNever = WarningWithoutArguments(
-    'RECEIVER_OF_TYPE_NEVER',
-    "The receiver is of type 'Never', and will never complete with a value.",
+    name: 'RECEIVER_OF_TYPE_NEVER',
+    problemMessage:
+        "The receiver is of type 'Never', and will never complete with a value.",
     correctionMessage:
         "Try checking for throw expressions or type errors in the receiver",
     expectedTypes: [],
@@ -12772,8 +13208,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   redeclareOnNonRedeclaringMember = WarningTemplate(
-    'REDECLARE_ON_NON_REDECLARING_MEMBER',
-    "The {0} doesn't redeclare a {0} declared in a superinterface.",
+    name: 'REDECLARE_ON_NON_REDECLARING_MEMBER',
+    problemMessage:
+        "The {0} doesn't redeclare a {0} declared in a superinterface.",
     correctionMessage:
         "Try updating this member to match a declaration in a superinterface, "
         "or removing the redeclare annotation.",
@@ -12791,8 +13228,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   removedLintUse = WarningTemplate(
-    'REMOVED_LINT_USE',
-    "'{0}' was removed in Dart '{1}'",
+    name: 'REMOVED_LINT_USE',
+    problemMessage: "'{0}' was removed in Dart '{1}'",
     correctionMessage: "Remove the reference to '{0}'.",
     withArguments: _withArgumentsRemovedLintUse,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
@@ -12812,8 +13249,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   replacedLintUse = WarningTemplate(
-    'REPLACED_LINT_USE',
-    "'{0}' was replaced by '{2}' in Dart '{1}'.",
+    name: 'REPLACED_LINT_USE',
+    problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'.",
     correctionMessage: "Replace '{0}' with '{1}'.",
     withArguments: _withArgumentsReplacedLintUse,
     expectedTypes: [
@@ -12830,8 +13267,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   returnOfDoNotStore = WarningTemplate(
-    'RETURN_OF_DO_NOT_STORE',
-    "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless "
+    name: 'RETURN_OF_DO_NOT_STORE',
+    problemMessage:
+        "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless "
         "'{1}' is also annotated.",
     correctionMessage: "Annotate '{1}' with 'doNotStore'.",
     hasPublishedDocs: true,
@@ -12846,8 +13284,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   returnOfInvalidTypeFromCatchError = WarningTemplate(
-    'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
-    "A value of type '{0}' can't be returned by the 'onError' handler because "
+    name: 'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
+    problemMessage:
+        "A value of type '{0}' can't be returned by the 'onError' handler because "
         "it must be assignable to '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR',
@@ -12862,8 +13301,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
   returnTypeInvalidForCatchError = WarningTemplate(
-    'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
-    "The return type '{0}' isn't assignable to '{1}', as required by "
+    name: 'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
+    problemMessage:
+        "The return type '{0}' isn't assignable to '{1}', as required by "
         "'Future.catchError'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
@@ -12879,8 +13319,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   sdkVersionConstructorTearoffs = WarningWithoutArguments(
-    'SDK_VERSION_CONSTRUCTOR_TEAROFFS',
-    "Tearing off a constructor requires the 'constructor-tearoffs' language "
+    name: 'SDK_VERSION_CONSTRUCTOR_TEAROFFS',
+    problemMessage:
+        "Tearing off a constructor requires the 'constructor-tearoffs' language "
         "feature.",
     correctionMessage:
         "Try updating your 'pubspec.yaml' to set the minimum SDK constraint to "
@@ -12892,8 +13333,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   sdkVersionGtGtGtOperator = WarningWithoutArguments(
-    'SDK_VERSION_GT_GT_GT_OPERATOR',
-    "The operator '>>>' wasn't supported until version 2.14.0, but this code "
+    name: 'SDK_VERSION_GT_GT_GT_OPERATOR',
+    problemMessage:
+        "The operator '>>>' wasn't supported until version 2.14.0, but this code "
         "is required to be able to run on earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
@@ -12907,8 +13349,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   sdkVersionSince = WarningTemplate(
-    'SDK_VERSION_SINCE',
-    "This API is available since SDK {0}, but constraints '{1}' don't "
+    name: 'SDK_VERSION_SINCE',
+    problemMessage:
+        "This API is available since SDK {0}, but constraints '{1}' don't "
         "guarantee it.",
     correctionMessage: "Try updating the SDK constraints.",
     withArguments: _withArgumentsSdkVersionSince,
@@ -12926,8 +13369,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required DartType p0})
   >
   strictRawType = WarningTemplate(
-    'STRICT_RAW_TYPE',
-    "The generic type '{0}' should have explicit type arguments but doesn't.",
+    name: 'STRICT_RAW_TYPE',
+    problemMessage:
+        "The generic type '{0}' should have explicit type arguments but doesn't.",
     correctionMessage: "Use explicit type arguments for '{0}'.",
     withArguments: _withArgumentsStrictRawType,
     expectedTypes: [ExpectedType.type],
@@ -12939,8 +13383,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   subtypeOfSealedClass = WarningTemplate(
-    'SUBTYPE_OF_SEALED_CLASS',
-    "The class '{0}' shouldn't be extended, mixed in, or implemented because "
+    name: 'SUBTYPE_OF_SEALED_CLASS',
+    problemMessage:
+        "The class '{0}' shouldn't be extended, mixed in, or implemented because "
         "it's sealed.",
     correctionMessage:
         "Try composing instead of inheriting, or refer to the documentation of "
@@ -12956,8 +13401,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   textDirectionCodePointInComment = WarningTemplate(
-    'TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
-    "The Unicode code point 'U+{0}' changes the appearance of text from how "
+    name: 'TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
+    problemMessage:
+        "The Unicode code point 'U+{0}' changes the appearance of text from how "
         "it's interpreted by the compiler.",
     correctionMessage:
         "Try removing the code point or using the Unicode escape sequence "
@@ -12973,8 +13419,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   textDirectionCodePointInLiteral = WarningTemplate(
-    'TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
-    "The Unicode code point 'U+{0}' changes the appearance of text from how "
+    name: 'TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
+    problemMessage:
+        "The Unicode code point 'U+{0}' changes the appearance of text from how "
         "it's interpreted by the compiler.",
     correctionMessage:
         "Try removing the code point or using the Unicode escape sequence "
@@ -12987,8 +13434,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments typeCheckIsNotNull =
       WarningWithoutArguments(
-        'TYPE_CHECK_WITH_NULL',
-        "Tests for non-null should be done with '!= null'.",
+        name: 'TYPE_CHECK_WITH_NULL',
+        problemMessage: "Tests for non-null should be done with '!= null'.",
         correctionMessage: "Try replacing the 'is! Null' check with '!= null'.",
         hasPublishedDocs: true,
         uniqueName: 'TYPE_CHECK_IS_NOT_NULL',
@@ -12998,8 +13445,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments typeCheckIsNull =
       WarningWithoutArguments(
-        'TYPE_CHECK_WITH_NULL',
-        "Tests for null should be done with '== null'.",
+        name: 'TYPE_CHECK_WITH_NULL',
+        problemMessage: "Tests for null should be done with '== null'.",
         correctionMessage: "Try replacing the 'is Null' check with '== null'.",
         hasPublishedDocs: true,
         uniqueName: 'TYPE_CHECK_IS_NULL',
@@ -13013,8 +13460,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   undefinedHiddenName = WarningTemplate(
-    'UNDEFINED_HIDDEN_NAME',
-    "The library '{0}' doesn't export a member with the hidden name '{1}'.",
+    name: 'UNDEFINED_HIDDEN_NAME',
+    problemMessage:
+        "The library '{0}' doesn't export a member with the hidden name '{1}'.",
     correctionMessage: "Try removing the name from the list of hidden members.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUndefinedHiddenName,
@@ -13028,8 +13476,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   undefinedReferencedParameter = WarningTemplate(
-    'UNDEFINED_REFERENCED_PARAMETER',
-    "The parameter '{0}' isn't defined by '{1}'.",
+    name: 'UNDEFINED_REFERENCED_PARAMETER',
+    problemMessage: "The parameter '{0}' isn't defined by '{1}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUndefinedReferencedParameter,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -13042,8 +13490,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   undefinedShownName = WarningTemplate(
-    'UNDEFINED_SHOWN_NAME',
-    "The library '{0}' doesn't export a member with the shown name '{1}'.",
+    name: 'UNDEFINED_SHOWN_NAME',
+    problemMessage:
+        "The library '{0}' doesn't export a member with the shown name '{1}'.",
     correctionMessage: "Try removing the name from the list of shown members.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUndefinedShownName,
@@ -13056,8 +13505,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   unignorableIgnore = WarningTemplate(
-    'UNIGNORABLE_IGNORE',
-    "The diagnostic '{0}' can't be ignored.",
+    name: 'UNIGNORABLE_IGNORE',
+    problemMessage: "The diagnostic '{0}' can't be ignored.",
     correctionMessage:
         "Try removing the name from the list, or removing the whole comment if "
         "this is the only name in the list.",
@@ -13068,8 +13517,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments unnecessaryCast =
       WarningWithoutArguments(
-        'UNNECESSARY_CAST',
-        "Unnecessary cast.",
+        name: 'UNNECESSARY_CAST',
+        problemMessage: "Unnecessary cast.",
         correctionMessage: "Try removing the cast.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -13078,8 +13527,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments unnecessaryCastPattern =
       WarningWithoutArguments(
-        'UNNECESSARY_CAST_PATTERN',
-        "Unnecessary cast pattern.",
+        name: 'UNNECESSARY_CAST_PATTERN',
+        problemMessage: "Unnecessary cast pattern.",
         correctionMessage: "Try removing the cast pattern.",
         expectedTypes: [],
       );
@@ -13087,8 +13536,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   unnecessaryFinal = WarningWithoutArguments(
-    'UNNECESSARY_FINAL',
-    "The keyword 'final' isn't necessary because the parameter is implicitly "
+    name: 'UNNECESSARY_FINAL',
+    problemMessage:
+        "The keyword 'final' isn't necessary because the parameter is implicitly "
         "'final'.",
     correctionMessage: "Try removing the 'final'.",
     hasPublishedDocs: true,
@@ -13098,8 +13548,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   unnecessaryNanComparisonFalse = WarningWithoutArguments(
-    'UNNECESSARY_NAN_COMPARISON',
-    "A double can't equal 'double.nan', so the condition is always 'false'.",
+    name: 'UNNECESSARY_NAN_COMPARISON',
+    problemMessage:
+        "A double can't equal 'double.nan', so the condition is always 'false'.",
     correctionMessage: "Try using 'double.isNan', or removing the condition.",
     hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_NAN_COMPARISON_FALSE',
@@ -13107,22 +13558,22 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const WarningWithoutArguments unnecessaryNanComparisonTrue =
-      WarningWithoutArguments(
-        'UNNECESSARY_NAN_COMPARISON',
+  static const WarningWithoutArguments
+  unnecessaryNanComparisonTrue = WarningWithoutArguments(
+    name: 'UNNECESSARY_NAN_COMPARISON',
+    problemMessage:
         "A double can't equal 'double.nan', so the condition is always 'true'.",
-        correctionMessage:
-            "Try using 'double.isNan', or removing the condition.",
-        hasPublishedDocs: true,
-        uniqueName: 'UNNECESSARY_NAN_COMPARISON_TRUE',
-        expectedTypes: [],
-      );
+    correctionMessage: "Try using 'double.isNan', or removing the condition.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNNECESSARY_NAN_COMPARISON_TRUE',
+    expectedTypes: [],
+  );
 
   /// No parameters.
   static const WarningWithoutArguments unnecessaryNoSuchMethod =
       WarningWithoutArguments(
-        'UNNECESSARY_NO_SUCH_METHOD',
-        "Unnecessary 'noSuchMethod' declaration.",
+        name: 'UNNECESSARY_NO_SUCH_METHOD',
+        problemMessage: "Unnecessary 'noSuchMethod' declaration.",
         correctionMessage: "Try removing the declaration of 'noSuchMethod'.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -13131,8 +13582,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments
   unnecessaryNullComparisonAlwaysNullFalse = WarningWithoutArguments(
-    'UNNECESSARY_NULL_COMPARISON',
-    "The operand must be 'null', so the condition is always 'false'.",
+    name: 'UNNECESSARY_NULL_COMPARISON',
+    problemMessage:
+        "The operand must be 'null', so the condition is always 'false'.",
     correctionMessage: "Remove the condition.",
     hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE',
@@ -13142,8 +13594,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments unnecessaryNullComparisonAlwaysNullTrue =
       WarningWithoutArguments(
-        'UNNECESSARY_NULL_COMPARISON',
-        "The operand must be 'null', so the condition is always 'true'.",
+        name: 'UNNECESSARY_NULL_COMPARISON',
+        problemMessage:
+            "The operand must be 'null', so the condition is always 'true'.",
         correctionMessage: "Remove the condition.",
         hasPublishedDocs: true,
         uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE',
@@ -13153,8 +13606,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments unnecessaryNullComparisonNeverNullFalse =
       WarningWithoutArguments(
-        'UNNECESSARY_NULL_COMPARISON',
-        "The operand can't be 'null', so the condition is always 'false'.",
+        name: 'UNNECESSARY_NULL_COMPARISON',
+        problemMessage:
+            "The operand can't be 'null', so the condition is always 'false'.",
         correctionMessage:
             "Try removing the condition, an enclosing condition, or the whole "
             "conditional statement.",
@@ -13166,8 +13620,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments unnecessaryNullComparisonNeverNullTrue =
       WarningWithoutArguments(
-        'UNNECESSARY_NULL_COMPARISON',
-        "The operand can't be 'null', so the condition is always 'true'.",
+        name: 'UNNECESSARY_NULL_COMPARISON',
+        problemMessage:
+            "The operand can't be 'null', so the condition is always 'true'.",
         correctionMessage: "Remove the condition.",
         hasPublishedDocs: true,
         uniqueName: 'UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE',
@@ -13180,8 +13635,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   unnecessaryQuestionMark = WarningTemplate(
-    'UNNECESSARY_QUESTION_MARK',
-    "The '?' is unnecessary because '{0}' is nullable without it.",
+    name: 'UNNECESSARY_QUESTION_MARK',
+    problemMessage:
+        "The '?' is unnecessary because '{0}' is nullable without it.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUnnecessaryQuestionMark,
     expectedTypes: [ExpectedType.string],
@@ -13190,8 +13646,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments unnecessarySetLiteral =
       WarningWithoutArguments(
-        'UNNECESSARY_SET_LITERAL',
-        "Braces unnecessarily wrap this expression in a set literal.",
+        name: 'UNNECESSARY_SET_LITERAL',
+        problemMessage:
+            "Braces unnecessarily wrap this expression in a set literal.",
         correctionMessage:
             "Try removing the set literal around the expression.",
         hasPublishedDocs: true,
@@ -13201,8 +13658,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments unnecessaryTypeCheckFalse =
       WarningWithoutArguments(
-        'UNNECESSARY_TYPE_CHECK',
-        "Unnecessary type check; the result is always 'false'.",
+        name: 'UNNECESSARY_TYPE_CHECK',
+        problemMessage: "Unnecessary type check; the result is always 'false'.",
         correctionMessage:
             "Try correcting the type check, or removing the type check.",
         hasPublishedDocs: true,
@@ -13213,8 +13670,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments unnecessaryTypeCheckTrue =
       WarningWithoutArguments(
-        'UNNECESSARY_TYPE_CHECK',
-        "Unnecessary type check; the result is always 'true'.",
+        name: 'UNNECESSARY_TYPE_CHECK',
+        problemMessage: "Unnecessary type check; the result is always 'true'.",
         correctionMessage:
             "Try correcting the type check, or removing the type check.",
         hasPublishedDocs: true,
@@ -13225,8 +13682,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments unnecessaryWildcardPattern =
       WarningWithoutArguments(
-        'UNNECESSARY_WILDCARD_PATTERN',
-        "Unnecessary wildcard pattern.",
+        name: 'UNNECESSARY_WILDCARD_PATTERN',
+        problemMessage: "Unnecessary wildcard pattern.",
         correctionMessage: "Try removing the wildcard pattern.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -13235,8 +13692,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments unreachableSwitchCase =
       WarningWithoutArguments(
-        'UNREACHABLE_SWITCH_CASE',
-        "This case is covered by the previous cases.",
+        name: 'UNREACHABLE_SWITCH_CASE',
+        problemMessage: "This case is covered by the previous cases.",
         correctionMessage:
             "Try removing the case clause, or restructuring the preceding "
             "patterns.",
@@ -13247,8 +13704,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const WarningWithoutArguments unreachableSwitchDefault =
       WarningWithoutArguments(
-        'UNREACHABLE_SWITCH_DEFAULT',
-        "This default clause is covered by the previous cases.",
+        name: 'UNREACHABLE_SWITCH_DEFAULT',
+        problemMessage: "This default clause is covered by the previous cases.",
         correctionMessage:
             "Try removing the default clause, or restructuring the preceding "
             "patterns.",
@@ -13262,8 +13719,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   unusedCatchClause = WarningTemplate(
-    'UNUSED_CATCH_CLAUSE',
-    "The exception variable '{0}' isn't used, so the 'catch' clause can be "
+    name: 'UNUSED_CATCH_CLAUSE',
+    problemMessage:
+        "The exception variable '{0}' isn't used, so the 'catch' clause can be "
         "removed.",
     correctionMessage: "Try removing the catch clause.",
     hasPublishedDocs: true,
@@ -13277,8 +13735,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   unusedCatchStack = WarningTemplate(
-    'UNUSED_CATCH_STACK',
-    "The stack trace variable '{0}' isn't used and can be removed.",
+    name: 'UNUSED_CATCH_STACK',
+    problemMessage:
+        "The stack trace variable '{0}' isn't used and can be removed.",
     correctionMessage: "Try removing the stack trace variable, or using it.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUnusedCatchStack,
@@ -13291,8 +13750,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   unusedElement = WarningTemplate(
-    'UNUSED_ELEMENT',
-    "The declaration '{0}' isn't referenced.",
+    name: 'UNUSED_ELEMENT',
+    problemMessage: "The declaration '{0}' isn't referenced.",
     correctionMessage: "Try removing the declaration of '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUnusedElement,
@@ -13305,8 +13764,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   unusedElementParameter = WarningTemplate(
-    'UNUSED_ELEMENT_PARAMETER',
-    "A value for optional parameter '{0}' isn't ever given.",
+    name: 'UNUSED_ELEMENT_PARAMETER',
+    problemMessage: "A value for optional parameter '{0}' isn't ever given.",
     correctionMessage: "Try removing the unused parameter.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUnusedElementParameter,
@@ -13319,8 +13778,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   unusedField = WarningTemplate(
-    'UNUSED_FIELD',
-    "The value of the field '{0}' isn't used.",
+    name: 'UNUSED_FIELD',
+    problemMessage: "The value of the field '{0}' isn't used.",
     correctionMessage: "Try removing the field, or using it.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUnusedField,
@@ -13333,8 +13792,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   unusedImport = WarningTemplate(
-    'UNUSED_IMPORT',
-    "Unused import: '{0}'.",
+    name: 'UNUSED_IMPORT',
+    problemMessage: "Unused import: '{0}'.",
     correctionMessage: "Try removing the import directive.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUnusedImport,
@@ -13347,8 +13806,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   unusedLabel = WarningTemplate(
-    'UNUSED_LABEL',
-    "The label '{0}' isn't used.",
+    name: 'UNUSED_LABEL',
+    problemMessage: "The label '{0}' isn't used.",
     correctionMessage:
         "Try removing the label, or using it in either a 'break' or 'continue' "
         "statement.",
@@ -13363,8 +13822,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   unusedLocalVariable = WarningTemplate(
-    'UNUSED_LOCAL_VARIABLE',
-    "The value of the local variable '{0}' isn't used.",
+    name: 'UNUSED_LOCAL_VARIABLE',
+    problemMessage: "The value of the local variable '{0}' isn't used.",
     correctionMessage: "Try removing the variable or using it.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUnusedLocalVariable,
@@ -13377,8 +13836,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   unusedResult = WarningTemplate(
-    'UNUSED_RESULT',
-    "The value of '{0}' should be used.",
+    name: 'UNUSED_RESULT',
+    problemMessage: "The value of '{0}' should be used.",
     correctionMessage:
         "Try using the result by invoking a member, passing it to a function, "
         "or returning it from this function.",
@@ -13398,8 +13857,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   unusedResultWithMessage = WarningTemplate(
-    'UNUSED_RESULT',
-    "'{0}' should be used. {1}.",
+    name: 'UNUSED_RESULT',
+    problemMessage: "'{0}' should be used. {1}.",
     correctionMessage:
         "Try using the result by invoking a member, passing it to a function, "
         "or returning it from this function.",
@@ -13415,8 +13874,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   unusedShownName = WarningTemplate(
-    'UNUSED_SHOWN_NAME',
-    "The name {0} is shown, but isn't used.",
+    name: 'UNUSED_SHOWN_NAME',
+    problemMessage: "The name {0} is shown, but isn't used.",
     correctionMessage: "Try removing the name from the list of shown members.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUnusedShownName,
@@ -13429,8 +13888,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   uriDoesNotExistInDocImport = WarningTemplate(
-    'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
-    "Target of URI doesn't exist: '{0}'.",
+    name: 'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
+    problemMessage: "Target of URI doesn't exist: '{0}'.",
     correctionMessage:
         "Try creating the file referenced by the URI, or try using a URI for a "
         "file that does exist.",
@@ -13440,17 +13899,15 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Initialize a newly created error code to have the given [name].
-  const WarningCode(
-    String name,
-    String problemMessage, {
+  const WarningCode({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
     required super.expectedTypes,
   }) : super(
-         name: name,
-         problemMessage: problemMessage,
          type: DiagnosticType.STATIC_WARNING,
          uniqueName: 'WarningCode.${uniqueName ?? name}',
        );
@@ -14168,9 +14625,9 @@ final class WarningTemplate<T extends Function> extends WarningCode {
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
-  const WarningTemplate(
-    super.name,
-    super.problemMessage, {
+  const WarningTemplate({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
@@ -14183,9 +14640,9 @@ final class WarningTemplate<T extends Function> extends WarningCode {
 final class WarningWithoutArguments extends WarningCode
     with DiagnosticWithoutArguments {
   /// Initialize a newly created error code to have the given [name].
-  const WarningWithoutArguments(
-    super.name,
-    super.problemMessage, {
+  const WarningWithoutArguments({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,

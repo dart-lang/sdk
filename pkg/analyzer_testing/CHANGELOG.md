@@ -1,3 +1,10 @@
+## 0.1.7
+
+- Deprecate `AnalysisRuleTest.analysisRule`; instead of implementing this
+  getter, set the `rule` field in the `setUp` method, before calling
+  `super.setUp`. For example, when testing an analysis rule, `MyRule`, call
+  `rule = MyRule()` in `setUp`.
+
 ## 0.1.6
 
 - Require version `9.0.0` of the `analyzer` package.

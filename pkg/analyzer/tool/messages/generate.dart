@@ -131,17 +131,15 @@ part of ${json.encode(file.parentLibrary)};
         '/// Initialize a newly created error code to have the given '
         '[name].',
       );
-      constructor.writeln(
-        'const ${diagnosticClass.name}(String name, String problemMessage, {',
-      );
+      constructor.writeln('const ${diagnosticClass.name}({');
+      constructor.writeln('required super.name,');
+      constructor.writeln('required super.problemMessage,');
       constructor.writeln('super.correctionMessage,');
       constructor.writeln('super.hasPublishedDocs = false,');
       constructor.writeln('super.isUnresolvedIdentifier = false,');
       constructor.writeln('String? uniqueName,');
       constructor.writeln('required super.expectedTypes,');
       constructor.writeln('}) : super(');
-      constructor.writeln('name: name,');
-      constructor.writeln('problemMessage: problemMessage,');
       constructor.writeln('type: ${diagnosticClass.typeCode},');
       constructor.writeln(
         "uniqueName: '${diagnosticClass.name}.\${uniqueName ?? name}',",
@@ -179,9 +177,9 @@ part of ${json.encode(file.parentLibrary)};
       '/// Initialize a newly created error code to have the given '
       '[name].',
     );
-    out.writeln('const $className(');
-    out.writeln('super.name,');
-    out.writeln('super.problemMessage, {');
+    out.writeln('const $className({');
+    out.writeln('required super.name,');
+    out.writeln('required super.problemMessage,');
     out.writeln('super.correctionMessage,');
     out.writeln('super.hasPublishedDocs = false,');
     out.writeln('super.isUnresolvedIdentifier = false,');

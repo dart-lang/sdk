@@ -27,8 +27,8 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String message})
   >
   fixme = TodoTemplate(
-    'FIXME',
-    "{0}",
+    name: 'FIXME',
+    problemMessage: "{0}",
     withArguments: _withArgumentsFixme,
     expectedTypes: [ExpectedType.string],
   );
@@ -41,8 +41,8 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String message})
   >
   hack = TodoTemplate(
-    'HACK',
-    "{0}",
+    name: 'HACK',
+    problemMessage: "{0}",
     withArguments: _withArgumentsHack,
     expectedTypes: [ExpectedType.string],
   );
@@ -55,8 +55,8 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String message})
   >
   todo = TodoTemplate(
-    'TODO',
-    "{0}",
+    name: 'TODO',
+    problemMessage: "{0}",
     withArguments: _withArgumentsTodo,
     expectedTypes: [ExpectedType.string],
   );
@@ -69,24 +69,22 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String message})
   >
   undone = TodoTemplate(
-    'UNDONE',
-    "{0}",
+    name: 'UNDONE',
+    problemMessage: "{0}",
     withArguments: _withArgumentsUndone,
     expectedTypes: [ExpectedType.string],
   );
 
   /// Initialize a newly created error code to have the given [name].
-  const TodoCode(
-    String name,
-    String problemMessage, {
+  const TodoCode({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
     required super.expectedTypes,
   }) : super(
-         name: name,
-         problemMessage: problemMessage,
          type: DiagnosticType.TODO,
          uniqueName: 'TodoCode.${uniqueName ?? name}',
        );
@@ -112,9 +110,9 @@ final class TodoTemplate<T extends Function> extends TodoCode {
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
-  const TodoTemplate(
-    super.name,
-    super.problemMessage, {
+  const TodoTemplate({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
@@ -127,9 +125,9 @@ final class TodoTemplate<T extends Function> extends TodoCode {
 final class TodoWithoutArguments extends TodoCode
     with DiagnosticWithoutArguments {
   /// Initialize a newly created error code to have the given [name].
-  const TodoWithoutArguments(
-    super.name,
-    super.problemMessage, {
+  const TodoWithoutArguments({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,

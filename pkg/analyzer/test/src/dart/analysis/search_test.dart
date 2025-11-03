@@ -471,12 +471,12 @@ testFile
     codeOffset: 0 + 79
   CONSTRUCTOR new
     offset: 15 1:16
-    codeOffset: 16 + 8
+    codeOffset: 15 + 9
     className: E
     parameters: (int it)
   FIELD it
     offset: 21 1:22
-    codeOffset: 16 + 8
+    codeOffset: 15 + 9
     className: E
   GETTER g
     offset: 37 2:11

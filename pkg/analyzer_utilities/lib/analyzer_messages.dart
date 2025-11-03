@@ -478,7 +478,7 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     }
     constant.writeln('$className(');
     constant.writeln(
-      '${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
+      'name: ${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
     );
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
     var messageAsCode = convertTemplate(problemMessage);
@@ -487,7 +487,9 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
       maxWidth: maxWidth,
       firstLineWidth: maxWidth + 4,
     );
-    constant.writeln('${messageLines.map(_encodeString).join('\n')},');
+    constant.writeln(
+      'problemMessage: ${messageLines.map(_encodeString).join('\n')},',
+    );
     if (correctionMessage != null) {
       constant.write('correctionMessage: ');
       var code = convertTemplate(correctionMessage);

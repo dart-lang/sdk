@@ -12174,6 +12174,10 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionTypedFormalParameter
     implements NormalFormalParameter {
+  /// The token representing either the `final` or `var` keyword, or
+  /// `null` if no keyword was used.
+  Token? get keyword;
+
   @override
   Token get name;
 
@@ -12199,6 +12203,7 @@ abstract final class FunctionTypedFormalParameter
   childEntitiesOrder: [
     GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('requiredKeyword', isSuper: true),
+    GenerateNodeProperty('keyword'),
     GenerateNodeProperty('returnType'),
     GenerateNodeProperty('name', isSuper: true, superNullAssertOverride: true),
     GenerateNodeProperty('typeParameters'),
@@ -12208,6 +12213,10 @@ abstract final class FunctionTypedFormalParameter
 )
 final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     implements FunctionTypedFormalParameter {
+  @generated
+  @override
+  final Token? keyword;
+
   @generated
   TypeAnnotationImpl? _returnType;
 
@@ -12227,6 +12236,7 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     required super.metadata,
     required super.covariantKeyword,
     required super.requiredKeyword,
+    required this.keyword,
     required TypeAnnotationImpl? returnType,
     required super.name,
     required TypeParameterListImpl? typeParameters,
@@ -12249,6 +12259,14 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     return parameters.endToken;
   }
 
+  /// If [keyword] is `final`, returns it.
+  Token? get finalKeyword {
+    if (keyword?.keyword == Keyword.FINAL) {
+      return keyword;
+    }
+    return null;
+  }
+
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -12257,6 +12275,9 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     }
     if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
+    }
+    if (keyword case var keyword?) {
+      return keyword;
     }
     if (returnType case var returnType?) {
       return returnType.beginToken;
@@ -12271,7 +12292,7 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   bool get isExplicitlyTyped => true;
 
   @override
-  bool get isFinal => false;
+  bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @generated
   @override
@@ -12304,11 +12325,20 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     _typeParameters = _becomeParentOf(typeParameters);
   }
 
+  /// If [keyword] is `var`, returns it.
+  Token? get varKeyword {
+    if (keyword?.keyword == Keyword.VAR) {
+      return keyword;
+    }
+    return null;
+  }
+
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('keyword', keyword)
     ..addNode('returnType', returnType)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
@@ -22197,6 +22227,14 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     throw StateError('Expected at least one non-null');
   }
 
+  /// If [keyword] is `final`, returns it.
+  Token? get finalKeyword {
+    if (keyword?.keyword == Keyword.FINAL) {
+      return keyword;
+    }
+    return null;
+  }
+
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -22234,6 +22272,14 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   @generated
   set type(TypeAnnotationImpl? type) {
     _type = _becomeParentOf(type);
+  }
+
+  /// If [keyword] is `var`, returns it.
+  Token? get varKeyword {
+    if (keyword?.keyword == Keyword.VAR) {
+      return keyword;
+    }
+    return null;
   }
 
   @generated

@@ -86,7 +86,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.metadata.accept(this);
     if (useDeclaringConstructorsAst) {
-      node.namePart.typeParameters?.accept(this);
+      node.namePart.accept(this);
     } else {
       node.typeParameters?.accept(this);
     }
@@ -530,6 +530,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       node.type = builder;
       nodesToBuildType.addTypeBuilder(builder);
     }
+  }
+
+  @override
+  void visitNameWithTypeParameters(NameWithTypeParameters node) {
+    node.typeParameters?.accept(this);
   }
 
   @override

@@ -55,16 +55,14 @@ class LintCode extends DiagnosticCode {
 /// types.
 class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
     implements LintCode {
-  const LintCodeWithExpectedTypes(
-    String name,
-    String problemMessage, {
+  const LintCodeWithExpectedTypes({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs,
     String? uniqueName,
     required super.expectedTypes,
   }) : super(
-         problemMessage: problemMessage,
-         name: name,
          type: DiagnosticType.LINT,
          uniqueName: uniqueName ?? 'LintCode.$name',
        );

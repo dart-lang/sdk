@@ -903,15 +903,15 @@ library
         #F1 extension type E (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::E::@def::0
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::E::@def::0::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:16) (offset:15)
+            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::E::@def::0::@constructor::new
               typeName: E
               typeNameOffset: 15
               formalParameters
-                #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::E::@def::0::@constructor::new::@formalParameter::it
           getters
             #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -919,15 +919,15 @@ library
         #F6 extension type E (nameOffset:43) (firstTokenOffset:28) (offset:43)
           element: <testLibrary>::@extensionType::E::@def::1
           fields
-            #F7 it (nameOffset:52) (firstTokenOffset:44) (offset:52)
+            #F7 it (nameOffset:52) (firstTokenOffset:45) (offset:52)
               element: <testLibrary>::@extensionType::E::@def::1::@field::it
           constructors
-            #F8 new (nameOffset:<null>) (firstTokenOffset:44) (offset:43)
+            #F8 new (nameOffset:<null>) (firstTokenOffset:43) (offset:43)
               element: <testLibrary>::@extensionType::E::@def::1::@constructor::new
               typeName: E
               typeNameOffset: 43
               formalParameters
-                #F9 requiredPositional final this.it (nameOffset:52) (firstTokenOffset:44) (offset:52)
+                #F9 requiredPositional final this.it (nameOffset:52) (firstTokenOffset:45) (offset:52)
                   element: <testLibrary>::@extensionType::E::@def::1::@constructor::new::@formalParameter::it
           getters
             #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)

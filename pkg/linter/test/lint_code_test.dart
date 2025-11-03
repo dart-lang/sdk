@@ -28,15 +28,15 @@ void main() {
 }
 
 const LintCode _customCode = LinterLintCode.internal(
-  'hash_and_equals',
-  'Override `==` if overriding `hashCode`.',
+  name: 'hash_and_equals',
+  problemMessage: 'Override `==` if overriding `hashCode`.',
   correctionMessage: 'Implement `==`.',
   expectedTypes: [],
 );
 
 const LintCode _customCodeWithDocs = LinterLintCode.internal(
-  'hash_and_equals',
-  'Override `==` if overriding `hashCode`.',
+  name: 'hash_and_equals',
+  problemMessage: 'Override `==` if overriding `hashCode`.',
   correctionMessage: 'Implement `==`.',
   hasPublishedDocs: true,
   expectedTypes: [],

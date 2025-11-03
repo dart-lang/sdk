@@ -675,6 +675,15 @@ class AstBinaryReader {
       requiredKeyword: AstBinaryFlags.isRequired(flags)
           ? Tokens.required_()
           : null,
+      keyword: () {
+        if (AstBinaryFlags.isFinal(flags)) {
+          return Tokens.final_();
+        }
+        if (AstBinaryFlags.isVar(flags)) {
+          return Tokens.var_();
+        }
+        return null;
+      }(),
       returnType: returnType,
       typeParameters: typeParameters,
       question: null,
