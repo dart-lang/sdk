@@ -65,8 +65,8 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   ///
   /// Avoid other usages as it should be made unnecessary and removed.
   static const LintCode $removedLintName = LinterLintCode.internal(
-    'removed_lint',
-    'Removed lint.',
+    name: 'removed_lint',
+    problemMessage: 'Removed lint.',
     expectedTypes: [],
   );
 ''';
@@ -74,19 +74,23 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       memberAccumulator.constructors[''] = '''
   @Deprecated('Please use LintCode instead')
   const LinterLintCode(
-    super.name,
-    super.problemMessage, {
+    String name,
+    String problemMessage, {
     super.expectedTypes,
     super.correctionMessage,
     super.hasPublishedDocs,
     String? uniqueName,
-  }) : super(uniqueName: 'LintCode.\${uniqueName ?? name}');
+  }) : super(
+         name: name,
+         problemMessage: problemMessage,
+         uniqueName: 'LintCode.\${uniqueName ?? name}',
+       );
 ''';
 
       memberAccumulator.constructors['internal'] = '''
-  const LinterLintCode.internal(
-    super.name,
-    super.problemMessage, {
+  const LinterLintCode.internal({
+    required super.name,
+    required super.problemMessage,
     super.expectedTypes,
     super.correctionMessage,
     super.hasPublishedDocs,
@@ -112,9 +116,9 @@ final class LinterLintTemplate<T extends Function> extends LinterLintCode {
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
-  const LinterLintTemplate(
-    super.name,
-    super.problemMessage, {
+  const LinterLintTemplate({
+    required super.name,
+    required super.problemMessage,
     required this.withArguments,
     required super.expectedTypes,
     super.correctionMessage,
@@ -126,9 +130,9 @@ final class LinterLintTemplate<T extends Function> extends LinterLintCode {
 final class LinterLintWithoutArguments extends LinterLintCode
     with DiagnosticWithoutArguments {
   /// Initialize a newly created error code to have the given [name].
-  const LinterLintWithoutArguments(
-    super.name,
-    super.problemMessage, {
+  const LinterLintWithoutArguments({
+    required super.name,
+    required super.problemMessage,
     required super.expectedTypes,
     super.correctionMessage,
     super.hasPublishedDocs = false,

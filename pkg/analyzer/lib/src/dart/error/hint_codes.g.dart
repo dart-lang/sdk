@@ -23,8 +23,9 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const HintWithoutArguments
   deprecatedColonForDefaultValue = HintWithoutArguments(
-    'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
-    "Using a colon as the separator before a default value is deprecated and "
+    name: 'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
+    problemMessage:
+        "Using a colon as the separator before a default value is deprecated and "
         "will not be supported in language version 3.0 and later.",
     correctionMessage: "Try replacing the colon with an equal sign.",
     hasPublishedDocs: true,
@@ -35,8 +36,8 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   /// String p0: the name of the member
   static const HintTemplate<LocatableDiagnostic Function({required String p0})>
   deprecatedMemberUse = HintTemplate(
-    'DEPRECATED_MEMBER_USE',
-    "'{0}' is deprecated and shouldn't be used.",
+    name: 'DEPRECATED_MEMBER_USE',
+    problemMessage: "'{0}' is deprecated and shouldn't be used.",
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
@@ -51,8 +52,8 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   deprecatedMemberUseWithMessage = HintTemplate(
-    'DEPRECATED_MEMBER_USE',
-    "'{0}' is deprecated and shouldn't be used. {1}",
+    name: 'DEPRECATED_MEMBER_USE',
+    problemMessage: "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
@@ -64,8 +65,9 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const HintWithoutArguments
   importDeferredLibraryWithLoadFunction = HintWithoutArguments(
-    'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
-    "The imported library defines a top-level function named 'loadLibrary' "
+    name: 'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
+    problemMessage:
+        "The imported library defines a top-level function named 'loadLibrary' "
         "that is hidden by deferring this library.",
     correctionMessage:
         "Try changing the import to not be deferred, or rename the function in "
@@ -81,8 +83,9 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   unnecessaryImport = HintTemplate(
-    'UNNECESSARY_IMPORT',
-    "The import of '{0}' is unnecessary because all of the used elements are "
+    name: 'UNNECESSARY_IMPORT',
+    problemMessage:
+        "The import of '{0}' is unnecessary because all of the used elements are "
         "also provided by the import of '{1}'.",
     correctionMessage: "Try removing the import directive.",
     hasPublishedDocs: true,
@@ -91,17 +94,15 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Initialize a newly created error code to have the given [name].
-  const HintCode(
-    String name,
-    String problemMessage, {
+  const HintCode({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
     required super.expectedTypes,
   }) : super(
-         name: name,
-         problemMessage: problemMessage,
          type: DiagnosticType.HINT,
          uniqueName: 'HintCode.${uniqueName ?? name}',
        );
@@ -134,9 +135,9 @@ final class HintTemplate<T extends Function> extends HintCode {
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
-  const HintTemplate(
-    super.name,
-    super.problemMessage, {
+  const HintTemplate({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
@@ -149,9 +150,9 @@ final class HintTemplate<T extends Function> extends HintCode {
 final class HintWithoutArguments extends HintCode
     with DiagnosticWithoutArguments {
   /// Initialize a newly created error code to have the given [name].
-  const HintWithoutArguments(
-    super.name,
-    super.problemMessage, {
+  const HintWithoutArguments({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,

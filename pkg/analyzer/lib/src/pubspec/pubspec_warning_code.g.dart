@@ -23,8 +23,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   assetDirectoryDoesNotExist = PubspecWarningTemplate(
-    'ASSET_DIRECTORY_DOES_NOT_EXIST',
-    "The asset directory '{0}' doesn't exist.",
+    name: 'ASSET_DIRECTORY_DOES_NOT_EXIST',
+    problemMessage: "The asset directory '{0}' doesn't exist.",
     correctionMessage:
         "Try creating the directory or fixing the path to the directory.",
     hasPublishedDocs: true,
@@ -38,8 +38,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   assetDoesNotExist = PubspecWarningTemplate(
-    'ASSET_DOES_NOT_EXIST',
-    "The asset file '{0}' doesn't exist.",
+    name: 'ASSET_DOES_NOT_EXIST',
+    problemMessage: "The asset file '{0}' doesn't exist.",
     correctionMessage: "Try creating the file or fixing the path to the file.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsAssetDoesNotExist,
@@ -49,8 +49,9 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const PubspecWarningWithoutArguments
   assetFieldNotList = PubspecWarningWithoutArguments(
-    'ASSET_FIELD_NOT_LIST',
-    "The value of the 'assets' field is expected to be a list of relative file "
+    name: 'ASSET_FIELD_NOT_LIST',
+    problemMessage:
+        "The value of the 'assets' field is expected to be a list of relative file "
         "paths.",
     correctionMessage:
         "Try converting the value to be a list of relative file paths.",
@@ -61,8 +62,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const PubspecWarningWithoutArguments assetMissingPath =
       PubspecWarningWithoutArguments(
-        'ASSET_MISSING_PATH',
-        "Asset map entry must contain a 'path' field.",
+        name: 'ASSET_MISSING_PATH',
+        problemMessage: "Asset map entry must contain a 'path' field.",
         correctionMessage: "Try adding a 'path' field.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -74,8 +75,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const PubspecWarningWithoutArguments assetNotString =
       PubspecWarningWithoutArguments(
-        'ASSET_NOT_STRING',
-        "Assets are required to be file paths (strings).",
+        name: 'ASSET_NOT_STRING',
+        problemMessage: "Assets are required to be file paths (strings).",
         correctionMessage: "Try converting the value to be a string.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -84,8 +85,9 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const PubspecWarningWithoutArguments assetNotStringOrMap =
       PubspecWarningWithoutArguments(
-        'ASSET_NOT_STRING_OR_MAP',
-        "An asset value is required to be a file path (string) or map.",
+        name: 'ASSET_NOT_STRING_OR_MAP',
+        problemMessage:
+            "An asset value is required to be a file path (string) or map.",
         correctionMessage: "Try converting the value to be a string or map.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -94,8 +96,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const PubspecWarningWithoutArguments assetPathNotString =
       PubspecWarningWithoutArguments(
-        'ASSET_PATH_NOT_STRING',
-        "Asset paths are required to be file paths (strings).",
+        name: 'ASSET_PATH_NOT_STRING',
+        problemMessage: "Asset paths are required to be file paths (strings).",
         correctionMessage: "Try converting the value to be a string.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -107,8 +109,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   dependenciesFieldNotMap = PubspecWarningTemplate(
-    'DEPENDENCIES_FIELD_NOT_MAP',
-    "The value of the '{0}' field is expected to be a map.",
+    name: 'DEPENDENCIES_FIELD_NOT_MAP',
+    problemMessage: "The value of the '{0}' field is expected to be a map.",
     correctionMessage: "Try converting the value to be a map.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDependenciesFieldNotMap,
@@ -121,8 +123,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   deprecatedField = PubspecWarningTemplate(
-    'DEPRECATED_FIELD',
-    "The '{0}' field is no longer used and can be removed.",
+    name: 'DEPRECATED_FIELD',
+    problemMessage: "The '{0}' field is no longer used and can be removed.",
     correctionMessage: "Try removing the field.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDeprecatedField,
@@ -132,8 +134,9 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const PubspecWarningWithoutArguments flutterFieldNotMap =
       PubspecWarningWithoutArguments(
-        'FLUTTER_FIELD_NOT_MAP',
-        "The value of the 'flutter' field is expected to be a map.",
+        name: 'FLUTTER_FIELD_NOT_MAP',
+        problemMessage:
+            "The value of the 'flutter' field is expected to be a map.",
         correctionMessage: "Try converting the value to be a map.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -145,8 +148,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   invalidDependency = PubspecWarningTemplate(
-    'INVALID_DEPENDENCY',
-    "Publishable packages can't have '{0}' dependencies.",
+    name: 'INVALID_DEPENDENCY',
+    problemMessage: "Publishable packages can't have '{0}' dependencies.",
     correctionMessage:
         "Try adding a 'publish_to: none' entry to mark the package as not for "
         "publishing or remove the {0} dependency.",
@@ -158,8 +161,9 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const PubspecWarningWithoutArguments
   invalidPlatformsField = PubspecWarningWithoutArguments(
-    'INVALID_PLATFORMS_FIELD',
-    "The 'platforms' field must be a map with platforms as keys.",
+    name: 'INVALID_PLATFORMS_FIELD',
+    problemMessage:
+        "The 'platforms' field must be a map with platforms as keys.",
     correctionMessage:
         "Try changing the 'platforms' field to a map with platforms as keys.",
     hasPublishedDocs: true,
@@ -174,8 +178,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   missingDependency = PubspecWarningTemplate(
-    'MISSING_DEPENDENCY',
-    "Missing a dependency on imported package '{0}'.",
+    name: 'MISSING_DEPENDENCY',
+    problemMessage: "Missing a dependency on imported package '{0}'.",
     correctionMessage: "Try adding {0}.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMissingDependency,
@@ -185,8 +189,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const PubspecWarningWithoutArguments missingName =
       PubspecWarningWithoutArguments(
-        'MISSING_NAME',
-        "The 'name' field is required but missing.",
+        name: 'MISSING_NAME',
+        problemMessage: "The 'name' field is required but missing.",
         correctionMessage: "Try adding a field named 'name'.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -195,8 +199,9 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const PubspecWarningWithoutArguments nameNotString =
       PubspecWarningWithoutArguments(
-        'NAME_NOT_STRING',
-        "The value of the 'name' field is required to be a string.",
+        name: 'NAME_NOT_STRING',
+        problemMessage:
+            "The value of the 'name' field is required to be a string.",
         correctionMessage: "Try converting the value to be a string.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -208,8 +213,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   pathDoesNotExist = PubspecWarningTemplate(
-    'PATH_DOES_NOT_EXIST',
-    "The path '{0}' doesn't exist.",
+    name: 'PATH_DOES_NOT_EXIST',
+    problemMessage: "The path '{0}' doesn't exist.",
     correctionMessage:
         "Try creating the referenced path or using a path that exists.",
     hasPublishedDocs: true,
@@ -223,8 +228,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   pathNotPosix = PubspecWarningTemplate(
-    'PATH_NOT_POSIX',
-    "The path '{0}' isn't a POSIX-style path.",
+    name: 'PATH_NOT_POSIX',
+    problemMessage: "The path '{0}' isn't a POSIX-style path.",
     correctionMessage: "Try converting the value to a POSIX-style path.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsPathNotPosix,
@@ -237,8 +242,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   pathPubspecDoesNotExist = PubspecWarningTemplate(
-    'PATH_PUBSPEC_DOES_NOT_EXIST',
-    "The directory '{0}' doesn't contain a pubspec.",
+    name: 'PATH_PUBSPEC_DOES_NOT_EXIST',
+    problemMessage: "The directory '{0}' doesn't contain a pubspec.",
     correctionMessage:
         "Try creating a pubspec in the referenced directory or using a path "
         "that has a pubspec.",
@@ -250,8 +255,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const PubspecWarningWithoutArguments platformValueDisallowed =
       PubspecWarningWithoutArguments(
-        'PLATFORM_VALUE_DISALLOWED',
-        "Keys in the `platforms` field can't have values.",
+        name: 'PLATFORM_VALUE_DISALLOWED',
+        problemMessage: "Keys in the `platforms` field can't have values.",
         correctionMessage: "Try removing the value, while keeping the key.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -263,8 +268,8 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   unknownPlatform = PubspecWarningTemplate(
-    'UNKNOWN_PLATFORM',
-    "The platform '{0}' is not a recognized platform.",
+    name: 'UNKNOWN_PLATFORM',
+    problemMessage: "The platform '{0}' is not a recognized platform.",
     correctionMessage: "Try correcting the platform name or removing it.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUnknownPlatform,
@@ -277,8 +282,9 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   unnecessaryDevDependency = PubspecWarningTemplate(
-    'UNNECESSARY_DEV_DEPENDENCY',
-    "The dev dependency on {0} is unnecessary because there is also a normal "
+    name: 'UNNECESSARY_DEV_DEPENDENCY',
+    problemMessage:
+        "The dev dependency on {0} is unnecessary because there is also a normal "
         "dependency on that package.",
     correctionMessage: "Try removing the dev dependency.",
     hasPublishedDocs: true,
@@ -289,8 +295,9 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const PubspecWarningWithoutArguments
   workspaceFieldNotList = PubspecWarningWithoutArguments(
-    'WORKSPACE_FIELD_NOT_LIST',
-    "The value of the 'workspace' field is required to be a list of relative "
+    name: 'WORKSPACE_FIELD_NOT_LIST',
+    problemMessage:
+        "The value of the 'workspace' field is required to be a list of relative "
         "file paths.",
     correctionMessage:
         "Try converting the value to be a list of relative file paths.",
@@ -301,8 +308,9 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const PubspecWarningWithoutArguments workspaceValueNotString =
       PubspecWarningWithoutArguments(
-        'WORKSPACE_VALUE_NOT_STRING',
-        "Workspace entries are required to be directory paths (strings).",
+        name: 'WORKSPACE_VALUE_NOT_STRING',
+        problemMessage:
+            "Workspace entries are required to be directory paths (strings).",
         correctionMessage: "Try converting the value to be a string.",
         hasPublishedDocs: true,
         expectedTypes: [],
@@ -314,8 +322,9 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   workspaceValueNotSubdirectory = PubspecWarningTemplate(
-    'WORKSPACE_VALUE_NOT_SUBDIRECTORY',
-    "Workspace values must be a relative path of a subdirectory of '{0}'.",
+    name: 'WORKSPACE_VALUE_NOT_SUBDIRECTORY',
+    problemMessage:
+        "Workspace values must be a relative path of a subdirectory of '{0}'.",
     correctionMessage:
         "Try using a subdirectory of the directory containing the "
         "'pubspec.yaml' file.",
@@ -324,17 +333,15 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Initialize a newly created error code to have the given [name].
-  const PubspecWarningCode(
-    String name,
-    String problemMessage, {
+  const PubspecWarningCode({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
     required super.expectedTypes,
   }) : super(
-         name: name,
-         problemMessage: problemMessage,
          type: DiagnosticType.STATIC_WARNING,
          uniqueName: 'PubspecWarningCode.${uniqueName ?? name}',
        );
@@ -428,9 +435,9 @@ final class PubspecWarningTemplate<T extends Function>
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
-  const PubspecWarningTemplate(
-    super.name,
-    super.problemMessage, {
+  const PubspecWarningTemplate({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
@@ -443,9 +450,9 @@ final class PubspecWarningTemplate<T extends Function>
 final class PubspecWarningWithoutArguments extends PubspecWarningCode
     with DiagnosticWithoutArguments {
   /// Initialize a newly created error code to have the given [name].
-  const PubspecWarningWithoutArguments(
-    super.name,
-    super.problemMessage, {
+  const PubspecWarningWithoutArguments({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
