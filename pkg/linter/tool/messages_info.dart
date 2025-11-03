@@ -44,10 +44,10 @@ final Map<String, RuleInfo> messagesRuleInfo = () {
   if (messagesYaml is! YamlMap) {
     throw StateError("The '$_messagesFileName' file is not a YAML map.");
   }
-  var lintCodes = messagesYaml['LintCode'] as YamlMap?;
+  var lintCodes = messagesYaml['LinterLintCode'] as YamlMap?;
   if (lintCodes == null) {
     throw StateError(
-      "The '$_messagesFileName' file does not have a 'LintCode' section.",
+      "The '$_messagesFileName' file does not have a 'LinterLintCode' section.",
     );
   }
 

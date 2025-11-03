@@ -119,10 +119,7 @@ part of ${json.encode(file.parentLibrary)};
         if (message.analyzerCode.diagnosticClass != diagnosticClass) continue;
 
         LocatedError.wrap(span: message.keySpan, () {
-          message.toAnalyzerCode(
-            diagnosticClass,
-            memberAccumulator: memberAccumulator,
-          );
+          message.toAnalyzerCode(memberAccumulator: memberAccumulator);
         });
       }
 

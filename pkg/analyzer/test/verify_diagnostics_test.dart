@@ -101,49 +101,49 @@ class DocumentationValidator {
     'HintCode.DEPRECATED_MEMBER_USE',
 
     // Need a way to specify the existance of files whose content is irrelevant.
-    'LintCode.always_use_package_imports',
+    'LinterLintCode.always_use_package_imports',
     // Missing support for example files outside of `lib`.
-    'LintCode.avoid_relative_lib_imports',
+    'LinterLintCode.avoid_relative_lib_imports',
     // The example isn't being recognized as a flutter app. We might need to
     // build a pubspec.yaml when analyzing flutter code.
-    'LintCode.avoid_web_libraries_in_flutter',
+    'LinterLintCode.avoid_web_libraries_in_flutter',
     // Produces a CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY.
-    'LintCode.control_flow_in_finally',
+    'LinterLintCode.control_flow_in_finally',
     // Missing support for creating an indirect dependency on a package.
-    'LintCode.depend_on_referenced_packages',
+    'LinterLintCode.depend_on_referenced_packages',
     // Missing support for specifying the name of the test file.
-    'LintCode.file_names',
+    'LinterLintCode.file_names',
     // Produces an unused import diagnostic.
-    'LintCode.implementation_imports',
+    'LinterLintCode.implementation_imports',
     // Doesn't produce a lint for the second example, even though the analyzer
     // does when the example is pasted into a file.
-    'LintCode.prefer_inlined_adds_single',
+    'LinterLintCode.prefer_inlined_adds_single',
     // No mock 'test' package, no good library annotations in 'meta'.
-    'LintCode.library_annotations',
+    'LinterLintCode.library_annotations',
     // Produces an unused import diagnostic.
-    'LintCode.library_prefixes',
+    'LinterLintCode.library_prefixes',
     // Produces an unused element diagnostic.
-    'LintCode.library_private_types_in_public_api',
+    'LinterLintCode.library_private_types_in_public_api',
     // Missing support for YAML files.
-    'LintCode.package_names',
+    'LinterLintCode.package_names',
     // The lint does nothing.
-    'LintCode.package_prefixed_library_names',
+    'LinterLintCode.package_prefixed_library_names',
     // Need a way to specify the existance of files whose content is irrelevant.
-    'LintCode.prefer_relative_imports',
+    'LinterLintCode.prefer_relative_imports',
     // The test file is in a basic workspace, so it can't have public API. I
     // think we'd need to add a `pubspec.yaml` file to the example.
-    'LintCode.public_member_api_docs',
+    'LinterLintCode.public_member_api_docs',
     // Missing support for YAML files.
-    'LintCode.secure_pubspec_urls',
+    'LinterLintCode.secure_pubspec_urls',
     // The test framework doesn't yet support lints in non-dart files.
-    'LintCode.sort_pub_dependencies',
+    'LinterLintCode.sort_pub_dependencies',
     // Doesn't produce a lint for the first example, even though the analyzer
     // does when the example is pasted into a file.
-    'LintCode.unnecessary_lambdas',
+    'LinterLintCode.unnecessary_lambdas',
     // Produces an unused_field warning.
-    'LintCode.use_setters_to_change_properties',
+    'LinterLintCode.use_setters_to_change_properties',
     // Extra warning.
-    'LintCode.recursive_getters',
+    'LinterLintCode.recursive_getters',
 
     // Has `language=2.9`
     'CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD',
@@ -370,7 +370,7 @@ class DocumentationValidator {
         }
         for (int i = 0; i < exampleSnippets.length; i++) {
           _SnippetData snippet = exampleSnippets[i];
-          if (message.analyzerCode.diagnosticClass == lintCodeInfo) {
+          if (message.analyzerCode.diagnosticClass == linterLintCodeInfo) {
             snippet.lintCode = codeName;
           }
           await _validateSnippet('example', i, snippet);
@@ -385,7 +385,7 @@ class DocumentationValidator {
           if (firstExample != null) {
             snippet.auxiliaryFiles.addAll(firstExample.auxiliaryFiles);
           }
-          if (message.analyzerCode.diagnosticClass == lintCodeInfo) {
+          if (message.analyzerCode.diagnosticClass == linterLintCodeInfo) {
             snippet.lintCode = codeName;
           }
           await _validateSnippet('fixes', i, snippet);

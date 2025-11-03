@@ -22,7 +22,6 @@ const codesFile = GeneratedDiagnosticFile(
 ///
 /// Note: to look up an error class by name, use [DiagnosticClassInfo.byName].
 const List<DiagnosticClassInfo> diagnosticClasses = [
-  lintCodeInfo,
   linterLintCodeInfo,
   GeneratedDiagnosticClassInfo(
     file: optionCodesFile,
@@ -114,8 +113,6 @@ const hintCodesFile = GeneratedDiagnosticFile(
   path: 'analyzer/lib/src/dart/error/hint_codes.g.dart',
   parentLibrary: 'package:analyzer/src/dart/error/hint_codes.dart',
 );
-
-const lintCodeInfo = DiagnosticClassInfo(name: 'LintCode');
 
 const lintCodesFile = GeneratedDiagnosticFile(
   path: generatedLintCodesPath,
@@ -333,8 +330,7 @@ class AliasMessage extends AnalyzerMessage {
   String get aliasForClass => aliasFor.split('.').first;
 
   @override
-  void toAnalyzerCode(
-    DiagnosticClassInfo diagnosticClassInfo, {
+  void toAnalyzerCode({
     String? sharedNameReference,
     required MemberAccumulator memberAccumulator,
   }) {
@@ -398,6 +394,9 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
 /// Interface class for diagnostic messages that have an analyzer code, and thus
 /// can be reported by the analyzer.
 mixin MessageWithAnalyzerCode on Message {
+  late final GeneratedDiagnosticClassInfo diagnosticClassInfo =
+      analyzerCode.diagnosticClass as GeneratedDiagnosticClassInfo;
+
   /// The code used by the analyzer to refer to this diagnostic message.
   AnalyzerCode get analyzerCode;
 
@@ -422,8 +421,7 @@ mixin MessageWithAnalyzerCode on Message {
   /// in the diagnostic class [className].
   ///
   /// [diagnosticCode] is the name of the diagnostic to be generated.
-  void toAnalyzerCode(
-    GeneratedDiagnosticClassInfo diagnosticClassInfo, {
+  void toAnalyzerCode({
     String? sharedNameReference,
     required MemberAccumulator memberAccumulator,
   }) {
