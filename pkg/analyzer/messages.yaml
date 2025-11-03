@@ -21795,9 +21795,8 @@ ParserErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when the name of a named parameter
-      starts with an underscore and the parameter isn't an initializing formal
-      or field parameter.
+      The analyzer produces this diagnostic when a named parameter starts with
+      an underscore, unless it's an initializing formal or field parameter.
 
       #### Example
 
@@ -21812,7 +21811,8 @@ ParserErrorCode:
 
       #### Common fixes
 
-      Only use a private named parameter when it refers to a field:
+      If the parameter is intended to refer to a field, then add the missing
+      field:
 
       ```dart
       class C {
@@ -21821,6 +21821,16 @@ ParserErrorCode:
         int get x => _x;
       }
       ```
+
+      If the parameter isn't intended to refer to a field, then remove the
+      underscore:
+
+      ```dart
+      class C {
+        C({int x = 0});
+      }
+      ```
+
   REPRESENTATION_FIELD_MODIFIER:
     parameters: none
     problemMessage: "Representation fields can't have modifiers."
