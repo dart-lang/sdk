@@ -753,8 +753,7 @@ abstract class TestLintRule extends AnalysisRule {
     'lint_code',
     'Lint code.',
     correctionMessage: 'Lint code.',
-    // ignore: deprecated_member_use_from_same_package
-    uniqueNameCheck: 'LintCode.lint_code',
+    uniqueName: 'LintCode.lint_code',
   );
 
   TestLintRule({required super.name, super.state}) : super(description: '');

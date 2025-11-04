@@ -23,13 +23,13 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String message: the user-supplied problem message
-  static const TodoTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
   fixme = TodoTemplate(
     name: 'FIXME',
     problemMessage: "{0}",
-    uniqueNameCheck: 'TodoCode.FIXME',
+    uniqueName: 'TodoCode.FIXME',
     withArguments: _withArgumentsFixme,
     expectedTypes: [ExpectedType.string],
   );
@@ -38,13 +38,13 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String message: the user-supplied problem message
-  static const TodoTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
   hack = TodoTemplate(
     name: 'HACK',
     problemMessage: "{0}",
-    uniqueNameCheck: 'TodoCode.HACK',
+    uniqueName: 'TodoCode.HACK',
     withArguments: _withArgumentsHack,
     expectedTypes: [ExpectedType.string],
   );
@@ -53,13 +53,13 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String message: the user-supplied problem message
-  static const TodoTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
   todo = TodoTemplate(
     name: 'TODO',
     problemMessage: "{0}",
-    uniqueNameCheck: 'TodoCode.TODO',
+    uniqueName: 'TodoCode.TODO',
     withArguments: _withArgumentsTodo,
     expectedTypes: [ExpectedType.string],
   );
@@ -68,13 +68,13 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String message: the user-supplied problem message
-  static const TodoTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
   undone = TodoTemplate(
     name: 'UNDONE',
     problemMessage: "{0}",
-    uniqueNameCheck: 'TodoCode.UNDONE',
+    uniqueName: 'TodoCode.UNDONE',
     withArguments: _withArgumentsUndone,
     expectedTypes: [ExpectedType.string],
   );
@@ -86,13 +86,9 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    String? uniqueName,
-    required String super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
-  }) : super(
-         type: DiagnosticType.TODO,
-         uniqueName: 'TodoCode.${uniqueName ?? name}',
-       );
+  }) : super(type: DiagnosticType.TODO);
 
   static LocatableDiagnostic _withArgumentsFixme({required String message}) {
     return LocatableDiagnosticImpl(TodoCode.fixme, [message]);
@@ -111,7 +107,9 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   }
 }
 
-final class TodoTemplate<T extends Function> extends TodoCode {
+final class TodoTemplate<T extends Function> extends TodoCode
+    implements DiagnosticWithArguments<T> {
+  @override
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
@@ -121,8 +119,7 @@ final class TodoTemplate<T extends Function> extends TodoCode {
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    super.uniqueName,
-    required super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
     required this.withArguments,
   });
@@ -137,8 +134,7 @@ final class TodoWithoutArguments extends TodoCode
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    super.uniqueName,
-    required super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
   });
 }

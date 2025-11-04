@@ -22,8 +22,7 @@ class DeprecatedRule extends AnalysisRule {
     'deprecated_rule',
     'Deprecated rule.',
     correctionMessage: 'Try deprecated rule.',
-    // ignore: deprecated_member_use
-    uniqueNameCheck: 'LintCode.deprecated_rule',
+    uniqueName: 'LintCode.deprecated_rule',
   );
 
   DeprecatedRule()
@@ -42,8 +41,7 @@ class RemovedRule extends AnalysisRule {
     'removed_rule',
     'Removed rule.',
     correctionMessage: 'Try removed rule.',
-    // ignore: deprecated_member_use
-    uniqueNameCheck: 'LintCode.removed_rule',
+    uniqueName: 'LintCode.removed_rule',
   );
 
   RemovedRule()

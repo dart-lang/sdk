@@ -2812,7 +2812,10 @@ abstract class AstCodeGenerator
   }
 
   w.ModuleBuilder? _recognizeDeferredModuleGuard(Let let) {
-    if (!translator.options.enableDeferredLoading) return null;
+    if (!translator.options.enableDeferredLoading &&
+        !translator.options.enableMultiModuleStressTestMode) {
+      return null;
+    }
 
     // TODO(http://dartbug.com/61764): Find better way to do this.
     //

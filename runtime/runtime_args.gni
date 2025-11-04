@@ -85,15 +85,18 @@ declare_args() {
   # from being built on platforms which have a problem linking in the
   # Perfetto library, e.g. watchOS.
   #
-  # We also exclude perfetto support when producing product builds for
-  # mobile OSes.
+  # We also exclude perfetto support when producing builds which set
+  # dart_runtime_mode to release e.g. Dart Product builds or Flutter
+  # release engine variants. This does not affect product AOT runtime
+  # which shipped with Dart SDK.
+  #
+  # Note: including Perfetto support automatically includes profiler
+  # into the resulting binary.
   #
   # is_watchos may be undefined when Dart SDK is built from the Flutter
   # engine tree.
   dart_support_perfetto =
-      !((defined(is_watchos) && is_watchos) ||
-        (dart_runtime_mode == "release" &&
-         ((defined(is_ios) && is_ios) || (defined(is_android) && is_android))))
+      !((defined(is_watchos) && is_watchos) || dart_runtime_mode == "release")
 
   # The analyze_snapshot tool is only supported on 64 bit AOT builds that use
   # ELF.

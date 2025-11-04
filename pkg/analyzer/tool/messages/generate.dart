@@ -134,14 +134,10 @@ part of ${json.encode(file.parentLibrary)};
       constructor.writeln('super.correctionMessage,');
       constructor.writeln('super.hasPublishedDocs = false,');
       constructor.writeln('super.isUnresolvedIdentifier = false,');
-      constructor.writeln('String? uniqueName,');
-      constructor.writeln('required String super.uniqueNameCheck,');
+      constructor.writeln('required super.uniqueName,');
       constructor.writeln('required super.expectedTypes,');
       constructor.writeln('}) : super(');
       constructor.writeln('type: ${diagnosticClass.typeCode},');
-      constructor.writeln(
-        "uniqueName: '${diagnosticClass.name}.\${uniqueName ?? name}',",
-      );
       constructor.writeln(');');
       memberAccumulator.constructors[''] = constructor.toString();
 
@@ -165,9 +161,14 @@ part of ${json.encode(file.parentLibrary)};
     out.writeln('final class $className');
     if (withArguments) out.writeln('<T extends Function>');
     out.writeln('    extends ${diagnosticClass.name}');
-    if (!withArguments) out.writeln('    with DiagnosticWithoutArguments');
+    if (withArguments) {
+      out.writeln('    implements DiagnosticWithArguments<T>');
+    } else {
+      out.writeln('    with DiagnosticWithoutArguments');
+    }
     out.writeln('{');
     if (withArguments) {
+      out.writeln('@override');
       out.writeln('final T withArguments;');
       out.writeln();
     }
@@ -181,8 +182,7 @@ part of ${json.encode(file.parentLibrary)};
     out.writeln('super.correctionMessage,');
     out.writeln('super.hasPublishedDocs = false,');
     out.writeln('super.isUnresolvedIdentifier = false,');
-    out.writeln('super.uniqueName,');
-    out.writeln('required super.uniqueNameCheck,');
+    out.writeln('required super.uniqueName,');
     out.writeln('required super.expectedTypes,');
     if (withArguments) out.writeln('required this.withArguments,');
     out.writeln('});');

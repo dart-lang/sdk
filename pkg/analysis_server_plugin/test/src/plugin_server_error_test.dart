@@ -296,8 +296,7 @@ class _ThrowsAsyncErrorRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'no_bools',
     'No bools message',
-    // ignore: deprecated_member_use
-    uniqueNameCheck: 'LintCode.no_bools',
+    uniqueName: 'LintCode.no_bools',
   );
 
   _ThrowsAsyncErrorRule()
@@ -350,8 +349,7 @@ class _ThrowsSyncErrorRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'no_bools',
     'No bools message',
-    // ignore: deprecated_member_use
-    uniqueNameCheck: 'LintCode.no_bools',
+    uniqueName: 'LintCode.no_bools',
   );
 
   _ThrowsSyncErrorRule()

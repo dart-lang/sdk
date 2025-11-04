@@ -21,7 +21,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   /// plan to go through the exercise of converting it to a Warning.
   ///
   /// No parameters.
-  static const HintWithoutArguments
+  static const DiagnosticWithoutArguments
   deprecatedColonForDefaultValue = HintWithoutArguments(
     name: 'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     problemMessage:
@@ -29,20 +29,22 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
         "will not be supported in language version 3.0 and later.",
     correctionMessage: "Try replacing the colon with an equal sign.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
+    uniqueName: 'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     expectedTypes: [],
   );
 
   /// Parameters:
   /// String p0: the name of the member
-  static const HintTemplate<LocatableDiagnostic Function({required String p0})>
+  static const DiagnosticWithArguments<
+    LocatableDiagnostic Function({required String p0})
+  >
   deprecatedMemberUse = HintTemplate(
     name: 'DEPRECATED_MEMBER_USE',
     problemMessage: "'{0}' is deprecated and shouldn't be used.",
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'HintCode.DEPRECATED_MEMBER_USE',
+    uniqueName: 'HintCode.DEPRECATED_MEMBER_USE',
     withArguments: _withArgumentsDeprecatedMemberUse,
     expectedTypes: [ExpectedType.string],
   );
@@ -50,7 +52,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String p0: the name of the member
   /// String p1: message details
-  static const HintTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   deprecatedMemberUseWithMessage = HintTemplate(
@@ -59,14 +61,13 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
-    uniqueName: 'DEPRECATED_MEMBER_USE_WITH_MESSAGE',
-    uniqueNameCheck: 'HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE',
+    uniqueName: 'HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE',
     withArguments: _withArgumentsDeprecatedMemberUseWithMessage,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
 
   /// No parameters.
-  static const HintWithoutArguments
+  static const DiagnosticWithoutArguments
   importDeferredLibraryWithLoadFunction = HintWithoutArguments(
     name: 'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
     problemMessage:
@@ -76,14 +77,14 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
         "Try changing the import to not be deferred, or rename the function in "
         "the imported library.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
+    uniqueName: 'HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
     expectedTypes: [],
   );
 
   /// Parameters:
   /// String p0: the URI that is not necessary
   /// String p1: the URI that makes it unnecessary
-  static const HintTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   unnecessaryImport = HintTemplate(
@@ -93,7 +94,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
         "also provided by the import of '{1}'.",
     correctionMessage: "Try removing the import directive.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'HintCode.UNNECESSARY_IMPORT',
+    uniqueName: 'HintCode.UNNECESSARY_IMPORT',
     withArguments: _withArgumentsUnnecessaryImport,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -105,13 +106,9 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    String? uniqueName,
-    required String super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
-  }) : super(
-         type: DiagnosticType.HINT,
-         uniqueName: 'HintCode.${uniqueName ?? name}',
-       );
+  }) : super(type: DiagnosticType.HINT);
 
   static LocatableDiagnostic _withArgumentsDeprecatedMemberUse({
     required String p0,
@@ -137,7 +134,9 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   }
 }
 
-final class HintTemplate<T extends Function> extends HintCode {
+final class HintTemplate<T extends Function> extends HintCode
+    implements DiagnosticWithArguments<T> {
+  @override
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
@@ -147,8 +146,7 @@ final class HintTemplate<T extends Function> extends HintCode {
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    super.uniqueName,
-    required super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
     required this.withArguments,
   });
@@ -163,8 +161,7 @@ final class HintWithoutArguments extends HintCode
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    super.uniqueName,
-    required super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
   });
 }

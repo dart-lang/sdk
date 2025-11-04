@@ -400,8 +400,7 @@ class TestRule extends AnalysisRule {
     'fantastic_test_rule',
     'Fantastic test rule.',
     correctionMessage: 'Try fantastic test rule.',
-    // ignore: deprecated_member_use_from_same_package
-    uniqueNameCheck: 'LintCode.fantastic_test_rule',
+    uniqueName: 'LintCode.fantastic_test_rule',
   );
 
   TestRule() : super(name: 'fantastic_test_rule', description: '');
