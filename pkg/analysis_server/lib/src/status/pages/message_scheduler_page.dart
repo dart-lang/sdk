@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/scheduler/scheduler_tracking_listener.dart';
@@ -35,17 +36,20 @@ class MessageSchedulerPage extends DiagnosticPageWithNav {
       return;
     }
 
-    void writeData(MessageData data, {required bool isActive}) {
-      p(data.message.id);
-      buf.write('<blockquote>');
-      p('Pending messages ahead of this: ${data.pendingMessageCount}');
+    void writeRow(MessageData data, {required bool isActive}) {
       var pendingDuration = (data.activeTime ?? now) - data.pendingTime;
-      p('Time spent on pending queue: $pendingDuration');
+      buf.writeln('<tr>');
+      buf.writeln('<td>${data.message.id}</td>');
+      buf.writeln('<td>${data.pendingMessageCount}</td>');
+      buf.writeln('<td>$pendingDuration</td>');
       if (isActive) {
-        p('Active messages ahead of this: ${data.activeMessageCount}');
-        p('Time spent running: ${now - data.activeTime!}');
+        buf.writeln('<td>${data.activeMessageCount}</td>');
+        buf.writeln('<td>${now - data.activeTime!}</td>');
+      } else {
+        buf.writeln('<td>-</td>');
+        buf.writeln('<td>-</td>');
       }
-      buf.write('</blockquote>');
+      buf.writeln('</tr>');
     }
 
     var (:pending, :active) = listener.pendingAndActiveMessages;
@@ -57,9 +61,14 @@ class MessageSchedulerPage extends DiagnosticPageWithNav {
       pending.sort(
         (first, second) => first.pendingTime.compareTo(second.pendingTime),
       );
+      buf.writeln('<table>');
+      buf.writeln(
+        '<tr><th>Message ID</th><th>Pending Ahead</th><th>Time in Pending</th><th>Active Ahead</th><th>Time Running</th></tr>',
+      );
       for (var data in pending) {
-        writeData(data, isActive: false);
+        writeRow(data, isActive: false);
       }
+      buf.writeln('</table>');
     }
 
     h3('Active messages');
@@ -69,15 +78,35 @@ class MessageSchedulerPage extends DiagnosticPageWithNav {
       active.sort(
         (first, second) => first.activeTime!.compareTo(second.activeTime!),
       );
+      buf.writeln('<table>');
+      buf.writeln(
+        '<tr><th>Message ID</th><th>Pending Ahead</th><th>Time in Pending</th><th>Active Ahead</th><th>Time Running</th></tr>',
+      );
       for (var data in active) {
-        writeData(data, isActive: true);
+        writeRow(data, isActive: true);
       }
+      buf.writeln('</table>');
     }
 
     var lines = listener.completedMessageLog;
     if (lines.isNotEmpty) {
       h3('Completed messages');
-      p(lines.join('\n'), style: 'white-space: pre');
+      buf.writeln('<table>');
+      buf.writeln(
+        '<tr><th>Message</th><th>Pending Count</th><th>Active Count</th><th>Pending Duration</th><th>Active Duration</th><th>Cancelled</th></tr>',
+      );
+      for (var line in lines) {
+        var data = jsonDecode(line) as Map<String, dynamic>;
+        buf.writeln('<tr>');
+        buf.writeln('<td>${data['message']}</td>');
+        buf.writeln('<td>${data['pendingMessageCount']}</td>');
+        buf.writeln('<td>${data['activeMessageCount']}</td>');
+        buf.writeln('<td>${data['pendingDuration']}</td>');
+        buf.writeln('<td>${data['activeDuration']}</td>');
+        buf.writeln('<td>${data['wasCancelled']}</td>');
+        buf.writeln('</tr>');
+      }
+      buf.writeln('</table>');
     }
   }
 }
