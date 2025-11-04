@@ -43,14 +43,14 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
 
     if (!clientCapabilities.applyEdit) {
       return error(
-        ServerErrorCodes.FeatureDisabled,
+        ServerErrorCodes.featureDisabled,
         '"$commandName" is only available for clients that support workspace/applyEdit',
       );
     }
 
     if (!clientCapabilities.changeAnnotations) {
       return error(
-        ServerErrorCodes.FeatureDisabled,
+        ServerErrorCodes.featureDisabled,
         '"$commandName" is only available for clients that support change annotations',
       );
     }

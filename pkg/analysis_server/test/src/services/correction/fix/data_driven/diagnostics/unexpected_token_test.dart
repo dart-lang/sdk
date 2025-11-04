@@ -30,7 +30,7 @@ transforms:
       - if: "'x' == 'y' 'z'"
         changes: []
 ''',
-      [error(TransformSetErrorCode.unexpectedToken, 184, 3)],
+      [error(TransformSetErrorCode.unexpectedTransformSetToken, 184, 3)],
     );
   }
 }

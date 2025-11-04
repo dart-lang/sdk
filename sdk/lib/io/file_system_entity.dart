@@ -965,9 +965,11 @@ sealed class FileSystemEvent {
   ///
   /// The value will always be `false` for [FileSystemDeleteEvent].
   ///
-  /// On Windows, the value may also be `false` for a create, move or
-  /// modify event on a directory, if that directory was deleted
-  /// soon after this create, modify or move event occured.
+  /// On Windows `isDirectory` is computed by checking the file system entity
+  /// type after the event, which means it can be incorrect. It can be incorrectly
+  /// `false` for a directory create, modify or move event if that directory was
+  /// deleted soon after the event occurred. And, it can be incorrectly `true`
+  /// for a newly created link to a directory.
   final bool isDirectory;
 
   FileSystemEvent._(this.type, this.path, this.isDirectory);

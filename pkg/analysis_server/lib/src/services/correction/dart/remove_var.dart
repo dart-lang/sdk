@@ -17,7 +17,7 @@ class RemoveVar extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_VAR;
+  FixKind get fixKind => DartFixKind.removeVar;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

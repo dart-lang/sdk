@@ -27,7 +27,7 @@ class RemoveConst extends _RemoveConst {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_CONST;
+  FixKind get fixKind => DartFixKind.removeConst;
 }
 
 class RemoveUnnecessaryConst extends _RemoveConst {
@@ -38,10 +38,10 @@ class RemoveUnnecessaryConst extends _RemoveConst {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_CONST;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryConst;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_CONST_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnnecessaryConstMulti;
 }
 
 class _ChildrenVisitor extends GeneralizingAstVisitor<AstNode?> {

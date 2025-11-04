@@ -245,7 +245,7 @@ C b() {
       executeCommand(Command(command: commandId, title: 'UNUSED')),
       throwsA(
         isResponseError(
-          ServerErrorCodes.FeatureDisabled,
+          ServerErrorCodes.featureDisabled,
           message:
               '"$commandName" is only available for '
               'clients that support workspace/applyEdit',
@@ -262,7 +262,7 @@ C b() {
       executeCommand(Command(command: commandId, title: 'UNUSED')),
       throwsA(
         isResponseError(
-          ServerErrorCodes.FeatureDisabled,
+          ServerErrorCodes.featureDisabled,
           message:
               '"$commandName" is only available for '
               'clients that support change annotations',

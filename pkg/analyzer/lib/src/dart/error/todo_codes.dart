@@ -49,5 +49,5 @@ class Todo {
   }
 
   /// Returns the TodoCode for [kind], falling back to [TodoCode.todo].
-  static TodoCode forKind(String kind) => _codes[kind] ?? TodoCode.todo;
+  static DiagnosticCode forKind(String kind) => _codes[kind] ?? TodoCode.todo;
 }

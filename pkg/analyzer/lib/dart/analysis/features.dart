@@ -15,6 +15,10 @@ abstract class Feature {
   /// Feature information for class modifiers.
   static final class_modifiers = ExperimentalFeatures.class_modifiers;
 
+  /// Feature information for declaring constructors.
+  static final declaring_constructors =
+      ExperimentalFeatures.declaring_constructors;
+
   /// Feature information for number literal digit separators.
   static final digit_separators = ExperimentalFeatures.digit_separators;
 
@@ -77,13 +81,17 @@ abstract class Feature {
   /// Feature information for patterns.
   static final patterns = ExperimentalFeatures.patterns;
 
+  /// Feature information for private named parameters.
+  static final private_named_parameters =
+      ExperimentalFeatures.private_named_parameters;
+
   /// Feature information for records.
   static final records = ExperimentalFeatures.records;
 
   /// Feature information for spread collections.
   static final spread_collections = ExperimentalFeatures.spread_collections;
 
-  // Feature information for sealed classes.
+  /// Feature information for sealed classes.
   static final sealed_class = ExperimentalFeatures.sealed_class;
 
   /// Feature information for set literals.
@@ -91,6 +99,9 @@ abstract class Feature {
 
   /// Feature information for sound flow analysis.
   static final sound_flow_analysis = ExperimentalFeatures.sound_flow_analysis;
+
+  /// Feature information for static extensions.
+  static final static_extensions = ExperimentalFeatures.static_extensions;
 
   /// Feature information for super parameters.
   static final super_parameters = ExperimentalFeatures.super_parameters;

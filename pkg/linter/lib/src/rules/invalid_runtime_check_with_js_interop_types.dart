@@ -22,7 +22,6 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 
 import '../analyzer.dart';
 
-const String _dartJsAnnotationsUri = 'dart:_js_annotations';
 const String _dartJsInteropUri = 'dart:js_interop';
 const String _dartJsUri = 'dart:js';
 
@@ -118,7 +117,7 @@ DartType? _jsTypeForStaticInterop(InterfaceType type) {
       hasJS = true;
       dartJsInterop = annotationElement.library;
     } else if (annotationElement is GetterElement &&
-        annotationElement.isFromLibrary(_dartJsAnnotationsUri) &&
+        annotationElement.isFromLibrary(_dartJsInteropUri) &&
         annotationElement.name == 'staticInterop') {
       hasStaticInterop = true;
     }
@@ -296,12 +295,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Types that belong to JS interop libraries that are not available when
   /// compiling to Wasm are ignored. Nullability is also ignored for the purpose
   /// of this test.
-  LintCode? getInvalidJsInteropTypeTest(
+  DiagnosticCode? getInvalidJsInteropTypeTest(
     DartType leftType,
     DartType rightType, {
     required bool check,
   }) {
-    LintCode? lintCode;
+    DiagnosticCode? lintCode;
     (TypeImpl, TypeImpl) eraseTypes(TypeImpl left, TypeImpl right) {
       var erasedLeft = typeSystem.promoteToNonNull(
         eraseNonJsInteropTypes.perform(left),

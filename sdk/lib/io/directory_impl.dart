@@ -70,11 +70,6 @@ class _Directory extends FileSystemEntity implements Directory {
       ),
     };
 
-    if (!_EmbedderConfig._mayChdir) {
-      throw UnsupportedError(
-        "This embedder disallows setting Directory.current",
-      );
-    }
     var result = _setCurrent(_Namespace._namespace, _rawPath);
     if (result is ArgumentError) throw result;
     if (result is OSError) {

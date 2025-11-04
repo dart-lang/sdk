@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class ImportAddHideTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_HIDE;
+  FixKind get kind => DartFixKind.importLibraryHide;
 
   Future<void> test_double() async {
     newFile(join(testPackageLibPath, 'lib1.dart'), '''
@@ -144,7 +144,7 @@ import 'lib4.dart';
 class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib4.dart'",
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
@@ -194,7 +194,7 @@ import 'lib3.dart';
 class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib3.dart'",
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
@@ -227,7 +227,7 @@ void foo(int i) {
 }
 ''',
       matchFixMessage: "Hide others to use 'E' from 'lib1.dart'",
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
@@ -275,7 +275,7 @@ import 'lib2.dart' hide M;
 class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib1.dart'",
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
@@ -564,7 +564,7 @@ void f() {
 }
 ''',
       matchFixMessage: "Hide others to use 'N' from 'lib2.dart'",
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
     );
   }
@@ -592,7 +592,7 @@ void f() {
 }
 ''',
       matchFixMessage: "Hide others to use 'N' from 'lib2.dart' as l",
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
     );
   }
@@ -620,7 +620,7 @@ import 'lib3.dart' hide M;
 class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib1.dart'",
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
@@ -633,7 +633,7 @@ import 'lib3.dart' hide M;
 class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib2.dart'",
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
@@ -646,7 +646,7 @@ import 'lib3.dart';
 class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib3.dart'",
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
@@ -706,7 +706,7 @@ void f() {
 @reflectiveTest
 class ImportRemoveShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_REMOVE_SHOW;
+  FixKind get kind => DartFixKind.importLibraryRemoveShow;
 
   Future<void> test_double() async {
     newFile(join(testPackageLibPath, 'lib1.dart'), '''
@@ -861,7 +861,7 @@ void f(N? n, O? o) {
   print(n);
 }
 ''',
-      errorFilter: (error) =>
+      filter: (error) =>
           error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
       matchFixMessage: "Remove show to use 'N' from 'lib2.dart'",
     );

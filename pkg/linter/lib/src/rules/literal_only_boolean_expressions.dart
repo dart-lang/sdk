@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -16,7 +17,8 @@ const _desc = r'Boolean expression composed only with literals.';
 bool _onlyLiterals(Expression? rawExpression) {
   var expression = rawExpression?.unParenthesized;
   if (expression is Literal) {
-    return true;
+    return expression is! StringInterpolation ||
+        expression.computeConstantValue() != null;
   }
   if (expression is PrefixExpression) {
     return _onlyLiterals(expression.operand);
@@ -31,7 +33,7 @@ bool _onlyLiterals(Expression? rawExpression) {
   return false;
 }
 
-class LiteralOnlyBooleanExpressions extends LintRule {
+class LiteralOnlyBooleanExpressions extends AnalysisRule {
   LiteralOnlyBooleanExpressions()
     : super(
         name: LintNames.literal_only_boolean_expressions,
@@ -57,7 +59,7 @@ class LiteralOnlyBooleanExpressions extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

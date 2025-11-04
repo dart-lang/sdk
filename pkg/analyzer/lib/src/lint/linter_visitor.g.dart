@@ -88,6 +88,13 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
+  @experimental
+  @override
+  void visitBlockClassBody(BlockClassBody node) {
+    _runSubscriptions(node, _registry._forBlockClassBody);
+    node.visitChildren(this);
+  }
+
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     _runSubscriptions(node, _registry._forBlockFunctionBody);
@@ -276,6 +283,13 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
+  @experimental
+  @override
+  void visitEmptyClassBody(EmptyClassBody node) {
+    _runSubscriptions(node, _registry._forEmptyClassBody);
+    node.visitChildren(this);
+  }
+
   @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     _runSubscriptions(node, _registry._forEmptyFunctionBody);
@@ -285,6 +299,13 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   @override
   void visitEmptyStatement(EmptyStatement node) {
     _runSubscriptions(node, _registry._forEmptyStatement);
+    node.visitChildren(this);
+  }
+
+  @experimental
+  @override
+  void visitEnumBody(EnumBody node) {
+    _runSubscriptions(node, _registry._forEnumBody);
     node.visitChildren(this);
   }
 
@@ -660,6 +681,13 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
+  @experimental
+  @override
+  void visitNameWithTypeParameters(NameWithTypeParameters node) {
+    _runSubscriptions(node, _registry._forNameWithTypeParameters);
+    node.visitChildren(this);
+  }
+
   @override
   void visitNativeClause(NativeClause node) {
     _runSubscriptions(node, _registry._forNativeClause);
@@ -773,6 +801,20 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   @override
   void visitPrefixExpression(PrefixExpression node) {
     _runSubscriptions(node, _registry._forPrefixExpression);
+    node.visitChildren(this);
+  }
+
+  @experimental
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    _runSubscriptions(node, _registry._forPrimaryConstructorDeclaration);
+    node.visitChildren(this);
+  }
+
+  @experimental
+  @override
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
+    _runSubscriptions(node, _registry._forPrimaryConstructorName);
     node.visitChildren(this);
   }
 
@@ -1154,6 +1196,8 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<BinaryExpression>> _forBinaryExpression = [];
 
+  final List<_Subscription<BlockClassBody>> _forBlockClassBody = [];
+
   final List<_Subscription<BlockFunctionBody>> _forBlockFunctionBody = [];
 
   final List<_Subscription<Block>> _forBlock = [];
@@ -1226,9 +1270,13 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<DoubleLiteral>> _forDoubleLiteral = [];
 
+  final List<_Subscription<EmptyClassBody>> _forEmptyClassBody = [];
+
   final List<_Subscription<EmptyFunctionBody>> _forEmptyFunctionBody = [];
 
   final List<_Subscription<EmptyStatement>> _forEmptyStatement = [];
+
+  final List<_Subscription<EnumBody>> _forEnumBody = [];
 
   final List<_Subscription<EnumConstantArguments>> _forEnumConstantArguments =
       [];
@@ -1370,6 +1418,9 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<NamedType>> _forNamedType = [];
 
+  final List<_Subscription<NameWithTypeParameters>> _forNameWithTypeParameters =
+      [];
+
   final List<_Subscription<NativeClause>> _forNativeClause = [];
 
   final List<_Subscription<NativeFunctionBody>> _forNativeFunctionBody = [];
@@ -1410,6 +1461,12 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final List<_Subscription<PrefixedIdentifier>> _forPrefixedIdentifier = [];
 
   final List<_Subscription<PrefixExpression>> _forPrefixExpression = [];
+
+  final List<_Subscription<PrimaryConstructorDeclaration>>
+  _forPrimaryConstructorDeclaration = [];
+
+  final List<_Subscription<PrimaryConstructorName>> _forPrimaryConstructorName =
+      [];
 
   final List<_Subscription<PropertyAccess>> _forPropertyAccess = [];
 
@@ -1579,6 +1636,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addBlock(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forBlock.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addBlockClassBody(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _forBlockClassBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -1774,6 +1836,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  void addEmptyClassBody(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _forEmptyClassBody.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forEmptyFunctionBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
@@ -1781,6 +1848,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addEmptyStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forEmptyStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addEnumBody(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _forEnumBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -2165,6 +2237,16 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  void addNameWithTypeParameters(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forNameWithTypeParameters.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addNativeClause(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forNativeClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
@@ -2272,6 +2354,26 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addPrefixExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forPrefixExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addPrimaryConstructorDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forPrimaryConstructorDeclaration.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addPrimaryConstructorName(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forPrimaryConstructorName.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

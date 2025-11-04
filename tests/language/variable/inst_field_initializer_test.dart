@@ -29,7 +29,7 @@ class Cheese {
   // Test that static const field Cheese.mild is not shadowed
   // by the parameter mild when compiling the field initializer
   // for instance field smell.
-  Cheese.hideAndSeek(var mild) : name = mild {
+  Cheese.hideAndSeek(mild) : name = mild {
     Expect.equals(mild, this.name);
     Expect.equals(Cheese.mild, this.smell);
   }

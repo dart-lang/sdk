@@ -5,7 +5,9 @@
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart'
     show UnescapeErrorListener;
@@ -26,14 +28,15 @@ CompilationUnitEnd getAST(
   Uint8List rawBytes, {
   bool includeBody = true,
   bool includeComments = false,
-  bool enableTripleShift = false,
-  bool allowPatterns = false,
-  bool enableEnhancedParts = false,
+  ExperimentalFeatures experimentalFeatures =
+      const DefaultExperimentalFeatures(),
   List<Token>? languageVersionsSeen,
   List<int>? lineStarts,
 }) {
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-    enableTripleShift: enableTripleShift,
+    enableTripleShift: experimentalFeatures.isExperimentEnabled(
+      ExperimentalFlag.tripleShift,
+    ),
   );
 
   ScannerResult scanResult = scan(
@@ -61,15 +64,13 @@ CompilationUnitEnd getAST(
     parser = new Parser(
       listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: allowPatterns,
-      enableFeatureEnhancedParts: enableEnhancedParts,
+      experimentalFeatures: experimentalFeatures,
     );
   } else {
     parser = new ClassMemberParser(
       listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: allowPatterns,
-      enableFeatureEnhancedParts: enableEnhancedParts,
+      experimentalFeatures: experimentalFeatures,
     );
   }
   parser.parseUnit(firstToken);
@@ -250,8 +251,8 @@ class BestEffortParserAstVisitor {
       visitMixin(declaration, declaration.beginToken, declaration.endToken);
       return;
     }
-    if (node is EnumEnd) {
-      EnumEnd declaration = node;
+    if (node is EnumDeclarationEnd) {
+      EnumDeclarationEnd declaration = node;
       visitEnum(
         declaration,
         declaration.enumKeyword,
@@ -448,7 +449,11 @@ class BestEffortParserAstVisitor {
   }
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitEnum(EnumEnd node, Token startInclusive, Token endInclusive) {}
+  void visitEnum(
+    EnumDeclarationEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitLibraryName(
@@ -678,19 +683,19 @@ extension GeneralASTContentExtension on ParserAstNode {
     if (this is! TopLevelDeclarationEnd) {
       return false;
     }
-    if (children!.first is! UncategorizedTopLevelDeclarationBegin) {
+    if (children!.first is! EnumDeclarationPreludeBegin) {
       return false;
     }
-    if (children!.last is! EnumEnd) {
+    if (children!.last is! EnumDeclarationEnd) {
       return false;
     }
 
     return true;
   }
 
-  EnumEnd asEnum() {
+  EnumDeclarationEnd asEnum() {
     if (!isEnum()) throw "Not enum";
-    return children!.last as EnumEnd;
+    return children!.last as EnumDeclarationEnd;
   }
 
   bool isTypedef() {
@@ -1647,7 +1652,7 @@ extension ClassFieldsExtension on ClassFieldsEnd {
 }
 
 // Coverage-ignore(suite): Not run.
-extension EnumExtension on EnumEnd {
+extension EnumDeclarationExtension on EnumDeclarationEnd {
   List<IdentifierHandle> getIdentifiers() {
     List<IdentifierHandle> ids = [];
     for (ParserAstNode child in children!) {
@@ -2383,11 +2388,13 @@ class ParserASTListener extends AbstractParserAstListener {
         if (begin == end) {
           // Exact match.
         } else if (end == "TopLevelDeclaration" &&
-            (begin == "ExtensionDeclarationPrelude" ||
+            (begin == "EnumDeclarationPrelude" ||
+                begin == "ExtensionDeclarationPrelude" ||
                 begin == "ClassOrMixinOrNamedMixinApplicationPrelude" ||
                 begin == "TopLevelMember" ||
                 begin == "UncategorizedTopLevelDeclaration")) {
           // endTopLevelDeclaration is started by one of
+          // beginEnumDeclarationPrelude
           // beginExtensionDeclarationPrelude,
           // beginClassOrNamedMixinApplicationPrelude
           // beginTopLevelMember or beginUncategorizedTopLevelDeclaration.
@@ -2461,10 +2468,6 @@ class ParserASTListener extends AbstractParserAstListener {
   void reportVarianceModifierNotEnabled(Token? variance) {
     throw new UnimplementedError();
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Uri get uri => throw new UnimplementedError();
 
   @override
   void logEvent(String name) {

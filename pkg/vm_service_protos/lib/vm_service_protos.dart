@@ -4,8 +4,8 @@
 
 // IMPORTANT: This file should only ever be modified by modifying the
 // corresponding .proto file and then running
-// `dart runtime/vm/protos/tools/compile_perfetto_protos.dart` from the SDK root
-// directory.
+// `dart third_party/perfetto/tools/compile_perfetto_protos.dart` from the
+// SDK root directory.
 
 export 'src/protos/perfetto/common/builtin_clock.pb.dart';
 export 'src/protos/perfetto/common/builtin_clock.pbenum.dart';

@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/parser/util.dart' as shared;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -32,8 +33,8 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/const_argument_verifier.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
@@ -930,7 +931,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     _checkForValidField(node);
-    _checkForPrivateOptionalParameter(node);
+    _checkPrivateOptionalParameter(node);
     _checkForFieldInitializingFormalRedirectingConstructor(node);
     _checkForTypeAnnotationDeferredClass(node.type);
     var fieldElement = node.declaredFragment?.element.field;
@@ -1456,7 +1457,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _checkForPrivateOptionalParameter(node);
     _checkForTypeAnnotationDeferredClass(node.type);
     super.visitSimpleFormalParameter(node);
   }
@@ -1978,9 +1978,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }) {
     if (element is MultiplyDefinedElementImpl) {
       var conflictingMembers = element.conflictingElements;
-      var libraryNames = conflictingMembers
-          .map((e) => _getLibraryName(e))
-          .toList();
+      var libraryNames = List.generate(
+        conflictingMembers.length,
+        (index) => _getLibraryName(conflictingMembers[index]),
+        growable: false,
+      );
       libraryNames.sort();
       diagnosticReporter.atToken(
         name,
@@ -3956,7 +3958,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// with it, and report it as an error if it does.
   void _checkForInvalidModifierOnBody(
     FunctionBody body,
-    CompileTimeErrorCode errorCode,
+    DiagnosticCode errorCode,
   ) {
     var keyword = body.keyword;
     if (keyword != null) {
@@ -4315,16 +4317,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     int mixinIndex,
     NamedTypeImpl mixinName,
   ) {
+    var enclosingClass = _enclosingClass!;
     var mixinType = mixinName.type as InterfaceTypeImpl;
     for (var constraint in mixinType.superclassConstraints) {
-      var superType = _enclosingClass!.supertype as InterfaceTypeImpl;
+      var superType = enclosingClass.supertype as InterfaceTypeImpl;
       superType = superType.withNullability(NullabilitySuffix.none);
 
       bool isSatisfied = typeSystem.isSubtypeOf(superType, constraint);
       if (!isSatisfied) {
         for (int i = 0; i < mixinIndex && !isSatisfied; i++) {
+          // If there are less mixin types than mixin nodes, escape.
+          if (i >= enclosingClass.mixins.length) {
+            return false;
+          }
+          // Probe a previous mixin type.
           isSatisfied = typeSystem.isSubtypeOf(
-            _enclosingClass!.mixins[i],
+            enclosingClass.mixins[i],
             constraint,
           );
         }
@@ -4954,24 +4962,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         arguments: messageArguments,
       );
     }
-  }
-
-  /// Check that the given named optional [parameter] does not begin with '_'.
-  void _checkForPrivateOptionalParameter(FormalParameter parameter) {
-    // should be named parameter
-    if (!parameter.isNamed) {
-      return;
-    }
-    // name should start with '_'
-    var name = parameter.name;
-    if (name == null || name.isSynthetic || !name.lexeme.startsWith('_')) {
-      return;
-    }
-
-    diagnosticReporter.atToken(
-      name,
-      CompileTimeErrorCode.privateOptionalParameter,
-    );
   }
 
   /// Check whether the given constructor [declaration] is the redirecting
@@ -6004,6 +5994,37 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  /// Check that a private named [parameter] has a valid public name.
+  void _checkPrivateOptionalParameter(FormalParameter parameter) {
+    // The parser has already reported an error if private named parameters are
+    // disabled or we're in a context where one isn't allowed. Only report the
+    // more precise error on a private named parameter with no public name if
+    // the feature is enabled.
+    if (!_currentLibrary.featureSet.isEnabled(
+      Feature.private_named_parameters,
+    )) {
+      return;
+    }
+
+    // Must be a named parameter.
+    if (!parameter.isNamed) {
+      return;
+    }
+
+    // Must be private.
+    var name = parameter.name;
+    if (name == null || name.isSynthetic || !name.lexeme.startsWith('_')) {
+      return;
+    }
+
+    if (correspondingPublicName(name.lexeme) == null) {
+      diagnosticReporter.atToken(
+        name,
+        CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
+      );
+    }
+  }
+
   void _checkUseOfCovariantInParameters(FormalParameterList node) {
     var parent = node.parent;
     if (_enclosingClass != null && parent is MethodDeclaration) {
@@ -6360,8 +6381,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ConstructorDeclaration constructor,
   ) {
     var fields = <FieldElement>{};
-    var classDeclaration = constructor.parent as ClassDeclaration;
-    for (ClassMember fieldDeclaration in classDeclaration.members) {
+    var unitMemberDeclaration =
+        constructor.parent as NamedCompilationUnitMember;
+    late NodeList<ClassMember> membersList;
+    switch (unitMemberDeclaration) {
+      case TypeAlias() || FunctionDeclaration():
+        assert(
+          false,
+          'How can a constructor be declared in type alias or function?',
+        );
+        return [];
+      case ExtensionTypeDeclaration():
+        // Extension types do not have fields to be initialized.
+        return [];
+      case ClassDeclaration(:var members) ||
+          MixinDeclaration(:var members) ||
+          EnumDeclaration(:var members):
+        membersList = members;
+      default:
+        assert(
+          false,
+          'Unexpected parent of constructor: '
+          '${unitMemberDeclaration.runtimeType}',
+        );
+        return [];
+    }
+    for (ClassMember fieldDeclaration in membersList) {
       if (fieldDeclaration is FieldDeclaration) {
         for (VariableDeclaration field in fieldDeclaration.fields.variables) {
           if (field.initializer == null) {

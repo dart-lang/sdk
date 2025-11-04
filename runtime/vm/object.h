@@ -5745,7 +5745,12 @@ class ObjectPool : public Object {
 
   uword RawValueAt(intptr_t index) const {
     ASSERT(TypeAt(index) != EntryType::kTaggedObject);
-    return EntryAddr(index)->raw_value_;
+    return LoadNonPointer<uword>(&EntryAddr(index)->raw_value_);
+  }
+  template <std::memory_order order>
+  uword RawValueAt(intptr_t index) const {
+    ASSERT(TypeAt(index) != EntryType::kTaggedObject);
+    return LoadNonPointer<uword, order>(&EntryAddr(index)->raw_value_);
   }
   void SetRawValueAt(intptr_t index, uword raw_value) const {
     ASSERT(TypeAt(index) != EntryType::kTaggedObject);
@@ -7622,8 +7627,6 @@ class Bytecode : public Object {
     ASSERT(value.IsOld());
     untag()->set_var_descriptors<std::memory_order_release>(value.ptr());
   }
-
-  void WriteLocalVariablesInfo(Zone* zone, BaseTextBuffer* buffer) const;
 
   // Will compute local var descriptors if necessary.
   LocalVarDescriptorsPtr GetLocalVarDescriptors() const;

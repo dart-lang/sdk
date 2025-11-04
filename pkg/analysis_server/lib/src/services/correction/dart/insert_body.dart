@@ -16,7 +16,7 @@ class InsertBody extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.INSERT_BODY;
+  FixKind get fixKind => DartFixKind.insertBody;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

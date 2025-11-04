@@ -51,7 +51,7 @@ void f() {
 }
 ''');
     await assertNoFix(
-      errorFilter: lintNameFilter(LintNames.avoid_types_as_parameter_names),
+      filter: lintNameFilter(LintNames.avoid_types_as_parameter_names),
     );
   }
 

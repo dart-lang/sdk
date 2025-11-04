@@ -26,7 +26,7 @@ bool _ignoreDeadCode(Diagnostic diagnostic) =>
 @reflectiveTest
 class DeadNullAwareAssignmentExpressionTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
+  FixKind get kind => DartFixKind.removeIfNullOperator;
 
   Future<void>
   test_assignmentExpression_propertyAccess_methodInvocation() async {
@@ -51,7 +51,7 @@ void f() {
 }
 
 C g() => C();
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_assignmentExpression_simpleIdentifier_field() async {
@@ -69,7 +69,7 @@ class C {
   void f(int b) {
   }
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_assignmentExpression_simpleIdentifier_parameter() async {
@@ -81,7 +81,7 @@ void f(int a, int b) {
     await assertHasFix('''
 void f(int a, int b) {
 }
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_immediateChild() async {
@@ -90,7 +90,7 @@ void f(int a, int b) => a ??= b;
 ''');
     await assertHasFix('''
 void f(int a, int b) => a;
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_nestedChild() async {
@@ -99,7 +99,7 @@ void f(int a, int b) => a ??= b * 2 + 1;
 ''');
     await assertHasFix('''
 void f(int a, int b) => a;
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_nestedChild_onRight() async {
@@ -108,14 +108,14 @@ void f(int a, int b, int c) => a = b ??= c;
 ''');
     await assertHasFix('''
 void f(int a, int b, int c) => a = b;
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 }
 
 @reflectiveTest
 class DeadNullAwareExpressionTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
+  FixKind get kind => DartFixKind.removeIfNullOperator;
 
   Future<void> test_immediateChild() async {
     await resolveTestCode('''
@@ -123,7 +123,7 @@ int f(int a, int b) => a ?? b;
 ''');
     await assertHasFix('''
 int f(int a, int b) => a;
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 
   Future<void> test_nestedChild() async {
@@ -132,7 +132,7 @@ int f(int a, int b) => a ?? b * 2 + 1;
 ''');
     await assertHasFix('''
 int f(int a, int b) => a;
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 }
 
@@ -175,7 +175,7 @@ var c = a;
 @reflectiveTest
 class UnnecessaryNullInIfNullOperatorsTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
+  FixKind get kind => DartFixKind.removeIfNullOperator;
 
   @override
   String get lintCode => LintNames.unnecessary_null_in_if_null_operators;
@@ -199,6 +199,6 @@ var b = a ?? '';
     await assertHasFix('''
 var a = '';
 var b = a;
-''', errorFilter: _ignoreDeadCode);
+''', filter: _ignoreDeadCode);
   }
 }

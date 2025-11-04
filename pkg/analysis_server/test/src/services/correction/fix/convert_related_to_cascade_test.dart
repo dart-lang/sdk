@@ -43,7 +43,7 @@ void f() {
   ..m()
   ..m();
 }
-''', errorFilter: (error) => error.offset == testCode.indexOf('a.m();'));
+''', filter: (error) => error.offset == testCode.indexOf('a.m();'));
   }
 
   Future<void> test_method_property_method() async {
@@ -68,7 +68,7 @@ void f(A a) {
   ..x = 1
   ..m();
 }
-''', errorFilter: (error) => error.offset == testCode.indexOf('a.x = 1'));
+''', filter: (error) => error.offset == testCode.indexOf('a.x = 1'));
   }
 
   Future<void> test_multipleDeclaration_first_method() async {
@@ -121,7 +121,7 @@ void f(A a) {
   ..m()
   ..m();
 }
-''', errorFilter: (error) => error.offset == testCode.indexOf('a..m();'));
+''', filter: (error) => error.offset == testCode.indexOf('a..m();'));
   }
 
   Future<void> test_property_property_method_method_fisrt() async {
@@ -150,7 +150,7 @@ void f(A a) {
   ..m(1)
   ..m(2);
 }
-''', errorFilter: (error) => error.offset == testCode.indexOf('a.m(1)'));
+''', filter: (error) => error.offset == testCode.indexOf('a.m(1)'));
   }
 
   Future<void> test_property_property_method_method_last() async {
@@ -179,7 +179,7 @@ void f(A a) {
   ..m(1)
   ..m(2);
 }
-''', errorFilter: (error) => error.offset == testCode.indexOf('a.m(2)'));
+''', filter: (error) => error.offset == testCode.indexOf('a.m(2)'));
   }
 
   Future<void> test_property_property_property() async {
@@ -204,6 +204,6 @@ void f(A a) {
   ..x = 2
   ..x = 3;
 }
-''', errorFilter: (error) => error.offset == testCode.indexOf('a.x = 2;'));
+''', filter: (error) => error.offset == testCode.indexOf('a.x = 2;'));
   }
 }

@@ -88,7 +88,7 @@ Future? a;
 @reflectiveTest
 class OrganizeImportsDirectivesOrderingTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ORGANIZE_IMPORTS;
+  FixKind get kind => DartFixKind.organizeImports;
 
   @override
   String get lintCode => LintNames.directives_ordering;
@@ -260,6 +260,6 @@ void foo(Random r) {}
 import 'dart:math' show Random;
 
 void foo(Random r) {}
-''', errorFilter: _firstUnusedShownNameErrorFilter);
+''', filter: _firstUnusedShownNameErrorFilter);
   }
 }

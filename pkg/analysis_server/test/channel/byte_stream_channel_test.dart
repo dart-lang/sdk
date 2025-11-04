@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/byte_stream_channel.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -87,8 +88,8 @@ class ByteStreamClientChannelTest {
     var assertCount = 0;
     var request = Request('72', 'foo.bar');
     outputLineStream.first.then((line) => json.decode(line)).then((json) {
-      expect(json[Request.ID], equals('72'));
-      expect(json[Request.METHOD], equals('foo.bar'));
+      expect(json[Request.idAttributeName], equals('72'));
+      expect(json[Request.methodAttributeName], equals('foo.bar'));
       inputSink.writeln('{"id":"73"}');
       inputSink.writeln('{"id":"72"}');
       assertCount++;
@@ -133,6 +134,7 @@ class ByteStreamServerChannelTest {
       inputStream.stream,
       outputSink,
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
     );
     var requestStreamController = StreamController<RequestOrResponse>();
     requestStream = requestStreamController.stream;
@@ -236,6 +238,7 @@ class ByteStreamServerChannelTest {
       StreamController<List<int>>().stream,
       outputSink,
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
     );
 
     // Attempt to send a notification.

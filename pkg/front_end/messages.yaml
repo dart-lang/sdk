@@ -86,9 +86,6 @@
 # as well as internal documentation (comment), which will be included in
 # the code generated for the analyzer.
 #
-# In some cases a message is internal to the frontend, and no meaningful
-# analyzer code can be provided. In such cases set `frontendInternal: true`.
-#
 # ## Parameter Substitution in problemMessage and correctionMessage
 #
 # The fields `problemMessage` and `correctionMessage` are subject to parameter
@@ -1573,6 +1570,22 @@ PrivateNamedParameter:
   problemMessage: "A named parameter can't start with an underscore ('_')."
   script: |
     void foo({int? _hello}) {}
+
+PrivateNamedNonFieldParameter:
+  pseudoSharedCode: PRIVATE_NAMED_NON_FIELD_PARAMETER
+  parameters: none
+  problemMessage: "A named parameter that doesn't refer to an instance variable can't start with an underscore ('_')."
+  script: |
+    void foo({int? _hello}) {}
+
+PrivateNamedParameterWithoutPublicName:
+  parameters: none
+  problemMessage: "A private named parameter must have a corresponding public name."
+  script: |
+    class C {
+      int? _123;
+      C({this._123});
+    }
 
 GetterWithFormals:
   pseudoSharedCode: GETTER_WITH_PARAMETERS
@@ -4248,7 +4261,6 @@ InitializeFromDillNotSelfContained:
     Either way, you should probably delete the file so it doesn't use unnecessary disk space.
 
   severity: WARNING
-  frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
 
 InitializeFromDillNotSelfContainedNoDump:
@@ -4260,7 +4272,6 @@ InitializeFromDillNotSelfContainedNoDump:
     The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
 
   severity: WARNING
-  frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
 
 InitializeFromDillUnknownProblem:
@@ -4280,7 +4291,6 @@ InitializeFromDillUnknownProblem:
     Either way, you should probably delete the file so it doesn't use unnecessary disk space.
 
   severity: WARNING
-  frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
 
 InitializeFromDillUnknownProblemNoDump:
@@ -4297,7 +4307,6 @@ InitializeFromDillUnknownProblemNoDump:
     The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
 
   severity: WARNING
-  frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
 
 WebLiteralCannotBeRepresentedExactly:
@@ -4625,7 +4634,6 @@ RedirectingFactoryIncompatibleTypeArgument:
 SyntheticToken:
   parameters: none
   problemMessage: "This couldn't be parsed."
-  frontendInternal: true
 
 IncorrectTypeArgument:
   parameters:
@@ -4780,7 +4788,6 @@ TypeOrigin:
     Name name: undocumented
     Uri uri: undocumented
   problemMessage: "'#name' is from '#uri'."
-  frontendInternal: true
   external: test/type_labeler_test.dart
 
 TypeOriginWithFileUri:
@@ -4789,25 +4796,21 @@ TypeOriginWithFileUri:
     Uri uri: undocumented
     Uri uri2: undocumented
   problemMessage: "'#name' is from '#uri' ('#uri2')."
-  frontendInternal: true
   external: test/type_labeler_test.dart
 
 ObjectExtends:
   parameters: none
   problemMessage: "The class 'Object' can't have a superclass."
-  frontendInternal: true
   external: test/object_supertype_test.dart
 
 ObjectImplements:
   parameters: none
   problemMessage: "The class 'Object' can't implement anything."
-  frontendInternal: true
   external: test/object_supertype_test.dart
 
 ObjectMixesIn:
   parameters: none
   problemMessage: "The class 'Object' can't use mixins."
-  frontendInternal: true
   external: test/object_supertype_test.dart
 
 InstanceAndSynthesizedStaticConflict:
@@ -5918,12 +5921,6 @@ JsInteropDartJsInteropAnnotationForStaticInteropOnly:
   parameters: none
   problemMessage: "The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes."
   correctionMessage: "Try making this class an extension type or marking it as '@staticInterop'."
-
-JsInteropDisallowedInteropLibraryInDart2Wasm:
-  parameters:
-    Name name: undocumented
-  problemMessage: "JS interop library '#name' can't be imported when compiling to Wasm."
-  correctionMessage: "Try using 'dart:js_interop' or 'dart:js_interop_unsafe' instead."
 
 JsInteropEnclosingClassJSAnnotation:
   parameters: none

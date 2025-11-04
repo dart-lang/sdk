@@ -550,26 +550,30 @@ IsolateTest checkRecordedStops(
   String? debugPrintFile,
   int? debugPrintLine,
 }) {
+  String formatLine(String line) {
+    String output = line;
+    if (debugPrintFile != null && debugPrintLine != null) {
+      final int firstColon = line.indexOf(':');
+      final int lastColon = line.lastIndexOf(':');
+      if (firstColon > 0 && lastColon > 0) {
+        final int lineNumber =
+            int.parse(line.substring(firstColon + 1, lastColon));
+        final int relativeLineNumber = lineNumber - debugPrintLine;
+        final columnNumber = line.substring(lastColon + 1);
+        final file = line.substring(0, firstColon);
+        if (file == debugPrintFile) {
+          output = '\$file:\${LINE+$relativeLineNumber}:$columnNumber';
+        }
+      }
+    }
+    return output;
+  }
+
   return (VmService service, IsolateRef isolate) async {
     if (debugPrint) {
       for (int i = 0; i < recordStops.length; i++) {
-        final String line = recordStops[i];
-        String output = line;
-        final int firstColon = line.indexOf(':');
-        final int lastColon = line.lastIndexOf(':');
-        if (debugPrintFile != null &&
-            debugPrintLine != null &&
-            firstColon > 0 &&
-            lastColon > 0) {
-          final int lineNumber =
-              int.parse(line.substring(firstColon + 1, lastColon));
-          final int relativeLineNumber = lineNumber - debugPrintLine;
-          final columnNumber = line.substring(lastColon + 1);
-          final file = line.substring(0, firstColon);
-          if (file == debugPrintFile) {
-            output = '\$file:\${LINE+$relativeLineNumber}:$columnNumber';
-          }
-        }
+        final line = recordStops[i];
+        final output = formatLine(line);
         final String comma = i == recordStops.length - 1 ? '' : ',';
         print("'$output'$comma");
       }
@@ -592,11 +596,22 @@ IsolateTest checkRecordedStops(
         }
         if (k < recordStops.length) {
           // Allow and ignore extra recorded stops from i to k-1.
+          if (debugPrint) {
+            print('Skipping recorded stops [$i, $k)');
+          }
           i = k;
         } else {
           // This will report an error.
-          expect(recordStops[i], expectedStops[j]);
+          expect(
+            formatLine(recordStops[i]),
+            formatLine(expectedStops[j]),
+            reason: 'Recorded stop $i does not match expected stop $j.',
+          );
         }
+      }
+      if (debugPrint) {
+        print('Recorded stop $i matches expected stop $j: '
+            '${formatLine(recordStops[i])}');
       }
       i++;
       j++;

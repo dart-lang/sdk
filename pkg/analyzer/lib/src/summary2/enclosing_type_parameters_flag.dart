@@ -17,57 +17,37 @@ class EnclosingTypeParameterReferenceFlag {
       var library = builder.element;
       for (var topElement in library.children) {
         switch (topElement) {
-          case InstanceElementImpl():
-            for (var field in topElement.fields) {
-              if (!field.isSynthetic || field.isEnumValues) {
-                var result = _hasTypeParameterReference(topElement, field.type);
-                field.hasEnclosingTypeParameterReference = result;
-                field.getter?.hasEnclosingTypeParameterReference = result;
-                field.setter?.hasEnclosingTypeParameterReference = result;
-              }
+          case InstanceElementImpl instanceElement:
+            bool hasTypeParameterReference(DartType type) {
+              var visitor = _ReferencesTypeParameterVisitor(instanceElement);
+              type.accept(visitor);
+              return visitor.result;
             }
 
-            var accessors = [...topElement.getters, ...topElement.setters];
-            for (var propertyAccessor in accessors) {
-              if (!propertyAccessor.isSynthetic) {
-                var result = _hasTypeParameterReference(
-                  topElement,
-                  propertyAccessor.type,
-                );
-                propertyAccessor.hasEnclosingTypeParameterReference = result;
-                if (propertyAccessor.variable case FieldElementImpl field) {
-                  field.hasEnclosingTypeParameterReference = result;
-                }
-              }
+            for (var field in instanceElement.fields) {
+              var result = hasTypeParameterReference(field.type);
+              field.hasEnclosingTypeParameterReference = result;
             }
 
-            for (var method in topElement.methods) {
-              method.hasEnclosingTypeParameterReference =
-                  _hasTypeParameterReference(topElement, method.type);
+            var executables = [
+              ...instanceElement.getters,
+              ...instanceElement.setters,
+              ...instanceElement.methods,
+            ];
+            for (var executable in executables) {
+              var result = hasTypeParameterReference(executable.type);
+              executable.hasEnclosingTypeParameterReference = result;
             }
           case PropertyAccessorElementImpl():
             // Top-level accessors don't have type parameters.
-            if (!topElement.isSynthetic) {
-              topElement.hasEnclosingTypeParameterReference = false;
-            }
+            topElement.hasEnclosingTypeParameterReference = false;
           case TopLevelVariableElementImpl():
             // Top-level variables dont have type parameters.
-            if (!topElement.isSynthetic) {
-              topElement.getter?.hasEnclosingTypeParameterReference = false;
-              topElement.setter?.hasEnclosingTypeParameterReference = false;
-            }
+            topElement.getter?.hasEnclosingTypeParameterReference = false;
+            topElement.setter?.hasEnclosingTypeParameterReference = false;
         }
       }
     }
-  }
-
-  static bool _hasTypeParameterReference(
-    InstanceElementImpl instanceElement,
-    DartType type,
-  ) {
-    var visitor = _ReferencesTypeParameterVisitor(instanceElement);
-    type.accept(visitor);
-    return visitor.result;
   }
 }
 

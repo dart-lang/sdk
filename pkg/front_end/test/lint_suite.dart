@@ -5,6 +5,8 @@
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show FormalParameterKind, MemberKind, Parser;
@@ -186,8 +188,7 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
     Parser parser = new Parser(
       description.listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: true,
-      enableFeatureEnhancedParts: true,
+      experimentalFeatures: const DefaultExperimentalFeatures(),
     );
     parser.parseUnit(description.cache.firstToken!);
 
@@ -201,7 +202,6 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
 class LintListener extends Listener {
   List<String> problems = <String>[];
   late final LintTestDescription description;
-  @override
   late final Uri uri;
 
   void onProblem(int offset, int squigglyLength, String message) {
@@ -285,6 +285,7 @@ class ExplicitTypeLintListener extends LintListener {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,

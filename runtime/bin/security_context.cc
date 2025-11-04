@@ -20,15 +20,6 @@
 #include "bin/secure_socket_utils.h"
 #include "platform/syslog.h"
 
-// Return the error from the containing function if handle is an error handle.
-#define RETURN_IF_ERROR(handle)                                                \
-  {                                                                            \
-    Dart_Handle __handle = handle;                                             \
-    if (Dart_IsError((__handle))) {                                            \
-      return __handle;                                                         \
-    }                                                                          \
-  }
-
 namespace dart {
 namespace bin {
 

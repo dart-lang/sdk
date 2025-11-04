@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/completion/dart/visibility_tracker.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -398,8 +399,8 @@ class DeclarationHelper {
           includeSetters: true,
         ),
       );
-    } else if (type is FunctionType) {
-      _suggestFunctionCall();
+    } else if (type case FunctionType functionType) {
+      _suggestFunctionCall(functionType);
       _addMembersOfDartCoreObject();
     } else if (type is DynamicType) {
       _addMembersOfDartCoreObject();
@@ -649,7 +650,10 @@ class DeclarationHelper {
   }
 
   /// Add any static members defined by the given [element].
-  void addStaticMembersOfElement(Element element) {
+  void addStaticMembersOfElement(
+    Element element, {
+    bool onlyInvocations = false,
+  }) {
     if (element is TypeAliasElement) {
       var aliasedType = element.aliasedType;
       if (aliasedType is InterfaceType) {
@@ -665,6 +669,7 @@ class DeclarationHelper {
           containingElement: element,
           fields: element.fields,
           methods: element.methods,
+          onlyInvocations: onlyInvocations,
         );
       case ExtensionElement():
         _addStaticMembers(
@@ -674,6 +679,7 @@ class DeclarationHelper {
           containingElement: element,
           fields: element.fields,
           methods: element.methods,
+          onlyInvocations: onlyInvocations,
         );
       case InterfaceElement():
         _addStaticMembers(
@@ -683,6 +689,7 @@ class DeclarationHelper {
           containingElement: element,
           fields: element.fields,
           methods: element.methods,
+          onlyInvocations: onlyInvocations,
         );
     }
   }
@@ -1081,6 +1088,9 @@ class DeclarationHelper {
     var referencingInterface = _referencingInterfaceFor(element);
     var members = element.inheritedMembers;
     for (var member in members.values) {
+      if (!member.isVisibleIn(request.libraryElement)) {
+        continue;
+      }
       switch (member) {
         case MethodElement():
           if (member.isOperator) {
@@ -1181,7 +1191,21 @@ class DeclarationHelper {
     }
     if ((type.isDartCoreFunction && !onlySuper) ||
         type.allSupertypes.any((type) => type.isDartCoreFunction)) {
-      _suggestFunctionCall(); // from builder
+      FunctionType functionType;
+      if (type case FunctionType function) {
+        functionType = function;
+      } else if (type.allSupertypes.whereType<FunctionType>().firstOrNull
+          case var function?) {
+        functionType = function;
+      } else {
+        functionType = FunctionTypeImpl(
+          typeParameters: const [],
+          parameters: const [],
+          returnType: DynamicTypeImpl.instance,
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      }
+      _suggestFunctionCall(functionType); // from builder
     }
     // Add members from extensions. Members from extensions accessible in the
     // same library as the completion location are suggested in this pass.
@@ -1386,20 +1410,21 @@ class DeclarationHelper {
       }
     }
     var thisType = element.thisType;
-    if (thisType is InterfaceType) {
-      _addExtensionMembers(
-        type: thisType,
-        excludedGetters: {},
-        includeMethods: true,
-        includeSetters: true,
-      );
-    } else if (thisType is RecordType) {
+    _addExtensionMembers(
+      type: thisType,
+      excludedGetters: {},
+      includeMethods: true,
+      includeSetters: true,
+    );
+    if (thisType is RecordType) {
       _addFieldsOfRecordType(
         type: thisType,
         excludedFields: {},
         isKeywordNeeded: false,
         isTypeNeeded: false,
       );
+    } else if (thisType is FunctionType) {
+      _suggestFunctionCall(thisType);
     }
   }
 
@@ -1475,11 +1500,15 @@ class DeclarationHelper {
     required Element containingElement,
     required List<FieldElement> fields,
     required List<MethodElement> methods,
+    required bool onlyInvocations,
   }) {
     for (var getter in getters) {
       if (getter.isStatic &&
           !getter.isSynthetic &&
-          getter.isVisibleIn(request.libraryElement)) {
+          getter.isVisibleIn(request.libraryElement) &&
+          (!onlyInvocations ||
+              getter.returnType is FunctionType ||
+              getter.returnType.isDartCoreFunction)) {
         _suggestProperty(accessor: getter);
       }
     }
@@ -1494,7 +1523,10 @@ class DeclarationHelper {
       if (field.isStatic &&
           (!field.isSynthetic ||
               (containingElement is EnumElement && field.name == 'values')) &&
-          field.isVisibleIn(request.libraryElement)) {
+          field.isVisibleIn(request.libraryElement) &&
+          (!onlyInvocations ||
+              field.type is FunctionType ||
+              field.type.isDartCoreFunction)) {
         if (field.isEnumConstant) {
           var enumElement = field.enclosingElement;
           var matcherScore = state.matcher.score(
@@ -1985,10 +2017,26 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the method `call` defined on the class `Function`.
-  void _suggestFunctionCall() {
+  void _suggestFunctionCall(
+    FunctionType type, {
+    ExecutableElement? element,
+    Keyword? keyword,
+    bool addTypeAnnotation = false,
+  }) {
     var matcherScore = state.matcher.score('call');
     if (matcherScore != -1) {
-      collector.addSuggestion(FunctionCall(matcherScore: matcherScore));
+      collector.addSuggestion(
+        FunctionCall(
+          matcherScore: matcherScore,
+          type: type,
+          replacementRange: state.request.replacementRange,
+          importData: null,
+          kind: _executableSuggestionKind,
+          element: element,
+          addTypeAnnotation: addTypeAnnotation,
+          keyword: keyword,
+        ),
+      );
     }
   }
 

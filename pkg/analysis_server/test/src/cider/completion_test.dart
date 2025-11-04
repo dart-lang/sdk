@@ -856,7 +856,7 @@ import 'a.dart';
   }
 
   _CompletionContext _updateFile(String content) {
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     var offset = code.position.offset;
 
     content = code.code;

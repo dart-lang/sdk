@@ -17,10 +17,10 @@ class RemoveReturnedValue extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_RETURNED_VALUE;
+  FixKind get fixKind => DartFixKind.removeReturnedValue;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_RETURNED_VALUE_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeReturnedValueMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

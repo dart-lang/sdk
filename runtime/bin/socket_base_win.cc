@@ -20,23 +20,19 @@
 namespace dart {
 namespace bin {
 
-SocketAddress::SocketAddress(struct sockaddr* sockaddr,
-                             bool unnamed_unix_socket) {
-  // Unix domain sockets not supported on Win. Remove this assert if enabled.
-  ASSERT(!unnamed_unix_socket);
-  ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
-  RawAddr* raw = reinterpret_cast<RawAddr*>(sockaddr);
-
-  // Clear the port before calling WSAAddressToString as WSAAddressToString
-  // includes the port in the formatted string.
-  int err =
-      SocketBase::FormatNumericAddress(*raw, as_string_, INET6_ADDRSTRLEN);
-
-  if (err != 0) {
+SocketAddress::SocketAddress(const RawAddr& addr) : addr_(addr) {
+  if (addr.is_unnamed_unix_socket()) {
     as_string_[0] = 0;
+  } else if (addr.ss.ss_family == AF_UNIX) {
+    memmove(as_string_, addr.un.sun_path, sizeof(addr.un.sun_path));
+  } else {
+    int err = SocketBase::FormatNumericAddress(addr, as_string_,
+                                               kMaxAddressStringLength);
+
+    if (err != 0) {
+      as_string_[0] = 0;
+    }
   }
-  memmove(reinterpret_cast<void*>(&addr_), sockaddr,
-          SocketAddress::GetAddrLength(*raw));
 }
 
 static Mutex* init_mutex = new Mutex();
@@ -62,18 +58,16 @@ bool SocketBase::Initialize() {
 bool SocketBase::FormatNumericAddress(const RawAddr& addr,
                                       char* address,
                                       int len) {
-  socklen_t salen = SocketAddress::GetAddrLength(addr);
-  DWORD l = len;
   RawAddr& raw = const_cast<RawAddr&>(addr);
-  wchar_t* waddress = reinterpret_cast<wchar_t*>(
-      Dart_ScopeAllocate((salen + 1) * sizeof(wchar_t)));
+  wchar_t buf[SocketAddress::kMaxAddressStringLength];
+  DWORD result_len = ARRAY_SIZE(buf);
   intptr_t result =
-      WSAAddressToStringW(&raw.addr, salen, nullptr, waddress, &l);
+      WSAAddressToStringW(&raw.addr, raw.size, nullptr, buf, &result_len);
   if (result != 0) {
     return true;
   }
-  WideToUtf8Scope wide_name(waddress);
-  strncpy(address, wide_name.utf8(), l);
+  WideToUtf8Scope wide_name(buf);
+  strncpy(address, wide_name.utf8(), len);
   return false;
 }
 
@@ -96,8 +90,7 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
                               RawAddr* addr,
                               SocketOpKind sync) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
-  socklen_t addr_len = sizeof(addr->ss);
-  return handle->RecvFrom(buffer, num_bytes, &addr->addr, addr_len);
+  return handle->RecvFrom(buffer, num_bytes, addr);
 }
 
 bool SocketControlMessage::is_file_descriptors_control_message() {
@@ -141,8 +134,7 @@ intptr_t SocketBase::SendTo(intptr_t fd,
                             SocketOpKind sync) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   RawAddr& raw = const_cast<RawAddr&>(addr);
-  return handle->SendTo(buffer, num_bytes, &raw.addr,
-                        SocketAddress::GetAddrLength(addr));
+  return handle->SendTo(buffer, num_bytes, raw);
 }
 
 intptr_t SocketBase::SendMessage(intptr_t fd,
@@ -156,29 +148,18 @@ intptr_t SocketBase::SendMessage(intptr_t fd,
   return -1;
 }
 
-bool SocketBase::GetSocketName(intptr_t fd, SocketAddress* p_sa) {
+bool SocketBase::GetSocketName(intptr_t fd, RawAddr* raw) {
   ASSERT(fd >= 0);
-  ASSERT(p_sa != nullptr);
-  RawAddr raw;
-  socklen_t size = sizeof(raw);
-  if (getsockname(fd, &raw.addr, &size) == SOCKET_ERROR) {
-    return false;
-  }
-
-  // sockaddr_un contains sa_family_t sun_family and char[] sun_path.
-  // If size is the size of sa_family_t, this is an unnamed socket and
-  // sun_path contains garbage.
-  new (p_sa) SocketAddress(&raw.addr,
-                           /*unnamed_unix_socket=*/size == sizeof(u_short));
-  return true;
+  ASSERT(raw != nullptr);
+  return getsockname(fd, &raw->addr, &raw->size) != SOCKET_ERROR;
 }
 
 intptr_t SocketBase::GetPort(intptr_t fd) {
   ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
   SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
   RawAddr raw;
-  socklen_t size = sizeof(raw);
-  if (getsockname(socket_handle->socket(), &raw.addr, &size) == SOCKET_ERROR) {
+  if (getsockname(socket_handle->socket(), &raw.addr, &raw.size) ==
+      SOCKET_ERROR) {
     return 0;
   }
   return SocketAddress::GetAddrPort(raw);
@@ -192,16 +173,17 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
       reinterpret_cast<ClientSocket*>(fd)->PopulateRemoteAddr(raw)) {
     // `raw` was populated by `ClientSocket::PopulateRemoteAddr`.
   } else {
-    socklen_t size = sizeof(raw);
-    if (getpeername(socket_handle->socket(), &raw.addr, &size)) {
+    if (getpeername(socket_handle->socket(), &raw.addr, &raw.size)) {
       return nullptr;
     }
   }
   *port = SocketAddress::GetAddrPort(raw);
   // Clear the port before calling WSAAddressToString as WSAAddressToString
   // includes the port in the formatted string.
-  SocketAddress::SetAddrPort(&raw, 0);
-  return new SocketAddress(&raw.addr);
+  if (raw.ss.ss_family != AF_UNIX) {
+    SocketAddress::SetAddrPort(&raw, 0);
+  }
+  return new SocketAddress(raw);
 }
 
 bool SocketBase::IsBindError(intptr_t error_number) {
@@ -278,7 +260,11 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   intptr_t i = 0;
   for (struct addrinfo* c = info; c != nullptr; c = c->ai_next) {
     if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
-      addresses->SetAt(i, new SocketAddress(c->ai_addr));
+      RawAddr raw;
+      memmove(&raw.addr, c->ai_addr, c->ai_addrlen);
+      raw.size = c->ai_addrlen;
+
+      addresses->SetAt(i, new SocketAddress(raw));
       i++;
     }
   }
@@ -291,8 +277,8 @@ bool SocketBase::ReverseLookup(const RawAddr& addr,
                                intptr_t host_len,
                                OSError** os_error) {
   ASSERT(host_len >= NI_MAXHOST);
-  int status = getnameinfo(&addr.addr, SocketAddress::GetAddrLength(addr), host,
-                           host_len, nullptr, 0, NI_NAMEREQD);
+  int status = getnameinfo(&addr.addr, addr.size, host, host_len, nullptr, 0,
+                           NI_NAMEREQD);
   if (status != 0) {
     ASSERT(*os_error == nullptr);
     DWORD error_code = WSAGetLastError();
@@ -316,25 +302,23 @@ bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
 }
 
 bool SocketBase::RawAddrToString(RawAddr* addr, char* str) {
-  // According to InetNtopW(), buffer should be large enough for at least 46
-  // characters for IPv6 and 16 for IPv4.
-  COMPILE_ASSERT(INET6_ADDRSTRLEN >= 46);
-  wchar_t tmp_buffer[INET6_ADDRSTRLEN];
+  wchar_t tmp_buffer[SocketAddress::kMaxAddressStringLength];
   if (addr->addr.sa_family == AF_INET) {
-    if (InetNtop(AF_INET, &addr->in.sin_addr, tmp_buffer, INET_ADDRSTRLEN) ==
-        nullptr) {
+    if (InetNtop(AF_INET, &addr->in.sin_addr, tmp_buffer,
+                 ARRAY_SIZE(tmp_buffer)) == nullptr) {
       return false;
     }
   } else {
     ASSERT(addr->addr.sa_family == AF_INET6);
     if (InetNtop(AF_INET6, &addr->in6.sin6_addr, tmp_buffer,
-                 INET6_ADDRSTRLEN) == nullptr) {
+                 ARRAY_SIZE(tmp_buffer)) == nullptr) {
       return false;
     }
   }
   WideToUtf8Scope wide_to_utf8_scope(tmp_buffer);
-  if (wide_to_utf8_scope.length() <= INET6_ADDRSTRLEN) {
-    strncpy(str, wide_to_utf8_scope.utf8(), INET6_ADDRSTRLEN);
+  if (wide_to_utf8_scope.length() < SocketAddress::kMaxAddressStringLength) {
+    strncpy(str, wide_to_utf8_scope.utf8(),
+            SocketAddress::kMaxAddressStringLength);
     return true;
   }
   return false;
@@ -385,7 +369,7 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
              !(a->Flags & IP_ADAPTER_IPV6_ENABLED));
       addresses->SetAt(i,
                        new InterfaceSocketAddress(
-                           u->Address.lpSockaddr,
+                           RawAddr::FromInet4or6(u->Address.lpSockaddr),
                            StringUtilsWin::WideToUtf8(a->FriendlyName),
                            a->Ipv6IfIndex != 0 ? a->Ipv6IfIndex : a->IfIndex));
       i++;
@@ -521,7 +505,7 @@ bool SocketBase::JoinMulticast(intptr_t fd,
   int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
-  memmove(&mreq.gr_group, &addr.ss, SocketAddress::GetAddrLength(addr));
+  memmove(&mreq.gr_group, &addr.ss, addr.size);
   return setsockopt(handle->socket(), proto, MCAST_JOIN_GROUP,
                     reinterpret_cast<char*>(&mreq), sizeof(mreq)) == 0;
 }
@@ -534,7 +518,7 @@ bool SocketBase::LeaveMulticast(intptr_t fd,
   int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
-  memmove(&mreq.gr_group, &addr.ss, SocketAddress::GetAddrLength(addr));
+  memmove(&mreq.gr_group, &addr.ss, addr.size);
   return setsockopt(handle->socket(), proto, MCAST_LEAVE_GROUP,
                     reinterpret_cast<char*>(&mreq), sizeof(mreq)) == 0;
 }

@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class RemoveVarTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_VAR;
+  FixKind get kind => DartFixKind.removeVar;
 
   Future<void> test_declaredVariablePattern_ifCase() async {
     await resolveTestCode('''
@@ -74,7 +74,7 @@ typedef F = var Function();
       '''
 typedef F = Function();
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == ParserErrorCode.varReturnType;
       },
     );

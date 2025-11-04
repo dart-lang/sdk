@@ -8,9 +8,9 @@ import "package:ffi/ffi.dart";
 final class StructInlineArray extends ffi::Struct {
   synthetic constructor •() → self::StructInlineArray
     ;
-  @ffi::_ArraySize::•<ffi::NativeType>(8)
+  @/*original=ffi::Array::•*/ const ffi::_ArraySize::•<ffi::NativeType>(8)
   external get a0() → ffi::Array<ffi::Uint8>;
-  @ffi::_ArraySize::•<ffi::NativeType>(8)
+  @/*original=ffi::Array::•*/ const ffi::_ArraySize::•<ffi::NativeType>(8)
   external set a0(synthesized ffi::Array<ffi::Uint8> #externalFieldValue) → void;
 }
 static method main() → dynamic
@@ -18,6 +18,6 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_struct_inline_array.dart:10:4 -> InstanceConstant(const _ArraySize<NativeType>{_ArraySize.dimension1: 8, _ArraySize.dimension2: null, _ArraySize.dimension3: null, _ArraySize.dimension4: null, _ArraySize.dimension5: null, _ArraySize.dimensions: null, _ArraySize.variableDimension: null})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_struct_inline_array.dart:10:4 -> InstanceConstant(const _ArraySize<NativeType>{_ArraySize.dimension1: 8, _ArraySize.dimension2: null, _ArraySize.dimension3: null, _ArraySize.dimension4: null, _ArraySize.dimension5: null, _ArraySize.dimensions: null, _ArraySize.variableDimension: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///ffi_struct_inline_array.dart:10:4 -> InstanceConstant(const _ArraySize<NativeType>{_ArraySize.dimension1: 8, _ArraySize.dimension2: null, _ArraySize.dimension3: null, _ArraySize.dimension4: null, _ArraySize.dimension5: null, _ArraySize.dimensions: null, _ArraySize.variableDimension: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///ffi_struct_inline_array.dart:10:4 -> InstanceConstant(const _ArraySize<NativeType>{_ArraySize.dimension1: 8, _ArraySize.dimension2: null, _ArraySize.dimension3: null, _ArraySize.dimension4: null, _ArraySize.dimension5: null, _ArraySize.dimensions: null, _ArraySize.variableDimension: null})
 Extra constant evaluation: evaluated: 2, effectively constant: 2

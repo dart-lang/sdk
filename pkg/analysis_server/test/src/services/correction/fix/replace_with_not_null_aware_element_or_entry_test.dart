@@ -150,7 +150,7 @@ Set<int> f(int x, int y) {
 @reflectiveTest
 class ReplaceWithNotNullAwareElementOrEntryTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_NOT_NULL_AWARE_ELEMENT_OR_ENTRY;
+  FixKind get kind => DartFixKind.replaceWithNotNullAwareElementOrEntry;
 
   Future<void> test_list() async {
     await resolveTestCode('''

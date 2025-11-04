@@ -25,9 +25,9 @@ typedef Alias = self::Const;
 typedef ImplAlias<T extends core::num> = self::_ConstImpl<T>;
 class Class extends core::Object /*hasConstConstructor*/  {
   final field core::List<self::Const> constants;
-  constructor •({core::List<self::Const> constants = const <self::Const>[const self::_ConstImpl::•<dynamic>(), const self::_ConstImpl::•<dynamic>(), const self::_ConstImpl::•<core::String>()]}) → self::Class
+  constructor •({core::List<self::Const> constants = const <self::Const>[/*original=self::Const::impl*/ const self::_ConstImpl::•<dynamic>(), /*original=self::Const::impl*/ const self::_ConstImpl::•<dynamic>(), const self::_ConstImpl::•<core::String>()]}) → self::Class
     ;
-  const constructor named({core::List<self::Const> constants = const <self::Const>[const self::_ConstImpl::•<dynamic>(), const self::_ConstImpl::•<dynamic>(), const self::_ConstImpl::•<core::String>()]}) → self::Class
+  const constructor named({core::List<self::Const> constants = const <self::Const>[/*original=self::Const::impl*/ const self::_ConstImpl::•<dynamic>(), /*original=self::Const::impl*/ const self::_ConstImpl::•<dynamic>(), const self::_ConstImpl::•<core::String>()]}) → self::Class
     : self::Class::constants = constants, super core::Object::•()
     ;
   static synthetic method _#new#tearOff({has-declared-initializer core::List<self::Const> constants}) → self::Class

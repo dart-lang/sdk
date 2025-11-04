@@ -12,7 +12,7 @@ typedef void Foo<T>(T t);
 typedef void Bar(int i);
 
 class Class<T> {
-  test(bool expectedResult, var o, String typeName) {
+  test(bool expectedResult, o, String typeName) {
     void local() {
       Expect.equals(expectedResult, o is! Foo<T>, "bar is! Foo<$typeName>");
       Expect.isFalse(o is! Bar, "bar is! Bar");

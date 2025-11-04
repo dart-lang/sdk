@@ -471,12 +471,12 @@ testFile
     codeOffset: 0 + 79
   CONSTRUCTOR new
     offset: 15 1:16
-    codeOffset: 16 + 8
+    codeOffset: 15 + 9
     className: E
     parameters: (int it)
   FIELD it
     offset: 21 1:22
-    codeOffset: 16 + 8
+    codeOffset: 15 + 9
     className: E
   GETTER g
     offset: 37 2:11
@@ -2917,6 +2917,20 @@ void f(x) {
   38 4:3 |v| READ_WRITE
   48 5:3 |v| READ
   53 6:3 |v| READ
+''');
+  }
+
+  test_searchReferences_VariablePatternElement_expressionFunctionBody() async {
+    await resolveTestCode('''
+List<int> f(Map<int, String> map) => [
+  for (var MapEntry(:key) in map.entries)
+    key,
+];
+''');
+    var element = findNode.bindPatternVariableElement('key)');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> f@10
+  85 3:5 |key| READ
 ''');
   }
 

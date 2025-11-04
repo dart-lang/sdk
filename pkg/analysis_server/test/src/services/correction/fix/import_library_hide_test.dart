@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class ImportLibraryHideMultipleTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_COMBINATOR_MULTIPLE;
+  FixKind get kind => DartFixKind.importLibraryCombinatorMultiple;
 
   Future<void> test_classes() async {
     newFile('$testPackageLibPath/lib.dart', '''
@@ -41,7 +41,7 @@ void f(A a, B b, C c) {
   print('$a');
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.undefinedClass &&
             testCode.indexOf('B b') == error.offset;
       },
@@ -53,7 +53,7 @@ void f(A a, B b, C c) {
   print('$a');
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.undefinedClass &&
             testCode.indexOf('C c') == error.offset;
       },
@@ -88,7 +88,7 @@ void f(String s, lib.C c) {
   s.n;
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.undefinedMethod;
       },
     );
@@ -122,7 +122,7 @@ void f(String s, C c) {
   s.n;
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.undefinedMethod;
       },
     );
@@ -161,7 +161,7 @@ void f(String s, C c) {
   E3(s).m();
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.undefinedOperator;
       },
     );
@@ -196,7 +196,7 @@ void f() {
   print('$a $b $c $d');
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.undefinedClass &&
             testCode.indexOf('B?') == error.offset;
       },
@@ -223,7 +223,7 @@ void f() {
   print('$s $i $f');
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return testCode.indexOf('IterableMixin?') == error.offset;
       },
     );
@@ -251,7 +251,7 @@ void f(A a1) {
   print('$a1 ${E.m()} $a');
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
                 CompileTimeErrorCode.undefinedIdentifier &&
             testCode.indexOf('E.') == error.offset;
@@ -264,7 +264,7 @@ void f(A a1) {
   print('$a1 ${E.m()} $a');
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
                 CompileTimeErrorCode.undefinedIdentifier &&
             testCode.indexOf("a')") == error.offset;
@@ -276,7 +276,7 @@ void f(A a1) {
 @reflectiveTest
 class ImportLibraryHideTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_COMBINATOR;
+  FixKind get kind => DartFixKind.importLibraryCombinator;
 
   Future<void> test_extension_aliased_hidden_getter() async {
     newFile('$testPackageLibPath/lib.dart', '''

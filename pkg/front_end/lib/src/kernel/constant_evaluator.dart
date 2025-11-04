@@ -2361,6 +2361,16 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
+  TreeNode visitRedirectingFactoryInvocation(
+    RedirectingFactoryInvocation node,
+    TreeNode? removalSentinel,
+  ) {
+    return transformOrRemove(node.expression, removalSentinel) ??
+        // Coverage-ignore(suite): Not run.
+        node.expression;
+  }
+
+  @override
   TreeNode visitStaticInvocation(
     StaticInvocation node,
     TreeNode? removalSentinel,
@@ -2454,7 +2464,9 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 }
 
-class ConstantEvaluator implements ExpressionVisitor<Constant> {
+class ConstantEvaluator
+    with ExpressionVisitorExperimentExclusionMixin<Constant>
+    implements ExpressionVisitor<Constant> {
   final DartLibrarySupport dartLibrarySupport;
   final ConstantsBackend backend;
   final NumberSemantics numberSemantics;
@@ -5928,9 +5940,18 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       "Unsupported auxiliary expression ${node} (${node.runtimeType}).",
     );
   }
+
+  @override
+  Constant visitRedirectingFactoryInvocation(
+    RedirectingFactoryInvocation node,
+  ) {
+    return node.expression.accept(this);
+  }
 }
 
-class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
+class StatementConstantEvaluator
+    with StatementVisitorExperimentExclusionMixin<ExecutionStatus>
+    implements StatementVisitor<ExecutionStatus> {
   ConstantEvaluator exprEvaluator;
 
   StatementConstantEvaluator(this.exprEvaluator);

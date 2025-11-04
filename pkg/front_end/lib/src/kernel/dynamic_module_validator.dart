@@ -56,6 +56,51 @@ void validateDynamicModule(
   }
 }
 
+extension on YamlMap {
+  void verifyKeys(Set<String> allowedKeys) {
+    for (dynamic k in keys) {
+      if (!allowedKeys.contains(k.toString())) {
+        // Coverage-ignore-block(suite): Not run.
+        throw 'Unexpected key "$k" in dynamic interface specification';
+      }
+    }
+  }
+}
+
+/// Loaded contents of dynamic interface specification yaml file.
+class DynamicInterfaceYamlFile {
+  final YamlNode _root;
+
+  DynamicInterfaceYamlFile(String contents) : _root = loadYamlNode(contents) {
+    if (!isEmpty) {
+      sections.verifyKeys(const {
+        'extendable',
+        'can-be-overridden',
+        'callable',
+      });
+    }
+  }
+
+  bool get isEmpty => _root is! YamlMap;
+
+  YamlMap get sections => _root as YamlMap;
+
+  YamlList? get extendable => sections['extendable'];
+  YamlList? get canBeOverridden => sections['can-be-overridden'];
+  YamlList? get callable => sections['callable'];
+
+  // Coverage-ignore(suite): Not run.
+  Set<String> get libraries => {
+    for (YamlList section in [?extendable, ?canBeOverridden, ?callable])
+      for (YamlNode item in section) (item as YamlMap)['library'] as String,
+  };
+
+  // Coverage-ignore(suite): Not run.
+  Iterable<Uri> getUserLibraryUris(Uri baseUri) => libraries
+      .where((String lib) => !lib.startsWith('dart:'))
+      .map((String lib) => baseUri.resolve(lib));
+}
+
 /// Parsed dynamic interface specification yaml file.
 class DynamicInterfaceSpecification {
   // Specified Library, Class and Member nodes.
@@ -63,20 +108,29 @@ class DynamicInterfaceSpecification {
   final Set<TreeNode> canBeOverridden = {};
   final Set<TreeNode> callable = {};
 
-  DynamicInterfaceSpecification(
+  factory DynamicInterfaceSpecification(
     String dynamicInterfaceSpecification,
     Uri baseUri,
     Component component,
+  ) => new DynamicInterfaceSpecification.fromYamlFile(
+    new DynamicInterfaceYamlFile(dynamicInterfaceSpecification),
+    baseUri,
+    component,
+  );
+
+  DynamicInterfaceSpecification.fromYamlFile(
+    DynamicInterfaceYamlFile yamlFile,
+    Uri baseUri,
+    Component component,
   ) {
-    final YamlNode spec = loadYamlNode(dynamicInterfaceSpecification);
+    if (yamlFile.isEmpty) {
+      return;
+    }
+
     final LibraryIndex libraryIndex = new LibraryIndex.all(component);
 
-    // If the spec is empty, the result is a scalar and not a map.
-    if (spec is! YamlMap) return;
-    _verifyKeys(spec, const {'extendable', 'can-be-overridden', 'callable'});
-
     _parseList(
-      spec['extendable'],
+      yamlFile.extendable,
       extendable,
       baseUri,
       component,
@@ -86,7 +140,7 @@ class DynamicInterfaceSpecification {
     );
 
     _parseList(
-      spec['can-be-overridden'],
+      yamlFile.canBeOverridden,
       canBeOverridden,
       baseUri,
       component,
@@ -96,7 +150,7 @@ class DynamicInterfaceSpecification {
     );
 
     _parseList(
-      spec['callable'],
+      yamlFile.callable,
       callable,
       baseUri,
       component,
@@ -130,15 +184,6 @@ class DynamicInterfaceSpecification {
     }
   }
 
-  void _verifyKeys(YamlMap map, Set<String> allowedKeys) {
-    for (dynamic k in map.keys) {
-      if (!allowedKeys.contains(k.toString())) {
-        // Coverage-ignore-block(suite): Not run.
-        throw 'Unexpected key "$k" in dynamic interface specification';
-      }
-    }
-  }
-
   void findNodes(
     YamlNode yamlNode,
     Set<TreeNode> result,
@@ -151,34 +196,19 @@ class DynamicInterfaceSpecification {
     final YamlMap yamlMap = yamlNode as YamlMap;
     final bool allowMembers = allowStaticMembers || allowInstanceMembers;
     if (allowMembers) {
-      _verifyKeys(yamlMap, const {'library', 'class', 'member'});
+      yamlMap.verifyKeys(const {'library', 'class', 'member'});
     } else {
-      _verifyKeys(yamlMap, const {'library', 'class'});
+      yamlMap.verifyKeys(const {'library', 'class'});
     }
 
     final String librarySpec = yamlMap['library'] as String;
-    if (librarySpec.endsWith('*')) {
-      // Coverage-ignore-block(suite): Not run.
-      _verifyKeys(yamlMap, const {'library'});
-      final String prefix = baseUri
-          .resolve(librarySpec.substring(0, librarySpec.length - 1))
-          .toString();
-      final List<Library> libs = component.libraries
-          .where((lib) => lib.importUri.toString().startsWith(prefix))
-          .toList();
-      if (libs.isEmpty) {
-        throw 'No libraries found for pattern "$librarySpec"';
-      }
-      result.addAll(libs);
-      return;
-    }
     final String libraryUri = baseUri.resolve(librarySpec).toString();
 
     if (yamlMap.containsKey('class')) {
       final dynamic yamlClassNode = yamlMap['class'];
       if (yamlClassNode is YamlList) {
         // Coverage-ignore-block(suite): Not run.
-        _verifyKeys(yamlMap, const {'library', 'class'});
+        yamlMap.verifyKeys(const {'library', 'class'});
         for (dynamic c in yamlClassNode) {
           result.add(libraryIndex.getClass(libraryUri, c as String));
         }

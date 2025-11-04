@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class MakeVariableNullableTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_VARIABLE_NULLABLE;
+  FixKind get kind => DartFixKind.makeVariableNullable;
 
   Future<void> test_fieldFormalParameter() async {
     await resolveTestCode('''

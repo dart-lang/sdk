@@ -26,7 +26,7 @@ import '../base/compiler_context.dart';
 import '../base/messages.dart';
 import '../base/problems.dart'
     as problems
-    show internalProblem, unhandled, unsupported;
+    show internalProblem, unhandled, unimplemented, unsupported;
 import '../base/uri_offset.dart';
 import '../builder/library_builder.dart';
 import '../dill/dill_library_builder.dart';
@@ -119,7 +119,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           VariableDeclaration,
           SharedTypeView
         >,
-        StackChecker
+        StackChecker,
+        ExpressionVisitor1ExperimentExclusionMixin<
+          ExpressionInferenceResult,
+          DartType
+        >,
+        StatementVisitorExperimentExclusionMixin<StatementInferenceResult>
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
         StatementVisitor<StatementInferenceResult>,
@@ -766,6 +771,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   // Coverage-ignore(suite): Not run.
+  ExpressionInferenceResult visitRedirectingFactoryInvocation(
+    RedirectingFactoryInvocation node,
+    DartType typeContext,
+  ) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitListConcatenation(
     ListConcatenation node,
     DartType typeContext,
@@ -1095,6 +1109,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           return _isIncompatibleWithAwait(type.parameter.bound);
         case IntersectionType():
           return _isIncompatibleWithAwait(type.right);
+        case FunctionTypeParameterType():
+          // Coverage-ignore(suite): Not run.
+          return problems.unimplemented(
+            "_isIncompatibleWithAwait(FunctionTypeParameterType)",
+            -1,
+            fileUri,
+          );
+        case ClassTypeParameterType():
+          // Coverage-ignore(suite): Not run.
+          return problems.unimplemented(
+            "_isIncompatibleWithAwait(ClassTypeParameterType)",
+            -1,
+            fileUri,
+          );
         case DynamicType():
         case VoidType():
         case FutureOrType():
@@ -2539,10 +2567,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required bool isConst,
     required bool hasInferredTypeArguments,
   }) {
-    Procedure initialTarget = target;
     Expression replacementNode;
 
-    _RedirectionTarget redirectionTarget = _getRedirectionTarget(initialTarget);
+    _RedirectionTarget redirectionTarget = _getRedirectionTarget(target);
     Member resolvedTarget = redirectionTarget.target;
     if (redirectionTarget.typeArguments.any((type) => type is UnknownType)) {
       return null;
@@ -2559,7 +2586,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ..fileOffset = fileOffset;
     } else {
       Substitution substitution = Substitution.fromPairs(
-        initialTarget.function.typeParameters,
+        target.function.typeParameters,
         arguments.types,
       );
       for (int i = 0; i < redirectionTarget.typeArguments.length; i++) {
@@ -2575,8 +2602,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       arguments.types.length = redirectionTarget.typeArguments.length;
 
       replacementNode = _buildRedirectingFactoryTargetInvocation(
-        resolvedTarget,
-        new Arguments(
+        redirectingFactoryTarget: target.reference != resolvedTarget.reference
+            ? target
+            : null,
+        effectiveTarget: resolvedTarget,
+        arguments: new Arguments(
           arguments.positional,
           types: arguments.types,
           named: arguments.named,
@@ -2589,16 +2619,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return replacementNode;
   }
 
-  Expression _buildRedirectingFactoryTargetInvocation(
-    Member target,
-    Arguments arguments, {
+  Expression _buildRedirectingFactoryTargetInvocation({
+    required Procedure? redirectingFactoryTarget,
+    required Member effectiveTarget,
+    required Arguments arguments,
     required bool isConst,
     required int fileOffset,
     required bool hasInferredTypeArguments,
   }) {
     Expression? result = problemReporting.checkStaticArguments(
       compilerContext: compilerContext,
-      target: target,
+      target: effectiveTarget,
       arguments: arguments,
       fileOffset: fileOffset,
       fileUri: fileUri,
@@ -2606,8 +2637,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (result != null) {
       return result;
     }
-    if (target is Constructor) {
-      if (isConst && !target.isConst) {
+    if (effectiveTarget is Constructor) {
+      if (isConst && !effectiveTarget.isConst) {
         // Coverage-ignore-block(suite): Not run.
         return problemReporting.buildProblem(
           compilerContext: compilerContext,
@@ -2619,16 +2650,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       problemReporting.checkBoundsInConstructorInvocation(
         libraryFeatures: libraryFeatures,
-        constructor: target,
+        constructor: effectiveTarget,
         typeArguments: arguments.types,
         typeEnvironment: typeSchemaEnvironment,
         fileUri: fileUri,
         fileOffset: fileOffset,
       );
-      return new ConstructorInvocation(target, arguments, isConst: isConst)
-        ..fileOffset = fileOffset;
+      ConstructorInvocation constructorInvocation = new ConstructorInvocation(
+        effectiveTarget,
+        arguments,
+        isConst: isConst,
+      )..fileOffset = fileOffset;
+      if (redirectingFactoryTarget != null) {
+        return new RedirectingFactoryInvocation(
+          redirectingFactoryTarget,
+          constructorInvocation,
+        )..fileOffset = fileOffset;
+      } else {
+        return constructorInvocation;
+      }
     } else {
-      Procedure procedure = target as Procedure;
+      Procedure procedure = effectiveTarget as Procedure;
       if (isConst && !procedure.isConst) {
         // Coverage-ignore-block(suite): Not run.
         if (procedure.isExtensionTypeMember) {
@@ -2654,15 +2696,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       problemReporting.checkBoundsInFactoryInvocation(
         libraryFeatures: libraryFeatures,
-        factory: target,
+        factory: effectiveTarget,
         typeArguments: arguments.types,
         typeEnvironment: typeSchemaEnvironment,
         fileUri: fileUri,
         fileOffset: fileOffset,
         inferred: hasInferredTypeArguments,
       );
-      return new StaticInvocation(target, arguments, isConst: isConst)
-        ..fileOffset = fileOffset;
+      StaticInvocation factoryInvocation = new StaticInvocation(
+        effectiveTarget,
+        arguments,
+        isConst: isConst,
+      )..fileOffset = fileOffset;
+      if (redirectingFactoryTarget != null) {
+        return new RedirectingFactoryInvocation(
+          redirectingFactoryTarget,
+          factoryInvocation,
+        )..fileOffset = fileOffset;
+      } else {
+        return factoryInvocation;
+      }
     }
   }
 
@@ -10346,6 +10399,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             target: binaryTarget,
             name: binaryName,
             receiverType: leftType,
+            setter: false,
           );
       if (overWritten != null) {
         binaryTarget = overWritten.target;
@@ -10540,6 +10594,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             target: unaryTarget,
             name: unaryName,
             receiverType: expressionType,
+            setter: false,
           );
       if (overWritten != null) {
         unaryTarget = overWritten.target;
@@ -10701,6 +10756,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             target: readTarget,
             name: indexGetName,
             receiverType: receiverType,
+            setter: false,
           );
       if (overWritten != null) {
         readTarget = overWritten.target;
@@ -10856,6 +10912,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             target: writeTarget,
             name: indexSetName,
             receiverType: receiverType,
+            setter: true,
           );
       if (overWritten != null) {
         writeTarget = overWritten.target;
@@ -11073,6 +11130,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             target: writeTarget,
             name: propertyName,
             receiverType: receiverType,
+            setter: true,
           );
       if (overWritten != null) {
         writeTarget = overWritten.target;
@@ -16790,6 +16848,7 @@ abstract class ExpressionEvaluationHelper {
     required ObjectAccessTarget target,
     required DartType receiverType,
     required Name name,
+    required bool setter,
   });
 }
 

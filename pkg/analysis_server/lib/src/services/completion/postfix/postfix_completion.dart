@@ -22,14 +22,14 @@ import 'package:collection/collection.dart';
 
 /// An enumeration of possible postfix completion kinds.
 abstract final class DartPostfixCompletion {
-  static const NO_TEMPLATE = PostfixCompletionKind(
+  static const _noTemplate = PostfixCompletionKind(
     '',
     'no change',
     _false,
     _null,
   );
 
-  static const List<PostfixCompletionKind> ALL_TEMPLATES = [
+  static const List<PostfixCompletionKind> allTemplates = [
     PostfixCompletionKind(
       'assert',
       'expr.assert -> assert(expr);',
@@ -275,7 +275,7 @@ abstract final class DartPostfixCompletion {
   }
 
   static PostfixCompletionKind? forKey(String key) =>
-      ALL_TEMPLATES.firstWhereOrNull((kind) => kind.key == key);
+      allTemplates.firstWhereOrNull((kind) => kind.key == key);
 
   static bool isAssertContext(PostfixCompletionProcessor processor) {
     return processor.findAssertExpression() != null;
@@ -370,7 +370,7 @@ class PostfixCompletionKind {
 /// The computer for Dart postfix completions.
 final class PostfixCompletionProcessor {
   static final _noCompletion = PostfixCompletion(
-    DartPostfixCompletion.NO_TEMPLATE,
+    DartPostfixCompletion._noTemplate,
     SourceChange('', edits: []),
   );
 

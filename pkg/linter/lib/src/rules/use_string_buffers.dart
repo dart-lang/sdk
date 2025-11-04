@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -24,7 +25,7 @@ bool _isEmptyInterpolationString(AstNode node) =>
 /// step it creates an auxiliary String that takes O(amount of chars) to be
 /// computed, in otherwise using a StringBuffer the order is reduced to O(~N)
 /// so the bad case is N times slower than the good case.
-class UseStringBuffers extends LintRule {
+class UseStringBuffers extends AnalysisRule {
   UseStringBuffers()
     : super(name: LintNames.use_string_buffers, description: _desc);
 
@@ -44,7 +45,7 @@ class UseStringBuffers extends LintRule {
 }
 
 class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   SimpleIdentifier identifier;
 
   _IdentifierIsPrefixVisitor(this.rule, this.identifier);
@@ -83,7 +84,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
 }
 
 class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   final localElements = <Element?>{};
 
   _UseStringBufferVisitor(this.rule);
@@ -135,7 +136,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

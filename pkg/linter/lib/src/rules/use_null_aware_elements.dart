@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -19,7 +20,7 @@ import '../extensions.dart';
 const _desc =
     r'If-elements testing for null can be replaced with null-aware elements.';
 
-class UseNullAwareElements extends LintRule {
+class UseNullAwareElements extends AnalysisRule {
   UseNullAwareElements()
     : super(name: LintNames.use_null_aware_elements, description: _desc);
 
@@ -38,7 +39,7 @@ class UseNullAwareElements extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

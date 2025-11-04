@@ -135,7 +135,7 @@ library
             #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
-                #F4 a (nameOffset:35) (firstTokenOffset:21) (offset:35)
+                #F4 requiredPositional a (nameOffset:35) (firstTokenOffset:21) (offset:35)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::a
   classes
     class A
@@ -248,6 +248,7 @@ library
       reference: <testLibrary>::@extension::IntStringExtension
       firstFragment: #F1
       extendedType: (int, String)
+      onDeclaration: <null>
 ''');
   }
 
@@ -265,7 +266,7 @@ library
         #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 b (nameOffset:38) (firstTokenOffset:7) (offset:38)
+            #F2 requiredPositional b (nameOffset:38) (firstTokenOffset:7) (offset:38)
               element: <testLibrary>::@function::f::@formalParameter::b
   functions
     f
@@ -293,7 +294,7 @@ library
         #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 a (nameOffset:32) (firstTokenOffset:7) (offset:32)
+            #F2 requiredPositional a (nameOffset:32) (firstTokenOffset:7) (offset:32)
               element: <testLibrary>::@function::f::@formalParameter::a
   functions
     f
@@ -321,7 +322,7 @@ library
         #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 a (nameOffset:21) (firstTokenOffset:7) (offset:21)
+            #F2 requiredPositional a (nameOffset:21) (firstTokenOffset:7) (offset:21)
               element: <testLibrary>::@function::f::@formalParameter::a
   functions
     f

@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,6 +18,7 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 Uint8List writeUnitInformative(CompilationUnit unit) {
   var info = _InfoBuilder().build(unit);
@@ -348,7 +350,7 @@ class InformativeDataApplier {
 
     var representationField = element.fields.first;
     var infoRep = info.representation;
-    representationField.firstTokenOffset = infoRep.firstTokenOffset;
+    representationField.firstTokenOffset = infoRep.fieldFirstTokenOffset;
     representationField.nameOffset = infoRep.fieldNameOffset;
     representationField.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
 
@@ -359,26 +361,32 @@ class InformativeDataApplier {
     });
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      var primaryConstructor = element.constructors.first;
-      primaryConstructor.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
-      primaryConstructor.typeNameOffset = info.nameOffset;
-      primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
-      primaryConstructor.firstTokenOffset = infoRep.firstTokenOffset;
-      primaryConstructor.nameOffset = infoRep.constructorNameOffset;
-      primaryConstructor.nameEnd = infoRep.constructorNameEnd;
+      if (!useDeclaringConstructorsAst) {
+        var primaryConstructor = element.constructors.first;
+        primaryConstructor.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
+        primaryConstructor.typeNameOffset = info.nameOffset;
+        primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
+        primaryConstructor.firstTokenOffset = infoRep.firstTokenOffset;
+        primaryConstructor.nameOffset = infoRep.constructorNameOffset;
+        primaryConstructor.nameEnd = infoRep.constructorNameEnd;
 
-      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-        var representation = primaryConstructor.formalParameters.first;
-        representation.firstTokenOffset = infoRep.firstTokenOffset;
-        representation.nameOffset = infoRep.fieldNameOffset;
-        representation.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
-      });
+        DeferredResolutionReadingHelper.withoutLoadingResolution(() {
+          var representation = primaryConstructor.formalParameters.first;
+          representation.firstTokenOffset = infoRep.fieldFirstTokenOffset;
+          representation.nameOffset = infoRep.fieldNameOffset;
+          representation.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
+        });
+      }
 
       var restFields = element.fields.skip(1).toList();
       _applyToFields(restFields, info.fields);
 
-      var restConstructors = element.constructors.skip(1).toList();
-      _applyToConstructors(restConstructors, info.constructors);
+      if (useDeclaringConstructorsAst) {
+        _applyToConstructors(element.constructors, info.constructors);
+      } else {
+        var restConstructors = element.constructors.skip(1).toList();
+        _applyToConstructors(restConstructors, info.constructors);
+      }
 
       _applyToAccessors(element.getters, info.getters);
       _applyToAccessors(element.setters, info.setters);
@@ -668,14 +676,26 @@ class _InfoBuilder {
   }
 
   _InfoClassDeclaration _buildClass(ClassDeclaration node) {
-    return _InfoClassDeclaration(
-      data: _buildInterfaceData(
-        node,
-        name: node.name,
-        typeParameters: node.typeParameters,
-        members: node.members,
-      ),
-    );
+    if (useDeclaringConstructorsAst) {
+      return _InfoClassDeclaration(
+        data: _buildInterfaceData(
+          node,
+          name: node.namePart.typeName,
+          typeParameters: node.namePart.typeParameters,
+          primaryConstructor: node.namePart.ifTypeOrNull(),
+          members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
+        ),
+      );
+    } else {
+      return _InfoClassDeclaration(
+        data: _buildInterfaceData(
+          node,
+          name: node.name,
+          typeParameters: node.typeParameters,
+          members: node.members,
+        ),
+      );
+    }
   }
 
   List<_InfoClassDeclaration> _buildClasses(CompilationUnit unit) {
@@ -805,21 +825,40 @@ class _InfoBuilder {
   }
 
   _InfoEnumDeclaration _buildEnum(EnumDeclaration node) {
-    return _InfoEnumDeclaration(
-      data: _buildInterfaceData(
-        node,
-        name: node.name,
-        typeParameters: node.typeParameters,
-        members: node.members,
-        fields: [
-          ...node.constants.map(_buildEnumConstant),
-          ...node.members
-              .whereType<FieldDeclaration>()
-              .expand((node) => node.fields.variables)
-              .map((node) => _buildField(node)),
-        ],
-      ),
-    );
+    if (useDeclaringConstructorsAst) {
+      return _InfoEnumDeclaration(
+        data: _buildInterfaceData(
+          node,
+          name: node.namePart.typeName,
+          typeParameters: node.namePart.typeParameters,
+          primaryConstructor: node.namePart.ifTypeOrNull(),
+          members: node.body.members,
+          fields: [
+            ...node.body.constants.map(_buildEnumConstant),
+            ...node.body.members
+                .whereType<FieldDeclaration>()
+                .expand((node) => node.fields.variables)
+                .map((node) => _buildField(node)),
+          ],
+        ),
+      );
+    } else {
+      return _InfoEnumDeclaration(
+        data: _buildInterfaceData(
+          node,
+          name: node.name,
+          typeParameters: node.typeParameters,
+          members: node.members,
+          fields: [
+            ...node.constants.map(_buildEnumConstant),
+            ...node.members
+                .whereType<FieldDeclaration>()
+                .expand((node) => node.fields.variables)
+                .map((node) => _buildField(node)),
+          ],
+        ),
+      );
+    }
   }
 
   _InfoFieldDeclaration _buildEnumConstant(EnumConstantDeclaration node) {
@@ -864,7 +903,7 @@ class _InfoBuilder {
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: node.members,
+        members: useDeclaringConstructorsAst ? node.body.members : node.members,
       ),
     );
   }
@@ -879,14 +918,54 @@ class _InfoBuilder {
   _InfoExtensionTypeDeclaration _buildExtensionType(
     ExtensionTypeDeclaration node,
   ) {
-    return _InfoExtensionTypeDeclaration(
-      data: _buildInterfaceData(
-        node,
-        name: node.name,
-        typeParameters: node.typeParameters,
-        members: node.members,
+    if (useDeclaringConstructorsAst) {
+      return _InfoExtensionTypeDeclaration(
+        data: _buildInterfaceData(
+          node,
+          name: node.namePart.typeName,
+          typeParameters: node.namePart.typeParameters,
+          primaryConstructor: node.namePart.ifTypeOrNull(),
+          members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
+        ),
+        // TODO(scheglov): support for absence of primary constructor
+        representation: _buildExtensionTypeRepresentationFromPrimaryConstructor(
+          node.namePart as PrimaryConstructorDeclaration,
+        ),
+      );
+    } else {
+      return _InfoExtensionTypeDeclaration(
+        data: _buildInterfaceData(
+          node,
+          name: node.name,
+          typeParameters: node.typeParameters,
+          members: node.members,
+        ),
+        representation: _buildRepresentation(node, node.representation),
+      );
+    }
+  }
+
+  _InfoExtensionTypeRepresentation
+  _buildExtensionTypeRepresentationFromPrimaryConstructor(
+    PrimaryConstructorDeclaration node,
+  ) {
+    var constructorName = node.constructorName;
+    var firstTokenOffset = node.offset;
+    var lastTokenOffset = node.formalParameters.rightParenthesis.end;
+
+    return _InfoExtensionTypeRepresentation(
+      firstTokenOffset: firstTokenOffset,
+      codeOffset: firstTokenOffset,
+      codeLength: lastTokenOffset - firstTokenOffset,
+      constructorPeriodOffset: constructorName?.period.offset,
+      constructorNameOffset: constructorName?.name.offsetIfNotEmpty,
+      constructorNameEnd: node.formalParameters.leftParenthesis.offset,
+      fieldFirstTokenOffset: node.formalParameters.parameters.first.offset,
+      fieldNameOffset:
+          node.formalParameters.parameters.first.name?.offsetIfNotEmpty,
+      fieldConstantOffsets: _buildConstantOffsets(
+        metadata: node.formalParameters.parameters.first.metadata,
       ),
-      representation: _buildRepresentation(node.representation),
     );
   }
 
@@ -939,7 +1018,11 @@ class _InfoBuilder {
     if (node == null) {
       return [];
     }
-    return node.parameters.map(_buildFormalParameter).toList();
+    var parameters = node.parameters;
+    return List.generate(
+      parameters.length,
+      (index) => _buildFormalParameter(parameters[index]),
+    );
   }
 
   _InfoFunctionTypeAlias _buildFunctionTypeAlias(FunctionTypeAlias node) {
@@ -1059,6 +1142,7 @@ class _InfoBuilder {
     Declaration node, {
     required Token? name,
     required TypeParameterList? typeParameters,
+    PrimaryConstructorDeclaration? primaryConstructor,
     required List<ClassMember> members,
     List<_InfoFieldDeclaration>? fields,
   }) {
@@ -1071,10 +1155,11 @@ class _InfoBuilder {
     );
     return _InterfaceData(
       instanceData: instanceData,
-      constructors: members
-          .whereType<ConstructorDeclaration>()
-          .map((node) => _buildConstructor(node))
-          .toList(),
+      constructors: [
+        if (primaryConstructor != null)
+          _buildPrimaryConstructor(primaryConstructor),
+        ...members.whereType<ConstructorDeclaration>().map(_buildConstructor),
+      ],
     );
   }
 
@@ -1133,7 +1218,7 @@ class _InfoBuilder {
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: node.members,
+        members: useDeclaringConstructorsAst ? node.body.members : node.members,
       ),
     );
   }
@@ -1153,17 +1238,43 @@ class _InfoBuilder {
     return unit.directives.whereType<PartDirective>().map(_buildPart).toList();
   }
 
-  _InfoExtensionTypeRepresentation _buildRepresentation(
-    RepresentationDeclaration node,
+  _InfoConstructorDeclaration _buildPrimaryConstructor(
+    PrimaryConstructorDeclaration node,
   ) {
-    var constructorName = node.constructorName;
-    return _InfoExtensionTypeRepresentation(
+    return _InfoConstructorDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
       codeLength: node.length,
+      nameOffset: node.constructorName?.name.offsetIfNotEmpty,
+      documentationComment: null,
+      typeParameters: const [],
+      parameters: _buildFormalParameters(node.formalParameters),
+      constantOffsets: _buildConstantOffsets(
+        formalParameters: node.formalParameters,
+      ),
+      typeNameOffset: node.typeName.offset,
+      periodOffset: node.constructorName?.period.offset,
+      nameEnd: (node.constructorName?.name ?? node.typeName).end,
+    );
+  }
+
+  _InfoExtensionTypeRepresentation _buildRepresentation(
+    ExtensionTypeDeclaration extension,
+    RepresentationDeclaration node,
+  ) {
+    var constructorName = node.constructorName;
+    var firstTokenOffset =
+        extension.constKeyword?.offset ?? extension.name.offset;
+    var endOffset = node.end;
+    return _InfoExtensionTypeRepresentation(
+      firstTokenOffset: firstTokenOffset,
+      codeOffset: firstTokenOffset,
+      codeLength: endOffset - firstTokenOffset,
       constructorPeriodOffset: constructorName?.period.offset,
       constructorNameOffset: constructorName?.name.offsetIfNotEmpty,
       constructorNameEnd: node.leftParenthesis.offset,
+      fieldFirstTokenOffset:
+          node.fieldMetadata.firstOrNull?.offset ?? node.fieldType.offset,
       fieldNameOffset: node.fieldName.offsetIfNotEmpty,
       fieldConstantOffsets: _buildConstantOffsets(metadata: node.fieldMetadata),
     );
@@ -1251,7 +1362,11 @@ class _InfoBuilder {
     if (node == null) {
       return [];
     }
-    return node.typeParameters.map(_buildTypeParameter).toList();
+    var typeParameters = node.typeParameters;
+    return List.generate(
+      typeParameters.length,
+      (index) => _buildTypeParameter(typeParameters[index]),
+    );
   }
 
   int _codeOffsetForVariable(VariableDeclaration node) {
@@ -1443,6 +1558,7 @@ class _InfoExtensionTypeRepresentation {
   final int? constructorPeriodOffset;
   final int? constructorNameOffset;
   final int? constructorNameEnd;
+  final int? fieldFirstTokenOffset;
   final int? fieldNameOffset;
   final Uint32List fieldConstantOffsets;
 
@@ -1453,6 +1569,7 @@ class _InfoExtensionTypeRepresentation {
     required this.constructorPeriodOffset,
     required this.constructorNameOffset,
     required this.constructorNameEnd,
+    required this.fieldFirstTokenOffset,
     required this.fieldNameOffset,
     required this.fieldConstantOffsets,
   });
@@ -1465,6 +1582,7 @@ class _InfoExtensionTypeRepresentation {
       constructorPeriodOffset: reader.readOptionalUint30(),
       constructorNameOffset: reader.readOptionalUint30(),
       constructorNameEnd: reader.readOptionalUint30(),
+      fieldFirstTokenOffset: reader.readOptionalUint30(),
       fieldNameOffset: reader.readOptionalUint30(),
       fieldConstantOffsets: reader.readUint30List(),
     );
@@ -1477,6 +1595,7 @@ class _InfoExtensionTypeRepresentation {
     writer.writeOptionalUint30(constructorPeriodOffset);
     writer.writeOptionalUint30(constructorNameOffset);
     writer.writeOptionalUint30(constructorNameEnd);
+    writer.writeOptionalUint30(fieldFirstTokenOffset);
     writer.writeOptionalUint30(fieldNameOffset);
     writer.writeUint30List(fieldConstantOffsets);
   }

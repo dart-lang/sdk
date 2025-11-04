@@ -27,7 +27,7 @@
 # * unusedCode - rules that protect against unused code.
 # * web - rules that help to write code deployed to the web.
 
-LintCode:
+LinterLintCode:
   always_declare_return_types_of_functions:
     parameters:
       Object p0: undocumented
@@ -4747,6 +4747,7 @@ LintCode:
           <-- newline
       ```
   erase_dart_type_extension_types:
+    # TODO(nshahan): Update.
     parameters: none
     problemMessage: "Unsafe use of 'DartType' in an 'is' check."
     correctionMessage: "Ensure DartType extension types are erased by using a helper method."
@@ -4754,8 +4755,6 @@ LintCode:
       internal: "3.3"
     categories: [errorProne]
     hasPublishedDocs: false
-    todo: |-
-      TODO(nshahan): Update.
     deprecatedDetails: |-
       Experimental WIP lint to help ensure `DartType` accesses are safe in the dev_compiler.
 
@@ -8907,22 +8906,20 @@ LintCode:
       }
       ```
   prefer_contains_always_false:
+    # TODO(brianwilkerson): Should be warning rather than lint,
+    # as represents a bug rather than style preference.
     parameters: none
     sharedName: prefer_contains
     problemMessage: "Always 'false' because 'indexOf' is always greater than or equal to -1."
     categories: [style]
     hasPublishedDocs: false
-    todo: |-
-      TODO(brianwilkerson): Should be warning rather than lint,
-      as represents a bug rather than style preference.
   prefer_contains_always_true:
+    # TODO(brianwilkerson): Should be warning rather than lint,
+    # as represents a bug rather than style preference.
     parameters: none
     sharedName: prefer_contains
     problemMessage: "Always 'true' because 'indexOf' is always greater than or equal to -1."
     hasPublishedDocs: false
-    todo: |-
-      TODO(brianwilkerson): Should be warning rather than lint,
-      as represents a bug rather than style preference.
   prefer_contains_use_contains:
     parameters: none
     sharedName: prefer_contains
@@ -10064,22 +10061,20 @@ LintCode:
       'Hello, ${person.name} from ${person.city}.'
       ```
   prefer_is_empty_always_false:
+    # TODO(brianwilkerson): Should be warning rather than lint,
+    # as represents a bug rather than style preference.
     parameters: none
     sharedName: prefer_is_empty
     problemMessage: "The comparison is always 'false' because the length is always greater than or equal to 0."
     categories: [errorProne]
     hasPublishedDocs: false
-    todo: |-
-      TODO(brianwilkerson): Should be warning rather than lint,
-      as represents a bug rather than style preference.
   prefer_is_empty_always_true:
+    # TODO(brianwilkerson): Should be warning rather than lint,
+    # as represents a bug rather than style preference.
     parameters: none
     sharedName: prefer_is_empty
     problemMessage: "The comparison is always 'true' because the length is always greater than or equal to 0."
     hasPublishedDocs: false
-    todo: |-
-      TODO(brianwilkerson): Should be warning rather than lint,
-      as represents a bug rather than style preference.
   prefer_is_empty_use_is_empty:
     parameters: none
     sharedName: prefer_is_empty

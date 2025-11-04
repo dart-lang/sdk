@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int? _;
+  field core::int? __extraPrivate;
+  field core::int? _123;
+  field core::int? _for;
+  constructor onlyUnderscore({wildcard core::int? _#wc0#formal = null}) → self::C
+    ;
+  constructor stillPrivate({core::int? __extraPrivate = null}) → self::C
+    ;
+  constructor notIdentifier({core::int? _123 = null}) → self::C
+    ;
+  constructor reservedWord({core::int? _for = null}) → self::C
+    ;
+}
+static method main() → dynamic
+  ;

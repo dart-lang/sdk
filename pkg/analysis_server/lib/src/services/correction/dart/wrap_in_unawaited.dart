@@ -21,7 +21,7 @@ class WrapInUnawaited extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.WRAP_IN_UNAWAITED;
+  FixKind get fixKind => DartFixKind.wrapInUnawaited;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

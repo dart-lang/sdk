@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -124,7 +125,7 @@ class TypePropertyResolver {
         }
       }
 
-      CompileTimeErrorCode errorCode;
+      DiagnosticCode errorCode;
       List<String> arguments;
       if (parentNode == null) {
         errorCode = CompileTimeErrorCode.uncheckedInvocationOfNullableValue;
@@ -237,6 +238,42 @@ class TypePropertyResolver {
 
       return _toResult();
     }
+  }
+
+  /// Resolve static invocations for [declaration].
+  ResolutionResult resolveForDeclaration({
+    required InterfaceElement declaration,
+    required String name,
+    required bool hasRead,
+    required bool hasWrite,
+    required SyntacticEntity propertyErrorEntity,
+    required SyntacticEntity nameErrorEntity,
+    AstNode? parentNode,
+  }) {
+    _name = name;
+    _hasRead = hasRead;
+    _hasWrite = hasWrite;
+    _nameErrorEntity = nameErrorEntity;
+    _resetResult();
+
+    var getterName = Name(_definingLibrary.uri, _name);
+    var result = _extensionResolver.findExtensionForDeclaration(
+      declaration,
+      _nameErrorEntity,
+      getterName,
+    );
+    // TODO(cstefantsova): Add the support for setters and methods.
+    _reportedGetterError =
+        result == const AmbiguousStaticExtensionResolutionError();
+    _reportedSetterError = false;
+
+    if (result.member != null) {
+      // TODO(cstefantsova): Add the support for setters and methods.
+      _needsGetterError = false;
+      _getterRequested = result.member;
+    }
+
+    return _toResult();
   }
 
   void _lookupExtension(TypeImpl type) {

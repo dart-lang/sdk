@@ -19,7 +19,6 @@ import 'package:analysis_server/src/lsp/semantic_tokens/encoder.dart'
     show SemanticTokenInfo;
 import 'package:analysis_server/src/lsp/semantic_tokens/mapping.dart'
     show highlightRegionTokenModifiers, highlightRegionTokenTypes;
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -30,6 +29,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
+import 'package:collection/collection.dart';
 
 /// A computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a Dart [CompilationUnit].
 class DartUnitHighlightsComputer {
@@ -430,14 +430,25 @@ class DartUnitHighlightsComputer {
     Token nameToken,
     Element? element,
   ) {
-    if (element is! MethodElement) {
-      return false;
-    }
-    var isStatic = element.isStatic;
     var isInvocation =
         (parent is MethodInvocation && parent.methodName.token == nameToken) ||
         (parent is DotShorthandInvocation &&
             parent.memberName.token == nameToken);
+
+    // Handle the `call` method on functions.
+    if (_isCallMethod(parent, nameToken)) {
+      return _addRegion_token(
+        nameToken,
+        isInvocation
+            ? HighlightRegionType.INSTANCE_METHOD_REFERENCE
+            : HighlightRegionType.INSTANCE_METHOD_TEAR_OFF,
+      );
+    }
+
+    if (element is! MethodElement) {
+      return false;
+    }
+    var isStatic = element.isStatic;
     // OK
     HighlightRegionType type;
     if (isStatic) {
@@ -658,6 +669,47 @@ class DartUnitHighlightsComputer {
     } else {
       return false;
     }
+  }
+
+  /// Returns whether [nameToken] is a reference to the `call` method on
+  /// a function.
+  bool _isCallMethod(AstNode parent, Token nameToken) {
+    late bool enclosingInstanceFunction =
+        switch (parent.enclosingInstanceElement) {
+          ExtensionElement(:var extendedType) => extendedType.isFunction,
+          _ => false,
+        };
+    Expression? expression() => switch (parent) {
+      ExpressionFunctionBody(:var expression) ||
+      ExpressionStatement(:var expression) => expression,
+      ReturnStatement(:var expression) => expression,
+      ArgumentList(:var arguments) => arguments.firstWhereOrNull((argument) {
+        return argument is SimpleIdentifier && argument.token == nameToken;
+      }),
+      AssignmentExpression(:var rightHandSide) => rightHandSide,
+      VariableDeclaration(:var initializer) => initializer,
+      _ => null,
+    };
+    return // Invocation
+    (parent is MethodInvocation &&
+            parent.methodName.token == nameToken &&
+            parent.methodName.name == MethodElement.CALL_METHOD_NAME &&
+            ((parent.realTarget?.staticType).isFunction ||
+                enclosingInstanceFunction)) ||
+        // Tearoff
+        (parent is PrefixedIdentifier &&
+            parent.identifier.token == nameToken &&
+            parent.identifier.name == MethodElement.CALL_METHOD_NAME &&
+            parent.prefix.staticType.isFunction) ||
+        // Property access
+        (parent is PropertyAccess &&
+            parent.propertyName.token == nameToken &&
+            parent.propertyName.name == MethodElement.CALL_METHOD_NAME &&
+            parent.realTarget.staticType.isFunction) ||
+        // Special cases for extension methods
+        (expression() is SimpleIdentifier &&
+            nameToken.lexeme == MethodElement.CALL_METHOD_NAME &&
+            enclosingInstanceFunction);
   }
 
   void _reset() {
@@ -2057,4 +2109,9 @@ extension on StringInterpolation {
     (false, false, true) => Quote.Single,
     (false, false, false) => Quote.Double,
   };
+}
+
+extension on DartType? {
+  bool get isFunction =>
+      this is FunctionType || (this?.isDartCoreFunction ?? false);
 }

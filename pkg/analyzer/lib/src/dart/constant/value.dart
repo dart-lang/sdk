@@ -156,10 +156,6 @@ class ConstructorInvocationImpl implements ConstructorInvocation {
     this.positionalArguments,
     this.namedArguments,
   );
-
-  @Deprecated('Use constructor instead')
-  @override
-  ConstructorElement get constructor2 => constructor;
 }
 
 /// A representation of an instance of a Dart class.
@@ -283,10 +279,6 @@ class DartObjectImpl implements DartObject, Constant {
 
   @visibleForTesting
   List<DartType>? get typeArguments => (state as FunctionState).typeArguments;
-
-  @override
-  @Deprecated('Use variable instead')
-  VariableElement? get variable2 => variable;
 
   @override
   bool operator ==(Object other) {
@@ -552,13 +544,6 @@ class DartObjectImpl implements DartObject, Constant {
       return state.getField(name);
     }
     return null;
-  }
-
-  /// Gets the constructor that was called to create this value, if this is a
-  /// const constructor invocation. Otherwise returns null.
-  @Deprecated('Use constructorInvocation instead')
-  ConstructorInvocationImpl? getInvocation() {
-    return constructorInvocation;
   }
 
   /// Return the result of invoking the '&gt;' operator on this object with the
@@ -945,12 +930,6 @@ class DartObjectImpl implements DartObject, Constant {
   InternalExecutableElement? toFunctionValue() {
     var state = this.state;
     return state is FunctionState ? state.element : null;
-  }
-
-  @override
-  @Deprecated('Use toFunctionValue instead')
-  ExecutableElement? toFunctionValue2() {
-    return toFunctionValue();
   }
 
   @override

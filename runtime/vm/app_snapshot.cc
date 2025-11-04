@@ -7765,6 +7765,11 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
       type = "RecordType";
       break;
     };
+    // Can appear in weakened constant hash tables.
+    case kMintCid: {
+      type = "Mint";
+      break;
+    }
     default:
       FATAL("Request to create artificial node for object with cid %d", cid);
   }

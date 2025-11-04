@@ -3456,7 +3456,9 @@ class ExplicitExtensionAccessGenerator extends Generator {
     Name name, {
     bool isNullAware = false,
   }) {
-    MemberLookupResult? result = extensionBuilder.lookupLocalMemberByName(name);
+    MemberLookupResult? result = extensionBuilder.lookupExtensionMemberByName(
+      name,
+    );
     if (result == null) {
       return new UnresolvedNameGenerator(
         _helper,
@@ -3603,22 +3605,11 @@ class ExplicitExtensionAccessGenerator extends Generator {
     Token token, {
     required bool isNullAware,
   }) {
-    // TODO(johnniwinther): Join these.
-    MemberLookupResult? getterResult = extensionBuilder.lookupLocalMemberByName(
+    MemberLookupResult? result = extensionBuilder.lookupExtensionMemberByName(
       indexGetName,
     );
-    if (getterResult?.isInvalidLookup ?? false) {
-      getterResult = null;
-    }
-    MemberLookupResult? setterResult = extensionBuilder.lookupLocalMemberByName(
-      indexSetName,
-    );
-    if (setterResult?.isInvalidLookup ?? false) {
-      setterResult = null;
-    }
-    MemberBuilder? getter = getterResult?.getable;
-    MemberBuilder? setter = setterResult?.getable;
-    if (getter == null && setter == null) {
+
+    if (result == null) {
       // Coverage-ignore-block(suite): Not run.
       return new UnresolvedNameGenerator(
         _helper,
@@ -3626,15 +3617,23 @@ class ExplicitExtensionAccessGenerator extends Generator {
         indexGetName,
         unresolvedReadKind: UnresolvedKind.Method,
       );
+    } else if (result.isInvalidLookup) {
+      // Coverage-ignore-block(suite): Not run.
+      return new UnresolvedNameGenerator(
+        _helper,
+        token,
+        indexGetName,
+        unresolvedReadKind: UnresolvedKind.Method,
+        errorHasBeenReported: true,
+      );
     }
-
     return new ExplicitExtensionIndexedAccessGenerator.fromBuilder(
       _helper,
       token,
       extensionTypeArgumentOffset,
       extensionBuilder.extension,
-      getter,
-      setter,
+      result.getable,
+      result.setable,
       receiver,
       index,
       explicitTypeArguments,
@@ -4113,7 +4112,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     Constness constness, {
     required bool inImplicitCreationContext,
   }) {
-    return _helper.resolveAndBuildConstructorInvocation(
+    return switch (_helper.resolveAndBuildConstructorInvocation(
       declaration,
       nameToken,
       nameLastToken,
@@ -4123,7 +4122,14 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       offsetForToken(nameToken),
       constness,
       unresolvedKind: UnresolvedKind.Constructor,
-    );
+    )) {
+      SuccessfulConstructorResolutionResult(:var constructorInvocation) =>
+        constructorInvocation,
+      ErroneousConstructorResolutionResult(:var errorExpression) =>
+        errorExpression,
+      UnresolvedConstructorResolutionResult unresolvedResult =>
+        unresolvedResult.buildErrorExpression(),
+    };
   }
 
   @override
@@ -4172,7 +4178,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     ) {
       // TODO(cstefantsova): Report an error on more than one found members.
       if (extensionBuilder.onType.declaration == declaration) {
-        memberLookupResult = extensionBuilder.lookupLocalMemberByName(name);
+        memberLookupResult = extensionBuilder.lookupExtensionMemberByName(name);
         if (memberLookupResult != null) {
           if (!memberLookupResult!.isStatic) {
             memberLookupResult = null;
@@ -4532,7 +4538,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             );
           }
         } else {
-          return _helper.resolveAndBuildConstructorInvocation(
+          switch (_helper.resolveAndBuildConstructorInvocation(
             declarationBuilder,
             send.token,
             send.token,
@@ -4546,7 +4552,46 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             unresolvedKind: isNullAware
                 ? UnresolvedKind.Method
                 : UnresolvedKind.Member,
-          );
+          )) {
+            case SuccessfulConstructorResolutionResult(
+              :var constructorInvocation,
+            ):
+              return constructorInvocation;
+            case ErroneousConstructorResolutionResult(
+              // Coverage-ignore(suite): Not run.
+              :var errorExpression,
+            ):
+              return errorExpression;
+            case UnresolvedConstructorResolutionResult unresolvedResult:
+              MemberLookupResult? memberLookupResult =
+                  _helper.libraryFeatures.staticExtensions.isEnabled
+                  ? _findStaticExtensionMember(name)
+                  : null;
+              if (memberLookupResult != null) {
+                if (memberLookupResult.isInvalidLookup) {
+                  // Coverage-ignore-block(suite): Not run.
+                  generator = new UnresolvedNameGenerator(
+                    _helper,
+                    send.token,
+                    name,
+                    unresolvedReadKind: UnresolvedKind.Member,
+                    errorHasBeenReported: true,
+                  );
+                } else {
+                  generator = new StaticAccessGenerator.fromBuilder(
+                    _helper,
+                    name,
+                    send.token,
+                    memberLookupResult.getable,
+                    memberLookupResult.setable,
+                    typeOffset: fileOffset,
+                    isNullAware: isNullAware,
+                  );
+                }
+              } else {
+                return unresolvedResult.buildErrorExpression();
+              }
+          }
         }
       } else {
         Builder? getable = result.getable;
@@ -4645,7 +4690,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
       );
     } else {
-      return _helper.resolveAndBuildConstructorInvocation(
+      return switch (_helper.resolveAndBuildConstructorInvocation(
         declaration,
         token,
         token,
@@ -4656,7 +4701,14 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         Constness.implicit,
         isTypeArgumentsInForest: isTypeArgumentsInForest,
         unresolvedKind: UnresolvedKind.Constructor,
-      );
+      )) {
+        SuccessfulConstructorResolutionResult(:var constructorInvocation) =>
+          constructorInvocation,
+        ErroneousConstructorResolutionResult(:var errorExpression) =>
+          errorExpression,
+        UnresolvedConstructorResolutionResult unresolvedResult =>
+          unresolvedResult.buildErrorExpression(),
+      };
     }
   }
 

@@ -21,10 +21,10 @@ class ReplaceNullCheckWithCast extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_NULL_CHECK_WITH_CAST;
+  FixKind get fixKind => DartFixKind.replaceNullCheckWithCast;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_NULL_CHECK_WITH_CAST_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceNullCheckWithCastMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

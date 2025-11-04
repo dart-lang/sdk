@@ -56,11 +56,7 @@ Node _test(
 }
 
 String prettyPrint(Node node) {
-  JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
-    shouldCompressOutput: false,
-    minifyLocalVariables: false,
-    preferSemicolonToNewlineInMinifiedOutput: false,
-  );
+  JavaScriptPrintingOptions options = JavaScriptPrintingOptions();
   SimpleJavaScriptPrintingContext context = SimpleJavaScriptPrintingContext();
   Printer printer = Printer(options, context);
   printer.visit(node);

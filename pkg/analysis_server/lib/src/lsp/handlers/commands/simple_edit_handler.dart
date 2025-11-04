@@ -75,7 +75,7 @@ abstract class SimpleEditCommandHandler<S extends AnalysisServer>
 
     if (editResponse.error != null) {
       return error(
-        ServerErrorCodes.ClientFailedToApplyEdit,
+        ServerErrorCodes.clientFailedToApplyEdit,
         'Client failed to apply workspace edit for $commandName',
         editResponse.error.toString(),
       );
@@ -99,7 +99,7 @@ abstract class SimpleEditCommandHandler<S extends AnalysisServer>
       return success(null);
     } else {
       return error(
-        ServerErrorCodes.ClientFailedToApplyEdit,
+        ServerErrorCodes.clientFailedToApplyEdit,
         'Client failed to apply workspace edit for $commandName '
         '(reason: $failureReason)',
         workspaceEdit.toString(),

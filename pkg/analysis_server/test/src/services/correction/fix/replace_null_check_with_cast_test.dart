@@ -46,7 +46,7 @@ T f<T>(T? result) {
 @reflectiveTest
 class ReplaceNullCheckWithCastTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_NULL_CHECK_WITH_CAST;
+  FixKind get kind => DartFixKind.replaceNullCheckWithCast;
 
   @override
   String get lintCode => LintNames.null_check_on_nullable_type_parameter;

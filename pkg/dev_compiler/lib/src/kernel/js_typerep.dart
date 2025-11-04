@@ -80,6 +80,9 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
       case StructuralParameterType():
       case RecordType():
         return JSType.jsObject;
+      // ignore: unreachable_switch_case
+      case ExperimentalType():
+        throwUnsupportedExperimentalType(type);
       case AuxiliaryType():
         throwUnsupportedAuxiliaryType(type);
       case InvalidType():

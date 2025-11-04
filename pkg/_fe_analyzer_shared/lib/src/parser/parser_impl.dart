@@ -68,6 +68,7 @@ import 'declaration_kind.dart' show DeclarationHeaderKind, DeclarationKind;
 
 import 'directive_context.dart';
 
+import 'experimental_features.dart';
 import 'formal_parameter_kind.dart' show FormalParameterKind;
 
 import 'forwarding_listener.dart' show ForwardingListener, NullListener;
@@ -271,8 +272,6 @@ import 'util.dart'
 class Parser {
   Listener listener;
 
-  Uri? get uri => listener.uri;
-
   bool mayParseFunctionExpressions = true;
 
   /// Represents parser state: what asynchronous syntax is allowed in the
@@ -314,14 +313,23 @@ class Parser {
   // implicit create expression without the special casing.
   final bool useImplicitCreationExpression;
 
-  /// Indicates whether pattern parsing is enabled.
+  /// The experiments currently enabled.
   ///
-  /// This ensures that we don't regress non-pattern functionality while pattern
-  /// parsing logic is being developed.  Eventually we will want to turn this
-  /// functionality on permanently, and leave it to the client to report an
-  /// appropriate error if a pattern is used while patterns are not enabled.
-  /// TODO(paulberry): remove this flag when appropriate.
-  final bool allowPatterns;
+  /// For performance, values used within the parser should be cached in fields,
+  /// similar to [isPatternsFeatureEnabled].
+  final ExperimentalFeatures experimentalFeatures;
+
+  /// `true` if the 'patterns' feature is enabled.
+  final bool isPatternsFeatureEnabled;
+
+  /// `true` if the 'enhanced-parts' feature is enabled.
+  final bool _isEnhancedPartsFeatureEnabled;
+
+  /// `true` if the 'declaring-constructors' feature is enabled.
+  final bool _isDeclaringConstructorsFeatureEnabled;
+
+  /// `true` if the 'private-named-parameters' feature is enabled.
+  final bool _isPrivateNamedParametersEnabled;
 
   /// Indicates whether the last pattern parsed is allowed inside unary
   /// patterns.  This is set by [parsePrimaryPattern] and [parsePattern].
@@ -330,9 +338,6 @@ class Parser {
   /// remove this boolean and instead return a record (Token, bool) from the
   /// [parsePrimaryPattern] and [parsePattern].
   bool isLastPatternAllowedInsideUnaryPattern = false;
-
-  /// Whether the `enhanced-parts` feature is enabled.
-  final bool enableFeatureEnhancedParts;
 
   /// Whether the parser is allowed to shortcut certain [parseExpression] calls.
   ///
@@ -343,9 +348,16 @@ class Parser {
   Parser(
     this.listener, {
     this.useImplicitCreationExpression = true,
-    this.allowPatterns = false,
-    this.enableFeatureEnhancedParts = false,
-  }) : assert(listener != null); // ignore:unnecessary_null_comparison
+    required this.experimentalFeatures,
+  }) : isPatternsFeatureEnabled = experimentalFeatures.isExperimentEnabled(
+         ExperimentalFlag.patterns,
+       ),
+       _isEnhancedPartsFeatureEnabled = experimentalFeatures
+           .isExperimentEnabled(ExperimentalFlag.enhancedParts),
+       _isDeclaringConstructorsFeatureEnabled = experimentalFeatures
+           .isExperimentEnabled(ExperimentalFlag.declaringConstructors),
+       _isPrivateNamedParametersEnabled = experimentalFeatures
+           .isExperimentEnabled(ExperimentalFlag.privateNamedParameters);
 
   /// Executes [callback]; however if `this` is the `TestParser` (from
   /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
@@ -405,7 +417,7 @@ class Parser {
     listener.beginCompilationUnit(token);
     int count = 0;
     DirectiveContext directiveState = new DirectiveContext(
-      enableFeatureEnhancedParts: enableFeatureEnhancedParts,
+      isEnhancedPartsFeatureEnabled: _isEnhancedPartsFeatureEnabled,
     );
     token = syntheticPreviousToken(token);
     if (identical(token.next!.type, TokenType.SCRIPT_TAG)) {
@@ -453,7 +465,7 @@ class Parser {
     listener.beginCompilationUnit(token);
     int count = 0;
     DirectiveContext directiveState = new DirectiveContext(
-      enableFeatureEnhancedParts: enableFeatureEnhancedParts,
+      isEnhancedPartsFeatureEnabled: _isEnhancedPartsFeatureEnabled,
     );
     token = syntheticPreviousToken(token);
     while (!token.next!.isEof) {
@@ -1292,14 +1304,13 @@ class Parser {
 
   /// ```
   /// partDirective:
-  ///   'part' uri ('if' '(' test ')' uri)* ';'
+  ///   'part' uri ';'
   /// ;
   /// ```
   Token parsePart(Token partKeyword) {
     assert(partKeyword.isA(Keyword.PART));
     listener.beginPart(partKeyword);
     Token token = ensureLiteralString(partKeyword);
-    token = parseConditionalUriStar(token);
     token = ensureSemicolon(token);
     listener.endPart(partKeyword, token);
     return token;
@@ -2198,10 +2209,20 @@ class Parser {
         Token closer = typeParam.skip(token);
         if (closer.next!.isA(TokenType.OPEN_PAREN)) {
           if (varFinalOrConst != null) {
-            reportRecoverableError(
-              varFinalOrConst,
-              codes.codeFunctionTypedParameterVar,
-            );
+            if (memberKind != MemberKind.PrimaryConstructor) {
+              reportRecoverableError(
+                varFinalOrConst,
+                codes.codeFunctionTypedParameterVar,
+              );
+            } else {
+              if (!_isDeclaringConstructorsFeatureEnabled) {
+                reportExperimentNotEnabled(
+                  ExperimentalFlag.declaringConstructors,
+                  varFinalOrConst,
+                  varFinalOrConst,
+                );
+              }
+            }
           }
           beforeInlineFunctionType = token;
           token = closer.next!.endGroup!;
@@ -2210,19 +2231,45 @@ class Parser {
       }
     } else if (next.isA(TokenType.OPEN_PAREN)) {
       if (varFinalOrConst != null) {
-        reportRecoverableError(
-          varFinalOrConst,
-          codes.codeFunctionTypedParameterVar,
-        );
+        if (memberKind != MemberKind.PrimaryConstructor) {
+          reportRecoverableError(
+            varFinalOrConst,
+            codes.codeFunctionTypedParameterVar,
+          );
+        } else {
+          if (!_isDeclaringConstructorsFeatureEnabled) {
+            reportExperimentNotEnabled(
+              ExperimentalFlag.declaringConstructors,
+              varFinalOrConst,
+              varFinalOrConst,
+            );
+          }
+        }
       }
       beforeInlineFunctionType = token;
       token = next.endGroup!;
       next = token.next!;
     }
-    if (typeInfo != noType &&
-        varFinalOrConst != null &&
-        varFinalOrConst.isA(Keyword.VAR)) {
-      reportRecoverableError(varFinalOrConst, codes.codeTypeAfterVar);
+    Token? varOrFinal;
+    if (varFinalOrConst != null) {
+      if (varFinalOrConst.isA(Keyword.VAR)) {
+        varOrFinal = varFinalOrConst;
+        if (typeInfo != noType) {
+          if (memberKind != MemberKind.PrimaryConstructor) {
+            reportRecoverableError(varFinalOrConst, codes.codeTypeAfterVar);
+          } else {
+            if (!_isDeclaringConstructorsFeatureEnabled) {
+              reportExperimentNotEnabled(
+                ExperimentalFlag.declaringConstructors,
+                varOrFinal,
+                varOrFinal,
+              );
+            }
+          }
+        }
+      } else if (varFinalOrConst.isA(Keyword.FINAL)) {
+        varOrFinal = varFinalOrConst;
+      }
     }
 
     Token? endInlineFunctionType;
@@ -2278,7 +2325,29 @@ class Parser {
     } else {
       nameToken = token = ensureIdentifier(token, nameContext);
       if (isNamedParameter && nameToken.lexeme.startsWith("_")) {
-        reportRecoverableError(nameToken, codes.codePrivateNamedParameter);
+        // TODO(rnystrom): Also handle declaring field parameters.
+        bool refersToField = thisKeyword != null;
+
+        if (_isPrivateNamedParametersEnabled) {
+          if (!refersToField) {
+            reportRecoverableError(
+              nameToken,
+              codes.codePrivateNamedNonFieldParameter,
+            );
+          }
+        } else {
+          if (!refersToField) {
+            reportRecoverableError(nameToken, codes.codePrivateNamedParameter);
+          } else {
+            // The user is using syntax that is now meaningful, but in a
+            // library where it isn't enabled, so report a more precise error.
+            reportExperimentNotEnabled(
+              ExperimentalFlag.privateNamedParameters,
+              nameToken,
+              nameToken,
+            );
+          }
+        }
       }
     }
     if (endInlineFunctionType != null) {
@@ -2311,6 +2380,7 @@ class Parser {
       listener.handleFormalParameterWithoutValue(next);
     }
     listener.endFormalParameter(
+      varOrFinal,
       thisKeyword,
       superKeyword,
       periodAfterThisOrSuper,
@@ -2503,33 +2573,59 @@ class Parser {
     return ensureBlock(token, /* missingBlockKind = */ null).endGroup!;
   }
 
+  /// Parse the portion of a enum declaration after 'enum'.
+  ///
   /// ```
   /// enumType:
-  ///   metadata 'enum' id typeParameters? mixins? interfaces? '{'
-  ///      enumEntry (',' enumEntry)* (',')? (';'
-  ///      (metadata classMemberDefinition)*
-  ///      )?
-  ///   '}'
-  ///
-  /// enumEntry:
-  ///     metadata id argumentPart?
-  ///   | metadata id typeArguments? '.' id arguments
+  ///     :    'augment'? 'enum' classNamePart mixins? interfaces? '{'
+  ///          enumEntry (',' enumEntry)* ','?
+  ///          (';' (metadata memberDeclaration)*)?
+  ///          '}'
+  /// primaryConstructorNoConst
+  ///     :    typeIdentifier typeParameters?
+  ///          ('.' identifierOrNew)? declaringParameterList
+  ///     ;
+  /// classNamePart
+  ///     :    'const'? primaryConstructorNoConst
+  ///     |    typeWithParameters
+  ///     ;
+  /// typeWithParameters
+  ///     :    typeIdentifier typeParameters?
+  ///     ;
+  /// enumEntry
+  ///     :    metadata id argumentPart?
+  ///     |    metadata id typeArguments? '.' id arguments
   /// ```
   Token parseEnum(Token beginToken, Token? augmentToken, Token enumKeyword) {
     assert(enumKeyword.isA(Keyword.ENUM));
-    listener.beginUncategorizedTopLevelDeclaration(enumKeyword);
-    Token token = ensureIdentifier(
+    listener.beginEnumDeclarationPrelude(enumKeyword);
+    Token token = enumKeyword;
+    Token? constToken;
+    if (token.next!.isA(Keyword.CONST)) {
+      token = constToken = token.next!;
+    }
+    token = ensureIdentifier(token, IdentifierContext.enumDeclaration);
+    Token nameToken = token;
+    String name = nameToken.lexeme;
+    token = computeTypeParamOrArg(
+      token,
+      /* inDeclaration = */ true,
+      /* allowsVariance = */ true,
+    ).parseVariables(token, this);
+    listener.beginEnumDeclaration(
+      beginToken,
+      augmentToken,
       enumKeyword,
-      IdentifierContext.enumDeclaration,
+      nameToken,
     );
-    String name = token.lexeme;
-    listener.beginEnum(enumKeyword);
+    token = parsePrimaryConstructorOpt(token, constToken, false);
     token = parseEnumHeaderOpt(token, enumKeyword);
     Token leftBrace = token.next!;
     int elementCount = 0;
     int memberCount = 0;
     if (leftBrace.isA(TokenType.OPEN_CURLY_BRACKET)) {
       listener.handleEnumHeader(augmentToken, enumKeyword, leftBrace);
+      listener.beginEnumBody(leftBrace);
       token = leftBrace;
       while (true) {
         Token next = token.next!;
@@ -2587,23 +2683,27 @@ class Parser {
         token = token.next!;
         assert(token.isEof || token.isA(TokenType.CLOSE_CURLY_BRACKET));
       }
+      listener.endEnumBody(leftBrace, token);
     } else {
       leftBrace = ensureBlock(token, BlockKind.enumDeclaration);
       listener.handleEnumHeader(augmentToken, enumKeyword, leftBrace);
+      listener.beginEnumBody(leftBrace);
       listener.handleEnumElements(token, elementCount);
       token = leftBrace.endGroup!;
+      listener.endEnumBody(leftBrace, token);
     }
     assert(token.isA(TokenType.CLOSE_CURLY_BRACKET));
-    listener.endEnum(beginToken, enumKeyword, leftBrace, memberCount, token);
+    listener.endEnumDeclaration(
+      beginToken,
+      enumKeyword,
+      leftBrace,
+      memberCount,
+      token,
+    );
     return token;
   }
 
   Token parseEnumHeaderOpt(Token token, Token enumKeyword) {
-    token = computeTypeParamOrArg(
-      token,
-      /* inDeclaration = */ true,
-      /* allowsVariance = */ true,
-    ).parseVariables(token, this);
     List<TokenType> lookForNext = const [
       TokenType.OPEN_CURLY_BRACKET,
       Keyword.WITH,
@@ -2828,11 +2928,16 @@ class Parser {
   ) {
     assert(classKeyword.isA(Keyword.CLASS));
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(beginToken);
+    Token token = classKeyword;
+    Token? constToken;
+    if (token.next!.isA(Keyword.CONST)) {
+      token = constToken = token.next!;
+    }
     Token name = ensureIdentifier(
-      classKeyword,
+      token,
       IdentifierContext.classOrMixinOrExtensionDeclaration,
     );
-    Token token = computeTypeParamOrArg(
+    token = computeTypeParamOrArg(
       name,
       /* inDeclaration = */ true,
       /* allowsVariance = */ true,
@@ -2856,8 +2961,13 @@ class Parser {
         }
       }
     }
-
     if (token.next!.isA(TokenType.EQ)) {
+      if (constToken != null) {
+        reportRecoverableError(
+          constToken,
+          codes.codeConstWithoutPrimaryConstructor,
+        );
+      }
       listener.beginNamedMixinApplication(
         beginToken,
         abstractToken,
@@ -2884,7 +2994,13 @@ class Parser {
         mixinToken,
         name,
       );
-      return parseClass(token, beginToken, classKeyword, name.lexeme);
+      return parseClass(
+        token,
+        beginToken,
+        classKeyword,
+        constToken,
+        name.lexeme,
+      );
     }
   }
 
@@ -2920,20 +3036,35 @@ class Parser {
   /// follows the end of the type parameters.
   ///
   /// ```
-  /// classDefinition:
-  ///   metadata abstract? 'class' identifier typeParameters?
-  ///       (superclass mixins?)? interfaces?
-  ///       '{' (metadata classMemberDefinition)* '}' |
-  ///   metadata abstract? 'class' mixinApplicationClass
-  /// ;
+  /// classDeclaration
+  ///     :    'augment'? (classModifiers | mixinClassModifiers)
+  ///          'class' classNamePart superclass? interfaces? classBody
+  ///     ;
+  /// primaryConstructorNoConst
+  ///     :    typeIdentifier typeParameters?
+  ///          ('.' identifierOrNew)? declaringParameterList
+  ///     ;
+  /// classNamePart
+  ///     :    'const'? primaryConstructorNoConst
+  ///     |    typeWithParameters
+  ///     ;
+  /// typeWithParameters
+  ///     :    typeIdentifier typeParameters?
+  ///     ;
   /// ```
   Token parseClass(
     Token token,
     Token beginToken,
     Token classKeyword,
+    Token? constToken,
     String className,
   ) {
     Token start = token;
+    token = parsePrimaryConstructorOpt(
+      token,
+      constToken,
+      /* forExtensionType = */ false,
+    );
     token = parseClassHeaderOpt(token, beginToken, classKeyword);
     if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
       // Recovery
@@ -3515,6 +3646,59 @@ class Parser {
     return token;
   }
 
+  Token parsePrimaryConstructorOpt(
+    Token token,
+    Token? constKeyword,
+    bool forExtensionType,
+  ) {
+    if (token.next!.isA(TokenType.OPEN_PAREN) ||
+        token.next!.isA(TokenType.PERIOD)) {
+      Token beginPrimaryConstructor = token.next!;
+      listener.beginPrimaryConstructor(beginPrimaryConstructor);
+      bool hasConstructorName = beginPrimaryConstructor.isA(TokenType.PERIOD);
+      if (hasConstructorName) {
+        token = ensureIdentifier(
+          beginPrimaryConstructor,
+          IdentifierContext.primaryConstructorDeclaration,
+        );
+      }
+      if (token.next!.isA(TokenType.OPEN_PAREN)) {
+        token = parseFormalParameters(token, MemberKind.PrimaryConstructor);
+      } else {
+        if (forExtensionType) {
+          reportRecoverableError(
+            token,
+            codes.codeMissingPrimaryConstructorParameters,
+          );
+        }
+        listener.handleNoFormalParameters(token, MemberKind.PrimaryConstructor);
+      }
+      listener.endPrimaryConstructor(
+        beginPrimaryConstructor,
+        constKeyword,
+        hasConstructorName,
+        forExtensionType,
+      );
+    } else {
+      if (forExtensionType) {
+        reportRecoverableError(token, codes.codeMissingPrimaryConstructor);
+      } else if (constKeyword != null) {
+        // TODO(johnniwinther): It should be possible to report if the
+        //  declaring constructors feature is not enabled here.
+        reportRecoverableError(
+          constKeyword,
+          codes.codeConstWithoutPrimaryConstructor,
+        );
+      }
+      listener.handleNoPrimaryConstructor(
+        token,
+        constKeyword,
+        forExtensionType,
+      );
+    }
+    return token;
+  }
+
   /// Parses an extension type declaration after
   ///
   ///    'extension' 'type'
@@ -3560,35 +3744,11 @@ class Parser {
       extensionKeyword,
       name,
     );
-    if (token.next!.isA(TokenType.OPEN_PAREN) ||
-        token.next!.isA(TokenType.PERIOD)) {
-      Token beginPrimaryConstructor = token.next!;
-      listener.beginPrimaryConstructor(beginPrimaryConstructor);
-      bool hasConstructorName = beginPrimaryConstructor.isA(TokenType.PERIOD);
-      if (hasConstructorName) {
-        token = ensureIdentifier(
-          beginPrimaryConstructor,
-          IdentifierContext.primaryConstructorDeclaration,
-        );
-      }
-      if (token.next!.isA(TokenType.OPEN_PAREN)) {
-        token = parseFormalParameters(token, MemberKind.PrimaryConstructor);
-      } else {
-        reportRecoverableError(
-          token,
-          codes.codeMissingPrimaryConstructorParameters,
-        );
-        listener.handleNoFormalParameters(token, MemberKind.PrimaryConstructor);
-      }
-      listener.endPrimaryConstructor(
-        beginPrimaryConstructor,
-        constKeyword,
-        hasConstructorName,
-      );
-    } else {
-      reportRecoverableError(token, codes.codeMissingPrimaryConstructor);
-      listener.handleNoPrimaryConstructor(token, constKeyword);
-    }
+    token = parsePrimaryConstructorOpt(
+      token,
+      constKeyword,
+      /* forExtensionType = */ true,
+    );
     Token start = token;
     token = parseClassOrMixinOrEnumImplementsOpt(token);
     if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
@@ -6213,7 +6373,8 @@ class Parser {
     final String? value = token.next!.stringValue;
     if (identical(value, '{')) {
       // The scanner ensures that `{` always has a closing `}`.
-      if (allowPatterns && token.next!.endGroup!.next!.isA(TokenType.EQ)) {
+      if (isPatternsFeatureEnabled &&
+          token.next!.endGroup!.next!.isA(TokenType.EQ)) {
         // Expression statement beginning with a pattern assignment
         return parseExpressionStatement(token);
       } else {
@@ -6443,7 +6604,7 @@ class Parser {
         listener.handleIdentifier(token, IdentifierContext.expression);
       }
     } else {
-      if (allowPatterns && looksLikeOuterPatternEquals(token)) {
+      if (isPatternsFeatureEnabled && looksLikeOuterPatternEquals(token)) {
         token = parsePatternAssignment(token);
       } else {
         token = token.next!.isA(Keyword.THROW)
@@ -7512,7 +7673,7 @@ class Parser {
         // Fall through to the recovery code.
       } else if (identical(value, "assert")) {
         return parseAssert(token, Assert.Expression);
-      } else if (allowPatterns && identical(value, "switch")) {
+      } else if (isPatternsFeatureEnabled && identical(value, "switch")) {
         return parseSwitchExpression(token);
       } else if (next.isIdentifier) {
         if (constantPatternContext ==
@@ -7728,7 +7889,7 @@ class Parser {
     BeginToken begin = token as BeginToken;
     token = parseExpression(token);
     Token next = token.next!;
-    if (allowPatterns && next.isA(Keyword.CASE)) {
+    if (isPatternsFeatureEnabled && next.isA(Keyword.CASE)) {
       Token case_ = token = next;
       token = parsePattern(token, PatternContext.matching);
       next = token.next!;
@@ -9245,7 +9406,7 @@ class Parser {
     TypeInfo? typeInfo, [
     ForPartsContext? forPartsContext,
   ]) {
-    if (allowPatterns &&
+    if (isPatternsFeatureEnabled &&
         varFinalOrConst != null &&
         (varFinalOrConst.isA(Keyword.VAR) ||
             varFinalOrConst.isA(Keyword.FINAL))) {
@@ -9496,7 +9657,10 @@ class Parser {
     Token ifToken = token.next!;
     assert(ifToken.isA(Keyword.IF));
     listener.beginIfStatement(ifToken);
-    token = ensureParenthesizedCondition(ifToken, allowCase: allowPatterns);
+    token = ensureParenthesizedCondition(
+      ifToken,
+      allowCase: isPatternsFeatureEnabled,
+    );
     Token thenBeginToken = token.next!;
     listener.beginThenStatement(thenBeginToken);
     token = parseStatement(token);
@@ -10317,7 +10481,7 @@ class Parser {
             );
           }
           listener.beginCaseExpression(caseKeyword);
-          if (allowPatterns) {
+          if (isPatternsFeatureEnabled) {
             token = parsePattern(caseKeyword, PatternContext.matching);
           } else {
             token = parseExpression(caseKeyword);

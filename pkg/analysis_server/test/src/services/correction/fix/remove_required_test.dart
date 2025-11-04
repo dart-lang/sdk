@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveRequiredTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_REQUIRED;
+  FixKind get kind => DartFixKind.removeRequired;
 
   Future<void> test_default_value_on_required_parameter() async {
     await resolveTestCode('''

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -20,7 +21,7 @@ const _desc = r"Don't create a lambda when a tear-off will do.";
 Set<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     _IdentifierVisitor().extractElements(node);
 
-class UnnecessaryLambdas extends LintRule {
+class UnnecessaryLambdas extends AnalysisRule {
   UnnecessaryLambdas()
     : super(name: LintNames.unnecessary_lambdas, description: _desc);
 
@@ -93,7 +94,7 @@ class _IdentifierVisitor extends RecursiveAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final bool constructorTearOffsEnabled;
-  final LintRule rule;
+  final AnalysisRule rule;
   final TypeSystem typeSystem;
 
   _Visitor(this.rule, RuleContext context)

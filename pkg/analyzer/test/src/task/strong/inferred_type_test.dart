@@ -10,7 +10,6 @@ import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/test_support.dart';
 import '../../dart/resolution/context_collection_resolution.dart';
 
 void main() {
@@ -2073,7 +2072,7 @@ void main() {
 }
 ''';
 
-    List<ExpectedError> errors = [
+    List<ExpectedDiagnostic> diagnostics = [
       error(
         CompileTimeErrorCode.invalidOverride,
         188,
@@ -2125,27 +2124,27 @@ void main() {
     ];
     await _assertErrors(
       build(declared: "MyFuture", downwards: "Future", upwards: "Future"),
-      errors,
+      diagnostics,
     );
     await _assertErrors(
       build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"),
-      errors,
+      diagnostics,
     );
     await _assertErrors(
       build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"),
-      errors,
+      diagnostics,
     );
     await _assertErrors(
       build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
-      errors,
+      diagnostics,
     );
     await _assertErrors(
       build(declared: "Future", downwards: "Future", upwards: "MyFuture"),
-      errors,
+      diagnostics,
     );
     await _assertErrors(
       build(declared: "Future", downwards: "Future", upwards: "Future"),
-      errors,
+      diagnostics,
     );
   }
 
@@ -5901,7 +5900,7 @@ main() {
 
   Future<void> _assertErrors(
     String code,
-    List<ExpectedError> expectedErrors,
+    List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     await resolveTestCode(code);
     assertErrorsInList(
@@ -5909,7 +5908,7 @@ main() {
         return e.diagnosticCode != WarningCode.unusedLocalVariable &&
             e.diagnosticCode is! TodoCode;
       }).toList(),
-      expectedErrors,
+      expectedDiagnostics,
     );
   }
 

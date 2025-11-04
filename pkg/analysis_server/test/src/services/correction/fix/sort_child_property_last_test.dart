@@ -69,7 +69,7 @@ void f() {
 @reflectiveTest
 class SortChildPropertyLastTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.SORT_CHILD_PROPERTY_LAST;
+  FixKind get kind => DartFixKind.sortChildPropertyLast;
 
   @override
   String get lintCode => LintNames.sort_child_properties_last;

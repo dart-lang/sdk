@@ -63,6 +63,9 @@ template("build_libdart_builtin") {
       deps += [ "$fuchsia_sdk/fidl/fuchsia.io" ]
       public_deps = [ "$fuchsia_sdk/pkg/fdio" ]
     }
+    if (is_mac || is_ios) {
+      frameworks = [ "Security.framework" ]
+    }
     if (is_win) {
       libs = [ "Pathcch.lib" ]
     }
@@ -454,6 +457,8 @@ template("build_gen_snapshot_dart_io") {
 
     sources = io_impl_sources
     sources += [
+      "../include/bin/dart_io_api.h",
+      "dart_io_api_impl.cc",
       "io_natives.cc",
       "io_natives.h",
     ]
@@ -601,7 +606,7 @@ template("dart_io") {
   }
 }
 
-dart_io("dart_io_api") {
+dart_io("common_embedder_dart_io") {
   extra_configs = [ "..:dart_maybe_product_config" ]
   extra_sources = [
     "../include/bin/dart_io_api.h",
@@ -611,25 +616,13 @@ dart_io("dart_io_api") {
   extra_deps = [ ":libdart_builtin" ]
 }
 
-dart_io("dart_io_api_product") {
+dart_io("common_embedder_dart_io_product") {
   extra_configs = [ "..:dart_product_config" ]
   extra_sources = [
     "../include/bin/dart_io_api.h",
     "builtin.cc",
     "dart_io_api_impl.cc",
   ]
-  extra_deps = [ ":libdart_builtin_product" ]
-}
-
-dart_io("standalone_dart_io") {
-  extra_configs = [ "..:dart_maybe_product_config" ]
-  extra_sources = []
-  extra_deps = [ ":libdart_builtin" ]
-}
-
-dart_io("standalone_dart_io_product") {
-  extra_configs = [ "..:dart_product_config" ]
-  extra_sources = []
   extra_deps = [ ":libdart_builtin_product" ]
 }
 
@@ -939,9 +932,9 @@ template("dart_executable") {
 
     deps = [ ":${target_name}_set" ] + extra_deps
     if (use_product_mode) {
-      deps += [ ":standalone_dart_io_product" ]
+      deps += [ ":common_embedder_dart_io_product" ]
     } else {
-      deps += [ ":standalone_dart_io" ]
+      deps += [ ":common_embedder_dart_io" ]
     }
 
     configs += [ ":export_api_symbols" ]
@@ -971,7 +964,6 @@ dart_executable("dartvm") {
     "../platform:libdart_platform_jit",
   ]
   extra_sources = [
-    "builtin.cc",
     "common_options.h",
     "dfe.cc",
     "dfe.h",
@@ -1005,7 +997,6 @@ dart_executable("dartaotruntime") {
     "../platform:libdart_platform_aotruntime",
   ]
   extra_sources = [
-    "builtin.cc",
     "common_options.h",
     "gzip.cc",
     "gzip.h",
@@ -1042,7 +1033,6 @@ dart_executable("dartaotruntime_product") {
     "../platform:libdart_platform_aotruntime_product",
   ]
   extra_sources = [
-    "builtin.cc",
     "common_options.h",
     "gzip.cc",
     "gzip.h",
@@ -1074,7 +1064,6 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
       "../platform:libdart_platform_aotruntime_product",
     ]
     extra_sources = [
-      "builtin.cc",
       "common_options.h",
       "dartdev.cc",
       "dartdev.h",
@@ -1117,7 +1106,6 @@ if (build_analyze_snapshot) {
 
     extra_sources = [
       "analyze_snapshot.cc",
-      "builtin.cc",
       "common_options.h",
       "loader.cc",
       "loader.h",
@@ -1159,8 +1147,8 @@ source_set("run_vm_tests_set") {
   }
 
   deps = [
-    "../vm:libprotozero",  # for timeline_test
     "//third_party/boringssl",  # for secure_socket_utils_test
+    "//third_party/perfetto:libprotozero",  # for timeline_test
   ]
 
   if (is_fuchsia) {
@@ -1185,7 +1173,6 @@ source_set("run_vm_tests_set") {
   regexp_tests = rebase_path(regexp_sources_tests, ".", "../vm/regexp")
 
   sources = [
-              "builtin.cc",
               "dfe.cc",
               "dfe.h",
               "error_exit.cc",
@@ -1221,14 +1208,14 @@ executable("run_vm_tests") {
   }
 
   deps = [
+    ":common_embedder_dart_io",
     ":crashpad",
     ":dart_kernel_platform_cc",
     ":dart_snapshot_cc",
     ":run_vm_tests_set",
-    ":standalone_dart_io",
     "..:libdart_precompiler_testing",
-    "../vm:libprotozero",  # for timeline_test
     "//third_party/boringssl",  # for secure_socket_utils_test
+    "//third_party/perfetto:libprotozero",  # for timeline_test
     "//third_party/zlib",
   ]
 
@@ -1300,7 +1287,6 @@ if (defined(is_linux) && is_linux && defined(is_asan) && is_asan &&
     extra_deps = [ "..:libdart_libfuzzer" ]
     extra_sources = [
       "../vm/libfuzzer/dart_libfuzzer.cc",
-      "builtin.cc",
       "common_options.h",
       "dfe.cc",
       "dfe.h",
@@ -1329,7 +1315,7 @@ source_set("dart_embedder_runtime_jit_set") {
   ]
 
   deps = [
-    ":dart_io_api",
+    ":common_embedder_dart_io",
     ":dart_kernel_platform_cc",
     ":libdart_builtin",
     "..:libdart_jit",

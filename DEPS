@@ -54,7 +54,7 @@ vars = {
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
-  "co19_rev": "82e02cfcd4e67965c491557e3cfb4c14f3a33758",
+  "co19_rev": "dfea6e4100267a94e63563fb86fe3ad53bccb13b",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "13eb8dedf372e4255e64349b6e57960f7de4df2d",
@@ -70,15 +70,15 @@ vars = {
   # self-service update these by following the go/dart-engprod/browsers.md
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:14.2.132",
-  "jsshell_tag": "version:142.0.1",
-  "jsc_tag": "version:299913",
+  "d8_tag": "version:14.3.89",
+  "jsshell_tag": "version:144.0",
+  "jsc_tag": "version:301576",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
-  "clang_version": "git_revision:9d7449a82b83ee589b8af8d6f86525727788b3b9",
+  "clang_version": "git_revision:62adc83c918b1b55f70e4ee33c727b040da2a9ed",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:81b24e01531ecf0eff12ec9359a555ec3944ec4e",
+  "gn_version": "git_revision:07d3c6f4dc290fae5ca6152ebcb37d6815c411ab",
 
   "reclient_version": "re_client_version:28341fc74c68f05a5c8be35160ada940c4edb969",
   "download_reclient": True,
@@ -96,11 +96,11 @@ vars = {
   ### /third_party/ dependencies
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
-  "binaryen_rev" : "1d2e23d5e55788091a51420ba3a9889d4efe7509",
-  "boringssl_rev": "706742e482d89214f13a642ccfcdad596a24a32f",
+  "binaryen_rev" : "23f7af14bba0139e61bb8f403c4ef53dfee44023",
+  "boringssl_rev": "6ac7ca19009a23230a21a55d998a5e0c931df195",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "9360cc98ac03a6e50a9f56213fb7f45e62f55fcf",
+  "devtools_rev": "ed691cae7fb35f6c77950b0e13746893715e4ec8",
   # Use the SHA found in `flutter-candidate.txt` in the devtools repo.
   "flutter_rev": "36ea2bdeab611e908967b6fa57659998f600a2cb",
   "icu_rev": "1b2e3e8a421efae36141a7b932b41e315b089af8",
@@ -133,24 +133,24 @@ vars = {
   # EOL comment after a dependency to instead pin at the current revision.
   "ai_rev": "0a85ddf4f75cee6e3abe07cecdffae69bbdbc793",
   "core_rev": "5c3e2c38df268be2347f3aad30ced0147dd012bb", # b/444274553
-  "dartdoc_rev": "ec2a4feee51961e9fbdd2bd94060cc8fc994c47e",
-  "ecosystem_rev": "96ee86147a5f4c70aed64262e1521b745936cdb1",
-  "flute_rev": "d5adc4d6439572db5da71a9261b9bf0c7c96daa4",
-  "http_rev": "2c53fa3c558ec5d1dd9fce4360d435113dba11e5",
+  "dartdoc_rev": "6d1aa6f5045c33d3723aba05e3e0dc1403b763c0",
+  "ecosystem_rev": "6a8746e70b315aceec7f81cae9bef8b67abb2453",
+  "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
+  "http_rev": "2cb6c12966e18abc11a0217a8b613742849a29ea",
   "i18n_rev": "34d1832b7e65d9aef1f7f6a82c22f6e53476191c",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "3ec573500f743d4a1393f7802143aef50fec0a47", # rolled manually while native assets are experimental
-  "protobuf_rev": "14bbd0bd7ff9b7e322ff4e85bd243f6905170b92",
+  "protobuf_rev": "7db07843c86de526edbe3c4d668c0962ef0b203b",
   "pub_rev": "f7f1891e2de3d795532f45ec214f88ac912ffcd6", # rolled manually
-  "shelf_rev": "f30d65034a868530a9aa9ada7c3067d22fa01185",
+  "shelf_rev": "710b8cef08f69acf176c807eaf274dfb8656fde0",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "8083c8f24ffbca58cc0385add03c296b70636e7a",
-  "tools_rev": "6866f9b19553625cc8af099d67aecbfb02067dcb",
+  "test_rev": "5855358095b8718712567b8abc0435ddfd125ba8",
+  "tools_rev": "856ad3bc9384d06b24a671afa5982179b304ec31",
   "vector_math_rev": "a7b7e9ccb931348dbfa669e0f8fea1bf97705b16",
-  "web_rev": "816abcc1bf186f61c7e66e7f4c56d1554a61ab27",
-  "webdev_rev": "29ba1b12c83b5d0e34bc61181801120c36b95c54",
+  "web_rev": "5a7d0be70a258252b95bac6b900f26d6dae4d433",
+  "webdev_rev": "b9c39c00853dfad0e235bec3b265f86a0f4f328a",
   "webdriver_rev": "09104f459ed834d48b132f6b7734923b1fbcf2e9",
   "webkit_inspection_protocol_rev": "0f7685804d77ec02c6564d7ac1a6c8a2341c5bdf",
 
@@ -163,9 +163,9 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "141.0.7390.30",
+  "chrome_tag": "142.0.7444.34",
   "download_firefox": False,
-  "firefox_tag": "143.0.1",
+  "firefox_tag": "144.0",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
@@ -316,7 +316,7 @@ deps = {
       Var("chromium_git") + "/chromium/src/third_party/jinja2.git" +
       "@" + Var("jinja2_rev"),
 
-  Var("dart_root") + "/third_party/perfetto":
+  Var("dart_root") + "/third_party/perfetto/src":
       Var("android_git") + "/platform/external/perfetto" +
       "@" + Var("perfetto_rev"),
 
@@ -556,26 +556,16 @@ deps = {
       "dep_type": "cipd",
   },
 
-  Var("dart_root") + "/third_party/android_tools/ndk": {
-      "packages": [
-          {
-            "package": "flutter/android/ndk/${{os}}-amd64",
-            "version": "version:r27.0.10869015"
-          }
-      ],
-      "condition": "download_android_deps",
-      "dep_type": "cipd",
-  },
-  Var("dart_root") + "/third_party/android_tools/sdk/platform-tools": {
-      "packages": [
-          {
-            "package": "flutter/android/sdk/platform-tools/linux-amd64",
-            "version": "1tZc4sOxZS6FQIvT5i0wwdycmM8AO7QZY32FC9_HfR4C"
-          }
-      ],
-      "condition": "download_android_deps",
-      "dep_type": "cipd",
-  },
+  Var("dart_root") + "/third_party/android_tools": {
+     "packages": [
+       {
+        "package": "flutter/android/sdk/all/${{platform}}",
+        "version": "version:36v3"
+       }
+     ],
+     "condition": "download_android_deps",
+     "dep_type": "cipd",
+   },
 
   Var("dart_root") + "/third_party/fuchsia/sdk/linux": {
     "packages": [
@@ -592,7 +582,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "JUeFbA8y0E-_pj-bgvR6glsLIO-gJIHlR9RtM5zxni8C",
+      "version": "OVc1OGW48MqzyzP25wSoNf4dWoEjuVG5deVNKlgJDwoC",
       }
     ],
     "condition": 'download_fuchsia_deps',

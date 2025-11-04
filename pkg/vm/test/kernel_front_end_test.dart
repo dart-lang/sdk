@@ -14,9 +14,7 @@ import 'package:vm/kernel_front_end.dart';
 final String sdkDir = Platform.script.resolve('../../..').toFilePath();
 
 String platformPath() =>
-    computePlatformBinariesLocation()
-        .resolve('vm_platform.dill')
-        .toFilePath();
+    computePlatformBinariesLocation().resolve('vm_platform.dill').toFilePath();
 
 const String mainScript = 'pkg/vm/bin/gen_kernel.dart';
 const String mainScriptPackageUri = 'package:vm/kernel_front_end.dart';

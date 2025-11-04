@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_byte_stream_channel.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
@@ -248,6 +249,7 @@ class LspServerClient {
       inputStream,
       outputStream,
       instrumentationService ?? InstrumentationLogAdapter(PrintableLogger()),
+      sessionLogger: SessionLogger(),
     )..listen(_serverToClient.add);
   }
 

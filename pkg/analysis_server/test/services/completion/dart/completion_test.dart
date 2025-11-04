@@ -323,12 +323,10 @@ class Fclass extends Bclass with  Eclass {}
 replacement
   right: 5
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
-  export '';
+  export '^';
     kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -357,12 +355,10 @@ suggestions
     kind: keyword
   mixin
     kind: keyword
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
-  part of '';
+  part of '^';
     kind: keyword
-    selection: 9
   sealed
     kind: keyword
   typedef
@@ -2484,8 +2480,6 @@ suggestions
     kind: import
   dart:async
     kind: import
-  dart:async2
-    kind: import
   dart:collection
     kind: import
   dart:convert
@@ -4095,8 +4089,6 @@ replacement
 suggestions
   n
     kind: localVariable
-  null
-    kind: keyword
   const
     kind: keyword
 ''');
@@ -4113,35 +4105,30 @@ replacement
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   A
     kind: class
   final
@@ -4583,35 +4570,30 @@ class x {^}
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   num
     kind: class
   final
@@ -5000,8 +4982,6 @@ suggestions
   true
     kind: keyword
   false
-    kind: keyword
-  null
     kind: keyword
   this
     kind: keyword
@@ -5906,17 +5886,38 @@ void r() {
   x(^);
 }
 ''');
+    // Could be:
+    //
+    // ```dart
+    // switch (i) {
+    //   < 0 => (k) {},
+    //   _ => v,
+    // }
+    // ```
     assertResponse(r'''
 suggestions
   v
     kind: localVariable
-  true
+  switch
     kind: keyword
-  false
-    kind: keyword
+''');
+  }
+
+  Future<void> test_commentSnippets058_1_nullable() async {
+    allowedIdentifiers = {'v'};
+    await computeSuggestions('''
+typedef void callback(int k);
+void x(callback? q){}
+void r() {
+  callback v;
+  x(^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  v
+    kind: localVariable
   null
-    kind: keyword
-  const
     kind: keyword
   switch
     kind: keyword
@@ -7962,8 +7963,6 @@ suggestions
     kind: constructorInvocation
   A.second
     kind: constructorInvocation
-  null
-    kind: keyword
   false
     kind: keyword
   true
@@ -8896,8 +8895,6 @@ suggestions
     kind: import
   dart:async
     kind: import
-  dart:async2
-    kind: import
   dart:collection
     kind: import
   dart:convert
@@ -8962,8 +8959,6 @@ suggestions
   dart:
     kind: import
   dart:async
-    kind: import
-  dart:async2
     kind: import
   dart:collection
     kind: import
@@ -9053,9 +9048,8 @@ import^
 replacement
   left: 6
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
 ''');
   }
 
@@ -9106,10 +9100,9 @@ suggestions
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   String
     kind: class
   abstract
@@ -9678,35 +9671,30 @@ class Collection{}class List extends Collection{}class Foo { ^ }
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   Collection
     kind: class
   List
@@ -9747,35 +9735,30 @@ class Collection{}class List extends Collection{}class Foo {^}
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   Collection
     kind: class
   List
@@ -9840,16 +9823,14 @@ replacement
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   Collection
     kind: class
   static

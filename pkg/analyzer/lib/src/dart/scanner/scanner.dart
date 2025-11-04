@@ -4,18 +4,18 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
-    show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
+    show translateErrorToken;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -48,7 +48,7 @@ class Scanner {
 
   /// The diagnostic listener that will be informed of any diagnostics that are
   /// found during the scan.
-  final DiagnosticOrErrorListener _diagnosticListener;
+  final DiagnosticListener _diagnosticListener;
 
   /// If the file has [fasta.LanguageVersionToken], it is allowed to use the
   /// language version greater than the one specified in the package config.
@@ -71,7 +71,7 @@ class Scanner {
   factory Scanner(
     Source source,
     CharacterReader reader,
-    DiagnosticOrErrorListener diagnosticListener,
+    DiagnosticListener diagnosticListener,
   ) => Scanner.fasta(
     source,
     diagnosticListener,
@@ -81,7 +81,7 @@ class Scanner {
 
   factory Scanner.fasta(
     Source source,
-    DiagnosticOrErrorListener diagnosticListener, {
+    DiagnosticListener diagnosticListener, {
     String? contents,
     int offset = -1,
   }) {
@@ -130,7 +130,7 @@ class Scanner {
   }
 
   void reportError(
-    ScannerErrorCode errorCode,
+    DiagnosticCode errorCode,
     int offset,
     List<Object?>? arguments,
   ) {

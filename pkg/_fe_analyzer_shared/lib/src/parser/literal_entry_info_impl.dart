@@ -192,7 +192,7 @@ class IfCondition extends LiteralEntryInfo {
     parser.listener.beginIfControlFlow(ifToken);
     Token result = parser.ensureParenthesizedCondition(
       ifToken,
-      allowCase: parser.allowPatterns,
+      allowCase: parser.isPatternsFeatureEnabled,
     );
     parser.listener.handleThenControlFlow(result);
     return result;

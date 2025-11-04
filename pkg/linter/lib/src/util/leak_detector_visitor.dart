@@ -2,20 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
-import '../analyzer.dart';
 import '../ast.dart';
 
 /// Builds a function that reports a variable node if none of the [predicates]
 /// return `true` for any node inside the [container] node.
 _VisitVariableDeclaration _buildVariableReporter(
   AstNode container,
-  LintRule rule,
+  AnalysisRule rule,
   Map<DartTypePredicate, String> predicates, {
   required _VariableType variableType,
 }) => (VariableDeclaration variable) {
@@ -118,7 +118,7 @@ typedef DartTypePredicate = bool Function(DartType type);
 typedef _VisitVariableDeclaration = void Function(VariableDeclaration node);
 
 abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   LeakDetectorProcessors(this.rule);
 

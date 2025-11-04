@@ -14,7 +14,11 @@ import 'class_member_parser.dart' show ClassMemberParser;
 /// Parser which only parses top-level elements, but ignores their bodies.
 /// Use [Parser] to parse everything.
 class TopLevelParser extends ClassMemberParser {
-  TopLevelParser(super.listener, {super.useImplicitCreationExpression});
+  TopLevelParser(
+    super.listener, {
+    super.useImplicitCreationExpression,
+    required super.experimentalFeatures,
+  });
 
   @override
   Token parseClassOrMixinOrExtensionBody(

@@ -71,8 +71,6 @@ suggestions
     kind: keyword
   false
     kind: keyword
-  null
-    kind: keyword
   const
     kind: keyword
   switch
@@ -98,8 +96,6 @@ replacement
 suggestions
   random
     kind: localVariable
-  null
-    kind: keyword
   false
     kind: keyword
   true
@@ -237,6 +233,83 @@ suggestions
     kind: keyword
 ''');
   }
+
+  Future<void> test_closure_namedParameters() async {
+    includeClosures = true;
+    await computeSuggestions('''
+void f(void Function(int i) x) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  (i) => ^,
+    kind: invocation
+  (i) {
+    ^
+  },
+    kind: invocation
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_closure_unnamedParameters() async {
+    includeClosures = true;
+    await computeSuggestions('''
+void f(void Function(int) x) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  (p0) => ^,
+    kind: invocation
+  (p0) {
+    ^
+  },
+    kind: invocation
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_closure_unnamedParameters_equal() async {
+    includeClosures = true;
+    await computeSuggestions('''
+void f(void Function(int p2, int p2_1, int) x) {
+  f(^);
+}
+''');
+    // We expect it to try and use `p2` but since it is already in use, it
+    // should try `p2_1`, and then `p2_2`.
+    assertResponse('''
+suggestions
+  (p2, p2_1, p2_2) => ^,
+    kind: invocation
+  (p2, p2_1, p2_2) {
+    ^
+  },
+    kind: invocation
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_nullableClosure() async {
+    await computeSuggestions('''
+void f(void Function(int i)? x) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  null
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
 }
 
 @reflectiveTest
@@ -265,9 +338,8 @@ build() => new Row(
 
     assertResponse(r'''
 suggestions
-  children: [],
+  children: [^],
     kind: namedArgument
-    selection: 11
 ''');
   }
 
@@ -289,9 +361,8 @@ build() => new Row(
 
     assertResponse(r'''
 suggestions
-  children: [],
+  children: [^],
     kind: namedArgument
-    selection: 11
 ''');
   }
 
@@ -360,9 +431,8 @@ build() => new Row(
 
     assertResponse(r'''
 suggestions
-  children: [],
+  children: [^],
     kind: namedArgument
-    selection: 11
 ''');
   }
 
@@ -386,9 +456,8 @@ build() => new Scaffold(
 
     assertResponse(r'''
 suggestions
-  backgroundColor: ,
+  backgroundColor: ^,
     kind: namedArgument
-    selection: 17
 ''');
   }
 
@@ -412,9 +481,8 @@ class DynamicRow extends Widget {
 
     assertResponse(r'''
 suggestions
-  children: [],
+  children: [^],
     kind: namedArgument
-    selection: 11
 ''');
   }
 
@@ -437,9 +505,8 @@ class MapRow extends Widget {
 
     assertResponse(r'''
 suggestions
-  children: ,
+  children: ^,
     kind: namedArgument
-    selection: 10
 ''');
   }
 
@@ -461,9 +528,8 @@ class CustomScrollView extends Widget {
 
     assertResponse(r'''
 suggestions
-  slivers: [],
+  slivers: [^],
     kind: namedArgument
-    selection: 10
 ''');
   }
 
@@ -547,9 +613,8 @@ suggestions
 replacement
   left: 1
 suggestions
-  foo01: ,
+  foo01: ^,
     kind: namedArgument
-    selection: 7
 ''', where: where);
       },
     );
@@ -612,9 +677,8 @@ suggestions
       check: (String where) {
         assertResponse(r'''
 suggestions
-  foo01: ,
+  foo01: ^,
     kind: namedArgument
-    selection: 7
 ''', where: where);
       },
     );
@@ -687,9 +751,8 @@ suggestions
       check: (String where) {
         assertResponse(r'''
 suggestions
-  foo02: ,
+  foo02: ^,
     kind: namedArgument
-    selection: 7
 ''', where: where);
       },
     );

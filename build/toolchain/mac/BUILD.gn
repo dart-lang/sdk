@@ -21,6 +21,7 @@ mac_toolchain_suite("ios_clang_arm64") {
   asm = "${assembler_prefix}${prefix}/clang"
   ar = "${prefix}/llvm-ar"
   ld = "${link_prefix}${prefix}/clang++"
+  dsymutil = "${prefix}/dsymutil"
   strip = "${prefix}/llvm-strip"
   nm = "${prefix}/llvm-nm"
   is_clang = true
@@ -44,6 +45,7 @@ mac_toolchain_suite("ios_clang_arm64_sim") {
   asm = "${assembler_prefix}${prefix}/clang"
   ar = "${prefix}/llvm-ar"
   ld = "${link_prefix}${prefix}/clang++"
+  dsymutil = "${prefix}/dsymutil"
   strip = "${prefix}/llvm-strip"
   nm = "${prefix}/llvm-nm"
   is_clang = true
@@ -68,6 +70,7 @@ mac_toolchain_suite("ios_clang_x64_sim") {
   asm = "${assembler_prefix}${prefix}/clang"
   ar = "${prefix}/llvm-ar"
   ld = "${link_prefix}${prefix}/clang++"
+  dsymutil = "${prefix}/dsymutil"
   strip = "${prefix}/llvm-strip"
   nm = "${prefix}/llvm-nm"
   is_clang = true
@@ -93,6 +96,7 @@ if (is_watchos) {
     asm = "${assembler_prefix}${prefix}/clang"
     ar = "${prefix}/llvm-ar"
     ld = "${link_prefix}${prefix}/clang++"
+    dsymutil = "${prefix}/dsymutil"
     strip = "${prefix}/llvm-strip"
     nm = "${prefix}/llvm-nm"
     is_clang = true
@@ -116,6 +120,7 @@ if (is_watchos) {
     asm = "${assembler_prefix}${prefix}/clang"
     ar = "${prefix}/llvm-ar"
     ld = "${link_prefix}${prefix}/clang++"
+    dsymutil = "${prefix}/dsymutil"
     strip = "${prefix}/llvm-strip"
     nm = "${prefix}/llvm-nm"
     is_clang = true
@@ -140,6 +145,7 @@ mac_toolchain_suite("clang_x64") {
   asm = "${assembler_prefix}${prefix}/clang"
   ar = "${prefix}/llvm-ar"
   ld = "${link_prefix}${prefix}/clang++"
+  dsymutil = "${prefix}/dsymutil"
   strip = "${prefix}/llvm-strip"
   nm = "${prefix}/llvm-nm"
   is_clang = true
@@ -162,6 +168,7 @@ mac_toolchain_suite("clang_arm64") {
   asm = "${assembler_prefix}${prefix}/clang"
   ar = "${prefix}/llvm-ar"
   ld = "${link_prefix}${prefix}/clang++"
+  dsymutil = "${prefix}/dsymutil"
   strip = "${prefix}/llvm-strip"
   nm = "${prefix}/llvm-nm"
   is_clang = true

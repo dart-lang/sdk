@@ -299,7 +299,7 @@ void f() {
   E.ONE;
 }
 ''',
-      errorFilter: (e) {
+      filter: (e) {
         return e.diagnosticCode == CompileTimeErrorCode.undefinedEnumConstant;
       },
     );
@@ -321,7 +321,7 @@ E e() {
   return .ONE;
 }
 ''',
-      errorFilter: (e) {
+      filter: (e) {
         return e.diagnosticCode ==
             CompileTimeErrorCode.dotShorthandUndefinedGetter;
       },

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,7 +14,7 @@ import '../utils.dart';
 
 const _desc = r'Name extensions using UpperCamelCase.';
 
-class CamelCaseExtensions extends LintRule {
+class CamelCaseExtensions extends AnalysisRule {
   CamelCaseExtensions()
     : super(name: LintNames.camel_case_extensions, description: _desc);
 
@@ -31,7 +32,7 @@ class CamelCaseExtensions extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

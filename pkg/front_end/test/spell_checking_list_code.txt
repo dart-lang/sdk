@@ -45,6 +45,7 @@ agree
 agreeing
 ahe
 ai
+aid
 aiki
 ainv
 aka
@@ -225,6 +226,7 @@ caller's
 callers
 callsite
 came
+camel
 canary
 canonicalizer
 canonicalizing
@@ -453,6 +455,7 @@ delegating
 delim
 delimit
 delimiting
+delivered
 demands
 demangle
 demangled
@@ -991,6 +994,7 @@ jvm
 k
 kallentu
 kb
+kebab
 kernel's
 keyed
 kick
@@ -1684,6 +1688,7 @@ severities
 sh
 sha
 shadowed
+shadows
 shaker
 shaking
 shallow
@@ -1734,6 +1739,7 @@ slowing
 smi
 smith
 sn
+snake
 socket
 sockets
 soft

@@ -88,7 +88,7 @@ void main() {
 @reflectiveTest
 class RemoveUnusedParameterTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_PARAMETER;
+  FixKind get kind => DartFixKind.removeUnusedParameter;
 
   @override
   String get lintCode => LintNames.avoid_unused_constructor_parameters;
@@ -135,7 +135,7 @@ class C {
   C(int b = 1,);
 }
 ''',
-      errorFilter: (e) => e.offset == testCode.indexOf('int a'),
+      filter: (e) => e.offset == testCode.indexOf('int a'),
       allowFixAllFixes: true,
     );
   }
@@ -335,7 +335,7 @@ class C {
 @reflectiveTest
 class RemoveUnusedParameterTestHint extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_PARAMETER;
+  FixKind get kind => DartFixKind.removeUnusedParameter;
 
   Future<void> test_optionalNamed() async {
     await resolveTestCode('''

@@ -1352,9 +1352,9 @@ severity: $severity
         );
         DietParser parser = new DietParser(
           new ForwardingListener(),
-          allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-          enableFeatureEnhancedParts:
-              libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
+          experimentalFeatures: new LibraryExperimentalFeatures(
+            libraryBuilder.libraryFeatures,
+          ),
         );
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
@@ -1366,9 +1366,9 @@ severity: $severity
         );
         Parser parser = new Parser(
           new ForwardingListener(),
-          allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-          enableFeatureEnhancedParts:
-              libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
+          experimentalFeatures: new LibraryExperimentalFeatures(
+            libraryBuilder.libraryFeatures,
+          ),
         );
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
@@ -1383,9 +1383,9 @@ severity: $severity
     );
     DietParser parser = new DietParser(
       listener,
-      allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts:
-          libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(
+        libraryBuilder.libraryFeatures,
+      ),
     );
     parser.parseUnit(tokens);
     for (SourceCompilationUnit compilationUnit in libraryBuilder.parts) {
@@ -1402,9 +1402,9 @@ severity: $severity
       );
       DietParser parser = new DietParser(
         listener,
-        allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-        enableFeatureEnhancedParts:
-            libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
+        experimentalFeatures: new LibraryExperimentalFeatures(
+          libraryBuilder.libraryFeatures,
+        ),
       );
       parser.parseUnit(tokens);
     }

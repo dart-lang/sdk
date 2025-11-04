@@ -159,7 +159,7 @@ int64_t File::Write(const void* buffer, int64_t num_bytes) {
   ASSERT(fd >= 0 && num_bytes <= MAXDWORD && num_bytes >= 0);
   HANDLE handle = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
   DWORD written = 0;
-  BOOL result = WriteFile(handle, buffer, num_bytes, &written, nullptr);
+  BOOL result = ::WriteFile(handle, buffer, num_bytes, &written, nullptr);
   if (!result) {
     return -1;
   }
@@ -1128,11 +1128,41 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   return kPipe;
 }
 
+static BOOL GetReparsePointTag(const wchar_t* path, DWORD* tag) {
+  WIN32_FIND_DATA data;
+  HANDLE result = FindFirstFileW(path, &data);
+  if (result == INVALID_HANDLE_VALUE) {
+    return FALSE;
+  }
+  FindClose(result);
+
+  if ((data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+    // The meaning of |dwReserved0| is documented in
+    // https://learn.microsoft.com/en-us/windows/win32/fileio/reparse-point-tags
+    *tag = data.dwReserved0;
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
 File::Type File::GetType(const wchar_t* path, bool follow_links) {
   DWORD attributes = GetFileAttributesW(path);
   if (attributes == INVALID_FILE_ATTRIBUTES) {
     return File::kDoesNotExist;
   } else if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+    DWORD tag;
+    if (!GetReparsePointTag(path, &tag)) {
+      return File::kDoesNotExist;
+    }
+
+    // We treat only Unix domain sockets specially - all other reparse points
+    // we treat as links, even though there are many other types of them. See:
+    // https://learn.microsoft.com/en-us/windows/win32/fileio/reparse-point-tags
+    if (tag == IO_REPARSE_TAG_AF_UNIX) {
+      return File::kIsSock;
+    }
+
     if (follow_links) {
       HANDLE target_handle = CreateFileW(
           path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,

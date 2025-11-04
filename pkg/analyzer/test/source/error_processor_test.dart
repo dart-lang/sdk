@@ -61,7 +61,12 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    diagnosticCode: LintCode('annotate_overrides', ''),
+    diagnosticCode: LintCode(
+      'annotate_overrides',
+      '',
+      // ignore: deprecated_member_use_from_same_package
+      uniqueNameCheck: 'LintCode.annotate_overrides',
+    ),
   );
 
   group('ErrorProcessor', () {

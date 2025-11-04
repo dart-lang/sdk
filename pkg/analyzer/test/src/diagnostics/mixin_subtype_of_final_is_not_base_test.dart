@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -23,7 +23,7 @@ final class A {}
 mixin B implements A {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase,
           23,
           1,
@@ -42,19 +42,20 @@ sealed class B implements A {}
 mixin C implements B {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase,
           54,
           1,
           text:
               "The mixin 'C' must be 'base' because the supertype 'A' is 'final'.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               12,
               1,
-              text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -69,7 +70,7 @@ final class A {}
 mixin B on A {}
 ''',
       [
-        error(
+        this.error(
           CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase,
           23,
           1,

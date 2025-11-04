@@ -5,4 +5,7 @@
 library front_end.dynamic_module_validator;
 
 export '../kernel/dynamic_module_validator.dart'
-    show DynamicInterfaceLanguageImplPragmas, DynamicInterfaceSpecification;
+    show
+        DynamicInterfaceLanguageImplPragmas,
+        DynamicInterfaceYamlFile,
+        DynamicInterfaceSpecification;

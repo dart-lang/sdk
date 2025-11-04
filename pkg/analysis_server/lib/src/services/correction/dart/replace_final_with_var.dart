@@ -54,13 +54,13 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
 
   @override
   FixKind get fixKind => _removeFinal
-      ? DartFixKind.REMOVE_UNNECESSARY_FINAL
-      : DartFixKind.REPLACE_FINAL_WITH_VAR;
+      ? DartFixKind.removeUnnecessaryFinal
+      : DartFixKind.replaceFinalWithVar;
 
   @override
   FixKind get multiFixKind => _removeFinal
-      ? DartFixKind.REMOVE_UNNECESSARY_FINAL_MULTI
-      : DartFixKind.REPLACE_FINAL_WITH_VAR_MULTI;
+      ? DartFixKind.removeUnnecessaryFinalMulti
+      : DartFixKind.replaceFinalWithVarMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

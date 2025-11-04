@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -795,6 +796,23 @@ class PropertyElementResolver with ScopeHelpers {
         readElement = typeReference.getMethod(propertyName.name);
         if (readElement != null && !_isAccessible(readElement)) {
           readElement = null;
+        }
+      }
+
+      if (readElement == null) {
+        if (_definingLibrary.featureSet.isEnabled(Feature.static_extensions)) {
+          // When direct lookups fail, try static extension resolution.
+          var result = _resolver.typePropertyResolver.resolveForDeclaration(
+            declaration: typeReference,
+            name: propertyName.name,
+            hasRead: hasRead,
+            hasWrite: hasWrite,
+            propertyErrorEntity: propertyName,
+            nameErrorEntity: propertyName,
+          );
+          if (result.getter2 != null) {
+            readElement = result.getter2;
+          }
         }
       }
 

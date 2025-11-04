@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
@@ -137,7 +138,7 @@ DartType? getExpectedType(PostfixExpression node) {
   return null;
 }
 
-class UnnecessaryNullChecks extends LintRule {
+class UnnecessaryNullChecks extends AnalysisRule {
   UnnecessaryNullChecks()
     : super(
         name: LintNames.unnecessary_null_checks,
@@ -160,7 +161,7 @@ class UnnecessaryNullChecks extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   final RuleContext context;
   _Visitor(this.rule, this.context);

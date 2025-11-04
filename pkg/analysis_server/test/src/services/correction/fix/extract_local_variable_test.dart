@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ExtractLocalVariableTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.EXTRACT_LOCAL_VARIABLE;
+  FixKind get kind => DartFixKind.extractLocalVariable;
 
   Future<void> test_ifCondition_notBangEq() async {
     await resolveTestCode('''

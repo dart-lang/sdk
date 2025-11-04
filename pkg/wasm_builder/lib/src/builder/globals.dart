@@ -43,8 +43,27 @@ class GlobalsBuilder with Builder<ir.Globals> {
 
   @override
   ir.Globals forceBuild() {
-    final built = finalizeImportsAndBuilders<ir.DefinedGlobal>(
-        _importedGlobals, _globalBuilders);
+    final order = <GlobalBuilder>{};
+
+    void dfs(GlobalBuilder b) {
+      final instructions = b.initializer.build();
+      for (final i in instructions.instructions) {
+        if (i is ir.GlobalGet) {
+          final global = i.global;
+          if (global is GlobalBuilder && !order.contains(global)) {
+            dfs(global);
+          }
+        }
+      }
+      order.add(b);
+    }
+
+    for (final g in _globalBuilders) {
+      dfs(g);
+    }
+
+    final built =
+        finalizeImportsAndBuilders<ir.DefinedGlobal>(_importedGlobals, order);
     return ir.Globals(_importedGlobals, built);
   }
 }

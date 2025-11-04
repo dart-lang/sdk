@@ -17,11 +17,10 @@ class ReplaceWithConditionalAssignment extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT;
+  FixKind get fixKind => DartFixKind.replaceWithConditionalAssignment;
 
   @override
-  FixKind get multiFixKind =>
-      DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceWithConditionalAssignmentMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -28,9 +28,10 @@ class _RegisteredFixGenerators {
   ///
   /// The generators are then used to build fixes for those diagnostics. The
   /// generators used for non-lint diagnostics are in the [nonLintProducers].
-  final Map<LintCode, List<ProducerGenerator>> lintProducers = {};
+  final Map<DiagnosticCode, List<ProducerGenerator>> lintProducers = {};
 
-  final Map<LintCode, List<MultiProducerGenerator>> lintMultiProducers = {};
+  final Map<DiagnosticCode, List<MultiProducerGenerator>> lintMultiProducers =
+      {};
 
   /// A map from diagnostic codes to a list of generators used to create
   /// multiple correction producers used to build fixes for those diagnostics.
@@ -52,7 +53,7 @@ class _RegisteredFixGenerators {
 
   /// A map from lint codes to a list of fix generators that work with only
   /// parsed results.
-  final Map<LintCode, List<ProducerGenerator>> parseLintProducers = {};
+  final Map<DiagnosticCode, List<ProducerGenerator>> parseLintProducers = {};
 
   /// Clears the lint producers.
   void clearLintProducers() {

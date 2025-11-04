@@ -1064,6 +1064,7 @@ abstract mixin class Stream<T> {
   /// print(result); // 28
   /// ```
   Future<T> reduce(T combine(T previous, T element)) {
+    @pragma('vm:awaiter-link')
     _Future<T> result = _Future<T>();
     bool seenFirst = false;
     late T value;
@@ -1072,7 +1073,7 @@ abstract mixin class Stream<T> {
       onError: result._completeError,
       onDone: () {
         if (!seenFirst) {
-          var stack = StackTrace.empty;
+          var stack = StackTrace.current;
           var error = IterableElementError.noElement();
           _trySetStackTrace(error, stack);
           _completeWithErrorCallback(result, error, stack);
@@ -1643,12 +1644,13 @@ abstract mixin class Stream<T> {
   /// Except for the type of the error, this method is equivalent to
   /// `this.elementAt(0)`.
   Future<T> get first {
+    @pragma('vm:awaiter-link')
     _Future<T> future = _Future<T>();
     StreamSubscription<T> subscription = this.listen(
       null,
       onError: future._completeError,
       onDone: () {
-        var stack = StackTrace.empty;
+        var stack = StackTrace.current;
         var error = IterableElementError.noElement();
         _trySetStackTrace(error, stack);
         _completeWithErrorCallback(future, error, stack);
@@ -1670,6 +1672,7 @@ abstract mixin class Stream<T> {
   /// If this stream is empty (the done event is the first event),
   /// the returned future completes with an error.
   Future<T> get last {
+    @pragma('vm:awaiter-link')
     _Future<T> future = _Future<T>();
     late T result;
     bool foundResult = false;
@@ -1684,7 +1687,7 @@ abstract mixin class Stream<T> {
           future._complete(result);
           return;
         }
-        var stack = StackTrace.empty;
+        var stack = StackTrace.current;
         var error = IterableElementError.noElement();
         _trySetStackTrace(error, stack);
         _completeWithErrorCallback(future, error, stack);
@@ -1703,6 +1706,7 @@ abstract mixin class Stream<T> {
   /// If this [Stream] is empty or has more than one element,
   /// the returned future completes with an error.
   Future<T> get single {
+    @pragma('vm:awaiter-link')
     _Future<T> future = _Future<T>();
     late T result;
     bool foundResult = false;
@@ -1714,7 +1718,7 @@ abstract mixin class Stream<T> {
           future._complete(result);
           return;
         }
-        var stack = StackTrace.empty;
+        var stack = StackTrace.current;
         var error = IterableElementError.noElement();
         _trySetStackTrace(error, stack);
         _completeWithErrorCallback(future, error, stack);
@@ -1724,7 +1728,7 @@ abstract mixin class Stream<T> {
     subscription.onData((T value) {
       if (foundResult) {
         // This is the second element we get.
-        var stack = StackTrace.empty;
+        var stack = StackTrace.current;
         var error = IterableElementError.tooMany();
         _trySetStackTrace(error, stack);
         _cancelAndErrorWithReplacement(subscription, future, error, stack);
@@ -1773,6 +1777,7 @@ abstract mixin class Stream<T> {
   /// print(result); // -1
   /// ```
   Future<T> firstWhere(bool test(T element), {T orElse()?}) {
+    @pragma('vm:awaiter-link')
     _Future<T> future = _Future();
     StreamSubscription<T> subscription = this.listen(
       null,
@@ -1782,7 +1787,7 @@ abstract mixin class Stream<T> {
           _runUserCode(orElse, future._complete, future._completeError);
           return;
         }
-        var stack = StackTrace.empty;
+        var stack = StackTrace.current;
         var error = IterableElementError.noElement();
         _trySetStackTrace(error, stack);
         _completeWithErrorCallback(future, error, stack);
@@ -1826,6 +1831,7 @@ abstract mixin class Stream<T> {
   /// print(result); // -1
   /// ```
   Future<T> lastWhere(bool test(T element), {T orElse()?}) {
+    @pragma('vm:awaiter-link')
     _Future<T> future = _Future();
     late T result;
     bool foundResult = false;
@@ -1841,7 +1847,7 @@ abstract mixin class Stream<T> {
           _runUserCode(orElse, future._complete, future._completeError);
           return;
         }
-        var stack = StackTrace.empty;
+        var stack = StackTrace.current;
         var error = IterableElementError.noElement();
         _trySetStackTrace(error, stack);
         _completeWithErrorCallback(future, error, stack);
@@ -1893,6 +1899,7 @@ abstract mixin class Stream<T> {
   /// // Throws.
   /// ```
   Future<T> singleWhere(bool test(T element), {T orElse()?}) {
+    @pragma('vm:awaiter-link')
     _Future<T> future = _Future<T>();
     late T result;
     bool foundResult = false;
@@ -1908,7 +1915,7 @@ abstract mixin class Stream<T> {
           _runUserCode(orElse, future._complete, future._completeError);
           return;
         }
-        var stack = StackTrace.empty;
+        var stack = StackTrace.current;
         var error = IterableElementError.noElement();
         _trySetStackTrace(error, stack);
         _completeWithErrorCallback(future, error, stack);
@@ -1920,7 +1927,7 @@ abstract mixin class Stream<T> {
       _runUserCode(() => test(value), (bool isMatch) {
         if (isMatch) {
           if (foundResult) {
-            var stack = StackTrace.empty;
+            var stack = StackTrace.current;
             var error = IterableElementError.tooMany();
             _trySetStackTrace(error, stack);
             _cancelAndErrorWithReplacement(subscription, future, error, stack);
@@ -1950,6 +1957,7 @@ abstract mixin class Stream<T> {
   /// with a [RangeError].
   Future<T> elementAt(int index) {
     RangeError.checkNotNegative(index, "index");
+    @pragma('vm:awaiter-link')
     _Future<T> result = _Future<T>();
     int elementIndex = 0;
     StreamSubscription<T> subscription;
@@ -1964,7 +1972,7 @@ abstract mixin class Stream<T> {
             indexable: this,
             name: "index",
           ),
-          StackTrace.empty,
+          StackTrace.current,
         );
       },
       cancelOnError: true,

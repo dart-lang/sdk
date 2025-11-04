@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,7 +17,7 @@ main() {
 @reflectiveTest
 class InstantiateTypeAliasExpandsToTypeParameterTest
     extends PubPackageResolutionTest {
-  CompileTimeErrorCode get _errorCode =>
+  DiagnosticCode get _errorCode =>
       CompileTimeErrorCode.instantiateTypeAliasExpandsToTypeParameter;
 
   test_const_generic_noArguments_unnamed_typeParameter() async {

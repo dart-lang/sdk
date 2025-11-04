@@ -122,14 +122,6 @@ abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {}
 '''),
 ]);
 
-final MockSdkLibrary _LIB_ASYNC2 = MockSdkLibrary('async2', [
-  MockSdkLibraryUnit('async2/async2.dart', '''
-library dart.async2;
-
-class Future {}
-'''),
-]);
-
 final MockSdkLibrary _LIB_COLLECTION = MockSdkLibrary('collection', [
   MockSdkLibraryUnit('collection/collection.dart', '''
 library dart.collection;
@@ -553,6 +545,7 @@ abstract interface class Map<K, V> {
   bool get isNotEmpty;
   int get length;
   Iterable<V> get values;
+  Iterable<MapEntry<K, V>> get entries;
 
   V? operator [](Object? key);
   void operator []=(K key, V value);
@@ -635,6 +628,10 @@ abstract interface class Pattern {
 
 abstract final class Record {}
 
+@Deprecated.implement(
+  "This class will become 'final' in a future release. "
+  "'Pattern' may be a more appropriate interface to implement.",
+)
 abstract interface class RegExp implements Pattern {
   external factory RegExp(String source, {bool unicode = false});
 }
@@ -890,6 +887,7 @@ abstract base class Union extends _Compound implements SizedNativeType {
   external static T create<T extends Union>([TypedData typedData, int offset]);
 }
 
+@Since('3.5')
 extension IntAddress on int {
   external Pointer<Never> address;
 }
@@ -1080,6 +1078,7 @@ final class AbiSpecificIntegerMapping {
   const AbiSpecificIntegerMapping(this.mapping);
 }
 
+@Since('2.17')
 @AbiSpecificIntegerMapping({})
 final class Int extends AbiSpecificInteger {
   const Int();
@@ -1101,6 +1100,7 @@ extension Int8ListAddress on Int8List {
   external Pointer<Int8> get address;
 }
 
+@Since('3.5')
 extension ArrayAddress<T extends NativeType> on Array<T> {
   external Pointer<T> get address;
 }
@@ -1337,7 +1337,6 @@ class ExternalName {
   const ExternalName(this.name);
 }
 
-@Since("2.2")
 class Since {
   final String version;
   const Since(this.version);
@@ -1461,9 +1460,9 @@ final MockSdkLibrary _LIB_ISOLATE = MockSdkLibrary('isolate', [
   MockSdkLibraryUnit('isolate/isolate.dart', '''
 library dart.isolate;
 
-abstract class SendPort {}
+abstract interface class SendPort {}
 
-class Isolate {
+final class Isolate {
   external static Future<Isolate> spawnUri(
     Uri uri,
     List<String> args,
@@ -1494,6 +1493,21 @@ final MockSdkLibrary _LIB_JS_ANNOTATIONS = MockSdkLibrary('_js_annotations', [
   MockSdkLibraryUnit('js/_js_annotations.dart', '''
 library _js_annotations;
 
+export 'dart:js_interop' show staticInterop;
+
+class JS {
+  final String? name;
+  const JS([this.name]);
+}
+'''),
+]);
+
+final MockSdkLibrary _LIB_JS_INTEROP = MockSdkLibrary('js_interop', [
+  MockSdkLibraryUnit('js/js_interop.dart', '''
+library;
+
+import 'dart:typed_data';
+
 class JS {
   final String? name;
   const JS([this.name]);
@@ -1504,21 +1518,6 @@ class _StaticInterop {
 }
 
 const _StaticInterop staticInterop = _StaticInterop();
-'''),
-]);
-
-final MockSdkLibrary _LIB_JS_INTEROP = MockSdkLibrary('js_interop', [
-  MockSdkLibraryUnit('js/js_interop.dart', '''
-library;
-
-import 'dart:typed_data';
-
-export 'dart:_js_annotations' show staticInterop;
-
-class JS {
-  final String? name;
-  const JS([this.name]);
-}
 
 extension type JSAny._(Object _) implements Object {}
 
@@ -1610,7 +1609,6 @@ final MockSdkLibrary _LIB_WASM = MockSdkLibrary('_wasm', [
 
 final List<MockSdkLibrary> _LIBRARIES = [
   _LIB_ASYNC,
-  _LIB_ASYNC2,
   _LIB_COLLECTION,
   _LIB_CONVERT,
   _LIB_CORE,

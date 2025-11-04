@@ -69,9 +69,6 @@ class ParserTestListener implements Listener {
   void seen(Token? token) {}
 
   @override
-  Uri? get uri => null;
-
-  @override
   void logEvent(String name) {
     doPrint(
       'logEvent('
@@ -551,6 +548,7 @@ class ParserTestListener implements Listener {
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
+    bool forExtensionType,
   ) {
     indent--;
     seen(beginToken);
@@ -559,18 +557,24 @@ class ParserTestListener implements Listener {
       'endPrimaryConstructor('
       '$beginToken, '
       '$constKeyword, '
-      '$hasConstructorName)',
+      '$hasConstructorName, '
+      '$forExtensionType)',
     );
   }
 
   @override
-  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
+  void handleNoPrimaryConstructor(
+    Token token,
+    Token? constKeyword,
+    bool forExtensionType,
+  ) {
     seen(token);
     seen(constKeyword);
     doPrint(
       'handleNoPrimaryConstructor('
       '$token, '
-      '$constKeyword)',
+      '$constKeyword, '
+      '$forExtensionType)',
     );
   }
 
@@ -738,17 +742,38 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginEnum(Token enumKeyword) {
+  void beginEnumDeclarationPrelude(Token enumKeyword) {
     seen(enumKeyword);
     doPrint(
-      'beginEnum('
+      'beginEnumDeclarationPrelude('
       '$enumKeyword)',
     );
     indent++;
   }
 
   @override
-  void endEnum(
+  void beginEnumDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token enumKeyword,
+    Token name,
+  ) {
+    seen(beginToken);
+    seen(augmentToken);
+    seen(enumKeyword);
+    seen(name);
+    doPrint(
+      'beginEnumDeclaration('
+      '$beginToken, '
+      '$augmentToken, '
+      '$enumKeyword, '
+      '$name)',
+    );
+    indent++;
+  }
+
+  @override
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,
@@ -761,7 +786,7 @@ class ParserTestListener implements Listener {
     seen(leftBrace);
     seen(endToken);
     doPrint(
-      'endEnum('
+      'endEnumDeclaration('
       '$beginToken, '
       '$enumKeyword, '
       '$leftBrace, '
@@ -818,6 +843,28 @@ class ParserTestListener implements Listener {
       '$augmentToken, '
       '$enumKeyword, '
       '$leftBrace)',
+    );
+  }
+
+  @override
+  void beginEnumBody(Token token) {
+    seen(token);
+    doPrint(
+      'beginEnumBody('
+      '$token)',
+    );
+    indent++;
+  }
+
+  @override
+  void endEnumBody(Token beginToken, Token endToken) {
+    indent--;
+    seen(beginToken);
+    seen(endToken);
+    doPrint(
+      'endEnumBody('
+      '$beginToken, '
+      '$endToken)',
     );
   }
 
@@ -1010,6 +1057,7 @@ class ParserTestListener implements Listener {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,
@@ -1020,6 +1068,7 @@ class ParserTestListener implements Listener {
     MemberKind memberKind,
   ) {
     indent--;
+    seen(varOrFinal);
     seen(thisKeyword);
     seen(superKeyword);
     seen(periodAfterThisOrSuper);
@@ -1028,6 +1077,7 @@ class ParserTestListener implements Listener {
     seen(initializerEnd);
     doPrint(
       'endFormalParameter('
+      '$varOrFinal, '
       '$thisKeyword, '
       '$superKeyword, '
       '$periodAfterThisOrSuper, '
@@ -4622,15 +4672,15 @@ class ParserTestListener implements Listener {
   @override
   void handleExperimentNotEnabled(
     ExperimentalFlag experimentalFlag,
-    Token startToken,
+    Token beginToken,
     Token endToken,
   ) {
-    seen(startToken);
+    seen(beginToken);
     seen(endToken);
     doPrint(
       'handleExperimentNotEnabled('
       '$experimentalFlag, '
-      '$startToken, '
+      '$beginToken, '
       '$endToken)',
     );
   }

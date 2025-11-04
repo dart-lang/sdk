@@ -33,11 +33,18 @@ lint rules that keep us honest, but not all.
 
 ### Lint rules
 
-- `flutter_style_todos` - Keeps our todo format canonical.
-- `prefer_single_quotes` - We don't enforce this in each of our packages yet, but
+- [`flutter_style_todos`][] - Keeps our todo format canonical.
+- [`prefer_single_quotes`][] - We don't enforce this in each of our packages yet, but
   we aspire to.
-- `unnecessary_breaks` - All our packages require at least Dart `3.0.0`, so we
+- [`unnecessary_breaks`][] - All our packages require at least Dart `3.0.0`, so we
   can do it.
+- [`use_null_aware_elements`][] - All our packages require at least Dart `3.8.0`, so
+  we can do it, and benefit from the more concise syntax.
+
+[`flutter_style_todos`]: https://dart.dev/tools/linter-rules/flutter_style_todos
+[`prefer_single_quotes`]: https://dart.dev/tools/linter-rules/prefer_single_quotes
+[`unnecessary_breaks`]: https://dart.dev/tools/linter-rules/unnecessary_breaks
+[`use_null_aware_elements`]: https://dart.dev/tools/linter-rules/use_null_aware_elements
 
 ### Formatting and sorting
 

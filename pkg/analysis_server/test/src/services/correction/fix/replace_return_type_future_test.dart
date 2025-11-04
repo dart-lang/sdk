@@ -62,7 +62,7 @@ class C {
 @reflectiveTest
 class ReplaceReturnTypeFutureLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
+  FixKind get kind => DartFixKind.replaceReturnTypeFuture;
 
   @override
   String get lintCode => LintNames.avoid_void_async;
@@ -126,7 +126,7 @@ class C {
 @reflectiveTest
 class ReplaceReturnTypeFutureTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
+  FixKind get kind => DartFixKind.replaceReturnTypeFuture;
 
   Future<void> test_complexTypeName_withImport() async {
     await resolveTestCode('''
@@ -138,7 +138,7 @@ List<int> f() async {}
 import 'dart:async';
 Future<List<int>> f() async {}
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.illegalAsyncReturnType;
       },
@@ -164,7 +164,7 @@ int f() async {}
 import 'dart:async' as al;
 al.Future<int> f() async {}
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.illegalAsyncReturnType;
       },
@@ -194,7 +194,7 @@ int f() async {}
 import 'dart:async';
 Future<int> f() async {}
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.illegalAsyncReturnType;
       },

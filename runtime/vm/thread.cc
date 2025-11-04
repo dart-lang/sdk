@@ -83,6 +83,7 @@ Thread::Thread(bool is_vm_isolate)
       api_top_scope_(nullptr),
       double_truncate_round_supported_(
           TargetCPUFeatures::double_truncate_round_supported() ? 1 : 0),
+      random_(),
       tsan_utils_(DO_IF_TSAN(new TsanUtils()) DO_IF_NOT_TSAN(nullptr)),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
@@ -143,10 +144,14 @@ Thread::Thread(bool is_vm_isolate)
     InitVMConstants();
   }
 
+  // For os_signposts, we need task ids that are the unique at least
+  // process-wide. Each thread will be allocating ids sequentially and we hope
+  // the random seed will keep each thread's run of ids from overlapping the
+  // runs of other threads.
 #if defined(DART_HOST_OS_FUCHSIA)
   next_task_id_ = trace_generate_nonce();
 #else
-  next_task_id_ = Random::GlobalNextUInt64();
+  next_task_id_ = random_.NextUInt64();
 #endif
 
   memset(&unboxed_runtime_arg_, 0, sizeof(simd128_value_t));

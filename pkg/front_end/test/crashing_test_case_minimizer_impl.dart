@@ -8,6 +8,7 @@ import 'dart:io' show File, stdin, stdout;
 import 'dart:math' show max;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Listener, Parser;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -19,7 +20,7 @@ import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
+    show ExperimentalFlag, ExperimentalFeaturesFromVersion;
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
@@ -1122,10 +1123,9 @@ worlds:
         String? textualOutlined = textualOutline(
           data!,
           _getScannerConfiguration(languageVersion),
-          enablePatterns:
-              languageVersion >= ExperimentalFlag.patterns.enabledVersion,
-          enableEnhancedParts:
-              languageVersion >= ExperimentalFlag.enhancedParts.enabledVersion,
+          experimentalFeatures: new ExperimentalFeaturesFromVersion(
+            languageVersion,
+          ),
         )?.replaceAll(RegExp(r'\n+'), "\n");
 
         bool outlined = false;
@@ -1460,7 +1460,7 @@ worlds:
         shouldCompile = true;
         what = "toplevel method";
       } else if (child.isEnum()) {
-        EnumEnd decl = child.asEnum();
+        EnumDeclarationEnd decl = child.asEnum();
         helper.replacements.add(
           new _Replacement(
             decl.enumKeyword.offset - 1,
@@ -2426,6 +2426,7 @@ worlds:
     Parser parser = new Parser(
       parserTestListener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      experimentalFeatures: const DefaultExperimentalFeatures(),
     );
     parser.parseUnit(firstToken);
     String parsedString = parser_suite
@@ -2445,6 +2446,7 @@ worlds:
     Parser parser = new Parser(
       parserErrorListener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      experimentalFeatures: const DefaultExperimentalFeatures(),
     );
     parser.parseUnit(firstToken);
     return !parserErrorListener.gotError;

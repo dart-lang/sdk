@@ -14,6 +14,7 @@ void main() {
     defineReflectiveTests(CreateExtensionGetterTest);
     defineReflectiveTests(CreateExtensionMethodTest);
     defineReflectiveTests(CreateExtensionOperatorTest);
+    defineReflectiveTests(CreateExtensionPriorityTest);
     defineReflectiveTests(CreateExtensionSetterTest);
   });
 }
@@ -71,6 +72,25 @@ extension on String {
 }
 ''');
     assertLinkedGroup(change.linkedEditGroups[0], ['null']);
+  }
+
+  Future<void> test_enclosing() async {
+    await resolveTestCode('''
+extension E on String {
+  void f(String s) {
+    int _ = test;
+  }
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  int get test => null;
+
+  void f(String s) {
+    int _ = test;
+  }
+}
+''');
   }
 
   Future<void> test_existingExtension_contextType() async {
@@ -235,6 +255,30 @@ extension E on String {
 ''');
   }
 
+  Future<void> test_main_part() async {
+    var partPath = join(testPackageLibPath, 'part.dart');
+    newFile(partPath, '''
+part of 'test.dart';
+
+extension E on Object {
+}
+''');
+    await resolveTestCode('''
+part 'part.dart';
+
+void foo(Object a) {
+  int _ = E(a).myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part of 'test.dart';
+
+extension E on Object {
+  int get myUndefinedGetter => null;
+}
+''', target: partPath);
+  }
+
   Future<void> test_namedRecord_returnType() async {
     await resolveTestCode('''
 extension E on int {
@@ -389,6 +433,58 @@ extension on String {
 ''');
   }
 
+  Future<void> test_part_main() async {
+    var mainPath = join(testPackageLibPath, 'main.dart');
+    newFile(mainPath, '''
+part 'test.dart';
+
+extension E on Object {
+}
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(Object a) {
+  int _ = E(a).myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part 'test.dart';
+
+extension E on Object {
+  int get myUndefinedGetter => null;
+}
+''', target: mainPath);
+  }
+
+  Future<void> test_part_sibling() async {
+    var part1Path = join(testPackageLibPath, 'part1.dart');
+    newFile(part1Path, '''
+part of 'main.dart';
+
+extension E on Object {
+}
+''');
+    newFile(join(testPackageLibPath, 'main.dart'), '''
+part 'part1.dart';
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(Object a) {
+  int _ = E(a).myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part of 'main.dart';
+
+extension E on Object {
+  int get myUndefinedGetter => null;
+}
+''', target: part1Path);
+  }
+
   Future<void> test_record_returnType() async {
     await resolveTestCode('''
 extension E on int {
@@ -400,6 +496,26 @@ extension E on int {
   (int,) get test => (a,);
 
   int get a => null;
+}
+''');
+  }
+
+  Future<void> test_static() async {
+    await resolveTestCode('''
+extension E on String {
+}
+
+void f(String s) {
+  int _ = E.test;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static int get test => null;
+}
+
+void f(String s) {
+  int _ = E.test;
 }
 ''');
   }
@@ -700,6 +816,51 @@ extension on int {}
 ''');
   }
 
+  Future<void> test_ifNull() async {
+    await resolveTestCode('''
+extension E on Object {
+  int Function()? get _f => null;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+}
+''');
+    await assertHasFix('''
+extension E on Object {
+  int Function()? get _f => null;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+
+  int _defaultF() {}
+}
+''');
+  }
+
+  Future<void> test_main_part() async {
+    var partPath = join(testPackageLibPath, 'part.dart');
+    newFile(partPath, '''
+part of 'test.dart';
+
+extension E on Object {
+}
+''');
+    await resolveTestCode('''
+part 'part.dart';
+
+void foo(Object a) {
+  void Function() _ = E(a).myUndefinedMethod;
+}
+''');
+    await assertHasFix('''
+part of 'test.dart';
+
+extension E on Object {
+  void myUndefinedMethod() {}
+}
+''', target: partPath);
+  }
+
   Future<void> test_multipleSameTypeExistingExtensions() async {
     await resolveTestCode('''
 void f(int i) {
@@ -923,7 +1084,7 @@ extension E on int {
   int foo() {}
 }
 ''',
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
@@ -941,11 +1102,11 @@ extension E on A {
 }
 ''');
     await assertNoFix(
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
     await assertNoFix(
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
@@ -1005,7 +1166,7 @@ extension E on int {
   int foo() {}
 }
 ''',
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
@@ -1019,7 +1180,7 @@ extension E on int {
 }
 ''');
     await assertNoFix(
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
@@ -1042,7 +1203,7 @@ extension E on int {
   int foo() {}
 }
 ''',
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
@@ -1062,7 +1223,7 @@ extension E on B {
 }
 ''');
     await assertNoFix(
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
@@ -1127,6 +1288,58 @@ extension on String {
   void test() {}
 }
 ''');
+  }
+
+  Future<void> test_part_main() async {
+    var mainPath = join(testPackageLibPath, 'main.dart');
+    newFile(mainPath, '''
+part 'test.dart';
+
+extension E on Object {
+}
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(Object a) {
+  void Function() _ = E(a).myUndefinedMethod;
+}
+''');
+    await assertHasFix('''
+part 'test.dart';
+
+extension E on Object {
+  void myUndefinedMethod() {}
+}
+''', target: mainPath);
+  }
+
+  Future<void> test_part_sibling() async {
+    var part1Path = join(testPackageLibPath, 'part1.dart');
+    newFile(part1Path, '''
+part of 'main.dart';
+
+extension E on Object {
+}
+''');
+    newFile(join(testPackageLibPath, 'main.dart'), '''
+part 'part1.dart';
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(Object a) {
+  void Function() _ = E(a).myUndefinedMethod;
+}
+''');
+    await assertHasFix('''
+part of 'main.dart';
+
+extension E on Object {
+  void myUndefinedMethod() {}
+}
+''', target: part1Path);
   }
 
   Future<void> test_record_returnType() async {
@@ -1369,6 +1582,23 @@ extension <T extends num> on T {
 ''');
   }
 
+  Future<void> test_tearoff() async {
+    await resolveTestCode('''
+class A<T> {}
+
+T? Function() i<T>(A<T> a) => a.test;
+''');
+    await assertHasFix('''
+class A<T> {}
+
+T? Function() i<T>(A<T> a) => a.test;
+
+extension <T> on A<T> {
+  T? test() {}
+}
+''');
+  }
+
   Future<void> test_typeArgument_parameter() async {
     await resolveTestCode('''
 void f<T>(T p) {
@@ -1559,6 +1789,30 @@ extension on int {
 ''');
   }
 
+  Future<void> test_main_part() async {
+    var partPath = join(testPackageLibPath, 'part.dart');
+    newFile(partPath, '''
+part of 'test.dart';
+
+extension E on Object {
+}
+''');
+    await resolveTestCode('''
+part 'part.dart';
+
+void foo(Object a) {
+  E(a) + 0;
+}
+''');
+    await assertHasFix('''
+part of 'test.dart';
+
+extension E on Object {
+  void operator +(int other) {}
+}
+''', target: partPath);
+  }
+
   Future<void> test_nullableObject_target() async {
     await resolveTestCode('''
 void f(Object? o) {
@@ -1591,6 +1845,58 @@ extension on int? {
   void operator +(int other) {}
 }
 ''');
+  }
+
+  Future<void> test_part_main() async {
+    var mainPath = join(testPackageLibPath, 'main.dart');
+    newFile(mainPath, '''
+part 'test.dart';
+
+extension E on Object {
+}
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(Object a) {
+  E(a) + 0;
+}
+''');
+    await assertHasFix('''
+part 'test.dart';
+
+extension E on Object {
+  void operator +(int other) {}
+}
+''', target: mainPath);
+  }
+
+  Future<void> test_part_sibling() async {
+    var part1Path = join(testPackageLibPath, 'part1.dart');
+    newFile(part1Path, '''
+part of 'main.dart';
+
+extension E on Object {
+}
+''');
+    newFile(join(testPackageLibPath, 'main.dart'), '''
+part 'part1.dart';
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(Object a) {
+  E(a) + 0;
+}
+''');
+    await assertHasFix('''
+part of 'main.dart';
+
+extension E on Object {
+  void operator +(int other) {}
+}
+''', target: part1Path);
   }
 
   Future<void> test_returnType() async {
@@ -1646,6 +1952,23 @@ extension on String {
 }
 
 @reflectiveTest
+class CreateExtensionPriorityTest extends FixPriorityTest {
+  Future<void> test_method_getter() async {
+    await resolveTestCode('''
+class A {}
+void f(void Function() fn) {
+  f(A().test);
+}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.createField,
+      DartFixKind.createExtensionMethod,
+      DartFixKind.createExtensionGetter,
+    ]);
+  }
+}
+
+@reflectiveTest
 class CreateExtensionSetterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createExtensionSetter;
@@ -1661,6 +1984,25 @@ void f() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_enclosing() async {
+    await resolveTestCode('''
+extension E on String {
+  void f(String s) {
+    test = 0;
+  }
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  set test(int test) {}
+
+  void f(String s) {
+    test = 0;
+  }
+}
+''');
   }
 
   Future<void> test_existingExtension() async {
@@ -1789,6 +2131,60 @@ extension on int {}
 ''');
   }
 
+  Future<void> test_internal_instance() async {
+    await resolveTestCode('''
+extension E on String {
+  int m(int x) => s = x;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  set s(int s) {}
+
+  int m(int x) => s = x;
+}
+''');
+  }
+
+  Future<void> test_internal_static() async {
+    await resolveTestCode('''
+extension E on String {
+  static int m(int x) => s = x;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static set s(int s) {}
+
+  static int m(int x) => s = x;
+}
+''');
+  }
+
+  Future<void> test_main_part() async {
+    var partPath = join(testPackageLibPath, 'part.dart');
+    newFile(partPath, '''
+part of 'test.dart';
+
+extension E on Object {
+}
+''');
+    await resolveTestCode('''
+part 'part.dart';
+
+void foo(Object a) {
+  E(a).myUndefinedSetter = 0;
+}
+''');
+    await assertHasFix('''
+part of 'test.dart';
+
+extension E on Object {
+  set myUndefinedSetter(int myUndefinedSetter) {}
+}
+''', target: partPath);
+  }
+
   Future<void> test_nullableObject_target() async {
     await resolveTestCode('''
 void f(Object? o) {
@@ -1819,6 +2215,26 @@ void f(int? p) {
 
 extension on int? {
   set test(int test) {}
+}
+''');
+  }
+
+  Future<void> test_override() async {
+    await resolveTestCode('''
+extension E on String {
+}
+
+void f(String s) {
+  E(s).test = '0';
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  set test(String test) {}
+}
+
+void f(String s) {
+  E(s).test = '0';
 }
 ''');
   }
@@ -1862,6 +2278,78 @@ void f(String a) {
 
 extension on String {
   set test(int test) {}
+}
+''');
+  }
+
+  Future<void> test_part_main() async {
+    var mainPath = join(testPackageLibPath, 'main.dart');
+    newFile(mainPath, '''
+part 'test.dart';
+
+extension E on Object {
+}
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(Object a) {
+  E(a).myUndefinedSetter = 0;
+}
+''');
+    await assertHasFix('''
+part 'test.dart';
+
+extension E on Object {
+  set myUndefinedSetter(int myUndefinedSetter) {}
+}
+''', target: mainPath);
+  }
+
+  Future<void> test_part_sibling() async {
+    var part1Path = join(testPackageLibPath, 'part1.dart');
+    newFile(part1Path, '''
+part of 'main.dart';
+
+extension E on Object {
+}
+''');
+    newFile(join(testPackageLibPath, 'main.dart'), '''
+part 'part1.dart';
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(Object a) {
+  E(a).myUndefinedSetter = 0;
+}
+''');
+    await assertHasFix('''
+part of 'main.dart';
+
+extension E on Object {
+  set myUndefinedSetter(int myUndefinedSetter) {}
+}
+''', target: part1Path);
+  }
+
+  Future<void> test_static() async {
+    await resolveTestCode('''
+extension E on String {
+}
+
+void f(String s) {
+  E.test = 0;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static set test(int test) {}
+}
+
+void f(String s) {
+  E.test = 0;
 }
 ''');
   }

@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
-    show ScannerErrorCode, translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart'
+    show ScannerErrorCode, ParserErrorCode;
+import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
+    show translateErrorToken;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -70,7 +73,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(open.isSynthetic, isFalse);
     expect(close.isSynthetic, isTrue);
     listener.assertErrors([
-      new TestError(1, ScannerErrorCode.expectedToken, [expectedCloser]),
+      new TestError(1, ParserErrorCode.expectedToken, [expectedCloser]),
     ]);
   }
 
@@ -163,8 +166,8 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(closeParen2.isSynthetic, isTrue);
     expect(eof.isEof, isTrue);
     listener.assertErrors([
-      new TestError(6, ScannerErrorCode.expectedToken, [')']),
-      new TestError(7, ScannerErrorCode.expectedToken, [')']),
+      new TestError(6, ParserErrorCode.expectedToken, [')']),
+      new TestError(7, ParserErrorCode.expectedToken, [')']),
     ]);
   }
 
@@ -187,9 +190,9 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(eof.isEof, true);
 
     listener.assertErrors([
-      new TestError(4, ScannerErrorCode.expectedToken, [')']),
-      new TestError(4, ScannerErrorCode.expectedToken, [']']),
-      new TestError(4, ScannerErrorCode.expectedToken, ['}']),
+      new TestError(4, ParserErrorCode.expectedToken, [')']),
+      new TestError(4, ParserErrorCode.expectedToken, [']']),
+      new TestError(4, ParserErrorCode.expectedToken, ['}']),
     ]);
   }
 
@@ -206,7 +209,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     // places all error tokens at the head of the stream.
     while (token.type == TokenType.BAD_INPUT) {
       translateErrorToken(token as ErrorToken, (
-        ScannerErrorCode errorCode,
+        DiagnosticCode errorCode,
         int offset,
         List<Object>? arguments,
       ) {

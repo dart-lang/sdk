@@ -60,7 +60,7 @@ library
         #F2 main (nameOffset:18) (firstTokenOffset:18) (offset:18)
           element: <testLibrary>::@function::main
           formalParameters
-            #F3 f (nameOffset:25) (firstTokenOffset:23) (offset:25)
+            #F3 requiredPositional f (nameOffset:25) (firstTokenOffset:23) (offset:25)
               element: <testLibrary>::@function::main::@formalParameter::f
   typeAliases
     F
@@ -100,7 +100,7 @@ library
         #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
     x
@@ -206,12 +206,12 @@ library
         #F5 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: <testLibrary>::@setter::x::@formalParameter::value
         #F7 synthetic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
           element: <testLibrary>::@setter::y
           formalParameters
-            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@setter::y::@formalParameter::value
       functions
         #F9 f (nameOffset:35) (firstTokenOffset:21) (offset:35)
@@ -311,9 +311,9 @@ library
                 #F7 W (nameOffset:35) (firstTokenOffset:35) (offset:35)
                   element: #E3 W
               formalParameters
-                #F8 v (nameOffset:40) (firstTokenOffset:38) (offset:40)
+                #F8 requiredPositional v (nameOffset:40) (firstTokenOffset:38) (offset:40)
                   element: <testLibrary>::@class::C::@method::m::@formalParameter::v
-                #F9 w (nameOffset:45) (firstTokenOffset:43) (offset:45)
+                #F9 requiredPositional w (nameOffset:45) (firstTokenOffset:43) (offset:45)
                   element: <testLibrary>::@class::C::@method::m::@formalParameter::w
   classes
     class C
@@ -384,7 +384,7 @@ library
               typeName: D
               typeNameOffset: 48
               formalParameters
-                #F6 c (nameOffset:52) (firstTokenOffset:50) (offset:52)
+                #F6 requiredPositional c (nameOffset:52) (firstTokenOffset:50) (offset:52)
                   element: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
             #F7 const named (nameOffset:83) (firstTokenOffset:75) (offset:83)
               element: <testLibrary>::@class::D::@constructor::named
@@ -392,7 +392,7 @@ library
               typeNameOffset: 81
               periodOffset: 82
               formalParameters
-                #F8 f (nameOffset:105) (firstTokenOffset:89) (offset:105)
+                #F8 requiredPositional f (nameOffset:105) (firstTokenOffset:89) (offset:105)
                   element: <testLibrary>::@class::D::@constructor::named::@formalParameter::f
   classes
     class C
@@ -467,7 +467,7 @@ library
         #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
     hasInitializer v
@@ -513,7 +513,7 @@ library
         #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
     hasInitializer v
@@ -565,7 +565,7 @@ library
         #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
     hasInitializer v
@@ -616,7 +616,7 @@ library
         #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
     hasInitializer v
@@ -667,7 +667,7 @@ library
         #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
     hasInitializer v
@@ -724,7 +724,7 @@ library
             #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
-                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
   classes
     hasNonFinalField class C
@@ -827,7 +827,7 @@ library
             #F3 == (nameOffset:74) (firstTokenOffset:61) (offset:74)
               element: <testLibrary>::@class::X1::@method::==
               formalParameters
-                #F4 other (nameOffset:77) (firstTokenOffset:77) (offset:77)
+                #F4 requiredPositional other (nameOffset:77) (firstTokenOffset:77) (offset:77)
                   element: <testLibrary>::@class::X1::@method::==::@formalParameter::other
         #F5 class X2 (nameOffset:102) (firstTokenOffset:96) (offset:102)
           element: <testLibrary>::@class::X2
@@ -839,7 +839,7 @@ library
             #F7 == (nameOffset:145) (firstTokenOffset:132) (offset:145)
               element: <testLibrary>::@class::X2::@method::==
               formalParameters
-                #F8 other (nameOffset:148) (firstTokenOffset:148) (offset:148)
+                #F8 requiredPositional other (nameOffset:148) (firstTokenOffset:148) (offset:148)
                   element: <testLibrary>::@class::X2::@method::==::@formalParameter::other
         #F9 class X3 (nameOffset:173) (firstTokenOffset:167) (offset:173)
           element: <testLibrary>::@class::X3
@@ -851,7 +851,7 @@ library
             #F11 == (nameOffset:213) (firstTokenOffset:200) (offset:213)
               element: <testLibrary>::@class::X3::@method::==
               formalParameters
-                #F12 other (nameOffset:216) (firstTokenOffset:216) (offset:216)
+                #F12 requiredPositional other (nameOffset:216) (firstTokenOffset:216) (offset:216)
                   element: <testLibrary>::@class::X3::@method::==::@formalParameter::other
   classes
     class X1
@@ -944,7 +944,7 @@ library
         #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@setter::c::@formalParameter::value
   classes
     notSimplyBounded class C
@@ -1028,7 +1028,7 @@ library
             #F8 synthetic c3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
               element: <testLibrary>::@class::B::@setter::c3
               formalParameters
-                #F9 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
                   element: <testLibrary>::@class::B::@setter::c3::@formalParameter::value
       topLevelVariables
         #F10 c (nameOffset:29) (firstTokenOffset:29) (offset:29)
@@ -1044,12 +1044,12 @@ library
         #F14 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F15 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F15 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@setter::c::@formalParameter::value
         #F16 synthetic c2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@setter::c2
           formalParameters
-            #F17 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F17 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@setter::c2::@formalParameter::value
   classes
     notSimplyBounded class C
@@ -1172,7 +1172,7 @@ library
         #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@setter::c::@formalParameter::value
   classes
     notSimplyBounded class C
@@ -1293,7 +1293,7 @@ library
         #F5 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@setter::f::@formalParameter::value
   typeAliases
     F
@@ -1382,7 +1382,7 @@ library
         #F10 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
           element: <testLibrary>::@setter::b
           formalParameters
-            #F11 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+            #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@setter::b::@formalParameter::value
   classes
     class A
@@ -1462,7 +1462,7 @@ library
         #F5 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@setter::f::@formalParameter::value
   typeAliases
     F
@@ -1615,7 +1615,7 @@ library
         #F6 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@setter::c::@formalParameter::value
   classes
     class C
@@ -1690,7 +1690,7 @@ library
             #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
-                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
   classes
     hasNonFinalField class C
@@ -1749,7 +1749,7 @@ library
         #F1 foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@function::foo
           formalParameters
-            #F2 p (nameOffset:39) (firstTokenOffset:39) (offset:39)
+            #F2 optionalPositional p (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@function::foo::@formalParameter::p
               initializer: expression_0
                 SimpleIdentifier
@@ -1763,7 +1763,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       formalParameters
-        #E0 optionalPositional hasImplicitType p
+        #E0 optionalPositional hasDefaultValue hasImplicitType p
           firstFragment: #F2
           type: dynamic
           constantInitializer
@@ -1796,7 +1796,7 @@ library
         #F1 foo (nameOffset:17) (firstTokenOffset:17) (offset:17)
           element: <testLibrary>::@function::foo
           formalParameters
-            #F2 p (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F2 optionalPositional p (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@function::foo::@formalParameter::p
               initializer: expression_0
                 SimpleIdentifier
@@ -1808,7 +1808,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       formalParameters
-        #E0 optionalPositional hasImplicitType p
+        #E0 optionalPositional hasDefaultValue hasImplicitType p
           firstFragment: #F2
           type: dynamic
           constantInitializer
@@ -1840,13 +1840,13 @@ library
         #F3 synthetic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
           element: <testLibrary>::@setter::V
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@setter::V::@formalParameter::value
       functions
         #F5 foo (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::foo
           formalParameters
-            #F6 p (nameOffset:5) (firstTokenOffset:5) (offset:5)
+            #F6 optionalPositional p (nameOffset:5) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@function::foo::@formalParameter::p
               initializer: expression_0
                 SimpleIdentifier
@@ -1883,7 +1883,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: #F5
       formalParameters
-        #E1 optionalPositional hasImplicitType p
+        #E1 optionalPositional hasDefaultValue hasImplicitType p
           firstFragment: #F6
           type: dynamic
           constantInitializer
@@ -1925,7 +1925,7 @@ library
         #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
     hasInitializer v
@@ -1982,7 +1982,7 @@ library
         #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
     hasInitializer v
@@ -2043,7 +2043,7 @@ library
         #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
     hasInitializer v
@@ -2362,7 +2362,7 @@ library
             #F3 U (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E1 U
           formalParameters
-            #F4 b (nameOffset:18) (firstTokenOffset:13) (offset:18)
+            #F4 requiredPositional b (nameOffset:18) (firstTokenOffset:13) (offset:18)
               element: <testLibrary>::@function::f::@formalParameter::b
   functions
     f
@@ -2416,7 +2416,7 @@ library
             #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
-                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
       functions
         #F9 f (nameOffset:74) (firstTokenOffset:69) (offset:74)
@@ -2489,7 +2489,7 @@ library
             #F3 U (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E1 U
           formalParameters
-            #F4 b (nameOffset:18) (firstTokenOffset:13) (offset:18)
+            #F4 requiredPositional b (nameOffset:18) (firstTokenOffset:13) (offset:18)
               element: <testLibrary>::@function::f::@formalParameter::b
   functions
     f
@@ -2606,7 +2606,7 @@ library
         #F3 synthetic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
           element: <testLibrary>::@setter::m
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@setter::m::@formalParameter::value
   topLevelVariables
     m
@@ -2652,7 +2652,7 @@ library
         #F3 synthetic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
           element: <testLibrary>::@setter::m
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@setter::m::@formalParameter::value
   topLevelVariables
     m
@@ -2698,7 +2698,7 @@ library
         #F3 synthetic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::m
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::m::@formalParameter::value
   topLevelVariables
     m
@@ -2744,7 +2744,7 @@ library
         #F3 synthetic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
           element: <testLibrary>::@setter::m
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@setter::m::@formalParameter::value
   topLevelVariables
     m
@@ -2790,7 +2790,7 @@ library
         #F3 synthetic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::m
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::m::@formalParameter::value
   topLevelVariables
     m
@@ -2836,7 +2836,7 @@ library
         #F3 synthetic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@setter::d
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@setter::d::@formalParameter::value
   topLevelVariables
     d
@@ -2882,7 +2882,7 @@ library
         #F3 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:2)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:2)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:2)
               element: <testLibrary>::@setter::c::@formalParameter::value
   topLevelVariables
     c
@@ -2933,7 +2933,7 @@ library
         #F3 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@setter::c::@formalParameter::value
   topLevelVariables
     c

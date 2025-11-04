@@ -6,6 +6,8 @@ import 'dart:async' show Completer;
 import 'dart:convert' show JsonEncoder;
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show ExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:front_end/src/base/name_space.dart';
@@ -32,9 +34,7 @@ import 'package:kernel/kernel.dart'
         DartType,
         DynamicType,
         Expression,
-        Extension,
         ExtensionType,
-        ExtensionTypeDeclaration,
         FunctionNode,
         InterfaceType,
         Library,
@@ -56,8 +56,8 @@ import 'package:kernel/kernel.dart'
         VariableSet,
         VisitorDefault,
         VisitorVoidMixin,
-        Member,
-        TypeParameterType;
+        TypeParameterType,
+        Field;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
@@ -1187,17 +1187,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               /* this is effectively what the constant evaluator does */
               context.options.globalFeatures.tripleShift.isEnabled,
         );
-        bool enablePatterns =
-            builder.languageVersion >= ExperimentalFlag.patterns.enabledVersion;
-        bool enableEnhancedParts =
-            builder.languageVersion >=
-            ExperimentalFlag.enhancedParts.enabledVersion;
+        ExperimentalFeatures experimentalFeatures =
+            new ExperimentalFeaturesFromVersion(builder.languageVersion);
         String? before = textualOutline(
           previousSource,
           scannerConfiguration,
           performModelling: true,
-          enablePatterns: enablePatterns,
-          enableEnhancedParts: enableEnhancedParts,
+          experimentalFeatures: experimentalFeatures,
         );
         if (before == null) {
           // Coverage-ignore-block(suite): Not run.
@@ -1213,8 +1209,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             await entity.readAsBytes(),
             scannerConfiguration,
             performModelling: true,
-            enablePatterns: enablePatterns,
-            enableEnhancedParts: enableEnhancedParts,
+            experimentalFeatures: experimentalFeatures,
           );
         }
         if (before != now) {
@@ -1959,6 +1954,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       _ticker.logMs("Loaded library $libraryUri");
 
+      int? offsetToUse;
       Class? cls;
       if (className != null) {
         Builder? scopeMember = libraryBuilder.libraryNameSpace
@@ -1966,12 +1962,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             ?.getable;
         if (scopeMember is ClassBuilder) {
           cls = scopeMember.cls;
+          offsetToUse = cls.fileOffset;
         } else {
           return null;
         }
       }
-      Extension? extension;
-      ExtensionTypeDeclaration? extensionType;
+
+      bool isExtensionOrExtensionType = false;
       String? extensionName;
       if (usedMethodName != null) {
         int indexOfDot = usedMethodName.indexOf(".");
@@ -1997,7 +1994,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
-            extension = builder.extension;
+            isExtensionOrExtensionType = true;
+            offsetToUse = builder.fileOffset;
             Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionInstanceMember) {
@@ -2005,7 +2003,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               }
             }
           } else if (builder is ExtensionTypeDeclarationBuilder) {
-            extensionType = builder.extensionTypeDeclaration;
+            isExtensionOrExtensionType = true;
+            offsetToUse = builder.fileOffset;
             Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionTypeInstanceMember) {
@@ -2042,25 +2041,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           return null;
         }
       }
-      int index = 0;
       for (String name in usedDefinitions.keys) {
-        index++;
-        if (!(isLegalIdentifier(name) ||
-            ((extension != null || extensionType != null) &&
-                !isStatic &&
-                index == 1 &&
-                isExtensionThisName(name)))) {
-          lastGoodKernelTarget.loader.addProblem(
-            codeIncrementalCompilerIllegalParameter.withArgumentsOld(name),
-            // TODO: pass variable declarations instead of
-            // parameter names for proper location detection.
-            // https://github.com/dart-lang/sdk/issues/44158
-            -1,
-            -1,
-            libraryUri,
-          );
-          return null;
+        if (isLegalIdentifier(name)) continue;
+        if (isExtensionThisName(name) &&
+            !isStatic &&
+            isExtensionOrExtensionType) {
+          // Accept  #this for extensions and extension types.
+          continue;
         }
+
+        lastGoodKernelTarget.loader.addProblem(
+          codeIncrementalCompilerIllegalParameter.withArgumentsOld(name),
+          // TODO: pass variable declarations instead of
+          // parameter names for proper location detection.
+          // https://github.com/dart-lang/sdk/issues/44158
+          -1,
+          -1,
+          libraryUri,
+        );
+        return null;
       }
 
       // Setup scope first in two-step process:
@@ -2167,35 +2166,33 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
+      VariableDeclaration? extensionThis;
+
       // TODO: pass variable declarations instead of
       // parameter names for proper location detection.
       // https://github.com/dart-lang/sdk/issues/44158
       FunctionNode parameters = new FunctionNode(
         null,
         typeParameters: typeDefinitions,
-        positionalParameters: usedDefinitions.entries
-            .map<VariableDeclaration>(
-              (MapEntry<String, DartType> def) =>
-                  new VariableDeclarationImpl(def.key, type: def.value)
-                    ..fileOffset =
-                        cls?.fileOffset ??
-                        extension?.fileOffset ??
-                        extensionType?.fileOffset ??
-                        libraryBuilder.library.fileOffset,
-            )
-            .toList(),
+        positionalParameters: usedDefinitions.entries.map<VariableDeclaration>((
+          MapEntry<String, DartType> def,
+        ) {
+          VariableDeclarationImpl variable = new VariableDeclarationImpl(
+            def.key,
+            type: def.value,
+          )..fileOffset = offsetToUse ?? libraryBuilder.library.fileOffset;
+
+          if (isExtensionOrExtensionType &&
+              !isStatic &&
+              isExtensionThisName(def.key) &&
+              extensionThis == null) {
+            // The `#this` variable is special.
+            extensionThis = variable..isLowered = true;
+          }
+          return variable;
+        }).toList(),
       );
 
-      VariableDeclaration? extensionThis;
-      if ((extension != null || extensionType != null) &&
-          !isStatic &&
-          parameters.positionalParameters.isNotEmpty) {
-        // We expect the first parameter to be called #this and be special.
-        if (isExtensionThisName(parameters.positionalParameters.first.name)) {
-          extensionThis = parameters.positionalParameters.first;
-          extensionThis.isLowered = true;
-        }
-      }
       lastGoodKernelTarget.buildSyntheticLibrariesUntilBuildScopes([
         debugLibrary,
       ]);
@@ -2554,6 +2551,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
     required ObjectAccessTarget target,
     required DartType receiverType,
     required Name name,
+    required bool setter,
   }) {
     // On a missing target, rewrite to a dynamic target instead.
     if (target.kind == ObjectAccessTargetKind.missing) {
@@ -2568,14 +2566,37 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
         ClassHierarchySubtypes subtypeInformation = hierarchy
             .computeSubtypesInformation();
         Set<Library> foundMatchInLibrary = {};
+        Set<Class> visited = {};
+        nextSubtype:
         for (Class cls in subtypeInformation.getSubtypesOf(
           receiverType.classNode,
         )) {
-          for (Member member in cls.members) {
-            if (member.name.text == name.text) {
-              foundMatchInLibrary.add(cls.enclosingLibrary);
-              break;
+          if (cls.isAbstract) continue;
+          Class? clsOrSuper = cls;
+          while (clsOrSuper != null) {
+            if (!visited.add(clsOrSuper)) break;
+            for (Procedure procedure in clsOrSuper.procedures) {
+              if (procedure.name.text == name.text) {
+                // Name match.
+                if (procedure.isAbstract) continue;
+                if (setter && !procedure.isSetter) {
+                  continue;
+                } else if (!setter && procedure.isSetter) {
+                  continue;
+                }
+                foundMatchInLibrary.add(clsOrSuper.enclosingLibrary);
+                continue nextSubtype;
+              }
             }
+            for (Field field in clsOrSuper.fields) {
+              if (field.name.text == name.text) {
+                // Name match.
+                if (setter && !field.hasSetter) continue;
+                foundMatchInLibrary.add(clsOrSuper.enclosingLibrary);
+                continue nextSubtype;
+              }
+            }
+            clsOrSuper = clsOrSuper.superclass;
           }
         }
         // If we only found one such library we overwrite the name so the VM

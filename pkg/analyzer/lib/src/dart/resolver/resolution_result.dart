@@ -59,3 +59,13 @@ class SimpleResolutionResult {
 
   const SimpleResolutionResult({this.getter2, this.setter2});
 }
+
+class SimpleStaticExtensionResolutionResult {
+  /// Returns the single element with the given name.
+  ///
+  /// Note that the resolution is performed on the name of the member, not on
+  /// its basename. Hence, the result is a single member.
+  final InternalExecutableElement? member;
+
+  const SimpleStaticExtensionResolutionResult({this.member});
+}

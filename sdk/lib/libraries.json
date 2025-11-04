@@ -267,9 +267,6 @@
           "_internal/wasm/lib/internal_patch.dart"
         ]
       },
-      "_js_annotations": {
-        "uri": "js/_js_annotations.dart"
-      },
       "_js_string_convert": {
         "uri": "_internal/wasm/lib/js_string_convert.dart"
       },
@@ -343,10 +340,6 @@
       "js_interop_unsafe": {
         "uri": "js_interop_unsafe/js_interop_unsafe.dart",
         "patches": "_internal/wasm/lib/js_interop_unsafe_patch.dart"
-      },
-      "js_util": {
-        "uri": "js_util/js_util.dart",
-        "patches": "_internal/wasm/lib/js_util_patch.dart"
       },
       "math": {
         "uri": "math/math.dart",

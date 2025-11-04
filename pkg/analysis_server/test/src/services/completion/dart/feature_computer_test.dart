@@ -369,6 +369,17 @@ void g() {
 ''', 'String');
   }
 
+  Future<void> test_argumentList_superConstructorInvocation() async {
+    await assertContextType('''
+class A {
+  A(int i);
+}
+class B extends A {
+  B() : super(^);
+}
+''', 'int');
+  }
+
   Future<void> test_argumentList_typeParameter_resolved() async {
     await assertContextType('''
 class A {}
@@ -492,6 +503,29 @@ void f() {
   };
 }
 ''', 'String');
+  }
+
+  Future<void> test_dotShorthand_guardedPattern_switchExpression() async {
+    await assertContextType('''
+enum E { a }
+void f(E e) {
+  int _ = switch (e) {
+    .^ => 0,
+  }
+}
+''', 'E');
+  }
+
+  Future<void> test_dotShorthand_guardedPattern_switchStatement() async {
+    await assertContextType('''
+enum E { a }
+void f(E e) {
+  switch (e) {
+    case .^:
+      break;
+  }
+}
+''', 'E');
   }
 
   Future<void> test_fieldDeclaration_int() async {
@@ -632,6 +666,27 @@ Future<String> f() async => ^;
     await assertContextType('''
 Future<String> f() => ^;
 ''', 'Future<String>');
+  }
+
+  Future<void> test_guardedPattern_when_switchExpression() async {
+    await assertContextType('''
+void f(num n) {
+  int _ = switch (n) {
+    _ when ^ => 0,
+  }
+}
+''', 'bool');
+  }
+
+  Future<void> test_guardedPattern_when_switchStatement() async {
+    await assertContextType('''
+void f(num n) {
+  switch (n) {
+    case _ when ^:
+      break;
+  }
+}
+''', 'bool');
   }
 
   Future<void> test_ifElement() async {

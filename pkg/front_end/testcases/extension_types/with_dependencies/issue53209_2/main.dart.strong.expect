@@ -2,30 +2,15 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:7: Error: A class declaration must have a body, even if it is empty.
-// Try adding an empty body.
-// class A(String foo) {
-//       ^
-//
-// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:8: Error: Expected a declaration, but got '('.
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:8: Error: This requires the experimental 'declaring-constructors' language feature to be enabled.
+// Try passing the '--enable-experiment=declaring-constructors' command line option.
 // class A(String foo) {
 //        ^
 //
-// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:16: Error: Expected ';' after this.
-// class A(String foo) {
-//                ^^^
-//
-// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:19: Error: Expected a declaration, but got ')'.
-// class A(String foo) {
-//                   ^
-//
-// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:21: Error: Expected a declaration, but got '{'.
-// class A(String foo) {
-//                     ^
-//
-// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:16: Error: Field 'foo' should be initialized because its type 'String' doesn't allow null.
-// class A(String foo) {
-//                ^^^
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:8:45: Error: The constructor function type 'E Function()' isn't a subtype of 'A Function()'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart'.
+//   factory A.redirectingFactoryToSubtype() = E.redirectingFactoryWithMismatchingParameters;
+//                                             ^
 //
 import self as self;
 import "dart:core" as core;
@@ -33,11 +18,15 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///main_lib.dart";
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  constructor •(core::String foo) → self::A
     : super core::Object::•()
     ;
+  static factory redirectingFactoryToSubtype() → self::A
+    return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:8:45: Error: The constructor function type 'E Function()' isn't a subtype of 'A Function()'.
+ - 'A' is from 'pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart'.
+  factory A.redirectingFactoryToSubtype() = E.redirectingFactoryWithMismatchingParameters;
+                                            ^";
 }
-static field core::String foo;
 
 library;
 //

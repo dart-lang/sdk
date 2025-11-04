@@ -4,8 +4,7 @@ library;
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
-    show $MINUS, $_;
+import 'package:_fe_analyzer_shared/src/util/text_conversion.dart';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
@@ -36,18 +35,6 @@ List<GeneratedContent> get allTargets {
       return generator.out.toString();
     }),
   ];
-}
-
-String keyToIdentifier(String key) {
-  var identifier = StringBuffer();
-  for (int index = 0; index < key.length; ++index) {
-    var code = key.codeUnitAt(index);
-    if (code == $MINUS) {
-      code = $_;
-    }
-    identifier.writeCharCode(code);
-  }
-  return identifier.toString();
 }
 
 class _ExperimentsGenerator {
@@ -97,6 +84,7 @@ part of 'experiments.dart';
     keysSorted = features.keys.toList()..sort();
     generateSection_CurrentVersion();
     generateSection_KnownFeatures();
+    generateSection_FromSharedExperimentalFlag();
     generateSection_EnableString();
     generateSection_ExperimentalFeature();
     generateSection_IsEnabledByDefault();
@@ -110,7 +98,7 @@ part of 'experiments.dart';
 mixin _CurrentState {
 ''');
     for (var key in keysSorted) {
-      var id = keyToIdentifier(key);
+      var id = kebabCaseToSnakeCase(key);
       out.write('''
   /// Current state for the flag "$key"
   bool get $id => isEnabled(ExperimentalFeatures.$id);
@@ -142,7 +130,7 @@ class EnableString {
     for (var key in keysSorted) {
       out.write('''
       /// String to enable the experiment "$key"
-      static const String ${keyToIdentifier(key)} = '$key';
+      static const String ${kebabCaseToSnakeCase(key)} = '$key';
     ''');
     }
     out.write('''
@@ -156,7 +144,7 @@ class ExperimentalFeatures {
 ''');
     int index = 0;
     for (var key in keysSorted) {
-      var id = keyToIdentifier(key);
+      var id = kebabCaseToSnakeCase(key);
       var help = (features[key] as YamlMap)['help'] ?? '';
       var experimentalReleaseVersion =
           (features[key] as YamlMap)['experimentalReleaseVersion'];
@@ -199,6 +187,25 @@ class ExperimentalFeatures {
     }''');
   }
 
+  void generateSection_FromSharedExperimentalFlag() {
+    out.write('''
+
+/// Returns the [Feature] corresponding to the shared experimental [flag].
+Feature fromSharedExperimentalFlags(shared.ExperimentalFlag flag) =>
+    switch (flag) {
+''');
+    for (var key in keysSorted) {
+      var snakeCase = kebabCaseToSnakeCase(key);
+      var camelCase = kebabCaseToCamelCase(key);
+      out.write('''
+    shared.ExperimentalFlag.$camelCase => ExperimentalFeatures.$snakeCase,
+    ''');
+    }
+    out.write('''
+  };
+''');
+  }
+
   void generateSection_IsEnabledByDefault() {
     out.write('''
 
@@ -211,7 +218,7 @@ class IsEnabledByDefault {
       bool shipped = entry['enabledIn'] != null;
       out.write('''
       /// Default state of the experiment "$key"
-      static const bool ${keyToIdentifier(key)} = $shipped;
+      static const bool ${kebabCaseToSnakeCase(key)} = $shipped;
     ''');
     }
     out.write('''
@@ -232,7 +239,7 @@ class IsExpired {
       var expired = entry['expired'] as bool?;
       out.write('''
       /// Expiration status of the experiment "$key"
-      static const bool ${keyToIdentifier(key)} = ${expired == true};
+      static const bool ${kebabCaseToSnakeCase(key)} = ${expired == true};
     ''');
       if (shipped && expired == false) {
         throw 'Cannot mark shipped feature as "expired: false"';
@@ -249,7 +256,7 @@ class IsExpired {
 final _knownFeatures = <String, ExperimentalFeature>{
 ''');
     for (var key in keysSorted) {
-      var id = keyToIdentifier(key);
+      var id = kebabCaseToSnakeCase(key);
       out.write('''
   EnableString.$id: ExperimentalFeatures.$id,
     ''');

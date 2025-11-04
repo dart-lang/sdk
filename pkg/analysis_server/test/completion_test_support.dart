@@ -123,16 +123,6 @@ abstract class CompletionTestCase extends AbstractCompletionDomainTest {
       await super.tearDown();
     }
   }
-
-  @override
-  Future<void> setUp() async {
-    // TODO(dantup): All tests that use this base class support normalization
-    //  however the base class of this (`AbstractCompletionDomainTest`) has a
-    //  lot of other tests classes that do not currently.
-    useLineEndingsForPlatform = true;
-
-    await super.setUp();
-  }
 }
 
 /// A specification of the completion results expected at a given location.

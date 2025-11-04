@@ -18,10 +18,10 @@ class RemoveLate extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_LATE;
+  FixKind get fixKind => DartFixKind.removeLate;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_LATE_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeLateMulti;
 
   _LateKeywordLocation? get _lateKeywordLocation {
     var node = this.node;

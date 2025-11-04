@@ -88,7 +88,7 @@ class RemoveBreakTest extends FixProcessorLintTest {
   List<String> get experiments => [];
 
   @override
-  FixKind get kind => DartFixKind.REMOVE_BREAK;
+  FixKind get kind => DartFixKind.removeBreak;
 
   @override
   String get lintCode => LintNames.unnecessary_breaks;

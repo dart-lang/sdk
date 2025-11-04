@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ReplaceColonWithEqualsDeprecatedTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_COLON_WITH_EQUALS;
+  FixKind get kind => DartFixKind.replaceColonWithEquals;
 
   @override
   String get testPackageLanguageVersion => '2.19';
@@ -66,7 +66,7 @@ void f(int a, [int b = 0]) {}
 @reflectiveTest
 class ReplaceColonWithEqualsObsoleteTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_COLON_WITH_EQUALS;
+  FixKind get kind => DartFixKind.replaceColonWithEquals;
 
   Future<void> test_defaultFormalParameter() async {
     await resolveTestCode('''

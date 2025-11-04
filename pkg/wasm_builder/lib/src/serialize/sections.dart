@@ -506,28 +506,87 @@ class _TableElement implements _Element {
 
   @override
   void serialize(Serializer s) {
-    if (table.index != 0) {
-      s.writeByte(0x06);
-      s.writeUnsigned(table.index);
+    final int kind;
+    if (table.index == 0) {
+      kind = 0x00;
+      s.writeByte(kind);
     } else {
-      s.writeByte(0x00);
+      kind = 0x06;
+      s.writeByte(kind);
+      s.writeUnsigned(table.index);
     }
-    s.writeByte(0x41); // i32.const
-    s.writeSigned(startIndex);
-    s.writeByte(0x0B); // end
-    if (table.index != 0) {
+
+    ir.I32Const(startIndex).serialize(s);
+    ir.End().serialize(s);
+
+    if (kind == 0x06) {
       s.write(table.type);
     }
     s.writeUnsigned(entries.length);
     for (var entry in entries) {
-      if (table.index == 0) {
+      if (kind == 0x0) {
         s.writeUnsigned(entry.index);
       } else {
-        s.writeByte(0xD2); // ref.func
-        s.writeSigned(entry.index);
-        s.writeByte(0x0B); // end
+        ir.RefFunc(entry).serialize(s);
+        ir.End().serialize(s);
       }
     }
+  }
+
+  static _TableElement deserialize(
+    Deserializer d,
+    ir.Module module,
+    ir.Types types,
+    ir.Functions functions,
+    ir.Tables tables,
+    ir.Globals globals,
+  ) {
+    final int tableIndex;
+    final kind = d.readByte();
+    switch (kind) {
+      case 0x00:
+        tableIndex = 0;
+        break;
+      case 0x06:
+        tableIndex = d.readUnsigned();
+        break;
+      default:
+        throw "unsupported element segment kind $kind";
+    }
+
+    final i0 = ir.Instruction.deserializeConst(d, types, functions, globals);
+    final i1 = ir.Instruction.deserializeConst(d, types, functions, globals);
+    if (i0 is! ir.I32Const || i1 is! ir.End) {
+      throw StateError('Expected offset to be encoded as '
+          '`(i32.const <value>) (end)`. '
+          'Got instead: (${i0.name}) (${i1.name})');
+    }
+    final offset = i0.value;
+
+    if (kind == 0x06) {
+      ir.RefType.deserialize(d, types.defined);
+    }
+
+    final table = tables[tableIndex];
+    final tableElement = _TableElement(table, offset);
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      if (kind == 0x0) {
+        tableElement.entries.add(functions[d.readUnsigned()]);
+      } else {
+        final i0 =
+            ir.Instruction.deserializeConst(d, types, functions, globals);
+        final i1 =
+            ir.Instruction.deserializeConst(d, types, functions, globals);
+        if (i0 is! ir.RefFunc || i1 is! ir.End) {
+          throw StateError('Expected function reference to be encoded as '
+              '`(ref.func <value>) (end)`. '
+              'Got instead: (${i0.name}) (${i1.name})');
+        }
+        tableElement.entries.add(i0.function);
+      }
+    }
+    return tableElement;
   }
 }
 
@@ -546,6 +605,16 @@ class _DeclaredElement implements _Element {
     for (final entry in entries) {
       s.writeUnsigned(entry.index);
     }
+  }
+
+  static _DeclaredElement deserialize(Deserializer d, ir.Functions functions) {
+    if (d.readByte() != 0x03) throw 'bad encoding';
+
+    final elemkind = d.readByte();
+    if (elemkind != 0x00) throw "unsupported elemkind";
+
+    final declaredFunctions = d.readList((d) => functions[d.readUnsigned()]);
+    return _DeclaredElement(declaredFunctions);
   }
 }
 
@@ -622,58 +691,28 @@ class ElementSection extends Section {
     final declaredFunctions = <ir.BaseFunction>[];
     final count = d.readUnsigned();
     for (int i = 0; i < count; i++) {
-      final kind = d.readByte();
-      int tableIndex;
-      switch (kind) {
-        case 0x00:
-          tableIndex = 0;
-          break;
-        case 0x06:
-          tableIndex = d.readUnsigned();
-          break;
-        case 0x03:
-          final elemkind = d.readByte();
-          if (elemkind != 0x00) throw "unsupported elemkind";
-          final funcs = d.readList((d) => functions[d.readUnsigned()]);
-          declaredFunctions.addAll(funcs);
-          continue;
-        default:
-          throw "unsupported element segment kind $kind";
+      if (d.peekByte() == 0x03) {
+        final declaredElement = _DeclaredElement.deserialize(d, functions);
+        declaredFunctions.addAll(declaredElement.entries);
+        continue;
       }
+      final tableElement = _TableElement.deserialize(
+          d, module, types, functions, tables, globals);
+      for (int i = 0; i < tableElement.entries.length; i++) {
+        final table = tableElement.table;
+        final offset = tableElement.startIndex;
+        final function = tableElement.entries[i];
 
-      final offsetInitializer =
-          ir.Instructions.deserializeConst(d, types, functions, globals);
-      final instructions = offsetInitializer.instructions;
-      assert(instructions.length == 2 &&
-          instructions[0] is ir.I32Const &&
-          instructions[1] is ir.End);
-      final offset = (instructions[0] as ir.I32Const).value;
-
-      if (kind == 0x06) {
-        ir.RefType.deserialize(d, types.defined);
-      }
-
-      final table = tables[tableIndex];
-      if (table is ir.DefinedTable) {
-        final count = d.readUnsigned();
-        for (int j = 0; j < count; j++) {
-          late ir.BaseFunction func;
-          if (tableIndex == 0) {
-            final funcIndex = d.readUnsigned();
-            func = functions[funcIndex];
-          } else {
-            final funcInitializer =
-                ir.Instructions.deserializeConst(d, types, functions, globals);
-            final refFunc = funcInitializer.instructions.single as ir.RefFunc;
-            func = refFunc.function;
+        if (table is ir.DefinedTable) {
+          if (table.elements.length <= offset + i) {
+            table.elements.length = offset + i + 1;
           }
-          if (table.elements.length <= offset + j) {
-            table.elements.length = offset + j + 1;
-          }
-          table.elements[offset + j] = func;
+          table.elements[offset + i] = function;
+        } else if (table is ir.ImportedTable) {
+          table.setElements[offset + i] = function;
+        } else {
+          throw "unsupported table type $table";
         }
-      } else {
-        throw "unsupported table type";
       }
     }
 

@@ -73,18 +73,30 @@ class LineInfoTest {
   }
 
   void test_fromContent_n() {
-    var lineInfo = LineInfo.fromContent('a\nbb\nccc');
+    var content = 'a\nbb\nccc';
+    var lineInfo = LineInfo.fromContent(content);
     expect(lineInfo.lineStarts, <int>[0, 2, 5]);
+    expect(LineInfo.getOffsetForLine(0, content), 0);
+    expect(LineInfo.getOffsetForLine(1, content), 2);
+    expect(LineInfo.getOffsetForLine(2, content), 5);
   }
 
   void test_fromContent_r() {
-    var lineInfo = LineInfo.fromContent('a\rbb\rccc');
+    var content = 'a\rbb\rccc';
+    var lineInfo = LineInfo.fromContent(content);
     expect(lineInfo.lineStarts, <int>[0, 2, 5]);
+    expect(LineInfo.getOffsetForLine(0, content), 0);
+    expect(LineInfo.getOffsetForLine(1, content), 2);
+    expect(LineInfo.getOffsetForLine(2, content), 5);
   }
 
   void test_fromContent_rn() {
-    var lineInfo = LineInfo.fromContent('a\r\nbb\r\nccc');
+    var content = 'a\r\nbb\r\nccc';
+    var lineInfo = LineInfo.fromContent(content);
     expect(lineInfo.lineStarts, <int>[0, 3, 7]);
+    expect(LineInfo.getOffsetForLine(0, content), 0);
+    expect(LineInfo.getOffsetForLine(1, content), 3);
+    expect(LineInfo.getOffsetForLine(2, content), 7);
   }
 
   void test_getLocation_firstLine() {
@@ -106,6 +118,13 @@ class LineInfoTest {
     var location = info.getLocation(12);
     expect(location.lineNumber, 2);
     expect(location.columnNumber, 1);
+  }
+
+  void test_getOffsetForLine_outside_range() {
+    var content = 'a\r\nbb\r\nccc';
+    expect(LineInfo.getOffsetForLine(-1, content), null);
+    expect(LineInfo.getOffsetForLine(3, content), null);
+    expect(LineInfo.getOffsetForLine(4, content), null);
   }
 
   void test_getOffsetOfLine() {

@@ -2744,21 +2744,6 @@ void f(x) {
     _assertSource(code, findNode.part(code));
   }
 
-  void test_visitPartDirective_configurations() {
-    var unit = _parseStringToFindNode(r'''
-part 'foo.dart'
-  if (dart.library.io) 'foo_io.dart'
-  if (dart.library.html) 'foo_html.dart';
-''').unit;
-    var directive = unit.directives[0] as PartDirective;
-    _assertSource(
-      "part 'foo.dart'"
-      " if (dart.library.io) 'foo_io.dart'"
-      " if (dart.library.html) 'foo_html.dart';",
-      directive,
-    );
-  }
-
   void test_visitPartDirective_withMetadata() {
     var code = '@deprecated part "a.dart";';
     var findNode = _parseStringToFindNode(code);

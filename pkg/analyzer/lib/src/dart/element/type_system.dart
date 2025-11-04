@@ -701,18 +701,6 @@ class TypeSystemImpl implements TypeSystem {
     );
   }
 
-  @Deprecated('Use instantiateInterfaceToBounds instead')
-  @override
-  InterfaceTypeImpl instantiateInterfaceToBounds2({
-    required covariant InterfaceElementImpl element,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return instantiateInterfaceToBounds(
-      element: element,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   /// Given a [DartType] [type] and a list of types
   /// [typeArguments], instantiate the type formals with the
   /// provided actuals.  If [type] is not a parameterized type,
@@ -740,18 +728,6 @@ class TypeSystemImpl implements TypeSystem {
     var typeArguments = _defaultTypeArguments(typeParameters);
     return element.instantiateImpl(
       typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
-  @Deprecated('Use instantiateTypeAliasToBounds instead')
-  @override
-  TypeImpl instantiateTypeAliasToBounds2({
-    required covariant TypeAliasElementImpl element,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return instantiateTypeAliasToBounds(
-      element: element,
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -1832,10 +1808,12 @@ class TypeSystemImpl implements TypeSystem {
   List<TypeImpl> _defaultTypeArguments(
     List<TypeParameterElement> typeParameters,
   ) {
-    return typeParameters.map((typeParameter) {
-      var typeParameterImpl = typeParameter as TypeParameterElementImpl;
+    var length = typeParameters.length;
+    if (length == 0) return const [];
+    return List.generate(length, (index) {
+      var typeParameterImpl = typeParameters[index] as TypeParameterElementImpl;
       return typeParameterImpl.defaultType!;
-    }).toFixedList();
+    }, growable: false);
   }
 
   /// `S` is the future type of a type `T` in the following cases, using the

@@ -85,7 +85,7 @@ void f(String s, bool b) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) {
+      filter: (error) {
         var code = error.diagnosticCode;
         return code is LintCode &&
             code.name == LintNames.prefer_if_null_operators;
@@ -101,7 +101,7 @@ void f(String s, bool b) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) {
+      filter: (error) {
         var code = error.diagnosticCode;
         return code is LintCode &&
             code.name == LintNames.prefer_if_null_operators;

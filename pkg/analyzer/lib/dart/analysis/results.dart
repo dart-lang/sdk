@@ -60,26 +60,6 @@ class DisposedAnalysisContextResult
         SomeResolvedUnitResult,
         SomeUnitElementResult {}
 
-/// The declaration of an [Element].
-@Deprecated('Use FragmentDeclarationResult instead')
-abstract class ElementDeclarationResult {
-  /// The [Fragment] that this object describes.
-  Fragment get fragment;
-
-  /// The node that declares the [Element]. Depending on whether it is returned
-  /// from [ResolvedLibraryResult] or [ParsedLibraryResult] it might be resolved
-  /// or just parsed.
-  AstNode get node;
-
-  /// If this declaration is returned from [ParsedLibraryResult], the parsed
-  /// unit that contains the [node]. Otherwise `null`.
-  ParsedUnitResult? get parsedUnit;
-
-  /// If this declaration is returned from [ResolvedLibraryResult], the
-  /// resolved unit that contains the [node]. Otherwise `null`.
-  ResolvedUnitResult? get resolvedUnit;
-}
-
 /// The result of computing all of the errors contained in a single file, both
 /// syntactic and semantic.
 ///
@@ -169,10 +149,6 @@ abstract class InvalidResult {}
 abstract class LibraryElementResult implements SomeLibraryElementResult {
   /// The element representing the library.
   LibraryElement get element;
-
-  /// The element representing the library.
-  @Deprecated('Use element instead')
-  LibraryElement get element2;
 }
 
 /// The type of [InvalidResult] returned when Dart SDK does not have a
@@ -242,14 +218,6 @@ abstract class ParsedLibraryResult
   /// Returns `null` if the [fragment] is synthetic.
   ///
   /// Throws [ArgumentError] if the [fragment] is not defined in this library.
-  @Deprecated('Use getFragmentDeclaration() instead')
-  ElementDeclarationResult? getElementDeclaration2(Fragment fragment);
-
-  /// Returns the declaration of the [fragment].
-  ///
-  /// Returns `null` if the [fragment] is synthetic.
-  ///
-  /// Throws [ArgumentError] if the [fragment] is not defined in this library.
   FragmentDeclarationResult? getFragmentDeclaration(Fragment fragment);
 }
 
@@ -292,10 +260,6 @@ abstract class ResolvedLibraryResult
   /// The element representing this library.
   LibraryElement get element;
 
-  /// The element representing this library.
-  @Deprecated('Use element instead')
-  LibraryElement get element2;
-
   /// The type provider used when resolving the library.
   TypeProvider get typeProvider;
 
@@ -319,10 +283,6 @@ abstract class ResolvedUnitResult
 
   /// The element representing the library containing the compilation [unit].
   LibraryElement get libraryElement;
-
-  /// The element representing the library containing the compilation [unit].
-  @Deprecated('Use libraryElement instead')
-  LibraryElement get libraryElement2;
 
   /// The fragment corresponding to the [unit].
   LibraryFragment get libraryFragment;

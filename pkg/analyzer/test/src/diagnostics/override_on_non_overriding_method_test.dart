@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -78,6 +79,22 @@ class B extends A {
   @override
   void foo(int _) {}
 }''');
+  }
+
+  test_class_field_missingName() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  @override
+  Object? foo,;
+}
+''',
+      [
+        error(WarningCode.unusedField, 6, 0),
+        error(WarningCode.overrideOnNonOverridingField, 32, 3),
+        error(ParserErrorCode.missingIdentifier, 36, 1),
+      ],
+    );
   }
 
   test_class_implements() async {

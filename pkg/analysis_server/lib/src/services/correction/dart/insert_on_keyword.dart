@@ -18,10 +18,10 @@ class InsertOnKeyword extends ResolvedCorrectionProducer {
       CorrectionApplicability.acrossSingleFile;
 
   @override
-  FixKind get fixKind => DartFixKind.INSERT_ON_KEYWORD;
+  FixKind get fixKind => DartFixKind.insertOnKeyword;
 
   @override
-  FixKind get multiFixKind => DartFixKind.INSERT_ON_KEYWORD_MULTI;
+  FixKind get multiFixKind => DartFixKind.insertOnKeywordMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

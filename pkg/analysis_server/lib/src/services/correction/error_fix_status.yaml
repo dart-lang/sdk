@@ -1378,15 +1378,13 @@ CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION:
   status: noFix
 CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION:
   status: noFix
-CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER:
-  status: needsFix
-  notes: |-
-    Remove the underscore
+CompileTimeErrorCode.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME:
+  status: noFix
 CompileTimeErrorCode.PRIVATE_SETTER:
   status: noFix
 CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL:
   status: noFix
-CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE:
   status: hasFix
 CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR:
   status: noFix
@@ -1595,9 +1593,7 @@ CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER:
 CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR:
-  status: needsFix
-  notes: |-
-    The fix is to create the operator in an extension.
+  status: hasFix
 CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_FUNCTION:
@@ -1844,14 +1840,6 @@ HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE:
   status: hasFix
 HintCode.DEPRECATED_MEMBER_USE:
   status: hasFix
-HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE:
-  status: needsFix
-  notes: |-
-    Should probably be able to use `DataDriven`.
-HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE:
-  status: needsFix
-  notes: |-
-    Should probably be able to use `DataDriven`.
 HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE:
   status: hasFix
 HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
@@ -2673,6 +2661,11 @@ ParserErrorCode.CONST_FACTORY:
   status: hasFix
 ParserErrorCode.CONST_METHOD:
   status: hasFix
+ParserErrorCode.CONST_WITHOUT_PRIMARY_CONSTRUCTOR:
+  status: needsFix
+  notes: |-
+    Remove the keyword.
+    Add a primary constructor.
 ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE:
   status: needsFix
   notes: |-
@@ -2879,10 +2872,6 @@ ParserErrorCode.FACTORY_WITHOUT_BODY:
   status: noFix
 ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS:
   status: noFix
-ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove `this.`.
 ParserErrorCode.FINAL_AND_COVARIANT:
   status: needsFix
   notes: |-
@@ -3230,6 +3219,12 @@ ParserErrorCode.PREFIX_AFTER_COMBINATOR:
   status: needsFix
   notes: |-
     Move the prefix before the combinators.
+ParserErrorCode.PRIVATE_OPTIONAL_PARAMETER:
+  status: needsFix
+  notes: |-
+    Remove the underscore
+ParserErrorCode.PRIVATE_NAMED_NON_FIELD_PARAMETER:
+  status: needsEvaluation
 ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
   status: hasFix
 ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA:
@@ -3411,15 +3406,11 @@ PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY:
   status: needsEvaluation
 ScannerErrorCode.ENCODING:
   status: needsEvaluation
-ScannerErrorCode.EXPECTED_TOKEN:
-  status: noFix
 ScannerErrorCode.ILLEGAL_CHARACTER:
   status: noFix
 ScannerErrorCode.MISSING_DIGIT:
   status: noFix
 ScannerErrorCode.MISSING_HEX_DIGIT:
-  status: noFix
-ScannerErrorCode.MISSING_IDENTIFIER:
   status: noFix
 ScannerErrorCode.MISSING_QUOTE:
   status: noFix

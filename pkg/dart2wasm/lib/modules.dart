@@ -4,7 +4,9 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:path/path.dart' as path;
 
+import 'compiler_options.dart';
 import 'target.dart';
 import 'util.dart';
 
@@ -21,34 +23,35 @@ Library? _enclosingLibraryForReference(Reference reference) {
   throw ArgumentError('Could not find enclosing library for ${reference.node}');
 }
 
-Class? enclosingClassForReference(Reference reference) {
-  TreeNode? current = reference.node;
-  // References generated for constants will not have a node attached.
-  if (reference.node == null) return null;
-  while (current != null) {
-    if (current is Class) return current;
-    current = current.parent;
-  }
-  return null;
-}
-
-class ModuleOutputBuilder {
+class ModuleMetadataBuilder {
   int _counter = _mainModuleId;
+  final WasmCompilerOptions options;
 
-  ModuleOutput buildModule({bool emitAsMain = false, bool skipEmit = false}) =>
-      ModuleOutput._(_counter++, emitAsMain: emitAsMain, skipEmit: skipEmit);
+  ModuleMetadataBuilder(this.options);
+
+  ModuleMetadata buildModuleMetadata(
+      {bool emitAsMain = false, bool skipEmit = false}) {
+    final id = _counter++;
+    return ModuleMetadata._(
+        id,
+        emitAsMain || id == _mainModuleId
+            ? path.basename(options.outputFile)
+            : path.basename(
+                path.setExtension(options.outputFile, '_module$id.wasm')),
+        skipEmit: skipEmit);
+  }
 }
 
 /// Deferred loading metadata for a single dart2wasm output module.
 ///
-/// Each [ModuleOutput] will map to a single wasm module emitted by the
+/// Each [ModuleMetadata] will map to a single wasm module emitted by the
 /// compiler. The separation of modules is guided by the deferred imports
 /// defined in the source code.
 ///
 /// A module may contain code at any level of granularity. Code may be grouped
 /// by library, by class or neither. [containsReference] should be used to
 /// determine if a module contains a given class/member reference.
-class ModuleOutput {
+class ModuleMetadata {
   /// The ID for the module which will be included in the emitted name.
   final int _id;
 
@@ -66,8 +69,7 @@ class ModuleOutput {
   /// Whether or not a wasm file should be emitted for this module.
   final bool skipEmit;
 
-  ModuleOutput._(this._id, {this.skipEmit = false, bool emitAsMain = false})
-      : moduleName = emitAsMain || _id == _mainModuleId ? '' : 'module$_id';
+  ModuleMetadata._(this._id, this.moduleName, {this.skipEmit = false});
 
   /// Whether or not the provided kernel [Reference] is included in this module.
   bool containsReference(Reference reference) {
@@ -82,59 +84,45 @@ class ModuleOutput {
 
 /// Data needed to create deferred modules.
 class ModuleOutputData {
-  /// All [ModuleOutput]s generated for the program.
-  final List<ModuleOutput> modules;
+  /// All [ModuleMetadata]s generated for the program.
+  final List<ModuleMetadata> modules;
 
-  final Map<Library, Map<String, List<ModuleOutput>>> _importMap;
+  ModuleOutputData(this.modules) : assert(modules[0].isMain);
 
-  ModuleOutputData(this.modules, this._importMap) : assert(modules[0].isMain);
-
-  ModuleOutput get mainModule => modules[0];
-  Iterable<ModuleOutput> get deferredModules => modules.skip(1);
+  ModuleMetadata get mainModule => modules[0];
+  Iterable<ModuleMetadata> get deferredModules => modules.skip(1);
 
   bool get hasMultipleModules => modules.length > 1;
 
-  /// Mapping from deferred library import to the 'load list' of module names
-  /// needed for that import.
-  ///
-  /// If library L is required (either directly or indirectly) by two separate
-  /// imports, then L will be in its own module. That module will be included in
-  /// the load list for both those imports.
-  Map<String, Map<String, List<String>>> generateModuleImportMap() {
-    final result = <String, Map<String, List<String>>>{};
-    _importMap.forEach((lib, importMapping) {
-      final nameMapping = <String, List<String>>{};
-      importMapping.forEach((importName, modules) {
-        nameMapping[importName] =
-            modules.map((o) => o.moduleImportName).toList();
-      });
-      result[lib.importUri.toString()] = nameMapping;
-    });
-    return result;
-  }
-
   /// Returns the module that contains [reference].
-  ModuleOutput moduleForReference(Reference reference) =>
+  ModuleMetadata moduleForReference(Reference reference) =>
       modules.firstWhere((e) => e.containsReference(reference));
 }
 
 /// Module strategy that puts all libraries into a single module.
 class DefaultModuleStrategy extends ModuleStrategy {
+  final CoreTypes coreTypes;
   final Component component;
+  final WasmCompilerOptions options;
 
-  DefaultModuleStrategy(this.component);
+  DefaultModuleStrategy(this.coreTypes, this.component, this.options);
 
   @override
   ModuleOutputData buildModuleOutputData() {
     // If deferred loading is not enabled then put every library in the main
     // module.
-    final mainModule = ModuleOutput._(_mainModuleId);
+    final builder = ModuleMetadataBuilder(options);
+    final mainModule = builder.buildModuleMetadata(emitAsMain: true);
     mainModule.libraries.addAll(component.libraries);
-    return ModuleOutputData([mainModule], const {});
+    return ModuleOutputData([mainModule]);
   }
 
   @override
   void prepareComponent() {}
+
+  @override
+  Future<void> processComponentAfterTfa(
+      DeferredModuleLoadingMap loadingMap) async {}
 }
 
 bool _hasWasmExportPragma(CoreTypes coreTypes, Member m) =>
@@ -150,6 +138,7 @@ bool containsWasmExport(CoreTypes coreTypes, Library lib) {
 
 abstract class ModuleStrategy {
   void prepareComponent();
+  Future<void> processComponentAfterTfa(DeferredModuleLoadingMap loadingMap);
   ModuleOutputData buildModuleOutputData();
 }
 
@@ -167,4 +156,41 @@ Set<Library> getReachableLibraries(
     }
   }
   return reachable;
+}
+
+class DeferredModuleLoadingMap {
+  // Maps each (library, deferred import) to a unique id.
+  final Map<(Library, String), int> loadIds;
+
+  // Maps the unique load id to the imported library.
+  final List<Library> loadId2ImportedLibrary;
+
+  // Maps (library, import-name)-id to list of needed modules.
+  final List<List<ModuleMetadata>> moduleMap;
+
+  DeferredModuleLoadingMap._(
+      this.loadIds, this.moduleMap, this.loadId2ImportedLibrary);
+
+  factory DeferredModuleLoadingMap.fromComponent(Component c) {
+    int nextLoadId = 0;
+    final loadIds = <(Library, String), int>{};
+    final loadId2ImportedLibrary = <Library>[];
+    final moduleMap = <List<ModuleMetadata>>[];
+    for (final library in c.libraries) {
+      for (final dep in library.dependencies) {
+        if (!dep.isDeferred) continue;
+        final name = dep.name!;
+        loadIds[(library, name)] = nextLoadId++;
+        loadId2ImportedLibrary.add(dep.targetLibrary);
+        moduleMap.add([]);
+      }
+    }
+    return DeferredModuleLoadingMap._(
+        loadIds, moduleMap, loadId2ImportedLibrary);
+  }
+
+  void addModuleToLibraryImport(
+      Library lib, String importName, List<ModuleMetadata> modules) {
+    moduleMap[loadIds[(lib, importName)]!].addAll(modules);
+  }
 }

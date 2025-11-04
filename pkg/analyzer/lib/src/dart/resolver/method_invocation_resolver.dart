@@ -1156,7 +1156,11 @@ class MethodInvocationResolver with ScopeHelpers {
 
     String receiverClassName = '<unknown>';
     if (receiverType is InterfaceTypeImpl) {
-      receiverClassName = receiverType.element.name!;
+      if (receiverType.element.name case var name?) {
+        receiverClassName = name;
+      } else {
+        return null;
+      }
     } else if (receiverType is FunctionType) {
       receiverClassName = 'Function';
     }

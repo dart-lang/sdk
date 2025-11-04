@@ -147,12 +147,10 @@ suggestions
 ''');
     assertResponse(r'''
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
-  export '';
+  export '^';
     kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -181,12 +179,10 @@ suggestions
     kind: keyword
   mixin
     kind: keyword
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
-  part of '';
+  part of '^';
     kind: keyword
-    selection: 9
   sealed
     kind: keyword
   typedef
@@ -208,12 +204,10 @@ import "package:foo/foo.dart";
     // TODO(brianwilkerson): Should not suggest export or part directives.
     assertResponse(r'''
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
-  export '';
+  export '^';
     kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -242,9 +236,8 @@ suggestions
     kind: keyword
   mixin
     kind: keyword
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
   sealed
     kind: keyword
   typedef
@@ -263,17 +256,14 @@ import foo;
 ''');
     assertResponse(r'''
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
-  export '';
+  export '^';
     kind: keyword
-    selection: 8
   library
     kind: keyword
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
 ''');
   }
 
@@ -286,9 +276,8 @@ import "package:foo/foo.dart";
 replacement
   left: 3
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
 ''');
   }
 
@@ -314,17 +303,14 @@ import "package:foo/foo.dart";
 replacement
   right: 3
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
-  export '';
+  export '^';
     kind: keyword
-    selection: 8
   library
     kind: keyword
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
 ''');
   }
 
@@ -403,12 +389,10 @@ import "foo";
 ''');
     assertResponse(r'''
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
-  export '';
+  export '^';
     kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -435,9 +419,8 @@ suggestions
     kind: keyword
   mixin
     kind: keyword
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
   sealed
     kind: keyword
   typedef
@@ -533,27 +516,24 @@ suggestions
     kind: keyword
   enum
     kind: keyword
-  export '';
+  export '^';
     kind: keyword
-    selection: 8
   extension
     kind: keyword
   external
     kind: keyword
   final
     kind: keyword
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
   interface
     kind: keyword
   late
     kind: keyword
   mixin
     kind: keyword
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
   sealed
     kind: keyword
   typedef
@@ -600,12 +580,10 @@ part of foo;
     // TODO(brianwilkerson): We should not be suggesting directives.
     assertResponse(r'''
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
-  export '';
+  export '^';
     kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -632,9 +610,8 @@ suggestions
     kind: keyword
   mixin
     kind: keyword
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
   sealed
     kind: keyword
   typedef
@@ -664,17 +641,14 @@ suggestions
 replacement
   right: 3
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
-  export '';
+  export '^';
     kind: keyword
-    selection: 8
   library
     kind: keyword
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
 ''');
   }
 
@@ -701,12 +675,10 @@ suggestions
 ''');
     assertResponse(r'''
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
-  export '';
+  export '^';
     kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -735,12 +707,10 @@ suggestions
     kind: keyword
   mixin
     kind: keyword
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
-  part of '';
+  part of '^';
     kind: keyword
-    selection: 9
   sealed
     kind: keyword
   typedef
@@ -758,12 +728,10 @@ suggestions
 ''');
     assertResponse(r'''
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
-  export '';
+  export '^';
     kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -792,12 +760,10 @@ suggestions
     kind: keyword
   mixin
     kind: keyword
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
-  part of '';
+  part of '^';
     kind: keyword
-    selection: 9
   sealed
     kind: keyword
   typedef
@@ -882,9 +848,8 @@ suggestions
     kind: keyword
   interface
     kind: keyword
-  part of '';
+  part of '^';
     kind: keyword
-    selection: 9
   typedef
     kind: keyword
 ''');
@@ -899,9 +864,8 @@ i^ mixin M {}
 replacement
   left: 1
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
   covariant
     kind: keyword
   dynamic
@@ -955,9 +919,8 @@ import "package:foo/foo.dart";
 replacement
   left: 3
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
 ''');
   }
 
@@ -971,9 +934,8 @@ import "package:foo/foo.dart";
 replacement
   left: 3
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
 ''');
   }
 
@@ -983,12 +945,10 @@ suggestions
 ''');
     assertResponse(r'''
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
-  export '';
+  export '^';
     kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -1017,12 +977,10 @@ suggestions
     kind: keyword
   mixin
     kind: keyword
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
-  part of '';
+  part of '^';
     kind: keyword
-    selection: 9
   sealed
     kind: keyword
   typedef
@@ -1059,9 +1017,8 @@ suggestions
     kind: keyword
   interface
     kind: keyword
-  part of '';
+  part of '^';
     kind: keyword
-    selection: 9
   typedef
     kind: keyword
 ''');
@@ -1076,9 +1033,8 @@ i^
 replacement
   left: 1
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
   covariant
     kind: keyword
   dynamic
@@ -1106,9 +1062,8 @@ m^
 replacement
   left: 1
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
   dynamic
     kind: keyword
   enum

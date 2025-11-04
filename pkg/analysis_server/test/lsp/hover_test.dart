@@ -40,9 +40,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     class ^A {}
     ''');
 
-    await provideConfig(initialize, {
-      if (preference != null) 'documentation': preference,
-    });
+    await provideConfig(initialize, {'documentation': ?preference});
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
     var hover = await getHover(mainFileUri, code.position.position);
@@ -474,7 +472,7 @@ Type: `String`''';
     await openFile(mainFileUri, '');
     await expectLater(
       () => getHover(mainFileUri, Position(line: 999, character: 999)),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)),
+      throwsA(isResponseError(ServerErrorCodes.invalidFileLineCol)),
     );
   }
 
@@ -628,11 +626,31 @@ print();
     String [!a^bc!] = '';
     ''', contains('This is a string.'));
 
-  Future<void> test_method_callMethod() async {
+  Future<void> test_method_callMethod_invocation() async {
     var content = '''
 /// f doc.
 void f(int i) {
   f.[!call^!](1);
+}
+''';
+    var expected = '''
+```dart
+void f(int i)
+```
+Type: `void Function(int)`
+
+Declared in _package:test/main.dart_.
+
+---
+f doc.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_method_callMethod_tearOff() async {
+    var content = '''
+/// f doc.
+void f(int i) {
+  f.[!call^!];
 }
 ''';
     var expected = '''
@@ -1223,6 +1241,34 @@ int get _
 Type: `int`
 
 Declared in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_tryCatch_error() async {
+    var content = '''
+void foo() {
+  try {} on Exception catch ([!err^or!], stack) {}
+}
+''';
+    var expected = '''
+```dart
+Exception error
+```
+Type: `Exception`''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_tryCatch_stack() async {
+    var content = '''
+void foo() {
+  try {} on Exception catch (error, [!stac^k!]) {}
+}
+''';
+    var expected = '''
+```dart
+StackTrace stack
+```
+Type: `StackTrace`''';
     await assertStringContents(content, equals(expected));
   }
 

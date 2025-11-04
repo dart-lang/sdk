@@ -71,7 +71,6 @@ class ParsedFunction : public ZoneAllocated {
   ParsedFunction(Thread* thread, const Function& function);
 
   const Function& function() const { return function_; }
-  const Code& code() const { return code_; }
 
   LocalScope* scope() const { return scope_; }
   void set_scope(LocalScope* scope) {
@@ -294,7 +293,6 @@ class ParsedFunction : public ZoneAllocated {
  private:
   Thread* thread_;
   const Function& function_;
-  Code& code_;
   LocalScope* scope_;
   RegExpCompileData* regexp_compile_data_;
   LocalVariable* function_type_arguments_;

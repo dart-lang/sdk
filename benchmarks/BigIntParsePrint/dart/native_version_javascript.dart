@@ -3,45 +3,45 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @JS()
-library native_version_javascript;
+library;
 
-// ignore: deprecated_member_use
-import 'package:js/js.dart';
+import 'dart:js_interop';
+
 import 'native_version.dart';
 
 const NativeBigIntMethods nativeBigInt = _Methods();
 
 @JS('eval')
-external Object _eval(String s);
+external JSAny? _eval(String s);
 
 @JS('bigint_parse')
-external Object _parse(String s);
+external JSBigInt _parse(String s);
 
 @JS('bigint_toString')
-external String _toStringMethod(Object o);
+external String _toStringMethod(JSBigInt o);
 
 @JS('bigint_bitLength')
-external int _bitLength(Object o);
+external int _bitLength(JSBigInt o);
 
 @JS('bigint_isEven')
-external bool _isEven(Object o);
+external bool _isEven(JSBigInt o);
 
 @JS('bigint_add')
-external Object _add(Object left, Object right);
+external JSBigInt _add(JSBigInt left, JSBigInt right);
 
 @JS('bigint_shiftLeft')
-external Object _shiftLeft(Object o, Object i);
+external JSBigInt _shiftLeft(JSBigInt o, JSBigInt i);
 
 @JS('bigint_shiftRight')
-external Object _shiftRight(Object o, Object i);
+external JSBigInt _shiftRight(JSBigInt o, JSBigInt i);
 
 @JS('bigint_subtract')
-external Object _subtract(Object left, Object right);
+external JSBigInt _subtract(JSBigInt left, JSBigInt right);
 
 @JS('bigint_fromInt')
-external Object _fromInt(int i);
+external JSBigInt _fromInt(int i);
 
-class _Methods implements NativeBigIntMethods {
+class _Methods implements NativeBigIntMethods<JSBigInt> {
   static bool _initialized = false;
   static bool _enabled = false;
 
@@ -71,37 +71,39 @@ class _Methods implements NativeBigIntMethods {
   }
 
   @override
-  Object parse(String string) => _parse(string);
+  JSBigInt parse(String string) => _parse(string);
 
   @override
-  String toStringMethod(Object value) => _toStringMethod(value);
+  String toStringMethod(JSBigInt value) => _toStringMethod(value);
 
   @override
-  Object fromInt(int i) => _fromInt(i);
+  JSBigInt fromInt(int i) => _fromInt(i);
 
   @override
-  Object get one => _one;
+  JSBigInt get one => _one;
 
   @override
-  Object get eight => _eight;
+  JSBigInt get eight => _eight;
 
   @override
-  int bitLength(Object value) => _bitLength(value);
+  int bitLength(JSBigInt value) => _bitLength(value);
 
   @override
-  bool isEven(Object value) => _isEven(value);
+  bool isEven(JSBigInt value) => _isEven(value);
 
   @override
-  Object add(Object left, Object right) => _add(left, right);
+  JSBigInt add(JSBigInt left, JSBigInt right) => _add(left, right);
 
   @override
-  Object shiftLeft(Object value, Object count) => _shiftLeft(value, count);
+  JSBigInt shiftLeft(JSBigInt value, JSBigInt count) =>
+      _shiftLeft(value, count);
 
   @override
-  Object shiftRight(Object value, Object count) => _shiftRight(value, count);
+  JSBigInt shiftRight(JSBigInt value, JSBigInt count) =>
+      _shiftRight(value, count);
 
   @override
-  Object subtract(Object left, Object right) => _subtract(left, right);
+  JSBigInt subtract(JSBigInt left, JSBigInt right) => _subtract(left, right);
 }
 
 void _setup() {

@@ -22,10 +22,10 @@ class ReplaceReturnTypeFuture extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_typeArgument];
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
+  FixKind get fixKind => DartFixKind.replaceReturnTypeFuture;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceReturnTypeFutureMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

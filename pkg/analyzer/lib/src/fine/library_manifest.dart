@@ -41,6 +41,13 @@ class LibraryManifest {
   /// The names that re-exported exclusively via deprecated exports.
   final Set<LookupName> reExportDeprecatedOnly;
 
+  /// The names of duplicate or otherwise conflicting top-level declarations,
+  /// for example two classes with the same name, or a class and a top-level
+  /// function.
+  ///
+  /// These names are not in other `declaredXyz` maps.
+  final Map<LookupName, ManifestItemId> declaredConflicts;
+
   final Map<LookupName, ClassItem> declaredClasses;
   final Map<LookupName, EnumItem> declaredEnums;
   final Map<LookupName, ExtensionItem> declaredExtensions;
@@ -88,6 +95,7 @@ class LibraryManifest {
     required this.exportedLibraryUris,
     required this.reExportMap,
     required this.reExportDeprecatedOnly,
+    required this.declaredConflicts,
     required this.declaredClasses,
     required this.declaredEnums,
     required this.declaredExtensions,
@@ -120,6 +128,7 @@ class LibraryManifest {
       exportedLibraryUris: reader.readUriList(),
       reExportMap: reader.readLookupNameToIdMap(),
       reExportDeprecatedOnly: reader.readLookupNameSet(),
+      declaredConflicts: reader.readLookupNameToIdMap(),
       declaredClasses: reader.readLookupNameMap(
         readValue: () => ClassItem.read(reader),
       ),
@@ -160,6 +169,7 @@ class LibraryManifest {
   Map<LookupName, ManifestItemId> get exportedIds {
     return Map.fromEntries([
       ...reExportMap.entries,
+      ...declaredConflicts.entries,
       ...<Map<LookupName, ManifestItem>>[
             declaredClasses,
             declaredEnums,
@@ -180,7 +190,8 @@ class LibraryManifest {
   /// Returns the ID of a declared top-level element, or `null` if there is no
   /// such element.
   ManifestItemId? getDeclaredId(LookupName name) {
-    return declaredClasses[name]?.id ??
+    return declaredConflicts[name] ??
+        declaredClasses[name]?.id ??
         declaredEnums[name]?.id ??
         declaredExtensions[name]?.id ??
         declaredExtensionTypes[name]?.id ??
@@ -213,6 +224,7 @@ class LibraryManifest {
     writer.writeUriList(exportedLibraryUris);
     reExportMap.write(writer);
     reExportDeprecatedOnly.write(writer);
+    declaredConflicts.write(writer);
     declaredClasses.write(writer);
     declaredEnums.write(writer);
     declaredExtensions.write(writer);
@@ -231,6 +243,7 @@ class LibraryManifest {
 
   void _fillExportMap() {
     exportMap.addAll(reExportMap);
+    exportMap.addAll(declaredConflicts);
 
     void addDeclared<T extends ManifestItem>(Map<LookupName, T> items) {
       for (var entry in items.entries) {
@@ -264,6 +277,11 @@ class LibraryManifestBuilder {
   /// will cause cascading changes to items that referenced these elements,
   /// new IDs for them, etc.
   final Map<Uri, LibraryManifest> inputManifests;
+
+  /// The top-level elements that are declared in this library, but conflict
+  /// with other top-level elements in the same library. For example, a class
+  /// and a top-level function with the same name.
+  final Set<Element> conflictingTopLevelElements = {};
 
   /// Key: an element from [inputLibraries].
   /// Value: the item from [inputManifests], or newly build.
@@ -352,11 +370,17 @@ class LibraryManifestBuilder {
   /// change. So, it is enough to record that supertype constructors into
   /// the manifest.
   void _addClassTypeAliasConstructors() {
+    var librarySet = libraryElements.toSet();
     var hasConstructors = <ClassElementImpl>{};
     var inheritedMap = <ConstructorElementImpl, ManifestItemId>{};
 
     void addForElement(ClassElementImpl element) {
       if (!element.isMixinApplication) {
+        return;
+      }
+
+      // Skip external libraries, already done.
+      if (!librarySet.contains(element.library)) {
         return;
       }
 
@@ -448,8 +472,10 @@ class LibraryManifestBuilder {
         var extensionLibraryManifest =
             extensionElement.library.manifest!.instance;
         var extensionItem =
-            extensionLibraryManifest.declaredExtensions[extensionName]!;
-        extensionIds.add(extensionItem.id);
+            extensionLibraryManifest.declaredExtensions[extensionName];
+        if (extensionItem != null) {
+          extensionIds.add(extensionItem.id);
+        }
       }
 
       manifest.exportedExtensions = ManifestItemIdList(
@@ -722,11 +748,12 @@ class LibraryManifestBuilder {
         }
 
         var reference = exported.reference;
-        var lookupName = reference.isSetter
-            ? '${reference.name}='.asLookupName
-            : reference.name.asLookupName;
-
         var element = elementFactory.elementOfReference3(reference);
+
+        var lookupName = element.lookupName?.asLookupName;
+        if (lookupName == null) {
+          continue;
+        }
 
         // Skip elements that exist in nowhere.
         var elementLibrary = element.library;
@@ -856,16 +883,20 @@ class LibraryManifestBuilder {
     var encodingContext = EncodeContext(elementFactory: elementFactory);
 
     for (var libraryElement in libraryElements) {
-      var newClassItems = <LookupName, ClassItem>{};
-      var newEnumItems = <LookupName, EnumItem>{};
-      var newExtensionItems = <LookupName, ExtensionItem>{};
-      var newExtensionTypeItems = <LookupName, ExtensionTypeItem>{};
-      var newMixinItems = <LookupName, MixinItem>{};
-      var newTypeAliasItems = <LookupName, TypeAliasItem>{};
+      var declaredNames = <LookupName>{};
+      var newConflicts = <LookupName, ManifestItemId>{};
+
+      var newTopLevelVariables = <LookupName, TopLevelVariableItem>{};
       var newTopLevelGetters = <LookupName, GetterItem>{};
       var newTopLevelSetters = <LookupName, SetterItem>{};
+
+      var newClasses = <LookupName, ClassItem>{};
+      var newEnums = <LookupName, EnumItem>{};
+      var newExtensions = <LookupName, ExtensionItem>{};
+      var newExtensionTypes = <LookupName, ExtensionTypeItem>{};
+      var newMixins = <LookupName, MixinItem>{};
+      var newTypeAliases = <LookupName, TypeAliasItem>{};
       var newTopLevelFunctions = <LookupName, TopLevelFunctionItem>{};
-      var newTopLevelVariables = <LookupName, TopLevelVariableItem>{};
 
       var libraryMetadataItem = _getOrBuildElementItem(libraryElement, () {
         return LibraryMetadataItem.encode(
@@ -875,83 +906,205 @@ class LibraryManifestBuilder {
         );
       });
 
-      for (var element in libraryElement.children) {
+      void makeNameConflict(LookupName lookupName) {
+        var id = ManifestItemId.generate();
+        for (var relatedName in lookupName.relatedNames) {
+          newConflicts[relatedName] = id;
+          for (var lookupNameToItemMap in [
+            newClasses,
+            newEnums,
+            newExtensions,
+            newExtensionTypes,
+            newMixins,
+            newTypeAliases,
+            newTopLevelGetters,
+            newTopLevelSetters,
+            newTopLevelFunctions,
+            newTopLevelVariables,
+          ]) {
+            lookupNameToItemMap.remove(relatedName);
+          }
+        }
+      }
+
+      // First add top-level variables, and ignore conflicts.
+      // If there are conflicts, we will remove them in following loops.
+      for (var element in libraryElement.topLevelVariables) {
+        var lookupName = element.lookupName?.asLookupName;
+        if (lookupName != null) {
+          _addTopLevelVariable(
+            encodingContext: encodingContext,
+            newItems: newTopLevelVariables,
+            element: element,
+            lookupName: lookupName,
+          );
+        }
+      }
+
+      for (var element in libraryElement.getters) {
         var lookupName = element.lookupName?.asLookupName;
         if (lookupName == null) {
           continue;
         }
-        switch (element) {
-          case ClassElementImpl():
+        if (newConflicts.containsKey(lookupName)) {
+          conflictingTopLevelElements.add(element);
+          continue;
+        }
+        if (declaredNames.contains(lookupName)) {
+          conflictingTopLevelElements.add(element);
+          makeNameConflict(lookupName);
+        } else {
+          declaredNames.add(lookupName);
+          _addTopLevelGetter(
+            encodingContext: encodingContext,
+            newItems: newTopLevelGetters,
+            element: element,
+            lookupName: lookupName,
+          );
+        }
+      }
+
+      for (var element in libraryElement.setters) {
+        var lookupName = element.lookupName?.asLookupName;
+        if (lookupName == null) {
+          continue;
+        }
+        if (newConflicts.containsKey(lookupName)) {
+          conflictingTopLevelElements.add(element);
+          continue;
+        }
+        if (declaredNames.contains(lookupName)) {
+          conflictingTopLevelElements.add(element);
+          makeNameConflict(lookupName);
+        } else {
+          declaredNames.add(lookupName);
+          _addTopLevelSetter(
+            encodingContext: encodingContext,
+            newItems: newTopLevelSetters,
+            element: element,
+            lookupName: lookupName,
+          );
+        }
+      }
+
+      void addNonProperty({
+        required ElementImpl element,
+        required void Function(LookupName lookupName) addItem,
+      }) {
+        var lookupName = element.lookupName?.asLookupName;
+        if (lookupName == null) {
+          return;
+        }
+        if (newConflicts.containsKey(lookupName)) {
+          conflictingTopLevelElements.add(element);
+          return;
+        }
+        if (declaredNames.contains(lookupName) ||
+            declaredNames.contains(lookupName.methodToSetter)) {
+          conflictingTopLevelElements.add(element);
+          makeNameConflict(lookupName);
+        } else {
+          declaredNames.add(lookupName);
+          addItem(lookupName);
+        }
+      }
+
+      for (var element in libraryElement.classes) {
+        addNonProperty(
+          element: element,
+          addItem: (lookupName) {
             _addClass(
               encodingContext: encodingContext,
-              newItems: newClassItems,
+              newItems: newClasses,
               element: element,
               lookupName: lookupName,
             );
-          case EnumElementImpl():
+          },
+        );
+      }
+
+      for (var element in libraryElement.enums) {
+        addNonProperty(
+          element: element,
+          addItem: (lookupName) {
             _addEnum(
               encodingContext: encodingContext,
-              newItems: newEnumItems,
+              newItems: newEnums,
               element: element,
               lookupName: lookupName,
             );
-          case ExtensionElementImpl():
+          },
+        );
+      }
+
+      for (var element in libraryElement.extensions) {
+        addNonProperty(
+          element: element,
+          addItem: (lookupName) {
             _addExtension(
               encodingContext: encodingContext,
-              newItems: newExtensionItems,
+              newItems: newExtensions,
               element: element,
               lookupName: lookupName,
             );
-          case ExtensionTypeElementImpl():
+          },
+        );
+      }
+
+      for (var element in libraryElement.extensionTypes) {
+        addNonProperty(
+          element: element,
+          addItem: (lookupName) {
             _addExtensionType(
               encodingContext: encodingContext,
-              newItems: newExtensionTypeItems,
+              newItems: newExtensionTypes,
               element: element,
               lookupName: lookupName,
             );
-          case GetterElementImpl():
-            _addTopLevelGetter(
-              encodingContext: encodingContext,
-              newItems: newTopLevelGetters,
-              element: element,
-              lookupName: lookupName,
-            );
-          case MixinElementImpl():
+          },
+        );
+      }
+
+      for (var element in libraryElement.mixins) {
+        addNonProperty(
+          element: element,
+          addItem: (lookupName) {
             _addMixin(
               encodingContext: encodingContext,
-              newItems: newMixinItems,
+              newItems: newMixins,
               element: element,
               lookupName: lookupName,
             );
-          case SetterElementImpl():
-            _addTopLevelSetter(
-              encodingContext: encodingContext,
-              newItems: newTopLevelSetters,
-              element: element,
-              lookupName: lookupName,
-            );
-          case TopLevelFunctionElementImpl():
+          },
+        );
+      }
+
+      for (var element in libraryElement.topLevelFunctions) {
+        addNonProperty(
+          element: element,
+          addItem: (lookupName) {
             _addTopLevelFunction(
               encodingContext: encodingContext,
               newItems: newTopLevelFunctions,
               element: element,
               lookupName: lookupName,
             );
-          case TopLevelVariableElementImpl():
-            _addTopLevelVariable(
-              encodingContext: encodingContext,
-              newItems: newTopLevelVariables,
-              element: element,
-              lookupName: lookupName,
-            );
-          case TypeAliasElementImpl():
+          },
+        );
+      }
+
+      for (var element in libraryElement.typeAliases) {
+        addNonProperty(
+          element: element,
+          addItem: (lookupName) {
             _addTypeAlias(
               encodingContext: encodingContext,
-              newItems: newTypeAliasItems,
+              newItems: newTypeAliases,
               element: element,
               lookupName: lookupName,
             );
-        }
+          },
+        );
       }
 
       var newManifest = LibraryManifest(
@@ -967,12 +1120,13 @@ class LibraryManifestBuilder {
             .toList(),
         reExportMap: {},
         reExportDeprecatedOnly: <LookupName>{},
-        declaredClasses: newClassItems,
-        declaredEnums: newEnumItems,
-        declaredExtensions: newExtensionItems,
-        declaredExtensionTypes: newExtensionTypeItems,
-        declaredMixins: newMixinItems,
-        declaredTypeAliases: newTypeAliasItems,
+        declaredConflicts: newConflicts,
+        declaredClasses: newClasses,
+        declaredEnums: newEnums,
+        declaredExtensions: newExtensions,
+        declaredExtensionTypes: newExtensionTypes,
+        declaredMixins: newMixins,
+        declaredTypeAliases: newTypeAliases,
         declaredGetters: newTopLevelGetters,
         declaredSetters: newTopLevelSetters,
         declaredFunctions: newTopLevelFunctions,
@@ -988,6 +1142,7 @@ class LibraryManifestBuilder {
     _fillInterfaceElementsInterface();
     _addClassTypeAliasConstructors();
     _fillClassAllSubtypes();
+    _fillClassDirectSubtypesOfSealed();
   }
 
   void _computeHashForRequirements() {
@@ -1013,6 +1168,15 @@ class LibraryManifestBuilder {
 
       void addIdList(ManifestItemIdList idList) {
         builder.addList(idList.ids, addId);
+      }
+
+      void addOptionalIdList(ManifestItemIdList? idList) {
+        if (idList != null) {
+          builder.addBool(true);
+          addIdList(idList);
+        } else {
+          builder.addBool(false);
+        }
       }
 
       void addVersion(Version? version) {
@@ -1067,6 +1231,8 @@ class LibraryManifestBuilder {
         addLookupName,
       );
 
+      addMapOfIds(manifest.declaredConflicts);
+
       void addDeclared(Map<LookupName, ManifestItem> map) {
         var entries = sortedMapEntries(map);
         builder.addMapEntryList(entries, (lookupName, item) {
@@ -1078,8 +1244,8 @@ class LibraryManifestBuilder {
               builder.addBool(item.hasNonFinalField);
               addId(item.interface.id);
               if (item is ClassItem) {
-                // Not strictly necessary, we add all top-levels.
-                addIdList(item.allSubtypes);
+                addOptionalIdList(item.allSubtypes);
+                addOptionalIdList(item.directSubtypesOfSealed);
               }
             }
           }
@@ -1111,11 +1277,33 @@ class LibraryManifestBuilder {
         var classItem = declaredItems[classElement];
         if (classItem != null) {
           classItem as ClassItem;
-          var ids = (classElement.allSubtypes ?? []).map((type) {
-            var item = declaredItems[type.element] as InterfaceItem;
-            return item.id;
-          }).sorted();
-          classItem.allSubtypes = ManifestItemIdList(ids);
+          if (classElement.allSubtypes case var allSubtypes?) {
+            var ids = allSubtypes
+                .map((type) => declaredItems[type.element])
+                .whereType<InterfaceItem>()
+                .map((item) => item.id)
+                .sorted();
+            classItem.allSubtypes = ManifestItemIdList(ids);
+          }
+        }
+      }
+    }
+  }
+
+  void _fillClassDirectSubtypesOfSealed() {
+    for (var libraryElement in libraryElements) {
+      for (var classElement in libraryElement.classes) {
+        if (classElement.isSealed) {
+          var classItem = declaredItems[classElement];
+          if (classItem != null) {
+            classItem as ClassItem;
+            var ids = classElement.directSubtypesOfSealed
+                .map((element) => declaredItems[element])
+                .whereType<InterfaceItem>()
+                .map((item) => item.id)
+                .sorted();
+            classItem.directSubtypesOfSealed = ManifestItemIdList(ids);
+          }
         }
       }
     }
@@ -1139,6 +1327,10 @@ class LibraryManifestBuilder {
   void _fillInterfaceElementInterface(InterfaceElementImpl element) {
     // We don't create items for elements without name.
     if (element.lookupName == null) {
+      return;
+    }
+
+    if (conflictingTopLevelElements.contains(element)) {
       return;
     }
 
@@ -1337,6 +1529,7 @@ class LibraryManifestBuilder {
           exportedLibraryUris: [],
           reExportMap: {},
           reExportDeprecatedOnly: <LookupName>{},
+          declaredConflicts: {},
           declaredClasses: {},
           declaredEnums: {},
           declaredExtensions: {},

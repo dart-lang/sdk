@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
@@ -169,53 +170,53 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Future<void> assertErrorsInCode(
     String code,
-    List<ExpectedError> expectedErrors,
+    List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     addTestFile(code);
     await resolveTestFile();
 
-    assertErrorsInResolvedUnit(result, expectedErrors);
+    assertErrorsInResolvedUnit(result, expectedDiagnostics);
   }
 
   Future<ResolvedUnitResult> assertErrorsInFile(
     String path,
     String content,
-    List<ExpectedError> expectedErrors,
+    List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     var file = newFile(path, content);
     var result = await resolveFile(file);
-    assertErrorsInResolvedUnit(result, expectedErrors);
+    assertErrorsInResolvedUnit(result, expectedDiagnostics);
 
     return result;
   }
 
   Future<void> assertErrorsInFile2(
     File file,
-    List<ExpectedError> expectedErrors,
+    List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     var result = await resolveFile(file);
-    assertErrorsInResolvedUnit(result, expectedErrors);
+    assertErrorsInResolvedUnit(result, expectedDiagnostics);
   }
 
   void assertErrorsInList(
     List<Diagnostic> diagnostics,
-    List<ExpectedError> expectedErrors,
+    List<ExpectedDiagnostic> expectedDiagnostics,
   ) {
     GatheringDiagnosticListener diagnosticListener =
         GatheringDiagnosticListener();
     diagnosticListener.addAll(diagnostics);
-    diagnosticListener.assertErrors(expectedErrors);
+    diagnosticListener.assertErrors(expectedDiagnostics);
   }
 
   void assertErrorsInResolvedUnit(
     ResolvedUnitResult result,
-    List<ExpectedError> expectedErrors,
+    List<ExpectedDiagnostic> expectedDiagnostics,
   ) {
-    assertErrorsInList(result.diagnostics, expectedErrors);
+    assertErrorsInList(result.diagnostics, expectedDiagnostics);
   }
 
-  void assertErrorsInResult(List<ExpectedError> expectedErrors) {
-    assertErrorsInResolvedUnit(result, expectedErrors);
+  void assertErrorsInResult(List<ExpectedDiagnostic> expectedDiagnostics) {
+    assertErrorsInResolvedUnit(result, expectedDiagnostics);
   }
 
   void assertHasTestErrors() {
@@ -366,19 +367,25 @@ mixin ResolutionTest implements ResourceProviderMixin {
     int offset,
     int length, {
     Pattern? correctionContains,
+    // TODO(FMorschel): refactor the uses of this to prefer `messageContains`
     String? text,
     List<Pattern> messageContains = const [],
     List<ExpectedContextMessage> contextMessages =
         const <ExpectedContextMessage>[],
-  }) => ExpectedError(
-    code,
-    offset,
-    length,
-    correctionContains: correctionContains,
-    message: text,
-    messageContains: messageContains,
-    expectedContextMessages: contextMessages,
-  );
+  }) {
+    assert(
+      text == null || messageContains.isEmpty,
+      'Only use one of text or messageContains',
+    );
+    return ExpectedError(
+      code,
+      offset,
+      length,
+      correctionContains: correctionContains,
+      messageContainsAll: text != null ? [text] : messageContains,
+      contextMessages: contextMessages,
+    );
+  }
 
   Element? getNodeElement2(AstNode node) {
     if (node is Annotation) {

@@ -19,7 +19,7 @@ import 'operation.dart';
 class Driver extends IntegrationTest {
   /// The amount of time to give the server to respond to a shutdown request
   /// before forcibly terminating it.
-  static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 5);
+  static const Duration shutdownTimeout = Duration(seconds: 5);
 
   final Logger logger = Logger('Driver');
 
@@ -94,7 +94,7 @@ class Driver extends IntegrationTest {
   }
 
   /// Shutdown the analysis server if it is running.
-  Future<void> stopServer([Duration timeout = SHUTDOWN_TIMEOUT]) async {
+  Future<void> stopServer([Duration timeout = shutdownTimeout]) async {
     if (running) {
       logger.log(Level.FINE, 'requesting server shutdown');
       // Give the server a short time to comply with the shutdown request; if it

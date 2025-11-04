@@ -17,8 +17,6 @@ void main() {
 class DeprecatedMemberUseFromSamePackageTest extends LintRuleTest {
   @override
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
-    HintCode.deprecatedMemberUseFromSamePackage,
-    HintCode.deprecatedMemberUseFromSamePackageWithMessage,
     WarningCode.unusedLocalVariable,
   ];
 
@@ -316,6 +314,19 @@ import 'lib.dart' show C;
     );
   }
 
+  test_deprecatedConstructor_usedInRedirectingConstructorInitializer() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  @deprecated
+  A();
+  A.two() : this();
+}
+''',
+      [lint(43, 6)],
+    );
+  }
+
   test_deprecatedConstructor_usedInSuperConstructorCall() async {
     await assertDiagnostics(
       r'''
@@ -328,6 +339,21 @@ class B extends A {
 }
 ''',
       [lint(61, 7)],
+    );
+  }
+
+  test_deprecatedConstructor_usedInSuperConstructorCall_implicit() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  @deprecated
+  A();
+}
+class B extends A {
+  B();
+}
+''',
+      [lint(55, 4)],
     );
   }
 

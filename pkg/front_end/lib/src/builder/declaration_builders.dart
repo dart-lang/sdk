@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/unaliasing.dart';
 

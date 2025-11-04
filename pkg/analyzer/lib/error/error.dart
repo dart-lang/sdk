@@ -8,24 +8,13 @@ library;
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:analyzer/src/diagnostic/diagnostic_code_values.g.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_code_values.dart';
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
-    show
-        DiagnosticCode,
-        DiagnosticSeverity,
-        DiagnosticType,
-        // Continue exporting the deprecated element until it is removed.
-        // ignore: deprecated_member_use
-        ErrorCode,
-        // Continue exporting the deprecated element until it is removed.
-        // ignore: deprecated_member_use
-        ErrorSeverity,
-        // Continue exporting the deprecated element until it is removed.
-        // ignore: deprecated_member_use
-        ErrorType;
+    show DiagnosticCode, DiagnosticSeverity, DiagnosticType;
 export 'package:analyzer/src/dart/error/lint_codes.dart' show LintCode;
-export 'package:analyzer/src/diagnostic/diagnostic_code_values.g.dart';
+export 'package:analyzer/src/diagnostic/diagnostic_code_values.dart'
+    show diagnosticCodeValues, errorCodeValues;
 
 /// The lazy initialized map from [DiagnosticCode.uniqueName] to the
 /// [DiagnosticCode] instance.

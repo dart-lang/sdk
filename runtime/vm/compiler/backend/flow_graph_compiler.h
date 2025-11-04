@@ -385,6 +385,8 @@ class ThrowIfValueCantBeSharedSlowPath : public ThrowErrorSlowPathCode {
   Register value() const { return value_; }
 };
 
+enum class TypeTestOutcome { kConclusive, kNotConclusive };
+
 class FlowGraphCompiler : public ValueObject {
  private:
   class BlockInfo : public ZoneAllocated {
@@ -682,13 +684,6 @@ class FlowGraphCompiler : public ValueObject {
                                compiler::Label* is_not_instance_lbl);
   void GenerateListTypeCheck(Register kClassIdReg,
                              compiler::Label* is_instance_lbl);
-
-  // Returns true if no further checks are necessary but the code coming after
-  // the emitted code here is still required do a runtime call (for the negative
-  // case of throwing an exception).
-  bool GenerateSubtypeRangeCheck(Register class_id_reg,
-                                 const Class& type_class,
-                                 compiler::Label* is_subtype_lbl);
 
   // We test up to 4 different cid ranges, if we would need to test more in
   // order to get a definite answer we fall back to the old mechanism (namely
@@ -1075,7 +1070,7 @@ class FlowGraphCompiler : public ValueObject {
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 
-  bool GenerateInstantiatedTypeNoArgumentsTest(
+  TypeTestOutcome GenerateInstantiatedTypeNoArgumentsTest(
       const InstructionSource& source,
       const AbstractType& dst_type,
       compiler::Label* is_instance_lbl,

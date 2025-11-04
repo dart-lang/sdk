@@ -4,6 +4,7 @@
 
 import 'dart:io' as io;
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -13,7 +14,6 @@ import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:cli_util/cli_logging.dart';
-import 'package:linter/src/analyzer.dart';
 import 'package:path/path.dart' as path;
 
 import '../../test/mocks.dart';
@@ -43,7 +43,7 @@ Future<List<Diagnostic>> runChecks() async {
 class Driver {
   Logger logger = Logger.standard();
 
-  final List<LintRule> lints;
+  final List<AnalysisRule> lints;
   final bool silent;
 
   Driver(this.lints, {this.silent = true});

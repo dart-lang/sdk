@@ -596,6 +596,60 @@ void f() {
     );
   }
 
+  Future<void> test_functionTearOff() async {
+    var code = parseCode('''
+import 'other.dart';
+
+void f() {
+  myFun^ction;
+}
+''');
+
+    var otherCode = parseCode('''
+[!void myFunction() {}!]
+''');
+
+    newFile(otherFile, otherCode.code);
+    await expectTarget(
+      code,
+      _isItem(
+        CallHierarchyKind.function,
+        'myFunction',
+        otherFile,
+        containerName: 'other.dart',
+        nameRange: rangeAtSearch('myFunction', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
+  }
+
+  Future<void> test_functionTearOff_prefixed() async {
+    var code = parseCode('''
+import 'other.dart' as other;
+
+void f() {
+  other.myFun^ction;
+}
+''');
+
+    var otherCode = parseCode('''
+[!void myFunction() {}!]
+''');
+
+    newFile(otherFile, otherCode.code);
+    await expectTarget(
+      code,
+      _isItem(
+        CallHierarchyKind.function,
+        'myFunction',
+        otherFile,
+        containerName: 'other.dart',
+        nameRange: rangeAtSearch('myFunction', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
+  }
+
   Future<void> test_getter() async {
     var code = parseCode('''
 class Foo {

@@ -863,14 +863,12 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endPart");
     assert(
       checkState(partKeyword, [
-        /* uri string */ ValueKinds.ConfigurationListOrNull,
         /* offset */ ValueKinds.Integer,
         /* uri string */ ValueKinds.String,
         /* metadata */ ValueKinds.MetadataListOrNull,
       ]),
     );
 
-    pop(); // configurations
     int charOffset = popCharOffset();
     String uri = pop() as String;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
@@ -1108,8 +1106,7 @@ class OutlineBuilder extends StackListenerImpl {
     );
     pushDeclarationContext(DeclarationContext.Class);
     List<TypeParameterFragment>? typeParameters =
-        pop() as List<TypeParameterFragment>?;
-    push(typeParameters ?? NullValues.NominalParameters);
+        peek() as List<TypeParameterFragment>?;
     if (macroToken != null) {
       if (reportIfNotEnabled(
         libraryFeatures.macros,
@@ -1803,6 +1800,7 @@ class OutlineBuilder extends StackListenerImpl {
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
+    bool forExtensionType,
   ) {
     assert(
       checkState(beginToken, [
@@ -1828,112 +1826,121 @@ class OutlineBuilder extends StackListenerImpl {
 
     int? startOffset = constKeyword?.charOffset ?? nameOffset ?? formalsOffset;
 
-    bool inExtensionType =
-        declarationContext == DeclarationContext.ExtensionType;
-    if (formals != null) {
-      int requiredPositionalCount = 0;
-      int? firstNamedParameterOffset;
-      int? firstOptionalPositionalParameterOffset;
-      for (int i = 0; i < formals.length; i++) {
-        FormalParameterBuilder formal = formals[i];
-        if (inExtensionType) {
-          TypeBuilder type = formal.type;
-          if (type is FunctionTypeBuilder &&
-              type.hasFunctionFormalParameterSyntax) {
-            _compilationUnit.addProblem(
-              // ignore: lines_longer_than_80_chars
-              codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax,
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri,
-            );
+    // TODO(johnniwinther): Handle declaring parameters.
+    if (forExtensionType) {
+      bool inExtensionType =
+          declarationContext == DeclarationContext.ExtensionType;
+      if (formals != null) {
+        int requiredPositionalCount = 0;
+        int? firstNamedParameterOffset;
+        int? firstOptionalPositionalParameterOffset;
+        for (int i = 0; i < formals.length; i++) {
+          FormalParameterBuilder formal = formals[i];
+          if (inExtensionType) {
+            TypeBuilder type = formal.type;
+            if (type is FunctionTypeBuilder &&
+                type.hasFunctionFormalParameterSyntax) {
+              _compilationUnit.addProblem(
+                // ignore: lines_longer_than_80_chars
+                codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax,
+                formal.fileOffset,
+                formal.name.length,
+                formal.fileUri,
+              );
+            }
+            if (type is ImplicitTypeBuilder) {
+              _compilationUnit.addProblem(
+                codeExpectedRepresentationType,
+                formal.fileOffset,
+                formal.name.length,
+                formal.fileUri,
+              );
+              formal.type = new InvalidTypeBuilderImpl(
+                formal.fileUri,
+                formal.fileOffset,
+              );
+            }
+            if (formal.modifiers.containsSyntacticModifiers(
+              ignoreCovariant: true,
+              ignoreRequired: true,
+            )) {
+              _compilationUnit.addProblem(
+                codeRepresentationFieldModifier,
+                formal.fileOffset,
+                formal.name.length,
+                formal.fileUri,
+              );
+            }
+            if (formal.isInitializingFormal) {
+              _compilationUnit.addProblem(
+                codeExtensionTypePrimaryConstructorWithInitializingFormal,
+                formal.fileOffset,
+                formal.name.length,
+                formal.fileUri,
+              );
+            }
           }
-          if (type is ImplicitTypeBuilder) {
-            _compilationUnit.addProblem(
-              codeExpectedRepresentationType,
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri,
-            );
-            formal.type = new InvalidTypeBuilderImpl(
-              formal.fileUri,
-              formal.fileOffset,
-            );
-          }
-          if (formal.modifiers.containsSyntacticModifiers(
-            ignoreCovariant: true,
-            ignoreRequired: true,
-          )) {
-            _compilationUnit.addProblem(
-              codeRepresentationFieldModifier,
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri,
-            );
-          }
-          if (formal.isInitializingFormal) {
-            _compilationUnit.addProblem(
-              codeExtensionTypePrimaryConstructorWithInitializingFormal,
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri,
-            );
-          }
-        }
 
-        if (formal.isPositional) {
-          if (formal.isOptionalPositional) {
-            firstOptionalPositionalParameterOffset = formal.fileOffset;
-          } else {
-            requiredPositionalCount++;
+          if (formal.isPositional) {
+            if (formal.isOptionalPositional) {
+              firstOptionalPositionalParameterOffset = formal.fileOffset;
+            } else {
+              requiredPositionalCount++;
+            }
+          }
+          if (formal.isNamed) {
+            firstNamedParameterOffset = formal.fileOffset;
+          }
+          _builderFactory.addPrimaryConstructorField(
+            // TODO(johnniwinther): Support annotations on annotations on fields
+            // defined through a primary constructor. This is not needed for
+            // extension types where the field is not part of the AST but will
+            // be needed when primary constructors are generally supported.
+            metadata: null,
+            type: formal.type,
+            name: formal.name,
+            nameOffset: formal.fileOffset,
+          );
+          formals[i] = formal.forPrimaryConstructor(_builderFactory);
+        }
+        if (inExtensionType) {
+          if (firstOptionalPositionalParameterOffset != null) {
+            _compilationUnit.addProblem(
+              codeOptionalParametersInExtensionTypeDeclaration,
+              firstOptionalPositionalParameterOffset,
+              1,
+              uri,
+            );
+          } else if (firstNamedParameterOffset != null) {
+            _compilationUnit.addProblem(
+              codeNamedParametersInExtensionTypeDeclaration,
+              firstNamedParameterOffset,
+              1,
+              uri,
+            );
+          } else if (requiredPositionalCount == 0) {
+            _compilationUnit.addProblem(
+              codeExpectedRepresentationField,
+              charOffset,
+              1,
+              uri,
+            );
+          } else if (formals.length > 1) {
+            _compilationUnit.addProblem(
+              codeMultipleRepresentationFields,
+              charOffset,
+              1,
+              uri,
+            );
           }
         }
-        if (formal.isNamed) {
-          firstNamedParameterOffset = formal.fileOffset;
-        }
-        _builderFactory.addPrimaryConstructorField(
-          // TODO(johnniwinther): Support annotations on annotations on fields
-          // defined through a primary constructor. This is not needed for
-          // extension types where the field is not part of the AST but will
-          // be needed when primary constructors are generally supported.
-          metadata: null,
-          type: formal.type,
-          name: formal.name,
-          nameOffset: formal.fileOffset,
-        );
-        formals[i] = formal.forPrimaryConstructor(_builderFactory);
       }
-      if (inExtensionType) {
-        if (firstOptionalPositionalParameterOffset != null) {
-          _compilationUnit.addProblem(
-            codeOptionalParametersInExtensionTypeDeclaration,
-            firstOptionalPositionalParameterOffset,
-            1,
-            uri,
-          );
-        } else if (firstNamedParameterOffset != null) {
-          _compilationUnit.addProblem(
-            codeNamedParametersInExtensionTypeDeclaration,
-            firstNamedParameterOffset,
-            1,
-            uri,
-          );
-        } else if (requiredPositionalCount == 0) {
-          _compilationUnit.addProblem(
-            codeExpectedRepresentationField,
-            charOffset,
-            1,
-            uri,
-          );
-        } else if (formals.length > 1) {
-          _compilationUnit.addProblem(
-            codeMultipleRepresentationFields,
-            charOffset,
-            1,
-            uri,
-          );
-        }
-      }
+    } else {
+      reportIfNotEnabled(
+        libraryFeatures.declaringConstructors,
+        beginToken.charOffset,
+        noLength,
+      );
     }
 
     _builderFactory.addPrimaryConstructor(
@@ -2882,6 +2889,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,
@@ -3150,18 +3158,58 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginEnum(Token enumKeyword) {
-    assert(checkState(enumKeyword, [ValueKinds.IdentifierOrParserRecovery]));
-    Object? identifier = peek();
-
-    String declarationName;
-    if (identifier is Identifier) {
-      declarationName = identifier.name;
-    } else {
-      declarationName = '#enum';
-    }
+  void beginEnumDeclarationPrelude(Token enumKeyword) {
     pushDeclarationContext(DeclarationContext.Enum);
-    _builderFactory.beginEnumDeclarationHeader(declarationName);
+    _builderFactory.beginEnumDeclarationHeader();
+  }
+
+  @override
+  void beginEnumDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token enumKeyword,
+    Token name,
+  ) {
+    assert(
+      checkState(enumKeyword, [
+        /* type parameters */ ValueKinds.TypeParameterFragmentListOrNull,
+        /* name */ ValueKinds.IdentifierOrParserRecovery,
+      ]),
+    );
+    debugEvent("EnumDeclaration");
+    List<TypeParameterFragment>? typeParameters =
+        peek() as List<TypeParameterFragment>?;
+
+    _builderFactory.beginEnumDeclaration(
+      name.lexeme,
+      name.charOffset,
+      typeParameters,
+    );
+  }
+
+  @override
+  void handleEnumHeader(
+    Token? augmentToken,
+    Token enumKeyword,
+    Token leftBrace,
+  ) {
+    assert(
+      checkState(enumKeyword, [
+        /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+        /* mixins */ unionOfKinds([
+          ValueKinds.TypeBuilderListOrNull,
+          ValueKinds.ParserRecovery,
+        ]),
+        /* type parameters */ ValueKinds.TypeParameterFragmentListOrNull,
+        /* name */ ValueKinds.IdentifierOrParserRecovery,
+      ]),
+    );
+    debugEvent("EnumHeader");
+  }
+
+  @override
+  void beginEnumBody(Token token) {
+    _builderFactory.beginEnumBody();
   }
 
   @override
@@ -3196,63 +3244,13 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void handleEnumHeader(
-    Token? augmentToken,
-    Token enumKeyword,
-    Token leftBrace,
-  ) {
-    assert(
-      checkState(enumKeyword, [
-        /* interfaces */ ValueKinds.TypeBuilderListOrNull,
-        /* mixins */ unionOfKinds([
-          ValueKinds.TypeBuilderListOrNull,
-          ValueKinds.ParserRecovery,
-        ]),
-        /* type parameters */ ValueKinds.TypeParameterFragmentListOrNull,
-        /* name */ ValueKinds.IdentifierOrParserRecovery,
-      ]),
-    );
-    debugEvent("EnumHeader");
-
-    // We pop more values than needed to reach type parameters, offset and name.
-    List<TypeBuilder>? interfaces =
-        pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
-    Object? mixins = pop(NullValues.TypeBuilderList);
-    List<TypeParameterFragment>? typeParameters =
-        pop() as List<TypeParameterFragment>?;
-
-    Object? identifier = peek();
-    if (identifier is Identifier) {
-      _builderFactory.beginEnumDeclaration(
-        identifier.name,
-        identifier.nameOffset,
-        typeParameters,
-      );
-    } else {
-      identifier as ParserRecovery;
-      _builderFactory.beginEnumDeclaration(
-        "<syntax-error>",
-        identifier.charOffset,
-        typeParameters,
-      );
-    }
-    _builderFactory.beginEnumBody();
-
-    push(typeParameters ?? NullValues.NominalParameters);
-    push(mixins ?? NullValues.TypeBuilderList);
-    push(interfaces ?? NullValues.TypeBuilderList);
-
-    push(leftBrace.endGroup!.charOffset); // end char offset.
-  }
-
-  @override
   void handleEnumElements(Token elementsEndToken, int elementsCount) {
     debugEvent("handleEnumElements");
     push(elementsCount);
   }
 
   @override
-  void endEnum(
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,
@@ -3270,7 +3268,8 @@ class OutlineBuilder extends StackListenerImpl {
           ValueKinds.EnumConstantInfoOrNull,
           elementsCount,
         ),
-        /* endCharOffset */ ValueKinds.Integer,
+
+        ///* endCharOffset */ ValueKinds.Integer,
         /* interfaces */ ValueKinds.TypeBuilderListOrNull,
         /* mixins */ unionOfKinds([
           ValueKinds.TypeBuilderListOrNull,
@@ -3305,8 +3304,6 @@ class OutlineBuilder extends StackListenerImpl {
         }
       }
     }
-
-    int endOffset = popCharOffset();
 
     List<TypeBuilder>? interfaces =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
@@ -3352,7 +3349,7 @@ class OutlineBuilder extends StackListenerImpl {
         mixins: mixins,
         interfaces: interfaces,
         startOffset: startOffset,
-        endOffset: endOffset,
+        endOffset: endToken.charOffset, //endOffset,
       );
     } else {
       _builderFactory.endEnumDeclarationForParserRecovery(typeParameters);

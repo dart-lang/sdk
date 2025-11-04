@@ -204,11 +204,6 @@ class SemanticTokenInfo {
     SemanticTokenInfo t1,
     SemanticTokenInfo t2,
   ) {
-    var priorities = {
-      // Ensure boolean comes above keyword.
-      CustomSemanticTokenTypes.boolean: 1,
-    };
-
     // First sort by offset.
     if (t1.offset != t2.offset) {
       return t1.offset.compareTo(t2.offset);
@@ -219,9 +214,9 @@ class SemanticTokenInfo {
       return -t1.length.compareTo(t2.length);
     }
 
-    // Next sort by priority (if different).
-    var priority1 = priorities[t1.type] ?? 0;
-    var priority2 = priorities[t2.type] ?? 0;
+    // Next sort by priority (if different) (boolean comes above keyword).
+    var priority1 = t1.type == CustomSemanticTokenTypes.boolean ? 1 : 0;
+    var priority2 = t2.type == CustomSemanticTokenTypes.boolean ? 1 : 0;
     if (priority1 != priority2) {
       return priority1.compareTo(priority2);
     }

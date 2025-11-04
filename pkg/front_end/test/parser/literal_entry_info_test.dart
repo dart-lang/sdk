@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart';
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:front_end/src/base/messages.dart';
@@ -511,6 +513,7 @@ class CollectionElementTest {
     final parser = new Parser(
       listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      experimentalFeatures: const DefaultExperimentalFeatures(),
     );
     if (inAsync != null) parser.asyncState = AsyncModifier.Async;
     final lastConsumed = parser.parseLiteralListSuffix(start, null);
@@ -794,6 +797,7 @@ class MapElementTest {
     final parser = new Parser(
       listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      experimentalFeatures: const DefaultExperimentalFeatures(),
     );
     if (inAsync != null) parser.asyncState = AsyncModifier.Async;
     final lastConsumed = parser.parseMapLiteralEntry(start);

@@ -1170,165 +1170,139 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       return defaultTarget;
     }
 
-    Name otherName = descriptor.complementaryName;
-    bool otherIsSetter = descriptor.complementaryIsSetter;
     ExtensionAccessCandidate? bestSoFar;
     List<ExtensionAccessCandidate> noneMoreSpecific = [];
     extensionScope.forEachExtension((ExtensionBuilder extensionBuilder) {
+      MemberLookupResult? result = extensionBuilder.lookupExtensionMemberByName(
+        name,
+      );
+      if (result == null || result.isInvalidLookup || result.isStatic) {
+        return;
+      }
       MemberBuilder? thisBuilder;
       MemberBuilder? otherBuilder;
-      if (name == otherName) {
-        MemberLookupResult? result = extensionBuilder.lookupLocalMemberByName(
-          name,
-        );
-        if (result?.isInvalidLookup ?? false) {
-          result = null;
-        }
-        thisBuilder = setter ? result?.setable : result?.getable;
-        otherBuilder = otherIsSetter ? result?.setable : result?.getable;
+      if (setter || name == indexSetName) {
+        // Setters and `operator []=` are returned through the setable.
+        thisBuilder = result.setable;
+        otherBuilder = result.getable;
       } else {
-        // TODO(johnniwinther): Merge []/[]= lookups into one.
-        MemberLookupResult? thisResult = extensionBuilder
-            .lookupLocalMemberByName(name);
-        if (thisResult?.isInvalidLookup ?? false) {
-          thisResult = null;
-        }
-        MemberLookupResult? otherResult = extensionBuilder
-            .lookupLocalMemberByName(otherName);
-        if (otherResult?.isInvalidLookup ?? false) {
-          otherResult = null;
-        }
-        thisBuilder = setter
-            ?
-              // Coverage-ignore(suite): Not run.
-              thisResult?.setable
-            : thisResult?.getable;
-        otherBuilder = otherIsSetter
-            ?
-              // Coverage-ignore(suite): Not run.
-              otherResult?.setable
-            : otherResult?.getable;
+        thisBuilder = result.getable;
+        otherBuilder = result.setable;
       }
-      if ((thisBuilder != null && !thisBuilder.isStatic) ||
-          (otherBuilder != null && !otherBuilder.isStatic)) {
-        DartType onType;
-        DartType onTypeInstantiateToBounds;
-        List<DartType> inferredTypeArguments;
-        if (extensionBuilder.extension.typeParameters.isEmpty) {
-          onTypeInstantiateToBounds = onType =
-              extensionBuilder.extension.onType;
-          inferredTypeArguments = const <DartType>[];
-        } else {
-          List<TypeParameter> typeParameters =
-              extensionBuilder.extension.typeParameters;
-          inferredTypeArguments = inferExtensionTypeArguments(
-            extensionBuilder.extension,
-            receiverType,
-            treeNodeForTesting: null,
-          );
-          Substitution inferredSubstitution = Substitution.fromPairs(
-            typeParameters,
-            inferredTypeArguments,
-          );
+      assert(thisBuilder != null || otherBuilder != null);
+      DartType onType;
+      DartType onTypeInstantiateToBounds;
+      List<DartType> inferredTypeArguments;
+      if (extensionBuilder.extension.typeParameters.isEmpty) {
+        onTypeInstantiateToBounds = onType = extensionBuilder.extension.onType;
+        inferredTypeArguments = const <DartType>[];
+      } else {
+        List<TypeParameter> typeParameters =
+            extensionBuilder.extension.typeParameters;
+        inferredTypeArguments = inferExtensionTypeArguments(
+          extensionBuilder.extension,
+          receiverType,
+          treeNodeForTesting: null,
+        );
+        Substitution inferredSubstitution = Substitution.fromPairs(
+          typeParameters,
+          inferredTypeArguments,
+        );
 
-          for (int index = 0; index < typeParameters.length; index++) {
-            TypeParameter typeParameter = typeParameters[index];
-            DartType typeArgument = inferredTypeArguments[index];
-            DartType bound = inferredSubstitution.substituteType(
-              typeParameter.bound,
-            );
-            if (!typeSchemaEnvironment.isSubtypeOf(typeArgument, bound)) {
-              return;
-            }
+        for (int index = 0; index < typeParameters.length; index++) {
+          TypeParameter typeParameter = typeParameters[index];
+          DartType typeArgument = inferredTypeArguments[index];
+          DartType bound = inferredSubstitution.substituteType(
+            typeParameter.bound,
+          );
+          if (!typeSchemaEnvironment.isSubtypeOf(typeArgument, bound)) {
+            return;
           }
-          onType = inferredSubstitution.substituteType(
-            extensionBuilder.extension.onType,
-          );
-          List<DartType> instantiateToBoundTypeArguments = calculateBounds(
-            typeParameters,
-            coreTypes.objectClass,
-          );
-          Substitution instantiateToBoundsSubstitution = Substitution.fromPairs(
-            typeParameters,
-            instantiateToBoundTypeArguments,
-          );
-          onTypeInstantiateToBounds = instantiateToBoundsSubstitution
-              .substituteType(extensionBuilder.extension.onType);
         }
+        onType = inferredSubstitution.substituteType(
+          extensionBuilder.extension.onType,
+        );
+        List<DartType> instantiateToBoundTypeArguments = calculateBounds(
+          typeParameters,
+          coreTypes.objectClass,
+        );
+        Substitution instantiateToBoundsSubstitution = Substitution.fromPairs(
+          typeParameters,
+          instantiateToBoundTypeArguments,
+        );
+        onTypeInstantiateToBounds = instantiateToBoundsSubstitution
+            .substituteType(extensionBuilder.extension.onType);
+      }
 
-        if (typeSchemaEnvironment.isSubtypeOf(receiverType, onType)) {
-          ObjectAccessTarget target = const ObjectAccessTarget.missing();
-          if (thisBuilder != null && !thisBuilder.isStatic) {
-            Member? member;
-            ClassMemberKind classMemberKind;
-            if (thisBuilder.isProperty) {
-              if (setter) {
-                classMemberKind = ClassMemberKind.Setter;
-                member = thisBuilder.writeTarget!;
-              } else {
-                classMemberKind = ClassMemberKind.Getter;
-                member = thisBuilder.readTarget!;
-              }
+      if (typeSchemaEnvironment.isSubtypeOf(receiverType, onType)) {
+        ObjectAccessTarget target = const ObjectAccessTarget.missing();
+        if (thisBuilder != null) {
+          Member? member;
+          ClassMemberKind classMemberKind;
+          if (thisBuilder.isProperty) {
+            if (setter) {
+              classMemberKind = ClassMemberKind.Setter;
+              member = thisBuilder.writeTarget!;
             } else {
-              assert(
-                !setter,
-                "Unexpected method found as setter: $thisBuilder",
-              );
-              classMemberKind = ClassMemberKind.Method;
-              member = thisBuilder.invokeTarget!;
+              classMemberKind = ClassMemberKind.Getter;
+              member = thisBuilder.readTarget!;
             }
-            Member? tearoffTarget = thisBuilder.readTarget;
-            target = new ObjectAccessTarget.extensionMember(
-              receiverType,
-              member,
-              tearoffTarget,
-              classMemberKind,
-              inferredTypeArguments,
-              isPotentiallyNullable: isPotentiallyNullableAccess,
-            );
-          }
-          ExtensionAccessCandidate candidate = new ExtensionAccessCandidate(
-            (thisBuilder ?? otherBuilder)!,
-            onType,
-            onTypeInstantiateToBounds,
-            target,
-            isPlatform: extensionBuilder.libraryBuilder.importUri.isScheme(
-              'dart',
-            ),
-          );
-          if (noneMoreSpecific.isNotEmpty) {
-            // Coverage-ignore-block(suite): Not run.
-            bool isMostSpecific = true;
-            for (ExtensionAccessCandidate other in noneMoreSpecific) {
-              bool? isMoreSpecific = candidate.isMoreSpecificThan(
-                typeSchemaEnvironment,
-                other,
-              );
-              if (isMoreSpecific != true) {
-                isMostSpecific = false;
-                break;
-              }
-            }
-            if (isMostSpecific) {
-              bestSoFar = candidate;
-              noneMoreSpecific.clear();
-            } else {
-              noneMoreSpecific.add(candidate);
-            }
-          } else if (bestSoFar == null) {
-            bestSoFar = candidate;
           } else {
+            assert(!setter, "Unexpected method found as setter: $thisBuilder");
+            classMemberKind = ClassMemberKind.Method;
+            member = thisBuilder.invokeTarget!;
+          }
+          Member? tearoffTarget = thisBuilder.readTarget;
+          target = new ObjectAccessTarget.extensionMember(
+            receiverType,
+            member,
+            tearoffTarget,
+            classMemberKind,
+            inferredTypeArguments,
+            isPotentiallyNullable: isPotentiallyNullableAccess,
+          );
+        }
+        ExtensionAccessCandidate candidate = new ExtensionAccessCandidate(
+          (thisBuilder ?? otherBuilder)!,
+          onType,
+          onTypeInstantiateToBounds,
+          target,
+          isPlatform: extensionBuilder.libraryBuilder.importUri.isScheme(
+            'dart',
+          ),
+        );
+        if (noneMoreSpecific.isNotEmpty) {
+          // Coverage-ignore-block(suite): Not run.
+          bool isMostSpecific = true;
+          for (ExtensionAccessCandidate other in noneMoreSpecific) {
             bool? isMoreSpecific = candidate.isMoreSpecificThan(
               typeSchemaEnvironment,
-              bestSoFar!,
+              other,
             );
-            if (isMoreSpecific == true) {
-              bestSoFar = candidate;
-            } else if (isMoreSpecific == null) {
-              noneMoreSpecific.add(bestSoFar!);
-              noneMoreSpecific.add(candidate);
-              bestSoFar = null;
+            if (isMoreSpecific != true) {
+              isMostSpecific = false;
+              break;
             }
+          }
+          if (isMostSpecific) {
+            bestSoFar = candidate;
+            noneMoreSpecific.clear();
+          } else {
+            noneMoreSpecific.add(candidate);
+          }
+        } else if (bestSoFar == null) {
+          bestSoFar = candidate;
+        } else {
+          bool? isMoreSpecific = candidate.isMoreSpecificThan(
+            typeSchemaEnvironment,
+            bestSoFar!,
+          );
+          if (isMoreSpecific == true) {
+            bestSoFar = candidate;
+          } else if (isMoreSpecific == null) {
+            noneMoreSpecific.add(bestSoFar!);
+            noneMoreSpecific.add(candidate);
+            bestSoFar = null;
           }
         }
       }
@@ -3711,6 +3685,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             target: target,
             name: name,
             receiverType: receiverType,
+            setter: false,
           );
       if (overWritten != null) {
         target = overWritten.target;
@@ -5137,6 +5112,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             target: readTarget,
             name: propertyName,
             receiverType: receiverType,
+            setter: false,
           );
       if (overWritten != null) {
         readTarget = overWritten.target;
@@ -6082,21 +6058,7 @@ class _ObjectAccessDescriptor {
 
   Name? _complementaryName;
 
-  /// Returns the name of the complementary getter/setter access corresponding
-  /// to this descriptor.
-  Name get complementaryName {
-    _computeComplementaryNameAndKind();
-    return _complementaryName!;
-  }
-
   bool? _complementaryIsSetter;
-
-  /// Returns `true` if the complementary getter/setter access corresponding to
-  /// this descriptor is a setter access.
-  bool get complementaryIsSetter {
-    _computeComplementaryNameAndKind();
-    return _complementaryIsSetter!;
-  }
 
   void _computeComplementaryNameAndKind() {
     if (_complementaryName == null) {

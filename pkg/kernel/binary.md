@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 125;
+  UInt32 formatVersion = 126;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -906,6 +906,13 @@ type ConstConstructorInvocation extends Expression {
   FileOffset fileOffset;
   ConstructorReference target;
   Arguments arguments;
+}
+
+type RedirectingFactoryInvocation extends Expression {
+  Byte tag = 153;
+  FileOffset fileOffset;
+  MemberReference redirectingFactoryTarget;
+  Expression expression;
 }
 
 type Not extends Expression {

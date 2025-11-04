@@ -29,10 +29,10 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.flutterRemoveWidget;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_CONTAINER;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryContainer;
 
   @override
-  FixKind? get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_CONTAINER_MULTI;
+  FixKind? get multiFixKind => DartFixKind.removeUnnecessaryContainerMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

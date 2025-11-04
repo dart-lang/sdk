@@ -122,4 +122,20 @@ class FutureValueTypeVisitor implements DartTypeVisitor1<DartType, CoreTypes> {
     // futureValueType(void) = void.
     return node;
   }
+
+  @override
+  DartType visitFunctionTypeParameterType(
+      FunctionTypeParameterType node, CoreTypes arg) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  DartType visitClassTypeParameterType(
+      ClassTypeParameterType node, CoreTypes arg) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
 }

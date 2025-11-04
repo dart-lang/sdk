@@ -1057,9 +1057,9 @@ class _ExpressionTransformer extends Transformer {
     // If right has emitted statements we will produce a temporary t and emit
     // for && (there is an analogous case for ||):
     //
-    // t = [left] == true;
-    // if (t) {
-    //   t = [right] == true;
+    // t = false;
+    // if ([left]) {
+    //   t = [right];
     // }
 
     // Recall that statements are emitted in reverse order, so first emit the
@@ -1070,12 +1070,8 @@ class _ExpressionTransformer extends Transformer {
     final InterfaceType type = staticTypeContext.typeEnvironment.coreTypes
         .boolRawType(staticTypeContext.nonNullable);
     final VariableDeclaration result = allocateTemporary(nameIndex, type);
-    final objectEquals = coreTypes.objectEquals;
-    rightBody.addStatement(ExpressionStatement(VariableSet(
-        result,
-        EqualsCall(expr.right, BoolLiteral(true),
-            interfaceTarget: objectEquals,
-            functionType: objectEquals.getterType as FunctionType))));
+    rightBody
+        .addStatement(ExpressionStatement(VariableSet(result, expr.right)));
     final Statement then;
     final Statement? otherwise;
     if (expr.operatorEnum == LogicalExpressionOperator.AND) {
@@ -1085,19 +1081,17 @@ class _ExpressionTransformer extends Transformer {
       then = EmptyStatement();
       otherwise = rightBody;
     }
-    statements.add(IfStatement(castVariableGet(result, type), then, otherwise));
-
-    final test = EqualsCall(expr.left, BoolLiteral(true),
-        interfaceTarget: objectEquals,
-        functionType: objectEquals.getterType as FunctionType);
-    statements.add(ExpressionStatement(VariableSet(result, test)));
+    final ifStatement = IfStatement(expr.left, then, otherwise);
+    statements.add(ifStatement);
 
     seenAwait = false;
-    test.left = transform(test.left)..parent = test;
+    ifStatement.condition = transform(expr.left)..parent = ifStatement;
+    statements.add(ExpressionStatement(VariableSet(result,
+        BoolLiteral(expr.operatorEnum == LogicalExpressionOperator.OR))));
 
     nameIndex += 1;
     seenAwait = seenAwait || rightAwait;
-    return castVariableGet(result, type);
+    return VariableGet(result);
   }
 
   @override

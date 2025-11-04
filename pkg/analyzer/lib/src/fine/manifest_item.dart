@@ -20,7 +20,11 @@ import 'package:pub_semver/pub_semver.dart';
 
 class ClassItem extends InterfaceItem<ClassElementImpl> {
   /// See [ClassElementImpl.allSubtypes] for details.
-  ManifestItemIdList allSubtypes;
+  ManifestItemIdList? allSubtypes;
+
+  /// See [ClassElementImpl.directSubtypesOfSealed] for details.
+  /// If the class is not sealed, then `null`.
+  ManifestItemIdList? directSubtypesOfSealed;
 
   ClassItem({
     required super.id,
@@ -40,6 +44,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     required super.interfaces,
     required super.interface,
     required this.allSubtypes,
+    required this.directSubtypesOfSealed,
   });
 
   factory ClassItem.fromElement({
@@ -65,7 +70,8 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
         interface: ManifestInterface.empty(),
-        allSubtypes: ManifestItemIdList([]),
+        allSubtypes: null,
+        directSubtypesOfSealed: null,
       );
     });
   }
@@ -88,7 +94,8 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
       interface: ManifestInterface.read(reader),
-      allSubtypes: ManifestItemIdList.read(reader),
+      allSubtypes: ManifestItemIdList.readOptional(reader),
+      directSubtypesOfSealed: ManifestItemIdList.readOptional(reader),
     );
   }
 
@@ -110,7 +117,8 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
   @override
   void write(BinaryWriter writer) {
     super.write(writer);
-    allSubtypes.write(writer);
+    allSubtypes.writeOptional(writer);
+    directSubtypesOfSealed.writeOptional(writer);
   }
 }
 
@@ -778,16 +786,16 @@ sealed class InstanceItem<E extends InstanceElementImpl>
     inheritedConstructors.write(writer);
   }
 
-  void _makeNameConflict(LookupName lookupName2) {
+  void _makeNameConflict(LookupName lookupName) {
     var id = ManifestItemId.generate();
-    for (var lookupName in lookupName2.relatedNames) {
-      declaredConflicts[lookupName] = id;
-      declaredFields.remove(lookupName);
-      declaredGetters.remove(lookupName);
-      declaredSetters.remove(lookupName);
-      declaredMethods.remove(lookupName);
-      declaredConstructors.remove(lookupName);
-      inheritedConstructors.remove(lookupName);
+    for (var relatedName in lookupName.relatedNames) {
+      declaredConflicts[relatedName] = id;
+      declaredFields.remove(relatedName);
+      declaredGetters.remove(relatedName);
+      declaredSetters.remove(relatedName);
+      declaredMethods.remove(relatedName);
+      declaredConstructors.remove(relatedName);
+      inheritedConstructors.remove(relatedName);
     }
   }
 }

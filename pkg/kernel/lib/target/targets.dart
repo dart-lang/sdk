@@ -383,6 +383,16 @@ abstract class Target {
   /// literals (for const set literals).
   bool get supportsSetLiterals => true;
 
+  /// Whether [FileUriExpression] nodes are supported by this target after
+  /// constant evaluation.
+  ///
+  /// [FileUriExpression] are used internally in the CFE to handle annotations
+  /// on patches, and are replaced with [FileUriConstantExpression] nodes during
+  /// constant evaluation.
+  ///
+  /// Targets can opt in to using this node for general inlining.
+  bool get supportsFileUriExpression => false;
+
   /// Bit mask of [LateLowering] values for the late lowerings that should
   /// be performed by the CFE.
   ///
@@ -749,8 +759,12 @@ class TestTargetFlags extends TargetFlags {
       this.forceNoExplicitGetterCallsForTesting,
       this.forceConstructorTearOffLoweringForTesting,
       this.supportedDartLibraries = const {},
-      this.unsupportedDartLibraries = const {}})
-      : super(trackWidgetCreation: trackWidgetCreation);
+      this.unsupportedDartLibraries = const {},
+      bool? isClosureContextLoweringEnabled})
+      : super(
+            trackWidgetCreation: trackWidgetCreation,
+            isClosureContextLoweringEnabled:
+                isClosureContextLoweringEnabled ?? false);
 }
 
 mixin TestTargetMixin on Target {

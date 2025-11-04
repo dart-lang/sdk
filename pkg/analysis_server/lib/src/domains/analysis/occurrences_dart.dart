@@ -88,6 +88,14 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    if (node.declaredFragment?.element case var element?) {
+      _addOccurrence(element, node.name);
+    }
+    super.visitCatchClauseParameter(node);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     _addOccurrence(node.declaredFragment!.element, node.name);
 
@@ -124,6 +132,8 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
       if (element != null) {
         _addOccurrence(element, node.type.name);
       }
+      // Still visit the import prefix if there is one.
+      node.type.importPrefix?.accept(this);
       return; // skip visitNamedType.
     }
 
@@ -250,7 +260,9 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    _addOccurrence(node.element!, node.name);
+    if (node.element case var element?) {
+      _addOccurrence(element, node.name);
+    }
 
     super.visitImportPrefixReference(node);
   }

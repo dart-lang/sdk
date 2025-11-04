@@ -17,10 +17,10 @@ class ReplaceNullWithVoid extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_NULL_WITH_VOID;
+  FixKind get fixKind => DartFixKind.replaceNullWithVoid;
 
   @override
-  FixKind? get multiFixKind => DartFixKind.REPLACE_NULL_WITH_VOID_MULTI;
+  FixKind? get multiFixKind => DartFixKind.replaceNullWithVoidMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -47,7 +47,6 @@ namespace dart {
 ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
     : thread_(thread),
       function_(function),
-      code_(Code::Handle(zone(), function.unoptimized_code())),
       scope_(nullptr),
       regexp_compile_data_(nullptr),
       function_type_arguments_(nullptr),

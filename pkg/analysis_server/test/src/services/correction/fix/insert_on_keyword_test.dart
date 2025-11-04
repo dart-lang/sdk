@@ -38,7 +38,7 @@ extension on String {}
 @reflectiveTest
 class InsertOnKeywordTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.INSERT_ON_KEYWORD;
+  FixKind get kind => DartFixKind.insertOnKeyword;
 
   Future<void> test_hasName() async {
     await resolveTestCode('''
@@ -48,7 +48,7 @@ extension int {}
       '''
 extension on int {}
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == ParserErrorCode.expectedToken;
       },
     );
@@ -89,7 +89,7 @@ extension List<int> {}
       '''
 extension on List<int> {}
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == ParserErrorCode.expectedToken;
       },
     );

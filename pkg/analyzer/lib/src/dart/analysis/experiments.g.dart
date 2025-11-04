@@ -12,7 +12,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '3.10.0';
+const _currentVersion = '3.11.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -24,6 +24,8 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.control_flow_collections:
       ExperimentalFeatures.control_flow_collections,
   EnableString.data_assets: ExperimentalFeatures.data_assets,
+  EnableString.declaring_constructors:
+      ExperimentalFeatures.declaring_constructors,
   EnableString.digit_separators: ExperimentalFeatures.digit_separators,
   EnableString.dot_shorthands: ExperimentalFeatures.dot_shorthands,
   EnableString.enhanced_enums: ExperimentalFeatures.enhanced_enums,
@@ -47,6 +49,8 @@ final _knownFeatures = <String, ExperimentalFeature>{
       ExperimentalFeatures.nonfunction_type_aliases,
   EnableString.null_aware_elements: ExperimentalFeatures.null_aware_elements,
   EnableString.patterns: ExperimentalFeatures.patterns,
+  EnableString.private_named_parameters:
+      ExperimentalFeatures.private_named_parameters,
   EnableString.record_use: ExperimentalFeatures.record_use,
   EnableString.records: ExperimentalFeatures.records,
   EnableString.sealed_class: ExperimentalFeatures.sealed_class,
@@ -61,6 +65,82 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.unquoted_imports: ExperimentalFeatures.unquoted_imports,
   EnableString.variance: ExperimentalFeatures.variance,
   EnableString.wildcard_variables: ExperimentalFeatures.wildcard_variables,
+};
+
+/// Returns the [Feature] corresponding to the shared experimental [flag].
+Feature fromSharedExperimentalFlags(
+  shared.ExperimentalFlag flag,
+) => switch (flag) {
+  shared.ExperimentalFlag.augmentations => ExperimentalFeatures.augmentations,
+  shared.ExperimentalFlag.classModifiers =>
+    ExperimentalFeatures.class_modifiers,
+  shared.ExperimentalFlag.constFunctions =>
+    ExperimentalFeatures.const_functions,
+  shared.ExperimentalFlag.constantUpdate2018 =>
+    ExperimentalFeatures.constant_update_2018,
+  shared.ExperimentalFlag.constructorTearoffs =>
+    ExperimentalFeatures.constructor_tearoffs,
+  shared.ExperimentalFlag.controlFlowCollections =>
+    ExperimentalFeatures.control_flow_collections,
+  shared.ExperimentalFlag.dataAssets => ExperimentalFeatures.data_assets,
+  shared.ExperimentalFlag.declaringConstructors =>
+    ExperimentalFeatures.declaring_constructors,
+  shared.ExperimentalFlag.digitSeparators =>
+    ExperimentalFeatures.digit_separators,
+  shared.ExperimentalFlag.dotShorthands => ExperimentalFeatures.dot_shorthands,
+  shared.ExperimentalFlag.enhancedEnums => ExperimentalFeatures.enhanced_enums,
+  shared.ExperimentalFlag.enhancedParts => ExperimentalFeatures.enhanced_parts,
+  shared.ExperimentalFlag.extensionMethods =>
+    ExperimentalFeatures.extension_methods,
+  shared.ExperimentalFlag.genericMetadata =>
+    ExperimentalFeatures.generic_metadata,
+  shared.ExperimentalFlag.getterSetterError =>
+    ExperimentalFeatures.getter_setter_error,
+  shared.ExperimentalFlag.inferenceUpdate1 =>
+    ExperimentalFeatures.inference_update_1,
+  shared.ExperimentalFlag.inferenceUpdate2 =>
+    ExperimentalFeatures.inference_update_2,
+  shared.ExperimentalFlag.inferenceUpdate3 =>
+    ExperimentalFeatures.inference_update_3,
+  shared.ExperimentalFlag.inferenceUpdate4 =>
+    ExperimentalFeatures.inference_update_4,
+  shared.ExperimentalFlag.inferenceUsingBounds =>
+    ExperimentalFeatures.inference_using_bounds,
+  shared.ExperimentalFlag.inlineClass => ExperimentalFeatures.inline_class,
+  shared.ExperimentalFlag.macros => ExperimentalFeatures.macros,
+  shared.ExperimentalFlag.namedArgumentsAnywhere =>
+    ExperimentalFeatures.named_arguments_anywhere,
+  shared.ExperimentalFlag.nativeAssets => ExperimentalFeatures.native_assets,
+  shared.ExperimentalFlag.nonNullable => ExperimentalFeatures.non_nullable,
+  shared.ExperimentalFlag.nonfunctionTypeAliases =>
+    ExperimentalFeatures.nonfunction_type_aliases,
+  shared.ExperimentalFlag.nullAwareElements =>
+    ExperimentalFeatures.null_aware_elements,
+  shared.ExperimentalFlag.patterns => ExperimentalFeatures.patterns,
+  shared.ExperimentalFlag.privateNamedParameters =>
+    ExperimentalFeatures.private_named_parameters,
+  shared.ExperimentalFlag.recordUse => ExperimentalFeatures.record_use,
+  shared.ExperimentalFlag.records => ExperimentalFeatures.records,
+  shared.ExperimentalFlag.sealedClass => ExperimentalFeatures.sealed_class,
+  shared.ExperimentalFlag.setLiterals => ExperimentalFeatures.set_literals,
+  shared.ExperimentalFlag.soundFlowAnalysis =>
+    ExperimentalFeatures.sound_flow_analysis,
+  shared.ExperimentalFlag.spreadCollections =>
+    ExperimentalFeatures.spread_collections,
+  shared.ExperimentalFlag.staticExtensions =>
+    ExperimentalFeatures.static_extensions,
+  shared.ExperimentalFlag.superParameters =>
+    ExperimentalFeatures.super_parameters,
+  shared.ExperimentalFlag.testExperiment =>
+    ExperimentalFeatures.test_experiment,
+  shared.ExperimentalFlag.tripleShift => ExperimentalFeatures.triple_shift,
+  shared.ExperimentalFlag.unnamedLibraries =>
+    ExperimentalFeatures.unnamed_libraries,
+  shared.ExperimentalFlag.unquotedImports =>
+    ExperimentalFeatures.unquoted_imports,
+  shared.ExperimentalFlag.variance => ExperimentalFeatures.variance,
+  shared.ExperimentalFlag.wildcardVariables =>
+    ExperimentalFeatures.wildcard_variables,
 };
 
 /// Constant strings for enabling each of the currently known experimental
@@ -86,6 +166,9 @@ class EnableString {
 
   /// String to enable the experiment "data-assets"
   static const String data_assets = 'data-assets';
+
+  /// String to enable the experiment "declaring-constructors"
+  static const String declaring_constructors = 'declaring-constructors';
 
   /// String to enable the experiment "digit-separators"
   static const String digit_separators = 'digit-separators';
@@ -146,6 +229,9 @@ class EnableString {
 
   /// String to enable the experiment "patterns"
   static const String patterns = 'patterns';
+
+  /// String to enable the experiment "private-named-parameters"
+  static const String private_named_parameters = 'private-named-parameters';
 
   /// String to enable the experiment "record-use"
   static const String record_use = 'record-use';
@@ -270,8 +356,19 @@ class ExperimentalFeatures {
     channels: ["main", "dev"],
   );
 
-  static final digit_separators = ExperimentalFeature(
+  static final declaring_constructors = ExperimentalFeature(
     index: 7,
+    enableString: EnableString.declaring_constructors,
+    isEnabledByDefault: IsEnabledByDefault.declaring_constructors,
+    isExpired: IsExpired.declaring_constructors,
+    documentation: 'Less verbose constructors.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
+  static final digit_separators = ExperimentalFeature(
+    index: 8,
     enableString: EnableString.digit_separators,
     isEnabledByDefault: IsEnabledByDefault.digit_separators,
     isExpired: IsExpired.digit_separators,
@@ -282,7 +379,7 @@ class ExperimentalFeatures {
   );
 
   static final dot_shorthands = ExperimentalFeature(
-    index: 8,
+    index: 9,
     enableString: EnableString.dot_shorthands,
     isEnabledByDefault: IsEnabledByDefault.dot_shorthands,
     isExpired: IsExpired.dot_shorthands,
@@ -293,7 +390,7 @@ class ExperimentalFeatures {
   );
 
   static final enhanced_enums = ExperimentalFeature(
-    index: 9,
+    index: 10,
     enableString: EnableString.enhanced_enums,
     isEnabledByDefault: IsEnabledByDefault.enhanced_enums,
     isExpired: IsExpired.enhanced_enums,
@@ -304,7 +401,7 @@ class ExperimentalFeatures {
   );
 
   static final enhanced_parts = ExperimentalFeature(
-    index: 10,
+    index: 11,
     enableString: EnableString.enhanced_parts,
     isEnabledByDefault: IsEnabledByDefault.enhanced_parts,
     isExpired: IsExpired.enhanced_parts,
@@ -315,7 +412,7 @@ class ExperimentalFeatures {
   );
 
   static final extension_methods = ExperimentalFeature(
-    index: 11,
+    index: 12,
     enableString: EnableString.extension_methods,
     isEnabledByDefault: IsEnabledByDefault.extension_methods,
     isExpired: IsExpired.extension_methods,
@@ -326,7 +423,7 @@ class ExperimentalFeatures {
   );
 
   static final generic_metadata = ExperimentalFeature(
-    index: 12,
+    index: 13,
     enableString: EnableString.generic_metadata,
     isEnabledByDefault: IsEnabledByDefault.generic_metadata,
     isExpired: IsExpired.generic_metadata,
@@ -338,7 +435,7 @@ class ExperimentalFeatures {
   );
 
   static final getter_setter_error = ExperimentalFeature(
-    index: 13,
+    index: 14,
     enableString: EnableString.getter_setter_error,
     isEnabledByDefault: IsEnabledByDefault.getter_setter_error,
     isExpired: IsExpired.getter_setter_error,
@@ -350,7 +447,7 @@ class ExperimentalFeatures {
   );
 
   static final inference_update_1 = ExperimentalFeature(
-    index: 14,
+    index: 15,
     enableString: EnableString.inference_update_1,
     isEnabledByDefault: IsEnabledByDefault.inference_update_1,
     isExpired: IsExpired.inference_update_1,
@@ -362,7 +459,7 @@ class ExperimentalFeatures {
   );
 
   static final inference_update_2 = ExperimentalFeature(
-    index: 15,
+    index: 16,
     enableString: EnableString.inference_update_2,
     isEnabledByDefault: IsEnabledByDefault.inference_update_2,
     isExpired: IsExpired.inference_update_2,
@@ -373,7 +470,7 @@ class ExperimentalFeatures {
   );
 
   static final inference_update_3 = ExperimentalFeature(
-    index: 16,
+    index: 17,
     enableString: EnableString.inference_update_3,
     isEnabledByDefault: IsEnabledByDefault.inference_update_3,
     isExpired: IsExpired.inference_update_3,
@@ -385,7 +482,7 @@ class ExperimentalFeatures {
   );
 
   static final inference_update_4 = ExperimentalFeature(
-    index: 17,
+    index: 18,
     enableString: EnableString.inference_update_4,
     isEnabledByDefault: IsEnabledByDefault.inference_update_4,
     isExpired: IsExpired.inference_update_4,
@@ -396,7 +493,7 @@ class ExperimentalFeatures {
   );
 
   static final inference_using_bounds = ExperimentalFeature(
-    index: 18,
+    index: 19,
     enableString: EnableString.inference_using_bounds,
     isEnabledByDefault: IsEnabledByDefault.inference_using_bounds,
     isExpired: IsExpired.inference_using_bounds,
@@ -408,7 +505,7 @@ class ExperimentalFeatures {
   );
 
   static final inline_class = ExperimentalFeature(
-    index: 19,
+    index: 20,
     enableString: EnableString.inline_class,
     isEnabledByDefault: IsEnabledByDefault.inline_class,
     isExpired: IsExpired.inline_class,
@@ -419,7 +516,7 @@ class ExperimentalFeatures {
   );
 
   static final macros = ExperimentalFeature(
-    index: 20,
+    index: 21,
     enableString: EnableString.macros,
     isEnabledByDefault: IsEnabledByDefault.macros,
     isExpired: IsExpired.macros,
@@ -430,7 +527,7 @@ class ExperimentalFeatures {
   );
 
   static final named_arguments_anywhere = ExperimentalFeature(
-    index: 21,
+    index: 22,
     enableString: EnableString.named_arguments_anywhere,
     isEnabledByDefault: IsEnabledByDefault.named_arguments_anywhere,
     isExpired: IsExpired.named_arguments_anywhere,
@@ -441,7 +538,7 @@ class ExperimentalFeatures {
   );
 
   static final native_assets = ExperimentalFeature(
-    index: 22,
+    index: 23,
     enableString: EnableString.native_assets,
     isEnabledByDefault: IsEnabledByDefault.native_assets,
     isExpired: IsExpired.native_assets,
@@ -452,7 +549,7 @@ class ExperimentalFeatures {
   );
 
   static final non_nullable = ExperimentalFeature(
-    index: 23,
+    index: 24,
     enableString: EnableString.non_nullable,
     isEnabledByDefault: IsEnabledByDefault.non_nullable,
     isExpired: IsExpired.non_nullable,
@@ -463,7 +560,7 @@ class ExperimentalFeatures {
   );
 
   static final nonfunction_type_aliases = ExperimentalFeature(
-    index: 24,
+    index: 25,
     enableString: EnableString.nonfunction_type_aliases,
     isEnabledByDefault: IsEnabledByDefault.nonfunction_type_aliases,
     isExpired: IsExpired.nonfunction_type_aliases,
@@ -474,7 +571,7 @@ class ExperimentalFeatures {
   );
 
   static final null_aware_elements = ExperimentalFeature(
-    index: 25,
+    index: 26,
     enableString: EnableString.null_aware_elements,
     isEnabledByDefault: IsEnabledByDefault.null_aware_elements,
     isExpired: IsExpired.null_aware_elements,
@@ -485,7 +582,7 @@ class ExperimentalFeatures {
   );
 
   static final patterns = ExperimentalFeature(
-    index: 26,
+    index: 27,
     enableString: EnableString.patterns,
     isEnabledByDefault: IsEnabledByDefault.patterns,
     isExpired: IsExpired.patterns,
@@ -495,8 +592,20 @@ class ExperimentalFeatures {
     channels: ["stable", "beta", "dev", "main"],
   );
 
+  static final private_named_parameters = ExperimentalFeature(
+    index: 28,
+    enableString: EnableString.private_named_parameters,
+    isEnabledByDefault: IsEnabledByDefault.private_named_parameters,
+    isExpired: IsExpired.private_named_parameters,
+    documentation:
+        'Allow named parameters with private names that refer to fields.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
   static final record_use = ExperimentalFeature(
-    index: 27,
+    index: 29,
     enableString: EnableString.record_use,
     isEnabledByDefault: IsEnabledByDefault.record_use,
     isExpired: IsExpired.record_use,
@@ -507,7 +616,7 @@ class ExperimentalFeatures {
   );
 
   static final records = ExperimentalFeature(
-    index: 28,
+    index: 30,
     enableString: EnableString.records,
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
@@ -518,7 +627,7 @@ class ExperimentalFeatures {
   );
 
   static final sealed_class = ExperimentalFeature(
-    index: 29,
+    index: 31,
     enableString: EnableString.sealed_class,
     isEnabledByDefault: IsEnabledByDefault.sealed_class,
     isExpired: IsExpired.sealed_class,
@@ -529,7 +638,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 30,
+    index: 32,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -540,7 +649,7 @@ class ExperimentalFeatures {
   );
 
   static final sound_flow_analysis = ExperimentalFeature(
-    index: 31,
+    index: 33,
     enableString: EnableString.sound_flow_analysis,
     isEnabledByDefault: IsEnabledByDefault.sound_flow_analysis,
     isExpired: IsExpired.sound_flow_analysis,
@@ -552,7 +661,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 32,
+    index: 34,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -563,7 +672,7 @@ class ExperimentalFeatures {
   );
 
   static final static_extensions = ExperimentalFeature(
-    index: 33,
+    index: 35,
     enableString: EnableString.static_extensions,
     isEnabledByDefault: IsEnabledByDefault.static_extensions,
     isExpired: IsExpired.static_extensions,
@@ -574,7 +683,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 34,
+    index: 36,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -585,7 +694,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 35,
+    index: 37,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -597,7 +706,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 36,
+    index: 38,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -608,7 +717,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 37,
+    index: 39,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -619,7 +728,7 @@ class ExperimentalFeatures {
   );
 
   static final unquoted_imports = ExperimentalFeature(
-    index: 38,
+    index: 40,
     enableString: EnableString.unquoted_imports,
     isEnabledByDefault: IsEnabledByDefault.unquoted_imports,
     isExpired: IsExpired.unquoted_imports,
@@ -630,7 +739,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 39,
+    index: 41,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -641,7 +750,7 @@ class ExperimentalFeatures {
   );
 
   static final wildcard_variables = ExperimentalFeature(
-    index: 40,
+    index: 42,
     enableString: EnableString.wildcard_variables,
     isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
     isExpired: IsExpired.wildcard_variables,
@@ -676,6 +785,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "data-assets"
   static const bool data_assets = false;
+
+  /// Default state of the experiment "declaring-constructors"
+  static const bool declaring_constructors = false;
 
   /// Default state of the experiment "digit-separators"
   static const bool digit_separators = true;
@@ -736,6 +848,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "patterns"
   static const bool patterns = true;
+
+  /// Default state of the experiment "private-named-parameters"
+  static const bool private_named_parameters = false;
 
   /// Default state of the experiment "record-use"
   static const bool record_use = false;
@@ -805,6 +920,9 @@ class IsExpired {
   /// Expiration status of the experiment "data-assets"
   static const bool data_assets = false;
 
+  /// Expiration status of the experiment "declaring-constructors"
+  static const bool declaring_constructors = false;
+
   /// Expiration status of the experiment "digit-separators"
   static const bool digit_separators = true;
 
@@ -864,6 +982,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "patterns"
   static const bool patterns = true;
+
+  /// Expiration status of the experiment "private-named-parameters"
+  static const bool private_named_parameters = false;
 
   /// Expiration status of the experiment "record-use"
   static const bool record_use = false;
@@ -932,6 +1053,10 @@ mixin _CurrentState {
 
   /// Current state for the flag "data-assets"
   bool get data_assets => isEnabled(ExperimentalFeatures.data_assets);
+
+  /// Current state for the flag "declaring-constructors"
+  bool get declaring_constructors =>
+      isEnabled(ExperimentalFeatures.declaring_constructors);
 
   /// Current state for the flag "digit-separators"
   bool get digit_separators => isEnabled(ExperimentalFeatures.digit_separators);
@@ -1002,6 +1127,10 @@ mixin _CurrentState {
 
   /// Current state for the flag "patterns"
   bool get patterns => isEnabled(ExperimentalFeatures.patterns);
+
+  /// Current state for the flag "private-named-parameters"
+  bool get private_named_parameters =>
+      isEnabled(ExperimentalFeatures.private_named_parameters);
 
   /// Current state for the flag "record-use"
   bool get record_use => isEnabled(ExperimentalFeatures.record_use);

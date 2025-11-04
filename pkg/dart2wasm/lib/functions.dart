@@ -162,7 +162,8 @@ class FunctionCollector {
       // dynamic submodules.
       if (translator.dynamicModuleSupportEnabled &&
           !translator.isDynamicSubmodule &&
-          member.isDynamicSubmoduleCallable(translator.coreTypes)) {
+          (member.isDynamicSubmoduleCallable(translator.coreTypes) ||
+              member.isDynamicSubmoduleInheritable(translator.coreTypes))) {
         translator.exporter
             .exportDynamicCallable(translator.mainModule, function, target);
       }
@@ -178,7 +179,9 @@ class FunctionCollector {
 
     // Export the function from the main module if it is callable from
     // dynamic submodules.
-    if (!target.asMember.isDynamicSubmoduleCallable(translator.coreTypes)) {
+    final member = target.asMember;
+    if (!member.isDynamicSubmoduleCallable(translator.coreTypes) &&
+        !member.isDynamicSubmoduleInheritable(translator.coreTypes)) {
       throw StateError(
           'Cannot invoke ${target.asMember} since it is not labeled as '
           'callable in the dynamic interface.');
@@ -257,8 +260,20 @@ class FunctionCollector {
     if (target.isUncheckedEntryReference) {
       return "$memberName (unchecked entry)";
     }
+
+    final noInline =
+        translator.getPragma<bool>(member, "wasm:never-inline", true);
+
+    // We add "<noInline>" to the function name. When we invoke `wasm-opt` we
+    // then pass the `--no-inline=*<noInline>*` flag, which will prevent
+    // binaryen from inlining those functions.
+    //
+    // => Effectively we make `@pragma('wasm:never-inline')` work for binaryen
+    // as well.
+    final inlinePostfix = noInline == true ? ' <noInline>' : '';
+
     if (target.isBodyReference) {
-      return "$memberName (body)";
+      return "$memberName (body)$inlinePostfix";
     }
 
     if (memberName.endsWith('.')) {
@@ -283,11 +298,11 @@ class FunctionCollector {
     if (target.isInitializerReference) {
       return 'new $memberName (initializer)';
     } else if (target.isConstructorBodyReference) {
-      return 'new $memberName (constructor body)';
+      return 'new $memberName (constructor body)$inlinePostfix';
     } else if (member is Procedure && member.isFactory) {
       return 'new $memberName';
     } else {
-      return memberName;
+      return '$memberName$inlinePostfix';
     }
   }
 

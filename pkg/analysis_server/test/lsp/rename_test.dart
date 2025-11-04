@@ -207,7 +207,7 @@ final a = new [!Ob^ject!]();
     expect(response.id, equals(request.id));
     expect(response.result, isNull);
     expect(response.error, isNotNull);
-    expect(response.error!.code, ServerErrorCodes.RenameNotValid);
+    expect(response.error!.code, ServerErrorCodes.renameNotValid);
     expect(response.error!.message, contains('is defined in the SDK'));
   }
 
@@ -560,7 +560,7 @@ final a = n^ew MyClass();
       'MyOtherClass',
       supportsWindowShowMessageRequest: false,
     );
-    expect(error.code, equals(ServerErrorCodes.RenameNotValid));
+    expect(error.code, equals(ServerErrorCodes.renameNotValid));
     expect(
       error.message,
       contains('Library already declares class with name \'MyOtherClass\'.'),
@@ -893,7 +893,7 @@ class MyClass {}
 final a = n^ew MyClass();
 ''';
     var error = await _test_rename_failure(content, 'not a valid class name');
-    expect(error.code, equals(ServerErrorCodes.RenameNotValid));
+    expect(error.code, equals(ServerErrorCodes.renameNotValid));
     expect(error.message, contains('name must not contain'));
   }
 
@@ -902,7 +902,7 @@ final a = n^ew MyClass();
 class My^Class {}
 ''';
     var error = await _test_rename_failure(content, 'MyClass');
-    expect(error.code, equals(ServerErrorCodes.RenameNotValid));
+    expect(error.code, equals(ServerErrorCodes.renameNotValid));
     expect(
       error.message,
       contains('new name must be different than the current name'),
@@ -962,7 +962,7 @@ final a = new [!Ob^ject!]();
     expect(response.id, equals(request.id));
     expect(response.result, isNull);
     expect(response.error, isNotNull);
-    expect(response.error!.code, ServerErrorCodes.RenameNotValid);
+    expect(response.error!.code, ServerErrorCodes.renameNotValid);
     expect(response.error!.message, contains('is defined in the SDK'));
   }
 

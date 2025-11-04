@@ -27,19 +27,25 @@ class ContextRootImpl implements ContextRoot {
 
   /// A list of the globs for excluded files that were read from the analysis
   /// options file.
-  List<LocatedGlob> excludedGlobs = [];
+  final List<LocatedGlob> excludedGlobs = [];
 
   @override
-  File? optionsFile;
+  final File? optionsFile;
 
   /// Maintains a mapping of folders to associated analysis options files.
   final Map<Folder, File> optionsFileMap = {};
 
   @override
-  File? packagesFile;
+  final File? packagesFile;
 
   /// Initialize a newly created context root.
-  ContextRootImpl(this.resourceProvider, this.root, this.workspace);
+  ContextRootImpl(
+    this.resourceProvider,
+    this.root,
+    this.workspace, {
+    this.optionsFile,
+    this.packagesFile,
+  });
 
   @override
   Iterable<String> get excludedPaths =>

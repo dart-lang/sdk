@@ -39,6 +39,7 @@ abstract class ExpressionVisitor<R> {
   R visitSuperMethodInvocation(SuperMethodInvocation node);
   R visitStaticInvocation(StaticInvocation node);
   R visitConstructorInvocation(ConstructorInvocation node);
+  R visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node);
   R visitNot(Not node);
   R visitNullCheck(NullCheck node);
   R visitLogicalExpression(LogicalExpression node);
@@ -80,6 +81,8 @@ abstract class ExpressionVisitor<R> {
   R visitRecordNameGet(RecordNameGet node);
   R visitSwitchExpression(SwitchExpression node);
   R visitPatternAssignment(PatternAssignment node);
+  R visitVariableRead(VariableRead node);
+  R visitVariableWrite(VariableWrite node);
 }
 
 /// Helper mixin for [ExpressionVisitor] that implements visit methods by
@@ -151,6 +154,9 @@ mixin ExpressionVisitorDefaultMixin<R> implements ExpressionVisitor<R> {
   R visitStaticInvocation(StaticInvocation node) => defaultExpression(node);
   @override
   R visitConstructorInvocation(ConstructorInvocation node) =>
+      defaultExpression(node);
+  @override
+  R visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) =>
       defaultExpression(node);
   @override
   R visitNot(Not node) => defaultExpression(node);
@@ -238,6 +244,10 @@ mixin ExpressionVisitorDefaultMixin<R> implements ExpressionVisitor<R> {
   R visitSwitchExpression(SwitchExpression node) => defaultExpression(node);
   @override
   R visitPatternAssignment(PatternAssignment node) => defaultExpression(node);
+  @override
+  R visitVariableRead(VariableRead node) => defaultExpression(node);
+  @override
+  R visitVariableWrite(VariableWrite node) => defaultExpression(node);
 }
 
 abstract class PatternVisitor<R> {
@@ -302,6 +312,262 @@ mixin PatternVisitorDefaultMixin<R> implements PatternVisitor<R> {
   R visitWildcardPattern(WildcardPattern node) => defaultPattern(node);
 }
 
+/// [PatternVisitorInternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin PatternVisitorInternalNodeMixin<R> implements PatternVisitor<R> {
+  @override
+  R visitAndPattern(AndPattern node) {
+    throw StateError(
+      "${runtimeType}.visitAndPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitAssignedVariablePattern(AssignedVariablePattern node) {
+    throw StateError(
+      "${runtimeType}.visitAssignedVariablePattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitCastPattern(CastPattern node) {
+    throw StateError(
+      "${runtimeType}.visitCastPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitConstantPattern(ConstantPattern node) {
+    throw StateError(
+      "${runtimeType}.visitConstantPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitInvalidPattern(InvalidPattern node) {
+    throw StateError(
+      "${runtimeType}.visitInvalidPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitListPattern(ListPattern node) {
+    throw StateError(
+      "${runtimeType}.visitListPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitMapPattern(MapPattern node) {
+    throw StateError(
+      "${runtimeType}.visitMapPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitNamedPattern(NamedPattern node) {
+    throw StateError(
+      "${runtimeType}.visitNamedPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitNullAssertPattern(NullAssertPattern node) {
+    throw StateError(
+      "${runtimeType}.visitNullAssertPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitNullCheckPattern(NullCheckPattern node) {
+    throw StateError(
+      "${runtimeType}.visitNullCheckPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitObjectPattern(ObjectPattern node) {
+    throw StateError(
+      "${runtimeType}.visitObjectPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitOrPattern(OrPattern node) {
+    throw StateError(
+      "${runtimeType}.visitOrPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitRecordPattern(RecordPattern node) {
+    throw StateError(
+      "${runtimeType}.visitRecordPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitRelationalPattern(RelationalPattern node) {
+    throw StateError(
+      "${runtimeType}.visitRelationalPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitRestPattern(RestPattern node) {
+    throw StateError(
+      "${runtimeType}.visitRestPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitVariablePattern(VariablePattern node) {
+    throw StateError(
+      "${runtimeType}.visitVariablePattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitWildcardPattern(WildcardPattern node) {
+    throw StateError(
+      "${runtimeType}.visitWildcardPattern isn't supported.",
+    );
+  }
+}
+
+/// [PatternVisitor1InternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin PatternVisitor1InternalNodeMixin<R, A> implements PatternVisitor1<R, A> {
+  @override
+  R visitAndPattern(AndPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitAndPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitAssignedVariablePattern(AssignedVariablePattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitAssignedVariablePattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitCastPattern(CastPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitCastPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitConstantPattern(ConstantPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitConstantPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitInvalidPattern(InvalidPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitInvalidPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitListPattern(ListPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitListPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitMapPattern(MapPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitMapPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitNamedPattern(NamedPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitNamedPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitNullAssertPattern(NullAssertPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitNullAssertPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitNullCheckPattern(NullCheckPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitNullCheckPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitObjectPattern(ObjectPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitObjectPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitOrPattern(OrPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitOrPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitRecordPattern(RecordPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitRecordPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitRelationalPattern(RelationalPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitRelationalPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitRestPattern(RestPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitRestPattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitVariablePattern(VariablePattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitVariablePattern isn't supported.",
+    );
+  }
+
+  @override
+  R visitWildcardPattern(WildcardPattern node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitWildcardPattern isn't supported.",
+    );
+  }
+}
+
 abstract class StatementVisitor<R> {
   const StatementVisitor();
 
@@ -312,6 +578,7 @@ abstract class StatementVisitor<R> {
   R visitEmptyStatement(EmptyStatement node);
   R visitAssertStatement(AssertStatement node);
   R visitLabeledStatement(LabeledStatement node);
+  R visitVariableInitialization(VariableInitialization node);
   R visitBreakStatement(BreakStatement node);
   R visitWhileStatement(WhileStatement node);
   R visitDoStatement(DoStatement node);
@@ -326,9 +593,9 @@ abstract class StatementVisitor<R> {
   R visitTryCatch(TryCatch node);
   R visitTryFinally(TryFinally node);
   R visitYieldStatement(YieldStatement node);
-  R visitVariableDeclaration(VariableDeclaration node);
   R visitPatternVariableDeclaration(PatternVariableDeclaration node);
   R visitFunctionDeclaration(FunctionDeclaration node);
+  R visitVariableStatement(VariableStatement node);
 }
 
 /// Helper mixin for [StatementVisitor] that implements visit methods by
@@ -351,6 +618,9 @@ mixin StatementVisitorDefaultMixin<R> implements StatementVisitor<R> {
   R visitAssertStatement(AssertStatement node) => defaultStatement(node);
   @override
   R visitLabeledStatement(LabeledStatement node) => defaultStatement(node);
+  @override
+  R visitVariableInitialization(VariableInitialization node) =>
+      defaultStatement(node);
   @override
   R visitBreakStatement(BreakStatement node) => defaultStatement(node);
   @override
@@ -381,7 +651,6 @@ mixin StatementVisitorDefaultMixin<R> implements StatementVisitor<R> {
   R visitTryFinally(TryFinally node) => defaultStatement(node);
   @override
   R visitYieldStatement(YieldStatement node) => defaultStatement(node);
-  @override
   R visitVariableDeclaration(VariableDeclaration node) =>
       defaultStatement(node);
   @override
@@ -390,6 +659,9 @@ mixin StatementVisitorDefaultMixin<R> implements StatementVisitor<R> {
   @override
   R visitFunctionDeclaration(FunctionDeclaration node) =>
       defaultStatement(node);
+  @override
+  R visitVariableStatement(VariableStatement node) =>
+      visitVariableDeclaration(node);
 }
 
 abstract class MemberVisitor<R> {
@@ -531,7 +803,6 @@ abstract class TreeVisitor<R>
   R visitCombinator(Combinator node);
   R visitLibraryPart(LibraryPart node);
   R visitTypedef(Typedef node);
-  R visitTypeParameter(TypeParameter node);
   R visitFunctionNode(FunctionNode node);
   R visitArguments(Arguments node);
   R visitNamedExpression(NamedExpression node);
@@ -544,6 +815,15 @@ abstract class TreeVisitor<R>
   R visitMapPatternRestEntry(MapPatternRestEntry node);
   R visitPatternGuard(PatternGuard node);
   R visitComponent(Component node);
+  R visitTypeVariable(TypeVariable node);
+  R visitLocalVariable(LocalVariable node);
+  R visitPositionalParameter(PositionalParameter node);
+  R visitNamedParameter(NamedParameter node);
+  R visitThisVariable(ThisVariable node);
+  R visitSyntheticVariable(SyntheticVariable node);
+  R visitVariableContext(VariableContext node);
+  R visitScope(Scope node);
+  R visitNominalParameter(NominalParameter node);
 }
 
 /// Helper mixin for [TreeVisitor] that implements visit methods by delegating
@@ -571,7 +851,6 @@ mixin TreeVisitorDefaultMixin<R> implements TreeVisitor<R> {
   R visitLibraryPart(LibraryPart node) => defaultTreeNode(node);
   @override
   R visitTypedef(Typedef node) => defaultTreeNode(node);
-  @override
   R visitTypeParameter(TypeParameter node) => defaultTreeNode(node);
   @override
   R visitFunctionNode(FunctionNode node) => defaultTreeNode(node);
@@ -598,6 +877,24 @@ mixin TreeVisitorDefaultMixin<R> implements TreeVisitor<R> {
   R visitPatternGuard(PatternGuard node) => defaultTreeNode(node);
   @override
   R visitComponent(Component node) => defaultTreeNode(node);
+  @override
+  R visitTypeVariable(TypeVariable node) => defaultTreeNode(node);
+  @override
+  R visitLocalVariable(LocalVariable node) => defaultTreeNode(node);
+  @override
+  R visitPositionalParameter(PositionalParameter node) => defaultTreeNode(node);
+  @override
+  R visitNamedParameter(NamedParameter node) => defaultTreeNode(node);
+  @override
+  R visitThisVariable(ThisVariable node) => defaultTreeNode(node);
+  @override
+  R visitSyntheticVariable(SyntheticVariable node) => defaultTreeNode(node);
+  @override
+  R visitVariableContext(VariableContext node) => defaultTreeNode(node);
+  @override
+  R visitScope(Scope node) => defaultTreeNode(node);
+  @override
+  R visitNominalParameter(NominalParameter node) => visitTypeParameter(node);
 }
 
 /// Base class for implementing [TreeVisitor1] that implements visit methods
@@ -646,7 +943,6 @@ abstract class TreeVisitor1<R, A>
   R visitCombinator(Combinator node, A arg);
   R visitLibraryPart(LibraryPart node, A arg);
   R visitTypedef(Typedef node, A arg);
-  R visitTypeParameter(TypeParameter node, A arg);
   R visitFunctionNode(FunctionNode node, A arg);
   R visitArguments(Arguments node, A arg);
   R visitNamedExpression(NamedExpression node, A arg);
@@ -659,6 +955,15 @@ abstract class TreeVisitor1<R, A>
   R visitMapPatternRestEntry(MapPatternRestEntry node, A arg);
   R visitPatternGuard(PatternGuard node, A arg);
   R visitComponent(Component node, A arg);
+  R visitTypeVariable(TypeVariable node, A arg);
+  R visitLocalVariable(LocalVariable node, A arg);
+  R visitPositionalParameter(PositionalParameter node, A arg);
+  R visitNamedParameter(NamedParameter node, A arg);
+  R visitThisVariable(ThisVariable node, A arg);
+  R visitSyntheticVariable(SyntheticVariable node, A arg);
+  R visitVariableContext(VariableContext node, A arg);
+  R visitScope(Scope node, A arg);
+  R visitNominalParameter(NominalParameter node, A arg);
 }
 
 /// Helper mixin for [TreeVisitor1] that implements visit methods by delegating
@@ -687,7 +992,6 @@ mixin TreeVisitor1DefaultMixin<R, A> implements TreeVisitor1<R, A> {
   R visitLibraryPart(LibraryPart node, A arg) => defaultTreeNode(node, arg);
   @override
   R visitTypedef(Typedef node, A arg) => defaultTreeNode(node, arg);
-  @override
   R visitTypeParameter(TypeParameter node, A arg) => defaultTreeNode(node, arg);
   @override
   R visitFunctionNode(FunctionNode node, A arg) => defaultTreeNode(node, arg);
@@ -719,6 +1023,29 @@ mixin TreeVisitor1DefaultMixin<R, A> implements TreeVisitor1<R, A> {
   R visitPatternGuard(PatternGuard node, A arg) => defaultTreeNode(node, arg);
   @override
   R visitComponent(Component node, A arg) => defaultTreeNode(node, arg);
+  @override
+  R visitTypeVariable(TypeVariable node, A arg) => defaultTreeNode(node, arg);
+  @override
+  R visitLocalVariable(LocalVariable node, A arg) => defaultTreeNode(node, arg);
+  @override
+  R visitPositionalParameter(PositionalParameter node, A arg) =>
+      defaultTreeNode(node, arg);
+  @override
+  R visitNamedParameter(NamedParameter node, A arg) =>
+      defaultTreeNode(node, arg);
+  @override
+  R visitThisVariable(ThisVariable node, A arg) => defaultTreeNode(node, arg);
+  @override
+  R visitSyntheticVariable(SyntheticVariable node, A arg) =>
+      defaultTreeNode(node, arg);
+  @override
+  R visitVariableContext(VariableContext node, A arg) =>
+      defaultTreeNode(node, arg);
+  @override
+  R visitScope(Scope node, A arg) => defaultTreeNode(node, arg);
+  @override
+  R visitNominalParameter(NominalParameter node, A arg) =>
+      visitTypeParameter(node, arg);
 }
 
 /// Base class for implementing [TreeVisitor1] that implements visit methods
@@ -768,6 +1095,8 @@ abstract class DartTypeVisitor<R> {
   R visitExtensionType(ExtensionType node);
   R visitIntersectionType(IntersectionType node);
   R visitRecordType(RecordType node);
+  R visitFunctionTypeParameterType(FunctionTypeParameterType node);
+  R visitClassTypeParameterType(ClassTypeParameterType node);
 }
 
 /// Helper mixin for [DartTypeVisitor] that implements visit methods by
@@ -806,6 +1135,12 @@ mixin DartTypeVisitorDefaultMixin<R> implements DartTypeVisitor<R> {
   R visitIntersectionType(IntersectionType node) => defaultDartType(node);
   @override
   R visitRecordType(RecordType node) => defaultDartType(node);
+  @override
+  R visitFunctionTypeParameterType(FunctionTypeParameterType node) =>
+      defaultDartType(node);
+  @override
+  R visitClassTypeParameterType(ClassTypeParameterType node) =>
+      defaultDartType(node);
 }
 
 typedef DartTypeVisitor1AuxiliaryFunction<R, A> = R Function(
@@ -829,6 +1164,8 @@ abstract class DartTypeVisitor1<R, A> {
   R visitExtensionType(ExtensionType node, A arg);
   R visitIntersectionType(IntersectionType node, A arg);
   R visitRecordType(RecordType node, A arg);
+  R visitFunctionTypeParameterType(FunctionTypeParameterType node, A arg);
+  R visitClassTypeParameterType(ClassTypeParameterType node, A arg);
 }
 
 /// Helper mixin for [DartTypeVisitor1] that implements visit methods by
@@ -869,6 +1206,12 @@ mixin DartTypeVisitor1DefaultMixin<R, A> implements DartTypeVisitor1<R, A> {
       defaultDartType(node, arg);
   @override
   R visitRecordType(RecordType node, A arg) => defaultDartType(node, arg);
+  @override
+  R visitFunctionTypeParameterType(FunctionTypeParameterType node, A arg) =>
+      defaultDartType(node, arg);
+  @override
+  R visitClassTypeParameterType(ClassTypeParameterType node, A arg) =>
+      defaultDartType(node, arg);
 }
 
 /// Visitor for [Constant] nodes.
@@ -2198,6 +2541,7 @@ abstract class ExpressionVisitor1<R, A> {
   R visitSuperMethodInvocation(SuperMethodInvocation node, A arg);
   R visitStaticInvocation(StaticInvocation node, A arg);
   R visitConstructorInvocation(ConstructorInvocation node, A arg);
+  R visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node, A arg);
   R visitNot(Not node, A arg);
   R visitNullCheck(NullCheck node, A arg);
   R visitLogicalExpression(LogicalExpression node, A arg);
@@ -2239,6 +2583,8 @@ abstract class ExpressionVisitor1<R, A> {
   R visitRecordLiteral(RecordLiteral node, A arg);
   R visitSwitchExpression(SwitchExpression node, A arg);
   R visitPatternAssignment(PatternAssignment node, A arg);
+  R visitVariableRead(VariableRead node, A arg);
+  R visitVariableWrite(VariableWrite node, A arg);
 }
 
 /// Helper mixin for [ExpressionVisitor1] that implements visit methods by
@@ -2322,6 +2668,10 @@ mixin ExpressionVisitor1DefaultMixin<R, A> implements ExpressionVisitor1<R, A> {
       defaultExpression(node, arg);
   @override
   R visitConstructorInvocation(ConstructorInvocation node, A arg) =>
+      defaultExpression(node, arg);
+  @override
+  R visitRedirectingFactoryInvocation(
+          RedirectingFactoryInvocation node, A arg) =>
       defaultExpression(node, arg);
   @override
   R visitNot(Not node, A arg) => defaultExpression(node, arg);
@@ -2432,6 +2782,11 @@ mixin ExpressionVisitor1DefaultMixin<R, A> implements ExpressionVisitor1<R, A> {
   @override
   R visitPatternAssignment(PatternAssignment node, A arg) =>
       defaultExpression(node, arg);
+  @override
+  R visitVariableRead(VariableRead node, A arg) => defaultExpression(node, arg);
+  @override
+  R visitVariableWrite(VariableWrite node, A arg) =>
+      defaultExpression(node, arg);
 }
 
 abstract class PatternVisitor1<R, A> {
@@ -2512,6 +2867,7 @@ abstract class StatementVisitor1<R, A> {
   R visitEmptyStatement(EmptyStatement node, A arg);
   R visitAssertStatement(AssertStatement node, A arg);
   R visitLabeledStatement(LabeledStatement node, A arg);
+  R visitVariableInitialization(VariableInitialization node, A arg);
   R visitBreakStatement(BreakStatement node, A arg);
   R visitWhileStatement(WhileStatement node, A arg);
   R visitDoStatement(DoStatement node, A arg);
@@ -2526,9 +2882,9 @@ abstract class StatementVisitor1<R, A> {
   R visitTryCatch(TryCatch node, A arg);
   R visitTryFinally(TryFinally node, A arg);
   R visitYieldStatement(YieldStatement node, A arg);
-  R visitVariableDeclaration(VariableDeclaration node, A arg);
   R visitPatternVariableDeclaration(PatternVariableDeclaration node, A arg);
   R visitFunctionDeclaration(FunctionDeclaration node, A arg);
+  R visitVariableStatement(VariableStatement node, A arg);
 }
 
 /// Helper mixin for [StatementVisitor1] that implements visit methods by
@@ -2554,6 +2910,9 @@ mixin StatementVisitor1DefaultMixin<R, A> implements StatementVisitor1<R, A> {
       defaultStatement(node, arg);
   @override
   R visitLabeledStatement(LabeledStatement node, A arg) =>
+      defaultStatement(node, arg);
+  @override
+  R visitVariableInitialization(VariableInitialization node, A arg) =>
       defaultStatement(node, arg);
   @override
   R visitBreakStatement(BreakStatement node, A arg) =>
@@ -2592,7 +2951,6 @@ mixin StatementVisitor1DefaultMixin<R, A> implements StatementVisitor1<R, A> {
   @override
   R visitYieldStatement(YieldStatement node, A arg) =>
       defaultStatement(node, arg);
-  @override
   R visitVariableDeclaration(VariableDeclaration node, A arg) =>
       defaultStatement(node, arg);
   @override
@@ -2601,4 +2959,573 @@ mixin StatementVisitor1DefaultMixin<R, A> implements StatementVisitor1<R, A> {
   @override
   R visitFunctionDeclaration(FunctionDeclaration node, A arg) =>
       defaultStatement(node, arg);
+  @override
+  R visitVariableStatement(VariableStatement node, A arg) =>
+      visitVariableDeclaration(node, arg);
+}
+
+/// [DartTypeVisitorExperimentExclusionMixin] is intended to reduce the effects
+/// of CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin DartTypeVisitorExperimentExclusionMixin<R> implements DartTypeVisitor<R> {
+  @override
+  R visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    throw StateError(
+      "${runtimeType}.visitFunctionTypeParameterType isn't supported.",
+    );
+  }
+
+  @override
+  R visitClassTypeParameterType(ClassTypeParameterType node) {
+    throw StateError(
+      "${runtimeType}.visitClassTypeParameterType isn't supported.",
+    );
+  }
+}
+
+/// [DartTypeVisitor1ExperimentExclusionMixin] is intended to reduce the effects
+/// of CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin DartTypeVisitor1ExperimentExclusionMixin<R, A>
+    implements DartTypeVisitor1<R, A> {
+  @override
+  R visitFunctionTypeParameterType(FunctionTypeParameterType node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitFunctionTypeParameterType isn't supported.",
+    );
+  }
+
+  @override
+  R visitClassTypeParameterType(ClassTypeParameterType node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitClassTypeParameterType isn't supported.",
+    );
+  }
+}
+
+/// [ExpressionVisitorInternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin ExpressionVisitorInternalNodeMixin<R> implements ExpressionVisitor<R> {
+  @override
+  R visitListConcatenation(ListConcatenation node) {
+    throw StateError(
+      "${runtimeType}.visitListConcatenation isn't supported.",
+    );
+  }
+
+  @override
+  R visitSetConcatenation(SetConcatenation node) {
+    throw StateError(
+      "${runtimeType}.visitSetConcatenation isn't supported.",
+    );
+  }
+
+  @override
+  R visitMapConcatenation(MapConcatenation node) {
+    throw StateError(
+      "${runtimeType}.visitMapConcatenation isn't supported.",
+    );
+  }
+
+  @override
+  R visitInstanceCreation(InstanceCreation node) {
+    throw StateError(
+      "${runtimeType}.visitInstanceCreation isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternAssignment(PatternAssignment node) {
+    throw StateError(
+      "${runtimeType}.visitPatternAssignment isn't supported.",
+    );
+  }
+
+  @override
+  R visitSwitchExpression(SwitchExpression node) {
+    throw StateError(
+      "${runtimeType}.visitSwitchExpression isn't supported.",
+    );
+  }
+
+  @override
+  R visitFileUriExpression(FileUriExpression node) {
+    throw StateError(
+      "${runtimeType}.visitFileUriExpression isn't supported.",
+    );
+  }
+
+  @override
+  R visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) {
+    throw StateError(
+      "${runtimeType}.visitRedirectingFactoryInvocation isn't supported.",
+    );
+  }
+}
+
+/// [ExpressionVisitor1InternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin ExpressionVisitor1InternalNodeMixin<R, A>
+    implements ExpressionVisitor1<R, A> {
+  @override
+  R visitListConcatenation(ListConcatenation node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitListConcatenation isn't supported.",
+    );
+  }
+
+  @override
+  R visitSetConcatenation(SetConcatenation node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitSetConcatenation isn't supported.",
+    );
+  }
+
+  @override
+  R visitMapConcatenation(MapConcatenation node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitMapConcatenation isn't supported.",
+    );
+  }
+
+  @override
+  R visitInstanceCreation(InstanceCreation node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitInstanceCreation isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternAssignment(PatternAssignment node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitPatternAssignment isn't supported.",
+    );
+  }
+
+  @override
+  R visitSwitchExpression(SwitchExpression node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitSwitchExpression isn't supported.",
+    );
+  }
+
+  @override
+  R visitFileUriExpression(FileUriExpression node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitFileUriExpression isn't supported.",
+    );
+  }
+
+  @override
+  R visitRedirectingFactoryInvocation(
+      RedirectingFactoryInvocation node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitRedirectingFactoryInvocation isn't supported.",
+    );
+  }
+}
+
+/// [ExpressionVisitorExperimentExclusionMixin] is intended to reduce the
+/// effects of CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin ExpressionVisitorExperimentExclusionMixin<R>
+    implements ExpressionVisitor<R> {
+  @override
+  R visitVariableRead(VariableRead node) {
+    throw StateError(
+      "${runtimeType}.visitVariableRead isn't supported.",
+    );
+  }
+
+  @override
+  R visitVariableWrite(VariableWrite node) {
+    throw StateError(
+      "${runtimeType}.visitVariableWrite isn't supported.",
+    );
+  }
+}
+
+/// [ExpressionVisitor1ExperimentExclusionMixin] is intended to reduce the
+/// effects of CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin ExpressionVisitor1ExperimentExclusionMixin<R, A>
+    implements ExpressionVisitor1<R, A> {
+  @override
+  R visitVariableRead(VariableRead node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitVariableRead isn't supported.",
+    );
+  }
+
+  @override
+  R visitVariableWrite(VariableWrite node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitVariableWrite isn't supported.",
+    );
+  }
+}
+
+/// [StatementVisitorInternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin StatementVisitorInternalNodeMixin<R> implements StatementVisitor<R> {
+  @override
+  R visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    throw StateError(
+      "${runtimeType}.visitPatternVariableDeclaration isn't supported.",
+    );
+  }
+
+  @override
+  R visitIfCaseStatement(IfCaseStatement node) {
+    throw StateError(
+      "${runtimeType}.visitIfCaseStatement isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternSwitchStatement(PatternSwitchStatement node) {
+    throw StateError(
+      "${runtimeType}.visitPatternSwitchStatement isn't supported.",
+    );
+  }
+}
+
+/// [StatementVisitor1InternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin StatementVisitor1InternalNodeMixin<R, A>
+    implements StatementVisitor1<R, A> {
+  @override
+  R visitPatternVariableDeclaration(PatternVariableDeclaration node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitPatternVariableDeclaration isn't supported.",
+    );
+  }
+
+  @override
+  R visitIfCaseStatement(IfCaseStatement node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitIfCaseStatement isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternSwitchStatement(PatternSwitchStatement node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitPatternSwitchStatement isn't supported.",
+    );
+  }
+}
+
+/// [StatementVisitorExperimentExclusionMixin] is intended to reduce the effects
+/// of CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin StatementVisitorExperimentExclusionMixin<R>
+    implements StatementVisitor<R> {
+  @override
+  R visitVariableInitialization(VariableInitialization node) {
+    throw StateError(
+      "${runtimeType}.visitVariableInitialization isn't supported.",
+    );
+  }
+
+  /// Since [VariableDeclaration] is abstract due to an experiment, it doesn't
+  /// have its own visit method in [StatementVisitor]. However, for the
+  /// transitional period the backends would rely on having
+  /// [visitVariableDeclaration] and on needing to override it. Since the
+  /// statement visitors in the backends should mix in
+  /// [StatementVisitorExperimentExclusionMixin], we can deliver the abstract
+  /// declaration of [visitVariableDeclaration] to them via the mixin. At the
+  /// same time, it allows us to redirect [visitVariableStatement] to the
+  /// overrides of [visitVariableDeclarations] the backends already have.
+  R visitVariableDeclaration(VariableDeclaration node);
+
+  @override
+  R visitVariableStatement(VariableStatement node) {
+    return visitVariableDeclaration(node);
+  }
+}
+
+/// [StatementVisitor1ExperimentExclusionMixin] is intended to reduce the
+/// effects of CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin StatementVisitor1ExperimentExclusionMixin<R, A>
+    implements StatementVisitor1<R, A> {
+  @override
+  R visitVariableInitialization(VariableInitialization node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitVariableInitialization isn't supported.",
+    );
+  }
+
+  /// Since [VariableDeclaration] is abstract due to an experiment, it doesn't
+  /// have its own visit method in [StatementVisitor1]. However, for the
+  /// transitional period the backends would rely on having
+  /// [visitVariableDeclaration] and on needing to override it. Since the
+  /// statement visitors in the backends should mix in
+  /// [StatementVisitor1ExperimentExclusionMixin], we can deliver the abstract
+  /// declaration of [visitVariableDeclaration] to them via the mixin. At the
+  /// same time, it allows us to redirect [visitVariableStatement] to the
+  /// overrides of [visitVariableDeclarations] the backends already have.
+  R visitVariableDeclaration(VariableDeclaration node, A arg);
+
+  @override
+  R visitVariableStatement(VariableStatement node, A arg) {
+    return visitVariableDeclaration(node, arg);
+  }
+}
+
+/// [TreeVisitorInternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin TreeVisitorInternalNodeMixin<R> implements TreeVisitor<R> {
+  @override
+  R visitSwitchExpressionCase(SwitchExpressionCase node) {
+    throw StateError(
+      "${runtimeType}.visitSwitchExpressionCase isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternGuard(PatternGuard node) {
+    throw StateError(
+      "${runtimeType}.visitPatternGuard isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternSwitchCase(PatternSwitchCase node) {
+    throw StateError(
+      "${runtimeType}.visitPatternSwitchCase isn't supported.",
+    );
+  }
+}
+
+/// [TreeVisitor1InternalNodeMixin] is intended to reduce the effects of
+/// CFE internal nodes on the backends.
+///
+/// The mixin provides implementations of the visit methods for the internal
+/// nodes that are not expected to be part of AST delivered to backends. The
+/// methods throw an exception signaling that the internal nodes aren't
+/// supported.
+mixin TreeVisitor1InternalNodeMixin<R, A> implements TreeVisitor1<R, A> {
+  @override
+  R visitSwitchExpressionCase(SwitchExpressionCase node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitSwitchExpressionCase isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternGuard(PatternGuard node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitPatternGuard isn't supported.",
+    );
+  }
+
+  @override
+  R visitPatternSwitchCase(PatternSwitchCase node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitPatternSwitchCase isn't supported.",
+    );
+  }
+}
+
+/// [TreeVisitorExperimentExclusionMixin] is intended to reduce the effects of
+/// CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin TreeVisitorExperimentExclusionMixin<R> implements TreeVisitor<R> {
+  @override
+  R visitTypeVariable(TypeVariable node) {
+    throw StateError(
+      "${runtimeType}.visitTypeVariable isn't supported.",
+    );
+  }
+
+  @override
+  R visitLocalVariable(LocalVariable node) {
+    throw StateError(
+      "${runtimeType}.visitLocalVariable isn't supported.",
+    );
+  }
+
+  @override
+  R visitPositionalParameter(PositionalParameter node) {
+    throw StateError(
+      "${runtimeType}.visitPositionalParameter isn't supported.",
+    );
+  }
+
+  @override
+  R visitNamedParameter(NamedParameter node) {
+    throw StateError(
+      "${runtimeType}.visitNamedParameter isn't supported.",
+    );
+  }
+
+  @override
+  R visitThisVariable(ThisVariable node) {
+    throw StateError(
+      "${runtimeType}.visitThisVariable isn't supported.",
+    );
+  }
+
+  @override
+  R visitSyntheticVariable(SyntheticVariable node) {
+    throw StateError(
+      "${runtimeType}.visitSyntheticVariable isn't supported.",
+    );
+  }
+
+  @override
+  R visitVariableContext(VariableContext node) {
+    throw StateError(
+      "${runtimeType}.visitVariableContext isn't supported.",
+    );
+  }
+
+  @override
+  R visitScope(Scope node) {
+    throw StateError(
+      "${runtimeType}.visitScope isn't supported.",
+    );
+  }
+
+  /// Since [TypeParameter] is abstract due to an experiment, it doesn't have
+  /// its own visit method in [TreeVisitor]. However, for the transitional
+  /// period the backends would rely on having [visitTypeParameter] and on
+  /// needing to override it. Since the statement visitors in the backends
+  /// should mix in [TreeVisitorExperimentExclusionMixin], we can deliver the
+  /// abstract declaration of [visitTypeParameter] to them via the mixin. At the
+  /// same time, it allows us to redirect [visitNominalParameter] to the
+  /// overrides of [visitTypeParameter] the backends already have.
+  R visitTypeParameter(TypeParameter node);
+
+  @override
+  R visitNominalParameter(NominalParameter node) {
+    return visitTypeParameter(node);
+  }
+}
+
+/// [TreeVisitor1ExperimentExclusionMixin] is intended to reduce the effects of
+/// CFE experiments on the backends.
+///
+/// The mixin provides implementations of the visit methods for the experimental
+/// nodes. The methods throw an exception signaling that the experimental nodes
+/// aren't supported.
+mixin TreeVisitor1ExperimentExclusionMixin<R, A> implements TreeVisitor1<R, A> {
+  @override
+  R visitTypeVariable(TypeVariable node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitTypeVariable isn't supported.",
+    );
+  }
+
+  @override
+  R visitLocalVariable(LocalVariable node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitLocalVariable isn't supported.",
+    );
+  }
+
+  @override
+  R visitPositionalParameter(PositionalParameter node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitPositionalParameter isn't supported.",
+    );
+  }
+
+  @override
+  R visitNamedParameter(NamedParameter node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitNamedParameter isn't supported.",
+    );
+  }
+
+  @override
+  R visitThisVariable(ThisVariable node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitThisVariable isn't supported.",
+    );
+  }
+
+  @override
+  R visitSyntheticVariable(SyntheticVariable node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitSyntheticVariable isn't supported.",
+    );
+  }
+
+  @override
+  R visitVariableContext(VariableContext node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitVariableContext isn't supported.",
+    );
+  }
+
+  @override
+  R visitScope(Scope node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitScope isn't supported.",
+    );
+  }
+
+  /// Since [TypeParameter] is abstract due to an experiment, it doesn't have
+  /// its own visit method in [TreeVisitor1]. However, for the transitional
+  /// period the backends would rely on having [visitTypeParameter] and on
+  /// needing to override it. Since the statement visitors in the backends
+  /// should mix in [TreeVisitor1ExperimentExclusionMixin], we can deliver the
+  /// abstract declaration of [visitTypeParameter] to them via the mixin. At the
+  /// same time, it allows us to redirect [visitNominalParameter] to the
+  /// overrides of [visitTypeParameter] the backends already have.
+  R visitTypeParameter(TypeParameter node, A arg);
+
+  @override
+  R visitNominalParameter(NominalParameter node, A arg) {
+    return visitTypeParameter(node, arg);
+  }
 }

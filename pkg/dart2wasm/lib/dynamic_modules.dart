@@ -80,16 +80,25 @@ extension DynamicModuleMember on Member {
   bool isDynamicSubmoduleOverridable(CoreTypes coreTypes) =>
       hasPragma(coreTypes, this, kDynModuleCanBeOverriddenPragmaName) ||
       hasPragma(coreTypes, this, kDynModuleCanBeOverriddenImplicitlyPragmaName);
+
+  /// Indicates that this member is inherited into subclass interfaces.
+  ///
+  /// The member may be invoked via the interface of subclasses defined in
+  /// submodules. Even though the member may not be directly callable from the
+  /// submodule, it needs to be included in the updated dispatch table for the
+  /// subclass.
+  bool isDynamicSubmoduleInheritable(CoreTypes coreTypes) =>
+      (enclosingClass?.isDynamicSubmoduleExtendable(coreTypes) ?? false);
 }
 
 class DynamicSubmoduleOutputData extends ModuleOutputData {
   final CoreTypes coreTypes;
-  final ModuleOutput _submodule;
-  DynamicSubmoduleOutputData(this.coreTypes, super.modules, super.importMap)
+  final ModuleMetadata _submodule;
+  DynamicSubmoduleOutputData(this.coreTypes, super.modules)
       : _submodule = modules[1];
 
   @override
-  ModuleOutput moduleForReference(Reference reference) {
+  ModuleMetadata moduleForReference(Reference reference) {
     // Rather than create tear-offs for all dynamic callable methods in the main
     // module, we create them as needed in the submodules.
     if (reference.isTearOffReference) return _submodule;
@@ -105,12 +114,14 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
   final CoreTypes coreTypes;
   @override
   final LibraryIndex index;
+  final WasmCompilerOptions options;
   final Uri dynamicInterfaceSpecificationBaseUri;
   final String dynamicInterfaceSpecification;
 
   DynamicMainModuleStrategy(
       this.component,
       this.coreTypes,
+      this.options,
       this.dynamicInterfaceSpecification,
       this.dynamicInterfaceSpecificationBaseUri)
       : index = coreTypes.index;
@@ -133,11 +144,11 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
 
   @override
   ModuleOutputData buildModuleOutputData() {
-    final builder = ModuleOutputBuilder();
-    final mainModule = builder.buildModule();
+    final builder = ModuleMetadataBuilder(options);
+    final mainModule = builder.buildModuleMetadata();
     mainModule.libraries.addAll(component.libraries);
-    final placeholderModule = builder.buildModule(skipEmit: true);
-    return ModuleOutputData([mainModule, placeholderModule], const {});
+    final placeholderModule = builder.buildModuleMetadata(skipEmit: true);
+    return ModuleOutputData([mainModule, placeholderModule]);
   }
 
   void _addImplicitPragmas() {
@@ -198,6 +209,10 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
     // SystemHash.combine used by closures.
     add(systemHashCombine, kDynModuleCallablePragmaName);
   }
+
+  @override
+  Future<void> processComponentAfterTfa(
+      DeferredModuleLoadingMap loadingMap) async {}
 }
 
 class DynamicSubmoduleStrategy extends ModuleStrategy {
@@ -312,9 +327,9 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
 
   @override
   ModuleOutputData buildModuleOutputData() {
-    final moduleBuilder = ModuleOutputBuilder();
-    final mainModule = moduleBuilder.buildModule(skipEmit: true);
-    final submodule = moduleBuilder.buildModule(emitAsMain: true);
+    final builder = ModuleMetadataBuilder(options);
+    final mainModule = builder.buildModuleMetadata(skipEmit: true);
+    final submodule = builder.buildModuleMetadata(emitAsMain: true);
     for (final library in component.libraries) {
       final module = hasPragma(coreTypes, library, _mainModLibPragma)
           ? mainModule
@@ -322,9 +337,12 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
       module.libraries.add(library);
     }
 
-    return DynamicSubmoduleOutputData(
-        coreTypes, [mainModule, submodule], const {});
+    return DynamicSubmoduleOutputData(coreTypes, [mainModule, submodule]);
   }
+
+  @override
+  Future<void> processComponentAfterTfa(
+      DeferredModuleLoadingMap loadingMap) async {}
 }
 
 void _recordIdMain(w.FunctionBuilder f, Translator translator) {
@@ -402,6 +420,7 @@ class DynamicModuleInfo {
     translator.getExceptionTag(submodule);
 
     if (isSubmodule) {
+      _initMainModuleConstantDefinitions();
       _initSubmoduleId();
       _initModuleRtt();
     } else {
@@ -410,6 +429,16 @@ class DynamicModuleInfo {
     }
 
     _initializeOverridableReferences();
+  }
+
+  void _initMainModuleConstantDefinitions() {
+    final mainAppConstants = translator.dynamicModuleConstants;
+    final constants = translator.constants;
+    mainAppConstants?.constantNames.forEach((constant, name) {
+      final initializerName =
+          mainAppConstants.constantInitializerNames[constant];
+      constants.defineMainAppConstant(constant, name, initializerName);
+    });
   }
 
   void _initModuleRtt() {

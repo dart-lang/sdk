@@ -288,8 +288,6 @@ CoverageInfo _process(
   CompilationUnitEnd ast = getAST(
     rawBytes,
     includeComments: true,
-    enableTripleShift: true,
-    allowPatterns: true,
     lineStarts: lineStarts,
   );
 

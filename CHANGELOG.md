@@ -1,3 +1,32 @@
+## 3.11.0
+
+**Released on:** Unreleased
+
+### Libraries
+
+#### `dart:io`
+
+- Added support for Unix domain sockets (`AF_UNIX`) on Windows. Support is
+  restricted to subset of features supported by the OS. Windows currently does
+  not support the following features for `AF_UNIX` sockets: datagram sockets,
+  ancillary data or abstract socket addresses. Unix domain sockets are
+  represented in the file-system using _reparse points_ which leads to some
+  discrepancies in the behavior of `dart:io` APIs: for example
+  `File(socketPath).existsSync()` will return `true` on POSIX operating systems,
+  but `false` on Windows. Use `FileSystemEntity.typeSync()` instead to get
+  portable behavior.
+
+#### `dart:js_util`
+
+- dart2wasm no longer supports `dart:js_util`. Any code that imports
+  `dart:js_util` will no longer compile with dart2wasm. Consequently, code that
+  depends on `package:js` will no longer compile with dart2wasm either. The name
+  `dart.library.js_util` is no longer a key in dart2wasm compilation
+  environments, including in conditional imports and exports.
+  See [#61550][] for more details.
+
+[#61550]: https://github.com/dart-lang/sdk/issues/61550
+
 ## 3.10.0
 
 **Released on:** Unreleased
@@ -122,24 +151,6 @@ instead.
   The Dart CLI is not generated for ia32 as we are not shipping a
   Dart SDK for ia32 anymore (support to execute the `dartvm` for ia32
   architecture is retained).
-
-#### Dart MCP Server
-
-- The Dart MCP server now has additional tools:
-
-  This release introduces a suite of new tools for interacting with Flutter
-  applications, including support for flutter_driver commands like screenshot,
-  as well as tools for `list_devices`, `launch_app`, `get_app_logs`,
-  `list_running_apps` and performing a `hot_restart`. The `pub` MCP tool has
-  been enhanced with support for the `pub outdated` command, and both `pub add`
-  and `pub remove` now accept multiple packages.
-
-- And some bug fixes:
-
-  Key fixes include providing the full widget tree instead of a summary for
-  better widget discovery and improved error reporting for tools that handle
-  multiple paths. Additionally, this version adds more detailed logging for failed
-  app launches and fixes a bug in hot_reload.
 
 ### Libraries
 

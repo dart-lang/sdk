@@ -36,8 +36,9 @@ class AnalysisOptionsErrorCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   includedFileParseError = AnalysisOptionsErrorTemplate(
-    'INCLUDED_FILE_PARSE_ERROR',
-    "{3} in {0}({1}..{2})",
+    name: 'INCLUDED_FILE_PARSE_ERROR',
+    problemMessage: "{3} in {0}({1}..{2})",
+    uniqueNameCheck: 'AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR',
     withArguments: _withArgumentsIncludedFileParseError,
     expectedTypes: [
       ExpectedType.object,
@@ -55,32 +56,27 @@ class AnalysisOptionsErrorCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   parseError = AnalysisOptionsErrorTemplate(
-    'PARSE_ERROR',
-    "{0}",
+    name: 'PARSE_ERROR',
+    problemMessage: "{0}",
+    uniqueNameCheck: 'AnalysisOptionsErrorCode.PARSE_ERROR',
     withArguments: _withArgumentsParseError,
     expectedTypes: [ExpectedType.object],
   );
 
   /// Initialize a newly created error code to have the given [name].
-  const AnalysisOptionsErrorCode(
-    String name,
-    String problemMessage, {
+  const AnalysisOptionsErrorCode({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required String super.uniqueNameCheck,
     required super.expectedTypes,
   }) : super(
-         name: name,
-         problemMessage: problemMessage,
+         type: DiagnosticType.COMPILE_TIME_ERROR,
          uniqueName: 'AnalysisOptionsErrorCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => DiagnosticSeverity.ERROR;
-
-  @override
-  DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
 
   static LocatableDiagnostic _withArgumentsIncludedFileParseError({
     required Object p0,
@@ -88,11 +84,14 @@ class AnalysisOptionsErrorCode extends DiagnosticCodeWithExpectedTypes {
     required Object p2,
     required Object p3,
   }) {
-    return LocatableDiagnosticImpl(includedFileParseError, [p0, p1, p2, p3]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsErrorCode.includedFileParseError,
+      [p0, p1, p2, p3],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsParseError({required Object p0}) {
-    return LocatableDiagnosticImpl(parseError, [p0]);
+    return LocatableDiagnosticImpl(AnalysisOptionsErrorCode.parseError, [p0]);
   }
 }
 
@@ -101,13 +100,14 @@ final class AnalysisOptionsErrorTemplate<T extends Function>
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
-  const AnalysisOptionsErrorTemplate(
-    super.name,
-    super.problemMessage, {
+  const AnalysisOptionsErrorTemplate({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
     required this.withArguments,
   });
@@ -117,13 +117,14 @@ final class AnalysisOptionsErrorWithoutArguments
     extends AnalysisOptionsErrorCode
     with DiagnosticWithoutArguments {
   /// Initialize a newly created error code to have the given [name].
-  const AnalysisOptionsErrorWithoutArguments(
-    super.name,
-    super.problemMessage, {
+  const AnalysisOptionsErrorWithoutArguments({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
   });
 }
@@ -137,8 +138,9 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0})
   >
   analysisOptionDeprecated = AnalysisOptionsWarningTemplate(
-    'ANALYSIS_OPTION_DEPRECATED',
-    "The option '{0}' is no longer supported.",
+    name: 'ANALYSIS_OPTION_DEPRECATED',
+    problemMessage: "The option '{0}' is no longer supported.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED',
     withArguments: _withArgumentsAnalysisOptionDeprecated,
     expectedTypes: [ExpectedType.object],
   );
@@ -152,10 +154,12 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   analysisOptionDeprecatedWithReplacement = AnalysisOptionsWarningTemplate(
-    'ANALYSIS_OPTION_DEPRECATED',
-    "The option '{0}' is no longer supported.",
+    name: 'ANALYSIS_OPTION_DEPRECATED',
+    problemMessage: "The option '{0}' is no longer supported.",
     correctionMessage: "Try using the new '{1}' option.",
     uniqueName: 'ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT',
+    uniqueNameCheck:
+        'AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT',
     withArguments: _withArgumentsAnalysisOptionDeprecatedWithReplacement,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -168,9 +172,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   deprecatedLint = AnalysisOptionsWarningTemplate(
-    'DEPRECATED_LINT',
-    "'{0}' is a deprecated lint rule and should not be used.",
+    name: 'DEPRECATED_LINT',
+    problemMessage: "'{0}' is a deprecated lint rule and should not be used.",
     correctionMessage: "Try removing '{0}'.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.DEPRECATED_LINT',
     withArguments: _withArgumentsDeprecatedLint,
     expectedTypes: [ExpectedType.string],
   );
@@ -184,9 +189,11 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   deprecatedLintWithReplacement = AnalysisOptionsWarningTemplate(
-    'DEPRECATED_LINT_WITH_REPLACEMENT',
-    "'{0}' is deprecated and should be replaced by '{1}'.",
+    name: 'DEPRECATED_LINT_WITH_REPLACEMENT',
+    problemMessage: "'{0}' is deprecated and should be replaced by '{1}'.",
     correctionMessage: "Try replacing '{0}' with '{1}'.",
+    uniqueNameCheck:
+        'AnalysisOptionsWarningCode.DEPRECATED_LINT_WITH_REPLACEMENT',
     withArguments: _withArgumentsDeprecatedLintWithReplacement,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -199,9 +206,11 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   duplicateRule = AnalysisOptionsWarningTemplate(
-    'DUPLICATE_RULE',
-    "The rule {0} is already specified and doesn't need to be specified again.",
+    name: 'DUPLICATE_RULE',
+    problemMessage:
+        "The rule {0} is already specified and doesn't need to be specified again.",
     correctionMessage: "Try removing all but one specification of the rule.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.DUPLICATE_RULE',
     withArguments: _withArgumentsDuplicateRule,
     expectedTypes: [ExpectedType.string],
   );
@@ -224,8 +233,9 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   includedFileWarning = AnalysisOptionsWarningTemplate(
-    'INCLUDED_FILE_WARNING',
-    "Warning in the included options file {0}({1}..{2}): {3}",
+    name: 'INCLUDED_FILE_WARNING',
+    problemMessage: "Warning in the included options file {0}({1}..{2}): {3}",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING',
     withArguments: _withArgumentsIncludedFileWarning,
     expectedTypes: [
       ExpectedType.object,
@@ -249,8 +259,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   includeFileNotFound = AnalysisOptionsWarningTemplate(
-    'INCLUDE_FILE_NOT_FOUND',
-    "The include file '{0}' in '{1}' can't be found when analyzing '{2}'.",
+    name: 'INCLUDE_FILE_NOT_FOUND',
+    problemMessage:
+        "The include file '{0}' in '{1}' can't be found when analyzing '{2}'.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND',
     withArguments: _withArgumentsIncludeFileNotFound,
     expectedTypes: [
       ExpectedType.object,
@@ -270,9 +282,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   incompatibleLint = AnalysisOptionsWarningTemplate(
-    'INCOMPATIBLE_LINT',
-    "The rule '{0}' is incompatible with {1}.",
+    name: 'INCOMPATIBLE_LINT',
+    problemMessage: "The rule '{0}' is incompatible with {1}.",
     correctionMessage: "Try removing all but one of the incompatible rules.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.INCOMPATIBLE_LINT',
     withArguments: _withArgumentsIncompatibleLint,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -288,12 +301,13 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   incompatibleLintFiles = AnalysisOptionsWarningTemplate(
-    'INCOMPATIBLE_LINT',
-    "The rule '{0}' is incompatible with {1}.",
+    name: 'INCOMPATIBLE_LINT',
+    problemMessage: "The rule '{0}' is incompatible with {1}.",
     correctionMessage:
         "Try locally disabling all but one of the conflicting rules or "
         "removing one of the incompatible files.",
     uniqueName: 'INCOMPATIBLE_LINT_FILES',
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_FILES',
     withArguments: _withArgumentsIncompatibleLintFiles,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -314,13 +328,15 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   incompatibleLintIncluded = AnalysisOptionsWarningTemplate(
-    'INCOMPATIBLE_LINT',
-    "The rule '{0}' is incompatible with {1}, which is included from {2} "
+    name: 'INCOMPATIBLE_LINT',
+    problemMessage:
+        "The rule '{0}' is incompatible with {1}, which is included from {2} "
         "file{3}.",
     correctionMessage:
         "Try locally disabling all but one of the conflicting rules or "
         "removing one of the incompatible files.",
     uniqueName: 'INCOMPATIBLE_LINT_INCLUDED',
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_INCLUDED',
     withArguments: _withArgumentsIncompatibleLintIncluded,
     expectedTypes: [
       ExpectedType.string,
@@ -340,8 +356,9 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   invalidOption = AnalysisOptionsWarningTemplate(
-    'INVALID_OPTION',
-    "Invalid option specified for '{0}': {1}",
+    name: 'INVALID_OPTION',
+    problemMessage: "Invalid option specified for '{0}': {1}",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.INVALID_OPTION',
     withArguments: _withArgumentsInvalidOption,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -354,8 +371,9 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   invalidSectionFormat = AnalysisOptionsWarningTemplate(
-    'INVALID_SECTION_FORMAT',
-    "Invalid format for the '{0}' section.",
+    name: 'INVALID_SECTION_FORMAT',
+    problemMessage: "Invalid format for the '{0}' section.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT',
     withArguments: _withArgumentsInvalidSectionFormat,
     expectedTypes: [ExpectedType.string],
   );
@@ -368,9 +386,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   multiplePlugins = AnalysisOptionsWarningTemplate(
-    'MULTIPLE_PLUGINS',
-    "Multiple plugins can't be enabled.",
+    name: 'MULTIPLE_PLUGINS',
+    problemMessage: "Multiple plugins can't be enabled.",
     correctionMessage: "Remove all plugins following the first, '{0}'.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.MULTIPLE_PLUGINS',
     withArguments: _withArgumentsMultiplePlugins,
     expectedTypes: [ExpectedType.string],
   );
@@ -384,11 +403,13 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String contextRoot})
   >
   pluginsInInnerOptions = AnalysisOptionsWarningTemplate(
-    'PLUGINS_IN_INNER_OPTIONS',
-    "Plugins can only be specified in the root of a pub workspace or the root "
+    name: 'PLUGINS_IN_INNER_OPTIONS',
+    problemMessage:
+        "Plugins can only be specified in the root of a pub workspace or the root "
         "of a package that isn't in a workspace.",
     correctionMessage:
         "Try specifying plugins in an analysis options file at '{0}'.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.PLUGINS_IN_INNER_OPTIONS',
     withArguments: _withArgumentsPluginsInInnerOptions,
     expectedTypes: [ExpectedType.string],
   );
@@ -402,10 +423,12 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   recursiveIncludeFile = AnalysisOptionsWarningTemplate(
-    'RECURSIVE_INCLUDE_FILE',
-    "The include file '{0}' in '{1}' includes itself recursively.",
+    name: 'RECURSIVE_INCLUDE_FILE',
+    problemMessage:
+        "The include file '{0}' in '{1}' includes itself recursively.",
     correctionMessage:
         "Try changing the chain of 'include's to not re-include this file.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE',
     withArguments: _withArgumentsRecursiveIncludeFile,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
@@ -419,9 +442,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   removedLint = AnalysisOptionsWarningTemplate(
-    'REMOVED_LINT',
-    "'{0}' was removed in Dart '{1}'",
+    name: 'REMOVED_LINT',
+    problemMessage: "'{0}' was removed in Dart '{1}'",
     correctionMessage: "Remove the reference to '{0}'.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.REMOVED_LINT',
     withArguments: _withArgumentsRemovedLint,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -440,9 +464,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   replacedLint = AnalysisOptionsWarningTemplate(
-    'REPLACED_LINT',
-    "'{0}' was replaced by '{2}' in Dart '{1}'.",
+    name: 'REPLACED_LINT',
+    problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'.",
     correctionMessage: "Replace '{0}' with '{1}'.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.REPLACED_LINT',
     withArguments: _withArgumentsReplacedLint,
     expectedTypes: [
       ExpectedType.string,
@@ -459,9 +484,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   undefinedLint = AnalysisOptionsWarningTemplate(
-    'UNDEFINED_LINT',
-    "'{0}' is not a recognized lint rule.",
+    name: 'UNDEFINED_LINT',
+    problemMessage: "'{0}' is not a recognized lint rule.",
     correctionMessage: "Try using the name of a recognized lint rule.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.UNDEFINED_LINT',
     withArguments: _withArgumentsUndefinedLint,
     expectedTypes: [ExpectedType.string],
   );
@@ -475,8 +501,9 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0})
   >
   unrecognizedErrorCode = AnalysisOptionsWarningTemplate(
-    'UNRECOGNIZED_ERROR_CODE',
-    "'{0}' isn't a recognized error code.",
+    name: 'UNRECOGNIZED_ERROR_CODE',
+    problemMessage: "'{0}' isn't a recognized error code.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE',
     withArguments: _withArgumentsUnrecognizedErrorCode,
     expectedTypes: [ExpectedType.string],
   );
@@ -496,9 +523,12 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   unsupportedOptionWithLegalValue = AnalysisOptionsWarningTemplate(
-    'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
-    "The option '{1}' isn't supported by '{0}'. Try using the only supported "
+    name: 'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
+    problemMessage:
+        "The option '{1}' isn't supported by '{0}'. Try using the only supported "
         "option: '{2}'.",
+    uniqueNameCheck:
+        'AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
     withArguments: _withArgumentsUnsupportedOptionWithLegalValue,
     expectedTypes: [
       ExpectedType.string,
@@ -522,9 +552,11 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   unsupportedOptionWithLegalValues = AnalysisOptionsWarningTemplate(
-    'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
-    "The option '{1}' isn't supported by '{0}'.",
+    name: 'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
+    problemMessage: "The option '{1}' isn't supported by '{0}'.",
     correctionMessage: "Try using one of the supported options: {2}.",
+    uniqueNameCheck:
+        'AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
     withArguments: _withArgumentsUnsupportedOptionWithLegalValues,
     expectedTypes: [
       ExpectedType.string,
@@ -543,8 +575,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   unsupportedOptionWithoutValues = AnalysisOptionsWarningTemplate(
-    'UNSUPPORTED_OPTION_WITHOUT_VALUES',
-    "The option '{1}' isn't supported by '{0}'.",
+    name: 'UNSUPPORTED_OPTION_WITHOUT_VALUES',
+    problemMessage: "The option '{1}' isn't supported by '{0}'.",
+    uniqueNameCheck:
+        'AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES',
     withArguments: _withArgumentsUnsupportedOptionWithoutValues,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -564,9 +598,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     })
   >
   unsupportedValue = AnalysisOptionsWarningTemplate(
-    'UNSUPPORTED_VALUE',
-    "The value '{1}' isn't supported by '{0}'.",
+    name: 'UNSUPPORTED_VALUE',
+    problemMessage: "The value '{1}' isn't supported by '{0}'.",
     correctionMessage: "Try using one of the supported options: {2}.",
+    uniqueNameCheck: 'AnalysisOptionsWarningCode.UNSUPPORTED_VALUE',
     withArguments: _withArgumentsUnsupportedValue,
     expectedTypes: [
       ExpectedType.string,
@@ -576,30 +611,27 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Initialize a newly created error code to have the given [name].
-  const AnalysisOptionsWarningCode(
-    String name,
-    String problemMessage, {
+  const AnalysisOptionsWarningCode({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required String super.uniqueNameCheck,
     required super.expectedTypes,
   }) : super(
-         name: name,
-         problemMessage: problemMessage,
+         type: DiagnosticType.STATIC_WARNING,
          uniqueName: 'AnalysisOptionsWarningCode.${uniqueName ?? name}',
        );
-
-  @override
-  DiagnosticSeverity get severity => DiagnosticSeverity.WARNING;
-
-  @override
-  DiagnosticType get type => DiagnosticType.STATIC_WARNING;
 
   static LocatableDiagnostic _withArgumentsAnalysisOptionDeprecated({
     required Object p0,
   }) {
-    return LocatableDiagnosticImpl(analysisOptionDeprecated, [p0]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.analysisOptionDeprecated,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic
@@ -607,27 +639,34 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(analysisOptionDeprecatedWithReplacement, [
-      p0,
-      p1,
-    ]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.analysisOptionDeprecatedWithReplacement,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedLint({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(deprecatedLint, [p0]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.deprecatedLint, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedLintWithReplacement({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(deprecatedLintWithReplacement, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.deprecatedLintWithReplacement,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsDuplicateRule({required String p0}) {
-    return LocatableDiagnosticImpl(duplicateRule, [p0]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.duplicateRule, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsIncludedFileWarning({
@@ -636,7 +675,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required Object p2,
     required Object p3,
   }) {
-    return LocatableDiagnosticImpl(includedFileWarning, [p0, p1, p2, p3]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.includedFileWarning,
+      [p0, p1, p2, p3],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsIncludeFileNotFound({
@@ -644,21 +686,30 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required Object p1,
     required Object p2,
   }) {
-    return LocatableDiagnosticImpl(includeFileNotFound, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.includeFileNotFound,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsIncompatibleLint({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(incompatibleLint, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.incompatibleLint,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsIncompatibleLintFiles({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(incompatibleLintFiles, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.incompatibleLintFiles,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsIncompatibleLintIncluded({
@@ -667,46 +718,66 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required int p2,
     required String p3,
   }) {
-    return LocatableDiagnosticImpl(incompatibleLintIncluded, [p0, p1, p2, p3]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.incompatibleLintIncluded,
+      [p0, p1, p2, p3],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsInvalidOption({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(invalidOption, [p0, p1]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.invalidOption, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidSectionFormat({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(invalidSectionFormat, [p0]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.invalidSectionFormat,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsMultiplePlugins({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(multiplePlugins, [p0]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.multiplePlugins, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsPluginsInInnerOptions({
     required String contextRoot,
   }) {
-    return LocatableDiagnosticImpl(pluginsInInnerOptions, [contextRoot]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.pluginsInInnerOptions,
+      [contextRoot],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsRecursiveIncludeFile({
     required Object p0,
     required Object p1,
   }) {
-    return LocatableDiagnosticImpl(recursiveIncludeFile, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.recursiveIncludeFile,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsRemovedLint({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(removedLint, [p0, p1]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.removedLint, [
+      p0,
+      p1,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsReplacedLint({
@@ -714,17 +785,26 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(replacedLint, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.replacedLint, [
+      p0,
+      p1,
+      p2,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUndefinedLint({required String p0}) {
-    return LocatableDiagnosticImpl(undefinedLint, [p0]);
+    return LocatableDiagnosticImpl(AnalysisOptionsWarningCode.undefinedLint, [
+      p0,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsUnrecognizedErrorCode({
     required String p0,
   }) {
-    return LocatableDiagnosticImpl(unrecognizedErrorCode, [p0]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.unrecognizedErrorCode,
+      [p0],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUnsupportedOptionWithLegalValue({
@@ -732,11 +812,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(unsupportedOptionWithLegalValue, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.unsupportedOptionWithLegalValue,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUnsupportedOptionWithLegalValues({
@@ -744,18 +823,20 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(unsupportedOptionWithLegalValues, [
-      p0,
-      p1,
-      p2,
-    ]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues,
+      [p0, p1, p2],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUnsupportedOptionWithoutValues({
     required String p0,
     required String p1,
   }) {
-    return LocatableDiagnosticImpl(unsupportedOptionWithoutValues, [p0, p1]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.unsupportedOptionWithoutValues,
+      [p0, p1],
+    );
   }
 
   static LocatableDiagnostic _withArgumentsUnsupportedValue({
@@ -763,7 +844,10 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required Object p1,
     required String p2,
   }) {
-    return LocatableDiagnosticImpl(unsupportedValue, [p0, p1, p2]);
+    return LocatableDiagnosticImpl(
+      AnalysisOptionsWarningCode.unsupportedValue,
+      [p0, p1, p2],
+    );
   }
 }
 
@@ -772,13 +856,14 @@ final class AnalysisOptionsWarningTemplate<T extends Function>
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
-  const AnalysisOptionsWarningTemplate(
-    super.name,
-    super.problemMessage, {
+  const AnalysisOptionsWarningTemplate({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
     required this.withArguments,
   });
@@ -788,13 +873,14 @@ final class AnalysisOptionsWarningWithoutArguments
     extends AnalysisOptionsWarningCode
     with DiagnosticWithoutArguments {
   /// Initialize a newly created error code to have the given [name].
-  const AnalysisOptionsWarningWithoutArguments(
-    super.name,
-    super.problemMessage, {
+  const AnalysisOptionsWarningWithoutArguments({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
   });
 }

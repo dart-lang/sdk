@@ -215,6 +215,17 @@
         "use-sdk": true
       }
     },
+    "wasm-unittest-asserts-(linux|mac)": {
+      "options": {
+        "builder-tag": "wasm",
+        "compiler": "dartk",
+        "enable-asserts": true,
+        "mode": "release",
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true
+      }
+    },
     "web-dev-unittest-asserts-(linux|win)": {
       "options": {
         "builder-tag": "ddc",
@@ -326,12 +337,17 @@
     "vm-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
     "vm-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
     "vm-ubsan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-aot-asan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-aot-(asan|lsan|tsan|ubsan)-mac-(debug|product|release)-(x64|arm64|simarm64)": {
+      "options": {
+        "gen-snapshot-format": "macho-dylib"
+      }
+    },
+    "vm-aot-asan-(linux|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-aot-lsan-linux-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
@@ -341,12 +357,12 @@
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
+    "vm-aot-tsan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-aot-ubsan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-aot-ubsan-(linux|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
@@ -1508,7 +1524,8 @@
           "arguments": [
             "-nvm-${sanitizer}-${system}-${mode}-${arch}",
             "ffi",
-            "standalone"
+            "standalone",
+            "vm/dart/tsan"
           ],
           "fileset": "vm",
           "shards": 2
@@ -1518,7 +1535,8 @@
           "arguments": [
             "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
             "ffi",
-            "standalone"
+            "standalone",
+            "vm/dart/tsan"
           ],
           "fileset": "vm",
           "shards": 3
@@ -2663,11 +2681,20 @@
         },
         {
           "name": "dart2wasm unit tests",
+          "arguments": [
+            "-nwasm-unittest-asserts-linux",
+            "pkg/dart2wasm"
+          ],
+          "shards": 1,
+          "fileset": "dart2wasm_hostasserts"
+        },
+        {
+          "name": "dart2wasm dry run tests",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
             "pkg/dart2wasm/test/dry_run/dry_run_test.dart",
-            "-ndart2wasm-asserts-linux-chrome"
+            "-nwasm-unittest-asserts-linux"
           ]
         }
       ]
@@ -3111,7 +3138,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dart2wasm|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
           ],
           "shards": 3,
           "fileset": "vm"
@@ -3227,7 +3254,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dart2wasm|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
           ]
         }
       ]

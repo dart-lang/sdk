@@ -13,15 +13,6 @@ import 'package:kernel/kernel.dart'
     show writeComponentToBinary, writeComponentToBytes;
 import 'package:kernel/library_index.dart';
 import 'package:path/path.dart' as path;
-import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
-import 'package:vm/metadata/inferred_type.dart'
-    show
-        InferredArgTypeMetadataRepository,
-        InferredReturnTypeMetadataRepository,
-        InferredTypeMetadataRepository;
-import 'package:vm/metadata/procedure_attributes.dart'
-    show ProcedureAttributesMetadataRepository;
-import 'package:vm/metadata/table_selector.dart';
 
 import 'class_info.dart';
 import 'compiler_options.dart';
@@ -30,6 +21,7 @@ import 'dynamic_modules.dart';
 import 'js/method_collector.dart' show JSMethods;
 import 'serialization.dart';
 import 'translator.dart';
+import 'util.dart';
 
 const String dynamicMainModuleProcedureAttributeMetadataTag =
     'dynMod:procedureAttributes';
@@ -494,15 +486,9 @@ Future<(Component, JSMethods)> generateDynamicSubmoduleComponent(
   concatenatedComponentBytes.setAll(0, optimizedMainComponentBytes);
   concatenatedComponentBytes.setAll(
       optimizedMainComponentBytes.length, submoduleComponentBytes);
-  final newComponent = Component()
+  final newComponent = createEmptyComponent()
     ..addMetadataRepository(DynamicModuleGlobalIdRepository())
-    ..addMetadataRepository(DynamicModuleConstantRepository())
-    ..addMetadataRepository(ProcedureAttributesMetadataRepository())
-    ..addMetadataRepository(TableSelectorMetadataRepository())
-    ..addMetadataRepository(DirectCallMetadataRepository())
-    ..addMetadataRepository(InferredTypeMetadataRepository())
-    ..addMetadataRepository(InferredReturnTypeMetadataRepository())
-    ..addMetadataRepository(InferredArgTypeMetadataRepository());
+    ..addMetadataRepository(DynamicModuleConstantRepository());
   BinaryBuilderWithMetadata(concatenatedComponentBytes)
       .readComponent(newComponent);
 

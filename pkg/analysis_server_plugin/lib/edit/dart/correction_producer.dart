@@ -435,6 +435,24 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
+  Future<CompilationUnitMember?> getDeclarationNodeFromElement(
+    InstanceElement element, {
+    bool includeExtensions = false,
+  }) async {
+    if (element.library.isInSdk) return null;
+    return switch (element) {
+      ClassElement(:var firstFragment) => getClassDeclaration(firstFragment),
+      EnumElement(:var firstFragment) => getEnumDeclaration(firstFragment),
+      ExtensionElement(:var firstFragment) when includeExtensions =>
+        getExtensionDeclaration(firstFragment),
+      ExtensionTypeElement(:var firstFragment) => getExtensionTypeDeclaration(
+        firstFragment,
+      ),
+      MixinElement(:var firstFragment) => getMixinDeclaration(firstFragment),
+      _ => null,
+    };
+  }
+
   /// Returns the class declaration for the given [fragment], or `null` if there
   /// is no such class.
   Future<EnumDeclaration?> getEnumDeclaration(EnumFragment fragment) async {
@@ -626,14 +644,27 @@ abstract class ResolvedCorrectionProducer
         }
       }
     }
-    // `v + myFunction();`.
     if (parent is BinaryExpression) {
       var binary = parent;
       var method = binary.element;
+      // `v + myFunction();`.
       if (method != null) {
         if (binary.rightOperand == expression) {
           var parameters = method.formalParameters;
           return parameters.length == 1 ? parameters[0].type : null;
+        }
+      } else if (binary.operator.type == TokenType.QUESTION_QUESTION) {
+        // `v ?? myFunction();`.
+        // This handles when the expression is being assigned somewhere.
+        var type = inferUndefinedExpressionType(binary);
+        if (binary.rightOperand == expression) {
+          return type ?? binary.leftOperand.staticType;
+        } else if (binary.leftOperand == expression) {
+          type ??= binary.rightOperand.staticType;
+          return switch (type) {
+            TypeImpl type => type.withNullability(NullabilitySuffix.question),
+            _ => null,
+          };
         }
       }
     }

@@ -12,8 +12,17 @@ import 'mocks.dart';
 
 main() {
   group('dart test adapter', () {
+    late MockDartTestDebugAdapter adapter;
+
+    setUp(() {
+      adapter = MockDartTestDebugAdapter();
+    });
+
+    tearDown(() {
+      adapter.terminateRequest(MockRequest(), TerminateArguments(), () {});
+    });
+
     test('includes vmAdditionalArgs before run test:test', () async {
-      final adapter = MockDartTestDebugAdapter();
       final responseCompleter = Completer<void>();
       final request = MockRequest();
       final args = DartLaunchRequestArguments(
@@ -34,7 +43,6 @@ main() {
     });
 
     test('includes toolArgs after run test:test', () async {
-      final adapter = MockDartTestDebugAdapter();
       final responseCompleter = Completer<void>();
       final request = MockRequest();
       final args = DartLaunchRequestArguments(
@@ -55,7 +63,6 @@ main() {
     });
 
     test('includes env', () async {
-      final adapter = MockDartTestDebugAdapter();
       final responseCompleter = Completer<void>();
       final request = MockRequest();
       final args = DartLaunchRequestArguments(
@@ -76,9 +83,81 @@ main() {
       expect(adapter.env!['ENV2'], 'VAL2');
     });
 
+    group('--timeline-streams', () {
+      test('included by default in debug mode', () async {
+        final responseCompleter = Completer<void>();
+        final request = MockRequest();
+        final args = DartLaunchRequestArguments(
+          program: 'foo.dart',
+        );
+
+        await adapter.configurationDoneRequest(request, null, () {});
+        await adapter.launchRequest(request, args, responseCompleter.complete);
+        await responseCompleter.future;
+
+        expect(adapter.executable, equals(Platform.resolvedExecutable));
+        expect(adapter.processArgs, contains(contains('--timeline_streams')));
+      });
+
+      test('not included by default in noDebug mode', () async {
+        final responseCompleter = Completer<void>();
+        final request = MockRequest();
+        final args = DartLaunchRequestArguments(
+          program: 'foo.dart',
+          noDebug: true,
+        );
+
+        await adapter.configurationDoneRequest(request, null, () {});
+        await adapter.launchRequest(request, args, responseCompleter.complete);
+        await responseCompleter.future;
+
+        expect(adapter.executable, equals(Platform.resolvedExecutable));
+        expect(adapter.processArgs,
+            isNot(contains(contains('--timeline_streams'))));
+      });
+
+      for (final flagName in ['timeline_streams', 'timeline-streams']) {
+        test('can be overridden as --$flagName=', () async {
+          final responseCompleter = Completer<void>();
+          final request = MockRequest();
+          final args = DartLaunchRequestArguments(
+              program: 'foo.dart', toolArgs: ['--$flagName=custom']);
+
+          await adapter.configurationDoneRequest(request, null, () {});
+          await adapter.launchRequest(
+              request, args, responseCompleter.complete);
+          await responseCompleter.future;
+
+          expect(adapter.executable, equals(Platform.resolvedExecutable));
+          expect(adapter.processArgs, contains(contains('--$flagName=custom')));
+          // Default is not also included.
+          expect(adapter.processArgs.where((arg) => arg.contains('streams')),
+              hasLength(1));
+        });
+
+        test('can be overridden as --$flagName --value', () async {
+          final responseCompleter = Completer<void>();
+          final request = MockRequest();
+          final args = DartLaunchRequestArguments(
+              program: 'foo.dart', toolArgs: ['--$flagName', 'custom']);
+
+          await adapter.configurationDoneRequest(request, null, () {});
+          await adapter.launchRequest(
+              request, args, responseCompleter.complete);
+          await responseCompleter.future;
+
+          expect(adapter.executable, equals(Platform.resolvedExecutable));
+          expect(adapter.processArgs,
+              containsAllInOrder(['--$flagName', 'custom']));
+          // Default is not also included.
+          expect(adapter.processArgs.where((arg) => arg.contains('streams')),
+              hasLength(1));
+        });
+      }
+    });
+
     group('includes customTool', () {
       test('with no args replaced', () async {
-        final adapter = MockDartTestDebugAdapter();
         final responseCompleter = Completer<void>();
         final request = MockRequest();
         final args = DartLaunchRequestArguments(
@@ -97,7 +176,6 @@ main() {
       });
 
       test('with all args replaced', () async {
-        final adapter = MockDartTestDebugAdapter();
         final responseCompleter = Completer<void>();
         final request = MockRequest();
         final args = DartLaunchRequestArguments(
@@ -128,7 +206,6 @@ main() {
     }
 
     test('includes URI converter', () async {
-      final adapter = MockDartTestDebugAdapter();
       adapter.setUriConverter(converter);
       final responseCompleter = Completer<void>();
       final request = MockRequest();

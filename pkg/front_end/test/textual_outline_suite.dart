@@ -22,6 +22,7 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription;
 
+import 'testing/experimental_features.dart';
 import 'utils/kernel_chain.dart' show MatchContext;
 import 'utils/suite_utils.dart';
 import 'testing/environment_keys.dart';
@@ -122,13 +123,8 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
         throwOnUnexpected: true,
         performModelling: modelled,
         returnNullOnError: false,
-        enablePatterns: isExperimentEnabled(
-          ExperimentalFlag.patterns,
-          explicitExperimentalFlags: experimentalFlags,
-        ),
-        enableEnhancedParts: isExperimentEnabled(
-          ExperimentalFlag.enhancedParts,
-          explicitExperimentalFlags: experimentalFlags,
+        experimentalFeatures: new ExperimentalFeaturesFromFlags(
+          experimentalFlags,
         ),
         infoForTesting: info,
       );

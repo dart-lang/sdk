@@ -18,7 +18,7 @@ noopt() {}
 @pragma("vm:never-inline")
 dataRaceFromMain() {
   final localBox = box;
-  for (var i = 0; i < 1000000; i++) {
+  for (var i = 0; i < 10000000; i++) {
     localBox[0] += 1;
     noopt();
   }
@@ -27,7 +27,7 @@ dataRaceFromMain() {
 @pragma("vm:never-inline")
 dataRaceFromChild() {
   final localBox = box;
-  for (var i = 0; i < 1000000; i++) {
+  for (var i = 0; i < 10000000; i++) {
     localBox[0] += 1;
     noopt();
   }

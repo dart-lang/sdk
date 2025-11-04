@@ -257,7 +257,7 @@ augment void [!f!]() {}
       expectNoCodeLenses(nonExistentFileUri),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidFilePath,
+          ServerErrorCodes.invalidFilePath,
           message: 'File does not exist',
         ),
       ),

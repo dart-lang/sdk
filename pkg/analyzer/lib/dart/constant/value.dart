@@ -20,10 +20,6 @@ abstract class ConstructorInvocation {
   /// The constructor that was called.
   ConstructorElement get constructor;
 
-  /// The constructor that was called.
-  @Deprecated('Use constructor instead')
-  ConstructorElement get constructor2;
-
   /// The values of named arguments.
   Map<String, DartObject> get namedArguments;
 
@@ -89,10 +85,6 @@ abstract class DartObject {
   /// If this object is the value of a constant variable, the variable.
   VariableElement? get variable;
 
-  /// If this object is the value of a constant variable, the variable.
-  @Deprecated('Use variable instead')
-  VariableElement? get variable2;
-
   /// Return a representation of the value of the field with the given [name].
   ///
   /// Return `null` if either the object being represented does not have a field
@@ -125,15 +117,6 @@ abstract class DartObject {
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
   ExecutableElement? toFunctionValue();
-
-  /// Return an element corresponding to the value of the object being
-  /// represented, or `null`
-  /// if
-  /// * this object is not of a function type,
-  /// * the value of the object being represented is not known, or
-  /// * the value of the object being represented is `null`.
-  @Deprecated('Use toFunctionValue instead')
-  ExecutableElement? toFunctionValue2();
 
   /// Return an integer corresponding to the value of the object being
   /// represented, or `null` if

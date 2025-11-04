@@ -131,6 +131,8 @@ mixin StandardBounds {
       case (InvalidType(), _):
       case (_, InvalidType()):
       case (AuxiliaryType(), _):
+      case (FunctionTypeParameterType(), _):
+      case (ClassTypeParameterType(), _):
         throw new UnsupportedError("moretop($s, $t)");
     }
   }
@@ -234,6 +236,8 @@ mixin StandardBounds {
       case (InvalidType(), _):
       case (_, InvalidType()):
       case (AuxiliaryType(), _):
+      case (FunctionTypeParameterType(), _):
+      case (ClassTypeParameterType(), _):
         throw new UnsupportedError("morebottom($s, $t)");
     }
   }
@@ -517,6 +521,20 @@ mixin StandardBounds {
       case (AuxiliaryType(), _):
       case (_, AuxiliaryType()):
         throw new StateError("Unsupported type combination: "
+            "getStandardUpperBoundInternal("
+            "${type1.runtimeType}, ${type2.runtimeType}"
+            ")");
+
+      case (FunctionTypeParameterType(), _):
+      case (_, FunctionTypeParameterType()):
+        throw new StateError("Unimplemented for type combination: "
+            "getStandardUpperBoundInternal("
+            "${type1.runtimeType}, ${type2.runtimeType}"
+            ")");
+
+      case (ClassTypeParameterType(), _):
+      case (_, ClassTypeParameterType()):
+        throw new StateError("Unimplemented for type combination: "
             "getStandardUpperBoundInternal("
             "${type1.runtimeType}, ${type2.runtimeType}"
             ")");
@@ -842,6 +860,20 @@ mixin StandardBounds {
             "getStandardUpperBoundInternal("
             "${type1.runtimeType}, ${type2.runtimeType}"
             ")");
+
+      case (FunctionTypeParameterType(), _):
+      case (_, FunctionTypeParameterType()):
+        throw new StateError("Unimplemented for type combination: "
+            "getStandardUpperBoundInternal("
+            "${type1.runtimeType}, ${type2.runtimeType}"
+            ")");
+
+      case (ClassTypeParameterType(), _):
+      case (_, ClassTypeParameterType()):
+        throw new StateError("Unimplemented for type combination: "
+            "getStandardUpperBoundInternal("
+            "${type1.runtimeType}, ${type2.runtimeType}"
+            ")");
     }
   }
 
@@ -861,19 +893,19 @@ mixin StandardBounds {
 
       int computeExtensionTypeDeclarationDepth(
           ExtensionTypeDeclaration extensionTypeDeclaration,
-          List<InterfaceType> superInterfaceType) {
+          List<InterfaceType> superInterfaceTypes) {
         int? depth = extensionTypeDeclarationDepth[extensionTypeDeclaration];
         if (depth == null) {
           int maxDepth = 0;
           for (DartType implemented in extensionTypeDeclaration.implements) {
             if (implemented is ExtensionType) {
               int supertypeDepth = computeExtensionTypeDeclarationDepth(
-                  implemented.extensionTypeDeclaration, superInterfaceType);
+                  implemented.extensionTypeDeclaration, superInterfaceTypes);
               if (supertypeDepth >= maxDepth) {
                 maxDepth = supertypeDepth + 1;
               }
             } else if (implemented is InterfaceType) {
-              superInterfaceType.add(implemented);
+              superInterfaceTypes.add(implemented);
             }
           }
           depth = extensionTypeDeclarationDepth[extensionTypeDeclaration] =

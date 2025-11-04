@@ -3,18 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // SharedObjects=ffi_native_test_module
+// dart2wasmOptions=--extra-compiler-option=--enable-experimental-ffi
 
-import 'package:js/js.dart';
 import 'dart:ffi';
+import 'dart:js_interop';
 
 @Native<Void Function()>()
 external void empty();
 
 @JS()
+@staticInterop
 class Foo {}
 
 extension FooExtension on Foo {
-  external get neverCalled;
+  external JSObject get neverCalled;
 }
 
 // This test should compile.

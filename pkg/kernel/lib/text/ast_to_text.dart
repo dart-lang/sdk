@@ -782,6 +782,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       }
       writeWord('*/');
     }
+    if (function.scope case Scope scope?) {
+      writeScope(scope);
+    }
     Statement? body = function.body;
     if (body != null) {
       writeFunctionBody(body, terminateLine: terminateLine);
@@ -1084,6 +1087,24 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         writeSpace();
       }
     }
+  }
+
+  void writeScope(Scope scope, {String separator = ','}) {
+    writeWord('/* scope=');
+    bool isFirst = true;
+    for (VariableContext context in scope.contexts) {
+      if (isFirst) {
+        isFirst = false;
+      } else {
+        writeComma(separator);
+      }
+      writeVariableContext(context);
+    }
+    writeWord('*/');
+  }
+
+  void writeVariableContext(VariableContext context, {String separator = ','}) {
+    // TODO(cstefantsova): Implement writeVariableContext.
   }
 
   @override
@@ -1631,6 +1652,14 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeWord(node.isConst ? 'const' : 'new');
     writeMemberReferenceFromReference(node.targetReference);
     writeNode(node.arguments);
+  }
+
+  @override
+  void visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) {
+    write('/*original=');
+    writeMemberReferenceFromReference(node.redirectingFactoryTargetReference);
+    write('*/');
+    writeNode(node.expression);
   }
 
   @override
@@ -3132,6 +3161,10 @@ class Precedence implements ExpressionVisitor<int> {
   int visitConstructorInvocation(ConstructorInvocation node) => CALLEE;
 
   @override
+  int visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) =>
+      CALLEE;
+
+  @override
   int visitNot(Not node) => PREFIX;
 
   @override
@@ -3300,6 +3333,12 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitPatternAssignment(PatternAssignment node) => EXPRESSION;
+
+  @override
+  int visitVariableRead(VariableRead node) => PRIMARY;
+
+  @override
+  int visitVariableWrite(VariableWrite node) => EXPRESSION;
 }
 
 String procedureKindToString(ProcedureKind kind) {

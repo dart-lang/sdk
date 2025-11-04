@@ -659,7 +659,7 @@ Function(int, String) v;
     createParser('covariant late final int f = 0;');
     parser.parseClassMember('C');
     assertErrors(
-      errors: [
+      diagnostics: [
         expectedError(
           ParserErrorCode.finalAndCovariantLateWithInitializer,
           0,
@@ -1549,7 +1549,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     // https://github.com/dart-lang/sdk/issues/37693
     parseCompilationUnit(
       'class C{ C() : super() * (); }',
-      errors: [expectedError(ParserErrorCode.invalidInitializer, 15, 12)],
+      diagnostics: [expectedError(ParserErrorCode.invalidInitializer, 15, 12)],
     );
   }
 
@@ -1576,7 +1576,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     // https://github.com/dart-lang/sdk/issues/37735
     var unit = parseCompilationUnit(
       'class{const():super.{n',
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.missingIdentifier, 5, 1),
         expectedError(ParserErrorCode.missingIdentifier, 11, 1),
         expectedError(ParserErrorCode.invalidConstructorName, 11, 1),
@@ -1584,8 +1584,8 @@ void Function<A>(core.List<core.int> x) m() => null;
         expectedError(ParserErrorCode.expectedToken, 20, 1),
         expectedError(ParserErrorCode.constConstructorWithBody, 20, 1),
         expectedError(ParserErrorCode.expectedToken, 21, 1),
-        expectedError(ScannerErrorCode.expectedToken, 22, 1),
-        expectedError(ScannerErrorCode.expectedToken, 22, 1),
+        expectedError(ParserErrorCode.expectedToken, 22, 1),
+        expectedError(ParserErrorCode.expectedToken, 22, 1),
       ],
     );
     var classDeclaration = unit.declarations[0] as ClassDeclaration;
@@ -1597,7 +1597,9 @@ void Function<A>(core.List<core.int> x) m() => null;
   void test_parseConstructor_operator_name() {
     var unit = parseCompilationUnit(
       'class A { operator/() : super(); }',
-      errors: [expectedError(ParserErrorCode.invalidConstructorName, 10, 8)],
+      diagnostics: [
+        expectedError(ParserErrorCode.invalidConstructorName, 10, 8),
+      ],
     );
     var classDeclaration = unit.declarations[0] as ClassDeclaration;
     var constructor = classDeclaration.members[0] as ConstructorDeclaration;
@@ -1731,7 +1733,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.abstractExternalField, 0, 8)],
+      diagnostics: [expectedError(ParserErrorCode.abstractExternalField, 0, 8)],
     );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
@@ -1744,7 +1746,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.abstractLateField, 0, 8)],
+      diagnostics: [expectedError(ParserErrorCode.abstractLateField, 0, 8)],
     );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
@@ -1756,7 +1758,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.abstractLateField, 0, 8)],
+      diagnostics: [expectedError(ParserErrorCode.abstractLateField, 0, 8)],
     );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
@@ -1768,7 +1770,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.abstractStaticField, 0, 8)],
+      diagnostics: [expectedError(ParserErrorCode.abstractStaticField, 0, 8)],
     );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
@@ -1780,7 +1782,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.conflictingModifiers, 6, 4)],
+      diagnostics: [expectedError(ParserErrorCode.conflictingModifiers, 6, 4)],
     );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
@@ -1816,7 +1818,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.abstractExternalField, 9, 8)],
+      diagnostics: [expectedError(ParserErrorCode.abstractExternalField, 9, 8)],
     );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
@@ -1829,7 +1831,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.externalLateField, 0, 8)],
+      diagnostics: [expectedError(ParserErrorCode.externalLateField, 0, 8)],
     );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
@@ -1841,7 +1843,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.externalLateField, 0, 8)],
+      diagnostics: [expectedError(ParserErrorCode.externalLateField, 0, 8)],
     );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
@@ -1862,7 +1864,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     createParser('final late T f;');
     ClassMember member = parser.parseClassMember('C');
     assertErrors(
-      errors: [expectedError(ParserErrorCode.modifierOutOfOrder, 6, 4)],
+      diagnostics: [expectedError(ParserErrorCode.modifierOutOfOrder, 6, 4)],
     );
     expect(member, isNotNull);
     expect(member, isFieldDeclaration);
@@ -1913,7 +1915,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.conflictingModifiers, 5, 5)],
+      diagnostics: [expectedError(ParserErrorCode.conflictingModifiers, 5, 5)],
     );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
@@ -2006,7 +2008,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.modifierOutOfOrder, 4, 4)],
+      diagnostics: [expectedError(ParserErrorCode.modifierOutOfOrder, 4, 4)],
     );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;

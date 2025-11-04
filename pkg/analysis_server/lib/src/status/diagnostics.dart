@@ -177,7 +177,7 @@ abstract class DiagnosticPage extends Page {
     <div class="container">
       <span class="masthead-logo">
       <span class="mega-octicon octicon-dashboard"></span>
-        ${site.title} Diagnostics
+        ${site.title} Insights
       </span>
 
       <nav class="masthead-nav">
@@ -505,9 +505,9 @@ abstract class WebSocketLoggingPage extends DiagnosticPageWithNav
   void button(String text, {String? id, String classes = '', String? onClick}) {
     var attributes = {
       'type': 'button',
-      if (id != null) 'id': id,
+      'id': ?id,
       'class': 'btn $classes'.trim(),
-      if (onClick != null) 'onclick': onClick,
+      'onclick': ?onClick,
       'value': text,
     };
 

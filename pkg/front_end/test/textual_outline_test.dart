@@ -4,6 +4,7 @@
 
 import "dart:convert";
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import "package:front_end/src/util/textual_outline.dart"
@@ -24,8 +25,7 @@ a() { print("hello"); }
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: false,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -47,8 +47,7 @@ a() { print("hello"); }
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -70,8 +69,7 @@ a() {}
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -92,8 +90,7 @@ a() {
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -113,8 +110,7 @@ class A {}
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -137,8 +133,7 @@ class A {
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -163,8 +158,7 @@ int f1, f2;
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -194,8 +188,7 @@ int f1, f2;
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -222,8 +215,7 @@ class A<T> {}
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -255,8 +247,7 @@ import "baz.dart";
     throwOnUnexpected: true,
     performModelling: true,
     returnNullOnError: false,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -289,8 +280,7 @@ export "baz.dart";
     throwOnUnexpected: true,
     performModelling: true,
     returnNullOnError: false,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -328,8 +318,7 @@ import "baz.dart";
     throwOnUnexpected: true,
     performModelling: true,
     returnNullOnError: false,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -363,8 +352,7 @@ bar() {
     throwOnUnexpected: true,
     performModelling: true,
     returnNullOnError: false,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -395,8 +383,7 @@ foo() {
     throwOnUnexpected: true,
     performModelling: true,
     returnNullOnError: false,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -423,8 +410,7 @@ class Class1 {
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -451,8 +437,7 @@ class D2 = Super with Mixin;
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -484,8 +469,7 @@ import "a0.dart";
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -525,8 +509,7 @@ export "a3.dart" show foo;
     throwOnUnexpected: true,
     performModelling: true,
     returnNullOnError: false,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -556,8 +539,7 @@ main() {
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
     infoForTesting: infoForTesting,
   );
   if (result !=

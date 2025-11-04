@@ -223,7 +223,8 @@ class ReturnTypeVerifier {
           )) {
             _diagnosticReporter.atNode(
               expression,
-              CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
+              CompileTimeErrorCode
+                  .recordLiteralOnePositionalNoTrailingCommaByType,
             );
             return;
           }

@@ -1,0 +1,50 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_parts/export_part_file_part2.dart:8:1: Error: Can't export this file because it contains a 'part of' declaration.
+// export 'export_part_file_lib1_part.dart';
+// ^^^^^^
+// pkg/front_end/testcases/enhanced_parts/export_part_file_lib1_part.dart: Context: This is the file that can't be exported.
+//
+// pkg/front_end/testcases/enhanced_parts/export_part_file_part1.dart:8:1: Error: Can't export this file because it contains a 'part of' declaration.
+// export 'export_part_file_part3.dart';
+// ^^^^^^
+// pkg/front_end/testcases/enhanced_parts/export_part_file_part3.dart: Context: This is the file that can't be exported.
+//
+import self as self;
+
+import "org-dartlang-testcase:///export_part_file_lib1.dart";
+export "org-dartlang-testcase:///export_part_file_part3.dart";
+export "org-dartlang-testcase:///export_part_file_lib1.dart";
+
+part export_part_file_part1.dart;
+part export_part_file_part2.dart;
+
+library;
+import self as self2;
+
+part export_part_file_lib1_part.dart;
+
+library;
+import self as self3;
+
+part export_part_file_lib2_part.dart;
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_parts/export_part_file_part3.dart:8:1: Error: Can't export this file because it contains a 'part of' declaration.
+// export 'export_part_file_lib2_part.dart';
+// ^^^^^^
+// pkg/front_end/testcases/enhanced_parts/export_part_file_lib2_part.dart: Context: This is the file that can't be exported.
+//
+// pkg/front_end/testcases/enhanced_parts/export_part_file_part3.dart:1:1: Error: This part doesn't have a containing library.
+// Try removing the 'part of' declaration.
+// // Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
+// ^
+//
+import self as self4;
+
+export "org-dartlang-testcase:///export_part_file_lib2.dart";

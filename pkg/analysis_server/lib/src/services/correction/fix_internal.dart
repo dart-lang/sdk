@@ -265,7 +265,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:linter/src/lint_codes.dart';
 
-final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
+final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   LinterLintCode.alwaysDeclareReturnTypesOfFunctions: [AddReturnType.new],
   LinterLintCode.alwaysDeclareReturnTypesOfMethods: [AddReturnType.new],
   LinterLintCode.alwaysPutControlBodyOnNewLine: [UseCurlyBraces.nonBulk],
@@ -847,7 +847,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.obsoleteColonForDefaultValue: [
     ReplaceColonWithEquals.new,
   ],
-  CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma: [
+  CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingCommaByType: [
     AddTrailingComma.new,
   ],
   CompileTimeErrorCode.returnOfInvalidTypeFromClosure: [
@@ -942,9 +942,13 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateExtensionMethod.new,
     CreateMethod.method,
   ],
+  CompileTimeErrorCode.undefinedExtensionOperator: [
+    CreateExtensionOperator.new,
+  ],
   CompileTimeErrorCode.undefinedExtensionSetter: [
     ChangeTo.getterOrSetter,
     CreateSetter.new,
+    CreateExtensionSetter.new,
   ],
   CompileTimeErrorCode.undefinedFunction: [
     ChangeTo.function,
@@ -952,6 +956,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.undefinedGetter: [
     ChangeTo.getterOrSetter,
+    CreateExtensionMethod.new,
     CreateExtensionGetter.new,
     CreateField.new,
     CreateGetter.new,
@@ -1407,7 +1412,7 @@ final _builtInNonLintMultiGenerators = {
   WarningCode.overrideOnNonOverridingMethod: [DataDriven.new],
 };
 
-final _builtInParseLintGenerators = <LintCode, List<ProducerGenerator>>{
+final _builtInParseLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   LinterLintCode.preferGenericFunctionTypeAliases: [
     ConvertToGenericFunctionSyntax.new,
   ],

@@ -46,6 +46,7 @@ class DartUnitHoverComputer {
     }
 
     if (node is CompilationUnitMember ||
+        node is CatchClauseParameter ||
         node is Expression ||
         node is FormalParameter ||
         node is MethodDeclaration ||
@@ -188,6 +189,7 @@ class DartUnitHoverComputer {
   /// Returns `null` if there is no valid entity for this hover.
   SyntacticEntity? _locationEntity(AstNode node) {
     return switch (node) {
+      CatchClauseParameter() => node.name,
       NamedCompilationUnitMember() => node.name,
       Expression() => node,
       ExtensionDeclaration() => node.name,
@@ -261,6 +263,11 @@ class DartUnitHoverComputer {
       staticType = element.type;
     } else if (parent is MethodInvocation && parent.methodName == node) {
       staticType = parent.staticInvokeType;
+      if (staticType != null && staticType is DynamicType) {
+        staticType = null;
+      }
+    } else if (parent is PrefixedIdentifier && parent.identifier == node) {
+      staticType = parent.identifier.staticType;
       if (staticType != null && staticType is DynamicType) {
         staticType = null;
       }

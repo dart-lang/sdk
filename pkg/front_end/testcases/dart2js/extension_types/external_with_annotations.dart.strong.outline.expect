@@ -74,7 +74,7 @@ extension type B(js_::JSObject /* erasure=_interceptors::JSObject */ a) implemen
   static factory namedParams = self::B|constructor#namedParams;
   static factory tearoff namedParams = self::B|constructor#_#namedParams#tearOff;
 }
-static const field core::pragma annotation = const core::pragma::_("a pragma");
+static const field core::pragma annotation = /*original=core::pragma::•*/ const core::pragma::_("a pragma");
 static extension-type-member synthetic method B|constructor#_#_#tearOff(js_::JSObject /* erasure=_interceptors::JSObject */ a) → self::B /* erasure=_interceptors::JSObject */
   return self::B|constructor#_(a);
 static extension-type-member method B|constructor#_(js_::JSObject /* erasure=_interceptors::JSObject */ a) → self::B /* erasure=_interceptors::JSObject */
@@ -322,5 +322,5 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_with_annota
 Evaluated: StaticGet @ org-dartlang-testcase:///external_with_annotations.dart:171:4 -> InstanceConstant(const pragma{pragma.name: "a pragma", pragma.options: null})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_with_annotations.dart:174:4 -> InstanceConstant(const JS{JS.name: "renamedSS1.SS2.SS3"})
 Evaluated: StaticGet @ org-dartlang-testcase:///external_with_annotations.dart:175:4 -> InstanceConstant(const pragma{pragma.name: "a pragma", pragma.options: null})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_with_annotations.dart:239:20 -> InstanceConstant(const pragma{pragma.name: "a pragma", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///external_with_annotations.dart:239:20 -> InstanceConstant(const pragma{pragma.name: "a pragma", pragma.options: null})
 Extra constant evaluation: evaluated: 115, effectively constant: 85

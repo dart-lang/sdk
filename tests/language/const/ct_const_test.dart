@@ -26,7 +26,7 @@ class Point {
   const Point(x, y) : x_ = x, y_ = y;
   const Point.X(x) : x_ = x, y_ = Roman.V - Roman.II - 3;
 
-  bool operator ==(final dynamic other) {
+  bool operator ==(dynamic other) {
     return (this.x_ == other.x_) && (this.y_ == other.y_);
   }
 

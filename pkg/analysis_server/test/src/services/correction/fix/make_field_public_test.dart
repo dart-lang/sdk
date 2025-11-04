@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class MakeFieldPublicTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_FIELD_PUBLIC;
+  FixKind get kind => DartFixKind.makeFieldPublic;
 
   @override
   String get lintCode => LintNames.unnecessary_getters_setters;

@@ -142,6 +142,7 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _withDeprecatedDeclaration(node, () {
+      _deprecatedVerifier.constructorDeclaration(node);
       super.visitConstructorDeclaration(node);
     });
   }

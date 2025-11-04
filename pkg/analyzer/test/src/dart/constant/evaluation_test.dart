@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -3211,12 +3212,13 @@ class RequiresNonEmptyList {
           16,
           31,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               138,
               14,
-              text:
-                  "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here.",
+              textContains: [
+                "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here.",
+              ],
             ),
           ],
         ),
@@ -5258,12 +5260,13 @@ const b = B('');
           128,
           5,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               105,
               8,
-              text:
-                  "The error is in the field initializer of 'B', and occurs here.",
+              textContains: [
+                "The error is in the field initializer of 'B', and occurs here.",
+              ],
             ),
           ],
         ),
@@ -5317,12 +5320,13 @@ const y = B(x);
           70,
           4,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               47,
               8,
-              text:
-                  "The error is in the field initializer of 'B', and occurs here.",
+              textContains: [
+                "The error is in the field initializer of 'B', and occurs here.",
+              ],
             ),
           ],
         ),
@@ -5389,7 +5393,12 @@ test() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 35, 1, messageContains: ["'c'"]),
+        error(
+          WarningCode.unusedLocalVariable,
+          35,
+          1,
+          messageContainsAll: ["'c'"],
+        ),
         error(CompileTimeErrorCode.undefinedIdentifier, 39, 1),
         error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 39, 1),
       ],
@@ -5549,12 +5558,13 @@ const a = const A(null);
           56,
           13,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               24,
               17,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              textContains: [
+                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              ],
             ),
           ],
         ),
@@ -5578,12 +5588,13 @@ const a = const A<int?>();
           60,
           15,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               27,
               18,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              textContains: [
+                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              ],
             ),
           ],
         ),
@@ -5628,12 +5639,13 @@ const c = const A(E.a);
           73,
           12,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               43,
               16,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              textContains: [
+                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              ],
             ),
           ],
         ),
@@ -5685,19 +5697,21 @@ main() {
           124,
           10,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               84,
               1,
-              text:
-                  "The evaluated constructor 'A' is called by 'B' and 'B' is defined here.",
+              textContains: [
+                "The evaluated constructor 'A' is called by 'B' and 'B' is defined here.",
+              ],
             ),
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               31,
               14,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              textContains: [
+                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              ],
             ),
           ],
         ),
@@ -5740,12 +5754,13 @@ const a = const A(1);
           71,
           10,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               31,
               26,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              textContains: [
+                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              ],
             ),
           ],
         ),
@@ -5785,12 +5800,13 @@ const a = const A();
           56,
           9,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               23,
               19,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              textContains: [
+                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              ],
             ),
           ],
         ),
@@ -5834,19 +5850,21 @@ const b = const B();
           101,
           9,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               74,
               1,
-              text:
-                  "The evaluated constructor 'A' is called by 'B' and 'B' is defined here.",
+              textContains: [
+                "The evaluated constructor 'A' is called by 'B' and 'B' is defined here.",
+              ],
             ),
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               23,
               19,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              textContains: [
+                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              ],
             ),
           ],
         ),
@@ -5893,12 +5911,13 @@ const a = const A(0);
           55,
           10,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               28,
               13,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              textContains: [
+                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              ],
             ),
           ],
         ),
@@ -5920,12 +5939,13 @@ const a = const A(0);
           84,
           10,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               28,
               42,
-              text:
-                  "The exception is 'An assertion failed with message '0 must be greater than 0'.' and occurs here.",
+              textContains: [
+                "The exception is 'An assertion failed with message '0 must be greater than 0'.' and occurs here.",
+              ],
             ),
           ],
         ),
@@ -5950,12 +5970,13 @@ const a = const A(0);
           70,
           10,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               28,
               28,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              textContains: [
+                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              ],
             ),
           ],
         ),
@@ -6264,12 +6285,13 @@ const A a = .new();
           58,
           6,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               24,
               17,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              textContains: [
+                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              ],
             ),
           ],
         ),
@@ -6309,12 +6331,13 @@ const A a = .new(.a);
           74,
           8,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               43,
               15,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              textContains: [
+                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+              ],
             ),
           ],
         ),
@@ -6673,12 +6696,13 @@ const a = const A<int>();
           77,
           14,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               62,
               1,
-              text:
-                  "The error is in the field initializer of 'A', and occurs here.",
+              textContains: [
+                "The error is in the field initializer of 'A', and occurs here.",
+              ],
             ),
           ],
         ),
@@ -7230,26 +7254,29 @@ const f = const E('0.0');
           153,
           14,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               77,
               1,
-              text:
-                  "The evaluated constructor 'C' is called by 'D' and 'D' is defined here.",
+              textContains: [
+                "The evaluated constructor 'C' is called by 'D' and 'D' is defined here.",
+              ],
             ),
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               124,
               1,
-              text:
-                  "The evaluated constructor 'D' is called by 'E' and 'E' is defined here.",
+              textContains: [
+                "The evaluated constructor 'D' is called by 'E' and 'E' is defined here.",
+              ],
             ),
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               90,
               1,
-              text:
-                  "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here.",
+              textContains: [
+                "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here.",
+              ],
             ),
           ],
         ),

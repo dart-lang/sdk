@@ -43,6 +43,9 @@ abstract class AstVisitor<R> {
 
   R? visitBlock(Block node);
 
+  @experimental
+  R? visitBlockClassBody(BlockClassBody node);
+
   R? visitBlockFunctionBody(BlockFunctionBody node);
 
   R? visitBooleanLiteral(BooleanLiteral node);
@@ -107,9 +110,15 @@ abstract class AstVisitor<R> {
 
   R? visitDoubleLiteral(DoubleLiteral node);
 
+  @experimental
+  R? visitEmptyClassBody(EmptyClassBody node);
+
   R? visitEmptyFunctionBody(EmptyFunctionBody node);
 
   R? visitEmptyStatement(EmptyStatement node);
+
+  @experimental
+  R? visitEnumBody(EnumBody node);
 
   R? visitEnumConstantArguments(EnumConstantArguments node);
 
@@ -235,6 +244,9 @@ abstract class AstVisitor<R> {
 
   R? visitNamedType(NamedType node);
 
+  @experimental
+  R? visitNameWithTypeParameters(NameWithTypeParameters node);
+
   R? visitNativeClause(NativeClause node);
 
   R? visitNativeFunctionBody(NativeFunctionBody node);
@@ -274,6 +286,12 @@ abstract class AstVisitor<R> {
   R? visitPrefixedIdentifier(PrefixedIdentifier node);
 
   R? visitPrefixExpression(PrefixExpression node);
+
+  @experimental
+  R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node);
+
+  @experimental
+  R? visitPrimaryConstructorName(PrimaryConstructorName node);
 
   R? visitPropertyAccess(PropertyAccess node);
 

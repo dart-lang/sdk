@@ -11,6 +11,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -40,6 +41,9 @@ class LspSocketServer implements AbstractSocketServer {
 
   final InstrumentationService instrumentationService;
 
+  /// The session logger.
+  final SessionLogger sessionLogger;
+
   /// An optional manager to handle file systems which may not always be
   /// available.
   final DetachableFileSystemManager? detachableFileSystemManager;
@@ -50,6 +54,7 @@ class LspSocketServer implements AbstractSocketServer {
     this.analyticsManager,
     this.sdkManager,
     this.instrumentationService,
+    this.sessionLogger,
     this.detachableFileSystemManager,
   );
 
@@ -58,7 +63,7 @@ class LspSocketServer implements AbstractSocketServer {
   void createAnalysisServer(LspServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
       var error = ResponseError(
-        code: ServerErrorCodes.ServerAlreadyStarted,
+        code: ServerErrorCodes.serverAlreadyStarted,
         message: 'Server already started',
       );
       serverChannel.sendNotification(
@@ -97,6 +102,7 @@ class LspSocketServer implements AbstractSocketServer {
       analyticsManager,
       CrashReportingAttachmentsBuilder.empty,
       instrumentationService,
+      sessionLogger,
       diagnosticServer: diagnosticServer,
       detachableFileSystemManager: detachableFileSystemManager,
       enableBlazeWatcher: true,

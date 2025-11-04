@@ -28,59 +28,59 @@ import 'package:collection/collection.dart';
 
 /// An enumeration of possible statement completion kinds.
 abstract final class DartStatementCompletion {
-  static const NO_COMPLETION = StatementCompletionKind(
+  static const _noCompletion = StatementCompletionKind(
     'No_COMPLETION',
     'No completion available',
   );
-  static const SIMPLE_ENTER = StatementCompletionKind(
+  static const _simpleEnter = StatementCompletionKind(
     'SIMPLE_ENTER',
     'Insert a newline at the end of the current line',
   );
-  static const SIMPLE_SEMICOLON = StatementCompletionKind(
+  static const _simpleSemicolon = StatementCompletionKind(
     'SIMPLE_SEMICOLON',
     'Add a semicolon and newline',
   );
-  static const COMPLETE_CLASS_DECLARATION = StatementCompletionKind(
+  static const _completeClassDeclaration = StatementCompletionKind(
     'COMPLETE_CLASS_DECLARATION',
     'Complete class declaration',
   );
-  static const COMPLETE_CONTROL_FLOW_BLOCK = StatementCompletionKind(
+  static const _completeControlFlowBlock = StatementCompletionKind(
     'COMPLETE_CONTROL_FLOW_BLOCK',
     'Complete control flow block',
   );
-  static const COMPLETE_DO_STMT = StatementCompletionKind(
+  static const _completeDoStmt = StatementCompletionKind(
     'COMPLETE_DO_STMT',
     'Complete do-statement',
   );
-  static const COMPLETE_IF_STMT = StatementCompletionKind(
+  static const _completeIfStmt = StatementCompletionKind(
     'COMPLETE_IF_STMT',
     'Complete if-statement',
   );
-  static const COMPLETE_FOR_STMT = StatementCompletionKind(
+  static const _completeForStmt = StatementCompletionKind(
     'COMPLETE_FOR_STMT',
     'Complete for-statement',
   );
-  static const COMPLETE_FOR_EACH_STMT = StatementCompletionKind(
+  static const _completeForEachStmt = StatementCompletionKind(
     'COMPLETE_FOR_EACH_STMT',
     'Complete for-each-statement',
   );
-  static const COMPLETE_FUNCTION_DECLARATION = StatementCompletionKind(
+  static const _completeFunctionDeclaration = StatementCompletionKind(
     'COMPLETE_FUNCTION_DECLARATION',
     'Complete function declaration',
   );
-  static const COMPLETE_SWITCH_STMT = StatementCompletionKind(
+  static const _completeSwitchStmt = StatementCompletionKind(
     'COMPLETE_SWITCH_STMT',
     'Complete switch-statement',
   );
-  static const COMPLETE_TRY_STMT = StatementCompletionKind(
+  static const _completeTryStmt = StatementCompletionKind(
     'COMPLETE_TRY_STMT',
     'Complete try-statement',
   );
-  static const COMPLETE_VARIABLE_DECLARATION = StatementCompletionKind(
+  static const _completeVariableDeclaration = StatementCompletionKind(
     'COMPLETE_VARIABLE_DECLARATION',
     'Complete variable declaration',
   );
-  static const COMPLETE_WHILE_STMT = StatementCompletionKind(
+  static const _completeWhiteStmt = StatementCompletionKind(
     'COMPLETE_WHILE_STMT',
     'Complete while-statement',
   );
@@ -133,7 +133,7 @@ class StatementCompletionKind {
 /// The computer for Dart statement completions.
 class StatementCompletionProcessor {
   static final _noCompletion = StatementCompletion(
-    DartStatementCompletion.NO_COMPLETION,
+    DartStatementCompletion._noCompletion,
     SourceChange('', edits: []),
   );
 
@@ -347,7 +347,7 @@ class StatementCompletionProcessor {
           ParserErrorCode.expectedToken,
           partialMatch: "']'",
         ) ??
-        diagnosticMatching(ScannerErrorCode.expectedToken, partialMatch: "']'");
+        diagnosticMatching(ParserErrorCode.expectedToken, partialMatch: "']'");
     if (expr != null) {
       expr = expr.thisOrAncestorOfType<ListLiteral>();
       if (expr is ListLiteral) {
@@ -361,7 +361,6 @@ class StatementCompletionProcessor {
             _addInsertEdit(loc, ']');
           }
           _removeError(ParserErrorCode.expectedToken, partialMatch: "']'");
-          _removeError(ScannerErrorCode.expectedToken, partialMatch: "']'");
         }
       }
     }
@@ -404,7 +403,7 @@ class StatementCompletionProcessor {
       sb.append(' ');
       _appendEmptyBraces(sb, true);
       _insertBuilder(sb);
-      _setCompletion(DartStatementCompletion.COMPLETE_CLASS_DECLARATION);
+      _setCompletion(DartStatementCompletion._completeClassDeclaration);
       return true;
     }
     return false;
@@ -460,7 +459,7 @@ class StatementCompletionProcessor {
     }
     var offset = _appendNewlinePlusIndentAt(parent.end);
     exitPosition = Position(file, offset + delta + previousInsertions);
-    _setCompletion(DartStatementCompletion.COMPLETE_CONTROL_FLOW_BLOCK);
+    _setCompletion(DartStatementCompletion._completeControlFlowBlock);
     return true;
   }
 
@@ -543,7 +542,7 @@ class StatementCompletionProcessor {
         exitPosition!.offset + exitDelta,
       );
     }
-    _setCompletion(DartStatementCompletion.COMPLETE_DO_STMT);
+    _setCompletion(DartStatementCompletion._completeDoStmt);
     return true;
   }
 
@@ -624,7 +623,7 @@ class StatementCompletionProcessor {
       _appendEmptyBraces(sb, exitPosition == null);
     }
     _insertBuilder(sb);
-    _setCompletion(DartStatementCompletion.COMPLETE_FOR_EACH_STMT);
+    _setCompletion(DartStatementCompletion._completeForEachStmt);
     return true;
   }
 
@@ -725,7 +724,7 @@ class StatementCompletionProcessor {
       }
     }
     _insertBuilder(sb, replacementLength);
-    _setCompletion(DartStatementCompletion.COMPLETE_FOR_STMT);
+    _setCompletion(DartStatementCompletion._completeForStmt);
     return true;
   }
 
@@ -779,7 +778,7 @@ class StatementCompletionProcessor {
     sb.append(' ');
     _appendEmptyBraces(sb, true);
     _insertBuilder(sb);
-    _setCompletion(DartStatementCompletion.COMPLETE_FUNCTION_DECLARATION);
+    _setCompletion(DartStatementCompletion._completeFunctionDeclaration);
     return true;
   }
 
@@ -815,7 +814,7 @@ class StatementCompletionProcessor {
           insertOffset = _appendNewlinePlusIndent();
         }
         _setCompletionAt(
-          DartStatementCompletion.SIMPLE_SEMICOLON,
+          DartStatementCompletion._simpleSemicolon,
           insertOffset + delta,
         );
         return true;
@@ -864,7 +863,7 @@ class StatementCompletionProcessor {
         }
         _appendEmptyBraces(sb, true);
         _insertBuilder(sb);
-        _setCompletion(DartStatementCompletion.COMPLETE_IF_STMT);
+        _setCompletion(DartStatementCompletion._completeIfStmt);
         return true;
       }
       return false;
@@ -879,7 +878,7 @@ class StatementCompletionProcessor {
     return _complete_ifOrWhileStatement(
       node,
       stmt,
-      DartStatementCompletion.COMPLETE_IF_STMT,
+      DartStatementCompletion._completeIfStmt,
     );
   }
 
@@ -921,9 +920,10 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_methodCall(AstNode node) {
-    var parenError =
-        _findDiagnostic(ParserErrorCode.expectedToken, partialMatch: "')'") ??
-        _findDiagnostic(ScannerErrorCode.expectedToken, partialMatch: "')'");
+    var parenError = _findDiagnostic(
+      ParserErrorCode.expectedToken,
+      partialMatch: "')'",
+    );
     if (parenError == null) {
       return false;
     }
@@ -953,7 +953,7 @@ class StatementCompletionProcessor {
     _addInsertEdit(exit, indent + eol);
     exit += indent.length + previousInsertions;
 
-    _setCompletionAt(DartStatementCompletion.SIMPLE_ENTER, exit);
+    _setCompletionAt(DartStatementCompletion._simpleEnter, exit);
     return true;
   }
 
@@ -967,7 +967,7 @@ class StatementCompletionProcessor {
       _addInsertEdit(loc, indent + eol);
       offset = loc + indent.length;
     }
-    _setCompletionAt(DartStatementCompletion.SIMPLE_ENTER, offset);
+    _setCompletionAt(DartStatementCompletion._simpleEnter, offset);
     return true;
   }
 
@@ -985,7 +985,7 @@ class StatementCompletionProcessor {
       var insertOffset = error.offset + error.length;
       _addInsertEdit(insertOffset, ';');
       var offset = _appendNewlinePlusIndent() + 1 /*';'*/ + previousInsertions;
-      _setCompletionAt(DartStatementCompletion.SIMPLE_SEMICOLON, offset);
+      _setCompletionAt(DartStatementCompletion._simpleSemicolon, offset);
       return true;
     }
     return false;
@@ -1037,7 +1037,7 @@ class StatementCompletionProcessor {
       }
     }
     _insertBuilder(sb);
-    _setCompletion(DartStatementCompletion.COMPLETE_SWITCH_STMT);
+    _setCompletion(DartStatementCompletion._completeSwitchStmt);
     return true;
   }
 
@@ -1136,7 +1136,7 @@ class StatementCompletionProcessor {
         }
       }
     }
-    _setCompletion(DartStatementCompletion.COMPLETE_TRY_STMT);
+    _setCompletion(DartStatementCompletion._completeTryStmt);
     return true;
   }
 
@@ -1146,7 +1146,7 @@ class StatementCompletionProcessor {
     }
     _addInsertEdit(node.end, ';');
     exitPosition = Position(file, _appendNewlinePlusIndentAt(node.end) + 1);
-    _setCompletion(DartStatementCompletion.COMPLETE_VARIABLE_DECLARATION);
+    _setCompletion(DartStatementCompletion._completeVariableDeclaration);
     return true;
   }
 
@@ -1164,7 +1164,7 @@ class StatementCompletionProcessor {
     return _complete_ifOrWhileStatement(
       node,
       stmt,
-      DartStatementCompletion.COMPLETE_WHILE_STMT,
+      DartStatementCompletion._completeWhiteStmt,
     );
   }
 

@@ -75,9 +75,7 @@ class InteropTransformer extends Transformer {
   Expression visitStaticInvocation(StaticInvocation node) {
     node = super.visitStaticInvocation(node) as StaticInvocation;
     Procedure target = node.target;
-    if (target == _util.allowInteropTarget) {
-      return _callbackSpecializer.allowInterop(node);
-    } else if (target == _util.functionToJSTarget) {
+    if (target == _util.functionToJSTarget) {
       return _callbackSpecializer.functionToJS(node);
     } else if (target == _util.functionToJSCaptureThisTarget) {
       return _callbackSpecializer.functionToJS(node, captureThis: true);

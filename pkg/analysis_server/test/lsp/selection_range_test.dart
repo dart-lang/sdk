@@ -8,6 +8,7 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/matchers.dart';
 import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
@@ -23,7 +24,7 @@ void main() {
 @reflectiveTest
 class SelectionRangeTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dotShorthand_constructorInvocation() async {
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 class A {}
 void f() {
   A a = .^new();
@@ -45,7 +46,7 @@ void f() {
 
     expect(
       regionTexts,
-      equals([
+      equalsNormalized([
         'new',
         '.new()',
         'a = .new()',
@@ -59,7 +60,7 @@ void f() {
   }
 
   Future<void> test_dotShorthand_methodInvocation() async {
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 class A {
   static A method() => A();
 }
@@ -83,7 +84,7 @@ void f() {
 
     expect(
       regionTexts,
-      equals([
+      equalsNormalized([
         'method',
         '.method()',
         'a = .method()',
@@ -97,7 +98,7 @@ void f() {
   }
 
   Future<void> test_dotShorthand_propertyAccess() async {
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 enum A { a }
 void f() {
   A a = .^a;
@@ -119,7 +120,7 @@ void f() {
 
     expect(
       regionTexts,
-      equals([
+      equalsNormalized([
         'a',
         '.a',
         'a = .a',
@@ -133,54 +134,56 @@ void f() {
   }
 
   Future<void> test_multiple() async {
-    var content = '''
+    var code = TestCode.parseNormalized('''
 class Foo {
-  void a() { /*1*/ }
-  void b() { /*2*/ }
+  void a() => /*0*/0;
+  void b() => /*1*/1;
 }
-''';
+''');
 
     await initialize();
-    await openFile(mainFileUri, content);
-    var lineInfo = LineInfo.fromContent(content);
+    await openFile(mainFileUri, code.code);
+    var lineInfo = LineInfo.fromContent(code.code);
 
     // Send a request for two positions.
     var regions = await getSelectionRanges(mainFileUri, [
-      positionFromOffset(content.indexOf('/*1*/'), content),
-      positionFromOffset(content.indexOf('/*2*/'), content),
+      code.positions[0].position,
+      code.positions[1].position,
     ]);
     expect(regions!.length, equals(2));
     var firstTexts = _getSelectionRangeText(
       lineInfo,
-      content,
+      code.code,
       regions[0],
     ).toList();
     var secondTexts = _getSelectionRangeText(
       lineInfo,
-      content,
+      code.code,
       regions[1],
     ).toList();
 
     expect(
       firstTexts,
-      equals([
-        '{ /*1*/ }',
-        'void a() { /*1*/ }',
-        content.trim(), // Whole content minus the trailing newline
+      equalsNormalized([
+        '0',
+        '=> 0;',
+        'void a() => 0;',
+        code.code.trim(), // Whole content minus the trailing newline
       ]),
     );
     expect(
       secondTexts,
-      equals([
-        '{ /*2*/ }',
-        'void b() { /*2*/ }',
-        content.trim(), // Whole content minus the trailing newline
+      equalsNormalized([
+        '1',
+        '=> 1;',
+        'void b() => 1;',
+        code.code.trim(), // Whole content minus the trailing newline
       ]),
     );
   }
 
   Future<void> test_nullAwareElements_inList() async {
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 class Foo<T> {
   List<int> a(String b) {
     return [?(1 ^+ 2) * 3];
@@ -207,7 +210,7 @@ class Foo<T> {
 
     expect(
       regionTexts,
-      equals([
+      equalsNormalized([
         '1 + 2',
         '(1 + 2)',
         '(1 + 2) * 3',
@@ -222,7 +225,7 @@ class Foo<T> {
   }
 
   Future<void> test_nullAwareElements_inMapKey() async {
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 class Foo<T> {
   Map<int, String> a(String b) {
     return {?(1 ^+ 2) * 3: b};
@@ -249,7 +252,7 @@ class Foo<T> {
 
     expect(
       regionTexts,
-      equals([
+      equalsNormalized([
         '1 + 2',
         '(1 + 2)',
         '(1 + 2) * 3',
@@ -264,7 +267,7 @@ class Foo<T> {
   }
 
   Future<void> test_nullAwareElements_inMapValue() async {
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 class Foo<T> {
   Map<String, int> a(String b) {
     return {b: ?(1 ^+ 2) * 3};
@@ -291,7 +294,7 @@ class Foo<T> {
 
     expect(
       regionTexts,
-      equals([
+      equalsNormalized([
         '1 + 2',
         '(1 + 2)',
         '(1 + 2) * 3',
@@ -306,7 +309,7 @@ class Foo<T> {
   }
 
   Future<void> test_nullAwareElements_inSet() async {
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 class Foo<T> {
   Set<int> a(String b) {
     return {?(1 ^+ 2) * 3};
@@ -333,7 +336,7 @@ class Foo<T> {
 
     expect(
       regionTexts,
-      equals([
+      equalsNormalized([
         '1 + 2',
         '(1 + 2)',
         '(1 + 2) * 3',
@@ -348,7 +351,7 @@ class Foo<T> {
   }
 
   Future<void> test_single() async {
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 class Foo<T> {
   void a(String b) {
     print((1 ^+ 2) * 3);
@@ -375,7 +378,7 @@ class Foo<T> {
 
     expect(
       regionTexts,
-      equals([
+      equalsNormalized([
         '1 + 2',
         '(1 + 2)',
         '(1 + 2) * 3',

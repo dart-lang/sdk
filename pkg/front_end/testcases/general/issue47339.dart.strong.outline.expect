@@ -19,16 +19,16 @@ class FooGeneric<X extends core::Object? = dynamic> extends core::Object /*hasCo
     return new self::FooGeneric::named<self::FooGeneric::namedFactory::X%>();
 }
 static const field self::Foo bar = const self::Foo::named();
-static const field self::Foo bar2 = const self::Foo::named();
+static const field self::Foo bar2 = /*original=self::Foo::namedFactory*/ const self::Foo::named();
 static const field self::FooGeneric<core::int> barGeneric = const self::FooGeneric::named<core::int>();
-static const field self::FooGeneric<core::int> barGeneric2 = const self::FooGeneric::named<core::int>();
+static const field self::FooGeneric<core::int> barGeneric2 = /*original=self::FooGeneric::namedFactory*/ const self::FooGeneric::named<core::int>();
 static method main() → dynamic
   ;
 
 
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47339.dart:12:11 -> InstanceConstant(const Foo{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47339.dart:14:22 -> InstanceConstant(const Foo{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue47339.dart:14:22 -> InstanceConstant(const Foo{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47339.dart:23:23 -> InstanceConstant(const FooGeneric<int>{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47339.dart:25:48 -> InstanceConstant(const FooGeneric<int>{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue47339.dart:25:48 -> InstanceConstant(const FooGeneric<int>{})
 Extra constant evaluation: evaluated: 6, effectively constant: 4

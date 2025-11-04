@@ -30,7 +30,11 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Keyword, Token, TokenIsAExtension, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
-    show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
+    show
+        isBinaryOperator,
+        isMinusOperator,
+        isUserDefinableOperator,
+        correspondingPublicName;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
@@ -410,6 +414,15 @@ class BodyBuilderImpl extends StackListenerImpl
   bool get isDartLibrary =>
       libraryBuilder.importUri.isScheme("dart") ||
       uri.isScheme("org-dartlang-sdk");
+
+  bool get isClosureContextLoweringEnabled {
+    return libraryBuilder
+        .loader
+        .target
+        .backendTarget
+        .flags
+        .isClosureContextLoweringEnabled;
+  }
 
   @override
   Message reportFeatureNotEnabled(
@@ -1282,8 +1295,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     if (!token.isEof) {
       token = parser.parseInitializers(token);
@@ -1298,8 +1310,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     Token endToken = parser.parseExpression(
       parser.syntheticPreviousToken(token),
@@ -1319,8 +1330,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     Token endToken = parser.parseMetadata(parser.syntheticPreviousToken(token));
     assert(checkState(token, [ValueKinds.Expression]));
@@ -1333,8 +1343,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     token = parser.parseArgumentsRest(token);
     ArgumentsImpl arguments = pop() as ArgumentsImpl;
@@ -5339,6 +5348,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,
@@ -5394,6 +5404,27 @@ class BodyBuilderImpl extends StackListenerImpl
       return;
     }
     Identifier? name = nameNode as Identifier?;
+
+    // If it's a private named parameter, handle the public name.
+    if (libraryFeatures.privateNamedParameters.isEnabled &&
+        kind.isNamed &&
+        name != null &&
+        name.name.startsWith('_')) {
+      // TODO(rnystrom): Also handle declaring field parameters.
+      bool refersToField = thisKeyword != null;
+
+      // If you can't even use a private named parameter here at all, the
+      // parser has already reported an error about that. Don't bother reporting
+      // a second error about it being a bad private name.
+      if (refersToField && correspondingPublicName(name.name) == null) {
+        handleRecoverableError(
+          cfe.codePrivateNamedParameterWithoutPublicName,
+          nameToken,
+          nameToken,
+        );
+      }
+    }
+
     FormalParameterBuilder? parameter;
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
@@ -6543,7 +6574,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  Expression resolveAndBuildConstructorInvocation(
+  ConstructorResolutionResult resolveAndBuildConstructorInvocation(
     TypeDeclarationBuilder? typeDeclarationBuilder,
     Token nameToken,
     Token nameLastToken,
@@ -6576,15 +6607,17 @@ class BodyBuilderImpl extends StackListenerImpl
       if (typeArguments != null &&
           numberOfTypeParameters != numberOfTypeArguments) {
         // TODO(eernst): Use position of type arguments, not nameToken.
-        return evaluateArgumentsBefore(
-          arguments,
-          buildProblem(
-            message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
-              numberOfTypeParameters,
+        return new ErroneousConstructorResolutionResult(
+          errorExpression: evaluateArgumentsBefore(
+            arguments,
+            buildProblem(
+              message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
+                numberOfTypeParameters,
+              ),
+              fileUri: uri,
+              fileOffset: charOffset,
+              length: noLength,
             ),
-            fileUri: uri,
-            fileOffset: charOffset,
-            length: noLength,
           ),
         );
       }
@@ -6624,14 +6657,16 @@ class BodyBuilderImpl extends StackListenerImpl
                 MemberBuilder? constructorBuilder = result.getable!;
                 if (constructorBuilder is ConstructorBuilder) {
                   if (typeDeclarationBuilder.isAbstract) {
-                    return evaluateArgumentsBefore(
-                      arguments,
-                      buildAbstractClassInstantiationError(
-                        cfe.codeAbstractClassInstantiation.withArgumentsOld(
+                    return new ErroneousConstructorResolutionResult(
+                      errorExpression: evaluateArgumentsBefore(
+                        arguments,
+                        buildAbstractClassInstantiationError(
+                          cfe.codeAbstractClassInstantiation.withArgumentsOld(
+                            typeDeclarationBuilder.name,
+                          ),
                           typeDeclarationBuilder.name,
+                          nameToken.charOffset,
                         ),
-                        typeDeclarationBuilder.name,
-                        nameToken.charOffset,
                       ),
                     );
                   }
@@ -6643,22 +6678,27 @@ class BodyBuilderImpl extends StackListenerImpl
               if (target is Constructor ||
                   (target is Procedure &&
                       target.kind == ProcedureKind.Factory)) {
-                return buildConstructorInvocation(
-                  target!,
-                  arguments,
-                  constness: constness,
-                  typeAliasBuilder: aliasBuilder,
-                  fileOffset: nameToken.charOffset,
-                  charLength: nameToken.length,
+                return new SuccessfulConstructorResolutionResult(
+                  buildConstructorInvocation(
+                    target!,
+                    arguments,
+                    constness: constness,
+                    typeAliasBuilder: aliasBuilder,
+                    fileOffset: nameToken.charOffset,
+                    charLength: nameToken.length,
+                  ),
                 );
               } else {
                 if (message != null) {
-                  return buildProblemFromLocatedMessage(message);
+                  return new ErroneousConstructorResolutionResult(
+                    errorExpression: buildProblemFromLocatedMessage(message),
+                  );
                 } else {
-                  return buildUnresolvedError(
-                    errorName,
-                    nameLastToken.charOffset,
-                    kind: UnresolvedKind.Constructor,
+                  return new UnresolvedConstructorResolutionResult(
+                    helper: this,
+                    errorName: errorName,
+                    charOffset: nameLastToken.charOffset,
+                    unresolvedKind: unresolvedKind,
                   );
                 }
               }
@@ -6684,36 +6724,43 @@ class BodyBuilderImpl extends StackListenerImpl
                   // Coverage-ignore(suite): Not run.
                   constructorBuilder is FactoryBuilder) {
                 Member target = constructorBuilder.invokeTarget!;
-                return buildConstructorInvocation(
-                  target,
-                  arguments,
-                  constness: constness,
-                  typeAliasBuilder: aliasBuilder,
-                  fileOffset: nameToken.charOffset,
-                  charLength: nameToken.length,
+                return new SuccessfulConstructorResolutionResult(
+                  buildConstructorInvocation(
+                    target,
+                    arguments,
+                    constness: constness,
+                    typeAliasBuilder: aliasBuilder,
+                    fileOffset: nameToken.charOffset,
+                    charLength: nameToken.length,
+                  ),
                 );
               }
               if (message != null) {
                 // Coverage-ignore-block(suite): Not run.
-                return buildProblemFromLocatedMessage(message);
+                return new ErroneousConstructorResolutionResult(
+                  errorExpression: buildProblemFromLocatedMessage(message),
+                );
               } else {
-                return buildUnresolvedError(
-                  errorName,
-                  nameLastToken.charOffset,
-                  kind: UnresolvedKind.Constructor,
+                return new UnresolvedConstructorResolutionResult(
+                  helper: this,
+                  errorName: errorName,
+                  charOffset: nameLastToken.charOffset,
+                  unresolvedKind: unresolvedKind,
                 );
               }
             case InvalidBuilder():
               // Coverage-ignore(suite): Not run.
               LocatedMessage message = typeDeclarationBuilder.message;
               // Coverage-ignore(suite): Not run.
-              return evaluateArgumentsBefore(
-                arguments,
-                buildProblem(
-                  message: message.messageObject,
-                  fileUri: uri,
-                  fileOffset: nameToken.charOffset,
-                  length: nameToken.lexeme.length,
+              return new ErroneousConstructorResolutionResult(
+                errorExpression: evaluateArgumentsBefore(
+                  arguments,
+                  buildProblem(
+                    message: message.messageObject,
+                    fileUri: uri,
+                    fileOffset: nameToken.charOffset,
+                    length: nameToken.lexeme.length,
+                  ),
                 ),
               );
             case TypeAliasBuilder():
@@ -6726,10 +6773,11 @@ class BodyBuilderImpl extends StackListenerImpl
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             case null:
-              return buildUnresolvedError(
-                errorName,
-                nameLastToken.charOffset,
-                kind: UnresolvedKind.Constructor,
+              return new UnresolvedConstructorResolutionResult(
+                helper: this,
+                errorName: errorName,
+                charOffset: nameLastToken.charOffset,
+                unresolvedKind: unresolvedKind,
               );
           }
         } else {
@@ -6744,16 +6792,18 @@ class BodyBuilderImpl extends StackListenerImpl
                 // Coverage-ignore-block(suite): Not run.
                 // TODO(eernst): This is a wrong number of type arguments,
                 // occurring indirectly (in an alias of an alias, etc.).
-                return evaluateArgumentsBefore(
-                  arguments,
-                  buildProblem(
-                    message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
-                      numberOfTypeParameters,
+                return new ErroneousConstructorResolutionResult(
+                  errorExpression: evaluateArgumentsBefore(
+                    arguments,
+                    buildProblem(
+                      message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
+                        numberOfTypeParameters,
+                      ),
+                      fileUri: uri,
+                      fileOffset: nameToken.charOffset,
+                      length: nameToken.length,
+                      errorHasBeenReported: true,
                     ),
-                    fileUri: uri,
-                    fileOffset: nameToken.charOffset,
-                    length: nameToken.length,
-                    errorHasBeenReported: true,
                   ),
                 );
               }
@@ -6821,15 +6871,17 @@ class BodyBuilderImpl extends StackListenerImpl
             if (numberOfTypeParameters != typeArgumentBuilders.length) {
               // Coverage-ignore-block(suite): Not run.
               // TODO(eernst): Use position of type arguments, not nameToken.
-              return evaluateArgumentsBefore(
-                arguments,
-                buildProblem(
-                  message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
-                    numberOfTypeParameters,
+              return new ErroneousConstructorResolutionResult(
+                errorExpression: evaluateArgumentsBefore(
+                  arguments,
+                  buildProblem(
+                    message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
+                      numberOfTypeParameters,
+                    ),
+                    fileUri: uri,
+                    fileOffset: nameToken.charOffset,
+                    length: nameToken.length,
                   ),
-                  fileUri: uri,
-                  fileOffset: nameToken.charOffset,
-                  length: nameToken.length,
                 ),
               );
             }
@@ -6839,16 +6891,18 @@ class BodyBuilderImpl extends StackListenerImpl
               // Coverage-ignore-block(suite): Not run.
               // TODO(eernst): This is a wrong number of type arguments,
               // occurring indirectly (in an alias of an alias, etc.).
-              return evaluateArgumentsBefore(
-                arguments,
-                buildProblem(
-                  message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
-                    numberOfTypeParameters,
+              return new ErroneousConstructorResolutionResult(
+                errorExpression: evaluateArgumentsBefore(
+                  arguments,
+                  buildProblem(
+                    message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
+                      numberOfTypeParameters,
+                    ),
+                    fileUri: uri,
+                    fileOffset: nameToken.charOffset,
+                    length: nameToken.length,
+                    errorHasBeenReported: true,
                   ),
-                  fileUri: uri,
-                  fileOffset: nameToken.charOffset,
-                  length: nameToken.length,
-                  errorHasBeenReported: true,
                 ),
               );
             }
@@ -6934,14 +6988,16 @@ class BodyBuilderImpl extends StackListenerImpl
           // Not found. Reported below.
         } else if (constructorBuilder is ConstructorBuilder) {
           if (typeDeclarationBuilder.isAbstract) {
-            return evaluateArgumentsBefore(
-              arguments,
-              buildAbstractClassInstantiationError(
-                cfe.codeAbstractClassInstantiation.withArgumentsOld(
+            return new ErroneousConstructorResolutionResult(
+              errorExpression: evaluateArgumentsBefore(
+                arguments,
+                buildAbstractClassInstantiationError(
+                  cfe.codeAbstractClassInstantiation.withArgumentsOld(
+                    typeDeclarationBuilder.name,
+                  ),
                   typeDeclarationBuilder.name,
+                  nameToken.charOffset,
                 ),
-                typeDeclarationBuilder.name,
-                nameToken.charOffset,
               ),
             );
           }
@@ -6949,16 +7005,26 @@ class BodyBuilderImpl extends StackListenerImpl
         } else {
           target = constructorBuilder.invokeTarget;
         }
-        if (typeDeclarationBuilder.isEnum &&
-            !(libraryFeatures.enhancedEnums.isEnabled &&
-                target is Procedure &&
-                target.kind == ProcedureKind.Factory)) {
-          return buildProblem(
-            message: cfe.codeEnumInstantiation,
-            fileUri: uri,
-            fileOffset: nameToken.charOffset,
-            length: nameToken.length,
-          );
+        if (typeDeclarationBuilder.isEnum) {
+          if (libraryFeatures.staticExtensions.isEnabled && target == null) {
+            return new UnresolvedConstructorResolutionResult(
+              errorName: debugName(typeDeclarationBuilder.name, name),
+              charOffset: nameLastToken.charOffset,
+              helper: this,
+            );
+          }
+          if (!(libraryFeatures.enhancedEnums.isEnabled &&
+              target is Procedure &&
+              target.kind == ProcedureKind.Factory)) {
+            return new ErroneousConstructorResolutionResult(
+              errorExpression: buildProblem(
+                message: cfe.codeEnumInstantiation,
+                fileUri: uri,
+                fileOffset: nameToken.charOffset,
+                length: nameToken.length,
+              ),
+            );
+          }
         }
         if (target is Constructor ||
             (target is Procedure && target.kind == ProcedureKind.Factory)) {
@@ -6972,7 +7038,7 @@ class BodyBuilderImpl extends StackListenerImpl
             charLength: nameToken.length,
             typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?,
           );
-          return invocation;
+          return new SuccessfulConstructorResolutionResult(invocation);
         } else {
           errorName ??= debugName(typeDeclarationBuilder.name, name);
         }
@@ -6997,26 +7063,30 @@ class BodyBuilderImpl extends StackListenerImpl
           target = constructorBuilder.invokeTarget;
         }
         if (target != null) {
-          return buildConstructorInvocation(
-            target,
-            arguments,
-            constness: constness,
-            fileOffset: nameToken.charOffset,
-            charLength: nameToken.length,
-            typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?,
+          return new SuccessfulConstructorResolutionResult(
+            buildConstructorInvocation(
+              target,
+              arguments,
+              constness: constness,
+              fileOffset: nameToken.charOffset,
+              charLength: nameToken.length,
+              typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?,
+            ),
           );
         } else {
           errorName ??= debugName(typeDeclarationBuilder.name, name);
         }
       case InvalidBuilder():
         LocatedMessage message = typeDeclarationBuilder.message;
-        return evaluateArgumentsBefore(
-          arguments,
-          buildProblem(
-            message: message.messageObject,
-            fileUri: uri,
-            fileOffset: nameToken.charOffset,
-            length: nameToken.lexeme.length,
+        return new ErroneousConstructorResolutionResult(
+          errorExpression: evaluateArgumentsBefore(
+            arguments,
+            buildProblem(
+              message: message.messageObject,
+              fileUri: uri,
+              fileOffset: nameToken.charOffset,
+              length: nameToken.lexeme.length,
+            ),
           ),
         );
       case TypeAliasBuilder():
@@ -7031,12 +7101,15 @@ class BodyBuilderImpl extends StackListenerImpl
         );
     }
     if (message != null) {
-      return buildProblemFromLocatedMessage(message);
+      return new ErroneousConstructorResolutionResult(
+        errorExpression: buildProblemFromLocatedMessage(message),
+      );
     } else {
-      return buildUnresolvedError(
-        errorName,
-        nameLastToken.charOffset,
-        kind: unresolvedKind,
+      return new UnresolvedConstructorResolutionResult(
+        helper: this,
+        errorName: errorName,
+        charOffset: nameLastToken.charOffset,
+        unresolvedKind: unresolvedKind,
       );
     }
   }
@@ -7671,6 +7744,11 @@ class BodyBuilderImpl extends StackListenerImpl
       body,
       token.charOffset,
     );
+
+    if (isClosureContextLoweringEnabled) {
+      // TODO(cstefantsova): Add function parameters to the scope.
+      function.scope = new Scope([])..fileOffset = function.fileOffset;
+    }
 
     if (declaration is FunctionDeclaration) {
       VariableDeclaration variable = declaration.variable;
@@ -10977,8 +11055,7 @@ class BodyBuilderImpl extends StackListenerImpl
       Parser parser = new Parser(
         this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled,
-        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+        experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
       );
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
@@ -11010,8 +11087,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     token = parser.parseFormalParametersOpt(
       parser.syntheticPreviousToken(token),
@@ -11037,8 +11113,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     if (metadata != null) {
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
@@ -11092,8 +11167,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
     assert(checkState(null, [ValueKinds.AnnotationList]));
@@ -11111,8 +11185,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     if (isTopLevel) {
       token = parser.parseTopLevelMember(metadata ?? token);
@@ -11197,9 +11270,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts:
-          libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
 
     if (formals != null) {

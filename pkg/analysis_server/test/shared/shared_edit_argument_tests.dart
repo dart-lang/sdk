@@ -278,7 +278,7 @@ mixin SharedEditArgumentTests
       params: '([int? x, int y = 10, int? z])',
       originalArgs: '(1)',
       edit: ArgumentEdit(name: 'z', newValue: 2),
-      errorCode: ServerErrorCodes.EditArgumentInvalidParameter,
+      errorCode: ServerErrorCodes.editArgumentInvalidParameter,
       message:
           "The parameter 'z' is not editable because "
           "a value for the 3rd parameter can't be added until a value for all preceding positional parameters have been added.",
@@ -290,7 +290,7 @@ mixin SharedEditArgumentTests
       params: '([int? x = 10, int? y])',
       originalArgs: '()',
       edit: ArgumentEdit(name: 'y', newValue: 2),
-      errorCode: ServerErrorCodes.EditArgumentInvalidParameter,
+      errorCode: ServerErrorCodes.editArgumentInvalidParameter,
       message:
           "The parameter 'y' is not editable because "
           "a value for the 2nd parameter can't be added until a value for all preceding positional parameters have been added.",
@@ -323,7 +323,7 @@ mixin SharedEditArgumentTests
       params: '(int? x, int? y, int? z)',
       originalArgs: '(1)',
       edit: ArgumentEdit(name: 'z', newValue: 2),
-      errorCode: ServerErrorCodes.EditArgumentInvalidParameter,
+      errorCode: ServerErrorCodes.editArgumentInvalidParameter,
       message:
           "The parameter 'z' is not editable because "
           "a value for the 3rd parameter can't be added until a value for all preceding positional parameters have been added.",
@@ -336,7 +336,7 @@ mixin SharedEditArgumentTests
       params: '(int? x, int? y)',
       originalArgs: '()',
       edit: ArgumentEdit(name: 'y', newValue: 2),
-      errorCode: ServerErrorCodes.EditArgumentInvalidParameter,
+      errorCode: ServerErrorCodes.editArgumentInvalidParameter,
       message:
           "The parameter 'y' is not editable because "
           "a value for the 2nd parameter can't be added until a value for all preceding positional parameters have been added.",
@@ -349,7 +349,7 @@ mixin SharedEditArgumentTests
       params: '(int? x, int? y, { int? z })',
       originalArgs: '(z: 1)',
       edit: ArgumentEdit(name: 'y', newValue: 2),
-      errorCode: ServerErrorCodes.EditArgumentInvalidParameter,
+      errorCode: ServerErrorCodes.editArgumentInvalidParameter,
       message:
           "The parameter 'y' is not editable because "
           "a value for the 2nd parameter can't be added until a value for all preceding positional parameters have been added.",
@@ -416,7 +416,7 @@ mixin SharedEditArgumentTests
       params: '({ bool? x })',
       originalArgs: '(x: true)',
       edit: ArgumentEdit(name: 'x', newValue: 'invalid'),
-      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      errorCode: ServerErrorCodes.editArgumentInvalidValue,
       message: "The value for the parameter 'x' should be bool? but was String",
     );
   }
@@ -435,7 +435,7 @@ mixin SharedEditArgumentTests
       params: '({ required bool x })',
       originalArgs: '(x: true)',
       edit: ArgumentEdit(name: 'x'),
-      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      errorCode: ServerErrorCodes.editArgumentInvalidValue,
       message: "The value for the parameter 'x' can't be null",
     );
   }
@@ -463,7 +463,7 @@ mixin SharedEditArgumentTests
       params: '({ double? x })',
       originalArgs: '(x: 1.1)',
       edit: ArgumentEdit(name: 'x', newValue: 'invalid'),
-      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      errorCode: ServerErrorCodes.editArgumentInvalidValue,
       message:
           "The value for the parameter 'x' should be double? but was String",
     );
@@ -483,7 +483,7 @@ mixin SharedEditArgumentTests
       params: '({ required double x })',
       originalArgs: '(x: 1.0)',
       edit: ArgumentEdit(name: 'x'),
-      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      errorCode: ServerErrorCodes.editArgumentInvalidValue,
       message: "The value for the parameter 'x' can't be null",
     );
   }
@@ -599,7 +599,7 @@ const E myConst = .one;
       params: '({ E? x })',
       originalArgs: '(x: E.one)',
       edit: ArgumentEdit(name: 'x', newValue: 'invalid'),
-      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      errorCode: ServerErrorCodes.editArgumentInvalidValue,
       message:
           "The value for the parameter 'x' should be one of 'E.one', 'E.two' but was 'invalid'",
     );
@@ -621,7 +621,7 @@ const E myConst = .one;
       params: '({ required E x })',
       originalArgs: '(x: E.one)',
       edit: ArgumentEdit(name: 'x'),
-      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      errorCode: ServerErrorCodes.editArgumentInvalidValue,
       message: "The value for the parameter 'x' can't be null",
     );
   }
@@ -654,7 +654,7 @@ const myConst = E.one;
       params: '({ int? x })',
       originalArgs: '(x: 1)',
       edit: ArgumentEdit(name: 'x', newValue: 'invalid'),
-      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      errorCode: ServerErrorCodes.editArgumentInvalidValue,
       message: "The value for the parameter 'x' should be int? but was String",
     );
   }
@@ -673,7 +673,7 @@ const myConst = E.one;
       params: '({ required int x })',
       originalArgs: '(x: 1)',
       edit: ArgumentEdit(name: 'x'),
-      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      errorCode: ServerErrorCodes.editArgumentInvalidValue,
       message: "The value for the parameter 'x' can't be null",
     );
   }
@@ -728,7 +728,7 @@ const myConst = E.one;
       params: '({ String? x })',
       originalArgs: "(x: 'a')",
       edit: ArgumentEdit(name: 'x', newValue: 123),
-      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      errorCode: ServerErrorCodes.editArgumentInvalidValue,
       message: "The value for the parameter 'x' should be String? but was int",
     );
   }
@@ -756,7 +756,7 @@ const myConst = E.one;
       params: '({ required String x })',
       originalArgs: "(x: 'a')",
       edit: ArgumentEdit(name: 'x'),
-      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      errorCode: ServerErrorCodes.editArgumentInvalidValue,
       message: "The value for the parameter 'x' can't be null",
     );
   }
@@ -858,7 +858,7 @@ const myConst = E.one;
       params: '({ required String x })',
       originalArgs: "(x: 'a')",
       edit: ArgumentEdit(name: 'x'),
-      errorCode: ServerErrorCodes.EditsUnsupportedByEditor,
+      errorCode: ServerErrorCodes.editsUnsupportedByEditor,
       message: 'The connected editor does not support applying edits',
     );
   }

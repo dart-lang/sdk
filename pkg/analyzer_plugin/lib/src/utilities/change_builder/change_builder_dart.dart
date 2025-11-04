@@ -1123,7 +1123,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     var alias = type.alias;
-    if (alias != null) {
+    if (alias != null &&
+        alias.element.isAccessibleIn(
+          _dartFileEditBuilder.resolvedLibrary.element,
+        )) {
       return true;
     }
 
@@ -1543,7 +1546,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     var alias = type.alias;
-    if (alias != null) {
+    if (alias != null &&
+        alias.element.isAccessibleIn(
+          _dartFileEditBuilder.resolvedLibrary.element,
+        )) {
       _writeTypeElementArguments(
         element: alias.element,
         typeArguments: alias.typeArguments,

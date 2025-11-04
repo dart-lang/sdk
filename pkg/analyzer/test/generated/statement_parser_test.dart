@@ -43,7 +43,7 @@ class StatementParserTest extends FastaParserTestCase {
   void test_invalid_typeArg_34850() {
     var unit = parseCompilationUnit(
       'foo Future<List<int>> bar() {}',
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.expectedToken, 11, 4),
         expectedError(ParserErrorCode.missingFunctionParameters, 4, 6),
         expectedError(ParserErrorCode.missingFunctionBody, 22, 3),
@@ -62,14 +62,18 @@ class StatementParserTest extends FastaParserTestCase {
   void test_invalid_typeParamAnnotation() {
     parseCompilationUnit(
       'main() { C<@Foo T> v; }',
-      errors: [expectedError(ParserErrorCode.annotationOnTypeArgument, 11, 4)],
+      diagnostics: [
+        expectedError(ParserErrorCode.annotationOnTypeArgument, 11, 4),
+      ],
     );
   }
 
   void test_invalid_typeParamAnnotation2() {
     parseCompilationUnit(
       'main() { C<@Foo.bar(1) T> v; }',
-      errors: [expectedError(ParserErrorCode.annotationOnTypeArgument, 11, 11)],
+      diagnostics: [
+        expectedError(ParserErrorCode.annotationOnTypeArgument, 11, 11),
+      ],
     );
   }
 
@@ -84,7 +88,9 @@ main() {
     W<X<Y<Z>>>
   > v;
 }''',
-      errors: [expectedError(ParserErrorCode.annotationOnTypeArgument, 13, 63)],
+      diagnostics: [
+        expectedError(ParserErrorCode.annotationOnTypeArgument, 13, 63),
+      ],
     );
   }
 
@@ -231,7 +237,7 @@ main() {
   void test_parseElseAlone() {
     parseCompilationUnit(
       'main() { else return 0; } ',
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.expectedToken, 7, 1),
         expectedError(ParserErrorCode.missingIdentifier, 9, 4),
         expectedError(ParserErrorCode.unexpectedToken, 9, 4),
@@ -929,7 +935,7 @@ main() {
   void test_parseLocalVariable_external() {
     parseStatement('external int i;');
     assertErrors(
-      errors: [expectedError(ParserErrorCode.extraneousModifier, 0, 8)],
+      diagnostics: [expectedError(ParserErrorCode.extraneousModifier, 0, 8)],
     );
   }
 
@@ -1425,7 +1431,7 @@ main() {
   void test_parseTryStatement_catch_error_invalidCatchParam() {
     CompilationUnit unit = parseCompilationUnit(
       'main() { try {} catch (int e) { } }',
-      errors: [expectedError(ParserErrorCode.catchSyntax, 27, 1)],
+      diagnostics: [expectedError(ParserErrorCode.catchSyntax, 27, 1)],
     );
     var method = unit.declarations[0] as FunctionDeclaration;
     var body = method.functionExpression.body as BlockFunctionBody;
@@ -1731,7 +1737,7 @@ main() {
   void test_partial_typeArg1_34850() {
     var unit = parseCompilationUnit(
       '<bar<',
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.expectedExecutable, 0, 1),
         expectedError(ParserErrorCode.expectedToken, 4, 1),
         expectedError(ParserErrorCode.missingIdentifier, 5, 0),
@@ -1752,7 +1758,7 @@ main() {
   void test_partial_typeArg2_34850() {
     var unit = parseCompilationUnit(
       'foo <bar<',
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.expectedToken, 8, 1),
         expectedError(ParserErrorCode.missingIdentifier, 9, 0),
         expectedError(ParserErrorCode.expectedTypeName, 9, 0),

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -37,7 +38,7 @@ bool _isInsideCascade(AstNode node) =>
 bool _isIterable(DartType? type) =>
     type != null && type.implementsInterface('Iterable', 'dart.core');
 
-class AvoidFunctionLiteralsInForeachCalls extends LintRule {
+class AvoidFunctionLiteralsInForeachCalls extends AnalysisRule {
   AvoidFunctionLiteralsInForeachCalls()
     : super(
         name: LintNames.avoid_function_literals_in_foreach_calls,
@@ -59,7 +60,7 @@ class AvoidFunctionLiteralsInForeachCalls extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

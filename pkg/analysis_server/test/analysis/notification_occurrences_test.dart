@@ -637,12 +637,22 @@ class A {
   void m() {
     /*[1*/p/*1]*/.foo();
     print(/*[2*/p/*2]*/.a);
+    /*[3*/p/*3]*/.A();
   }
 }
 
 void foo() {}
 
-/*[3*/p/*3]*/.A? a;
+/*[4*/p/*4]*/.A? a;
+''');
+  }
+
+  Future<void> test_prefix_null() async {
+    // Note, we use `core` just to have some prefix.
+    // The actual check is no crash on unresolved `prefix`.
+    await assertOccurrences(kind: ElementKind.PREFIX, '''
+import 'dart:core' as /*[0*/core/*0]*/;
+void f(prefix.A? _, /*[1*/core.int/*1]*/ _) {}
 ''');
   }
 

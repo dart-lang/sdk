@@ -54,6 +54,7 @@ extern "C" void __tsan_write8_pc(void* addr, void* pc);
 extern "C" void __tsan_write16_pc(void* addr, void* pc);
 extern "C" void __tsan_func_entry(void* pc);
 extern "C" void __tsan_func_exit();
+constexpr uintptr_t kExternalPCBit = 1ULL << 60;
 #else
 #define NO_SANITIZE_THREAD
 #define DISABLE_SANITIZER_INSTRUMENTATION

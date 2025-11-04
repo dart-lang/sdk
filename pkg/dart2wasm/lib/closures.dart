@@ -229,40 +229,55 @@ class ClosureLayouter extends RecursiveVisitor {
   // 4-...: Entries for calling the closure
   static const int vtableBaseIndexGeneric = 4;
 
-  // Base struct for vtables without the dynamic call entry added. Referenced
-  // by [closureBaseStruct] instead of the fully initialized version
-  // ([vtableBaseStruct]) to break the type cycle.
-  late final w.StructType _vtableBaseStructBase = _defineStruct("#VtableBase");
+  // Uninitialized (no field types added yet) struct for base vtable to allow
+  // cyclic types:
+  //
+  //   closureBaseStruct.vtable     = ref vtableBase
+  //   vtableBaseStruct.dynamicCall = Function(ref closureBaseStruct, ...)
+  //
+  late final w.StructType _vtableBaseStructUninitialized =
+      _defineStruct("#VtableBase");
+
+  /// Base struct for all closure vtables.
+  late final w.StructType vtableBaseStruct = (() {
+    final vtable = _vtableBaseStructUninitialized;
+    final index = vtable.fields.length;
+    vtable.fields.add(w.FieldType(
+        w.RefType.def(translator.dynamicCallVtableEntryFunctionType,
+            nullable: false),
+        mutable: false));
+    vtable.fieldNames[index] = 'dynamiClosureCallEntry';
+    return vtable;
+  })();
 
   /// Base struct for instantiation closure contexts. Type tests against this
   /// type is used in `_Closure._equals` to check if a closure is an
   /// instantiation.
   late final w.StructType instantiationContextBaseStruct =
-      _defineStruct("#InstantiationClosureContextBase", fields: [
-    w.FieldType(w.RefType.def(closureBaseStruct, nullable: false),
+      _defineStruct("#InstantiationClosureContextBase", namedFields: {
+    'genericClosure': w.FieldType(
+        w.RefType.def(closureBaseStruct, nullable: false),
         mutable: false),
-  ]);
+  });
 
   /// Base struct for non-generic closure vtables.
-  late final w.StructType vtableBaseStruct = _vtableBaseStructBase
-    ..fields.add(w.FieldType(
-        w.RefType.def(translator.dynamicCallVtableEntryFunctionType,
-            nullable: false),
-        mutable: false));
+  late final w.StructType nonGenericVtableBaseStruct =
+      _defineStruct("#NonGenericVtableBase", superType: vtableBaseStruct);
 
   /// Base struct for generic closure vtables.
-  late final w.StructType genericVtableBaseStruct = _defineStruct(
-      "#GenericVtableBase",
-      fields: vtableBaseStruct.fields.toList()
-        ..add(w.FieldType(
-            w.RefType.def(instantiationClosureTypeComparisonFunctionType,
-                nullable: false),
-            mutable: false))
-        ..add(w.FieldType(
-            w.RefType.def(instantiationClosureTypeHashFunctionType,
-                nullable: false),
-            mutable: false)),
-      superType: vtableBaseStruct);
+  late final w.StructType genericVtableBaseStruct =
+      _defineStruct("#GenericVtableBase",
+          namedFields: {
+            'closureEqualFun': w.FieldType(
+                w.RefType.def(instantiationClosureTypeComparisonFunctionType,
+                    nullable: false),
+                mutable: false),
+            'closureHashCodeFun': w.FieldType(
+                w.RefType.def(instantiationClosureTypeHashFunctionType,
+                    nullable: false),
+                mutable: false),
+          },
+          superType: vtableBaseStruct);
 
   /// Type of [ClosureRepresentation._instantiationTypeComparisonFunction].
   late final w.FunctionType instantiationClosureTypeComparisonFunctionType =
@@ -280,9 +295,29 @@ class ClosureLayouter extends RecursiveVisitor {
     [w.NumType.i64], // hash
   );
 
-  // Base struct for closures.
-  late final w.StructType closureBaseStruct = _makeClosureStruct(
-      "#ClosureBase", _vtableBaseStructBase, translator.closureInfo.struct);
+  /// Base struct for closures.
+  ///
+  /// A closure contains the following fields:
+  ///
+  ///   Object
+  ///     field0: A class ID (always the `_Closure` class ID)
+  ///     field1: An identity hash
+  ///
+  ///   _Closure <: Object
+  ///     field2: A context reference (used for `this` in tear-offs)
+  ///
+  ///   #ClosureBase <: _Closure  (defined here)
+  ///     field3: vtable reference
+  ///     field4: function type
+  ///
+  late final w.StructType closureBaseStruct = _defineStruct("#ClosureBase",
+      namedFields: {
+        'vtable': w.FieldType(
+            w.RefType.def(_vtableBaseStructUninitialized, nullable: false),
+            mutable: false),
+        'functionType': w.FieldType(functionTypeType, mutable: false),
+      },
+      superType: translator.closureInfo.struct);
 
   w.RefType get typeType => translator.types.nonNullableTypeType;
 
@@ -291,16 +326,16 @@ class ClosureLayouter extends RecursiveVisitor {
 
   final Map<int, w.StructType> _instantiationContextBaseStructs = {};
 
-  w.StructType _getInstantiationContextBaseStruct(int numTypes) =>
-      _instantiationContextBaseStructs.putIfAbsent(
-          numTypes,
-          () => _defineStruct("#InstantiationClosureContextBase-$numTypes",
-              fields: [
-                w.FieldType(w.RefType.def(closureBaseStruct, nullable: false),
-                    mutable: false),
-                ...List.filled(numTypes, w.FieldType(typeType, mutable: false))
-              ],
-              superType: instantiationContextBaseStruct));
+  w.StructType _getInstantiationContextBaseStruct(int numTypes) {
+    final typeField = w.FieldType(typeType, mutable: false);
+    return _instantiationContextBaseStructs.putIfAbsent(
+        numTypes,
+        () => _defineStruct("#InstantiationClosureContextBase-$numTypes",
+            namedFields: {
+              for (int i = 0; i < numTypes; ++i) 'typeArgument$i': typeField,
+            },
+            superType: instantiationContextBaseStruct));
+  }
 
   final Map<int, Map<w.ModuleBuilder, w.BaseFunction>>
       _instantiationTypeComparisonFunctions = {};
@@ -324,36 +359,38 @@ class ClosureLayouter extends RecursiveVisitor {
           .putIfAbsent(module,
               () => _createInstantiationTypeHashFunction(module, numTypes));
 
+  /// Add a new struct type to the module.
+  ///
+  /// If [superType] is provided, the new struct type will be pre-populated with
+  /// the fields and field names from the [superType].
+  ///
+  /// If [namedFields] is provided, adds the fields in iteration order to the
+  /// struct type.
+  /// NOTE: Call sites can rely on Dart's [Map] guarantees of preserving
+  /// iteration order (so e.g. `{'a': typeA, 'b': typeB}` is guaranteed to add
+  /// fields in that order).
+  ///
+  /// Additional fields can be added later, by adding to the [fields] list.
+  /// This enables struct types to be recursive.
   w.StructType _defineStruct(String name,
-      {Iterable<w.FieldType>? fields, w.StructType? superType}) {
-    final type = translator.typesBuilder
-        .defineStruct(name, fields: fields, superType: superType);
+      {Map<String, w.FieldType>? namedFields, w.StructType? superType}) {
+    final type =
+        translator.typesBuilder.defineStruct(name, superType: superType);
     if (translator.dynamicModuleSupportEnabled) {
       // Pessimistically assume there will be subtypes in a submodule. This
       // ensures the struct is not final in all modules so the types are equal.
       type.hasAnySubtypes = true;
     }
+    if (superType != null) {
+      type.fields.addAll(superType.fields);
+      type.fieldNames.addAll(superType.fieldNames);
+    }
+    namedFields?.forEach((String name, w.FieldType value) {
+      final int index = type.fields.length;
+      type.fields.add(value);
+      type.fieldNames[index] = name;
+    });
     return type;
-  }
-
-  w.StructType _makeClosureStruct(
-      String name, w.StructType vtableStruct, w.StructType superType) {
-    // A closure contains:
-    //  - A class ID (always the `_Closure` class ID)
-    //  - An identity hash
-    //  - A context reference (used for `this` in tear-offs)
-    //  - A vtable reference
-    //  - A `_FunctionType`
-    return _defineStruct(name,
-        fields: [
-          w.FieldType(w.NumType.i32, mutable: false),
-          w.FieldType(w.NumType.i32),
-          w.FieldType(closureContextFieldType, mutable: false),
-          w.FieldType(w.RefType.def(vtableStruct, nullable: false),
-              mutable: false),
-          w.FieldType(functionTypeType, mutable: false)
-        ],
-        superType: superType);
   }
 
   w.ValueType get topType => translator.topType;
@@ -450,11 +487,21 @@ class ClosureLayouter extends RecursiveVisitor {
     String vtableName = ["#Vtable", ...nameTags].join("-");
     String closureName = ["#Closure", ...nameTags].join("-");
     w.StructType parentVtableStruct = parent?.vtableStruct ??
-        (typeCount == 0 ? vtableBaseStruct : genericVtableBaseStruct);
-    w.StructType vtableStruct = _defineStruct(vtableName,
-        fields: parentVtableStruct.fields, superType: parentVtableStruct);
-    w.StructType closureStruct = _makeClosureStruct(
-        closureName, vtableStruct, parent?.closureStruct ?? closureBaseStruct);
+        (typeCount == 0 ? nonGenericVtableBaseStruct : genericVtableBaseStruct);
+    w.StructType vtableStruct =
+        _defineStruct(vtableName, superType: parentVtableStruct);
+
+    // Define a new struct type for the closure, extending [closureBaseStruct]
+    // directly or indirectly, and install a new vtable struct (which is a
+    // subtype of the vtable struct of the [closureBaseStruct]).
+    final closureStructSuper = parent?.closureStruct ?? closureBaseStruct;
+    assert(closureStructSuper.isSubtypeOf(closureBaseStruct));
+    final closureStruct =
+        _defineStruct(closureName, superType: closureStructSuper);
+    assert(closureStruct.fieldNames[3] == 'vtable');
+    closureStruct.fields[3] = w.FieldType(
+        w.RefType.def(vtableStruct, nullable: false),
+        mutable: false);
 
     ClosureRepresentation? instantiatedRepresentation;
     w.StructType? instantiationContextStruct;
@@ -476,7 +523,9 @@ class ClosureLayouter extends RecursiveVisitor {
       if (parent == null) {
         assert(vtableStruct.fields.length ==
             FieldIndex.vtableInstantiationFunction);
+        final index = vtableStruct.fields.length;
         vtableStruct.fields.add(functionFieldType);
+        vtableStruct.fieldNames[index] = 'instantiateGenericClosureFun';
       } else {
         vtableStruct.fields[FieldIndex.vtableInstantiationFunction] =
             functionFieldType;
@@ -505,8 +554,11 @@ class ClosureLayouter extends RecursiveVisitor {
       ], [
         topType
       ]);
+      final index = vtableStruct.fields.length;
       vtableStruct.fields.add(
           w.FieldType(w.RefType.def(entry, nullable: false), mutable: false));
+      vtableStruct.fieldNames[index] =
+          'closureCallEntry-$typeCount-$paramCount';
     }
 
     ClosureRepresentation representation = ClosureRepresentation(

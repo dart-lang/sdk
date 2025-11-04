@@ -39,7 +39,6 @@ void canParseTopLevelIshOfAllFrontendFiles() {
           data,
           includeBody: true,
           includeComments: true,
-          enableTripleShift: true,
         );
         splitIntoChunks(ast, data);
         for (ParserAstNode child in ast.children!) {
@@ -406,7 +405,7 @@ List<String> processItem(ParserAstNode item, List<int> data) {
       ),
     ];
   } else if (item.isEnum()) {
-    EnumEnd declaration = item.asEnum();
+    EnumDeclarationEnd declaration = item.asEnum();
     // Check that we can get the identifier without throwing.
     declaration.getEnumIdentifier();
     return [

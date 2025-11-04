@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ReplaceReturnTypeStreamTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_STREAM;
+  FixKind get kind => DartFixKind.replaceReturnTypeStream;
 
   Future<void> test_complexTypeName_withImport() async {
     await resolveTestCode('''
@@ -30,7 +30,7 @@ List<int> f() async* {}
 import 'dart:async';
 Stream<List<int>> f() async* {}
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.illegalAsyncGeneratorReturnType;
       },
@@ -56,7 +56,7 @@ int f() async* {}
 import 'dart:async' as al;
 al.Stream<int> f() async* {}
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.illegalAsyncGeneratorReturnType;
       },
@@ -73,7 +73,7 @@ int f() async* {}
 import 'dart:async';
 Stream<int> f() async* {}
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.illegalAsyncGeneratorReturnType;
       },

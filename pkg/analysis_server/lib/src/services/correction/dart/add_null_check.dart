@@ -74,7 +74,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
        _nullAwareToken = nullAwareToken,
        fixKind = nullAwareToken == null
            ? DartFixKind.addNullCheck
-           : DartFixKind.REPLACE_WITH_NULL_AWARE;
+           : DartFixKind.replaceWithNullAware;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

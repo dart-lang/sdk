@@ -1091,6 +1091,7 @@ void ScopeBuilder::VisitExpression() {
     case kStaticTearOff:
     case kSwitchExpression:
     case kPatternAssignment:
+    case kRedirectingFactoryInvocation:
     // These nodes are internal to the front end and
     // removed by the constant evaluator.
     default:

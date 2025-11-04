@@ -48,7 +48,12 @@ class FixProcessorMapTest {
       required CorrectionProducerContext context,
     }) => MockCorrectionProducer();
 
-    var lintCode = LintCode('test_rule', 'Test rule.');
+    var lintCode = LintCode(
+      'test_rule',
+      'Test rule.',
+      // ignore: deprecated_member_use
+      uniqueNameCheck: 'LintCode.test_rule',
+    );
     expect(registeredFixGenerators.lintProducers[lintCode], null);
     registeredFixGenerators.registerFixForLint(lintCode, generator);
     expect(

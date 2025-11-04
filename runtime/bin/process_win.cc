@@ -178,7 +178,7 @@ class ProcessInfoList {
     }
     int message[2] = {exit_code, negative};
     DWORD written;
-    ok = WriteFile(exit_pipe, message, sizeof(message), &written, nullptr);
+    ok = ::WriteFile(exit_pipe, message, sizeof(message), &written, nullptr);
     // If the process has been closed, the read end of the exit
     // pipe has been closed. It is therefore not a problem that
     // WriteFile fails with a closed pipe error
@@ -836,7 +836,7 @@ class OverlappedHandle {
       if (!buffer_.GetReadBuffer(&buffer, &buffer_size)) {
         return false;
       }
-      BOOL ok = ReadFile(handle_, buffer, buffer_size, nullptr, &overlapped_);
+      BOOL ok = ::ReadFile(handle_, buffer, buffer_size, nullptr, &overlapped_);
       if (!ok) {
         return (GetLastError() == ERROR_IO_PENDING);
       }

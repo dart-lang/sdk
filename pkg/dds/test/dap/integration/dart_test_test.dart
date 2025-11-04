@@ -71,6 +71,16 @@ main() {
       expectStandardSimpleTestResults(outputEvents);
     });
 
+    test('sends an exited event with the exit code', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleTestProgram);
+
+      final exitEventFuture = client.exitedEvent;
+
+      await client.start(file: testFile);
+      expect((await exitEventFuture).exitCode, isNot(0));
+    });
+
     test('can run a single test', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleTestProgram);

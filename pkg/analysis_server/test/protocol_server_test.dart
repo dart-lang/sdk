@@ -16,7 +16,7 @@ import 'package:analyzer/source/line_info.dart' as engine;
 import 'package:analyzer/source/source.dart' as engine;
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/error/lint_codes.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as engine;
+import 'package:analyzer/src/diagnostic/diagnostic_message.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -175,6 +175,8 @@ class AnalysisErrorTest {
         'my_lint',
         'my message',
         correctionMessage: 'correction',
+        // ignore: deprecated_member_use
+        uniqueNameCheck: 'LintCode.my_lint',
       ),
       offset: 10,
       length: 20,
@@ -362,9 +364,6 @@ class MockDiagnostic implements engine.Diagnostic {
 
   @override
   String? get correctionMessage => _correctionMessage;
-
-  @override
-  Object? get data => throw UnimplementedError();
 
   @override
   engine.DiagnosticCode get diagnosticCode => _diagnosticCode!;

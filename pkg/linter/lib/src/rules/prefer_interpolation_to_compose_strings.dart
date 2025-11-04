@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -14,7 +15,7 @@ import '../ast.dart';
 
 const _desc = r'Use interpolation to compose strings and values.';
 
-class PreferInterpolationToComposeStrings extends LintRule {
+class PreferInterpolationToComposeStrings extends AnalysisRule {
   PreferInterpolationToComposeStrings()
     : super(
         name: LintNames.prefer_interpolation_to_compose_strings,
@@ -36,7 +37,7 @@ class PreferInterpolationToComposeStrings extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   final skippedNodes = <AstNode>{};
 

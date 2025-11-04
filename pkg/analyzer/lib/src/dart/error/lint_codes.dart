@@ -24,12 +24,19 @@ class LintCode extends DiagnosticCode {
   @override
   final DiagnosticSeverity severity;
 
+  /// Initializes a lint code.
+  ///
+  /// If a non-null value is supplied for [uniqueNameCheck], it should be the
+  /// same as [uniqueName]. This parameter is marked `@deprecated` because it
+  /// should not be used by client; it exists as a temporary measure to aid in
+  /// migration and will soon be removed.
   const LintCode(
     String name,
     String problemMessage, {
     super.correctionMessage,
     super.hasPublishedDocs,
     String? uniqueName,
+    @deprecated super.uniqueNameCheck,
     this.severity = DiagnosticSeverity.INFO,
   }) : super(
          problemMessage: problemMessage,
@@ -55,28 +62,21 @@ class LintCode extends DiagnosticCode {
 /// types.
 class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
     implements LintCode {
-  @override
-  final DiagnosticSeverity severity;
-
-  const LintCodeWithExpectedTypes(
-    String name,
-    String problemMessage, {
+  const LintCodeWithExpectedTypes({
+    required super.name,
+    required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs,
     String? uniqueName,
-    this.severity = DiagnosticSeverity.INFO,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
   }) : super(
-         problemMessage: problemMessage,
-         name: name,
+         type: DiagnosticType.LINT,
          uniqueName: uniqueName ?? 'LintCode.$name',
        );
 
   @override
   int get hashCode => uniqueName.hashCode;
-
-  @override
-  DiagnosticType get type => DiagnosticType.LINT;
 
   @override
   String? get url => null;
@@ -90,13 +90,19 @@ class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
 ///
 /// The primary difference from [LintCode]s is that these codes cannot be
 /// suppressed with `// ignore:` or `// ignore_for_file:` comments.
-class SecurityLintCode extends LintCode {
+class SecurityLintCode extends DiagnosticCodeImpl implements LintCode {
   const SecurityLintCode(
-    super.name,
-    super.problemMessage, {
+    String name,
+    String problemMessage, {
     String? uniqueName,
     super.correctionMessage,
-  }) : super(uniqueName: uniqueName ?? 'LintCode.$name');
+  }) : super(
+         name: name,
+         problemMessage: problemMessage,
+         type: DiagnosticType.LINT,
+         uniqueName: uniqueName ?? 'LintCode.$name',
+         uniqueNameCheck: null,
+       );
 
   @override
   bool get isIgnorable => false;

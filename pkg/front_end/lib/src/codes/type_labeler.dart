@@ -32,7 +32,9 @@ class LabeledString {
 /// raw types with numeric markers in Dart comments (e.g. `/*1*/`) to
 /// distinguish different types with the same name. This is used in diagnostic
 /// messages to indicate the origins of types occurring in the message.
-class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
+class TypeLabeler
+    with DartTypeVisitorExperimentExclusionMixin<void>
+    implements DartTypeVisitor<void>, ConstantVisitor<void> {
   final List<LabeledNode> names = <LabeledNode>[];
   final Map<String, List<LabeledNode>> nameMap = <String, List<LabeledNode>>{};
 

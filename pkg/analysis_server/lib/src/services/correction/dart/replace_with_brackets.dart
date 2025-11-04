@@ -17,10 +17,10 @@ class ReplaceWithBrackets extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_BRACKETS;
+  FixKind get fixKind => DartFixKind.replaceWithBrackets;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_BRACKETS_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceWithBracketsMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

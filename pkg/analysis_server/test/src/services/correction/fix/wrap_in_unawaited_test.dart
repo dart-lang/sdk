@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class WrapDiscardedFutureInUnawaitedTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.WRAP_IN_UNAWAITED;
+  FixKind get kind => DartFixKind.wrapInUnawaited;
 
   @override
   String get lintCode => LintNames.discarded_futures;
@@ -91,7 +91,7 @@ void f() {
 @reflectiveTest
 class WrapInUnawaitedTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.WRAP_IN_UNAWAITED;
+  FixKind get kind => DartFixKind.wrapInUnawaited;
 
   @override
   String get lintCode => LintNames.unawaited_futures;

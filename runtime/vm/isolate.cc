@@ -323,7 +323,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       mutators_(),
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       is_system_isolate_group_(source->flags.is_system_isolate),
-      random_(),
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
       reload_every_n_stack_overflow_checks_(FLAG_reload_every),
@@ -1855,7 +1854,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       message_notify_callback_(nullptr),
       on_shutdown_callback_(Isolate::ShutdownCallback()),
       on_cleanup_callback_(Isolate::CleanupCallback()),
-      random_(),
       mutex_(),
       owner_thread_(OSThread::kInvalidThreadId),
       sticky_error_(Error::null()),
@@ -1958,8 +1956,8 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   // protocol can process it properly.
   //
   // See https://github.com/dart-lang/sdk/issues/53081.
-  result->set_pause_capability(result->random()->NextJSInt());
-  result->set_terminate_capability(result->random()->NextJSInt());
+  result->set_pause_capability(Thread::Current()->random()->NextJSInt());
+  result->set_terminate_capability(Thread::Current()->random()->NextJSInt());
 
 #if !defined(PRODUCT)
   result->debugger_ = new Debugger(result);

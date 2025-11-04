@@ -33,6 +33,7 @@ import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 import 'package:analyzer/src/error/doc_comment_verifier.dart';
 import 'package:analyzer/src/error/element_usage_frontier_detector.dart';
 import 'package:analyzer/src/error/error_handler_verifier.dart';
+import 'package:analyzer/src/error/experimental_member_use_verifier.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
 import 'package:analyzer/src/error/widget_preview_verifier.dart';
@@ -120,6 +121,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
            workspacePackage: workspacePackage,
            elementUsageSet: const DeprecatedElementUsageSet(),
            elementUsageReporter: DeprecatedElementUsageReporter(
+             diagnosticReporter: _diagnosticReporter,
+           ),
+         ),
+         ElementUsageFrontierDetector(
+           workspacePackage: workspacePackage,
+           elementUsageSet: const ExperimentalElementUsageSet(),
+           elementUsageReporter: ExperimentalElementUsageReporter(
              diagnosticReporter: _diagnosticReporter,
            ),
          ),
@@ -308,13 +316,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     for (var v in _elementUsageFrontierDetectors) {
       v.pushElement(element);
     }
-
-    // TODO(srawlins): Use _elementUsageFrontierDetectors to detect
-    // super-parameters corresponding to `@Deprecated` or `@experimental`
-    // parameters.
-    // TODO(srawlins): Use _elementUsageFrontierDetectors to detect
-    // `@Deprecated` or `@experimental` parameters in a redirecting factory
-    // constructor.
+    for (var v in _elementUsageFrontierDetectors) {
+      v.constructorDeclaration(node);
+    }
 
     _deprecatedFunctionalityVerifier.constructorDeclaration(node);
 
@@ -358,6 +362,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     for (var v in _elementUsageFrontierDetectors) {
       v.pushElement(node.declaredFragment!.element);
+    }
+
+    for (var v in _elementUsageFrontierDetectors) {
+      v.formalParameter(node);
     }
 
     try {
@@ -853,6 +861,25 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    for (var v in _elementUsageFrontierDetectors) {
+      v.pushElement(node.declaredFragment!.element);
+    }
+
+    for (var v in _elementUsageFrontierDetectors) {
+      v.formalParameter(node);
+    }
+
+    try {
+      super.visitSimpleFormalParameter(node);
+    } finally {
+      for (var v in _elementUsageFrontierDetectors) {
+        v.popElement();
+      }
+    }
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     for (var v in _elementUsageFrontierDetectors) {
       v.simpleIdentifier(node);
@@ -872,6 +899,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
+    for (var v in _elementUsageFrontierDetectors) {
+      v.superFormalParameter(node);
+    }
     _checkFinalParameter(node, node.keyword);
     super.visitSuperFormalParameter(node);
   }
@@ -1209,7 +1239,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForInvariantNullComparison(BinaryExpression node) {
-    WarningCode errorCode;
+    DiagnosticCode errorCode;
     if (node.operator.type == TokenType.BANG_EQ) {
       errorCode = WarningCode.unnecessaryNullComparisonNeverNullTrue;
     } else if (node.operator.type == TokenType.EQ_EQ) {

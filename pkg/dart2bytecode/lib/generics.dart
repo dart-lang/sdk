@@ -131,7 +131,9 @@ bool hasFreeTypeParameters(List<DartType> typeArgs) {
   return typeArgs.any((t) => t.accept(findTypeParams));
 }
 
-class FindFreeTypeParametersVisitor implements DartTypeVisitor<bool> {
+class FindFreeTypeParametersVisitor
+    with DartTypeVisitorExperimentExclusionMixin<bool>
+    implements DartTypeVisitor<bool> {
   Set<StructuralParameter>? _declaredTypeParameters;
 
   bool visit(DartType type) => type.accept(this);

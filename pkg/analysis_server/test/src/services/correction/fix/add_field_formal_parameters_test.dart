@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,6 +21,27 @@ void main() {
 class AddFieldFormalNamedParametersTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.addInitializingFormalNamesParameters;
+
+  Future<void> test_enum() async {
+    await resolveTestCode('''
+enum MyEnum {
+  a;
+
+  const MyEnum();
+
+  final int value;
+}
+''');
+    await assertHasFix('''
+enum MyEnum {
+  a;
+
+  const MyEnum({required this.value});
+
+  final int value;
+}
+''');
+  }
 
   Future<void> test_flutter_nullable() async {
     writeTestPackageConfig(flutter: true);
@@ -206,6 +228,27 @@ class AddFieldFormalParametersTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.addInitializingFormalParameters;
 
+  Future<void> test_enum() async {
+    await resolveTestCode('''
+enum MyEnum {
+  a;
+
+  const MyEnum();
+
+  final int value;
+}
+''');
+    await assertHasFix('''
+enum MyEnum {
+  a;
+
+  const MyEnum(this.value);
+
+  final int value;
+}
+''');
+  }
+
   Future<void> test_flutter() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
@@ -327,5 +370,25 @@ class Test {
   Test(this.a, this.c);
 }
 ''');
+  }
+
+  Future<void> test_synthetic_field() async {
+    await resolveTestCode('''
+class Test {
+  final int foo,;
+  Test();
+}
+''');
+    await assertHasFix(
+      '''
+class Test {
+  final int foo,;
+  Test(this.foo);
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode ==
+          CompileTimeErrorCode.finalNotInitializedConstructor1,
+    );
   }
 }

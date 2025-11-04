@@ -54,8 +54,8 @@ import ''
 ''',
       [
         error(WarningCode.unusedImport, 7, 2),
-        lint(35, 16, messageContains: 'dart:missing_1'),
-        lint(120, 16, messageContains: 'dart:missing_2'),
+        lint(35, 16, messageContainsAll: ['dart:missing_1']),
+        lint(120, 16, messageContainsAll: ['dart:missing_2']),
       ],
     );
   }
@@ -72,8 +72,8 @@ import ''
 ''',
       [
         error(WarningCode.unusedImport, 7, 2),
-        lint(35, 16, messageContains: 'missing_1.dart'),
-        lint(121, 16, messageContains: 'missing_2.dart'),
+        lint(35, 16, messageContainsAll: ['missing_1.dart']),
+        lint(121, 16, messageContainsAll: ['missing_2.dart']),
       ],
     );
   }
@@ -88,8 +88,8 @@ import ''
 ''',
       [
         error(WarningCode.unusedImport, 7, 2),
-        lint(35, 29, messageContains: 'missing_1.dart'),
-        lint(142, 28, messageContains: 'missing_2.dart'),
+        lint(35, 29, messageContainsAll: ['missing_1.dart']),
+        lint(142, 28, messageContainsAll: ['missing_2.dart']),
       ],
     );
   }

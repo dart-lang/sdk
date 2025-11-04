@@ -63,6 +63,7 @@ class BytecodeAssembler {
   final bool _emitSourcePositions;
   bool isUnreachable = false;
   int currentSourcePosition = TreeNode.noOffset;
+  int currentSourcePositionFlags = 0;
 
   BytecodeAssembler(BytecodeOptions options)
       : _emitSourcePositions = options.emitSourcePositions;
@@ -82,11 +83,21 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
+  void _emitSourcePosition() {
+    if (_emitSourcePositions && !isUnreachable) {
+      sourcePositions.add(
+          offset,
+          currentSourcePosition == TreeNode.noOffset
+              ? SourcePositions.noSourcePosition
+              : currentSourcePosition,
+          currentSourcePositionFlags);
+    }
+  }
+
+  @pragma('vm:prefer-inline')
   void emitSourcePosition() {
-    if (_emitSourcePositions &&
-        !isUnreachable &&
-        currentSourcePosition != TreeNode.noOffset) {
-      sourcePositions.add(offset, currentSourcePosition);
+    if (currentSourcePosition != TreeNode.noOffset) {
+      _emitSourcePosition();
     }
   }
 
@@ -95,15 +106,7 @@ class BytecodeAssembler {
   // source position to distinguish these calls and avoid stopping at them
   // while single stepping.
   @pragma('vm:prefer-inline')
-  void emitSourcePositionForCall() {
-    if (_emitSourcePositions && !isUnreachable) {
-      sourcePositions.add(
-          offset,
-          currentSourcePosition == TreeNode.noOffset
-              ? SourcePositions.syntheticCodeMarker
-              : currentSourcePosition);
-    }
-  }
+  void emitSourcePositionForCall() => _emitSourcePosition();
 
   void _grow() {
     final newSize = _buffer.length << 1;

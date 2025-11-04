@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart';
@@ -320,11 +320,13 @@ li^
   }
 }
 
-class InternalRule extends LintRule {
+class InternalRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'internal_rule',
     'Internal rule.',
     correctionMessage: 'Try internal rule.',
+    // ignore: deprecated_member_use
+    uniqueNameCheck: 'LintCode.internal_rule',
   );
 
   InternalRule()
@@ -338,8 +340,13 @@ class InternalRule extends LintRule {
   DiagnosticCode get diagnosticCode => code;
 }
 
-class _RemovedLint extends LintRule {
-  static const LintCode _code = LintCode('removed_lint', 'Removed rule.');
+class _RemovedLint extends AnalysisRule {
+  static const LintCode _code = LintCode(
+    'removed_lint',
+    'Removed rule.',
+    // ignore: deprecated_member_use
+    uniqueNameCheck: 'LintCode.removed_lint',
+  );
 
   _RemovedLint()
     : super(name: 'removed_lint', state: RuleState.removed(), description: '');

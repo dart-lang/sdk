@@ -1135,6 +1135,7 @@ class DietListener extends StackListenerImpl {
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
+    bool forExtensionType,
   ) {
     assert(
       checkState(beginToken, [
@@ -1148,31 +1149,38 @@ class DietListener extends StackListenerImpl {
       // TODO(johnniwinther): Handle [ParserRecovery].
       pop() as Identifier;
     }
-    FunctionFragment functionFragment = _offsetMap.lookupPrimaryConstructor(
-      beginToken,
-    );
-    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
-        .createFunctionBodyBuildingContext();
-    if (functionBodyBuildingContext.shouldBuild) {
-      libraryBuilder.loader.createResolver().buildPrimaryConstructor(
-        libraryBuilder: libraryBuilder,
-        functionBodyBuildingContext: functionBodyBuildingContext,
-        fileUri: uri,
-        startToken: formalsToken,
+    // TODO(johnniwinther): Support primary constructors in general.
+    if (forExtensionType) {
+      FunctionFragment functionFragment = _offsetMap.lookupPrimaryConstructor(
+        beginToken,
       );
+      FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+          .createFunctionBodyBuildingContext();
+      if (functionBodyBuildingContext.shouldBuild) {
+        libraryBuilder.loader.createResolver().buildPrimaryConstructor(
+          libraryBuilder: libraryBuilder,
+          functionBodyBuildingContext: functionBodyBuildingContext,
+          fileUri: uri,
+          startToken: formalsToken,
+        );
+      }
     }
 
-    // The [memberScope] is set in [beginClassOrMixinOrExtensionBody],
-    // assuming that it is currently the [compilationUnitScope], so we reset it
-    // here.
+    // The [memberScope] is set in [beginClassOrMixinOrExtensionBody] and
+    // [beginEnumBody], assuming that it is currently the
+    // [compilationUnitScope], so we reset it here.
     _memberScope = outermostScope;
   }
 
   @override
-  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
-    // The [memberScope] is set in [beginClassOrMixinOrExtensionBody],
-    // assuming that it is currently the [compilationUnitScope], so we reset it
-    // here.
+  void handleNoPrimaryConstructor(
+    Token token,
+    Token? constKeyword,
+    bool forExtensionType,
+  ) {
+    // The [memberScope] is set in [beginClassOrMixinOrExtensionBody] and
+    // [beginEnumBody], assuming that it is currently the
+    // [compilationUnitScope], so we reset it here.
     _memberScope = outermostScope;
   }
 
@@ -1189,9 +1197,9 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginEnum(Token enumKeyword) {
-    assert(checkState(enumKeyword, [ValueKinds.IdentifierOrParserRecovery]));
-    debugEvent("Enum");
+  void beginEnumBody(Token token) {
+    assert(checkState(token, [ValueKinds.IdentifierOrParserRecovery]));
+    debugEvent("EnumBody");
     Object? name = pop();
 
     assert(_memberScope == outermostScope);
@@ -1208,7 +1216,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endEnum(
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,

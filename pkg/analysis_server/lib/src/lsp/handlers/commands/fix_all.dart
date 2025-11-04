@@ -36,7 +36,7 @@ class FixAllCommandHandler extends SimpleEditCommandHandler<LspAnalysisServer> {
     if (parameters['path'] is! String) {
       return ErrorOr.error(
         ResponseError(
-          code: ServerErrorCodes.InvalidCommandArguments,
+          code: ServerErrorCodes.invalidCommandArguments,
           message: '$commandName requires a Map argument containing a "path"',
         ),
       );

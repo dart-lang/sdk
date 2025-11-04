@@ -25,6 +25,18 @@ class CreateClassLowercaseTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createClassLowercase;
 
+  Future<void> test_ifNull_notType() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_instanceMethod_noFix() async {
     await resolveTestCode('''
 class C {}
@@ -223,9 +235,9 @@ class A {}
 A? a;
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.IMPORT_LIBRARY_PROJECT1,
-      DartFixKind.IMPORT_LIBRARY_PROJECT2,
-      DartFixKind.IMPORT_LIBRARY_PROJECT3,
+      DartFixKind.importLibraryProject1,
+      DartFixKind.importLibraryProject2,
+      DartFixKind.importLibraryProject3,
       DartFixKind.createClassUppercase,
     ]);
   }
@@ -459,7 +471,7 @@ class Test {
   const Test();
 }
 ''',
-      errorFilter: (e) {
+      filter: (e) {
         return e.diagnosticCode == CompileTimeErrorCode.undefinedFunction;
       },
     );
@@ -550,7 +562,7 @@ void f() {}
 class Test {
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.undefinedIdentifier;
       },
     );

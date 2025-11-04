@@ -8,7 +8,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -203,7 +202,7 @@ class DeprecatedMemberUse_PackageConfigWorkspaceTest
   String get externalLibUri => 'package:aaa/a.dart';
 
   Future<void> assertErrorsInCode2(
-    List<ExpectedError> expectedErrors, {
+    List<ExpectedDiagnostic> expectedDiagnostics, {
     required String externalCode,
     required String code,
   }) async {
@@ -212,7 +211,7 @@ class DeprecatedMemberUse_PackageConfigWorkspaceTest
     await assertErrorsInCode('''
 import '$externalLibUri';
 $code
-''', expectedErrors);
+''', expectedDiagnostics);
   }
 
   Future<void> assertNoErrorsInCode2({
@@ -594,12 +593,9 @@ export 'package:aaa/a.dart';
 library a;
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 export 'lib2.dart';
-''',
-      [error(HintCode.deprecatedMemberUseFromSamePackage, 0, 19)],
-    );
+''');
   }
 
   test_extensionOverride() async {
@@ -1313,16 +1309,13 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 import 'lib2.dart';
 
 void f(A a) {
   a.foo();
 }
-''',
-      [error(HintCode.deprecatedMemberUseFromSamePackage, 39, 3)],
-    );
+''');
   }
 
   test_methodInvocation_inDeprecatedConstructor() async {
@@ -1654,6 +1647,117 @@ void f(A a) {
     );
   }
 
+  test_parameterInSuper_explicitInvocation() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A([@deprecated int? p]);
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B() : super(7);
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 64, 1)],
+    );
+  }
+
+  test_parameterInSuper_explicitInvocation_namedParameter() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A({@deprecated int? p});
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B() : super(p: 7);
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 64, 1)],
+    );
+  }
+
+  test_parameterInSuper_implicitArgument() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A([@deprecated int? p]);
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B([super.p]);
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 55, 7)],
+    );
+  }
+
+  test_parameterInSuper_implicitArgument_alsoDeprecated() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A([@deprecated int? p]);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B([@deprecated super.p]);
+}
+''');
+  }
+
+  test_parameterInSuper_implicitArgument_explicitInvocation() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A.named([@deprecated int? p]);
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B([super.p]) : super.named();
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 55, 7)],
+    );
+  }
+
+  test_parameterInSuper_implicitInvocation_namedParameter() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A({@deprecated int? p});
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B({super.p});
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 55, 7)],
+    );
+  }
+
   test_postfixExpression_deprecatedGetter() async {
     await assertErrorsInCode2(
       externalCode: r'''
@@ -1790,16 +1894,114 @@ class B extends A {
     );
   }
 
+  test_redirectedConstructor_fromFactoryConstructor() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  @deprecated
+  B();
+}
+''',
+      code: r'''
+class A {
+  factory A.two() = B;
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 59, 1)],
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated int? p]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([int? p]) = B;
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 56, 6)],
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_deprecatedFunctionTypedParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated void p()?]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([@deprecated void p()?]) = B;
+}
+''',
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_deprecatedParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated int? p]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([@deprecated int? p]) = B;
+}
+''',
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_functionTypedParameter() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated void p()?]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([void p()?]) = B;
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 56, 9)],
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_named() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B({@deprecated int? p});
+}
+''',
+      code: r'''
+class A {
+  factory A.two({int? p}) = B;
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 56, 6)],
+    );
+  }
+
   test_redirectingConstructorInvocation_namedParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 class A {
   A({@deprecated int a = 0}) {}
   A.named() : this(a: 0);
 }
-''',
-      [error(HintCode.deprecatedMemberUseFromSamePackage, 61, 1)],
-    );
+''');
   }
 
   test_setterInvocation() async {
@@ -1836,6 +2038,41 @@ import '$externalLibUri' show A;
     );
   }
 
+  test_superConstructor_factoryConstructor() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+class A {
+  @deprecated
+  A();
+  A.two();
+}
+''',
+      code: r'''
+class B extends A {
+  factory B() => B.two();
+  B.two() : super.two();
+}
+''',
+    );
+  }
+
+  test_superConstructor_implicitCall() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+class A {
+  @deprecated
+  A();
+}
+''',
+      code: r'''
+class B extends A {
+  B();
+}
+''',
+      [error(HintCode.deprecatedMemberUse, 51, 4)],
+    );
+  }
+
   test_superConstructor_namedConstructor() async {
     await assertErrorsInCode2(
       externalCode: r'''
@@ -1857,6 +2094,24 @@ class B extends A {
           text: "'A.named' is deprecated and shouldn't be used.",
         ),
       ],
+    );
+  }
+
+  test_superConstructor_redirectingConstructor() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+class A {
+  @deprecated
+  A();
+  A.two();
+}
+''',
+      code: r'''
+class B extends A {
+  B() : this.two();
+  B.two() : super.two();
+}
+''',
     );
   }
 

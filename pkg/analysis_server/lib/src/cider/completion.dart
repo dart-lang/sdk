@@ -73,7 +73,6 @@ class CiderCompletionComputer {
       }
 
       var analysisSession = resolvedUnit.analysisSession;
-      var enclosingNode = resolvedUnit.parsedUnit;
 
       var lineInfo = resolvedUnit.lineInfo;
       var offset = lineInfo.getOffsetOfLine(line) + column;
@@ -84,7 +83,6 @@ class CiderCompletionComputer {
         filePath: resolvedUnit.path,
         fileContent: resolvedUnit.content,
         libraryFragment: resolvedUnit.unitElement,
-        enclosingNode: enclosingNode,
         offset: offset,
         unit: resolvedUnit.parsedUnit,
       );

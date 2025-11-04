@@ -17,10 +17,10 @@ class RemoveEmptyElse extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_EMPTY_ELSE;
+  FixKind get fixKind => DartFixKind.removeEmptyElse;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_EMPTY_ELSE_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeEmptyElseMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

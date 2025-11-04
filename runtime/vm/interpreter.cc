@@ -261,6 +261,14 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
   ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
   ASSERT(IsAllocatableInNewSpace(instance_size));
 
+#if !defined(PRODUCT)
+  auto* const class_table = thread->isolate_group()->class_table();
+  if (UNLIKELY(class_table->ShouldTraceAllocationFor(class_id))) {
+    // Fall back to the runtime for profiled allocation of classes.
+    return false;
+  }
+#endif  // !defined(PRODUCT)
+
   const uword top = thread->top();
   const intptr_t remaining = thread->end() - top;
   if (LIKELY(remaining >= instance_size)) {

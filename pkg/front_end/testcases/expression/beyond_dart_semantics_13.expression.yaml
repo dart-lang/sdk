@@ -1,0 +1,46 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Only 1 non-abstract method.
+
+sources:
+  main.dart: |
+    import 'dart:developer';
+    import 'lib.dart';
+
+    abstract class _A extends B {
+      void foo() {
+        debugger();
+        print("hello");
+      }
+    }
+
+    abstract class C extends _A {
+      String? get _foo;
+    }
+
+    void main() {
+      D().foo();
+    }
+  lib.dart: |
+    import 'main.dart';
+    abstract class B {
+    }
+
+    class D extends C {
+      String get _foo => "hello";
+    }
+
+definitions: []
+definition_types: []
+type_definitions: []
+type_bounds: []
+type_defaults: []
+position: "#_A"
+method: "foo"
+static: false
+offset: 94
+scriptUri: main.dart
+expression: |
+  _foo

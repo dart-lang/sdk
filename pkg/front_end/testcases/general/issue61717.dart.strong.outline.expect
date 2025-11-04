@@ -1,0 +1,40 @@
+library;
+import self as self;
+import "issue61717_lib.dart" as iss;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue61717_lib.dart";
+
+base class C extends iss::B {
+  synthetic constructor •() → self::C
+    ;
+  synthetic no-such-method-forwarder method iss::_m(core::num _#wc1#formal) → void
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_m, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_#wc1#formal]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+static method main() → void
+  ;
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+base class A extends core::Object {
+  synthetic constructor •() → iss::A
+    ;
+  method _m(wildcard core::int _#wc0#formal) → void
+    ;
+  method public() → void
+    ;
+}
+abstract base class B extends iss::A {
+  synthetic constructor •() → iss::B
+    ;
+  abstract method _m(wildcard core::num _#wc1#formal) → void;
+}
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///issue61717.dart:7:12 -> SymbolConstant(#_m)
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue61717.dart:7:12 -> ListConstant(const <Type>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///issue61717.dart:7:12 -> MapConstant(const <Symbol, dynamic>{})
+Extra constant evaluation: evaluated: 11, effectively constant: 3

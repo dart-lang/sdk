@@ -17,11 +17,10 @@ class RemoveUnnecessaryStringEscape extends ParsedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_STRING_ESCAPE;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryStringEscape;
 
   @override
-  FixKind get multiFixKind =>
-      DartFixKind.REMOVE_UNNECESSARY_STRING_ESCAPE_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnnecessaryStringEscapeMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

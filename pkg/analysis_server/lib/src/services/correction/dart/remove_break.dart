@@ -16,10 +16,10 @@ class RemoveBreak extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_BREAK;
+  FixKind get fixKind => DartFixKind.removeBreak;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_BREAK_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeBreakMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -25,13 +25,13 @@ class LevenshteinTest {
   }
 
   void test_different_overThreshold() {
-    expect(levenshtein('', 'abcde', 2), LEVENSHTEIN_MAX);
-    expect(levenshtein('abcde', '', 2), LEVENSHTEIN_MAX);
+    expect(levenshtein('', 'abcde', 2), levenshteinMax);
+    expect(levenshtein('abcde', '', 2), levenshteinMax);
   }
 
   void test_different_overThreshold_length() {
-    expect(levenshtein('a', 'abcdefgh', 5), LEVENSHTEIN_MAX);
-    expect(levenshtein('abcdefgh', 'a', 5), LEVENSHTEIN_MAX);
+    expect(levenshtein('a', 'abcdefgh', 5), levenshteinMax);
+    expect(levenshtein('abcdefgh', 'a', 5), levenshteinMax);
   }
 
   void test_different_underThreshold() {

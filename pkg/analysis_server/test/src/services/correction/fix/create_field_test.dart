@@ -276,7 +276,7 @@ A f() {
   return .test;
 }
 ''',
-      errorFilter: (e) {
+      filter: (e) {
         return e.diagnosticCode ==
             CompileTimeErrorCode.dotShorthandUndefinedGetter;
       },
@@ -299,7 +299,7 @@ A f() {
   return .test;
 }
 ''',
-      errorFilter: (e) {
+      filter: (e) {
         return e.diagnosticCode ==
             CompileTimeErrorCode.dotShorthandUndefinedGetter;
       },
@@ -551,6 +551,27 @@ class A {
 void f(A a) {
   var x = a;
   x.test = 0;
+}
+''');
+  }
+
+  Future<void> test_ifNull() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function()? _f;
+
+  int Function() _defaultF;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
 }
 ''');
   }

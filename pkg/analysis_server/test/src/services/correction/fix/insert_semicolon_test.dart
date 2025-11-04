@@ -39,7 +39,7 @@ void f() {
 @reflectiveTest
 class InsertSemicolonTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.INSERT_SEMICOLON;
+  FixKind get kind => DartFixKind.insertSemicolon;
 
   Future<void> test_expectedToken_semicolon() async {
     await resolveTestCode('''

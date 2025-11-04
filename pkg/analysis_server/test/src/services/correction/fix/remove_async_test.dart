@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveAsyncIllegalReturnTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ASYNC;
+  FixKind get kind => DartFixKind.removeAsync;
 
   Future<void> test_invalidReturn() async {
     await resolveTestCode('''
@@ -128,7 +128,7 @@ int f() {
 @reflectiveTest
 class RemoveAsyncTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ASYNC;
+  FixKind get kind => DartFixKind.removeAsync;
 
   @override
   String get lintCode => LintNames.unnecessary_async;

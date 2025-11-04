@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
@@ -21,7 +22,7 @@ runTestCase(Uri source) async {
     source,
     target: target,
   );
-  transformComponent(component);
+  transformComponent(component, CoreTypes(component), target);
   verifyComponent(
     target,
     VerificationStage.afterGlobalTransformations,

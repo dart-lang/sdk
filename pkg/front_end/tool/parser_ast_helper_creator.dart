@@ -5,6 +5,7 @@
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
@@ -134,7 +135,10 @@ abstract class AbstractParserAstListener implements Listener {
 """);
 
   ParserCreatorListener listener = new ParserCreatorListener(out);
-  ClassMemberParser parser = new ClassMemberParser(listener);
+  ClassMemberParser parser = new ClassMemberParser(
+    listener,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
+  );
   parser.parseUnit(firstToken);
 
   out.writeln("}");
@@ -419,6 +423,7 @@ class ParserCreatorListener extends Listener {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,

@@ -54,7 +54,7 @@ void f2() {
 @reflectiveTest
 class RemoveEmptyCatchTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_EMPTY_CATCH;
+  FixKind get kind => DartFixKind.removeEmptyCatch;
 
   @override
   String get lintCode => LintNames.empty_catches;

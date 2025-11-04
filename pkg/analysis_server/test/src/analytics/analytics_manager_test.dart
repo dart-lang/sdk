@@ -14,6 +14,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:http/src/response.dart' as http;
@@ -126,6 +127,45 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     PluginManager.pluginResponseTimes.clear();
   }
 
+  Future<void> test_server_contextStructure() async {
+    _defaultStartup();
+
+    // Record a brief working period.
+    manager.analysisComplete(
+      immediateFileCount: 1,
+      immediateFileLineCount: 1,
+      transitiveFileCount: 3,
+      transitiveFileLineCount: 20,
+      transitiveFileUniqueCount: 2,
+      transitiveFileUniqueLineCount: 15,
+      libraryCycleLibraryCounts: [],
+      libraryCycleLineCounts: [],
+      numberOfContexts: 3,
+      contextWorkspaceType: [0, 1, 2],
+      numberOfPackagesInWorkspace: [1, 3, 4],
+    );
+
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.contextStructure(
+        eventData: {
+          'immediateFileCount': 1,
+          'immediateFileLineCount': 1,
+          'transitiveFileCount': 3,
+          'transitiveFileLineCount': 20,
+          'transitiveFileUniqueCount': 2,
+          'transitiveFileUniqueLineCount': 15,
+          'libraryCycleLibraryCounts': _IsPercentiles(),
+          'libraryCycleLineCounts': _IsPercentiles(),
+          'numberOfContexts': 3,
+          'contextWorkspaceType': '[0, 1, 2]',
+          'numberOfPackagesInWorkspace': _IsPercentiles(),
+        },
+      ),
+    ]);
+  }
+
   Future<void> test_server_notification() async {
     _defaultStartup();
     manager.handledNotificationMessage(
@@ -154,9 +194,17 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     _defaultStartup();
 
     // Record a brief working period.
-    manager.analysisStatusChanged(true);
+    manager.analysisStatusChanged(isWorking: true, statistics: null);
     await Future<void>.delayed(const Duration(milliseconds: 2));
-    manager.analysisStatusChanged(false);
+    manager.analysisStatusChanged(
+      isWorking: false,
+      statistics: AnalysisStatusWorkingStatistics(
+        withFineDependencies: true,
+        changedFiles: {},
+        removedFiles: {},
+        fileCounts: FileCountsStatistics(),
+      ),
+    );
 
     await manager.shutdown();
     analytics.assertEvents([
@@ -538,6 +586,9 @@ class _ExpectedEvent {
 
   _ExpectedEvent.commandExecuted({Map<String, Object?>? eventData})
     : this(DashEvent.commandExecuted, eventData);
+
+  _ExpectedEvent.contextStructure({Map<String, Object?>? eventData})
+    : this(DashEvent.contextStructure, eventData);
 
   _ExpectedEvent.lintUsageCount({Map<String, Object?>? eventData})
     : this(DashEvent.lintUsageCount, eventData);

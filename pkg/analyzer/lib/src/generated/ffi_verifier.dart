@@ -9,6 +9,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -158,7 +159,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     // No classes from the FFI may be explicitly implemented.
-    void checkSupertype(NamedType typename, FfiCode subtypeOfStructCode) {
+    void checkSupertype(
+      NamedType typename,
+      DiagnosticCode subtypeOfStructCode,
+    ) {
       var superName = typename.element?.name;
       if (superName == _allocatorClassName ||
           superName == _finalizableClassName) {

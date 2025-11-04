@@ -47,7 +47,7 @@ void f(String s1, String s2) {
 @reflectiveTest
 class RemoveUnnecessaryStringEscapeTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_STRING_ESCAPE;
+  FixKind get kind => DartFixKind.removeUnnecessaryStringEscape;
 
   @override
   String get lintCode => LintNames.unnecessary_string_escapes;

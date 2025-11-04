@@ -1,21 +1,19 @@
 # Testing rules
 
-<!-- TODO(srawlins): Link to analyzer_testing, when published. -->
-
-The `analyzer_testing` package provides an API for testing analysis rules. Tests
-can be written concisely, encouraging the plugin author to write test cases with
-good coverage of possible Dart syntax, and the analysis rules themselves.
+The [`analyzer_testing`][] package provides an API for testing analysis rules.
+Tests can be written concisely, encouraging the plugin author to write test
+cases with good coverage of possible Dart syntax, and the analysis rules
+themselves.
 
 ## The test class
 
-Analysis rule tests that are written with the `analyzer_testing` package's
+Analysis rule tests that are written with the [`analyzer_testing`][] package's
 support use a class hierarchy to specify shared variables, helper methods, and
 set-up and tear-down code. This is all based on the [`test_reflective_loader`][]
 package. Here is the basic structure:
 
 
 ```dart
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:my_rule/src/rules/my_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,12 +22,9 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 class MyRuleTest extends AnalysisRuleTest {
   @override
   void setUp() {
-    Registry.ruleRegistry.registerLintRule(MyRule());
+    rule = MyRule();
     super.setUp();
   }
-
-  @override
-  String get analysisRule => 'my_rule';
 
   // Test cases go here.
 }
@@ -52,11 +47,8 @@ components of the `MyRuleTest` class.
   `newFile`.
 * `void setUp` - Override this method to provide some set-up code that is
   executed before each test. This method must call `super.setUp()`. This method
-  is where we register the analysis rule that we are testing:
-  `Registry.ruleRegistry.registerLintRule(MyRule());`.
-* `String get analysisRule` - This getter must be implemented, returning the
-  analysis rule name, so that the test knows what analysis rule to expect. This
-  is the name that the rule class passes up to the super-constructor.
+  is where we instantiate the analysis rule that we are testing:
+  `rule = MyRule();`.
 
 ## The test cases
 
@@ -154,5 +146,6 @@ With this `main` function, tests can be run in the same way as class `test`
 package tests. They can be run in the usual ways, such as using the IDE, or by
 running `dart test` or `dart --enable-asserts test/my_rule_test.dart`.
 
+[`analyzer_testing`]: https://pub.dev/packages/analyzer_testing
 [writing rules]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_rules.md
 [`test_reflective_loader`]: https://pub.dev/packages/test_reflective_loader

@@ -151,7 +151,7 @@ class MyWidget extends StatelessWidget {
   final int field;
   MyWidget({super.key}) : field = 0;
 }
-''', errorFilter: lintNameFilter(LintNames.use_key_in_widget_constructors));
+''', filter: lintNameFilter(LintNames.use_key_in_widget_constructors));
   }
 
   Future<void> test_class_withSuper_middle() async {
@@ -172,7 +172,7 @@ class MyWidget extends StatelessWidget {
   final int field2;
   MyWidget({super.key}) : field1 = 1, field2 = 2;
 }
-''', errorFilter: lintNameFilter(LintNames.use_key_in_widget_constructors));
+''', filter: lintNameFilter(LintNames.use_key_in_widget_constructors));
   }
 
   Future<void> test_constructor_namedParameters_withoutSuper() async {

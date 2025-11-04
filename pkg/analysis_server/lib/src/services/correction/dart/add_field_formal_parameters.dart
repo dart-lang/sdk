@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:collection/collection.dart';
 
 /// The boolean value indicates whether the field is required.
 /// The string value is the field/parameter name.
@@ -16,8 +17,6 @@ typedef _FieldRecord = ({bool isRequired, String parameter});
 
 class AddFieldFormalParameters extends ResolvedCorrectionProducer {
   final _Style _style;
-
-  bool _useRequired = false;
 
   @override
   final FixKind fixKind;
@@ -43,22 +42,24 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     }
     List<FormalParameter> parameters = constructor.parameters.parameters;
 
-    var classNode = constructor.parent;
-    if (classNode is! ClassDeclaration) {
-      return;
-    }
-
-    var superType = classNode.declaredFragment!.element.supertype;
-    if (superType == null) {
+    var instanceNodeDeclaration = constructor.parent;
+    if (instanceNodeDeclaration is! NamedCompilationUnitMember ||
+        instanceNodeDeclaration is TypeAlias ||
+        instanceNodeDeclaration is FunctionDeclaration) {
       return;
     }
 
     // Compute uninitialized final fields.
-    var fields = ErrorVerifier.computeNotInitializedFields(constructor);
-    fields.retainWhere((FieldElement field) => field.isFinal);
-    fields.sort(
-      (a, b) => a.firstFragment.nameOffset! - b.firstFragment.nameOffset!,
-    );
+    var fields = ErrorVerifier.computeNotInitializedFields(constructor)
+        .where((field) => field.isFinal)
+        .map((field) {
+          var nameOffset = field.firstFragment.nameOffset;
+          return nameOffset != null ? (field, nameOffset) : null;
+        })
+        .nonNulls
+        .sortedBy((pair) => pair.$2)
+        .map((pair) => pair.$1)
+        .toList();
 
     // Prepare the last required parameter.
     FormalParameter? lastRequiredParameter;
@@ -76,10 +77,6 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
         firstNamedParameter = parameter;
         break;
       }
-    }
-
-    if (_style == _Style.requiredNamed) {
-      _useRequired = true;
     }
 
     var fieldsRecords = fields.map(_parameterForField).toList();
@@ -125,6 +122,9 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
             write += fieldParametersCode;
           }
           builder.addSimpleInsertion(parameters.last.end, write);
+        } else {
+          var offset = constructor.parameters.leftParenthesis.end;
+          builder.addSimpleInsertion(offset, '{$fieldParametersCode}');
         }
       } else if (lastRequiredParameter != null) {
         return builder.addSimpleInsertion(
@@ -144,7 +144,8 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
   _FieldRecord _parameterForField(FieldElement field) {
     var prefix = '';
     var isRequired = false;
-    if (typeSystem.isPotentiallyNonNullable(field.type) && _useRequired) {
+    if (typeSystem.isPotentiallyNonNullable(field.type) &&
+        _style == _Style.requiredNamed) {
       isRequired = true;
       prefix = 'required ';
     }

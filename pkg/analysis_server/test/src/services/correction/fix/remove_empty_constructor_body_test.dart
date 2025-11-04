@@ -47,7 +47,7 @@ class D {
 @reflectiveTest
 class RemoveEmptyConstructorBodyTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY;
+  FixKind get kind => DartFixKind.removeEmptyConstructorBody;
 
   @override
   String get lintCode => LintNames.empty_constructor_bodies;
@@ -70,7 +70,7 @@ class C {
 class A {
   A() {/*
 ''');
-    await assertNoFix(errorFilter: _isInterestingError);
+    await assertNoFix(filter: _isInterestingError);
   }
 
   static bool _isInterestingError(Diagnostic e) {

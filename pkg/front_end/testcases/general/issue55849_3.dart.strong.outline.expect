@@ -15,14 +15,14 @@ class B extends self::A /*hasConstConstructor*/  {
     ;
 }
 class C extends core::Object /*hasConstConstructor*/  {
-  constructor •({self::A a = const self::B::•()}) → self::C
+  constructor •({self::A a = /*original=self::A::redir*/ const self::B::•()}) → self::C
     ;
-  const constructor c({self::A a = const self::B::•()}) → self::C
+  const constructor c({self::A a = /*original=self::A::redir*/ const self::B::•()}) → self::C
     : super core::Object::•()
     ;
-  static factory f({self::A a = const self::B::•()}) → self::C
+  static factory f({self::A a = /*original=self::A::redir*/ const self::B::•()}) → self::C
     ;
-  method foo({self::A a = const self::B::•()}) → dynamic
+  method foo({self::A a = /*original=self::A::redir*/ const self::B::•()}) → dynamic
     ;
   static method bar({has-declared-initializer self::A a}) → dynamic
     ;
@@ -48,7 +48,7 @@ static extension-type-member method ET|constructor#(self::C c) → self::ET% /* 
   ;
 static extension-type-member synthetic method ET|constructor#_#new#tearOff(self::C c) → self::ET% /* erasure=self::C, declared=! */
   return self::ET|constructor#(c);
-static extension-type-member method ET|constructor#named(self::C c, {self::A a = const self::B::•()}) → self::ET% /* erasure=self::C, declared=! */
+static extension-type-member method ET|constructor#named(self::C c, {self::A a = /*original=self::A::redir*/ const self::B::•()}) → self::ET% /* erasure=self::C, declared=! */
   ;
 static extension-type-member synthetic method ET|constructor#_#named#tearOff(self::C c, {has-declared-initializer self::A a}) → self::ET% /* erasure=self::C, declared=! */
   return self::ET|constructor#named(c, a: a);
@@ -61,9 +61,9 @@ static method foo({has-declared-initializer self::A a}) → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55849_3.dart:15:18 -> InstanceConstant(const B{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55849_3.dart:19:26 -> InstanceConstant(const B{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55849_3.dart:17:28 -> InstanceConstant(const B{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55849_3.dart:21:20 -> InstanceConstant(const B{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55849_3.dart:31:30 -> InstanceConstant(const B{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.dart:15:18 -> InstanceConstant(const B{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.dart:19:26 -> InstanceConstant(const B{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.dart:17:28 -> InstanceConstant(const B{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.dart:21:20 -> InstanceConstant(const B{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.dart:31:30 -> InstanceConstant(const B{})
 Extra constant evaluation: evaluated: 19, effectively constant: 5

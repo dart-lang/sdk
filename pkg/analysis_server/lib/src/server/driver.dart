@@ -26,6 +26,8 @@ import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/starter.dart';
@@ -48,96 +50,105 @@ import '../utilities/usage_tracking/usage_tracking.dart';
 /// and starting the HTTP and/or stdio servers.
 class Driver implements ServerStarter {
   /// The name of the application that is used to start a server.
-  static const BINARY_NAME = 'analysis_server';
+  static const binaryName = 'analysis_server';
 
   /// The name of the option used to set the identifier for the client.
-  static const String CLIENT_ID = 'client-id';
+  static const String clientIdOption = 'client-id';
 
   /// The name of the option used to set the version for the client.
-  static const String CLIENT_VERSION = 'client-version';
+  static const String clientVersionOption = 'client-version';
 
   /// The name of the option used to disable exception handling.
-  static const String DISABLE_SERVER_EXCEPTION_HANDLING =
+  static const String disableServerExceptionHandlingOption =
       'disable-server-exception-handling';
 
   /// The name of the option to disable the completion feature.
-  static const String DISABLE_SERVER_FEATURE_COMPLETION =
+  static const String disableServerFeatureCompletionOption =
       'disable-server-feature-completion';
 
   /// The name of the option to disable the search feature.
-  static const String DISABLE_SERVER_FEATURE_SEARCH =
+  static const String disableServerFeatureSearchOption =
       'disable-server-feature-search';
 
   /// The name of the option to disable the debouncing of `server.status`
   /// notifications.
-  static const String DISABLE_STATUS_NOTIFICATION_DEBOUNCING =
+  static const String disableStatusNotificationDebouncingOption =
       'disable-status-notification-debouncing';
 
   /// The name of the option to prevent exceptions during analysis from being
   /// silent.
-  static const String DISABLE_SILENT_ANALYSIS_EXCEPTIONS =
+  static const String disableSilentAnalysisExceptionsOption =
       'disable-silent-analysis-exceptions';
 
   /// The name of the multi-option to enable one or more experiments.
-  static const String ENABLE_EXPERIMENT = 'enable-experiment';
+  static const String enableExperimentOption = 'enable-experiment';
 
   /// The name of the option used to print usage information.
-  static const String HELP_OPTION = 'help';
+  static const String helpFlag = 'help';
 
   /// The name of the flag used to configure reporting legacy analytics.
-  static const String ANALYTICS_FLAG = 'analytics';
+  static const String analyticsFlag = 'analytics';
 
-  /// Suppress legacy analytics for this session.
-  static const String SUPPRESS_ANALYTICS_FLAG = 'suppress-analytics';
+  /// The name of the flag used to suppress legacy analytics for this session.
+  static const String suppressAnalyticsFlag = 'suppress-analytics';
 
   /// The name of the option used to cause instrumentation to also be written to
   /// a local file.
-  static const String PROTOCOL_TRAFFIC_LOG = 'protocol-traffic-log';
-  static const String PROTOCOL_TRAFFIC_LOG_ALIAS = 'instrumentation-log-file';
+  static const String protocolTrafficLogOption = 'protocol-traffic-log';
+  static const String protocolTrafficLogAliasOption =
+      'instrumentation-log-file';
+
+  /// The name of the option used to cause a log of the session to be written to
+  /// a file.
+  static const String sessionLogOption = 'session-log';
 
   /// The name of the option used to specify if [print] should print to the
   /// console instead of being intercepted.
-  static const String INTERNAL_PRINT_TO_CONSOLE = 'internal-print-to-console';
+  static const String internalPrintToConsoleOption =
+      'internal-print-to-console';
 
   /// The name of the option used to describe the new analysis driver logger.
-  static const String ANALYSIS_DRIVER_LOG = 'analysis-driver-log';
-  static const String ANALYSIS_DRIVER_LOG_ALIAS = 'new-analysis-driver-log';
+  static const String analysisDriverLogOption = 'analysis-driver-log';
+  static const String analysisDriverLogAliasOption = 'new-analysis-driver-log';
 
-  /// The option for specifying the http diagnostic port.
+  /// The name of the option for specifying the http diagnostic port.
   /// If specified, users can review server status and performance information
-  /// by opening a web browser on http://localhost:<port>
-  static const String DIAGNOSTIC_PORT = 'diagnostic-port';
-  static const String DIAGNOSTIC_PORT_ALIAS = 'port';
+  /// by opening a web browser on `http://localhost:<port>`.
+  static const String diagnosticPortOption = 'diagnostic-port';
+  static const String diagnosticPortAliasOption = 'port';
 
-  /// The path to the SDK.
-  static const String DART_SDK = 'dart-sdk';
-  static const String DART_SDK_ALIAS = 'sdk';
+  /// The name of the option used to specify the path to the SDK.
+  static const String dartSdkOption = 'dart-sdk';
+  static const String dartSdkAliasOption = 'sdk';
 
-  /// The path to the data cache.
-  static const String CACHE_FOLDER = 'cache';
+  /// The name of the option used to specify the path to the data cache.
+  static const String cacheFolderOption = 'cache';
 
-  /// The path to the package config file override.
-  static const String PACKAGES_FILE = 'packages';
+  /// The name of the option used to specify the path to the package config file
+  /// override.
+  static const String packagesFileOption = 'packages';
 
-  /// The forced protocol version that the server will report to the client.
-  static const String REPORT_PROTOCOL_VERSION = 'report-protocol-version';
+  /// The name of the option used to specify a forced protocol version that the
+  /// server will report to the client.
+  static const String reportProtocolVersionOption = 'report-protocol-version';
 
-  /// The name of the flag specifying the server protocol to use.
-  static const String SERVER_PROTOCOL = 'protocol';
-  static const String PROTOCOL_ANALYZER = 'analyzer';
-  static const String PROTOCOL_LSP = 'lsp';
+  /// The name of the option specifying the server protocol to use.
+  static const String serverProtocolOption = 'protocol';
+  static const String protocolAnalyzer = 'analyzer';
+  static const String protocolLsp = 'lsp';
 
   /// The name of the flag to use the Language Server Protocol (LSP).
-  static const String USE_LSP = 'lsp';
+  static const String useLspFlag = 'lsp';
 
-  /// A directory to analyze in order to train an analysis server snapshot.
-  static const String TRAIN_USING = 'train-using';
+  /// The name of the flag used to specify a directory to analyze in order to
+  /// train an analysis server snapshot.
+  static const String trainUsingOption = 'train-using';
 
   /// Flag to not use a (Evicting)FileByteStore.
-  static const String DISABLE_FILE_BYTE_STORE = 'disable-file-byte-store';
+  static const String disableFileByteStoreOption = 'disable-file-byte-store';
 
   /// The name of the flag to enable fine-grained dependencies.
-  static const String WITH_FINE_DEPENDENCIES = 'with-fine-dependencies';
+  static const String withFineDependenciesOption = 'with-fine-dependencies';
 
   /// The builder for attachments that should be included into crash reports.
   CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder =
@@ -149,6 +160,9 @@ class Driver implements ServerStarter {
 
   /// The instrumentation service that is to be used by the analysis server.
   late final InstrumentationService _instrumentationService;
+
+  /// The session logger.
+  late final SessionLogger _sessionLogger;
 
   /// Use the given command-line [arguments] to start this server.
   ///
@@ -166,34 +180,36 @@ class Driver implements ServerStarter {
 
     var analysisServerOptions = AnalysisServerOptions();
     analysisServerOptions.newAnalysisDriverLog =
-        results.option(ANALYSIS_DRIVER_LOG) ??
-        results.option(ANALYSIS_DRIVER_LOG_ALIAS);
-    if (results.wasParsed(USE_LSP)) {
-      analysisServerOptions.useLanguageServerProtocol = results.flag(USE_LSP);
+        results.option(analysisDriverLogOption) ??
+        results.option(analysisDriverLogAliasOption);
+    if (results.wasParsed(useLspFlag)) {
+      analysisServerOptions.useLanguageServerProtocol = results.flag(
+        useLspFlag,
+      );
     } else {
       analysisServerOptions.useLanguageServerProtocol =
-          results.option(SERVER_PROTOCOL) == PROTOCOL_LSP;
+          results.option(serverProtocolOption) == protocolLsp;
     }
     // For clients that don't supply their own identifier, use a default based
     // on whether the server will run in LSP mode or not.
     var clientId =
-        results.option(CLIENT_ID) ??
+        results.option(clientIdOption) ??
         (analysisServerOptions.useLanguageServerProtocol
             ? 'unknown.client.lsp'
             : 'unknown.client.classic');
     analysisServerOptions.clientId = clientId;
-    analysisServerOptions.clientVersion = results.option(CLIENT_VERSION);
-    analysisServerOptions.cacheFolder = results.option(CACHE_FOLDER);
-    analysisServerOptions.packagesFile = results.option(PACKAGES_FILE);
+    analysisServerOptions.clientVersion = results.option(clientVersionOption);
+    analysisServerOptions.cacheFolder = results.option(cacheFolderOption);
+    analysisServerOptions.packagesFile = results.option(packagesFileOption);
     analysisServerOptions.reportProtocolVersion = results.option(
-      REPORT_PROTOCOL_VERSION,
+      reportProtocolVersionOption,
     );
     analysisServerOptions.withFineDependencies = results.flag(
-      WITH_FINE_DEPENDENCIES,
+      withFineDependenciesOption,
     );
 
     analysisServerOptions.enabledExperiments = results.multiOption(
-      ENABLE_EXPERIMENT,
+      enableExperimentOption,
     );
 
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
@@ -201,9 +217,9 @@ class Driver implements ServerStarter {
     analysisServerOptions.configurationOverrides = sdkConfig;
 
     // Analytics (legacy, and unified)
-    var disableAnalyticsForSession = results.flag(SUPPRESS_ANALYTICS_FLAG);
+    var disableAnalyticsForSession = results.flag(suppressAnalyticsFlag);
 
-    if (results.wasParsed(TRAIN_USING)) {
+    if (results.wasParsed(trainUsingOption)) {
       disableAnalyticsForSession = true;
     }
 
@@ -255,8 +271,10 @@ class Driver implements ServerStarter {
     );
 
     {
-      var disableCompletion = results.flag(DISABLE_SERVER_FEATURE_COMPLETION);
-      var disableSearch = results.flag(DISABLE_SERVER_FEATURE_SEARCH);
+      var disableCompletion = results.flag(
+        disableServerFeatureCompletionOption,
+      );
+      var disableSearch = results.flag(disableServerFeatureSearchOption);
       if (disableCompletion || disableSearch) {
         analysisServerOptions.featureSet = FeatureSet(
           completion: !disableCompletion,
@@ -265,7 +283,7 @@ class Driver implements ServerStarter {
       }
     }
 
-    if (results.flag(HELP_OPTION)) {
+    if (results.flag(helpFlag)) {
       _printUsage(parser, fromHelp: true);
       return;
     }
@@ -281,8 +299,8 @@ class Driver implements ServerStarter {
     // Initialize the instrumentation service.
     //
     var logFilePath =
-        results.option(PROTOCOL_TRAFFIC_LOG) ??
-        results.option(PROTOCOL_TRAFFIC_LOG_ALIAS);
+        results.option(protocolTrafficLogOption) ??
+        results.option(protocolTrafficLogAliasOption);
     var allInstrumentationServices = <InstrumentationService>[];
     if (logFilePath != null) {
       _rollLogFiles(logFilePath, 5);
@@ -304,7 +322,7 @@ class Driver implements ServerStarter {
     );
 
     _instrumentationService.logVersion(
-      results.option(TRAIN_USING) != null
+      results.option(trainUsingOption) != null
           ? 'training-0'
           : _readUuid(_instrumentationService),
       analysisServerOptions.clientId ?? '',
@@ -314,10 +332,17 @@ class Driver implements ServerStarter {
     );
     AnalysisEngine.instance.instrumentationService = _instrumentationService;
 
+    // Initialize the session logging service.
+    var sessionLogFilePath = results.option(sessionLogOption);
+    _sessionLogger = SessionLogger();
+    if (sessionLogFilePath != null) {
+      _sessionLogger.sink = SessionLoggerFileSink(sessionLogFilePath);
+    }
+
     int? diagnosticServerPort;
     var portValue =
-        results.option(DIAGNOSTIC_PORT) ??
-        results.option(DIAGNOSTIC_PORT_ALIAS);
+        results.option(diagnosticPortOption) ??
+        results.option(diagnosticPortAliasOption);
     if (portValue != null) {
       try {
         diagnosticServerPort = int.parse(portValue);
@@ -345,6 +370,7 @@ class Driver implements ServerStarter {
         dartSdkManager,
         analyticsManager,
         _instrumentationService,
+        _sessionLogger,
         diagnosticServerPort,
         errorNotifier,
       );
@@ -357,6 +383,7 @@ class Driver implements ServerStarter {
         analyticsManager,
         crashReportingAttachmentsBuilder,
         _instrumentationService,
+        _sessionLogger,
         RequestStatisticsHelper(),
         diagnosticServerPort,
         errorNotifier,
@@ -378,15 +405,16 @@ class Driver implements ServerStarter {
     AnalyticsManager analyticsManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService,
+    SessionLogger sessionLogger,
     RequestStatisticsHelper requestStatistics,
     int? diagnosticServerPort,
     ErrorNotifier errorNotifier,
     SendPort? sendPort,
   ) {
-    var capture = results.flag(DISABLE_SERVER_EXCEPTION_HANDLING)
+    var capture = results.flag(disableServerExceptionHandlingOption)
         ? (_, Function f, {void Function(String)? print}) => f()
         : _captureExceptions;
-    var trainDirectory = results.option(TRAIN_USING);
+    var trainDirectory = results.option(trainUsingOption);
     if (trainDirectory != null) {
       if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
         print("Training directory '$trainDirectory' not found.\n");
@@ -408,6 +436,7 @@ class Driver implements ServerStarter {
       dartSdkManager,
       crashReportingAttachmentsBuilder,
       instrumentationService,
+      sessionLogger,
       requestStatistics,
       diagnosticServer,
       analyticsManager,
@@ -430,7 +459,7 @@ class Driver implements ServerStarter {
       );
       analysisServerOptions.cacheFolder = tempDriverDir.path;
       analysisServerOptions.disableFileByteStore = results.flag(
-        DISABLE_FILE_BYTE_STORE,
+        disableFileByteStoreOption,
       );
 
       var devServer = DevAnalysisServer(socketServer);
@@ -474,7 +503,7 @@ class Driver implements ServerStarter {
             serveResult = isolateAnalysisServer.serveIsolate(sendPort);
           }
           errorNotifier.server = socketServer.analysisServer;
-          if (results.flag(DISABLE_SILENT_ANALYSIS_EXCEPTIONS)) {
+          if (results.flag(disableSilentAnalysisExceptionsOption)) {
             errorNotifier.sendSilentExceptionsToClient = true;
           }
           serveResult.then((_) async {
@@ -484,7 +513,7 @@ class Driver implements ServerStarter {
             if (sendPort == null) exit(0);
           });
         },
-        print: results.flag(INTERNAL_PRINT_TO_CONSOLE)
+        print: results.flag(internalPrintToConsoleOption)
             ? null
             : diagnosticServer.httpServer.recordPrint,
       );
@@ -497,10 +526,11 @@ class Driver implements ServerStarter {
     DartSdkManager dartSdkManager,
     AnalyticsManager analyticsManager,
     InstrumentationService instrumentationService,
+    SessionLogger sessionLogger,
     int? diagnosticServerPort,
     ErrorNotifier errorNotifier,
   ) {
-    var capture = args.flag(DISABLE_SERVER_EXCEPTION_HANDLING)
+    var capture = args.flag(disableServerExceptionHandlingOption)
         ? (_, Function f, {void Function(String)? print}) => f()
         : _captureExceptions;
 
@@ -516,6 +546,7 @@ class Driver implements ServerStarter {
       analyticsManager,
       dartSdkManager,
       instrumentationService,
+      sessionLogger,
       detachableFileSystemManager,
     );
     errorNotifier.server = socketServer.analysisServer;
@@ -624,42 +655,43 @@ class Driver implements ServerStarter {
     // The arguments that are literal strings are deprecated and no longer read
     // from, but we still want to know if clients are using them.
     var knownArguments = [
-      ANALYTICS_FLAG,
-      CACHE_FOLDER,
-      CLIENT_ID,
-      CLIENT_VERSION,
+      analyticsFlag,
+      cacheFolderOption,
+      clientIdOption,
+      clientVersionOption,
       'completion-model',
       'dartpad',
-      DART_SDK,
-      DART_SDK_ALIAS,
-      DIAGNOSTIC_PORT,
-      DIAGNOSTIC_PORT_ALIAS,
-      DISABLE_SERVER_EXCEPTION_HANDLING,
-      DISABLE_SERVER_FEATURE_COMPLETION,
-      DISABLE_SERVER_FEATURE_SEARCH,
-      DISABLE_SILENT_ANALYSIS_EXCEPTIONS,
-      DISABLE_STATUS_NOTIFICATION_DEBOUNCING,
+      dartSdkOption,
+      dartSdkAliasOption,
+      diagnosticPortOption,
+      diagnosticPortAliasOption,
+      disableServerExceptionHandlingOption,
+      disableServerFeatureCompletionOption,
+      disableServerFeatureSearchOption,
+      disableSilentAnalysisExceptionsOption,
+      disableStatusNotificationDebouncingOption,
       'enable-completion-model',
       'enable-experiment',
       'enable-instrumentation',
       'file-read-mode',
-      HELP_OPTION,
+      helpFlag,
       'ignore-unrecognized-flags',
-      INTERNAL_PRINT_TO_CONSOLE,
-      PACKAGES_FILE,
+      internalPrintToConsoleOption,
+      packagesFileOption,
       'preview-dart-2',
-      PROTOCOL_TRAFFIC_LOG,
-      PROTOCOL_TRAFFIC_LOG_ALIAS,
-      REPORT_PROTOCOL_VERSION,
-      SERVER_PROTOCOL,
-      SUPPRESS_ANALYTICS_FLAG,
-      TRAIN_USING,
+      protocolTrafficLogOption,
+      protocolTrafficLogAliasOption,
+      reportProtocolVersionOption,
+      serverProtocolOption,
+      sessionLogOption,
+      suppressAnalyticsFlag,
+      trainUsingOption,
       'useAnalysisHighlight2',
-      USE_LSP,
+      useLspFlag,
       'use-new-relevance',
       'use-fasta-parser',
-      DISABLE_FILE_BYTE_STORE,
-      WITH_FINE_DEPENDENCIES,
+      disableFileByteStoreOption,
+      withFineDependenciesOption,
     ];
     return knownArguments
         .where((argument) => results.wasParsed(argument))
@@ -676,8 +708,8 @@ class Driver implements ServerStarter {
       }
     }
 
-    tryCandidateArgument(DART_SDK);
-    tryCandidateArgument(DART_SDK_ALIAS);
+    tryCandidateArgument(dartSdkOption);
+    tryCandidateArgument(dartSdkAliasOption);
     var sdkPath2 = sdkPath ?? getSdkPath();
 
     var pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
@@ -686,7 +718,7 @@ class Driver implements ServerStarter {
 
   /// Print information about how to use the server.
   void _printUsage(ArgParser parser, {bool fromHelp = false}) {
-    print('Usage: $BINARY_NAME [flags]');
+    print('Usage: $binaryName [flags]');
     print('');
     print('Supported flags are:');
     print(parser.usage);
@@ -731,42 +763,42 @@ class Driver implements ServerStarter {
     var parser = ArgParser(usageLineLength: usageLineLength);
     if (includeHelpFlag) {
       parser.addFlag(
-        HELP_OPTION,
+        helpFlag,
         abbr: 'h',
         negatable: false,
         help: 'Print this usage information.',
       );
     }
     parser.addOption(
-      CLIENT_ID,
+      clientIdOption,
       valueHelp: 'name',
       help: 'An identifier for the analysis server client.',
     );
     parser.addOption(
-      CLIENT_VERSION,
+      clientVersionOption,
       valueHelp: 'version',
       help: 'The version of the analysis server client.',
     );
     parser.addOption(
-      DART_SDK,
+      dartSdkOption,
       valueHelp: 'path',
       help: 'Override the Dart SDK to use for analysis.',
     );
-    parser.addOption(DART_SDK_ALIAS, hide: true);
+    parser.addOption(dartSdkAliasOption, hide: true);
     parser.addOption(
-      CACHE_FOLDER,
+      cacheFolderOption,
       valueHelp: 'path',
       help: 'Override the location of the analysis server\'s cache.',
     );
     parser.addOption(
-      PACKAGES_FILE,
+      packagesFileOption,
       valueHelp: 'path',
       help:
           'The path to the package resolution configuration file, which '
           'supplies a mapping of package names\ninto paths.',
     );
     parser.addMultiOption(
-      ENABLE_EXPERIMENT,
+      enableExperimentOption,
       valueHelp: 'experiment',
       help:
           'Enable one or more experimental features '
@@ -775,15 +807,15 @@ class Driver implements ServerStarter {
     );
 
     parser.addOption(
-      SERVER_PROTOCOL,
-      defaultsTo: defaultToLsp ? PROTOCOL_LSP : PROTOCOL_ANALYZER,
+      serverProtocolOption,
+      defaultsTo: defaultToLsp ? protocolLsp : protocolAnalyzer,
       valueHelp: 'protocol',
-      allowed: [PROTOCOL_LSP, PROTOCOL_ANALYZER],
+      allowed: [protocolLsp, protocolAnalyzer],
       allowedHelp: {
-        PROTOCOL_LSP:
+        protocolLsp:
             'The Language Server Protocol '
             '(https://microsoft.github.io/language-server-protocol)',
-        PROTOCOL_ANALYZER:
+        protocolAnalyzer:
             'Dart\'s analysis server protocol '
             '(https://dart.dev/go/analysis-server-protocol)',
       },
@@ -793,7 +825,7 @@ class Driver implements ServerStarter {
     // This option is hidden but still accepted; it's effectively translated to
     // the 'protocol' option above.
     parser.addFlag(
-      USE_LSP,
+      useLspFlag,
       negatable: false,
       help: 'Whether to use the Language Server Protocol (LSP).',
       hide: true,
@@ -802,40 +834,46 @@ class Driver implements ServerStarter {
     parser.addSeparator('Server diagnostics:');
 
     parser.addOption(
-      PROTOCOL_TRAFFIC_LOG,
+      protocolTrafficLogOption,
       valueHelp: 'file path',
       help: 'Write server protocol traffic to the given file.',
     );
-    parser.addOption(PROTOCOL_TRAFFIC_LOG_ALIAS, hide: true);
+    parser.addOption(protocolTrafficLogAliasOption, hide: true);
 
     parser.addOption(
-      ANALYSIS_DRIVER_LOG,
+      sessionLogOption,
+      valueHelp: 'file path',
+      help: 'Write a server session log to the given file.',
+    );
+
+    parser.addOption(
+      analysisDriverLogOption,
       valueHelp: 'file path',
       help: 'Write analysis driver diagnostic data to the given file.',
     );
-    parser.addOption(ANALYSIS_DRIVER_LOG_ALIAS, hide: true);
+    parser.addOption(analysisDriverLogAliasOption, hide: true);
 
     parser.addOption(
-      DIAGNOSTIC_PORT,
+      diagnosticPortOption,
       valueHelp: 'port',
       help:
           'Serve a web UI for status and performance data on the given '
           'port.',
     );
-    parser.addOption(DIAGNOSTIC_PORT_ALIAS, hide: true);
+    parser.addOption(diagnosticPortAliasOption, hide: true);
 
     //
     // Hidden; these have not yet been made public.
     //
     parser.addFlag(
-      ANALYTICS_FLAG,
+      analyticsFlag,
       help:
           'Allow or disallow sending analytics information to '
           'Google for this session.',
       hide: true,
     );
     parser.addFlag(
-      SUPPRESS_ANALYTICS_FLAG,
+      suppressAnalyticsFlag,
       negatable: false,
       help: 'Suppress analytics for this session.',
       hide: true,
@@ -845,7 +883,7 @@ class Driver implements ServerStarter {
     // Hidden; these are for internal development.
     //
     parser.addOption(
-      TRAIN_USING,
+      trainUsingOption,
       valueHelp: 'path',
       help:
           'Pass in a directory to analyze for purposes of training an '
@@ -853,18 +891,18 @@ class Driver implements ServerStarter {
       hide: true,
     );
     parser.addFlag(
-      DISABLE_FILE_BYTE_STORE,
+      disableFileByteStoreOption,
       help:
           'Disable use of (Evicting)FileByteStore. Intended for benchmarking.',
       hide: true,
     );
     parser.addFlag(
-      WITH_FINE_DEPENDENCIES,
+      withFineDependenciesOption,
       help: 'Enable fine-grained dependencies.',
       hide: true,
     );
     parser.addFlag(
-      DISABLE_SERVER_EXCEPTION_HANDLING,
+      disableServerExceptionHandlingOption,
       // TODO(jcollins-g): Pipeline option through and apply to all
       // exception-nullifying runZoned() calls.
       help:
@@ -873,35 +911,35 @@ class Driver implements ServerStarter {
       hide: true,
     );
     parser.addFlag(
-      DISABLE_SERVER_FEATURE_COMPLETION,
+      disableServerFeatureCompletionOption,
       help: 'disable all completion features',
       hide: true,
     );
     parser.addFlag(
-      DISABLE_SERVER_FEATURE_SEARCH,
+      disableServerFeatureSearchOption,
       help: 'disable all search features',
       hide: true,
     );
     parser.addFlag(
-      DISABLE_SILENT_ANALYSIS_EXCEPTIONS,
+      disableSilentAnalysisExceptionsOption,
       negatable: false,
       help: 'Prevent exceptions during analysis from being silent',
       hide: true,
     );
     parser.addFlag(
-      DISABLE_STATUS_NOTIFICATION_DEBOUNCING,
+      disableStatusNotificationDebouncingOption,
       negatable: false,
       help: 'Suppress debouncing of status notifications.',
       hide: true,
     );
     parser.addFlag(
-      INTERNAL_PRINT_TO_CONSOLE,
+      internalPrintToConsoleOption,
       help: 'enable sending `print` output to the console',
       negatable: false,
       hide: true,
     );
     parser.addOption(
-      REPORT_PROTOCOL_VERSION,
+      reportProtocolVersionOption,
       valueHelp: 'version',
       help:
           'The protocol version that the server will report to the client, '

@@ -31,10 +31,10 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.removeTypeAnnotation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_TYPE_ANNOTATION;
+  FixKind get fixKind => DartFixKind.removeTypeAnnotation;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_TYPE_ANNOTATION_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeTypeAnnotationMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

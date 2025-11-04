@@ -100,14 +100,14 @@ class AstIndexer extends IgnoreSomeForCompatibilityAstVisitor {
   }
 
   @override
-  void visitEnumEnd(EnumEnd node) {
+  void visitEnumDeclarationEnd(EnumDeclarationEnd node) {
     currentContainerName = node.getEnumIdentifier().token.lexeme;
     positionStartEndIndex.add(node.beginToken.charOffset);
     positionStartEndIndex.add(node.endToken.charEnd);
     nameIndex[currentContainerName!] = positionNodeIndex.length;
     positionNodeIndex.add(node);
     positionNodeName.add(currentContainerName!);
-    super.visitEnumEnd(node);
+    super.visitEnumDeclarationEnd(node);
     currentContainerName = null;
   }
 

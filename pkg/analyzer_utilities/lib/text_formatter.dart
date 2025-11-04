@@ -46,7 +46,7 @@ class _TextFormatter with CodeGenerator {
   /// True if no text has been output yet.  This suppresses blank lines.
   bool atStart = true;
 
-  /// True if we are processing a <pre> element, thus whitespace should be
+  /// Whether we are processing a `<pre>` element, thus whitespace should be
   /// preserved.
   bool preserveSpaces = false;
 
@@ -74,7 +74,6 @@ class _TextFormatter with CodeGenerator {
         case 'br':
           lineBreak(false);
         case 'dl':
-        case 'dt':
         case 'h1':
         case 'h2':
         case 'h3':
@@ -106,6 +105,10 @@ class _TextFormatter with CodeGenerator {
             addAll(node.nodes);
             lineBreak(false);
           });
+        case 'dt':
+          word += '* `';
+          addAll(node.nodes);
+          word += '`';
         case 'dd':
           lineBreak(true);
           indent(() {
@@ -121,7 +124,13 @@ class _TextFormatter with CodeGenerator {
           var oldPreserveSpaces = preserveSpaces;
           try {
             preserveSpaces = true;
-            addAll(node.nodes);
+            // Indent twice in order to format `node.nodes` as Markdown
+            // pre-formatted text.
+            indent(() {
+              indent(() {
+                addAll(node.nodes);
+              });
+            });
           } finally {
             preserveSpaces = oldPreserveSpaces;
           }

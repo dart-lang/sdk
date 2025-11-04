@@ -1338,7 +1338,7 @@ class _ConstLiteralVerifier {
     if (notPotentiallyConstants.isEmpty) return true;
 
     for (var notConst in notPotentiallyConstants) {
-      CompileTimeErrorCode errorCode;
+      DiagnosticCode errorCode;
       if (listElementType != null) {
         errorCode = CompileTimeErrorCode.nonConstantListElement;
       } else if (mapConfig != null) {

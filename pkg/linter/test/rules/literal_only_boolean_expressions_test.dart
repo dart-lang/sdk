@@ -208,6 +208,26 @@ void f(bool p) {
     );
   }
 
+  test_string_interpolation_constant() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  const a = 15;
+  if ('$a'=='20') {}
+}
+''',
+      [lint(29, 18)],
+    );
+  }
+
+  test_string_interpolation_nonconstant() async {
+    await assertNoDiagnostics(r'''
+void f(int a) {
+  if ('$a'=='20') {}
+}
+''');
+  }
+
   test_switchExpression() async {
     await assertNoDiagnostics(r'''
 bool f(Object o) => switch(o) {

@@ -26,6 +26,7 @@ import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
+import '../../../util/diff.dart';
 import '../analysis/analyzer_state_printer.dart' as printer;
 import '../resolution/node_text_expectations.dart';
 import '../resolution/resolution.dart';
@@ -83,10 +84,10 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     var actual = buffer.toString();
 
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   /// Create a new [FileResolver] into [fileResolver].

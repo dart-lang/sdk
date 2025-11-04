@@ -97,7 +97,8 @@ class AstPrinter {
   int _constantLevel = 0;
   int _indentationLevel = 0;
   late final Map<LabeledStatement, String> _labelNames = {};
-  late final Map<VariableDeclaration, String> _variableNames = {};
+  late final Map<VariableDeclaration, String> _variableDeclarationNames = {};
+  late final Map<Variable, String> _variableNames = {};
 
   AstPrinter(this._strategy);
 
@@ -202,12 +203,29 @@ class AstPrinter {
     return _labelNames[node] ??= 'label${_labelNames.length}';
   }
 
-  String getVariableName(VariableDeclaration node) {
+  String getVariableDeclarationName(VariableDeclaration node) {
     String? name = node.name;
     if (name != null) {
       return name;
     }
-    return _variableNames[node] ??= '#${_variableNames.length}';
+    return _variableDeclarationNames[node] ??=
+        '#${_variableDeclarationNames.length}';
+  }
+
+  String getVariableName(Variable node) {
+    switch (node) {
+      case NamedParameter(:var name):
+      case PositionalParameter(cosmeticName: var name?):
+      case TypeVariable(cosmeticName: var name?):
+        return name;
+      case ThisVariable():
+        return 'this';
+      case PositionalParameter(cosmeticName: null):
+      case TypeVariable(cosmeticName: null):
+      case SyntheticVariable():
+      case LocalVariable():
+        return _variableNames[node] ??= '#${_variableNames.length}';
+    }
   }
 
   String getSwitchCaseName(SwitchCase node) {
@@ -479,7 +497,7 @@ class AstPrinter {
       writeType(type ?? node.type);
       _sb.write(' ');
     }
-    _sb.write(getVariableName(node));
+    _sb.write(getVariableDeclarationName(node));
     if (includeInitializer && node.initializer != null && !node.isRequired) {
       _sb.write(' = ');
       writeExpression(node.initializer!);

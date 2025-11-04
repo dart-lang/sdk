@@ -18,7 +18,7 @@ class ClassDeclarationTest extends PartialCodeTest {
         'class',
         [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedClassBody],
         'class _s_ {}',
-        failing: ['functionNonVoid', 'getter'],
+        failing: ['const', 'functionNonVoid', 'getter'],
       ),
       TestDescriptor('named', 'class A', [
         ParserErrorCode.expectedClassBody,

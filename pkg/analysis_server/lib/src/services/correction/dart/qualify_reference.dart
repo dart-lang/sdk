@@ -22,7 +22,7 @@ class QualifyReference extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_qualifiedName];
 
   @override
-  FixKind get fixKind => DartFixKind.QUALIFY_REFERENCE;
+  FixKind get fixKind => DartFixKind.qualifyReference;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

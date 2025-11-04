@@ -373,6 +373,24 @@ suggestions
 ''');
   }
 
+  Future<void> test_ifCase_objectPattern_functionType_callMethod() async {
+    allowedIdentifiers = {'call'};
+    await computeSuggestions('''
+void f(Object? x) {
+  if (x case Function(:cal^)) {}
+}
+''');
+    assertResponse(r'''
+location: PatternField_pattern
+locationOpType: PatternField_pattern
+replacement
+  left: 3
+suggestions
+  call
+    kind: method
+''');
+  }
+
   Future<void> test_ifCase_objectPattern_type_partial() async {
     await computeSuggestions('''
 class A01 {}

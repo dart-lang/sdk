@@ -7,7 +7,9 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:collection/collection.dart';
@@ -115,15 +117,15 @@ void f() {
   }
 
   Future<void> test_BUILT_IN_augment_onClass() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 augment class A {}
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 7 |augment| BUILT_IN
-8 + 5 |class| KEYWORD
-14 + 1 |A| CLASS
+1:1 |augment| BUILT_IN
+1:9 |class| KEYWORD
+1:15 |A| CLASS
 ''');
   }
 
@@ -688,7 +690,7 @@ Never nnn() => throw '';
   }
 
   Future<void> test_class_constructor_fieldFormalParameter() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 class A {
   final int foo;
   A(this.foo);
@@ -697,19 +699,19 @@ class A {
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 5 |class| KEYWORD
-6 + 1 |A| CLASS
-12 + 5 |final| KEYWORD
-18 + 3 |int| CLASS
-22 + 3 |foo| INSTANCE_FIELD_DECLARATION
-29 + 1 |A| CLASS
-31 + 4 |this| KEYWORD
-36 + 3 |foo| INSTANCE_FIELD_REFERENCE
+1:1 |class| KEYWORD
+1:7 |A| CLASS
+2:3 |final| KEYWORD
+2:9 |int| CLASS
+2:13 |foo| INSTANCE_FIELD_DECLARATION
+3:3 |A| CLASS
+3:5 |this| KEYWORD
+3:10 |foo| INSTANCE_FIELD_REFERENCE
 ''');
   }
 
   Future<void> test_class_method_functionTypedFormalParameter() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 class A {
   void foo(int bar(String a)) {}
 }
@@ -717,14 +719,14 @@ class A {
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 5 |class| KEYWORD
-6 + 1 |A| CLASS
-12 + 4 |void| KEYWORD
-17 + 3 |foo| INSTANCE_METHOD_DECLARATION
-21 + 3 |int| CLASS
-25 + 3 |bar| PARAMETER_DECLARATION
-29 + 6 |String| CLASS
-36 + 1 |a| PARAMETER_DECLARATION
+1:1 |class| KEYWORD
+1:7 |A| CLASS
+2:3 |void| KEYWORD
+2:8 |foo| INSTANCE_METHOD_DECLARATION
+2:12 |int| CLASS
+2:16 |bar| PARAMETER_DECLARATION
+2:20 |String| CLASS
+2:27 |a| PARAMETER_DECLARATION
 ''');
   }
 
@@ -746,22 +748,22 @@ void f() {}
 
   Future<void> test_COMMENT() async {
     addTestFile('''
-/**
+/*[0*//**
  * documentation comment
- */
+ *//*0]*/
 void f() {
-  // end-of-line comment
+  /*[1*/// end-of-line comment/*1]*/
   my_function(1);
 }
 
 void my_function(String a) {
- /* block comment */
+  /*[2*//* block comment *//*2]*/
 }
 ''');
     await prepareHighlights();
-    assertHasRegion(HighlightRegionType.COMMENT_DOCUMENTATION, '/**', 32);
-    assertHasRegion(HighlightRegionType.COMMENT_END_OF_LINE, '//', 22);
-    assertHasRegion(HighlightRegionType.COMMENT_BLOCK, '/* b', 19);
+    assertHasRange(HighlightRegionType.COMMENT_DOCUMENTATION, parsedRanges[0]);
+    assertHasRange(HighlightRegionType.COMMENT_END_OF_LINE, parsedRanges[1]);
+    assertHasRange(HighlightRegionType.COMMENT_BLOCK, parsedRanges[2]);
   }
 
   Future<void> test_constantPattern_const() async {
@@ -1012,7 +1014,7 @@ class A {
   }
 
   Future<void> test_enum_constant() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 enum MyEnum {AAA, BBB}
 
 void f() {
@@ -1023,16 +1025,16 @@ void f() {
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 4 |enum| KEYWORD
-5 + 6 |MyEnum| ENUM
-13 + 3 |AAA| ENUM_CONSTANT
-18 + 3 |BBB| ENUM_CONSTANT
-24 + 4 |void| KEYWORD
-29 + 1 |f| TOP_LEVEL_FUNCTION_DECLARATION
-37 + 6 |MyEnum| ENUM
-44 + 3 |AAA| ENUM_CONSTANT
-51 + 6 |MyEnum| ENUM
-58 + 3 |BBB| ENUM_CONSTANT
+1:1 |enum| KEYWORD
+1:6 |MyEnum| ENUM
+1:14 |AAA| ENUM_CONSTANT
+1:19 |BBB| ENUM_CONSTANT
+3:1 |void| KEYWORD
+3:6 |f| TOP_LEVEL_FUNCTION_DECLARATION
+4:3 |MyEnum| ENUM
+4:10 |AAA| ENUM_CONSTANT
+5:3 |MyEnum| ENUM
+5:10 |BBB| ENUM_CONSTANT
 ''');
   }
 
@@ -1048,7 +1050,7 @@ void f() {
   }
 
   Future<void> test_enum_constructor() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 const a = 0;
 
 enum E<T> {
@@ -1059,14 +1061,14 @@ enum E<T> {
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, 0, r'''
-28 + 1 |v| ENUM_CONSTANT
-30 + 3 |int| CLASS
-35 + 5 |named| CONSTRUCTOR
-41 + 1 |a| TOP_LEVEL_GETTER_REFERENCE
-47 + 1 |E| ENUM
-49 + 5 |named| CONSTRUCTOR
-55 + 1 |T| TYPE_PARAMETER
-57 + 1 |a| PARAMETER_DECLARATION
+4:3 |v| ENUM_CONSTANT
+4:5 |int| CLASS
+4:10 |named| CONSTRUCTOR
+4:16 |a| TOP_LEVEL_GETTER_REFERENCE
+5:3 |E| ENUM
+5:5 |named| CONSTRUCTOR
+5:11 |T| TYPE_PARAMETER
+5:13 |a| PARAMETER_DECLARATION
 ''');
   }
 
@@ -1263,50 +1265,50 @@ void f() {
   }
 
   Future<void> test_extension_augment() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 augment extension E {}
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 7 |augment| BUILT_IN
-8 + 9 |extension| KEYWORD
-18 + 1 |E| EXTENSION
+1:1 |augment| BUILT_IN
+1:9 |extension| KEYWORD
+1:19 |E| EXTENSION
 ''');
   }
 
   Future<void> test_extension_augment_hasOnClause() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 augment extension E on int {}
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 7 |augment| BUILT_IN
-8 + 9 |extension| KEYWORD
-18 + 1 |E| EXTENSION
-20 + 2 |on| BUILT_IN
-23 + 3 |int| CLASS
+1:1 |augment| BUILT_IN
+1:9 |extension| KEYWORD
+1:19 |E| EXTENSION
+1:21 |on| BUILT_IN
+1:24 |int| CLASS
 ''');
   }
 
   Future<void> test_extensionType() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 extension type const A<T>.named(int it) implements num {}
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 9 |extension| BUILT_IN
-10 + 4 |type| BUILT_IN
-15 + 5 |const| BUILT_IN
-21 + 1 |A| EXTENSION_TYPE
-23 + 1 |T| TYPE_PARAMETER
-26 + 5 |named| CONSTRUCTOR
-32 + 3 |int| CLASS
-36 + 2 |it| INSTANCE_FIELD_DECLARATION
-40 + 10 |implements| BUILT_IN
-51 + 3 |num| CLASS
+1:1 |extension| BUILT_IN
+1:11 |type| BUILT_IN
+1:16 |const| BUILT_IN
+1:22 |A| EXTENSION_TYPE
+1:24 |T| TYPE_PARAMETER
+1:27 |named| CONSTRUCTOR
+1:33 |int| CLASS
+1:37 |it| INSTANCE_FIELD_DECLARATION
+1:41 |implements| BUILT_IN
+1:52 |num| CLASS
 ''');
   }
 
@@ -1513,7 +1515,7 @@ class A {
   }
 
   Future<void> test_instanceCreation_class() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 class A {
   A.named(int it);
 }
@@ -1524,14 +1526,14 @@ void f() {
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, 0, r'''
-44 + 1 |A| CONSTRUCTOR
-46 + 5 |named| CONSTRUCTOR
-52 + 1 |0| LITERAL_INTEGER
+5:3 |A| CONSTRUCTOR
+5:5 |named| CONSTRUCTOR
+5:11 |0| LITERAL_INTEGER
 ''');
   }
 
   Future<void> test_instanceCreation_extensionType() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 extension type A.named(T it) {}
 void f() {
   [!A.named(0)!];
@@ -1540,9 +1542,9 @@ void f() {
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, 0, r'''
-45 + 1 |A| CONSTRUCTOR
-47 + 5 |named| CONSTRUCTOR
-53 + 1 |0| LITERAL_INTEGER
+3:3 |A| CONSTRUCTOR
+3:5 |named| CONSTRUCTOR
+3:11 |0| LITERAL_INTEGER
 ''');
   }
 
@@ -2043,29 +2045,29 @@ void f() {
   }
 
   Future<void> test_mixin() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 mixin M on int {}
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 5 |mixin| BUILT_IN
-6 + 1 |M| MIXIN
-8 + 2 |on| BUILT_IN
-11 + 3 |int| CLASS
+1:1 |mixin| BUILT_IN
+1:7 |M| MIXIN
+1:9 |on| BUILT_IN
+1:12 |int| CLASS
 ''');
   }
 
   Future<void> test_mixin_base() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 base mixin M {}
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 4 |base| BUILT_IN
-5 + 5 |mixin| BUILT_IN
-11 + 1 |M| MIXIN
+1:1 |base| BUILT_IN
+1:6 |mixin| BUILT_IN
+1:12 |M| MIXIN
 ''');
   }
 
@@ -2083,15 +2085,15 @@ void g() {
   }
 
   Future<void> test_namedType_extensionType() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 extension type A<T>(T it) {}
 void f([!A<int>!] a) {}
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, 0, r'''
-36 + 1 |A| EXTENSION_TYPE
-38 + 3 |int| CLASS
+2:8 |A| EXTENSION_TYPE
+2:10 |int| CLASS
 ''');
   }
 
@@ -2206,7 +2208,7 @@ void f(Object o) {
   }
 
   Future<void> test_propertyAccess_extensionTypeName() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 extension type A.named(T it) {
   static const V = 0;
 }
@@ -2217,8 +2219,8 @@ void f() {
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, 0, r'''
-68 + 1 |A| EXTENSION_TYPE
-70 + 1 |V| STATIC_GETTER_REFERENCE
+5:3 |A| EXTENSION_TYPE
+5:5 |V| STATIC_GETTER_REFERENCE
 ''');
   }
 
@@ -2408,133 +2410,133 @@ class A<T> {
   }
 
   Future<void> test_typedef_classic() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 typedef int MyFunction<T extends num>(T a, String b);
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 7 |typedef| BUILT_IN
-8 + 3 |int| CLASS
-12 + 10 |MyFunction| FUNCTION_TYPE_ALIAS
-23 + 1 |T| TYPE_PARAMETER
-33 + 3 |num| CLASS
-38 + 1 |T| TYPE_PARAMETER
-40 + 1 |a| PARAMETER_DECLARATION
-43 + 6 |String| CLASS
-50 + 1 |b| PARAMETER_DECLARATION
+1:1 |typedef| BUILT_IN
+1:9 |int| CLASS
+1:13 |MyFunction| FUNCTION_TYPE_ALIAS
+1:24 |T| TYPE_PARAMETER
+1:34 |num| CLASS
+1:39 |T| TYPE_PARAMETER
+1:41 |a| PARAMETER_DECLARATION
+1:44 |String| CLASS
+1:51 |b| PARAMETER_DECLARATION
 ''');
   }
 
   Future<void> test_typedef_classic_functionTypedFormalParameter() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 typedef int MyFunction(bool foo());
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 7 |typedef| BUILT_IN
-8 + 3 |int| CLASS
-12 + 10 |MyFunction| FUNCTION_TYPE_ALIAS
-23 + 4 |bool| CLASS
-28 + 3 |foo| PARAMETER_DECLARATION
+1:1 |typedef| BUILT_IN
+1:9 |int| CLASS
+1:13 |MyFunction| FUNCTION_TYPE_ALIAS
+1:24 |bool| CLASS
+1:29 |foo| PARAMETER_DECLARATION
 ''');
   }
 
   Future<void> test_typedef_classic_reference() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 typedef void MyFunction();
 void f(MyFunction a) {}
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 7 |typedef| BUILT_IN
-8 + 4 |void| KEYWORD
-13 + 10 |MyFunction| FUNCTION_TYPE_ALIAS
-27 + 4 |void| KEYWORD
-32 + 1 |f| TOP_LEVEL_FUNCTION_DECLARATION
-34 + 10 |MyFunction| FUNCTION_TYPE_ALIAS
-45 + 1 |a| PARAMETER_DECLARATION
+1:1 |typedef| BUILT_IN
+1:9 |void| KEYWORD
+1:14 |MyFunction| FUNCTION_TYPE_ALIAS
+2:1 |void| KEYWORD
+2:6 |f| TOP_LEVEL_FUNCTION_DECLARATION
+2:8 |MyFunction| FUNCTION_TYPE_ALIAS
+2:19 |a| PARAMETER_DECLARATION
 ''');
   }
 
   Future<void> test_typedef_modern_dynamicType() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 typedef A = dynamic;
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 7 |typedef| BUILT_IN
-8 + 1 |A| TYPE_ALIAS
-12 + 7 |dynamic| TYPE_NAME_DYNAMIC
+1:1 |typedef| BUILT_IN
+1:9 |A| TYPE_ALIAS
+1:13 |dynamic| TYPE_NAME_DYNAMIC
 ''');
   }
 
   Future<void> test_typedef_modern_functionType() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 typedef MyFunction = int Function(int a, {required String b});
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 7 |typedef| BUILT_IN
-8 + 10 |MyFunction| FUNCTION_TYPE_ALIAS
-21 + 3 |int| CLASS
-25 + 8 |Function| BUILT_IN
-34 + 3 |int| CLASS
-38 + 1 |a| PARAMETER_DECLARATION
-42 + 8 |required| KEYWORD
-51 + 6 |String| CLASS
-58 + 1 |b| PARAMETER_DECLARATION
+1:1 |typedef| BUILT_IN
+1:9 |MyFunction| FUNCTION_TYPE_ALIAS
+1:22 |int| CLASS
+1:26 |Function| BUILT_IN
+1:35 |int| CLASS
+1:39 |a| PARAMETER_DECLARATION
+1:43 |required| KEYWORD
+1:52 |String| CLASS
+1:59 |b| PARAMETER_DECLARATION
 ''');
   }
 
   Future<void> test_typedef_modern_interfaceType() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 typedef A = double;
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 7 |typedef| BUILT_IN
-8 + 1 |A| TYPE_ALIAS
-12 + 6 |double| CLASS
+1:1 |typedef| BUILT_IN
+1:9 |A| TYPE_ALIAS
+1:13 |double| CLASS
 ''');
   }
 
   Future<void> test_typedef_modern_interfaceType_typeArguments() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 typedef A = Map<int, String>;
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 7 |typedef| BUILT_IN
-8 + 1 |A| TYPE_ALIAS
-12 + 3 |Map| CLASS
-16 + 3 |int| CLASS
-21 + 6 |String| CLASS
+1:1 |typedef| BUILT_IN
+1:9 |A| TYPE_ALIAS
+1:13 |Map| CLASS
+1:17 |int| CLASS
+1:22 |String| CLASS
 ''');
   }
 
   Future<void> test_typedef_modern_reference() async {
-    var testCode = TestCode.parse(r'''
+    var testCode = TestCode.parseNormalized(r'''
 typedef A = void Function();
 void f(A a) {}
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
-0 + 7 |typedef| BUILT_IN
-8 + 1 |A| FUNCTION_TYPE_ALIAS
-12 + 4 |void| KEYWORD
-17 + 8 |Function| BUILT_IN
-29 + 4 |void| KEYWORD
-34 + 1 |f| TOP_LEVEL_FUNCTION_DECLARATION
-36 + 1 |A| FUNCTION_TYPE_ALIAS
-38 + 1 |a| PARAMETER_DECLARATION
+1:1 |typedef| BUILT_IN
+1:9 |A| FUNCTION_TYPE_ALIAS
+1:13 |void| KEYWORD
+1:18 |Function| BUILT_IN
+2:1 |void| KEYWORD
+2:6 |f| TOP_LEVEL_FUNCTION_DECLARATION
+2:8 |A| FUNCTION_TYPE_ALIAS
+2:10 |a| PARAMETER_DECLARATION
 ''');
   }
 
@@ -2643,7 +2645,8 @@ void f(Object o) {
       var offset = region.offset;
       var end = offset + region.length;
       if (window.contains(offset) || window.contains(end)) {
-        var regionDesc = '$offset + ${region.length}';
+        var location = LineInfo.fromContent(testCode.code).getLocation(offset);
+        var regionDesc = '${location.lineNumber}:${location.columnNumber}';
         var regionCode = testCode.code.substring(offset, end);
         buffer.writeln('$regionDesc |$regionCode| ${region.type.name}');
       }
@@ -2656,6 +2659,14 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
   late List<HighlightRegion> regions;
 
   final Completer<void> _resultsAvailable = Completer();
+
+  void assertHasRange(HighlightRegionType type, TestCodeRange range) {
+    assertHasRawRegion(
+      type,
+      range.sourceRange.offset,
+      range.sourceRange.length,
+    );
+  }
 
   void assertHasRawRegion(HighlightRegionType type, int offset, int length) {
     for (var region in regions) {
@@ -2693,6 +2704,7 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
   }
 
   void assertHasStringRegion(HighlightRegionType type, String str) {
+    str = normalizeNewlinesForPlatform(str);
     var offset = findOffset(str);
     var length = str.length;
     assertHasRawRegion(type, offset, length);
@@ -2768,8 +2780,6 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
 
   @override
   Future<void> setUp() async {
-    useLineEndingsForPlatform = false;
-
     super.setUp();
     await setRoots(included: [workspaceRootPath], excluded: []);
   }

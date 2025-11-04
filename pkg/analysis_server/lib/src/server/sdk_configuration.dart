@@ -24,7 +24,7 @@ class SdkConfiguration {
   }
 
   /// Create an SDK configuration based on any SDK configuration file at
-  /// <dart-sdk>/config/settings.json.
+  /// `<dart-sdk>/config/settings.json`.
   ///
   /// This constructor will still create an object even if a configuration file
   /// is not found.

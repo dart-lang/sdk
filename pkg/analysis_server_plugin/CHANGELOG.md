@@ -1,4 +1,12 @@
-## 0.3.2-dev
+## 0.3.4
+
+- Require version `9.0.0` of the `analyzer` package.
+
+## 0.3.3
+
+- Require version `8.4.0` of the `analyzer` package.
+
+## 0.3.2
 
 - Fix support for automatic re-analysis of '*.dart' files _added_, both on-disk
   and for files added in the IDE.

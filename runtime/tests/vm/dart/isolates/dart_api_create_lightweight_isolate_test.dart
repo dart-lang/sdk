@@ -27,11 +27,16 @@ final class Isolate extends Opaque {}
 abstract class FfiBindings {
   static final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
-  static final IGH_MsanUnpoison = ffiTestFunctions
+  static final IGH_CreatePeer = ffiTestFunctions
+      .lookupFunction<Pointer<Void> Function(), Pointer<Void> Function()>(
+        'IGH_CreatePeer',
+      );
+
+  static final IGH_CheckPeerShutdown = ffiTestFunctions
       .lookupFunction<
-        Pointer<Isolate> Function(Pointer<Void>, IntPtr),
-        Pointer<Isolate> Function(Pointer<Void>, int)
-      >('IGH_MsanUnpoison');
+        Void Function(Pointer<Void>),
+        void Function(Pointer<Void>)
+      >('IGH_CheckPeerShutdown');
 
   static final IGH_CreateIsolate = ffiTestFunctions
       .lookupFunction<
@@ -82,7 +87,6 @@ abstract class FfiBindings {
     Pointer<Void> peer,
   ) {
     final cname = name.toNativeUtf8();
-    IGH_MsanUnpoison(cname.cast(), name.length + 10);
     try {
       final isolate = IGH_CreateIsolate(cname, peer);
       Expect.isTrue(isolate.address != 0);
@@ -105,9 +109,7 @@ abstract class FfiBindings {
     );
     final dartScript = dartScriptUri.toString();
     final libraryUri = dartScript.toNativeUtf8();
-    IGH_MsanUnpoison(libraryUri.cast(), dartScript.length + 1);
     final functionName = name.toNativeUtf8();
-    IGH_MsanUnpoison(functionName.cast(), name.length + 1);
 
     IGH_StartIsolate(
       isolate,
@@ -137,23 +139,14 @@ void scheduleAsyncInvocation(void fun()) {
 }
 
 Future withPeerPointer(fun(Pointer<Void> peer)) async {
-  final Pointer<Void> peer = 'abc'.toNativeUtf8().cast();
-  FfiBindings.IGH_MsanUnpoison(peer.cast(), 'abc'.length + 1);
+  final Pointer<Void> peer = FfiBindings.IGH_CreatePeer();
   try {
     await fun(peer);
   } catch (e, s) {
     print('Exception: $e\nStack:$s');
     rethrow;
   } finally {
-    // The shutdown callback is called before the exit listeners are notified, so
-    // we can validate that a->x has been changed.
-    Expect.isTrue(peer.cast<Utf8>().toDartString().startsWith('xb'));
-
-    // The cleanup callback is called after notifying exit listeners. So we
-    // wait a little here to ensure the write of the callback has arrived.
-    await Future.delayed(const Duration(milliseconds: 100));
-    Expect.equals('xbz', peer.cast<Utf8>().toDartString());
-    calloc.free(peer);
+    FfiBindings.IGH_CheckPeerShutdown(peer);
   }
 }
 

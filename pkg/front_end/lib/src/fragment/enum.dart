@@ -17,7 +17,6 @@ class EnumFragment extends DeclarationFragmentImpl implements Fragment {
   late final Modifiers modifiers;
   late final List<TypeBuilder>? mixins;
   late final List<TypeBuilder>? interfaces;
-  late final List<ConstructorReferenceBuilder> constructorReferences;
   late final int startOffset;
   late final int endOffset;
 

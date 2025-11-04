@@ -626,6 +626,21 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   @override
   DartType? visitBinaryExpression(BinaryExpression node) {
     if (node.operator.end <= offset) {
+      if (node.operator.type == TokenType.EQ_EQ ||
+          node.operator.type == TokenType.BANG_EQ_EQ) {
+        // TODO(kallentu): Fix the parser implementation where dot shorthand
+        // const constructor declarations recover with a wrapping function
+        // expression invocation and then remove this.
+        var rightOperand = node.rightOperand;
+        if (rightOperand is FunctionExpressionInvocation &&
+            rightOperand.function is DotShorthandMixin) {
+          rightOperand = rightOperand.function;
+        }
+        if (rightOperand is DotShorthandMixin && rightOperand.isDotShorthand) {
+          return node.leftOperand.staticType;
+        }
+      }
+
       return node.rightOperand.correspondingParameter?.type;
     }
     return _visitParent(node);
@@ -646,6 +661,11 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
     } else {
       return _visitParent(node);
     }
+  }
+
+  @override
+  DartType? visitConstantPattern(ConstantPattern node) {
+    return _visitParent(node);
   }
 
   @override
@@ -819,6 +839,21 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   ) {
     if (node.function.contains(offset)) {
       return _visitParent(node);
+    }
+    return null;
+  }
+
+  @override
+  DartType? visitGuardedPattern(GuardedPattern node) {
+    if (node.parent
+        case SwitchExpressionCase(parent: SwitchExpression(:var expression)) ||
+            SwitchPatternCase(parent: SwitchStatement(:var expression))) {
+      var when = node.whenClause;
+      if (when != null && range.startEnd(when, node).contains(offset)) {
+        return typeProvider.boolType;
+      } else {
+        return expression.staticType;
+      }
     }
     return null;
   }
@@ -1389,6 +1424,10 @@ extension on ArgumentList {
     } else if (parent is DotShorthandConstructorInvocation) {
       if (parent.constructorName.element
           case ConstructorElement constructorElement) {
+        return constructorElement.type;
+      }
+    } else if (parent is SuperConstructorInvocation) {
+      if (parent.element case ConstructorElement constructorElement) {
         return constructorElement.type;
       }
     }

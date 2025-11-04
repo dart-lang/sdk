@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $runtime == dart_precompiled ]
+VM/digit_separators_t01: SkipByDesign # Debugger is disabled in AOT mode.
+
 [ $runtime == vm ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass # Does many calls
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow, Pass # Does many calls

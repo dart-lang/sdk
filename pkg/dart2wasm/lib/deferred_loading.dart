@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show JsonEncoder;
+import 'dart:io' show File;
+
+import 'package:_fe_analyzer_shared/src/util/relativize.dart'
+    show relativizeUri;
 import 'package:collection/collection.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -9,9 +14,9 @@ import 'package:kernel/core_types.dart';
 
 import 'await_transformer.dart' as await_transformer;
 import 'compiler_options.dart';
-import 'generate_wasm.dart';
 import 'modules.dart';
 import 'target.dart';
+import 'util.dart' show addPragma;
 
 /// The root of a deferred import subgraph.
 ///
@@ -65,38 +70,44 @@ class _RootSet {
 /// deferred roots that eagerly require that library. Two libraries have an
 /// equal [_RootSet] if they are required by the same set of deferred roots.
 /// Having an equal [_RootSet] means that the libraries will always need to be
-/// loaded together so we include them in the same [ModuleOutput].
+/// loaded together so we include them in the same [ModuleMetadata].
 ///
-/// Once we've visited all the deferred roots we create one [ModuleOutput] per
+/// Once we've visited all the deferred roots we create one [ModuleMetadata] per
 /// unique [_RootSet] and include all libraries with that [_RootSet] in the
-/// [ModuleOutput]. Finally, [ModuleOutput] is added to the load list of every
+/// [ModuleMetadata]. Finally, [ModuleMetadata] is added to the load list of every
 /// deferred root in the [_RootSet].
 ///
 /// To support the actual process of loading the deferred wasm modules, we also
 /// collect a mapping from each import site (i.e. a library and deferred import
 /// name pair) to the load list needed at that import site.
-class DeferredLoadingModuleStrategy extends DefaultModuleStrategy {
+class DeferredLoadingModuleStrategy extends ModuleStrategy {
+  final Component component;
   final WasmCompilerOptions options;
   final WasmTarget kernelTarget;
   final CoreTypes coreTypes;
+  late final ModuleOutputData moduleOutputData;
 
   DeferredLoadingModuleStrategy(
-      super.component, this.options, this.kernelTarget, this.coreTypes);
+      this.component, this.options, this.kernelTarget, this.coreTypes);
 
   @override
-  ModuleOutputData buildModuleOutputData() {
+  void prepareComponent() {}
+
+  @override
+  Future<void> processComponentAfterTfa(
+      DeferredModuleLoadingMap loadingMap) async {
     final (libraryToRootSet, importTargetMap) = _buildLibraryToImports();
 
-    final moduleBuilder = ModuleOutputBuilder();
-    // Dedupe root sets combining equal sets into a single ModuleOutput.
-    final mainModule = moduleBuilder.buildModule();
-    final Map<_RootSet, ModuleOutput> rootSetToModule = {};
-    final Map<Library, List<ModuleOutput>> rootToModules = {};
+    final builder = ModuleMetadataBuilder(options);
+    // Dedupe root sets combining equal sets into a single ModuleMetadata.
+    final mainModule = builder.buildModuleMetadata();
+    final Map<_RootSet, ModuleMetadata> rootSetToModule = {};
+    final Map<Library, List<ModuleMetadata>> rootToModules = {};
     libraryToRootSet.forEach((targetLibrary, rootSet) {
       // If the libary is used by the entryPoint root, then assign it to the
       // main module immediately. It should not be split into its own module,
       // even if another root depends on it.
-      ModuleOutput? module =
+      ModuleMetadata? module =
           rootSet.containsEntryPoint ? mainModule : rootSetToModule[rootSet];
       if (module != null) {
         // We've already seen a library required by the same roots so added it
@@ -107,7 +118,7 @@ class DeferredLoadingModuleStrategy extends DefaultModuleStrategy {
 
       // This library is used by a new set of roots so create a new module for
       // it. Each root that needs this library should depend on this module.
-      module = rootSetToModule[rootSet] = moduleBuilder.buildModule();
+      module = rootSetToModule[rootSet] = builder.buildModuleMetadata();
 
       module.libraries.add(targetLibrary);
       for (final root in rootSet.libraries) {
@@ -115,19 +126,22 @@ class DeferredLoadingModuleStrategy extends DefaultModuleStrategy {
       }
     });
 
-    final Map<Library, Map<String, List<ModuleOutput>>> importMap = {};
     importTargetMap.forEach((enclosingLibrary, nameToTarget) {
-      final outputMapping = <String, List<ModuleOutput>>{};
       nameToTarget.forEach((importName, targetLibrary) {
-        // Modules can be empty if the library was also imported eagerly
-        // under the same root.
-        outputMapping[importName] = rootToModules[targetLibrary] ?? const [];
+        final modules = rootToModules[targetLibrary];
+        if (modules != null) {
+          loadingMap.addModuleToLibraryImport(
+              enclosingLibrary, importName, modules);
+        }
       });
-      importMap[enclosingLibrary] = outputMapping;
     });
 
-    return ModuleOutputData([mainModule, ...rootSetToModule.values], importMap);
+    moduleOutputData =
+        ModuleOutputData([mainModule, ...rootSetToModule.values]);
   }
+
+  @override
+  ModuleOutputData buildModuleOutputData() => moduleOutputData;
 
   bool _isRequiredLibrary(Library lib) {
     final importUri = lib.importUri;
@@ -205,6 +219,8 @@ class StressTestModuleStrategy extends ModuleStrategy {
   final CoreTypes coreTypes;
   final WasmTarget kernelTarget;
   final ClassHierarchy classHierarchy;
+  final WasmCompilerOptions options;
+  late final ModuleOutputData moduleOutputData;
 
   /// We load all 'dart:*' libraries since just doing the deferred load of modules
   /// requires a significant portion of the SDK libraries.
@@ -213,8 +229,8 @@ class StressTestModuleStrategy extends ModuleStrategy {
         (l) => l.importUri.scheme == 'dart' || containsWasmExport(coreTypes, l))
   };
 
-  StressTestModuleStrategy(
-      this.component, this.coreTypes, this.kernelTarget, this.classHierarchy);
+  StressTestModuleStrategy(this.component, this.coreTypes, this.options,
+      this.kernelTarget, this.classHierarchy);
 
   /// Augments the `_invokeMain` JS->WASM entry point with test mode setup.
   ///
@@ -224,21 +240,19 @@ class StressTestModuleStrategy extends ModuleStrategy {
   @override
   void prepareComponent() {
     final initLibraries = _testModeMainLibraries;
-    final loadLibrary =
-        coreTypes.index.getTopLevelProcedure('dart:_internal', 'loadLibrary');
+    final internalLib = coreTypes.index.getLibrary('dart:_internal');
     final invokeMain =
         coreTypes.index.getTopLevelProcedure('dart:_internal', '_invokeMain');
+
     final loadStatements = <Statement>[];
     for (final library in getReachableLibraries(
         component.mainMethod!.enclosingLibrary, coreTypes, kernelTarget)) {
       if (initLibraries.contains(library)) continue;
-      final loadLibraryCall = StaticInvocation(
-          loadLibrary,
-          Arguments([
-            StringLiteral('${invokeMain.enclosingLibrary.importUri}'),
-            StringLiteral('${library.importUri}')
-          ]));
-      loadStatements.add(ExpressionStatement(AwaitExpression(loadLibraryCall)));
+      final import =
+          LibraryDependency.deferredImport(library, '${library.importUri}');
+      internalLib.addDependency(import);
+      loadStatements
+          .add(ExpressionStatement(AwaitExpression(LoadLibrary(import))));
     }
 
     invokeMain.function.asyncMarker = AsyncMarker.Async;
@@ -247,9 +261,9 @@ class StressTestModuleStrategy extends ModuleStrategy {
     final oldBody = invokeMain.function.body!;
 
     // Add print of 'unittest-suite-wait-for-done' to indicate to test harnesses
-    // that the test contains async work. Any test using test most must therefore
-    // also include a concluding 'unittest-suite-done' message. Usually via calls
-    // to `asyncStart` and `asyncEnd` helpers.
+    // that the test contains async work. Any test must therefore also include a
+    // concluding 'unittest-suite-done' message. Usually via calls to
+    // `asyncStart` and `asyncEnd` helpers.
     final asyncStart = ExpressionStatement(StaticInvocation(
         coreTypes.printProcedure,
         Arguments([StringLiteral('unittest-suite-wait-for-done')])));
@@ -262,27 +276,126 @@ class StressTestModuleStrategy extends ModuleStrategy {
   }
 
   @override
-  ModuleOutputData buildModuleOutputData() {
-    final moduleBuilder = ModuleOutputBuilder();
-    final mainModule = moduleBuilder.buildModule();
+  Future<void> processComponentAfterTfa(
+      DeferredModuleLoadingMap loadingMap) async {
+    final moduleBuilder = ModuleMetadataBuilder(options);
+    final mainModule = moduleBuilder.buildModuleMetadata();
     final initLibraries = _testModeMainLibraries;
     mainModule.libraries.addAll(initLibraries);
-    final modules = <ModuleOutput>[];
-    final importMap = <String, List<ModuleOutput>>{};
+    final modules = <ModuleMetadata>[];
+    final importMap = <String, List<ModuleMetadata>>{};
+
+    final internalLib = coreTypes.index.getLibrary('dart:_internal');
 
     // Put each library in a separate module.
     for (final library in component.libraries) {
       if (initLibraries.contains(library)) continue;
-      final module = moduleBuilder.buildModule();
+      final module = moduleBuilder.buildModuleMetadata();
       modules.add(module);
       module.libraries.add(library);
       final importName = '${library.importUri}';
       importMap[importName] = [module];
+      loadingMap.addModuleToLibraryImport(internalLib, importName, [module]);
     }
 
-    final invokeMain =
-        coreTypes.index.getTopLevelProcedure('dart:_internal', '_invokeMain');
-    return ModuleOutputData(
-        [mainModule, ...modules], {invokeMain.enclosingLibrary: importMap});
+    moduleOutputData = ModuleOutputData([mainModule, ...modules]);
+  }
+
+  @override
+  ModuleOutputData buildModuleOutputData() => moduleOutputData;
+}
+
+Future<void> writeLoadIdsFile(Component component, CoreTypes coreTypes,
+    WasmCompilerOptions options, DeferredModuleLoadingMap loadingMap) async {
+  final file = File.fromUri(options.loadsIdsUri!);
+  await file.create(recursive: true);
+  await file.writeAsString(
+    _generateDeferredMapJson(component,
+        component.mainMethod!.enclosingLibrary.importUri, loadingMap),
+  );
+}
+
+String _generateDeferredMapJson(Component component, Uri rootLibraryUri,
+    DeferredModuleLoadingMap loadingMap) {
+  final output = <String, dynamic>{};
+  loadingMap.loadIds.forEach((tuple, loadId) {
+    final modules = loadingMap.moduleMap[loadId];
+    final (library, prefix) = tuple;
+    final libOutput =
+        output[relativizeUri(rootLibraryUri, library.importUri, false)] ??= {
+      'name': library.name ?? '<unnamed>',
+      'imports': <String, List<String>>{},
+      'importPrefixToLoadId': <String, String>{},
+    };
+    // For consistency with dart2js we use 1-based indexing in the generated
+    // json file.
+    final dart2jsLoadId = loadId + 1;
+    final dart2jsLoadIdStr = dart2jsLoadId.toString();
+    libOutput['imports']![dart2jsLoadIdStr] =
+        modules.map((m) => m.moduleName).toList();
+    libOutput['importPrefixToLoadId'][prefix] = dart2jsLoadIdStr;
+  });
+
+  return const JsonEncoder.withIndent('  ').convert(output);
+}
+
+class DeferredLoadingLowering extends Transformer {
+  final CoreTypes coreTypes;
+  final DeferredModuleLoadingMap loadingMap;
+
+  // These will only exist if the [Component] has actual deferred libraries. So
+  // access them lazily.
+  late final Procedure _loadLibraryFromLoadId = coreTypes.index
+      .getTopLevelProcedure('dart:_internal', 'loadLibraryFromLoadId');
+  late final Procedure _checkLibraryIsLoadedFromLoadId = coreTypes.index
+      .getTopLevelProcedure('dart:_internal', 'checkLibraryIsLoadedFromLoadId');
+
+  Map<String, int> _libraryLoadIds = {};
+
+  DeferredLoadingLowering(this.coreTypes, this.loadingMap);
+
+  static void markRuntimeFunctionsAsEntrypoints(CoreTypes coreTypes) {
+    addEntryPointPragma(
+        coreTypes,
+        coreTypes.index
+            .getTopLevelProcedure('dart:_internal', 'loadLibraryFromLoadId'));
+    addEntryPointPragma(
+        coreTypes,
+        coreTypes.index.getTopLevelProcedure(
+            'dart:_internal', 'checkLibraryIsLoadedFromLoadId'));
+  }
+
+  @override
+  TreeNode visitLibrary(Library node) {
+    // Assign a load ID to each deferred import.
+    _libraryLoadIds = {};
+    for (final dep in node.dependencies) {
+      if (!dep.isDeferred) continue;
+      final name = dep.name!;
+      _libraryLoadIds[name] = loadingMap.loadIds[(node, name)]!;
+    }
+
+    // Don't visit this library if there are no deferred imports.
+    return _libraryLoadIds.isEmpty ? node : super.visitLibrary(node);
+  }
+
+  @override
+  TreeNode visitLoadLibrary(LoadLibrary node) {
+    final import = node.import;
+    final loadId = _libraryLoadIds[import.name!]!;
+    return StaticInvocation(
+        _loadLibraryFromLoadId, Arguments([IntLiteral(loadId)]));
+  }
+
+  @override
+  TreeNode visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    final import = node.import;
+    final loadId = _libraryLoadIds[import.name!]!;
+    return StaticInvocation(
+        _checkLibraryIsLoadedFromLoadId, Arguments([IntLiteral(loadId)]));
+  }
+
+  static void addEntryPointPragma(CoreTypes coreTypes, Procedure node) {
+    addPragma(node, 'wasm:entry-point', coreTypes, value: BoolConstant(true));
   }
 }

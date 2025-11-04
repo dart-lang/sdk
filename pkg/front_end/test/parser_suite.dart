@@ -11,6 +11,8 @@ import 'package:_fe_analyzer_shared/src/experiments/errors.dart'
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart'
     as shared
     show ExperimentalFlag;
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthOfSpan;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -239,8 +241,7 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
     Parser parser = new Parser(
       parserTestListener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: shouldAllowPatterns(shortName),
-      enableFeatureEnhancedParts: shouldAllowEnhancedParts(shortName),
+      experimentalFeatures: new TestDescriptionExperimentalFeatures(shortName),
     );
     parser.parseUnit(firstToken);
     return parserTestListener;
@@ -321,8 +322,9 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
     TestParser parser = new TestParser(
       parserTestListener,
       context.addTrace,
-      allowPatterns: shouldAllowPatterns(description.shortName),
-      enableEnhancedParts: shouldAllowEnhancedParts(description.shortName),
+      experimentalFeatures: new TestDescriptionExperimentalFeatures(
+        description.shortName,
+      ),
     );
     parserTestListener.parser = parser;
     parser.sb = parserTestListener.sb;
@@ -334,6 +336,26 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
       description.uri,
       description,
     );
+  }
+}
+
+class TestDescriptionExperimentalFeatures extends DefaultExperimentalFeatures {
+  final String shortName;
+
+  TestDescriptionExperimentalFeatures(this.shortName);
+
+  @override
+  bool isExperimentEnabled(shared.ExperimentalFlag flag) {
+    return switch (flag) {
+      // TODO(johnniwinther): Use 'folder.options' for this instead.
+      shared.ExperimentalFlag.patterns => shouldAllowPatterns(shortName),
+      shared.ExperimentalFlag.enhancedParts => shouldAllowEnhancedParts(
+        shortName,
+      ),
+      shared.ExperimentalFlag.declaringConstructors =>
+        shouldAllowDeclaringConstructors(shortName),
+      _ => super.isExperimentEnabled(flag),
+    };
   }
 }
 
@@ -379,8 +401,7 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
     Parser parser = new Parser(
       parserTestListener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: shouldAllowPatterns(description.shortName),
-      enableFeatureEnhancedParts: shouldAllowEnhancedParts(
+      experimentalFeatures: new TestDescriptionExperimentalFeatures(
         description.shortName,
       ),
     );
@@ -540,6 +561,11 @@ bool shouldAllowPatterns(String shortName) {
 bool shouldAllowEnhancedParts(String shortName) {
   String firstDir = shortName.split("/")[0];
   return firstDir == "enhanced_parts";
+}
+
+bool shouldAllowDeclaringConstructors(String shortName) {
+  String firstDir = shortName.split("/")[0];
+  return firstDir == "declaring_constructors";
 }
 
 Token scanRawBytes(

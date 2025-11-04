@@ -45,7 +45,9 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
@@ -80,6 +82,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
     as analyzer_plugin;
@@ -187,6 +190,9 @@ abstract class AnalysisServer {
   /// The instrumentation service that is to be used by this analysis server.
   InstrumentationService instrumentationService;
 
+  /// The session logger that is to be used by this analysis server.
+  SessionLogger sessionLogger;
+
   /// Performance information after initial analysis is complete
   /// or `null` if the initial analysis is not yet complete
   ServerPerformance? performanceAfterStartup;
@@ -284,6 +290,7 @@ abstract class AnalysisServer {
     this.crashReportingAttachmentsBuilder,
     ResourceProvider baseResourceProvider,
     this.instrumentationService,
+    this.sessionLogger,
     http.Client? httpClient,
     ProcessRunner? processRunner,
     this.notificationManager, {
@@ -380,6 +387,7 @@ abstract class AnalysisServer {
       analysisPerformanceLogger,
       analysisDriverScheduler,
       instrumentationService,
+      sessionLogger,
       enableBlazeWatcher: enableBlazeWatcher,
       withFineDependencies: options.withFineDependencies,
     );
@@ -562,7 +570,7 @@ abstract class AnalysisServer {
     switch (dtd?.state) {
       case DtdConnectionState.Connecting || DtdConnectionState.Connected:
         return lsp.error(
-          lsp.ServerErrorCodes.StateError,
+          lsp.ServerErrorCodes.stateError,
           'Server is already connected to DTD',
         );
       case DtdConnectionState.Disconnected || DtdConnectionState.Error || null:
@@ -823,7 +831,12 @@ abstract class AnalysisServer {
       _isFirstAnalysisSinceContextsBuilt = false;
       _dartFixPrompt.triggerCheck();
     }
-    analyticsManager.analysisStatusChanged(status.isWorking);
+    analyticsManager.analysisStatusChanged(
+      isWorking: status.isWorking,
+      statistics: status
+          .ifTypeOrNull<analysis.AnalysisStatusIdle>()
+          ?.workingStatistics,
+    );
   }
 
   /// Immediately handles an LSP message by delegating to the
@@ -938,13 +951,29 @@ abstract class AnalysisServer {
     var transitiveFilePaths = <String>{};
     var transitiveFileUniqueLineCount = 0;
     var libraryCycles = <LibraryCycle>{};
+    var workspaceTypes = <int>[0, 0, 0];
+    var numberOfPackages = <int>[];
     var driverMap = contextManager.driverMap;
     for (var entry in driverMap.entries) {
       var rootPath = entry.key.path;
       var driver = entry.value;
-      var contextRoot = driver.analysisContext?.contextRoot;
-      if (contextRoot != null) {
+      var analysisContext = driver.analysisContext;
+      if (analysisContext != null) {
+        var contextRoot = analysisContext.contextRoot;
         packagesFileMap[rootPath] = contextRoot.packagesFile;
+        var workspace = contextRoot.workspace;
+        if (workspace is PackageConfigWorkspace) {
+          if (workspace.isPubWorkspace) {
+            // Pub workspace index = 2, Package workspace index = 1
+            workspaceTypes[2]++;
+            numberOfPackages.add(workspace.allPackages.length);
+          } else {
+            workspaceTypes[1]++;
+          }
+        } else {
+          // Blaze, GN or other workspace index  = 0
+          workspaceTypes[0]++;
+        }
       }
       var fileSystemState = driver.fsState;
       // Capture the known files before the loop to prevent a concurrent
@@ -995,6 +1024,8 @@ abstract class AnalysisServer {
       transitiveFileUniqueLineCount: transitiveFileUniqueLineCount,
       libraryCycleLibraryCounts: libraryCycleLibraryCounts,
       libraryCycleLineCounts: libraryCycleLineCounts,
+      contextWorkspaceType: workspaceTypes,
+      numberOfPackagesInWorkspace: numberOfPackages,
     );
   }
 
@@ -1012,11 +1043,44 @@ abstract class AnalysisServer {
       return null;
     }
 
+    var result = _tryGetCachedResolvedUnitAsResolvedForCompletion(driver, path);
+    if (result != null) return result;
+
     try {
-      await driver.applyPendingFileChanges();
       return await driver.resolveForCompletion(
         path: path,
         offset: offset,
+        performance: performance,
+      );
+    } catch (e, st) {
+      instrumentationService.logException(e, st);
+    }
+    return null;
+  }
+
+  Future<ResolvedForCompletionResultImpl?> resolveForCompletionWithLineColumn({
+    required String path,
+    required int line,
+    required int column,
+    required OperationPerformanceImpl performance,
+  }) async {
+    if (!file_paths.isDart(resourceProvider.pathContext, path)) {
+      return null;
+    }
+
+    var driver = getAnalysisDriver(path);
+    if (driver == null) {
+      return null;
+    }
+
+    var result = _tryGetCachedResolvedUnitAsResolvedForCompletion(driver, path);
+    if (result != null) return result;
+
+    try {
+      return await driver.resolveForCompletionWithLineColumn(
+        path: path,
+        line: line,
+        column: column,
         performance: performance,
       );
     } catch (e, st) {
@@ -1077,6 +1141,34 @@ abstract class AnalysisServer {
     surveyManager?.shutdown();
     await contextManager.dispose();
     await analyticsManager.shutdown();
+  }
+
+  ResolvedForCompletionResultImpl?
+  _tryGetCachedResolvedUnitAsResolvedForCompletion(
+    AnalysisDriver driver,
+    String path,
+  ) {
+    try {
+      ResolvedUnitResult? result = driver.getCachedResolvedUnit(path);
+      if (result != null) {
+        result as ResolvedUnitResultImpl;
+        return ResolvedForCompletionResultImpl(
+          analysisSession: result.session,
+          fileState: result.fileState,
+          path: path,
+          uri: result.uri,
+          exists: result.exists,
+          content: result.content,
+          lineInfo: result.lineInfo,
+          parsedUnit: result.unit,
+          unitElement: result.libraryFragment,
+          resolvedNodes: [result.unit],
+        );
+      }
+    } catch (e, st) {
+      instrumentationService.logException(e, st);
+    }
+    return null;
   }
 }
 
@@ -1225,7 +1317,7 @@ enum MessageType {
 
 class ServerRecentPerformance {
   /// The maximum number of performance measurements to keep.
-  static const int performanceListMaxLength = 50;
+  static const int performanceListMaxLength = 250;
 
   /// The maximum number of slow performance measurements to keep.
   static const int slowRequestsListMaxLength = 1000;

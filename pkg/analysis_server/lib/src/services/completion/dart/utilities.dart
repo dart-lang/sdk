@@ -42,7 +42,7 @@ String buildClosureParameters(
   var hasNamed = false;
   var hasOptionalPositional = false;
   var parameters = type.formalParameters;
-  var existingNames = parameters.map((p) => p.displayName).toSet();
+  var existingNames = parameters.map((p) => p.name).nonNulls.toSet();
   for (var i = 0; i < parameters.length; ++i) {
     var parameter = parameters[i];
     if (i != 0) {
@@ -59,7 +59,7 @@ String buildClosureParameters(
       buffer.write(parameter.type);
       buffer.write(' ');
     }
-    var name = parameter.displayName;
+    var name = parameter.name ?? '';
     if (name.isEmpty) {
       name = 'p$i';
       var index = 1;
@@ -88,7 +88,6 @@ String buildClosureParameters(
 /// Compute default argument list text and ranges based on the given
 /// [requiredParams] and [namedParams].
 CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
-  Element element,
   Iterable<FormalParameterElement> requiredParams,
   Iterable<FormalParameterElement> namedParams,
 ) {

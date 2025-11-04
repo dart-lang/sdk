@@ -46,7 +46,7 @@ void f2(String s) {
 @reflectiveTest
 class ReplaceNullWithClosureTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_NULL_WITH_CLOSURE;
+  FixKind get kind => DartFixKind.replaceNullWithClosure;
 
   @override
   String get lintCode => LintNames.null_closures;

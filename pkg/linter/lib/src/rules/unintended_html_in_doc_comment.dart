@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -120,7 +121,7 @@ const _validHtmlTags = [
   'wbr',
 ];
 
-class UnintendedHtmlInDocComment extends LintRule {
+class UnintendedHtmlInDocComment extends AnalysisRule {
   UnintendedHtmlInDocComment()
     : super(name: LintNames.unintended_html_in_doc_comment, description: _desc);
 
@@ -195,7 +196,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     caseSensitive: false,
   );
 
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

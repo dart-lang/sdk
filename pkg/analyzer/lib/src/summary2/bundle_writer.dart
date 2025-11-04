@@ -791,7 +791,11 @@ class BundleWriter {
     void Function() f,
   ) {
     // TODO(scheglov): review
-    var typeParameters = typeParameterFragments.map((f) => f.element).toList();
+    var typeParameters = List.generate(
+      typeParameterFragments.length,
+      (index) => typeParameterFragments[index].element,
+      growable: false,
+    );
     _resolutionSink.localElements.withElements(typeParameters, () {
       _sink.writeList(typeParameterFragments, _writeTypeParameterElement);
       f();
@@ -1253,14 +1257,16 @@ class _LocalElementIndexer {
   }
 
   void withElements(List<ElementImpl> elements, void Function() f) {
-    for (var element in elements) {
+    for (int i = 0; i < elements.length; i++) {
+      var element = elements[i];
       _index[element] = _stackHeight++;
     }
 
     f();
 
     _stackHeight -= elements.length;
-    for (var element in elements) {
+    for (int i = 0; i < elements.length; i++) {
+      var element = elements[i];
       _index.remove(element);
     }
   }

@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -38,7 +39,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/requirements.dart';
@@ -57,6 +58,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
@@ -107,7 +109,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 571;
+  static const int DATA_VERSION = 582;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -299,9 +301,7 @@ class AnalysisDriver {
     required this.withFineDependencies,
     this.ownedFiles,
     this.analysisContext,
-    @Deprecated("Use 'analysisOptionsMap' instead")
-    AnalysisOptionsImpl? analysisOptions,
-    AnalysisOptionsMap? analysisOptionsMap,
+    required this.analysisOptionsMap,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     this.enableIndex = false,
@@ -324,11 +324,6 @@ class AnalysisDriver {
        declaredVariables = declaredVariables ?? DeclaredVariables(),
        testingData = retainDataForTesting ? TestingData() : null,
        _enableLintRuleTiming = enableLintRuleTiming,
-       // This '!' is temporary. The analysisOptionsMap is effectively
-       // required but can't be until Google3 is updated.
-       analysisOptionsMap = analysisOptions == null
-           ? analysisOptionsMap!
-           : AnalysisOptionsMap.forSharedOptions(analysisOptions),
        _saltForUnlinked = _calculateSaltForUnlinked(enableIndex: enableIndex),
        _saltForElements = _calculateSaltForElements(
          declaredVariables ?? DeclaredVariables(),
@@ -656,9 +651,13 @@ class AnalysisDriver {
       return;
     }
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
+      var file = resourceProvider.getFile(path);
+      _lastProducedSignatures.remove(path);
+      _lastProducedDiagnosticIds.remove(file);
       _priorityResults.clear();
       _resolvedLibraryCache.clear();
       _pendingFileChanges.add(_FileChange(path, _FileChangeKind.change));
+      _scheduler._fileUpdatesStatistics.changedFiles.add(path);
       _scheduler.notify();
     }
   }
@@ -1268,6 +1267,7 @@ class AnalysisDriver {
       _priorityResults.clear();
       _resolvedLibraryCache.clear();
       _pendingFileChanges.add(_FileChange(path, _FileChangeKind.remove));
+      _scheduler._fileUpdatesStatistics.removedFiles.add(path);
       _scheduler.notify();
     }
   }
@@ -1285,6 +1285,26 @@ class AnalysisDriver {
     var request = _ResolveForCompletionRequest(
       path: path,
       offset: offset,
+      line: null,
+      column: null,
+      performance: performance,
+    );
+    _resolveForCompletionRequests.add(request);
+    _scheduler.notify();
+    return request.completer.future;
+  }
+
+  Future<ResolvedForCompletionResultImpl?> resolveForCompletionWithLineColumn({
+    required String path,
+    required int line,
+    required int column,
+    required OperationPerformanceImpl performance,
+  }) {
+    var request = _ResolveForCompletionRequest(
+      path: path,
+      offset: null,
+      line: line,
+      column: column,
       performance: performance,
     );
     _resolveForCompletionRequests.add(request);
@@ -1455,6 +1475,13 @@ class AnalysisDriver {
               requirements: requirements!,
               serializedFileResults: serializedFileResults,
               performance: performance,
+            );
+            LibraryDiagnosticsBundle.writeDigest(
+              byteStore: _byteStore,
+              elementFactory: libraryContext.elementFactory,
+              bundleKey: key,
+              bundleId: id,
+              requirements: requirements,
             );
             for (var unitResult in results) {
               var unitResource = unitResult.file.resource;
@@ -1882,9 +1909,9 @@ class AnalysisDriver {
     required OperationPerformanceImpl performance,
   }) {
     return performance.run('getLibraryDiagnosticsBundle', (performance) {
+      var bundleKey = _getLibraryDiagnosticsKey(library);
       var bundle = performance.run('readFromBytes', (performance) {
-        var key = _getLibraryDiagnosticsKey(library);
-        var bytes = _byteStore.get(key);
+        var bytes = _byteStore.get(bundleKey);
         if (bytes != null) {
           performance.getDataInt('hasBytes').increment();
           performance.getDataInt('bytes').add(bytes.length);
@@ -1900,10 +1927,13 @@ class AnalysisDriver {
       }
 
       var elementFactory = libraryContext.elementFactory;
-      var digestSatisfied = performance.run('checkDigest', (performance) {
-        return bundle.requirementsDigest.isSatisfied(elementFactory);
-      });
-      if (digestSatisfied) {
+      if (performance.run('checkDigest', (performance) {
+        return bundle.isDigestSatisfied(
+          byteStore: _byteStore,
+          elementFactory: elementFactory,
+          bundleKey: bundleKey,
+        );
+      })) {
         return bundle;
       }
 
@@ -1920,10 +1950,20 @@ class AnalysisDriver {
           failure: failure,
         ),
       );
-      if (failure == null) {
-        return bundle;
+      if (failure != null) {
+        return null;
       }
-      return null;
+
+      // Requirements satisfied; refresh the fast-path digest entry.
+      LibraryDiagnosticsBundle.writeDigest(
+        byteStore: _byteStore,
+        elementFactory: elementFactory,
+        bundleKey: bundleKey,
+        bundleId: bundle.id,
+        requirements: bundle.requirements,
+      );
+
+      return bundle;
     });
   }
 
@@ -2064,109 +2104,139 @@ class AnalysisDriver {
   }
 
   void _produceErrors(String path) {
-    scheduler.accumulatedPerformance.run('produceErrors', (performance) {
-      var file = _fsState.getFileForPath(path);
+    var workingStatistics = _scheduler._workingStatistics;
+    workingStatistics?.produceErrorsTimer.start();
+    try {
+      scheduler.accumulatedPerformance.run('produceErrors', (performance) {
+        var file = _fsState.getFileForPath(path);
 
-      // Prepare the library - the file itself, or the known library.
-      var kind = file.kind;
-      var library = kind.library ?? kind.asLibrary;
+        // Prepare the library - the file itself, or the known library.
+        var kind = file.kind;
+        var library = kind.library ?? kind.asLibrary;
 
-      if (_completeRequestsIfMissingSdkLibrary(library)) {
-        return;
-      }
-
-      // Errors are based on elements, so load them.
-      performance.run('libraryContext', (performance) {
-        libraryContext.load(targetLibrary: library, performance: performance);
-
-        for (var import in library.docLibraryImports) {
-          if (import is LibraryImportWithFile) {
-            if (import.importedLibrary case var libraryFileKind?) {
-              libraryContext.load(
-                targetLibrary: libraryFileKind,
-                performance: OperationPerformanceImpl('<root>'),
-              );
-            }
+        if (workingStatistics case var workingStatistics?) {
+          for (var file in library.files) {
+            workingStatistics.produceErrorsPotentialFileCount++;
+            workingStatistics.produceErrorsPotentialFileLineCount +=
+                file.lineInfo.lineCount;
           }
         }
-      });
 
-      if (withFineDependencies) {
-        var bundle = _getLibraryDiagnosticsBundle(
-          library: library,
-          performance: performance,
-        );
+        if (_completeRequestsIfMissingSdkLibrary(library)) {
+          return;
+        }
 
-        if (bundle != null) {
-          for (var fileEntry in bundle.serializedFileResults.entries) {
-            var file = library.files
-                .where((file) => file.uri == fileEntry.key)
-                .single;
-            _fileTracker.fileWasAnalyzed(file.path);
-            if (_lastProducedDiagnosticIds[file.resource] == bundle.id) {
-              // Don't produce diagnostics if the same as the last time.
-            } else {
-              var result = _createErrorsResultFromBytes(
-                file,
-                library,
-                fileEntry.value,
-              );
+        // Errors are based on elements, so load them.
+        workingStatistics?.produceErrorsElementsTimer.start();
+        try {
+          performance.run('libraryContext', (performance) {
+            libraryContext.load(
+              targetLibrary: library,
+              performance: performance,
+            );
+
+            for (var import in library.docLibraryImports) {
+              if (import is LibraryImportWithFile) {
+                if (import.importedLibrary case var libraryFileKind?) {
+                  libraryContext.load(
+                    targetLibrary: libraryFileKind,
+                    performance: OperationPerformanceImpl('<root>'),
+                  );
+                }
+              }
+            }
+          });
+        } finally {
+          workingStatistics?.produceErrorsElementsTimer.stop();
+        }
+
+        if (withFineDependencies) {
+          var bundle = _getLibraryDiagnosticsBundle(
+            library: library,
+            performance: performance,
+          );
+
+          if (bundle != null) {
+            for (var fileEntry in bundle.serializedFileResults.entries) {
+              var file = library.files
+                  .where((file) => file.uri == fileEntry.key)
+                  .single;
+              _fileTracker.fileWasAnalyzed(file.path);
+              if (_lastProducedDiagnosticIds[file.resource] == bundle.id) {
+                // Don't produce diagnostics if the same as the last time.
+              } else {
+                var result = _createErrorsResultFromBytes(
+                  file,
+                  library,
+                  fileEntry.value,
+                );
+                _errorsRequestedFiles.completeAll(file.path, result);
+                _scheduler.eventsController.add(result);
+              }
+            }
+            return;
+          }
+        } else {
+          // Check if we have cached errors for all library files.
+          List<(FileState, String, Uint8List)>? forAllFiles = [];
+          for (var file in library.files) {
+            // If the file is priority, we need the resolved unit.
+            // So, the cached errors is not enough.
+            if (priorityFiles.contains(file.path)) {
+              forAllFiles = null;
+              break;
+            }
+
+            var signature = _getResolvedUnitSignature(library, file);
+            var key = _getResolvedUnitKey(signature);
+
+            var bytes = _byteStore.get(key);
+            if (bytes == null) {
+              forAllFiles = null;
+              break;
+            }
+
+            // Will not be `null` here.
+            forAllFiles?.add((file, signature, bytes));
+          }
+
+          // If we have results for all library files, produce them.
+          if (forAllFiles != null) {
+            for (var (file, signature, bytes) in forAllFiles) {
+              // We have the result for this file.
+              _fileTracker.fileWasAnalyzed(file.path);
+
+              // Don't produce the result if the signature is the same.
+              if (_lastProducedSignatures[file.path] == signature) {
+                continue;
+              }
+
+              // Produce the result from bytes.
+              var result = _createErrorsResultFromBytes(file, library, bytes);
+              _lastProducedSignatures[file.path] = signature;
               _errorsRequestedFiles.completeAll(file.path, result);
               _scheduler.eventsController.add(result);
             }
+            // We produced all results for the library.
+            return;
           }
-          return;
-        }
-      } else {
-        // Check if we have cached errors for all library files.
-        List<(FileState, String, Uint8List)>? forAllFiles = [];
-        for (var file in library.files) {
-          // If the file is priority, we need the resolved unit.
-          // So, the cached errors is not enough.
-          if (priorityFiles.contains(file.path)) {
-            forAllFiles = null;
-            break;
-          }
-
-          var signature = _getResolvedUnitSignature(library, file);
-          var key = _getResolvedUnitKey(signature);
-
-          var bytes = _byteStore.get(key);
-          if (bytes == null) {
-            forAllFiles = null;
-            break;
-          }
-
-          // Will not be `null` here.
-          forAllFiles?.add((file, signature, bytes));
         }
 
-        // If we have results for all library files, produce them.
-        if (forAllFiles != null) {
-          for (var (file, signature, bytes) in forAllFiles) {
-            // We have the result for this file.
-            _fileTracker.fileWasAnalyzed(file.path);
-
-            // Don't produce the result if the signature is the same.
-            if (_lastProducedSignatures[file.path] == signature) {
-              continue;
-            }
-
-            // Produce the result from bytes.
-            var result = _createErrorsResultFromBytes(file, library, bytes);
-            _lastProducedSignatures[file.path] = signature;
-            _errorsRequestedFiles.completeAll(file.path, result);
-            _scheduler.eventsController.add(result);
+        if (workingStatistics case var workingStatistics?) {
+          for (var file in library.files) {
+            workingStatistics.produceErrorsActualFileCount++;
+            workingStatistics.produceErrorsActualFileLineCount +=
+                file.lineInfo.lineCount;
           }
-          // We produced all results for the library.
-          return;
         }
-      }
 
-      performance.run('analyzeFile', (performance) {
-        _analyzeFileImpl(path: path, performance: performance);
+        performance.run('analyzeFile', (performance) {
+          _analyzeFileImpl(path: path, performance: performance);
+        });
       });
-    });
+    } finally {
+      workingStatistics?.produceErrorsTimer.stop();
+    }
   }
 
   void _removePotentiallyAffectedLibraries(
@@ -2256,6 +2326,20 @@ class AnalysisDriver {
 
       var file = _fsState.getFileForPath(path);
 
+      int? getOffsetFromLineColumn() {
+        var line = request.line;
+        var column = request.column;
+        if (line == null || column == null) return null;
+        // line is zero-based so cannot equal lineCount
+        if (line >= file.lineInfo.lineCount) {
+          return null;
+        }
+        return file.lineInfo.getOffsetOfLine(line) + column;
+      }
+
+      int? offset = request.offset ?? getOffsetFromLineColumn();
+      if (offset == null) return null;
+
       // Prepare the library - the file itself, or the known library.
       var kind = file.kind;
       var library = kind.library ?? kind.asLibrary;
@@ -2286,7 +2370,7 @@ class AnalysisDriver {
           typeSystemOperations: typeSystemOperations,
         ).analyzeForCompletion(
           file: file,
-          offset: request.offset,
+          offset: offset,
           unitElement: unitElement,
           performance: performance,
         );
@@ -2404,7 +2488,9 @@ class AnalysisDriver {
   static Uint32List _calculateSaltForElements(
     DeclaredVariables declaredVariables,
   ) {
-    var buffer = ApiSignature()..addInt(DATA_VERSION);
+    var buffer = ApiSignature()
+      ..addInt(DATA_VERSION)
+      ..addBool(useDeclaringConstructorsAst);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
     return buffer.toUint32List();
   }
@@ -2417,6 +2503,7 @@ class AnalysisDriver {
     var buffer = ApiSignature()
       ..addInt(DATA_VERSION)
       ..addBool(enableIndex)
+      ..addBool(useDeclaringConstructorsAst)
       ..addBool(enableDebugResolutionMarkers);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
 
@@ -2429,7 +2516,8 @@ class AnalysisDriver {
   static Uint32List _calculateSaltForUnlinked({required bool enableIndex}) {
     var buffer = ApiSignature()
       ..addInt(DATA_VERSION)
-      ..addBool(enableIndex);
+      ..addBool(enableIndex)
+      ..addBool(useDeclaringConstructorsAst);
 
     return buffer.toUint32List();
   }
@@ -2503,6 +2591,12 @@ class AnalysisDriverScheduler {
     '<scheduler>',
   );
 
+  /// The last known file counts statistics.
+  FileCountsStatistics? _fileCountsStatistics;
+
+  /// File updates since last transition to working status.
+  FileUpdatesStatistics _fileUpdatesStatistics = FileUpdatesStatistics();
+
   AnalysisDriverScheduler(this._logger, {this.driverWatcher});
 
   /// The [Stream] that produces analysis results for all drivers, and status
@@ -2556,6 +2650,12 @@ class AnalysisDriverScheduler {
     return false;
   }
 
+  AnalysisStatusWorkingStatistics? get _workingStatistics {
+    return _statusSupport.currentStatus
+        .ifTypeOrNull<AnalysisStatusWorking>()
+        ?.workingStatistics;
+  }
+
   /// Add the given [driver] and schedule it to perform its work.
   void add(AnalysisDriver driver) {
     _drivers.add(driver);
@@ -2568,7 +2668,7 @@ class AnalysisDriverScheduler {
   /// Notifies the scheduler that there might be work to do.
   void notify() {
     _hasWork.notify();
-    _statusSupport.transitionToWorking();
+    _transitionToWorking();
   }
 
   /// Remove the given [driver] from the scheduler, so that it will not be
@@ -2621,7 +2721,7 @@ class AnalysisDriverScheduler {
 
       // Transition to working if there are files to analyze.
       if (_hasFilesToAnalyze) {
-        _statusSupport.transitionToWorking();
+        _transitionToWorking();
         analysisSection ??= _logger.enter('Working');
       }
 
@@ -2662,6 +2762,45 @@ class AnalysisDriverScheduler {
       // Schedule one more cycle.
       _hasWork.notify();
     }
+  }
+
+  void _transitionToWorking() {
+    _statusSupport.transitionToWorking(
+      buildStatistics: () {
+        var withFineDependencies = _drivers.any(
+          (driver) => driver.withFineDependencies,
+        );
+
+        // Recompute file statistics once per: 60 * 1000 ms.
+        var fileCountsStatistics = _fileCountsStatistics;
+        if (fileCountsStatistics == null ||
+            fileCountsStatistics.age.elapsedMilliseconds > 60 * 1000) {
+          fileCountsStatistics = _fileCountsStatistics = FileCountsStatistics();
+          for (var driver in _drivers) {
+            for (var fileState in driver.knownFiles) {
+              if (driver.addedFiles.contains(fileState.path)) {
+                fileCountsStatistics.immediateFileCount++;
+                fileCountsStatistics.immediateFileLineCount +=
+                    fileState.lineInfo.lineCount;
+              }
+              fileCountsStatistics.transitiveFileCount++;
+              fileCountsStatistics.transitiveFileLineCount +=
+                  fileState.lineInfo.lineCount;
+            }
+          }
+        }
+
+        var fileUpdatesStatistics = _fileUpdatesStatistics;
+        _fileUpdatesStatistics = FileUpdatesStatistics();
+
+        return AnalysisStatusWorkingStatistics(
+          withFineDependencies: withFineDependencies,
+          changedFiles: fileUpdatesStatistics.changedFiles,
+          removedFiles: fileUpdatesStatistics.removedFiles,
+          fileCounts: fileCountsStatistics,
+        );
+      },
+    );
   }
 
   /// Returns a [Future] that completes after performing [times] pumpings of
@@ -2870,13 +3009,17 @@ class _GetFilesReferencingNameRequest {
 
 class _ResolveForCompletionRequest {
   final String path;
-  final int offset;
+  final int? offset;
+  final int? line;
+  final int? column;
   final OperationPerformanceImpl performance;
   final Completer<ResolvedForCompletionResultImpl?> completer = Completer();
 
   _ResolveForCompletionRequest({
     required this.path,
     required this.offset,
+    required this.line,
+    required this.column,
     required this.performance,
   });
 }

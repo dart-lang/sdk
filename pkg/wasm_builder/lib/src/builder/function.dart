@@ -14,13 +14,19 @@ class FunctionBuilder extends ir.BaseFunction
   List<ir.Local> get locals => body.locals;
 
   /// The body of the function.
-  late final InstructionsBuilder body;
+  late InstructionsBuilder _body;
 
   FunctionBuilder(
       this.moduleBuilder, ir.FinalizableIndex index, ir.FunctionType type,
       [String? functionName])
       : super(moduleBuilder.module, index, type, functionName) {
-    body = InstructionsBuilder(moduleBuilder, type.inputs, type.outputs);
+    _body = InstructionsBuilder(moduleBuilder, type.inputs, type.outputs);
+  }
+
+  InstructionsBuilder get body => _body;
+
+  void replaceBody(InstructionsBuilder newBody) {
+    _body = newBody;
   }
 
   @override

@@ -369,7 +369,7 @@ library
               typeName: C
               typeNameOffset: 34
               formalParameters
-                #F5 this.t (nameOffset:41) (firstTokenOffset:36) (offset:41)
+                #F5 requiredPositional final this.t (nameOffset:41) (firstTokenOffset:36) (offset:41)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::t
             #F6 const named (nameOffset:55) (firstTokenOffset:47) (offset:55)
               element: <testLibrary>::@class::C::@constructor::named
@@ -377,7 +377,7 @@ library
               typeNameOffset: 53
               periodOffset: 54
               formalParameters
-                #F7 this.t (nameOffset:66) (firstTokenOffset:61) (offset:66)
+                #F7 requiredPositional final this.t (nameOffset:66) (firstTokenOffset:61) (offset:66)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::t
           getters
             #F8 synthetic t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
@@ -456,16 +456,18 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
           formalParameters
-            #E1 requiredPositional final hasImplicitType t
+            #E1 requiredPositional final hasImplicitType this.t
               firstFragment: #F5
               type: T
+              field: <testLibrary>::@class::C::@field::t
         const named
           reference: <testLibrary>::@class::C::@constructor::named
           firstFragment: #F6
           formalParameters
-            #E2 requiredPositional final hasImplicitType t
+            #E2 requiredPositional final hasImplicitType this.t
               firstFragment: #F7
               type: T
+              field: <testLibrary>::@class::C::@field::t
       getters
         synthetic t
           reference: <testLibrary>::@class::C::@getter::t
@@ -975,7 +977,7 @@ library
             #F4 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           formalParameters
-            #F5 a (nameOffset:12) (firstTokenOffset:10) (offset:12)
+            #F5 requiredPositional a (nameOffset:12) (firstTokenOffset:10) (offset:12)
               element: <testLibrary>::@function::f::@formalParameter::a
   topLevelVariables
     const hasInitializer v
@@ -1048,7 +1050,7 @@ library
             #F4 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           formalParameters
-            #F5 a (nameOffset:12) (firstTokenOffset:10) (offset:12)
+            #F5 requiredPositional a (nameOffset:12) (firstTokenOffset:10) (offset:12)
               element: <testLibrary>::@function::f::@formalParameter::a
   topLevelVariables
     const hasInitializer v
@@ -1720,9 +1722,9 @@ library
               typeName: A
               typeNameOffset: 18
               formalParameters
-                #F3 a (nameOffset:27) (firstTokenOffset:20) (offset:27)
+                #F3 requiredPositional a (nameOffset:27) (firstTokenOffset:20) (offset:27)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
-                #F4 b (nameOffset:37) (firstTokenOffset:30) (offset:37)
+                #F4 requiredPositional b (nameOffset:37) (firstTokenOffset:30) (offset:37)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
             #F5 const named (nameOffset:51) (firstTokenOffset:43) (offset:51)
               element: <testLibrary>::@class::A::@constructor::named
@@ -1790,9 +1792,9 @@ library
               typeName: A
               typeNameOffset: 18
               formalParameters
-                #F3 a (nameOffset:27) (firstTokenOffset:20) (offset:27)
+                #F3 requiredPositional a (nameOffset:27) (firstTokenOffset:20) (offset:27)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
-                #F4 b (nameOffset:37) (firstTokenOffset:30) (offset:37)
+                #F4 requiredPositional b (nameOffset:37) (firstTokenOffset:30) (offset:37)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
         #F5 class B (nameOffset:49) (firstTokenOffset:43) (offset:49)
           element: <testLibrary>::@class::B
@@ -2142,9 +2144,9 @@ library
               typeNameOffset: 24
               periodOffset: 25
               formalParameters
-                #F5 k (nameOffset:34) (firstTokenOffset:32) (offset:34)
+                #F5 requiredPositional k (nameOffset:34) (firstTokenOffset:32) (offset:34)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::k
-                #F6 v (nameOffset:39) (firstTokenOffset:37) (offset:39)
+                #F6 requiredPositional v (nameOffset:39) (firstTokenOffset:37) (offset:39)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::v
       topLevelVariables
         #F7 hasInitializer V (nameOffset:51) (firstTokenOffset:51) (offset:51)
@@ -2508,7 +2510,7 @@ library
               typeName: A
               typeNameOffset: 34
               formalParameters
-                #F5 this.t (nameOffset:41) (firstTokenOffset:36) (offset:41)
+                #F5 requiredPositional final this.t (nameOffset:41) (firstTokenOffset:36) (offset:41)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
           getters
             #F6 synthetic t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
@@ -2557,9 +2559,10 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
           formalParameters
-            #E1 requiredPositional final hasImplicitType t
+            #E1 requiredPositional final hasImplicitType this.t
               firstFragment: #F5
               type: T
+              field: <testLibrary>::@class::A::@field::t
       getters
         synthetic t
           reference: <testLibrary>::@class::A::@getter::t
@@ -2843,15 +2846,15 @@ library
               typeNameOffset: 18
               periodOffset: 19
               formalParameters
-                #F3 a (nameOffset:31) (firstTokenOffset:26) (offset:31)
+                #F3 requiredPositional a (nameOffset:31) (firstTokenOffset:26) (offset:31)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::a
-                #F4 b (nameOffset:38) (firstTokenOffset:34) (offset:38)
+                #F4 requiredPositional b (nameOffset:38) (firstTokenOffset:34) (offset:38)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::b
-                #F5 c (nameOffset:45) (firstTokenOffset:41) (offset:45)
+                #F5 requiredPositional c (nameOffset:45) (firstTokenOffset:41) (offset:45)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::c
-                #F6 d (nameOffset:56) (firstTokenOffset:49) (offset:56)
+                #F6 optionalNamed d (nameOffset:56) (firstTokenOffset:49) (offset:56)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::d
-                #F7 e (nameOffset:66) (firstTokenOffset:59) (offset:66)
+                #F7 optionalNamed e (nameOffset:66) (firstTokenOffset:59) (offset:66)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::e
       topLevelVariables
         #F8 hasInitializer V (nameOffset:79) (firstTokenOffset:79) (offset:79)
@@ -5029,7 +5032,7 @@ library
             #F4 T (nameOffset:4) (firstTokenOffset:4) (offset:4)
               element: #E0 T
           formalParameters
-            #F5 a (nameOffset:9) (firstTokenOffset:7) (offset:9)
+            #F5 requiredPositional a (nameOffset:9) (firstTokenOffset:7) (offset:9)
               element: <testLibrary>::@function::f::@formalParameter::a
   topLevelVariables
     const hasInitializer b
@@ -5087,7 +5090,7 @@ library
               typeName: C
               typeNameOffset: 29
               formalParameters
-                #F4 this.x (nameOffset:37) (firstTokenOffset:32) (offset:37)
+                #F4 optionalNamed final this.x (nameOffset:37) (firstTokenOffset:32) (offset:37)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     SimpleIdentifier
@@ -5115,12 +5118,13 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 optionalNamed final hasImplicitType x
+            #E0 optionalNamed final hasDefaultValue hasImplicitType this.x
               firstFragment: #F4
               type: dynamic
               constantInitializer
                 fragment: #F4
                 expression: expression_0
+              field: <testLibrary>::@class::C::@field::x
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
@@ -5160,7 +5164,7 @@ library
               typeName: C
               typeNameOffset: 29
               formalParameters
-                #F4 this.x (nameOffset:37) (firstTokenOffset:32) (offset:37)
+                #F4 optionalNamed final this.x (nameOffset:37) (firstTokenOffset:32) (offset:37)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     BinaryExpression
@@ -5192,12 +5196,13 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 optionalNamed final hasImplicitType x
+            #E0 optionalNamed final hasDefaultValue hasImplicitType this.x
               firstFragment: #F4
               type: dynamic
               constantInitializer
                 fragment: #F4
                 expression: expression_0
+              field: <testLibrary>::@class::C::@field::x
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
@@ -5232,7 +5237,7 @@ library
               typeName: C
               typeNameOffset: 29
               formalParameters
-                #F4 this.x (nameOffset:37) (firstTokenOffset:32) (offset:37)
+                #F4 optionalPositional final this.x (nameOffset:37) (firstTokenOffset:32) (offset:37)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     BinaryExpression
@@ -5264,12 +5269,13 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 optionalPositional final hasImplicitType x
+            #E0 optionalPositional final hasDefaultValue hasImplicitType this.x
               firstFragment: #F4
               type: dynamic
               constantInitializer
                 fragment: #F4
                 expression: expression_0
+              field: <testLibrary>::@class::C::@field::x
       getters
         synthetic x
           reference: <testLibrary>::@class::C::@getter::x
@@ -5306,7 +5312,7 @@ library
               typeNameOffset: 18
               periodOffset: 19
               formalParameters
-                #F3 p (nameOffset:32) (firstTokenOffset:32) (offset:32)
+                #F3 optionalPositional p (nameOffset:32) (firstTokenOffset:32) (offset:32)
                   element: <testLibrary>::@class::C::@constructor::positional::@formalParameter::p
                   initializer: expression_0
                     BinaryExpression
@@ -5326,7 +5332,7 @@ library
               typeNameOffset: 53
               periodOffset: 54
               formalParameters
-                #F5 p (nameOffset:62) (firstTokenOffset:62) (offset:62)
+                #F5 optionalNamed p (nameOffset:62) (firstTokenOffset:62) (offset:62)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::p
                   initializer: expression_1
                     BinaryExpression
@@ -5344,7 +5350,7 @@ library
             #F6 methodPositional (nameOffset:81) (firstTokenOffset:76) (offset:81)
               element: <testLibrary>::@class::C::@method::methodPositional
               formalParameters
-                #F7 p (nameOffset:99) (firstTokenOffset:99) (offset:99)
+                #F7 optionalPositional p (nameOffset:99) (firstTokenOffset:99) (offset:99)
                   element: <testLibrary>::@class::C::@method::methodPositional::@formalParameter::p
                   initializer: expression_2
                     BinaryExpression
@@ -5361,12 +5367,12 @@ library
             #F8 methodPositionalWithoutDefault (nameOffset:121) (firstTokenOffset:116) (offset:121)
               element: <testLibrary>::@class::C::@method::methodPositionalWithoutDefault
               formalParameters
-                #F9 p (nameOffset:153) (firstTokenOffset:153) (offset:153)
+                #F9 optionalPositional p (nameOffset:153) (firstTokenOffset:153) (offset:153)
                   element: <testLibrary>::@class::C::@method::methodPositionalWithoutDefault::@formalParameter::p
             #F10 methodNamed (nameOffset:167) (firstTokenOffset:162) (offset:167)
               element: <testLibrary>::@class::C::@method::methodNamed
               formalParameters
-                #F11 p (nameOffset:180) (firstTokenOffset:180) (offset:180)
+                #F11 optionalNamed p (nameOffset:180) (firstTokenOffset:180) (offset:180)
                   element: <testLibrary>::@class::C::@method::methodNamed::@formalParameter::p
                   initializer: expression_3
                     BinaryExpression
@@ -5383,7 +5389,7 @@ library
             #F12 methodNamedWithoutDefault (nameOffset:201) (firstTokenOffset:196) (offset:201)
               element: <testLibrary>::@class::C::@method::methodNamedWithoutDefault
               formalParameters
-                #F13 p (nameOffset:228) (firstTokenOffset:228) (offset:228)
+                #F13 optionalNamed p (nameOffset:228) (firstTokenOffset:228) (offset:228)
                   element: <testLibrary>::@class::C::@method::methodNamedWithoutDefault::@formalParameter::p
   classes
     class C
@@ -5394,7 +5400,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::positional
           firstFragment: #F2
           formalParameters
-            #E0 optionalPositional hasImplicitType p
+            #E0 optionalPositional hasDefaultValue hasImplicitType p
               firstFragment: #F3
               type: dynamic
               constantInitializer
@@ -5404,7 +5410,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::named
           firstFragment: #F4
           formalParameters
-            #E1 optionalNamed hasImplicitType p
+            #E1 optionalNamed hasDefaultValue hasImplicitType p
               firstFragment: #F5
               type: dynamic
               constantInitializer
@@ -5415,7 +5421,7 @@ library
           reference: <testLibrary>::@class::C::@method::methodPositional
           firstFragment: #F6
           formalParameters
-            #E2 optionalPositional hasImplicitType p
+            #E2 optionalPositional hasDefaultValue hasImplicitType p
               firstFragment: #F7
               type: dynamic
               constantInitializer
@@ -5434,7 +5440,7 @@ library
           reference: <testLibrary>::@class::C::@method::methodNamed
           firstFragment: #F10
           formalParameters
-            #E4 optionalNamed hasImplicitType p
+            #E4 optionalNamed hasDefaultValue hasImplicitType p
               firstFragment: #F11
               type: dynamic
               constantInitializer
@@ -6161,9 +6167,9 @@ library
             #F3 m (nameOffset:23) (firstTokenOffset:12) (offset:23)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
-                #F4 a (nameOffset:29) (firstTokenOffset:25) (offset:29)
+                #F4 requiredPositional a (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@class::C::@method::m::@formalParameter::a
-                #F5 b (nameOffset:39) (firstTokenOffset:32) (offset:39)
+                #F5 requiredPositional b (nameOffset:39) (firstTokenOffset:32) (offset:39)
                   element: <testLibrary>::@class::C::@method::m::@formalParameter::b
       topLevelVariables
         #F6 hasInitializer V (nameOffset:57) (firstTokenOffset:57) (offset:57)
@@ -6401,6 +6407,7 @@ library
       reference: <testLibrary>::@extension::E
       firstFragment: #F3
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
       methods
         static f
           reference: <testLibrary>::@extension::E::@method::f
@@ -6503,7 +6510,7 @@ library
             #F5 R (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: #E1 R
           formalParameters
-            #F6 p (nameOffset:14) (firstTokenOffset:12) (offset:14)
+            #F6 requiredPositional p (nameOffset:14) (firstTokenOffset:12) (offset:14)
               element: <testLibrary>::@function::foo::@formalParameter::p
   topLevelVariables
     const hasInitializer V

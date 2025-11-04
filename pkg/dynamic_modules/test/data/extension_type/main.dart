@@ -5,8 +5,6 @@
 import '../../common/testing.dart' as helper;
 import 'package:expect/expect.dart';
 
-import 'shared/shared.dart'; // ignore: unused_import
-
 /// A dynamic module is allowed to extend a class in the dynamic interface and
 /// override its members.
 void main() async {

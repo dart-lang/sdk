@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:args/args.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
 import 'package:kernel/kernel.dart' show Component, writeComponentToText;
@@ -25,19 +26,26 @@ import 'package:vm/metadata/unreachable.dart'
 import 'package:vm/modular/metadata/call_site_attributes.dart'
     show CallSiteAttributesMetadataRepository;
 
+final ArgParser _argParser =
+    ArgParser()..addFlag('show-offsets', help: 'Print file offsets');
+
 final String _usage = '''
-Usage: dump_kernel input.dill output.txt
+Usage: dump_kernel [options] input.dill output.txt
 Dumps kernel binary file with VM-specific metadata.
+
+Options:
+${_argParser.usage}
 ''';
 
 void main(List<String> arguments) async {
-  if (arguments.length != 2) {
+  final argResults = _argParser.parse(arguments);
+  if (argResults.rest.length != 2) {
     print(_usage);
     exit(1);
   }
 
-  final input = arguments[0];
-  final output = arguments[1];
+  final input = argResults.rest[0];
+  final output = argResults.rest[1];
 
   final component = new Component();
 
@@ -56,5 +64,10 @@ void main(List<String> arguments) async {
   final Uint8List bytes = new File(input).readAsBytesSync();
   new BinaryBuilderWithMetadata(bytes).readComponent(component);
 
-  writeComponentToText(component, path: output, showMetadata: true);
+  writeComponentToText(
+    component,
+    path: output,
+    showMetadata: true,
+    showOffsets: argResults['show-offsets'],
+  );
 }

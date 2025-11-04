@@ -1,12 +1,13 @@
 library;
 import self as self;
 import "dart:_js_annotations" as _js;
+import "dart:js_interop" as js_;
 import "dart:core" as core;
 
 import "package:js/js.dart";
 
 @_js::JS::•()
-@_js::anonymous
+@js_::anonymous
 class ParallaxOptions extends core::Object /*hasConstConstructor*/  {
   external const constructor •() → self::ParallaxOptions;
   static synthetic method _#new#tearOff() → self::ParallaxOptions

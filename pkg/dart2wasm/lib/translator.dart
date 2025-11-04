@@ -184,6 +184,7 @@ class Translator with KernelNodes {
   late final FunctionCollector functions;
 
   late final DynamicModuleConstants? dynamicModuleConstants;
+  late final DeferredModuleLoadingMap loadingMap;
 
   // Information about the program used and updated by the various phases.
 
@@ -429,8 +430,8 @@ class Translator with KernelNodes {
   w.ModuleBuilder get mainModule =>
       _outputToBuilder[_moduleOutputData.mainModule]!;
   w.TypesBuilder get typesBuilder => mainModule.types;
-  final Map<ModuleOutput, w.ModuleBuilder> _outputToBuilder = {};
-  final Map<w.ModuleBuilder, ModuleOutput> _builderToOutput = {};
+  final Map<ModuleMetadata, w.ModuleBuilder> _outputToBuilder = {};
+  final Map<w.ModuleBuilder, ModuleMetadata> _builderToOutput = {};
   final Map<w.Module, w.ModuleBuilder> moduleToBuilder = {};
   bool get hasMultipleModules => _moduleOutputData.hasMultipleModules;
 
@@ -442,6 +443,11 @@ class Translator with KernelNodes {
   w.ModuleBuilder moduleForReference(Reference reference) =>
       _outputToBuilder[_moduleOutputData.moduleForReference(reference)]!;
 
+  w.ModuleBuilder moduleForLoadId(Library enclosingLibrary, int loadId) {
+    return moduleForReference(
+        loadingMap.loadId2ImportedLibrary[loadId].reference);
+  }
+
   String nameForModule(w.ModuleBuilder module) =>
       _builderToOutput[module]!.moduleImportName;
 
@@ -450,6 +456,8 @@ class Translator with KernelNodes {
   /// Maps compiled members to their [Closures], with capture information.
   final Map<Member, Closures> _memberClosures = {};
 
+  final List<void Function()> linkingActions = [];
+
   Closures getClosures(Member member, {bool findCaptures = true}) =>
       findCaptures
           ? _memberClosures.putIfAbsent(
@@ -457,7 +465,7 @@ class Translator with KernelNodes {
           : Closures(this, member, findCaptures: false);
 
   Translator(this.component, this.coreTypes, this.index, this.recordClasses,
-      this._moduleOutputData, this.options,
+      this.loadingMap, this._moduleOutputData, this.options,
       {bool enableDynamicModules = false,
       required MainModuleMetadata mainModuleMetadata})
       : symbols = Symbols(options.minify),
@@ -493,33 +501,6 @@ class Translator with KernelNodes {
         Exporter(exportNamer, mainModuleMetadata, dynamicModuleConstants);
   }
 
-  void _initLoadLibraryImportMap() {
-    final importMapGetter = loadLibraryImportMap;
-
-    // Can be null for dynamic modules that don't use deferred libraries.
-    if (importMapGetter == null) return;
-
-    final mapEntries = <MapLiteralEntry>[];
-    _moduleOutputData.generateModuleImportMap().forEach((libName, importMap) {
-      final subMapEntries = <MapLiteralEntry>[];
-      importMap.forEach((importName, moduleNames) {
-        subMapEntries.add(MapLiteralEntry(StringLiteral(importName),
-            ListLiteral([...moduleNames.map(StringLiteral.new)])));
-      });
-      mapEntries.add(
-          MapLiteralEntry(StringLiteral(libName), MapLiteral(subMapEntries)));
-    });
-    final stringClass = jsStringClass;
-    importMapGetter.function.body = ReturnStatement(MapLiteral(mapEntries,
-        keyType: InterfaceType(stringClass, Nullability.nonNullable),
-        valueType: InterfaceType(coreTypes.mapNonNullableRawType.classNode,
-            Nullability.nonNullable, [
-          InterfaceType(stringClass, Nullability.nonNullable),
-          InterfaceType(stringClass, Nullability.nonNullable)
-        ])));
-    importMapGetter.isExternal = false;
-  }
-
   void _initModules(Uri Function(String moduleName)? sourceMapUrlGenerator) {
     for (final outputModule in _moduleOutputData.modules) {
       // `moduleName` is the suffix appended to the filename which is the empty
@@ -543,9 +524,8 @@ class Translator with KernelNodes {
     }
   }
 
-  Map<ModuleOutput, w.Module> translate(
+  Map<ModuleMetadata, w.Module> translate(
       Uri Function(String moduleName)? sourceMapUrlGenerator) {
-    _initLoadLibraryImportMap();
     _initModules(sourceMapUrlGenerator);
     initFunction = mainModule.functions
         .define(typesBuilder.defineFunction(const [], const []), "#init");
@@ -559,12 +539,17 @@ class Translator with KernelNodes {
 
     dispatchTable.build();
     dynamicMainModuleDispatchTable?.build();
-
     functions.initialize();
 
     dynamicModuleInfo?.initSubmodule();
 
     drainCompletionQueue();
+
+    assert(compilationQueue.isEmpty);
+    for (final action in linkingActions) {
+      action();
+    }
+    assert(compilationQueue.isEmpty);
 
     dynamicModuleInfo?.finishDynamicModule();
 
@@ -574,26 +559,125 @@ class Translator with KernelNodes {
     initFunction.body.end();
 
     for (ConstantInfo info in constants.constantInfo.values) {
-      w.BaseFunction? function = info.function;
-      if (function != null) {
+      info.printInitializer((function) {
         _printFunction(function, info.constant);
-      } else {
+      }, (global) {
         if (options.printWasm) {
-          print("Global #${info.global.name}: ${info.constant}");
-          final global = info.global;
+          print("Global #${global.name}: ${info.constant}");
           if (global is w.GlobalBuilder) {
             print(global.initializer.trace);
           }
         }
-      }
+      });
     }
     _printFunction(initFunction, "init");
 
-    final result = <ModuleOutput, w.Module>{};
+    // This getter will be null if we pass e.g. `--load-ids=<uri>` as the
+    // runtime code will then be pruned to call out to embedder instead of
+    // consulting the load mapping bundled in the app.
+    final loadingMapGetter = dartInternalLoadingMapGetter;
+    if (loadingMapGetter != null) {
+      // This function will be null if we didn't pass `--load-ids=<uri>` but we
+      // ended up not having any actual deferred code (e.g. `await
+      // foo.loadLibrary()` is never called anywhere).
+      final function =
+          (functions.getExistingFunction(loadingMapGetter.reference)
+              as w.FunctionBuilder?);
+      if (function != null) {
+        _patchLoadingMapGetter(function);
+      }
+    }
+    // If original program uses deferred loading this will be non-null.
+    final loadingMapNamesGetter = dartInternalLoadingMapNamesGetter;
+    if (loadingMapNamesGetter != null) {
+      // If the actual emitted code accesses the names (i.e. --no-minify and
+      // code emits a deferred library load)
+      assert(!options.minify);
+      final function =
+          (functions.getExistingFunction(loadingMapNamesGetter.reference)
+              as w.FunctionBuilder?);
+      if (function != null) {
+        _patchLoadingMapNamesGetter(function);
+      }
+    }
+
+    final result = <ModuleMetadata, w.Module>{};
     _outputToBuilder.forEach((outputModule, builder) {
       result[outputModule] = builder.build();
     });
     return result;
+  }
+
+  // NOTE: We do this after code generation is complete. So the code generation
+  // phase has the opportunity to generate more wasm modules and add them to the
+  // loading map.
+  void _patchLoadingMapGetter(w.FunctionBuilder function) {
+    final externRef = w.RefType.extern(nullable: false);
+    final arrayExternRef =
+        wasmArrayType(externRef, externRef.toString(), mutable: false);
+    final arrayArrayString = wasmArrayType(
+        w.RefType(arrayExternRef, nullable: false), arrayExternRef.toString(),
+        mutable: false);
+
+    _lazyInitializeGlobal(function,
+        w.RefType(arrayArrayString, nullable: false), 'loadIdModuleNames', (b) {
+      final moduleMap = loadingMap.moduleMap;
+      for (int i = 0; i < moduleMap.length; ++i) {
+        final moduleNames = moduleMap[i];
+        for (int k = 0; k < moduleNames.length; ++k) {
+          b.global_get(getInternalizedStringGlobal(
+              function.moduleBuilder, moduleNames[k].moduleName));
+        }
+        b.array_new_fixed(arrayExternRef, moduleNames.length);
+      }
+      b.array_new_fixed(arrayArrayString, moduleMap.length);
+    });
+  }
+
+  void _patchLoadingMapNamesGetter(w.FunctionBuilder function) {
+    final externRef = w.RefType.extern(nullable: false);
+    final arrayExternRef =
+        wasmArrayType(externRef, externRef.toString(), mutable: false);
+
+    _lazyInitializeGlobal(function, w.RefType(arrayExternRef, nullable: false),
+        'loadIdModuleImportInfo', (b) {
+      int index = 0;
+      loadingMap.loadIds.forEach((tuple, loadId) {
+        assert(index == loadId);
+        index++;
+        final libraryName = tuple.$1.importUri.toString();
+        final prefixName = tuple.$2;
+        b.global_get(
+            getInternalizedStringGlobal(function.moduleBuilder, libraryName));
+        b.global_get(
+            getInternalizedStringGlobal(function.moduleBuilder, prefixName));
+      });
+      b.array_new_fixed(arrayExternRef, 2 * loadingMap.loadIds.length);
+    });
+  }
+
+  void _lazyInitializeGlobal(w.FunctionBuilder f, w.ValueType type, String name,
+      void Function(w.InstructionsBuilder) gen) {
+    final globalType = w.GlobalType(type.withNullability(true));
+    final global = f.moduleBuilder.globals.define(globalType, name);
+    global.initializer
+      ..ref_null(w.HeapType.none)
+      ..end();
+
+    final b =
+        w.InstructionsBuilder(f.moduleBuilder, f.type.inputs, f.type.outputs);
+    f.replaceBody(b);
+
+    final label = b.block(const [], [type]);
+    b.global_get(global);
+    b.br_on_non_null(label);
+    gen(b);
+    final local = b.addLocal(type);
+    b.local_tee(local);
+    b.global_set(global);
+    b.local_get(local);
+    b.end();
+    b.end();
   }
 
   void _printFunction(w.BaseFunction function, Object name) {
@@ -647,6 +731,11 @@ class Translator with KernelNodes {
     return b.emitUnreachableIfNoResult(function.type.outputs);
   }
 
+  void declareMainAppFunctionExportWithName(
+      String name, w.BaseFunction exportable) {
+    _importedFunctions.exportDefinitionWithName(name, exportable);
+  }
+
   void callDispatchTable(w.InstructionsBuilder b, SelectorInfo selector,
       {Reference? interfaceTarget,
       required bool useUncheckedEntry,
@@ -654,7 +743,9 @@ class Translator with KernelNodes {
     table ??= dispatchTable;
     functions.recordSelectorUse(selector, useUncheckedEntry);
 
-    if (dynamicModuleSupportEnabled && selector.isDynamicSubmoduleOverridable) {
+    if (dynamicModuleSupportEnabled &&
+        (selector.isDynamicSubmoduleOverridable ||
+            selector.isDynamicSubmoduleInheritable)) {
       dynamicModuleInfo!.callOverridableDispatch(b, selector, interfaceTarget!,
           useUncheckedEntry: useUncheckedEntry);
     } else {
@@ -708,6 +799,8 @@ class Translator with KernelNodes {
       TypedefType() => throw 'unreachable, should be desugared by CFE',
       InvalidType() => throw 'unreachable, should be compile-time error',
       AuxiliaryType() => throw 'unreachable, unused by dart2wasm',
+      // ignore: unreachable_switch_case
+      ExperimentalType() => throw 'unreachable, experimental',
     })
         .withDeclaredNullability(nullability);
   }
@@ -1402,7 +1495,8 @@ class Translator with KernelNodes {
     assert(target.asMember.isInstanceMember);
     if (!isDynamicSubmodule) return dispatchTable;
     if (moduleForReference(target) == dynamicSubmodule) return dispatchTable;
-    assert(target.asMember.isDynamicSubmoduleCallable(coreTypes));
+    assert(target.asMember.isDynamicSubmoduleCallable(coreTypes) ||
+        target.asMember.isDynamicSubmoduleInheritable(coreTypes));
     return dynamicMainModuleDispatchTable!;
   }
 
@@ -1886,13 +1980,13 @@ class Translator with KernelNodes {
       // runtime.
       final i = internalizedStringsForJSRuntime.length;
       internalizedString = module.globals.import('s', '$i',
-          w.GlobalType(w.RefType.extern(nullable: true), mutable: false));
+          w.GlobalType(w.RefType.extern(nullable: false), mutable: false));
       internalizedStringsForJSRuntime.add(s);
     } else {
       internalizedString = module.globals.import(
         'S',
         s,
-        w.GlobalType(w.RefType.extern(nullable: true), mutable: false),
+        w.GlobalType(w.RefType.extern(nullable: false), mutable: false),
       );
     }
     _internalizedStringGlobals[(module, s)] = internalizedString;
@@ -2671,6 +2765,22 @@ abstract class _WasmImporter<T extends w.Exportable> {
 
   Iterable<T> get imports => _map.values.expand((v) => v.values);
 
+  /// Declare that a module already exports [exportable] under [name].
+  ///
+  /// Normally the [_WasmImporter] class works by exporting in one module and
+  /// importing in another module on first cross-module access. That makes sense
+  /// if we build all modules simultaniously. But if we are e.g. building a
+  /// dynamic module then the main module already exports it. So one can use
+  /// this method for declaring such an existing export.
+  void exportDefinitionWithName(String name, T exportable) {
+    assert(!_map.containsKey(exportable));
+
+    final owningModule =
+        _translator.moduleToBuilder[exportable.enclosingModule]!;
+    owningModule.exports.export(name, exportable);
+    _map[exportable] = {};
+  }
+
   T get(T key, w.ModuleBuilder module) {
     final keyModuleBuilder = _translator.moduleToBuilder[key.enclosingModule]!;
     if (keyModuleBuilder == module) return key;
@@ -2697,8 +2807,10 @@ class WasmFunctionImporter extends _WasmImporter<w.BaseFunction> {
   @override
   w.BaseFunction _import(w.ModuleBuilder importingModule,
       w.BaseFunction definition, String moduleName, String importName) {
-    return importingModule.functions
+    final function = importingModule.functions
         .import(moduleName, importName, definition.type, definition.name);
+    function.functionName = definition.functionName;
+    return function;
   }
 }
 
@@ -2708,8 +2820,10 @@ class WasmGlobalImporter extends _WasmImporter<w.Global> {
   @override
   w.Global _import(w.ModuleBuilder importingModule, w.Global definition,
       String moduleName, String importName) {
-    return importingModule.globals
-        .import(moduleName, importName, definition.type);
+    final global =
+        importingModule.globals.import(moduleName, importName, definition.type);
+    global.globalName = definition.globalName;
+    return global;
   }
 }
 

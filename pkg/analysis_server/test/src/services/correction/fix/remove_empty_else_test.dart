@@ -55,7 +55,7 @@ void f2(bool cond) {
 @reflectiveTest
 class RemoveEmptyElseTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_EMPTY_ELSE;
+  FixKind get kind => DartFixKind.removeEmptyElse;
 
   @override
   String get lintCode => LintNames.avoid_empty_else;

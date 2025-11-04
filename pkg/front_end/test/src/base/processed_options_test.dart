@@ -449,8 +449,8 @@ class ProcessedOptionsTest {
     var uriTranslator = await processed.getUriTranslator();
     expect(uriTranslator.packages.packages, isEmpty);
     expect(
-      (errors.single as FormattedMessage).problemMessage,
-      startsWith(_stringPrefixOf(codeCantReadFile)),
+      (errors.single as FormattedMessage).locatedMessage.code,
+      codeCantReadFile,
     );
   }
 
@@ -530,8 +530,8 @@ class ProcessedOptionsTest {
     );
     expect(await options.validateOptions(), isFalse);
     expect(
-      (errors.first as FormattedMessage).problemMessage,
-      startsWith(_stringPrefixOf(codeSdkRootNotFound)),
+      (errors.first as FormattedMessage).locatedMessage.code,
+      codeSdkRootNotFound,
     );
   }
 
@@ -572,8 +572,8 @@ class ProcessedOptionsTest {
     );
     expect(await options.validateOptions(), isFalse);
     expect(
-      (errors.single as FormattedMessage).problemMessage,
-      startsWith(_stringPrefixOf(codeSdkSummaryNotFound)),
+      (errors.single as FormattedMessage).locatedMessage.code,
+      codeSdkSummaryNotFound,
     );
   }
 
@@ -620,22 +620,8 @@ class ProcessedOptionsTest {
     );
     expect(await options.validateOptions(), isFalse);
     expect(
-      (errors.single as FormattedMessage).problemMessage,
-      startsWith(_stringPrefixOf(codeSdkSummaryNotFound)),
+      (errors.single as FormattedMessage).locatedMessage.code,
+      codeSdkSummaryNotFound,
     );
-  }
-
-  /// Returns the longest prefix of the text in a message template that doesn't
-  /// mention a template argument.
-  String _stringPrefixOf(Template template) {
-    var codeTemplate = template.problemMessageTemplate;
-    var index = codeTemplate.indexOf('#');
-    var prefix = codeTemplate.substring(0, index - 1);
-
-    // Check that the prefix is not empty and that it contains more than one
-    // word.
-    expect(prefix.length > 0, isTrue);
-    expect(prefix.contains(' '), isTrue);
-    return prefix;
   }
 }

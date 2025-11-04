@@ -36,7 +36,7 @@ void f(String a) {
 @reflectiveTest
 class RemoveNonNullAssertionTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_NON_NULL_ASSERTION;
+  FixKind get kind => DartFixKind.removeNonNullAssertion;
 
   Future<void> test_nonNullable() async {
     await resolveTestCode('''
@@ -108,7 +108,7 @@ void f() {
 @reflectiveTest
 class UnnecessaryNullChecksTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_NON_NULL_ASSERTION;
+  FixKind get kind => DartFixKind.removeNonNullAssertion;
 
   @override
   String get lintCode => LintNames.unnecessary_null_checks;

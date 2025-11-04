@@ -2,22 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class NativeBigIntMethods {
+abstract class NativeBigIntMethods<T> {
   bool get enabled;
 
-  Object parse(String string);
-  String toStringMethod(Object value);
+  T parse(String string);
+  String toStringMethod(T value);
 
-  Object fromInt(int i);
+  T fromInt(int i);
 
-  Object get one;
-  Object get eight;
+  T get one;
+  T get eight;
 
-  int bitLength(Object value);
-  bool isEven(Object value);
+  int bitLength(T value);
+  bool isEven(T value);
 
-  Object add(Object left, Object right);
-  Object shiftLeft(Object value, Object count);
-  Object shiftRight(Object value, Object count);
-  Object subtract(Object left, Object right);
+  T add(T left, T right);
+  T shiftLeft(T value, T count);
+  T shiftRight(T value, T count);
+  T subtract(T left, T right);
 }

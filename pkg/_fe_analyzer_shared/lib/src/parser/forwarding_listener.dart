@@ -14,9 +14,6 @@ class ForwardingListener implements Listener {
   ForwardingListener([this.listener]);
 
   @override
-  Uri? get uri => listener?.uri;
-
-  @override
   void beginArguments(Token token) {
     listener?.beginArguments(token);
   }
@@ -159,8 +156,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginEnum(Token enumKeyword) {
-    listener?.beginEnum(enumKeyword);
+  void beginEnumDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token enumKeyword,
+    Token name,
+  ) {
+    listener?.beginEnumDeclaration(beginToken, augmentToken, enumKeyword, name);
+  }
+
+  @override
+  void beginEnumDeclarationPrelude(Token enumKeyword) {
+    listener?.beginEnumDeclarationPrelude(enumKeyword);
   }
 
   @override
@@ -877,14 +884,14 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endEnum(
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,
     int memberCount,
     Token endToken,
   ) {
-    listener?.endEnum(
+    listener?.endEnumDeclaration(
       beginToken,
       enumKeyword,
       leftBrace,
@@ -927,6 +934,16 @@ class ForwardingListener implements Listener {
     Token leftBrace,
   ) {
     listener?.handleEnumHeader(augmentToken, enumKeyword, leftBrace);
+  }
+
+  @override
+  void beginEnumBody(Token token) {
+    listener?.beginEnumBody(token);
+  }
+
+  @override
+  void endEnumBody(Token beginToken, Token endToken) {
+    listener?.endEnumBody(beginToken, endToken);
   }
 
   @override
@@ -1104,6 +1121,7 @@ class ForwardingListener implements Listener {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,
@@ -1114,6 +1132,7 @@ class ForwardingListener implements Listener {
     MemberKind memberKind,
   ) {
     listener?.endFormalParameter(
+      varOrFinal,
       thisKeyword,
       superKeyword,
       periodAfterThisOrSuper,
@@ -2597,17 +2616,23 @@ class ForwardingListener implements Listener {
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
+    bool forExtensionType,
   ) {
     listener?.endPrimaryConstructor(
       beginToken,
       constKeyword,
       hasConstructorName,
+      forExtensionType,
     );
   }
 
   @override
-  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
-    listener?.handleNoPrimaryConstructor(token, constKeyword);
+  void handleNoPrimaryConstructor(
+    Token token,
+    Token? constKeyword,
+    bool forExtensionType,
+  ) {
+    listener?.handleNoPrimaryConstructor(token, constKeyword, forExtensionType);
   }
 
   @override

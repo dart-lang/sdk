@@ -17,10 +17,10 @@ class RemoveInterpolationBraces extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_INTERPOLATION_BRACES;
+  FixKind get fixKind => DartFixKind.removeInterpolationBraces;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_INTERPOLATION_BRACES_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeInterpolationBracesMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

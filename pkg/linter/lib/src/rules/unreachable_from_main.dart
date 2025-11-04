@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
@@ -20,7 +21,7 @@ import '../extensions.dart';
 
 const _desc = 'Unreachable top-level members in executable libraries.';
 
-class UnreachableFromMain extends LintRule {
+class UnreachableFromMain extends AnalysisRule {
   UnreachableFromMain()
     : super(
         name: LintNames.unreachable_from_main,
@@ -454,7 +455,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   final RuleContext context;
 
   _Visitor(this.rule, this.context);

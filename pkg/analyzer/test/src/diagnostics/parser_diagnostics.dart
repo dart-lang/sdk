@@ -6,11 +6,14 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
 import '../../generated/test_support.dart';
+import '../../util/diff.dart';
 import '../../util/element_printer.dart';
 import '../../util/feature_sets.dart';
 import '../dart/resolution/node_text_expectations.dart';
@@ -30,10 +33,10 @@ class ParserDiagnosticsTest {
       withTokenPreviousNext: withTokenPreviousNext,
     );
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   ExpectedError error(
@@ -41,18 +44,22 @@ class ParserDiagnosticsTest {
     int offset,
     int length, {
     Pattern? correctionContains,
+    // TODO(FMorschel): refactor the uses of this to prefer `messageContains`
     String? text,
     List<Pattern> messageContains = const [],
     List<ExpectedContextMessage> contextMessages = const [],
   }) {
+    assert(
+      text == null || messageContains.isEmpty,
+      'Only use one of text or messageContains',
+    );
     return ExpectedError(
       code,
       offset,
       length,
       correctionContains: correctionContains,
-      message: text,
-      messageContains: messageContains,
-      expectedContextMessages: contextMessages,
+      messageContainsAll: text != null ? [text] : messageContains,
+      contextMessages: contextMessages,
     );
   }
 
@@ -62,6 +69,14 @@ class ParserDiagnosticsTest {
       featureSet: FeatureSets.latestWithExperiments,
       throwIfDiagnostics: false,
     );
+  }
+
+  void setUp() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+  }
+
+  void tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
   }
 
   String _parsedNodeText(
@@ -94,10 +109,10 @@ extension ParseStringResultExtension on ParseStringResult {
     return FindNode(content, unit);
   }
 
-  void assertErrors(List<ExpectedError> expectedErrors) {
+  void assertErrors(List<ExpectedDiagnostic> expectedDiagnostics) {
     var diagnosticListener = GatheringDiagnosticListener();
     diagnosticListener.addAll(errors);
-    diagnosticListener.assertErrors(expectedErrors);
+    diagnosticListener.assertErrors(expectedDiagnostics);
   }
 
   void assertNoErrors() {

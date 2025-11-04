@@ -15,6 +15,7 @@ import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
@@ -446,7 +447,10 @@ final class DocCommentBuilder {
       _languageVersion,
       _lineInfo,
     );
-    var parser = Parser(docImportListener);
+    var parser = Parser(
+      docImportListener,
+      experimentalFeatures: ExperimentalFeaturesStatus(_featureSet),
+    );
     docImportListener.parser = parser;
     parser.parseUnit(token);
 

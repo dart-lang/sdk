@@ -53,12 +53,6 @@ final completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
 
 final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
   _diagnosticCode(WarningCode.deadCode): [lsp.DiagnosticTag.Unnecessary],
-  _diagnosticCode(HintCode.deprecatedMemberUseFromSamePackage): [
-    lsp.DiagnosticTag.Deprecated,
-  ],
-  _diagnosticCode(HintCode.deprecatedMemberUseFromSamePackageWithMessage): [
-    lsp.DiagnosticTag.Deprecated,
-  ],
   _diagnosticCode(HintCode.deprecatedMemberUse): [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package': [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package_with_message': [
@@ -1464,8 +1458,8 @@ ErrorOr<int> toOffset(
     return ErrorOr<int>.error(
       lsp.ResponseError(
         code: failureIsCritical
-            ? lsp.ServerErrorCodes.ClientServerInconsistentState
-            : lsp.ServerErrorCodes.InvalidFileLineCol,
+            ? lsp.ServerErrorCodes.clientServerInconsistentState
+            : lsp.ServerErrorCodes.invalidFileLineCol,
         message: 'Invalid line number',
         data: pos.line.toString(),
       ),
@@ -1477,6 +1471,26 @@ ErrorOr<int> toOffset(
   return ErrorOr<int>.success(
     lineInfo.getOffsetOfLine(pos.line) + pos.character,
   );
+}
+
+ErrorOr<int> toOffsetFromOffsetLineAndColumn(
+  int? offsetOfLine,
+  int column,
+  int originalLine, {
+  bool failureIsCritical = false,
+}) {
+  if (offsetOfLine == null) {
+    return ErrorOr<int>.error(
+      lsp.ResponseError(
+        code: failureIsCritical
+            ? lsp.ServerErrorCodes.clientServerInconsistentState
+            : lsp.ServerErrorCodes.invalidFileLineCol,
+        message: 'Invalid line number',
+        data: originalLine.toString(),
+      ),
+    );
+  }
+  return ErrorOr<int>.success(offsetOfLine + column);
 }
 
 lsp.Outline toOutline(server.LineInfo lineInfo, server.Outline outline) {

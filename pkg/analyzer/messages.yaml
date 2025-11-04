@@ -2113,12 +2113,17 @@ CompileTimeErrorCode:
         }
       }
       ```
-  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE:
     parameters: none
+    sharedName: RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
     problemMessage: "A record literal with exactly one positional field requires a trailing comma."
     correctionMessage: Try adding a trailing comma.
     hasPublishedDocs: true
-    comment: The documentation is in `front_end/message.yaml`.
+    comment: |-
+      This is similar to
+      ParserErrorCode.recordLiteralOnePositionalNoTrailingComma, but
+      it is reported at type analysis time, based on a type
+      incompatibility, rather than at parse time.
   SET_ELEMENT_FROM_DEFERRED_LIBRARY:
     parameters: none
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
@@ -6363,45 +6368,6 @@ CompileTimeErrorCode:
     problemMessage: "The initializer type '#p0' can't be assigned to the field type '#p1' in a const constructor."
     correctionMessage: "Try using a subtype, or removing the 'const' keyword"
     hasPublishedDocs: true
-  FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
-    parameters: none
-    problemMessage: Initializing formal parameters can only be used in constructors.
-    correctionMessage: Try using a normal parameter.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an initializing formal
-      parameter is used in the parameter list for anything other than a
-      constructor.
-
-      #### Example
-
-      The following code produces this diagnostic because the initializing
-      formal parameter `this.x` is being used in the method `m`:
-
-      ```dart
-      class A {
-        int x = 0;
-
-        m([[!this.x!] = 0]) {}
-      }
-      ```
-
-      #### Common fixes
-
-      Replace the initializing formal parameter with a normal parameter and
-      assign the field within the body of the method:
-
-      ```dart
-      class A {
-        int x = 0;
-
-        m([int x = 0]) {
-          this.x = x;
-        }
-      }
-      ```
   FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR:
     parameters: none
     problemMessage: "The redirecting constructor can't have a field initializer."
@@ -13935,36 +13901,35 @@ CompileTimeErrorCode:
 
       If you need both of the mixins, then rename the conflicting member in one
       of the two mixins.
-  PRIVATE_OPTIONAL_PARAMETER:
+  PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME:
     parameters: none
-    problemMessage: "Named parameters can't start with an underscore."
-    hasPublishedDocs: true
+    problemMessage: "A private named parameter must be a public identifier after removing the leading underscore."
+    hasPublishedDocs: false
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when the name of a named parameter
-      starts with an underscore.
+      starts with an underscore and the result of removing the underscore isn't
+      a valid public identifier.
 
       #### Example
 
       The following code produces this diagnostic because the named parameter
-      `_x` starts with an underscore:
+      `_2legit` without the `_` is `2legit`, which isn't a valid public
+      identifier:
 
       ```dart
       class C {
-        void m({int [!_x!] = 0}) {}
+        final int? _2legit;
+        C({this.[!_2legit!] = 0});
+        int? get twoLegit => _2legit;
       }
       ```
 
       #### Common fixes
 
-      Rename the parameter so that it doesn't start with an underscore:
-
-      ```dart
-      class C {
-        void m({int x = 0}) {}
-      }
-      ```
+      Rename the parameter so that the character following the leading
+      underscore is a letter.
   PRIVATE_SETTER:
     parameters:
       String p0: the name of the setter
@@ -21171,47 +21136,6 @@ HintCode:
     problemMessage: "'#p0' is deprecated and shouldn't be used. #p1"
     correctionMessage: Try replacing the use of the deprecated member with the replacement.
     hasPublishedDocs: true
-  DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE:
-    parameters:
-      String p0: the name of the member
-    problemMessage: "'#p0' is deprecated and shouldn't be used."
-    correctionMessage: Try replacing the use of the deprecated member with the replacement.
-    hasPublishedDocs: true
-    comment: |-
-      This code is deprecated in favor of the
-      'deprecated_member_from_same_package' lint rule, and will be removed.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a deprecated library member or
-      class member is used in the same package in which it's declared.
-
-      #### Example
-
-      The following code produces this diagnostic because `x` is deprecated:
-
-      ```dart
-      @deprecated
-      var x = 0;
-      var y = [!x!];
-      ```
-
-      #### Common fixes
-
-      The fix depends on what's been deprecated and what the replacement is. The
-      documentation for deprecated declarations should indicate what code to use
-      in place of the deprecated code.
-  DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE:
-    parameters:
-      Object p0: the name of the member
-      Object p1: message details
-    sharedName: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-    problemMessage: "'#p0' is deprecated and shouldn't be used. #p1"
-    correctionMessage: Try replacing the use of the deprecated member with the replacement.
-    hasPublishedDocs: true
-    comment: |-
-      This code is deprecated in favor of the
-      'deprecated_member_from_same_package' lint rule, and will be removed.
   DIVISION_OPTIMIZATION:
     parameters: none
     removedIn: "3.5"
@@ -21863,6 +21787,79 @@ ParserErrorCode:
     problemMessage: "Positional parameters must be enclosed in square brackets ('[' and ']')."
     correctionMessage: Try surrounding the positional parameters in square brackets.
     hasPublishedDocs: false
+  PRIVATE_OPTIONAL_PARAMETER:
+    parameters: none
+    problemMessage: "Named parameters can't start with an underscore."
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the name of a named parameter
+      starts with an underscore.
+
+      #### Example
+
+      The following code produces this diagnostic because the named parameter
+      `_x` starts with an underscore:
+
+      ```dart
+      class C {
+        void m({int [!_x!] = 0}) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Rename the parameter so that it doesn't start with an underscore:
+
+      ```dart
+      class C {
+        void m({int x = 0}) {}
+      }
+      ```
+  PRIVATE_NAMED_NON_FIELD_PARAMETER:
+    parameters: none
+    problemMessage: "Named parameters that don't refer to instance variables can't start with underscore."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a named parameter starts with
+      an underscore, unless it's an initializing formal or field parameter.
+
+      #### Example
+
+      The following code produces this diagnostic because the named parameter
+      `_x` starts with an underscore:
+
+      ```dart
+      class C {
+        C({int [!_x!] = 0});
+      }
+      ```
+
+      #### Common fixes
+
+      If the parameter is intended to refer to a field, then add the missing
+      field:
+
+      ```dart
+      class C {
+        final int _x;
+        C({this._x = 0});
+        int get x => _x;
+      }
+      ```
+
+      If the parameter isn't intended to refer to a field, then remove the
+      underscore:
+
+      ```dart
+      class C {
+        C({int x = 0});
+      }
+      ```
+
   REPRESENTATION_FIELD_MODIFIER:
     parameters: none
     problemMessage: "Representation fields can't have modifiers."
@@ -22867,11 +22864,6 @@ ScannerErrorCode:
     parameters: none
     problemMessage: Unable to decode bytes as UTF-8.
     hasPublishedDocs: false
-  EXPECTED_TOKEN:
-    parameters:
-      String p0: the token that was expected but not found
-    problemMessage: Expected to find '#p0'.
-    hasPublishedDocs: false
   ILLEGAL_CHARACTER:
     parameters:
       Object p0: the illegal character
@@ -22884,10 +22876,6 @@ ScannerErrorCode:
   MISSING_HEX_DIGIT:
     parameters: none
     problemMessage: Hexadecimal digit expected.
-    hasPublishedDocs: false
-  MISSING_IDENTIFIER:
-    parameters: none
-    problemMessage: Expected an identifier.
     hasPublishedDocs: false
   MISSING_QUOTE:
     parameters: none
@@ -23383,7 +23371,7 @@ TransformSetErrorCode:
       Object p0: the missing key
     problemMessage: "The variable '#p0' isn't defined."
     hasPublishedDocs: false
-  unexpected_token:
+  unexpected_transform_set_token:
     parameters:
       Object p0: the token that was unexpectedly found
     problemMessage: "Didn't expect to find #p0."

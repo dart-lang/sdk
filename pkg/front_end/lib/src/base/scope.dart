@@ -146,8 +146,10 @@ class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  CompilationUnitPrefixScope(this._nameSpace, {required LookupScope? parent})
-    : _parent = parent;
+  CompilationUnitPrefixScope(
+    this._nameSpace, {
+    required CompilationUnitImportScope? parent,
+  }) : _parent = parent;
 }
 
 class DeclarationBuilderScope extends BaseNameSpaceLookupScope {

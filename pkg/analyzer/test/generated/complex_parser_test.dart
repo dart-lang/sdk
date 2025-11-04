@@ -124,7 +124,7 @@ class ComplexParserTest extends FastaParserTestCase {
     var expression =
         parseExpression(
               'x xor y',
-              errors: [
+              diagnostics: [
                 expectedError(ParserErrorCode.binaryOperatorWrittenOut, 2, 3),
               ],
             )
@@ -140,7 +140,7 @@ class ComplexParserTest extends FastaParserTestCase {
     var expression =
         parseExpression(
               'x > 0 and y > 1',
-              errors: [
+              diagnostics: [
                 expectedError(ParserErrorCode.binaryOperatorWrittenOut, 6, 3),
               ],
             )

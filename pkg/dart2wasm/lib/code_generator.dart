@@ -52,7 +52,10 @@ abstract class CodeGenerator {
 /// produced type is not a subtype of the expected type.
 abstract class AstCodeGenerator
     extends ExpressionVisitor1<w.ValueType, w.ValueType>
-    with ExpressionVisitor1DefaultMixin<w.ValueType, w.ValueType>
+    with
+        ExpressionVisitor1DefaultMixin<w.ValueType, w.ValueType>,
+        ExpressionVisitor1ExperimentExclusionMixin<w.ValueType, w.ValueType>,
+        StatementVisitorExperimentExclusionMixin<void>
     implements InitializerVisitor<void>, StatementVisitor<void>, CodeGenerator {
   final Translator translator;
   final w.FunctionType functionType;
@@ -869,8 +872,7 @@ abstract class AstCodeGenerator
       final Location? location = node.location;
       final w.RefType stringRefType = translator.stringTypeNullable;
       if (location != null) {
-        translator.constants.instantiateConstant(
-          b,
+        instantiateConstant(
           StringConstant(location.file.toString()),
           stringRefType,
         );
@@ -880,8 +882,7 @@ abstract class AstCodeGenerator
             node.enclosingComponent!.uriToSource[location.file]!.text;
         final String conditionString = sourceString.substring(
             node.conditionStartOffset, node.conditionEndOffset);
-        translator.constants.instantiateConstant(
-          b,
+        instantiateConstant(
           StringConstant(conditionString),
           stringRefType,
         );
@@ -1537,10 +1538,20 @@ abstract class AstCodeGenerator
     return translateExpression(node.value, expectedType);
   }
 
+  w.ModuleBuilder? _activeDeferredLoadingGuard;
+
   @override
   w.ValueType visitLet(Let node, w.ValueType expectedType) {
     translateStatement(node.variable);
-    return translateExpression(node.body, expectedType);
+
+    final oldGuard = _activeDeferredLoadingGuard;
+    final newGuard = _recognizeDeferredModuleGuard(node);
+    if (newGuard != null) {
+      _activeDeferredLoadingGuard = newGuard;
+    }
+    final result = translateExpression(node.body, expectedType);
+    _activeDeferredLoadingGuard = oldGuard;
+    return result;
   }
 
   @override
@@ -1804,7 +1815,7 @@ abstract class AstCodeGenerator
         final name = namedArgumentLocals[elementIdx ~/ 2].key;
         final w.ValueType symbolValueType =
             translator.classInfo[translator.symbolClass]!.nonNullableType;
-        translator.constants.instantiateConstant(b,
+        instantiateConstant(
             translator.symbols.symbolForNamedParameter(name), symbolValueType);
       } else {
         final local = namedArgumentLocals[elementIdx ~/ 2].value;
@@ -2080,8 +2091,7 @@ abstract class AstCodeGenerator
 
   @override
   w.ValueType visitStaticTearOff(StaticTearOff node, w.ValueType expectedType) {
-    translator.constants.instantiateConstant(
-        b, StaticTearOffConstant(node.target), expectedType);
+    instantiateConstant(StaticTearOffConstant(node.target), expectedType);
     return expectedType;
   }
 
@@ -2694,8 +2704,7 @@ abstract class AstCodeGenerator
     // Push default values for optional positional parameters.
     for (int i = node.positional.length; i < paramInfo.positional.length; i++) {
       final w.ValueType type = signature.inputs[signatureOffset + i];
-      translator.constants
-          .instantiateConstant(b, paramInfo.positional[i]!, type);
+      instantiateConstant(paramInfo.positional[i]!, type);
     }
 
     // Named arguments. Store evaluated arguments in locals to be able to
@@ -2718,8 +2727,7 @@ abstract class AstCodeGenerator
       if (namedLocal != null) {
         b.local_get(namedLocal);
       } else {
-        translator.constants
-            .instantiateConstant(b, paramInfo.named[name]!, type);
+        instantiateConstant(paramInfo.named[name]!, type);
       }
     }
   }
@@ -2799,41 +2807,65 @@ abstract class AstCodeGenerator
   @override
   w.ValueType visitConstantExpression(
       ConstantExpression node, w.ValueType expectedType) {
-    translator.constants.instantiateConstant(b, node.constant, expectedType);
+    instantiateConstant(node.constant, expectedType);
     return expectedType;
+  }
+
+  w.ModuleBuilder? _recognizeDeferredModuleGuard(Let let) {
+    if (!translator.options.enableDeferredLoading) return null;
+
+    // TODO(http://dartbug.com/61764): Find better way to do this.
+    //
+    // If we have somewhere in the parent chain of [node] a
+    //
+    //   let
+    //     _ = checkLibraryIsLoadedFromLoadId(<id>)
+    //   in
+    //     <body>
+    //
+    // Then we know that the constant use in <body> can only happen after the
+    // given <id> was loaded, i.e. the constant use is deferred-load-guarded
+    // by <id>.
+    final init = let.variable.initializer;
+    if (init is StaticInvocation) {
+      final target = init.target;
+      if (target == translator.checkLibraryIsLoadedFromLoadId) {
+        final args = init.arguments.positional;
+        final loadId = (args[0] as IntLiteral).value;
+        return translator.moduleForLoadId(
+            enclosingMember.enclosingLibrary, loadId);
+      }
+    }
+    return null;
   }
 
   @override
   w.ValueType visitNullLiteral(NullLiteral node, w.ValueType expectedType) {
-    translator.constants.instantiateConstant(b, NullConstant(), expectedType);
+    instantiateConstant(NullConstant(), expectedType);
     return expectedType;
   }
 
   @override
   w.ValueType visitStringLiteral(StringLiteral node, w.ValueType expectedType) {
-    translator.constants
-        .instantiateConstant(b, StringConstant(node.value), expectedType);
+    instantiateConstant(StringConstant(node.value), expectedType);
     return expectedType;
   }
 
   @override
   w.ValueType visitBoolLiteral(BoolLiteral node, w.ValueType expectedType) {
-    translator.constants
-        .instantiateConstant(b, BoolConstant(node.value), expectedType);
+    instantiateConstant(BoolConstant(node.value), expectedType);
     return expectedType;
   }
 
   @override
   w.ValueType visitIntLiteral(IntLiteral node, w.ValueType expectedType) {
-    translator.constants
-        .instantiateConstant(b, IntConstant(node.value), expectedType);
+    instantiateConstant(IntConstant(node.value), expectedType);
     return expectedType;
   }
 
   @override
   w.ValueType visitDoubleLiteral(DoubleLiteral node, w.ValueType expectedType) {
-    translator.constants
-        .instantiateConstant(b, DoubleConstant(node.value), expectedType);
+    instantiateConstant(DoubleConstant(node.value), expectedType);
     return expectedType;
   }
 
@@ -3200,6 +3232,15 @@ abstract class AstCodeGenerator
     call(translator
         .noSuchMethodErrorThrowUnimplementedExternalMemberError.reference);
     b.unreachable();
+  }
+
+  void instantiateConstant(Constant constant, w.ValueType expectedType) {
+    translator.constants.instantiateConstant(
+      b,
+      constant,
+      expectedType,
+      deferredModuleGuard: _activeDeferredLoadingGuard,
+    );
   }
 }
 

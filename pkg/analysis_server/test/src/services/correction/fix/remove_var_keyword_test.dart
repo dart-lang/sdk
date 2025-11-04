@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveVarKeywordTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_VAR_KEYWORD;
+  FixKind get kind => DartFixKind.removeVarKeyword;
 
   Future<void> test_declaredVariablePattern_patternAssignment() async {
     await resolveTestCode('''

@@ -17,11 +17,7 @@ void main(List<String> args) {
     uri = Uri.base.resolve(args.first);
   }
   Uint8List bytes = new File.fromUri(uri).readAsBytesSync();
-  ParserAstNode ast = getAST(
-    bytes,
-    enableTripleShift: true,
-    allowPatterns: true,
-  );
+  ParserAstNode ast = getAST(bytes);
 
   Widget widget = new QuitOnQWidget(
     new WithSingleLineBottomWidget(

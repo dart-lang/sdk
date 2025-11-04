@@ -112,7 +112,6 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     '_procedures': FieldRule(name: 'procedures'),
   },
   'Field': {'reference': FieldRule(name: 'fieldReference')},
-  'TypeParameter': {'_variance': FieldRule(name: 'variance')},
   'StructuralParameter': {'_variance': FieldRule(name: 'variance')},
   'FunctionNode': {
     '_body': FieldRule(name: 'body'),
@@ -141,13 +140,16 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'FunctionType': {'typeParameters': FieldRule(isDeclaration: true)},
   'TypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
   'StructuralParameterType': {'parameter': FieldRule(isDeclaration: false)},
-  'VariableDeclaration': {'_name': FieldRule(name: 'name')},
+  'VariableStatement': {'_name': FieldRule(name: 'name')},
   'AssignedVariablePattern': {'variable': FieldRule(isDeclaration: false)},
   'InvalidPattern': {'declaredVariables': FieldRule(isDeclaration: true)},
   'OrPattern': {'orPatternJointVariables': FieldRule(isDeclaration: false)},
   'VariablePattern': {'variable': FieldRule(isDeclaration: true)},
   'PatternSwitchCase': {'jointVariables': FieldRule(isDeclaration: true)},
   'PatternSwitchStatement': {'cases': FieldRule(isDeclaration: true)},
+  'TypeVariable': {'parameter': FieldRule(isDeclaration: false)},
+  'ClassTypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
+  'NominalParameter': {'_variance': FieldRule(name: 'variance')},
 };
 
 /// Data that determines exceptions to how fields are used.

@@ -76,30 +76,31 @@ sealed class AbstractAnalysisRule {
     RuleContext context,
   ) {}
 
-  void _reportAtNode(
+  Diagnostic? _reportAtNode(
     AstNode? node, {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
     required DiagnosticCode diagnosticCode,
   }) {
     if (node != null && !node.isSynthetic) {
-      _reporter.atNode(
+      return _reporter.atNode(
         node,
         diagnosticCode,
         arguments: arguments,
         contextMessages: contextMessages,
       );
     }
+    return null;
   }
 
-  void _reportAtOffset(
+  Diagnostic _reportAtOffset(
     int offset,
     int length, {
     required DiagnosticCode diagnosticCode,
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
   }) {
-    _reporter.atOffset(
+    return _reporter.atOffset(
       offset: offset,
       length: length,
       diagnosticCode: diagnosticCode,
@@ -108,7 +109,7 @@ sealed class AbstractAnalysisRule {
     );
   }
 
-  void _reportAtPubNode(
+  Diagnostic _reportAtPubNode(
     PubspecNodeImpl node, {
     List<Object> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
@@ -124,22 +125,24 @@ sealed class AbstractAnalysisRule {
       contextMessages: contextMessages,
     );
     _reporter.reportError(diagnostic);
+    return diagnostic;
   }
 
-  void _reportAtToken(
+  Diagnostic? _reportAtToken(
     Token token, {
     required DiagnosticCode diagnosticCode,
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
   }) {
     if (!token.isSynthetic) {
-      _reporter.atToken(
+      return _reporter.atToken(
         token,
         diagnosticCode,
         arguments: arguments,
         contextMessages: contextMessages,
       );
     }
+    return null;
   }
 }
 
@@ -156,7 +159,7 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
 
   /// Reports a diagnostic at [node] with message [arguments] and
   /// [contextMessages].
-  void reportAtNode(
+  Diagnostic? reportAtNode(
     AstNode? node, {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
@@ -169,7 +172,7 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
 
   /// Reports a diagnostic at [offset], with [length], with message [arguments]
   /// and [contextMessages].
-  void reportAtOffset(
+  Diagnostic reportAtOffset(
     int offset,
     int length, {
     List<Object> arguments = const [],
@@ -184,7 +187,7 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
 
   /// Reports a diagnostic at Pubspec [node], with message [arguments] and
   /// [contextMessages].
-  void reportAtPubNode(
+  Diagnostic reportAtPubNode(
     PubspecNode node, {
     List<Object> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
@@ -197,7 +200,7 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
 
   /// Reports a diagnostic at [token], with message [arguments] and
   /// [contextMessages].
-  void reportAtToken(
+  Diagnostic? reportAtToken(
     Token token, {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
@@ -220,7 +223,7 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
 
   /// Reports [diagnosticCode] at [node] with message [arguments] and
   /// [contextMessages].
-  void reportAtNode(
+  Diagnostic? reportAtNode(
     AstNode? node, {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
@@ -234,7 +237,7 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
 
   /// Reports [diagnosticCode] at [offset], with [length], with message [arguments]
   /// and [contextMessages].
-  void reportAtOffset(
+  Diagnostic reportAtOffset(
     int offset,
     int length, {
     required DiagnosticCode diagnosticCode,
@@ -250,14 +253,14 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
 
   /// Reports [diagnosticCode] at Pubspec [node], with message [arguments] and
   /// [contextMessages].
-  void reportAtPubNode(
+  Diagnostic reportAtPubNode(
     PubspecNode node, {
     required DiagnosticCode diagnosticCode,
     List<Object> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
   }) {
-    // Cache error and location info for creating `AnalysisErrorInfo`s.
-    var error = Diagnostic.tmp(
+    // Cache diagnostic and location info for creating `AnalysisErrorInfo`s.
+    var diagnostic = Diagnostic.tmp(
       source: (node as PubspecNodeImpl).source,
       offset: node.span.start.offset,
       length: node.span.length,
@@ -265,12 +268,13 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
       arguments: arguments,
       contextMessages: contextMessages,
     );
-    _reporter.reportError(error);
+    _reporter.reportError(diagnostic);
+    return diagnostic;
   }
 
   /// Reports [diagnosticCode] at [token], with message [arguments] and
   /// [contextMessages].
-  void reportAtToken(
+  Diagnostic? reportAtToken(
     Token token, {
     required DiagnosticCode diagnosticCode,
     List<Object> arguments = const [],

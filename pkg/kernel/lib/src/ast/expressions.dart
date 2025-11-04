@@ -242,7 +242,7 @@ class VariableGet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(variable));
+    printer.write(printer.getVariableDeclarationName(variable));
     if (promotedType != null) {
       printer.write('{');
       printer.writeType(promotedType!);
@@ -301,7 +301,7 @@ class VariableSet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(variable));
+    printer.write(printer.getVariableDeclarationName(variable));
     printer.write(' = ');
     printer.writeExpression(value);
   }
@@ -2211,7 +2211,7 @@ class LocalFunctionInvocation extends InvocationExpression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(variable));
+    printer.write(printer.getVariableDeclarationName(variable));
     printer.writeArguments(arguments);
   }
 }
@@ -2739,6 +2739,84 @@ class ConstructorInvocation extends InvocationExpression {
       printer.write(target.name.text);
     }
     printer.writeArguments(arguments, includeTypeArguments: false);
+  }
+}
+
+/// Invocation of a redirecting factory constructor.
+///
+/// This wraps the actual invocation [expression] with the original redirecting
+/// factory target. This node is available only in outlines and during
+/// pre-modular transformation, and is replaced with [expression] during
+/// constant evaluation.
+class RedirectingFactoryInvocation extends Expression {
+  /// The original target of the redirecting factory invocation.
+  Reference redirectingFactoryTargetReference;
+
+  /// The invocation of the effective target.
+  InvocationExpression expression;
+
+  factory RedirectingFactoryInvocation(
+      Procedure redirectingFactoryTarget, InvocationExpression expression) {
+    assert(redirectingFactoryTarget.isRedirectingFactory);
+    return new RedirectingFactoryInvocation.byReference(
+        redirectingFactoryTarget.reference, expression);
+  }
+
+  RedirectingFactoryInvocation.byReference(
+      this.redirectingFactoryTargetReference, this.expression) {
+    expression.parent = this;
+  }
+
+  Procedure get redirectingFactoryTarget =>
+      redirectingFactoryTargetReference.asProcedure;
+
+  void set redirectingFactoryTarget(Procedure value) {
+    assert(redirectingFactoryTarget.isRedirectingFactory);
+    redirectingFactoryTargetReference = value.reference;
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    return expression.getStaticTypeInternal(context);
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) =>
+      v.visitRedirectingFactoryInvocation(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitRedirectingFactoryInvocation(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    redirectingFactoryTarget.acceptReference(v);
+    expression.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    expression = v.transform(expression);
+    expression.parent = this;
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    expression = v.transform(expression);
+    expression.parent = this;
+  }
+
+  @override
+  String toString() {
+    return "RedirectingFactoryInvocation(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('/*original=');
+    printer.writeMemberName(redirectingFactoryTargetReference);
+    printer.write('*/');
+    expression.toTextInternal(printer);
   }
 }
 
@@ -4764,9 +4842,12 @@ class Let extends Expression {
   }
 }
 
-class BlockExpression extends Expression {
+class BlockExpression extends Expression implements ScopeProvider {
   Block body;
   Expression value;
+
+  @override
+  Scope? scope;
 
   BlockExpression(this.body, this.value) {
     body.parent = this;
@@ -5099,5 +5180,114 @@ class TypedefTearOff extends Expression {
     printer.writeExpression(expression);
     printer.writeTypeArguments(typeArguments);
     printer.write(")");
+  }
+}
+
+/// [VariableRead] nodes are the replacement for the VariableGet nodes.
+///
+/// Despite of the  name, [VariableRead] can't read [TypeVariable]s,
+/// which are also [Variable]s.
+class VariableRead extends Expression {
+  final ExpressionVariable variable;
+
+  VariableRead({required this.variable});
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) {
+    // TODO(cstefantsova): Implement accept.
+    throw UnimplementedError();
+  }
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) {
+    // TODO(cstefantsova): Implement accept1.
+    throw UnimplementedError();
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    // TODO(cstefantsova): Implement getStaticTypeInternal.
+    throw UnimplementedError();
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // TODO(cstefantsova): Implement transformChildren.
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // TODO(cstefantsova): Implement transformOrRemoveChildren.
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    // TODO(cstefantsova): Implement visitChildren.
+  }
+
+  @override
+  String toString() {
+    return "VariableRead(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write(printer.getVariableName(variable));
+  }
+}
+
+/// [VariableWrite] nodes are the replacement for the VariableSet nodes.
+///
+/// Despite of the  name, [VariableWrite] can't write into
+/// [TypeVariable]s, which are also [Variable]s.
+class VariableWrite extends Expression {
+  final ExpressionVariable variable;
+  final Expression value;
+
+  VariableWrite({required this.variable, required this.value});
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) {
+    // TODO(cstefantsova): Implement accept.
+    throw UnimplementedError();
+  }
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) {
+    // TODO(cstefantsova): Implement accept1.
+    throw UnimplementedError();
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    // TODO(cstefantsova): Implement getStaticTypeInternal.
+    throw UnimplementedError();
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // TODO(cstefantsova): Implement transformChildren.
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // TODO(cstefantsova): Implement transformOrRemoveChildren.
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    // TODO(cstefantsova): Implement visitChildren.
+  }
+
+  @override
+  String toString() {
+    return "VariableWrite(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write(printer.getVariableName(variable));
+    printer.write(' = ');
+    printer.writeExpression(value);
   }
 }

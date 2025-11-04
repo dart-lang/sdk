@@ -94,6 +94,9 @@ class NullValues {
   static const NullValue Pattern = const NullValue("Pattern");
   static const NullValue PatternList = const NullValue("PatternList");
   static const NullValue Prefix = const NullValue("Prefix");
+  static const NullValue PrimaryConstructor = const NullValue(
+    "PrimaryConstructor",
+  );
   static const NullValue RecordTypeFieldList = const NullValue(
     "RecordTypeFieldList",
   );
@@ -152,7 +155,6 @@ abstract class StackListener extends Listener with StackChecker {
   @override
   Object? lookupStack(int index) => stack[index];
 
-  @override
   Uri get uri;
 
   /// Returns `true` if the current file is part of a `dart:` library.

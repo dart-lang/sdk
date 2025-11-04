@@ -25,6 +25,18 @@ class CreateMixinLowercaseTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createMixinLowercase;
 
+  Future<void> test_ifNull_notType() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_lowercaseAssignment() async {
     await resolveTestCode('''
 newName? a;
@@ -161,7 +173,7 @@ class A {}
 A? a;
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.IMPORT_LIBRARY_PROJECT1,
+      DartFixKind.importLibraryProject1,
       DartFixKind.createMixinUppercase,
     ]);
   }
@@ -297,7 +309,7 @@ void f() {}
 mixin Test {
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode == CompileTimeErrorCode.undefinedIdentifier;
       },
     );

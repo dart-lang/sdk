@@ -1,0 +1,50 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension E on self::A% /* erasure=core::Object?, declared=! */ {
+  static get extensionTypeGetter = get self::E|extensionTypeGetter;
+  static get extensionGetter = get self::E|extensionGetter;
+  static set extensionTypeSetter = set self::E|extensionTypeSetter;
+  static set extensionSetter = set self::E|extensionSetter;
+  static method extensionTypeMethod = self::E|extensionTypeMethod;
+  static method extensionMethod = self::E|extensionMethod;
+}
+extension type A(core::Object? it) {
+  abstract extension-type-member representation-field get it() → core::Object?;
+  static get extensionTypeGetter = get self::A|extensionTypeGetter;
+  static set extensionTypeSetter = set self::A|extensionTypeSetter;
+  static method extensionTypeMethod = self::A|extensionTypeMethod;
+  constructor • = self::A|constructor#;
+  constructor tearoff • = self::A|constructor#_#new#tearOff;
+}
+static extension-type-member method A|constructor#(core::Object? it) → self::A% /* erasure=core::Object?, declared=! */
+  ;
+static extension-type-member synthetic method A|constructor#_#new#tearOff(core::Object? it) → self::A% /* erasure=core::Object?, declared=! */
+  return self::A|constructor#(it);
+static extension-type-member get A|extensionTypeGetter() → core::String
+  ;
+static extension-type-member set A|extensionTypeSetter(core::num value) → void
+  ;
+static extension-type-member method A|extensionTypeMethod() → core::String
+  ;
+static extension-member get E|extensionTypeGetter() → core::String
+  ;
+static extension-member get E|extensionGetter() → core::String
+  ;
+static extension-member set E|extensionTypeSetter(core::num value) → void
+  ;
+static extension-member set E|extensionSetter(core::bool value) → void
+  ;
+static extension-member method E|extensionTypeMethod() → core::String
+  ;
+static extension-member method E|extensionMethod() → core::String
+  ;
+static method main() → dynamic
+  ;
+static method expectEqual(dynamic a, dynamic b) → dynamic
+  ;
+static method expectThrows(() → dynamic f) → dynamic
+  ;
+static method expectDoesntThrow(() → dynamic f) → dynamic
+  ;

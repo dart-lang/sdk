@@ -146,6 +146,14 @@ config("compiler") {
       ldflags += [
         "-rpath",
         "buildtools/mac-$host_cpu/clang/lib/clang/22/lib/darwin",
+
+        # Back from xcodebuild/ReleaseTSAN/dart
+        "-rpath",
+        "@loader_path/../../buildtools/mac-$host_cpu/clang/lib/clang/22/lib/darwin",
+
+        # Back from xcodebuild/ReleaseTSAN/dart-sdk/bin/dart
+        "-rpath",
+        "@loader_path/../../../../buildtools/mac-$host_cpu/clang/lib/clang/22/lib/darwin",
       ]
     }
 

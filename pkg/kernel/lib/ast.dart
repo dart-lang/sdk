@@ -124,3 +124,4 @@ part 'src/ast/patterns.dart';
 part 'src/ast/statements.dart';
 part 'src/ast/typedefs.dart';
 part 'src/ast/types.dart';
+part 'src/ast/variables.dart';

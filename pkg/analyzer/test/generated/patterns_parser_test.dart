@@ -4,11 +4,11 @@
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/node_text_expectations.dart';
 import '../src/diagnostics/parser_diagnostics.dart';
-import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -29,7 +29,7 @@ void f(x) {
   (as) = x;
 }
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.illegalPatternAssignmentVariableName, 29, 2),
       ],
     );
@@ -51,7 +51,7 @@ void f(x) {
   (when) = x;
 }
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.illegalPatternAssignmentVariableName, 31, 4),
       ],
     );
@@ -76,7 +76,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.missingIdentifier, 41, 1),
         error(ParserErrorCode.expectedToken, 41, 1),
       ],
@@ -644,7 +644,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 8)],
+      diagnostics: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 8)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -901,7 +901,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 8)],
+      diagnostics: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 8)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -928,7 +928,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 9)],
+      diagnostics: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 9)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -1325,7 +1325,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.illegalPatternIdentifierName, 36, 2)],
+      diagnostics: [error(ParserErrorCode.illegalPatternIdentifierName, 36, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -1344,7 +1344,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.illegalPatternIdentifierName, 36, 4)],
+      diagnostics: [error(ParserErrorCode.illegalPatternIdentifierName, 36, 4)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -3061,7 +3061,9 @@ void f() {
   [a, final d] = y;
 }
 ''',
-      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 23, 1)],
+      diagnostics: [
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 23, 1),
+      ],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -3088,7 +3090,9 @@ void f() {
   [a, final int d] = y;
 }
 ''',
-      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 27, 1)],
+      diagnostics: [
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 27, 1),
+      ],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -3117,7 +3121,9 @@ void f() {
   [a, int d] = y;
 }
 ''',
-      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 21, 1)],
+      diagnostics: [
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 21, 1),
+      ],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -3145,7 +3151,9 @@ void f() {
   [a, var d] = y;
 }
 ''',
-      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 21, 1)],
+      diagnostics: [
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 21, 1),
+      ],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -3172,7 +3180,9 @@ void f() {
   [a, var int d] = y;
 }
 ''',
-      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 25, 1)],
+      diagnostics: [
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 25, 1),
+      ],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -3207,7 +3217,7 @@ f() {
   } catch (e) {}
 }
 ''',
-      errors: [error(ParserErrorCode.missingIdentifier, 26, 1)],
+      diagnostics: [error(ParserErrorCode.missingIdentifier, 26, 1)],
     );
   }
 
@@ -4216,7 +4226,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 43, 1)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 43, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -4245,7 +4255,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ScannerErrorCode.expectedToken, 59, 1)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 59, 1)],
     );
     var node = findNode.switchStatement('switch').members.single;
     assertParsedNodeText(node, r'''
@@ -4281,7 +4291,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 43, 3)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 43, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -5335,7 +5345,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 50, 1)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 50, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -5367,7 +5377,7 @@ void f(Object o) {
   }
 }
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.expectedToken, 59, 1),
         error(ParserErrorCode.missingIdentifier, 59, 1),
       ],
@@ -5409,7 +5419,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ScannerErrorCode.expectedToken, 50, 1)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 50, 1)],
     );
     var node = findNode.switchStatement('switch').members.single;
     assertParsedNodeText(node, r'''
@@ -5452,7 +5462,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 50, 5)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 50, 5)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -5512,7 +5522,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
+      diagnostics: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -5704,7 +5714,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
+      diagnostics: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -5729,7 +5739,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
+      diagnostics: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -5948,7 +5958,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
+      diagnostics: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -6140,7 +6150,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
+      diagnostics: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -6165,7 +6175,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
+      diagnostics: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -6795,7 +6805,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 55, 1)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 55, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -6830,7 +6840,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ScannerErrorCode.expectedToken, 71, 1)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 71, 1)],
     );
     var node = findNode.switchStatement('switch').members.single;
     assertParsedNodeText(node, r'''
@@ -6872,7 +6882,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 55, 3)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 55, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -7574,7 +7584,7 @@ void main() {
   final b = (final g, final ) = 55;
 }
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.patternAssignmentDeclaresVariable, 33, 1),
         error(ParserErrorCode.missingIdentifier, 42, 1),
         error(ParserErrorCode.patternAssignmentDeclaresVariable, 42, 1),
@@ -7594,7 +7604,7 @@ class C {
   var (a, b) = (0, 1);
 }
 ''',
-      errors: [
+      diagnostics: [
         error(
           ParserErrorCode.patternVariableDeclarationOutsideFunctionOrMethod,
           16,
@@ -7637,7 +7647,7 @@ ClassDeclaration
       '''
 var (a, b) = (0, 1);
 ''',
-      errors: [
+      diagnostics: [
         error(
           ParserErrorCode.patternVariableDeclarationOutsideFunctionOrMethod,
           4,
@@ -7676,7 +7686,7 @@ f(x) {
   const (_) = x;
 }
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.missingAssignableSelector, 9, 9),
         error(ParserErrorCode.illegalAssignmentToNonAssignable, 9, 9),
         error(ParserErrorCode.recordLiteralOnePositionalNoTrailingComma, 17, 1),
@@ -7691,7 +7701,9 @@ f(x) {
   late var (_) = x;
 }
 ''',
-      errors: [error(ParserErrorCode.latePatternVariableDeclaration, 9, 4)],
+      diagnostics: [
+        error(ParserErrorCode.latePatternVariableDeclaration, 9, 4),
+      ],
     );
     var node = findNode.patternVariableDeclarationStatement('= x');
     assertParsedNodeText(node, r'''
@@ -8642,7 +8654,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 36, 5)],
+      diagnostics: [error(ParserErrorCode.invalidInsideUnaryPattern, 36, 5)],
     );
     var node = findNode.singleGuardedPattern;
     assertParsedNodeText(node, r'''
@@ -10048,7 +10060,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.expectedToken, 41, 1),
         error(ParserErrorCode.missingIdentifier, 41, 1),
         error(ParserErrorCode.expectedToken, 43, 1),
@@ -10072,7 +10084,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.expectedToken, 40, 1),
         error(ParserErrorCode.missingIdentifier, 40, 1),
         error(ParserErrorCode.expectedToken, 42, 1),
@@ -10383,7 +10395,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 36, 4)],
+      diagnostics: [error(ParserErrorCode.invalidInsideUnaryPattern, 36, 4)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -10406,7 +10418,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 36, 3)],
+      diagnostics: [error(ParserErrorCode.invalidInsideUnaryPattern, 36, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -10670,10 +10682,10 @@ MapPattern
 main() {
   int var = 0;
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.expectedToken, 11, 3),
         error(ParserErrorCode.missingIdentifier, 19, 1),
-        error(ScannerErrorCode.expectedToken, 24, 1),
+        error(ParserErrorCode.expectedToken, 24, 1),
       ],
     );
   }
@@ -10793,7 +10805,7 @@ f(x) => switch(x) {
   int() => 0 : 1
 };
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 33, 1)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 33, 1)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -10829,7 +10841,7 @@ f(x) => [switch(x) {
   int() => 0 : 1
 }, 0];
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 34, 1)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 34, 1)],
     );
     var node = findNode.listLiteral('[');
     assertParsedNodeText(node, r'''
@@ -10871,7 +10883,7 @@ f(x) => switch(x) {
   int() => 0 : (1, 2)
 };
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 33, 1)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 33, 1)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -10905,7 +10917,7 @@ f(x) => switch (x) {
   case 2 => 'two'
 };
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.unexpectedToken, 23, 4),
         error(ParserErrorCode.unexpectedToken, 42, 4),
       ],
@@ -10948,7 +10960,7 @@ f(x) => switch (x) {
   2: 'two'
 };
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.expectedToken, 24, 1),
         error(ParserErrorCode.expectedToken, 36, 1),
       ],
@@ -10991,7 +11003,7 @@ f(x) => switch (x) {
   default => 'other'
 };
 ''',
-      errors: [error(ParserErrorCode.defaultInSwitchExpression, 37, 7)],
+      diagnostics: [error(ParserErrorCode.defaultInSwitchExpression, 37, 7)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -11032,7 +11044,7 @@ f(x) => switch (x) {
   _ => 2
 };
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 41, 2)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 41, 2)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -11079,7 +11091,7 @@ f(x) => switch (x) {
   _ => 2
 };
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 41, 2)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 41, 2)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -11124,7 +11136,7 @@ f(x) => switch(x) {
   double() => 1
 };
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 35, 6)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 35, 6)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -11168,7 +11180,7 @@ f(x) => switch (x) {
   2 => 'two'
 };
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 33, 1)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 33, 1)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -11210,7 +11222,7 @@ f(x) => switch (x) {
     < 1 => 0
 };
 ''',
-      errors: [error(ParserErrorCode.expectedToken, 40, 2)],
+      diagnostics: [error(ParserErrorCode.expectedToken, 40, 2)],
     );
     // No assertion on the parsed node text; all we are concerned with is that
     // the parser doesn't crash.
@@ -11262,7 +11274,7 @@ void f(Object? x) {
   };
 }
 ''',
-      errors: [error(ParserErrorCode.missingIdentifier, 45, 2)],
+      diagnostics: [error(ParserErrorCode.missingIdentifier, 45, 2)],
     );
     var node = findNode.switchPatternCase('case');
     assertParsedNodeText(node, r'''
@@ -11289,7 +11301,7 @@ void f(Object? x) {
   };
 }
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.missingIdentifier, 48, 2),
         error(ParserErrorCode.expectedToken, 48, 2),
         error(ParserErrorCode.expectedToken, 48, 2),
@@ -11331,7 +11343,7 @@ void f(Object? x) {
   };
 }
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.missingIdentifier, 45, 2),
         error(ParserErrorCode.expectedToken, 45, 2),
       ],
@@ -11360,7 +11372,7 @@ void f(Object? x) {
   };
 }
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.missingIdentifier, 48, 2),
         error(ParserErrorCode.expectedToken, 48, 2),
       ],
@@ -11390,7 +11402,7 @@ SwitchPatternCase
       '''
 void f(Object? x) => switch (x) {if};
 ''',
-      errors: [
+      diagnostics: [
         error(ParserErrorCode.missingIdentifier, 33, 2),
         error(ParserErrorCode.expectedToken, 33, 2),
         error(ParserErrorCode.expectedToken, 33, 2),
@@ -11510,7 +11522,7 @@ void f(x) {
   var (final y) = x;
 }
 ''',
-      errors: [
+      diagnostics: [
         error(
           ParserErrorCode.variablePatternKeywordInDeclarationContext,
           19,
@@ -11593,7 +11605,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.illegalPatternVariableName, 40, 2)],
+      diagnostics: [error(ParserErrorCode.illegalPatternVariableName, 40, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -11612,7 +11624,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.illegalPatternVariableName, 40, 4)],
+      diagnostics: [error(ParserErrorCode.illegalPatternVariableName, 40, 4)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -11836,7 +11848,7 @@ void f(x) {
   var (var y) = x;
 }
 ''',
-      errors: [
+      diagnostics: [
         error(
           ParserErrorCode.variablePatternKeywordInDeclarationContext,
           19,
@@ -11955,7 +11967,7 @@ void f(int x) {
   var (var int y) = x;
 }
 ''',
-      errors: [
+      diagnostics: [
         error(
           ParserErrorCode.variablePatternKeywordInDeclarationContext,
           23,
@@ -11983,7 +11995,7 @@ void f(x) {
   var (var int _) = x;
 }
 ''',
-      errors: [
+      diagnostics: [
         error(
           ParserErrorCode.variablePatternKeywordInDeclarationContext,
           19,
@@ -12014,7 +12026,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.varAndType, 36, 3)],
+      diagnostics: [error(ParserErrorCode.varAndType, 36, 3)],
     );
     var node = findNode.singleGuardedPattern;
     assertParsedNodeText(node, r'''
@@ -12037,7 +12049,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.varAndType, 36, 3)],
+      diagnostics: [error(ParserErrorCode.varAndType, 36, 3)],
     );
     var node = findNode.singleGuardedPattern;
     assertParsedNodeText(node, r'''
@@ -12385,7 +12397,9 @@ void f() {
   [a, final _] = y;
 }
 ''',
-      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 23, 1)],
+      diagnostics: [
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 23, 1),
+      ],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -12412,7 +12426,9 @@ void f() {
   [a, final int _] = y;
 }
 ''',
-      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 27, 1)],
+      diagnostics: [
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 27, 1),
+      ],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -12441,7 +12457,9 @@ void f() {
   [a, int _] = y;
 }
 ''',
-      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 21, 1)],
+      diagnostics: [
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 21, 1),
+      ],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -12469,7 +12487,9 @@ void f() {
   [a, var _] = y;
 }
 ''',
-      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 21, 1)],
+      diagnostics: [
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 21, 1),
+      ],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -12496,7 +12516,9 @@ void f() {
   [a, var int _] = y;
 }
 ''',
-      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 25, 1)],
+      diagnostics: [
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 25, 1),
+      ],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -12709,10 +12731,10 @@ NullCheckPattern
 ''');
   }
 
-  void _parse(String content, {List<ExpectedError>? errors}) {
+  void _parse(String content, {List<ExpectedDiagnostic>? diagnostics}) {
     var parseResult = parseStringWithErrors(content);
-    if (errors != null) {
-      parseResult.assertErrors(errors);
+    if (diagnostics != null) {
+      parseResult.assertErrors(diagnostics);
     } else {
       parseResult.assertNoErrors();
     }

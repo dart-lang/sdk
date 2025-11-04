@@ -102,7 +102,10 @@ class BundleRequirementsPrinter extends ManifestPrinter {
   }
 
   void _writeExportedExtensions(LibraryRequirements requirements) {
-    _writelnIdList('exportedExtensions', requirements.exportedExtensions);
+    _writelnIdListIfNotNull(
+      'exportedExtensions',
+      requirements.exportedExtensions,
+    );
   }
 
   void _writeExportedLibraryUris(LibraryRequirements requirements) {
@@ -204,19 +207,19 @@ class BundleRequirementsPrinter extends ManifestPrinter {
       });
 
       sink.withIndent(() {
-        _writelnIdList(
+        _writelnIdListIfNotNull(
           'allDeclaredFields',
           instanceRequirements.allDeclaredFields,
         );
-        _writelnIdList(
+        _writelnIdListIfNotNull(
           'allDeclaredGetters',
           instanceRequirements.allDeclaredGetters,
         );
-        _writelnIdList(
+        _writelnIdListIfNotNull(
           'allDeclaredSetters',
           instanceRequirements.allDeclaredSetters,
         );
-        _writelnIdList(
+        _writelnIdListIfNotNull(
           'allDeclaredMethods',
           instanceRequirements.allDeclaredMethods,
         );
@@ -237,8 +240,21 @@ class BundleRequirementsPrinter extends ManifestPrinter {
         if (requirements.hasNonFinalField case var value?) {
           sink.writelnWithIndent('hasNonFinalField: $value');
         }
-        _writelnIdList('allConstructors', requirements.allConstructors);
-        _writelnIdList('allSubtypes', requirements.allSubtypes);
+        _writelnIdListIfNotNull(
+          'allDeclaredConstructors',
+          requirements.allDeclaredConstructors,
+        );
+        _writelnIdListIfNotNull(
+          'allInheritedConstructors',
+          requirements.allInheritedConstructors,
+        );
+        if (requirements.allSubtypesRequested) {
+          _writelnIdListOrNull('allSubtypes', requirements.allSubtypes);
+        }
+        _writelnIdListIfNotNull(
+          'directSubtypesOfSealed',
+          requirements.directSubtypesOfSealed,
+        );
         sink.writeElements(
           'requestedConstructors',
           requirements.requestedConstructors.sorted,
@@ -301,15 +317,8 @@ class BundleRequirementsPrinter extends ManifestPrinter {
       'allDeclaredGetters': requirements.allDeclaredGetters,
       'allDeclaredSetters': requirements.allDeclaredSetters,
     }).forEach((name, value) {
-      _writelnIdList(name, value);
+      _writelnIdListIfNotNull(name, value);
     });
-  }
-
-  void _writelnIdList(String name, ManifestItemIdList? idList) {
-    if (idList != null) {
-      var idListStr = idList.asString(idProvider);
-      sink.writelnWithIndent('$name: $idListStr');
-    }
   }
 
   void _writeOpaqueApiUses(RequirementsManifest requirements) {
@@ -1134,6 +1143,11 @@ class LibraryManifestPrinter extends ManifestPrinter {
       sink.writelnWithIndent('libraryMetadata: $idStr');
     }
 
+    var declaredConflicts = manifest.declaredConflicts.sorted;
+    sink.writeElements('declaredConflicts', declaredConflicts, (entry) {
+      _writelnIdLookupName(entry.key, entry.value);
+    });
+
     var classEntries = manifest.declaredClasses.sorted;
     sink.writeElements('declaredClasses', classEntries, (entry) {
       var item = entry.value;
@@ -1288,7 +1302,11 @@ class LibraryManifestPrinter extends ManifestPrinter {
         _writeNamedType('supertype', item.supertype);
         _writeTypeList('mixins', item.mixins);
         _writeTypeList('interfaces', item.interfaces);
-        _writelnIdListIfNotEmpty('allSubtypes', item.allSubtypes);
+        _writelnIdListIfNotNull('allSubtypes', item.allSubtypes);
+        _writelnIdListIfNotNull(
+          'directSubtypesOfSealed',
+          item.directSubtypesOfSealed,
+        );
       });
     }
 
@@ -1639,6 +1657,8 @@ class LibraryManifestPrinter extends ManifestPrinter {
                   sink.writelnWithIndent('$index = formalParameter $rawIndex');
                 case ManifestAstElementKind.importPrefix:
                   sink.writelnWithIndent('$index = importPrefix');
+                case ManifestAstElementKind.methodOfUnnamedExtension:
+                  sink.writelnWithIndent('$index = methodOfUnnamedExtension');
                 case ManifestAstElementKind.typeParameter:
                   sink.writelnWithIndent('$index = typeParameter $rawIndex');
                 case ManifestAstElementKind.regular:
@@ -1832,10 +1852,19 @@ class ManifestPrinter {
     sink.writelnWithIndent('$name: $idStr');
   }
 
-  void _writelnIdListIfNotEmpty(String name, ManifestItemIdList idList) {
-    if (idList.ids.isNotEmpty) {
+  void _writelnIdListIfNotNull(String name, ManifestItemIdList? idList) {
+    if (idList != null) {
       var idListStr = idList.asString(idProvider);
       sink.writelnWithIndent('$name: $idListStr');
+    }
+  }
+
+  void _writelnIdListOrNull(String name, ManifestItemIdList? idList) {
+    if (idList != null) {
+      var idListStr = idList.asString(idProvider);
+      sink.writelnWithIndent('$name: $idListStr');
+    } else {
+      sink.writelnWithIndent('$name: <null>');
     }
   }
 
@@ -2041,6 +2070,12 @@ extension on ManifestItemIdList {
     } else {
       return '[]';
     }
+  }
+}
+
+extension on ManifestItemIdList? {
+  String asString(IdProvider idProvider) {
+    return this?.asString(idProvider) ?? '<null>';
   }
 }
 

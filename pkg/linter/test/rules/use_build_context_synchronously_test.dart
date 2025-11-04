@@ -2275,7 +2275,9 @@ abstract class C extends State<StatefulWidget> {
 
 Future<void> f() async {}
 ''',
-      [lint(195, 12, messageContains: "an unrelated 'mounted' check")],
+      [
+        lint(195, 12, messageContainsAll: ["an unrelated 'mounted' check"]),
+      ],
     );
   }
 
@@ -2351,7 +2353,9 @@ abstract class C extends State<StatefulWidget> {
 
 Future<void> f() async {}
 ''',
-      [lint(188, 7, messageContains: "an unrelated 'mounted' check")],
+      [
+        lint(188, 7, messageContainsAll: ["an unrelated 'mounted' check"]),
+      ],
     );
   }
 
@@ -2390,7 +2394,9 @@ abstract class C extends State<StatefulWidget> {
 
 Future<void> f() async {}
 ''',
-      [lint(192, 7, messageContains: "an unrelated 'mounted' check")],
+      [
+        lint(192, 7, messageContainsAll: ["an unrelated 'mounted' check"]),
+      ],
     );
   }
 

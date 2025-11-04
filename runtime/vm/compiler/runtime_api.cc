@@ -245,7 +245,7 @@ bool HasIntegerValue(const dart::Object& object, int64_t* value) {
 }
 
 int32_t CreateJitCookie() {
-  return static_cast<int32_t>(IsolateGroup::Current()->random()->NextUInt32());
+  return static_cast<int32_t>(Thread::Current()->random()->NextUInt32());
 }
 
 word TypedDataElementSizeInBytes(classid_t cid) {
@@ -331,6 +331,10 @@ void BailoutWithBranchOffsetError() {
 
 word RuntimeEntry::OffsetFromThread() const {
   return target::Thread::OffsetFromThread(runtime_entry_);
+}
+
+const char* RuntimeEntry::name() const {
+  return runtime_entry_->name();
 }
 
 bool RuntimeEntry::is_leaf() const {

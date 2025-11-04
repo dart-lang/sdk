@@ -32,6 +32,7 @@ class LateError extends Error {
     : _message = "Local '${localName}' has not been initialized.";
 
   /// Final variable written more than once.
+  @pragma("vm:entry-point")
   LateError.fieldAI(String fieldName)
     : _message = "Field '${fieldName}' has already been initialized.";
 
@@ -59,6 +60,7 @@ class LateError extends Error {
 class ReachabilityError extends Error {
   final String? _message;
 
+  @pragma("vm:entry-point")
   ReachabilityError([this._message]);
 
   String toString() {

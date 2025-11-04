@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
@@ -15,7 +16,7 @@ import '../util/variance_checker.dart';
 
 const _desc = r"Avoid using 'FutureOr<void>' as the type of a result.";
 
-class AvoidFutureOrVoid extends LintRule {
+class AvoidFutureOrVoid extends AnalysisRule {
   AvoidFutureOrVoid()
     : super(
         name: LintNames.avoid_futureor_void,
@@ -50,7 +51,7 @@ class AvoidFutureOrVoid extends LintRule {
 }
 
 class _FutureOrVarianceChecker extends VarianceChecker {
-  final LintRule rule;
+  final AnalysisRule rule;
   _FutureOrVarianceChecker(this.rule);
 
   @override
@@ -72,7 +73,7 @@ class _FutureOrVarianceChecker extends VarianceChecker {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   final RuleContext context;
   final VarianceChecker checker;
 

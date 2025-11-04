@@ -8,7 +8,10 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         Message,
         codeExperimentNotEnabled,
         codeInternalProblemUnsupported;
-import 'package:_fe_analyzer_shared/src/parser/parser.dart';
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show DefaultExperimentalFeatures;
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    hide ExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -325,7 +328,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endEnum(
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,
@@ -343,6 +346,7 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,
@@ -755,7 +759,8 @@ class MiniAstBuilder extends StackListener {
 
 /// Parser intended for use with [MiniAstBuilder].
 class MiniAstParser extends Parser {
-  MiniAstParser(MiniAstBuilder super.listener);
+  MiniAstParser(MiniAstBuilder super.listener)
+    : super(experimentalFeatures: const DefaultExperimentalFeatures());
 
   @override
   Token parseArgumentsOpt(Token token) {

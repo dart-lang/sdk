@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -93,6 +94,42 @@ FunctionExpression
     element: null@null
       type: Null Function<T extends num>()
   staticType: Null Function<T extends num>()
+''');
+  }
+
+  test_signatureScope_noFormalParameters() async {
+    await assertErrorsInCode(
+      '''
+var f = ({int x = x}) {};
+''',
+      [error(CompileTimeErrorCode.undefinedIdentifier, 18, 1)],
+    );
+
+    var node = findNode.singleFormalParameterList;
+    assertResolvedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      name: x
+      declaredElement: <testLibraryFragment> x@14
+        element: isPublic
+          type: int
+    separator: =
+    defaultValue: SimpleIdentifier
+      token: x
+      element: <null>
+      staticType: InvalidType
+    declaredElement: <testLibraryFragment> x@14
+      element: isPublic
+        type: int
+  rightDelimiter: }
+  rightParenthesis: )
 ''');
   }
 }

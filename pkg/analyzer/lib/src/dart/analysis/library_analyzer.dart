@@ -250,45 +250,50 @@ class LibraryAnalyzer {
   }
 
   void _checkForInconsistentLanguageVersionOverride() {
-    var libraryUnitAnalysis = _libraryFiles.values.first;
-    var libraryUnit = libraryUnitAnalysis.unit;
-    var libraryOverrideToken = libraryUnit.languageVersionToken;
+    var libraryAnalysis = _libraryFiles.values.first;
+    var libraryOverrideToken = libraryAnalysis.unit.languageVersionToken;
 
-    var elementToUnit = <LibraryFragmentImpl, CompilationUnit>{};
+    var elementToAnalysis = <LibraryFragmentImpl, FileAnalysis>{};
     for (var fileAnalysis in _libraryFiles.values) {
-      elementToUnit[fileAnalysis.element] = fileAnalysis.unit;
+      elementToAnalysis[fileAnalysis.element] = fileAnalysis;
     }
 
-    for (var directive in libraryUnit.directives) {
-      if (directive is PartDirectiveImpl) {
-        var uri = directive.partInclude?.uri;
-        if (uri is DirectiveUriWithUnitImpl) {
-          var partUnit = elementToUnit[uri.libraryFragment];
-          if (partUnit != null) {
-            var shouldReport = false;
-            var partOverrideToken = partUnit.languageVersionToken;
-            if (libraryOverrideToken != null) {
-              if (partOverrideToken != null) {
-                if (partOverrideToken.major != libraryOverrideToken.major ||
-                    partOverrideToken.minor != libraryOverrideToken.minor) {
+    void visitPartDirectives(FileAnalysis container) {
+      for (var directive in container.unit.directives) {
+        if (directive is PartDirectiveImpl) {
+          var uri = directive.partInclude?.uri;
+          if (uri is DirectiveUriWithUnitImpl) {
+            var part = elementToAnalysis[uri.libraryFragment];
+            if (part != null) {
+              var shouldReport = false;
+              var partOverrideToken = part.unit.languageVersionToken;
+              if (libraryOverrideToken != null) {
+                if (partOverrideToken != null) {
+                  if (partOverrideToken.major != libraryOverrideToken.major ||
+                      partOverrideToken.minor != libraryOverrideToken.minor) {
+                    shouldReport = true;
+                  }
+                } else {
                   shouldReport = true;
                 }
-              } else {
+              } else if (partOverrideToken != null) {
                 shouldReport = true;
               }
-            } else if (partOverrideToken != null) {
-              shouldReport = true;
-            }
-            if (shouldReport) {
-              libraryUnitAnalysis.diagnosticReporter.atNode(
-                directive.uri,
-                CompileTimeErrorCode.inconsistentLanguageVersionOverride,
-              );
+              if (shouldReport) {
+                container.diagnosticReporter.atNode(
+                  directive.uri,
+                  CompileTimeErrorCode.inconsistentLanguageVersionOverride,
+                );
+              } else {
+                visitPartDirectives(part);
+              }
             }
           }
         }
       }
     }
+
+    visitPartDirectives(libraryAnalysis);
   }
 
   void _computeConstantErrors(FileAnalysis fileAnalysis) {
@@ -1076,7 +1081,7 @@ class LibraryAnalyzer {
 
     if (directive != null) {
       _resolveUriConfigurations(
-        configurationNodes: directive.configurations,
+        configurationNodes: [],
         configurationUris: partState.uris.configurations,
       );
     }

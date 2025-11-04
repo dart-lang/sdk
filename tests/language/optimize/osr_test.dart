@@ -41,7 +41,7 @@ test(List create([int length])) {
 //  From library co19 sort_A01_t02.
 
 sort_A01_t02_test(List create([int length])) {
-  int c(var a, var b) {
+  int c(a, b) {
     return a < b ? -1 : (a == b ? 0 : 1);
   }
 

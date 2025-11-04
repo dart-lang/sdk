@@ -17,10 +17,10 @@ class RemoveEmptyStatement extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_EMPTY_STATEMENT;
+  FixKind get fixKind => DartFixKind.removeEmptyStatement;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_EMPTY_STATEMENT_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeEmptyStatementMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

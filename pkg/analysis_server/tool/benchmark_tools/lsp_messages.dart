@@ -20,6 +20,15 @@ class LspMessages {
     'params': {},
   };
 
+  static Map<String, dynamic> cancelRequest(int id) {
+    return {
+      'jsonrpc': '2.0',
+      'method': r'$/cancelRequest',
+      'params': {'id': id},
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
   static Map<String, dynamic> codeAction(
     int id,
     Uri uri, {
@@ -81,6 +90,15 @@ class LspMessages {
         'position': {'line': line, 'character': character},
         'context': {'triggerKind': 1},
       },
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
+  static Map<String, dynamic> diagnosticServer(int id) {
+    return {
+      'jsonrpc': '2.0',
+      'id': id,
+      'method': 'dart/diagnosticServer',
       'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
     };
   }
@@ -242,6 +260,37 @@ class LspMessages {
         'position': {'line': location.line, 'character': location.column},
         'context': {'includeDeclaration': true},
       },
+    };
+  }
+
+  static Map<String, dynamic> semanticTokensFull(Uri uri, int id) {
+    return {
+      'jsonrpc': '2.0',
+      'id': id,
+      'method': 'textDocument/semanticTokens/full',
+      'params': {
+        'textDocument': {'uri': '$uri'},
+      },
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
+  static Map<String, dynamic> signatureHelp(
+    Uri uri,
+    int id, {
+    required int line,
+    required int character,
+  }) {
+    return {
+      'jsonrpc': '2.0',
+      'id': id,
+      'method': 'textDocument/signatureHelp',
+      'params': {
+        'textDocument': {'uri': '$uri'},
+        'position': {'line': line, 'character': character},
+        'context': {'isRetrigger': true, 'triggerKind': 3},
+      },
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
     };
   }
 }

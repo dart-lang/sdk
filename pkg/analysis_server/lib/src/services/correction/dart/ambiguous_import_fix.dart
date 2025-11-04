@@ -180,7 +180,7 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
   }
 
   @override
-  FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_HIDE;
+  FixKind get fixKind => DartFixKind.importLibraryHide;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -253,7 +253,7 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
   }
 
   @override
-  FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_REMOVE_SHOW;
+  FixKind get fixKind => DartFixKind.importLibraryRemoveShow;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

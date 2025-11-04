@@ -258,17 +258,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
        _referenceIsPartOwner = referenceIsPartOwner,
        _problemReporting = new LibraryProblemReporting(loader, fileUri),
        _augmentationRoot = augmentationRoot {
-    LookupScope scope = _importScope = new CompilationUnitImportScope(
-      this,
-      _importNameSpace,
-    );
+    CompilationUnitImportScope importScope = _importScope =
+        new CompilationUnitImportScope(this, _importNameSpace);
     ExtensionScope extensionScope = new CompilationUnitImportExtensionScope(
       this,
       _importedExtensions,
     );
     _prefixScope = new CompilationUnitPrefixScope(
       prefixNameSpace,
-      parent: scope,
+      parent: importScope,
     );
     _prefixExtensionScope = new CompilationUnitPrefixExtensionScope(
       prefixNameSpace,
@@ -631,8 +629,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
     new ClassMemberParser(
       listener,
-      allowPatterns: libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     ).parseUnit(tokens);
   }
 
@@ -672,7 +669,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     if (isPart) {
       // This is a part with no enclosing library.
       addProblem(codePartOrphan, 0, 1, fileUri);
-      _clearPartsAndReportExporters();
+      _compilationUnitData.parts.clear();
+      _reportExporters();
     }
     return libraryBuilder;
   }
@@ -702,7 +700,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  void addDependencies(Library library, Set<SourceCompilationUnit> seen) {
+  void addDependencies({
+    required Library library,
+    required Set<SourceCompilationUnit> seen,
+    required Map<String, int> deferredNames,
+  }) {
     assert(
       checkState(required: [SourceCompilationUnitState.importsAddedToScope]),
     );
@@ -722,6 +724,14 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       if (import.deferred &&
           import.prefixFragment?.builder.dependency != null) {
         libraryDependency = import.prefixFragment!.builder.dependency!;
+        int? index = deferredNames[import.prefix!];
+        if (index != null) {
+          libraryDependency.name = '${libraryDependency.name}#$index';
+          index++;
+        } else {
+          index = 1;
+        }
+        deferredNames[import.prefix!] = index;
       } else {
         LibraryBuilder imported = import.importedLibraryBuilder!;
         Library targetLibrary = imported.library;
@@ -767,10 +777,27 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   @override
   PrefixBuilder? lookupPrefixBuilder(String name) {
-    PrefixBuilder? declaredPrefixBuilder =
-        prefixNameSpace.lookup(name)?.getable as PrefixBuilder?;
-    return declaredPrefixBuilder ??
-        parentCompilationUnit?.lookupPrefixBuilder(name);
+    LookupResult? prefixLookupResult = prefixScope.lookup(name);
+    if (prefixLookupResult != null) {
+      if (!prefixLookupResult.isInvalidLookup &&
+          prefixLookupResult.getable is PrefixBuilder) {
+        PrefixBuilder prefixBuilder =
+            prefixLookupResult.getable as PrefixBuilder;
+        if (prefixBuilder.deferred) {
+          // Deferred prefixes are not extended.
+          return null;
+        } else {
+          // The parent scope has a non-deferred prefix by the same name.
+          return prefixLookupResult.getable as PrefixBuilder;
+        }
+      } else {
+        // A non-prefix builder shadows the parent prefix scope of the same
+        // name.
+        return null;
+      }
+    } else {
+      return parentCompilationUnit?.lookupPrefixBuilder(name);
+    }
   }
 
   @override
@@ -1083,9 +1110,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     return _native.finishNativeMethods(loader);
   }
 
-  void _clearPartsAndReportExporters() {
-    assert(_libraryBuilder != null, "Library has not be set.");
-    _compilationUnitData.parts.clear();
+  void _reportExporters() {
     if (exporters.isNotEmpty) {
       List<LocatedMessage> context = <LocatedMessage>[
         codePartExportContext.withLocation(fileUri, -1, 1),
@@ -1140,9 +1165,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           usedParts.add(part.compilationUnit.importUri);
         }
       }
-      _clearPartsAndReportExporters();
+      _compilationUnitData.parts.clear();
+      _reportExporters();
       _becomePart(libraryBuilder, libraryNameSpaceBuilder);
     } else {
+      _reportExporters();
       _becomePart(libraryBuilder, libraryNameSpaceBuilder);
       _includeParts(
         libraryBuilder: libraryBuilder,
@@ -1522,7 +1549,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     _prefixNameSpace.addLocalMember(
       name,
       prefixFragment.createPrefixBuilder(
-        parentCompilationUnit?.lookupPrefixBuilder(name),
+        prefixFragment.deferred
+            // Deferred prefixes do not extend parent prefixes.
+            ? null
+            : parentCompilationUnit?.lookupPrefixBuilder(name),
       ),
       setter: false,
     );

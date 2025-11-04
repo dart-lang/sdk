@@ -293,7 +293,12 @@ class _ThrowsAsyncErrorFix extends ResolvedCorrectionProducer {
 }
 
 class _ThrowsAsyncErrorRule extends AnalysisRule {
-  static const LintCode code = LintCode('no_bools', 'No bools message');
+  static const LintCode code = LintCode(
+    'no_bools',
+    'No bools message',
+    // ignore: deprecated_member_use
+    uniqueNameCheck: 'LintCode.no_bools',
+  );
 
   _ThrowsAsyncErrorRule()
     : super(name: 'no_bools', description: 'No bools desc');
@@ -342,7 +347,12 @@ class _ThrowsSyncErrorFix extends ResolvedCorrectionProducer {
 }
 
 class _ThrowsSyncErrorRule extends AnalysisRule {
-  static const LintCode code = LintCode('no_bools', 'No bools message');
+  static const LintCode code = LintCode(
+    'no_bools',
+    'No bools message',
+    // ignore: deprecated_member_use
+    uniqueNameCheck: 'LintCode.no_bools',
+  );
 
   _ThrowsSyncErrorRule()
     : super(name: 'no_bools', description: 'No bools desc');

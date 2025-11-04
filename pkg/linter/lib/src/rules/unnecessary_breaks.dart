@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -13,7 +14,7 @@ import '../analyzer.dart';
 
 const _desc = r"Don't use explicit `break`s when a break is implied.";
 
-class UnnecessaryBreaks extends LintRule {
+class UnnecessaryBreaks extends AnalysisRule {
   UnnecessaryBreaks()
     : super(name: LintNames.unnecessary_breaks, description: _desc);
 
@@ -33,7 +34,7 @@ class UnnecessaryBreaks extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

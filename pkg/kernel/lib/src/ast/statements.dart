@@ -82,7 +82,7 @@ class ExpressionStatement extends Statement {
   }
 }
 
-class Block extends Statement {
+class Block extends Statement implements ScopeProvider {
   final List<Statement> statements;
 
   /// End offset in the source file it comes from. Valid values are from 0 and
@@ -92,6 +92,9 @@ class Block extends Statement {
 
   @override
   List<int>? get fileOffsetsIfMultiple => [fileOffset, fileEndOffset];
+
+  @override
+  Scope? scope;
 
   Block(this.statements) {
     // Ensure statements is mutable.
@@ -526,13 +529,16 @@ class DoStatement extends Statement implements LoopStatement {
   }
 }
 
-class ForStatement extends Statement implements LoopStatement {
+class ForStatement extends Statement implements LoopStatement, ScopeProvider {
   final List<VariableDeclaration> variables; // May be empty, but not null.
   Expression? condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
 
   @override
   Statement body;
+
+  @override
+  Scope? scope;
 
   ForStatement(this.variables, this.condition, this.updates, this.body) {
     setParents(variables, this);
@@ -606,7 +612,7 @@ class ForStatement extends Statement implements LoopStatement {
   }
 }
 
-class ForInStatement extends Statement implements LoopStatement {
+class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   /// Offset in the source file it comes from.
   ///
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
@@ -623,6 +629,9 @@ class ForInStatement extends Statement implements LoopStatement {
   Statement body;
 
   bool isAsync; // True if this is an 'await for' loop.
+
+  @override
+  Scope? scope;
 
   ForInStatement(this.variable, this.iterable, this.body,
       {this.isAsync = false}) {
@@ -1169,11 +1178,14 @@ class TryCatch extends Statement {
   }
 }
 
-class Catch extends TreeNode {
+class Catch extends TreeNode implements ScopeProvider {
   DartType guard; // Not null, defaults to dynamic.
   VariableDeclaration? exception;
   VariableDeclaration? stackTrace;
   Statement body;
+
+  @override
+  Scope? scope;
 
   Catch(this.exception, this.body,
       {this.guard = const DynamicType(), this.stackTrace}) {
@@ -1393,6 +1405,157 @@ class YieldStatement extends Statement {
   }
 }
 
+abstract interface class VariableDeclaration implements Annotatable, Statement {
+  /// The name of the variable as provided in the source code.
+  ///
+  /// The name of a variable can only be omitted if the variable is synthesized.
+  /// Otherwise, its name is as provided in the source code.
+  abstract String? name;
+
+  /// The declared or inferred type of the variable.
+  abstract DartType type;
+
+  /// For locals, this is the initial value.
+  /// For parameters, this is the default value.
+  ///
+  /// Should be null in other cases.
+  abstract Expression? initializer;
+
+  abstract int flags;
+
+  /// Whether the parameter is declared with the `covariant` keyword.
+  abstract bool isCovariantByDeclaration;
+
+  /// If this [VariableDeclaration] is a parameter of a method, indicates
+  /// whether the method implementation needs to contain a runtime type check to
+  /// deal with generic covariance.
+  ///
+  /// When `true`, runtime checks may need to be performed.
+  abstract bool isCovariantByClass;
+
+  /// Whether the variable is declared with the `const` keyword.
+  abstract bool isConst;
+
+  /// Whether the variable is declared with the `late` keyword.
+  ///
+  /// The `late` modifier is only supported on local variables and not on
+  /// parameters.
+  abstract bool isLate;
+
+  /// Whether the variable is declared with the `final` keyword.
+  abstract bool isFinal;
+
+  /// Whether the parameter is declared with the `required` keyword.
+  ///
+  /// The `required` modifier is only supported on named parameters and not on
+  /// positional parameters and local variables.
+  abstract bool isRequired;
+
+  /// Whether the variable is part of a lowering.
+  ///
+  /// If a variable is part of a lowering its name may be synthesized so that it
+  /// doesn't reflect the name used in the source code and might not have a
+  /// one-to-one correspondence with the variable in the source.
+  ///
+  /// Lowering is used for instance of encoding of 'this' in extension instance
+  /// members and encoding of late locals.
+  abstract bool isLowered;
+
+  /// Whether the declaration of this variable is has been moved to an earlier
+  /// source location.
+  ///
+  /// This is for instance the case for variables declared in a pattern, where
+  /// the lowering requires the variable to be declared before the expression
+  /// that performs that matching in which its initialization occurs.
+  abstract bool isHoisted;
+
+  /// Whether this variable is synthesized, that is, it is _not_ declared in
+  /// the source code.
+  ///
+  /// The name of a variable can only be omitted if the variable is synthesized.
+  /// Otherwise, its name is as provided in the source code.
+  abstract bool isSynthesized;
+
+  /// Whether the variable is assignable.
+  ///
+  /// This is `true` if the variable is neither constant nor final, or if it
+  /// is late final without an initializer.
+  bool get isAssignable;
+
+  /// Whether the variable is declared as an initializing formal parameter of
+  /// a constructor.
+  @informative
+  abstract bool isInitializingFormal;
+
+  /// Whether the variable is declared as a super initializing formal parameter
+  /// of a constructor.
+  @informative
+  abstract bool isSuperInitializingFormal;
+
+  @informative
+  abstract bool isErroneouslyInitialized;
+
+  /// Whether the variable has an initializer, either by declaration or copied
+  /// from an original declaration.
+  ///
+  /// Note that the variable might have a synthesized initializer expression,
+  /// so `hasDeclaredInitializer == false` doesn't imply `initializer == null`.
+  /// For instance, for duplicate variable names, an invalid expression is set
+  /// as the initializer of the second variable.
+  abstract bool hasDeclaredInitializer;
+
+  /// Whether this variable is a wildcard variable.
+  ///
+  /// Wildcard variables have the name `_`.
+  abstract bool isWildcard;
+
+  /// Offset of the equals sign in the source file it comes from.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset])
+  /// if the equals sign offset is not available (e.g. if not initialized)
+  /// (this is the default if none is specifically set).
+  abstract int fileEqualsOffset;
+
+  /// Offset of the declaration, set and used when writing the binary.
+  abstract int binaryOffsetNoTag;
+
+  /// List of metadata annotations on the variable declaration.
+  ///
+  /// This defaults to an immutable empty list. Use [addAnnotation] to add
+  /// annotations if needed.
+  @override
+  abstract List<Expression> annotations;
+
+  void clearAnnotations();
+
+  factory VariableDeclaration(String? name,
+      {Expression? initializer,
+      DartType type,
+      int flags,
+      bool isFinal,
+      bool isConst,
+      bool isInitializingFormal,
+      bool isSuperInitializingFormal,
+      bool isCovariantByDeclaration,
+      bool isLate,
+      bool isRequired,
+      bool isLowered,
+      bool isSynthesized,
+      bool isHoisted,
+      bool hasDeclaredInitializer,
+      bool isWildcard}) = VariableStatement;
+
+  factory VariableDeclaration.forValue(Expression? initializer,
+      {bool isFinal,
+      bool isConst,
+      bool isInitializingFormal,
+      bool isSuperInitializingFormal,
+      bool isLate,
+      bool isRequired,
+      bool isLowered,
+      DartType type}) = VariableStatement.forValue;
+}
+
 /// Declaration of a local variable.
 ///
 /// This may occur as a statement, but is also used in several non-statement
@@ -1401,21 +1564,13 @@ class YieldStatement extends Statement {
 /// When this occurs as a statement, it must be a direct child of a [Block].
 //
 // DESIGN TODO: Should we remove the 'final' modifier from variables?
-class VariableDeclaration extends Statement implements Annotatable {
-  /// Offset of the equals sign in the source file it comes from.
-  ///
-  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset])
-  /// if the equals sign offset is not available (e.g. if not initialized)
-  /// (this is the default if none is specifically set).
+class VariableStatement extends Statement implements VariableDeclaration {
+  @override
   int fileEqualsOffset = TreeNode.noOffset;
 
   @override
   List<int>? get fileOffsetsIfMultiple => [fileOffset, fileEqualsOffset];
 
-  /// List of metadata annotations on the variable declaration.
-  ///
-  /// This defaults to an immutable empty list. Use [addAnnotation] to add
-  /// annotations if needed.
   @override
   List<Expression> annotations = const <Expression>[];
 
@@ -1424,19 +1579,20 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// If this variable is synthesized, for instance the variable of a [Let]
   /// expression, the name can be `null`.
   String? _name;
+
+  @override
   int flags = 0;
+
+  @override
   DartType type; // Not null, defaults to dynamic.
 
-  /// Offset of the declaration, set and used when writing the binary.
+  @override
   int binaryOffsetNoTag = -1;
 
-  /// For locals, this is the initial value.
-  /// For parameters, this is the default value.
-  ///
-  /// Should be null in other cases.
+  @override
   Expression? initializer; // May be null.
 
-  VariableDeclaration(this._name,
+  VariableStatement(this._name,
       {this.initializer,
       this.type = const DynamicType(),
       int flags = -1,
@@ -1474,7 +1630,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   }
 
   /// Creates a synthetic variable with the given expression as initializer.
-  VariableDeclaration.forValue(this.initializer,
+  VariableStatement.forValue(this.initializer,
       {bool isFinal = true,
       bool isConst = false,
       bool isInitializingFormal = false,
@@ -1495,12 +1651,10 @@ class VariableDeclaration extends Statement implements Annotatable {
     this.isSynthesized = true;
   }
 
-  /// The name of the variable as provided in the source code.
-  ///
-  /// The name of a variable can only be omitted if the variable is synthesized.
-  /// Otherwise, its name is as provided in the source code.
+  @override
   String? get name => _name;
 
+  @override
   void set name(String? value) {
     assert(value != null || isSynthesized,
         "Only synthesized variables can have no name.");
@@ -1522,88 +1676,49 @@ class VariableDeclaration extends Statement implements Annotatable {
   static const int FlagSuperInitializingFormal = 1 << 12;
   static const int FlagErroneouslyInitialized = 1 << 13;
 
+  @override
   bool get isFinal => flags & FlagFinal != 0;
+  @override
   bool get isConst => flags & FlagConst != 0;
 
-  /// Whether the parameter is declared with the `covariant` keyword.
+  @override
   bool get isCovariantByDeclaration => flags & FlagCovariantByDeclaration != 0;
 
-  /// Whether the variable is declared as an initializing formal parameter of
-  /// a constructor.
-  @informative
+  @override
   bool get isInitializingFormal => flags & FlagInitializingFormal != 0;
 
-  /// Whether the variable is declared as a super initializing formal parameter
-  /// of a constructor.
-  @informative
+  @override
   bool get isSuperInitializingFormal =>
       flags & FlagSuperInitializingFormal != 0;
 
-  @informative
+  @override
   bool get isErroneouslyInitialized => flags & FlagErroneouslyInitialized != 0;
 
-  /// If this [VariableDeclaration] is a parameter of a method, indicates
-  /// whether the method implementation needs to contain a runtime type check to
-  /// deal with generic covariance.
-  ///
-  /// When `true`, runtime checks may need to be performed.
+  @override
   bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
-  /// Whether the variable is declared with the `late` keyword.
-  ///
-  /// The `late` modifier is only supported on local variables and not on
-  /// parameters.
+  @override
   bool get isLate => flags & FlagLate != 0;
 
-  /// Whether the parameter is declared with the `required` keyword.
-  ///
-  /// The `required` modifier is only supported on named parameters and not on
-  /// positional parameters and local variables.
+  @override
   bool get isRequired => flags & FlagRequired != 0;
 
-  /// Whether the variable is part of a lowering.
-  ///
-  /// If a variable is part of a lowering its name may be synthesized so that it
-  /// doesn't reflect the name used in the source code and might not have a
-  /// one-to-one correspondence with the variable in the source.
-  ///
-  /// Lowering is used for instance of encoding of 'this' in extension instance
-  /// members and encoding of late locals.
+  @override
   bool get isLowered => flags & FlagLowered != 0;
 
-  /// Whether this variable is synthesized, that is, it is _not_ declared in
-  /// the source code.
-  ///
-  /// The name of a variable can only be omitted if the variable is synthesized.
-  /// Otherwise, its name is as provided in the source code.
+  @override
   bool get isSynthesized => flags & FlagSynthesized != 0;
 
-  /// Whether the declaration of this variable is has been moved to an earlier
-  /// source location.
-  ///
-  /// This is for instance the case for variables declared in a pattern, where
-  /// the lowering requires the variable to be declared before the expression
-  /// that performs that matching in which its initialization occurs.
+  @override
   bool get isHoisted => flags & FlagHoisted != 0;
 
-  /// Whether the variable has an initializer, either by declaration or copied
-  /// from an original declaration.
-  ///
-  /// Note that the variable might have a synthesized initializer expression,
-  /// so `hasDeclaredInitializer == false` doesn't imply `initializer == null`.
-  /// For instance, for duplicate variable names, an invalid expression is set
-  /// as the initializer of the second variable.
+  @override
   bool get hasDeclaredInitializer => flags & FlagHasDeclaredInitializer != 0;
 
-  /// Whether this variable is a wildcard variable.
-  ///
-  /// Wildcard variables have the name `_`.
+  @override
   bool get isWildcard => flags & FlagWildcard != 0;
 
-  /// Whether the variable is assignable.
-  ///
-  /// This is `true` if the variable is neither constant nor final, or if it
-  /// is late final without an initializer.
+  @override
   bool get isAssignable {
     if (isConst) return false;
     if (isFinal) {
@@ -1613,81 +1728,93 @@ class VariableDeclaration extends Statement implements Annotatable {
     return true;
   }
 
+  @override
   void set isFinal(bool value) {
     flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
   }
 
+  @override
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
+  @override
   void set isCovariantByDeclaration(bool value) {
     flags = value
         ? (flags | FlagCovariantByDeclaration)
         : (flags & ~FlagCovariantByDeclaration);
   }
 
-  @informative
+  @override
   void set isInitializingFormal(bool value) {
     flags = value
         ? (flags | FlagInitializingFormal)
         : (flags & ~FlagInitializingFormal);
   }
 
-  @informative
+  @override
   void set isSuperInitializingFormal(bool value) {
     flags = value
         ? (flags | FlagSuperInitializingFormal)
         : (flags & ~FlagSuperInitializingFormal);
   }
 
-  @informative
+  @override
   void set isErroneouslyInitialized(bool value) {
     flags = value
         ? (flags | FlagErroneouslyInitialized)
         : (flags & ~FlagErroneouslyInitialized);
   }
 
+  @override
   void set isCovariantByClass(bool value) {
     flags = value
         ? (flags | FlagCovariantByClass)
         : (flags & ~FlagCovariantByClass);
   }
 
+  @override
   void set isLate(bool value) {
     flags = value ? (flags | FlagLate) : (flags & ~FlagLate);
   }
 
+  @override
   void set isRequired(bool value) {
     flags = value ? (flags | FlagRequired) : (flags & ~FlagRequired);
   }
 
+  @override
   void set isLowered(bool value) {
     flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
   }
 
+  @override
   void set isSynthesized(bool value) {
     assert(
         value || _name != null, "Only synthesized variables can have no name.");
     flags = value ? (flags | FlagSynthesized) : (flags & ~FlagSynthesized);
   }
 
+  @override
   void set isHoisted(bool value) {
     flags = value ? (flags | FlagHoisted) : (flags & ~FlagHoisted);
   }
 
+  @override
   void set hasDeclaredInitializer(bool value) {
     flags = value
         ? (flags | FlagHasDeclaredInitializer)
         : (flags & ~FlagHasDeclaredInitializer);
   }
 
+  @override
   void set isWildcard(bool value) {
     // TODO(kallentu): Change the name to be unique with other wildcard
     // variables.
     flags = value ? (flags | FlagWildcard) : (flags & ~FlagWildcard);
   }
 
+  @override
   void clearAnnotations() {
     annotations = const <Expression>[];
   }
@@ -1701,11 +1828,11 @@ class VariableDeclaration extends Statement implements Annotatable {
   }
 
   @override
-  R accept<R>(StatementVisitor<R> v) => v.visitVariableDeclaration(this);
+  R accept<R>(StatementVisitor<R> v) => v.visitVariableStatement(this);
 
   @override
   R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
-      v.visitVariableDeclaration(this, arg);
+      v.visitVariableStatement(this, arg);
 
   @override
   void visitChildren(Visitor v) {
@@ -1808,9 +1935,62 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeFunctionNode(function, printer.getVariableName(variable));
+    printer.writeFunctionNode(
+        function, printer.getVariableDeclarationName(variable));
     if (function.body is ReturnStatement) {
       printer.write(';');
     }
+  }
+}
+
+/// The statement that marks the declaration of the variable in the source Dart
+/// program. If the [initializer] is `null`, the variable was declared without
+/// an initializer.
+class VariableInitialization extends Statement {
+  final ExpressionVariable variable;
+  final Expression? initializer;
+
+  VariableInitialization({required this.variable, required this.initializer});
+
+  @override
+  R accept<R>(StatementVisitor<R> v) {
+    // TODO(cstefantsova): Implement accept.
+    throw UnimplementedError();
+  }
+
+  @override
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) {
+    // TODO(cstefantsova): Implement accept1.
+    throw UnimplementedError();
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // TODO(cstefantsova): Implement transformChildren.
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // TODO(cstefantsova): Implement transformOrRemoveChildren.
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    // TODO(cstefantsova): Implement visitChildren.
+  }
+
+  @override
+  String toString() {
+    return "VariableInitialization(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write(printer.getVariableName(variable));
+    if (initializer case var initializer?) {
+      printer.write(' := ');
+      printer.writeExpression(initializer);
+    }
+    printer.write(';');
   }
 }

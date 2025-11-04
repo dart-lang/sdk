@@ -1500,6 +1500,60 @@ void myFunction() {}
     );
   }
 
+  Future<void> test_functionTearOff() async {
+    var mainCode = TestCode.parse('''
+import 'other.dart';
+
+void main() {
+  myFunct^ion;
+}
+''');
+
+    var otherCode = TestCode.parse('''
+void myFunction() {}
+''');
+
+    await expectResults(
+      mainCode: mainCode,
+      otherCode: otherCode,
+      expectedResult: CallHierarchyItem(
+        name: 'myFunction',
+        detail: 'other.dart', // Containing file name
+        kind: SymbolKind.Function,
+        uri: otherFileUri,
+        range: rangeOfString(otherCode, 'void myFunction() {}'),
+        selectionRange: rangeOfString(otherCode, 'myFunction'),
+      ),
+    );
+  }
+
+  Future<void> test_functionTearOff_prefixed() async {
+    var mainCode = TestCode.parse('''
+import 'other.dart' as other;
+
+void main() {
+  other.myFunct^ion;
+}
+''');
+
+    var otherCode = TestCode.parse('''
+void myFunction() {}
+''');
+
+    await expectResults(
+      mainCode: mainCode,
+      otherCode: otherCode,
+      expectedResult: CallHierarchyItem(
+        name: 'myFunction',
+        detail: 'other.dart', // Containing file name
+        kind: SymbolKind.Function,
+        uri: otherFileUri,
+        range: rangeOfString(otherCode, 'void myFunction() {}'),
+        selectionRange: rangeOfString(otherCode, 'myFunction'),
+      ),
+    );
+  }
+
   Future<void> test_implicitConstructorCall() async {
     // Even if a constructor is implicit, we might want to be able to get the
     // incoming calls, so invoking it here should still return an element

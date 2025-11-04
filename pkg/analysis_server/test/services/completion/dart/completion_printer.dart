@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:collection/collection.dart';
 
 import 'completion_check.dart';
@@ -160,13 +161,45 @@ class CompletionResponsePrinter {
     _indent = indent;
   }
 
+  /// Writes the completion text, marked with a `[!range!]` or `^position`
+  /// indicating the selection.
   void _writeCompletion(CompletionSuggestion suggestion) {
     var completion = suggestion.completion;
+
+    var annotatedCompletion = completion;
+
+    // Show the selection in the completion text using `[!range!]` or
+    // `^position` markers.
+    if (configuration.withSelection) {
+      annotatedCompletion = switch ((
+        suggestion.selectionOffset,
+        suggestion.selectionLength,
+      )) {
+        // We don't annotate positions at the end of the string
+        (int offset, 0) when offset == suggestion.completion.length =>
+          completion,
+        // Position
+        (int offset, 0) => [
+          completion.substring(0, offset),
+          '^',
+          completion.substring(offset),
+        ].join(),
+        // Range
+        (int offset, int length) => [
+          completion.substring(0, offset),
+          '[!',
+          completion.substring(offset, offset + length),
+          '!]',
+          completion.substring(offset + length),
+        ].join(),
+      };
+    }
+
     if (RegExp(r'^\s').hasMatch(completion) ||
         RegExp(r'\s$').hasMatch(completion)) {
-      _writelnWithIndent('|$completion|');
+      _writelnWithIndent('|$annotatedCompletion|');
     } else {
-      _writelnWithIndent(completion);
+      _writelnWithIndent(annotatedCompletion);
     }
   }
 
@@ -229,11 +262,12 @@ class CompletionResponsePrinter {
     }
   }
 
-  void _writeElementOffset(CompletionSuggestion suggestion) {
-    if (configuration.withElementOffset) {
+  void _writeElementLocation(CompletionSuggestion suggestion) {
+    if (configuration.withElementLocation) {
       var element = suggestion.element;
       if (element != null) {
-        _writelnWithIndent('offset: ${element.location?.offset}');
+        _writelnWithIndent('line: ${element.location?.startLine}');
+        _writelnWithIndent('column: ${element.location?.startColumn}');
       }
     }
   }
@@ -252,7 +286,12 @@ class CompletionResponsePrinter {
 
   void _writelnWithIndent(String line) {
     buffer.write(_indent);
-    buffer.writeln(line);
+    buffer.write(line);
+    // Always write the EOLs being assumed in this test run because any
+    // multiline content will (if no bugs) be written with these, and we don't
+    // want to perform any normalization on the actual results because that
+    // could mask bugs.
+    buffer.write(testEol);
   }
 
   void _writeLocation() {
@@ -319,23 +358,11 @@ class CompletionResponsePrinter {
     }
   }
 
-  void _writeSelection(CompletionSuggestion suggestion) {
-    if (configuration.withSelection) {
-      var offset = suggestion.selectionOffset;
-      var length = suggestion.selectionLength;
-      if (length != 0) {
-        _writelnWithIndent('selection: $offset $length');
-      } else if (offset != suggestion.completion.length) {
-        _writelnWithIndent('selection: $offset');
-      }
-    }
-  }
-
   void _writeSuggestion(CompletionSuggestion suggestion) {
     _writeCompletion(suggestion);
     _withIndent(() {
       _writeSuggestionKind(suggestion);
-      _writeElementOffset(suggestion);
+      _writeElementLocation(suggestion);
       _writeDeclaringType(suggestion);
       _writeDeprecated(suggestion);
       _writeDefaultArgumentList(suggestion);
@@ -347,7 +374,6 @@ class CompletionResponsePrinter {
       _writeParameterNames(suggestion);
       _writeRelevance(suggestion);
       _writeReturnType(suggestion);
-      _writeSelection(suggestion);
     });
   }
 
@@ -381,7 +407,7 @@ class Configuration {
   bool withDisplayText;
   bool withDocumentation;
   bool withElement;
-  bool withElementOffset;
+  bool withElementLocation;
   bool withIsNotImported;
   bool withKind;
   bool withLibraryUri;
@@ -400,7 +426,7 @@ class Configuration {
     this.withDisplayText = false,
     this.withDocumentation = false,
     this.withElement = false,
-    this.withElementOffset = false,
+    this.withElementLocation = false,
     this.withIsNotImported = false,
     this.withKind = true,
     this.withLibraryUri = false,

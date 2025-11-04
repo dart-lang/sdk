@@ -738,6 +738,8 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       --enable-bulk-memory
       --enable-threads
 
+      --no-inline=*<noInline>*
+
       --closed-world
       --traps-never-happen
       --type-unfinalizing
@@ -761,6 +763,9 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       --enable-bulk-memory
       --enable-threads
 
+      --no-inline=*<noInline>*
+
+      --traps-never-happen
       -Os
     '''); // end of binaryenFlagsDeferredLoading
 
@@ -945,13 +950,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       outputFile = '$inputWithoutDart.wasm';
     }
 
-    if (!outputFile.endsWith('.wasm')) {
-      log.stderr(
-          'Error: The output file "$outputFile" does not end with ".wasm"');
-      return 255;
-    }
-    final outputFileBasename =
-        outputFile.substring(0, outputFile.length - '.wasm'.length);
+    final outputFileBasename = path.withoutExtension(outputFile);
 
     final packages = args.option(packagesOption.flag);
     final defines = args.multiOption(defineOption.flag);
@@ -970,7 +969,9 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         extraCompilerOptions
             .any((e) => e.contains('enable-multi-module-stress-test'));
     final optimizationLevel = int.parse(args.option('optimization-level')!);
-    final runWasmOpt = optimizationLevel >= 1;
+
+    final runWasmOpt =
+        optimizationLevel >= 1 && path.extension(outputFile) == '.wasm';
 
     if (runWasmOpt && !checkArtifactExists(sdk.wasmOpt)) {
       return 255;

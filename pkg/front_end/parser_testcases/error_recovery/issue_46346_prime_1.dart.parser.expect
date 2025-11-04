@@ -1,3 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
 class abstract = A with B;
 class as = A with B;
 class assert = A with B;
@@ -7,7 +9,7 @@ class break = A with B;
 class case = A with B;
 class catch = A with B;
 class class = A with B;
-class const = A with B;
+class const *synthetic*= A with B;
 class continue = A with B;
 class covariant = A with B;
 class default = A with B;
@@ -78,7 +80,7 @@ class[KeywordToken] break[KeywordToken] =[SimpleToken] A[StringToken] with[Keywo
 class[KeywordToken] case[KeywordToken] =[SimpleToken] A[StringToken] with[KeywordToken] B[StringToken];[SimpleToken]
 class[KeywordToken] catch[KeywordToken] =[SimpleToken] A[StringToken] with[KeywordToken] B[StringToken];[SimpleToken]
 class[KeywordToken] class[KeywordToken] =[SimpleToken] A[StringToken] with[KeywordToken] B[StringToken];[SimpleToken]
-class[KeywordToken] const[KeywordToken] =[SimpleToken] A[StringToken] with[KeywordToken] B[StringToken];[SimpleToken]
+class[KeywordToken] const[KeywordToken] [SyntheticStringToken]=[SimpleToken] A[StringToken] with[KeywordToken] B[StringToken];[SimpleToken]
 class[KeywordToken] continue[KeywordToken] =[SimpleToken] A[StringToken] with[KeywordToken] B[StringToken];[SimpleToken]
 class[KeywordToken] covariant[KeywordToken] =[SimpleToken] A[StringToken] with[KeywordToken] B[StringToken];[SimpleToken]
 class[KeywordToken] default[KeywordToken] =[SimpleToken] A[StringToken] with[KeywordToken] B[StringToken];[SimpleToken]

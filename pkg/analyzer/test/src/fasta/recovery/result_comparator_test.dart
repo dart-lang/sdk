@@ -22,7 +22,7 @@ class ResultComparatorTest extends FastaParserTestCase {
     _assertMismatched(
       actual: parseExpression(
         'f(+x)',
-        errors: [error(ParserErrorCode.missingIdentifier, 2, 1)],
+        diagnostics: [error(ParserErrorCode.missingIdentifier, 2, 1)],
       ),
       expected: parseExpression('f(foo+x)'),
       expectedFailureMessage: '''
@@ -54,7 +54,7 @@ But found token "a"
     _assertMatched(
       actual: parseExpression(
         'f(+x)',
-        errors: [error(ParserErrorCode.missingIdentifier, 2, 1)],
+        diagnostics: [error(ParserErrorCode.missingIdentifier, 2, 1)],
       ),
       expected: parseExpression('f(_s_+x)'),
     );
@@ -133,7 +133,9 @@ But found token "C"
     _assertMatched(
       actual: parseCompilationUnit(
         'class C { C(this); }',
-        errors: [error(ParserErrorCode.expectedIdentifierButGotKeyword, 12, 4)],
+        diagnostics: [
+          error(ParserErrorCode.expectedIdentifierButGotKeyword, 12, 4),
+        ],
       ),
       expected: parseCompilationUnit('class C { C(_k_); }'),
     );
@@ -143,7 +145,9 @@ But found token "C"
     _assertMismatched(
       actual: parseCompilationUnit(
         'class C { C(this); }',
-        errors: [error(ParserErrorCode.expectedIdentifierButGotKeyword, 12, 4)],
+        diagnostics: [
+          error(ParserErrorCode.expectedIdentifierButGotKeyword, 12, 4),
+        ],
       ),
       expected: parseCompilationUnit('class C { C(foo); }'),
       expectedFailureMessage: '''
@@ -383,7 +387,7 @@ But found token "C"
     _assertMatched(
       actual: parseCompilationUnit(
         'export',
-        errors: [
+        diagnostics: [
           error(ParserErrorCode.expectedToken, 0, 6),
           error(ParserErrorCode.expectedStringLiteral, 6, 0),
         ],
@@ -393,7 +397,7 @@ But found token "C"
     _assertMatched(
       actual: parseCompilationUnit(
         'export',
-        errors: [
+        diagnostics: [
           error(ParserErrorCode.expectedToken, 0, 6),
           error(ParserErrorCode.expectedStringLiteral, 6, 0),
         ],
@@ -413,7 +417,7 @@ But found token "C"
         '''
 f<T>> () => null;
 ''',
-        errors: [
+        diagnostics: [
           error(ParserErrorCode.missingFunctionParameters, 0, 1),
           error(ParserErrorCode.missingFunctionBody, 4, 1),
           error(ParserErrorCode.topLevelOperator, 4, 1),
@@ -423,7 +427,7 @@ f<T>> () => null;
         '''
 f<T> >() => null;
 ''',
-        errors: [
+        diagnostics: [
           error(ParserErrorCode.missingFunctionParameters, 0, 1),
           error(ParserErrorCode.missingFunctionBody, 5, 1),
           error(ParserErrorCode.topLevelOperator, 5, 1),
@@ -438,7 +442,7 @@ f<T> >() => null;
         '''
 mixin Foo implements
 ''',
-        errors: [
+        diagnostics: [
           error(ParserErrorCode.expectedTypeName, 21, 0),
           error(ParserErrorCode.expectedMixinBody, 21, 0),
         ],
@@ -447,7 +451,7 @@ mixin Foo implements
         '''
 mixin Foo implements {}
 ''',
-        errors: [error(ParserErrorCode.expectedTypeName, 21, 1)],
+        diagnostics: [error(ParserErrorCode.expectedTypeName, 21, 1)],
       ),
     );
   }

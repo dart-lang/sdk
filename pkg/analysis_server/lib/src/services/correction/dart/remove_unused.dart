@@ -23,7 +23,7 @@ class RemoveUnusedElement extends _RemoveUnused {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNUSED_ELEMENT;
+  FixKind get fixKind => DartFixKind.removeUnusedElement;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -102,7 +102,7 @@ class RemoveUnusedField extends _RemoveUnused {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNUSED_FIELD;
+  FixKind get fixKind => DartFixKind.removeUnusedField;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

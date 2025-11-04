@@ -26,10 +26,10 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
     : applicability = CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_ABSTRACT;
+  FixKind get fixKind => DartFixKind.removeAbstract;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_ABSTRACT_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeAbstractMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -17,4 +17,6 @@ class Tables {
   Table operator [](int index) => index < imported.length
       ? imported[index]
       : defined[index - imported.length];
+
+  int get length => imported.length + defined.length;
 }

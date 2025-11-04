@@ -645,11 +645,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeFormalParameterElement(FormalParameterElement e) {
     e as FormalParameterElementImpl;
-    // if (e.isNamed && e.enclosingElement is ExecutableElement) {
-    //   expect(e.reference, isNotNull);
-    // } else {
-    //   expect(e.reference, isNull);
-    // }
+    expect(e.reference, isNull);
 
     _sink.writeIndentedLine(() {
       _writeObjectId(e);
@@ -666,13 +662,14 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.isCovariant, 'covariant ');
       _sink.writeIf(e.isFinal, 'final ');
+      _sink.writeIf(e.hasDefaultValue, 'hasDefaultValue ');
       _sink.writeIf(e.hasImplicitType, 'hasImplicitType ');
 
-      if (e is FieldFormalParameterFragmentImpl) {
-        _sink.write('this.');
-      } else if (e is SuperFormalParameterFragmentImpl) {
-        _sink.writeIf(e.hasDefaultValue, 'hasDefaultValue ');
-        _sink.write('super.');
+      switch (e) {
+        case FieldFormalParameterElementImpl():
+          _sink.write('this.');
+        case SuperFormalParameterElementImpl():
+          _sink.write('super.');
       }
 
       _writeElementName(e);
@@ -683,7 +680,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeType('type', e.type);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
-      // _writeCodeRange(e);
       _writeElementList(
         'typeParameters',
         e,
@@ -697,40 +693,41 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeFormalParameterElement,
       );
       _writeVariableElementConstantInitializer(e);
-      // _writeNonSyntheticElement(e);
-      // _writeFieldFormalParameterField(e);
-      // _writeSuperConstructorParameter(e);
+
+      switch (e) {
+        case FieldFormalParameterElementImpl():
+          _elementPrinter.writeNamedElement2('field', e.field);
+        case SuperFormalParameterElementImpl():
+          _elementPrinter.writeNamedElement2(
+            'superConstructorParameter',
+            e.superConstructorParameter,
+          );
+      }
     });
   }
 
   void _writeFormalParameterFragment(FormalParameterFragment f) {
     f as FormalParameterFragmentImpl;
-    // if (f.isNamed && f.enclosingFragment is ExecutableFragment) {
-    //   expect(f.reference, isNotNull);
-    // } else {
-    //   expect(f.reference, isNull);
-    // }
 
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
-      // if (f.isRequiredPositional) {
-      //   _sink.write('requiredPositional ');
-      // } else if (f.isOptionalPositional) {
-      //   _sink.write('optionalPositional ');
-      // } else if (f.isRequiredNamed) {
-      //   _sink.write('requiredNamed ');
-      // } else if (f.isOptionalNamed) {
-      //   _sink.write('optionalNamed ');
-      // }
+      if (f.isRequiredPositional) {
+        _sink.write('requiredPositional ');
+      } else if (f.isOptionalPositional) {
+        _sink.write('optionalPositional ');
+      } else if (f.isRequiredNamed) {
+        _sink.write('requiredNamed ');
+      } else if (f.isOptionalNamed) {
+        _sink.write('optionalNamed ');
+      }
 
-      // _sink.writeIf(f.isConst, 'const ');
-      // _sink.writeIf(f.isCovariant, 'covariant ');
-      // _sink.writeIf(f.isFinal, 'final ');
+      _sink.writeIf(f.isConst, 'const ');
+      _sink.writeIf(f.isExplicitlyCovariant, 'covariant ');
+      _sink.writeIf(f.isFinal, 'final ');
 
       if (f is FieldFormalParameterFragmentImpl) {
         _sink.write('this.');
       } else if (f is SuperFormalParameterFragmentImpl) {
-        // _sink.writeIf(f.hasDefaultValue, 'hasDefaultValue ');
         _sink.write('super.');
       }
 
@@ -739,7 +736,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
-      // _writeType('type', f.type);
       _writeMetadata(f.metadata);
       // _writeCodeRange(f);
       _writeFragmentList(
@@ -755,9 +751,6 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeFormalParameterFragment,
       );
       _writeVariableFragmentInitializer(f);
-      // _writeNonSyntheticElement(e);
-      // _writeFieldFormalParameterField(e);
-      // _writeSuperConstructorParameter(e);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
     });
@@ -1050,6 +1043,7 @@ class _Element2Writer extends _AbstractElementWriter {
           _elementPrinter.writeTypeList('interfaces', e.interfaces);
         case ExtensionElementImpl():
           _elementPrinter.writeNamedType('extendedType', e.extendedType);
+          _elementPrinter.writeNamedElement2('onDeclaration', e.onDeclaration);
         case ExtensionTypeElementImpl():
           expect(e.supertype, isNull);
           _elementPrinter.writeNamedElement2(

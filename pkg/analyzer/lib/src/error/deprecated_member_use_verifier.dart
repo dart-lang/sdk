@@ -44,20 +44,17 @@ class DeprecatedElementUsageReporter implements ElementUsageReporter<String> {
     String tagInfo, {
     required bool isInSamePackage,
   }) {
+    if (isInSamePackage) return;
     if (normalizeDeprecationMessage(tagInfo) case var message?) {
       _diagnosticReporter.atEntity(
         usageSite,
-        isInSamePackage
-            ? HintCode.deprecatedMemberUseFromSamePackageWithMessage
-            : HintCode.deprecatedMemberUseWithMessage,
+        HintCode.deprecatedMemberUseWithMessage,
         arguments: [displayName, message],
       );
     } else {
       _diagnosticReporter.atEntity(
         usageSite,
-        isInSamePackage
-            ? HintCode.deprecatedMemberUseFromSamePackage
-            : HintCode.deprecatedMemberUse,
+        HintCode.deprecatedMemberUse,
         arguments: [displayName],
       );
     }

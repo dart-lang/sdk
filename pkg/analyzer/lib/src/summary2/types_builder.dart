@@ -96,6 +96,7 @@ class TypesBuilder {
     buildExtensionTypes(_linker, nodes.declarations);
     _MixinsInference(_toInferMixins).perform();
     breakInterfaceCycles(_linker, nodes.declarations);
+    _copyDeclaringFormalParametersExplicitTypes();
   }
 
   void _addFragmentWithClause(
@@ -167,6 +168,15 @@ class TypesBuilder {
     );
 
     _addFragmentWithClause(fragment, node.withClause);
+  }
+
+  void _copyDeclaringFormalParametersExplicitTypes() {
+    for (var info in _linker.declaringFormalParameters.values) {
+      var formalElement = info.formalFragment.element;
+      if (!formalElement.hasImplicitType) {
+        info.fieldFragment.element.type = formalElement.type;
+      }
+    }
   }
 
   void _declaration(AstNode node) {

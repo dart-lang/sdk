@@ -24,10 +24,10 @@ class InlineTypedef extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_name];
 
   @override
-  FixKind get fixKind => DartFixKind.INLINE_TYPEDEF;
+  FixKind get fixKind => DartFixKind.inlineTypedef;
 
   @override
-  FixKind get multiFixKind => DartFixKind.INLINE_TYPEDEF_MULTI;
+  FixKind get multiFixKind => DartFixKind.inlineTypedefMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

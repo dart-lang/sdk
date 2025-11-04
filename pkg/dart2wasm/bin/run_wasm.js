@@ -414,10 +414,9 @@ const main = async () => {
 
   const compiledApp = await dart2wasm.compile(readBytes(wasmFilename));
   const appInstance = await compiledApp.instantiate(importObject, {
-    loadDeferredWasm: async (moduleName) => {
-      let filename = wasmFilename.replace('.wasm', `_${moduleName}.wasm`);
-      return readBytes(filename);
-    },
+    loadDeferredModule: globalThis.loadData,
+    // A loadDeferredId reader function should be registered prior to accessing this.
+    loadDeferredId: (id) => globalThis.loadDeferredId(id, readBytes),
     loadDynamicModule: async (wasmUri, mjsUri) => {
       return [await readBytes(wasmUri), await import(`${wasmDirectory}/${mjsUri}`)];
     }

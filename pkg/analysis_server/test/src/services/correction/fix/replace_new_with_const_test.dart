@@ -98,7 +98,7 @@ void f() {
 @reflectiveTest
 class ReplaceNewWithConstTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_NEW_WITH_CONST;
+  FixKind get kind => DartFixKind.replaceNewWithConst;
 
   @override
   String get lintCode => LintNames.prefer_const_constructors;

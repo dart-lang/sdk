@@ -150,7 +150,7 @@ class AssignmentExpressionResolver {
       )) {
         _diagnosticReporter.atNode(
           right,
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingCommaByType,
         );
         return;
       }

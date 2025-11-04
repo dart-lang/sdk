@@ -1,0 +1,5 @@
+# Perfetto source is cloned into src.
+src
+
+# These files are always empty and are not used.
+protos/**/*.pbzero.cc

@@ -47,9 +47,7 @@ abstract class UnescapeErrorListener {
 ///
 /// Events starting with `handle` are used when isn't possible to have a begin
 /// event.
-class Listener implements UnescapeErrorListener {
-  Uri? get uri => null;
-
+abstract class Listener implements UnescapeErrorListener {
   void logEvent(String name) {}
 
   void beginArguments(Token token) {}
@@ -145,7 +143,7 @@ class Listener implements UnescapeErrorListener {
   void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {}
 
   /// Handle the beginning of a class declaration.
-  /// [begin] may be the same as [name], or may point to modifiers
+  /// [begin] may be the 'class' token, or may point to modifiers
   /// (or extraneous modifiers in the case of recovery) preceding [name].
   ///
   /// At this point we have parsed the name and type parameter declarations.
@@ -317,16 +315,16 @@ class Listener implements UnescapeErrorListener {
     logEvent('ExtensionTypeDeclaration');
   }
 
-  /// Handle the start of a primary constructor declaration, currently only
-  /// occurring in extension type declarations.
+  /// Handle the start of a primary constructor declaration.
   void beginPrimaryConstructor(Token beginToken) {
     logEvent('PrimaryConstructor');
   }
 
-  /// Handle the end of a primary constructor declaration, currently only
-  /// occurring in extension type declarations. [constKeyword] is the 'const'
-  /// keyword, if present, in
+  /// Handle the end of a primary constructor declaration. [constKeyword] is the
+  /// 'const' keyword, if present, in
   ///
+  ///   class const Class() {}
+  ///   enum const Enum() {}
   ///   extension type const ExtensionType() {}
   ///
   /// Substructures:
@@ -336,13 +334,17 @@ class Listener implements UnescapeErrorListener {
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
+    bool forExtensionType,
   ) {
     logEvent('PrimaryConstructor');
   }
 
-  /// Handle the omission of a primary constructor declaration. Currently only
-  /// occurring in extension type declarations.
-  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {}
+  /// Handle the omission of a primary constructor declaration.
+  void handleNoPrimaryConstructor(
+    Token token,
+    Token? constKeyword,
+    bool forExtensionType,
+  ) {}
 
   void beginCombinators(Token token) {}
 
@@ -407,12 +409,31 @@ class Listener implements UnescapeErrorListener {
     logEvent("WhileStatementBody");
   }
 
-  void beginEnum(Token enumKeyword) {}
+  /// Handle the beginning of an enum declaration.  Substructures:
+  /// - metadata
+  ///
+  /// At this point only the `enum` keyword have been seen, so we know a
+  /// declaration is coming but not its name or type parameter declarations.
+  ///
+  /// Ended by [endTopLevelDeclaration].
+  void beginEnumDeclarationPrelude(Token enumKeyword) {}
+
+  /// Handle the beginning of an enum declaration.
+  /// [beginToken] may be the [enumKeyword], or may point to modifiers
+  /// (or extraneous modifiers in the case of recovery) preceding [name].
+  ///
+  /// At this point we have parsed the name and type parameter declarations.
+  void beginEnumDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token enumKeyword,
+    Token name,
+  ) {}
 
   /// Handle the end of an enum declaration.  Substructures:
   /// - [memberCount] times:
   ///   - Enum member
-  void endEnum(
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,
@@ -468,6 +489,12 @@ class Listener implements UnescapeErrorListener {
   ) {
     logEvent("EnumHeader");
   }
+
+  /// Handle the start of an enum body.
+  void beginEnumBody(Token token) {}
+
+  /// Handle the end of an enum body.
+  void endEnumBody(Token beginToken, Token endToken) {}
 
   /// Handle the enum element. Substructures:
   /// - Metadata
@@ -559,6 +586,7 @@ class Listener implements UnescapeErrorListener {
   ) {}
 
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,
@@ -1716,10 +1744,10 @@ class Listener implements UnescapeErrorListener {
   /// This event is added for convenience for the listener.
   /// All top-level declarations will actually be begin/end'ed by more specific
   /// events as well, e.g. [beginClassDeclaration]/[endClassDeclaration],
-  /// [beginEnum]/[endEnum] etc.
+  /// [beginEnumDeclaration]/[endEnumDeclaration] etc.
   ///
   /// Normally listeners should probably override
-  /// [endClassDeclaration], [endNamedMixinApplication], [endEnum],
+  /// [endClassDeclaration], [endNamedMixinApplication], [endEnumDeclaration],
   /// [endTypedef], [endLibraryName], [endImport], [endExport],
   /// [endPart], [endPartOf], [endTopLevelFields], or [endTopLevelMethod]
   /// instead.
@@ -2633,17 +2661,16 @@ class Listener implements UnescapeErrorListener {
   /// The parser noticed a use of the experimental feature by the flag
   /// [experimentalFlag] that was not enabled, but was able to recover from it.
   /// The error should be reported and the code between the beginning of the
-  /// [startToken] and the end of the [endToken] should be highlighted. The
-  /// [startToken] and [endToken] can be the same token.
-  // TODO(jensj): Should `startToken` be renamed to `beginToken`?
+  /// [beginToken] and the end of the [endToken] should be highlighted. The
+  /// [beginToken] and [endToken] can be the same token.
   void handleExperimentNotEnabled(
     ExperimentalFlag experimentalFlag,
-    Token startToken,
+    Token beginToken,
     Token endToken,
   ) {
     handleRecoverableError(
       getExperimentNotEnabledMessage(experimentalFlag),
-      startToken,
+      beginToken,
       endToken,
     );
   }

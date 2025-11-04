@@ -127,7 +127,7 @@ class C {
   C() : super.const();
 }
 ''',
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.invalidSuperInInitializer, 18, 5),
         expectedError(ParserErrorCode.expectedIdentifierButGotKeyword, 24, 5),
         expectedError(ParserErrorCode.missingIdentifier, 24, 5),
@@ -142,7 +142,7 @@ class C {
   C() : this.const();
 }
 ''',
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.missingAssignmentInInitializer, 18, 4),
         expectedError(ParserErrorCode.missingIdentifier, 23, 5),
         expectedError(ParserErrorCode.missingFunctionBody, 23, 5),
@@ -156,7 +156,7 @@ class C {
     // https://github.com/dart-lang/sdk/issues/37733
     var unit = parseCompilationUnit(
       r'class C { f(<T>()); }',
-      errors: [expectedError(ParserErrorCode.missingIdentifier, 12, 1)],
+      diagnostics: [expectedError(ParserErrorCode.missingIdentifier, 12, 1)],
     );
     var classDeclaration = unit.declarations[0] as ClassDeclaration;
     var method = classDeclaration.members[0] as MethodDeclaration;
@@ -999,7 +999,7 @@ void main() {final c = C<int, int Function(String)>();}
   void test_parseLibraryIdentifier_invalid() {
     parseCompilationUnit(
       'library <myLibId>;',
-      errors: [
+      diagnostics: [
         expectedError(ParserErrorCode.missingFunctionParameters, 0, 7),
         expectedError(ParserErrorCode.missingFunctionBody, 17, 1),
       ],
@@ -1491,7 +1491,7 @@ Function<A>(core.List<core.int> x) m() => null;
         parseStatement('final late a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertErrors(
-      errors: [expectedError(ParserErrorCode.modifierOutOfOrder, 6, 4)],
+      diagnostics: [expectedError(ParserErrorCode.modifierOutOfOrder, 6, 4)],
     );
     expect(declarationList.keyword!.lexeme, 'final');
     expect(declarationList.type, isNull);
@@ -1502,7 +1502,9 @@ Function<A>(core.List<core.int> x) m() => null;
     var statement = parseStatement('late a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertErrors(
-      errors: [expectedError(ParserErrorCode.missingConstFinalVarOrType, 5, 1)],
+      diagnostics: [
+        expectedError(ParserErrorCode.missingConstFinalVarOrType, 5, 1),
+      ],
     );
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, isNull);
@@ -1524,7 +1526,9 @@ Function<A>(core.List<core.int> x) m() => null;
         parseStatement('late a = 0;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertErrors(
-      errors: [expectedError(ParserErrorCode.missingConstFinalVarOrType, 5, 1)],
+      diagnostics: [
+        expectedError(ParserErrorCode.missingConstFinalVarOrType, 5, 1),
+      ],
     );
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, isNull);
@@ -1592,13 +1596,13 @@ Function<A>(core.List<core.int> x) m() => null;
     // https://github.com/dart-lang/sdk/issues/37733
     var unit = parseCompilationUnit(
       r'typedef K=Function(<>($',
-      errors: [
+      diagnostics: [
         expectedError(CompileTimeErrorCode.invalidInlineFunctionType, 19, 1),
         expectedError(ParserErrorCode.missingIdentifier, 19, 1),
         expectedError(ParserErrorCode.missingIdentifier, 20, 1),
         expectedError(ParserErrorCode.expectedToken, 22, 1),
-        expectedError(ScannerErrorCode.expectedToken, 23, 1),
-        expectedError(ScannerErrorCode.expectedToken, 23, 1),
+        expectedError(ParserErrorCode.expectedToken, 23, 1),
+        expectedError(ParserErrorCode.expectedToken, 23, 1),
       ],
     );
     var typeAlias = unit.declarations[0] as GenericTypeAlias;
@@ -1613,7 +1617,7 @@ Function<A>(core.List<core.int> x) m() => null;
     // https://github.com/dart-lang/sdk/issues/37733
     var unit = parseCompilationUnit(
       r'typedef T=Function(<S>());',
-      errors: [
+      diagnostics: [
         expectedError(CompileTimeErrorCode.invalidInlineFunctionType, 19, 1),
         expectedError(ParserErrorCode.missingIdentifier, 19, 1),
       ],

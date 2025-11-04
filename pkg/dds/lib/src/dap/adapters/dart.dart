@@ -63,10 +63,10 @@ typedef _StreamEventHandler<T> = FutureOr<void> Function(T data);
 const _noResult = null;
 
 /// Pattern for extracting useful error messages from an evaluation exception.
-final _evalErrorMessagePattern = RegExp('Error: (.*)');
+final _evalErrorMessagePattern = RegExp('Error: (.+)');
 
 /// Pattern for extracting useful error messages from an unhandled exception.
-final _exceptionMessagePattern = RegExp('Unhandled exception:\n(.*)');
+final _exceptionMessagePattern = RegExp('Unhandled exception:\n(.+)');
 
 /// Pattern for a trailing semicolon.
 final _trailingSemicolonPattern = RegExp(r';$');
@@ -401,6 +401,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// events that suggest the session ended (such as a process exiting and the
   /// VM Service closing).
   bool _hasSentTerminatedEvent = false;
+
+  /// Whether we have already sent the [ExitedEvent] to the client.
+  bool _hasSentExitedEvent = false;
 
   /// Whether verbose internal logs (such as VM Service traffic) should be sent
   /// to the client in `dart.log` events.
@@ -831,21 +834,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final pauseEventKind = isolate.runnable ?? false
           ? vm.EventKind.kIsolateRunnable
           : vm.EventKind.kIsolateStart;
-      final thread =
-          await isolateManager.registerIsolate(isolate, pauseEventKind);
+      await isolateManager.registerIsolate(isolate, pauseEventKind);
 
       // If the Isolate already has a Pause event we can give it to the
       // IsolateManager to handle (if it's PausePostStart it will re-configure
-      // the isolate before resuming), otherwise we can just resume it (if it's
-      // runnable - otherwise we'll handle this when it becomes runnable in an
-      // event later).
+      // the isolate before resuming), otherwise wait for the PauseStart event
+      // to arrive and then this will be done.
       if (isolate.pauseEvent?.kind?.startsWith('Pause') ?? false) {
         await isolateManager.handleEvent(
           isolate.pauseEvent!,
         );
-      } else if (isolate.runnable == true) {
-        await isolateManager.handleThreadStartup(thread,
-            sendStoppedOnEntry: false);
       }
     }));
   }
@@ -1124,26 +1122,24 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         result = await vmEvaluate(thread, library.id!, expression);
       }
     } catch (e) {
-      final rawMessage = '$e';
-
-      // Error messages can be quite verbose and don't fit well into a
-      // single-line watch window. For example:
+      // Expression compilation errors may result in exceptions here (failed
+      // RCP requests) rather than a returned vm.ErrorRef:
       //
       //    evaluateInFrame: (113) Expression compilation error
       //    org-dartlang-debug:synthetic_debug_expression:1:5: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
       //    1 + "a"
       //        ^
-      //
-      // So in the case of a Watch context, try to extract the useful message.
-      if (args.context == 'watch') {
-        throw DebugAdapterException(extractEvaluationErrorMessage(rawMessage));
-      }
-
-      throw DebugAdapterException(rawMessage);
+      _throwEvalError(args, '$e');
     }
 
     if (result is vm.ErrorRef) {
-      throw DebugAdapterException(result.message ?? '<error ref>');
+      // Some kinds of errors will return ErrorRefs:
+      //
+      // Unhandled exception:
+      // NoSuchMethodError: Class 'DateTime' has no instance getter 'ye'.
+      // Receiver: Instance of 'DateTime'
+      // Tried calling: ye
+      _throwEvalError(args, result.message ?? '<error ref>');
     } else if (result is vm.Sentinel) {
       throw DebugAdapterException(result.valueAsString ?? '<collected>');
     } else if (result is vm.InstanceRef && thread != null) {
@@ -1183,6 +1179,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
+  /// Throws a [DebugAdapterException] for an expression evaluation error.
+  ///
+  /// For some contexts, parts of the error message may be extracted resulting
+  /// in a shorter message (for example to provide less noise in a Watch
+  /// window).
+  Never _throwEvalError(EvaluateArguments args, String message) {
+    if (args.context == 'watch') {
+      message = extractEvaluationErrorMessage(message);
+    }
+
+    throw DebugAdapterException(message);
+  }
+
   /// Tries to extract the useful part from an evaluation exception message.
   ///
   /// If no message could be extracted, returns the whole original error.
@@ -1208,11 +1217,32 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     await preventBreakingAndResume();
   }
 
+  /// Sends an [ExitedEvent] if one has not already been sent.
+  ///
+  /// Waits for any in-progress output events to complete first.
+  void handleSessionExited(int exitCode) async {
+    await _waitForPendingOutputEvents();
+
+    if (_hasSentExitedEvent) {
+      return;
+    }
+
+    _hasSentExitedEvent = true;
+
+    sendEvent(ExitedEventBody(exitCode: exitCode));
+  }
+
   /// Sends a [TerminatedEvent] if one has not already been sent.
   ///
   /// Waits for any in-progress output events to complete first.
   void handleSessionTerminate([String exitSuffix = '']) async {
     await _waitForPendingOutputEvents();
+
+    // Ensure that we stop watching for a VM Service info file if we are using
+    // these utils.
+    if (this case VmServiceInfoFileUtils vmServiceUtils) {
+      vmServiceUtils.stopWaitingForVmServiceInfoFile();
+    }
 
     if (_hasSentTerminatedEvent) {
       return;

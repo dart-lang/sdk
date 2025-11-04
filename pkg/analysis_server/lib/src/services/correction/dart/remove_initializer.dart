@@ -34,10 +34,10 @@ class RemoveInitializer extends ResolvedCorrectionProducer {
       _removeLate = false;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_INITIALIZER;
+  FixKind get fixKind => DartFixKind.removeInitializer;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_INITIALIZER_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeInitializerMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

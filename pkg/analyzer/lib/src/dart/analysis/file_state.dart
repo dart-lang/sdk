@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
@@ -591,8 +592,7 @@ class FileState {
 
   /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnitImpl parse({
-    DiagnosticOrErrorListener diagnosticListener =
-        DiagnosticListener.nullListener,
+    DiagnosticListener diagnosticListener = DiagnosticListener.nullListener,
     required OperationPerformanceImpl performance,
   }) {
     try {
@@ -609,7 +609,7 @@ class FileState {
   /// Parses given [code] with the same features as this file.
   CompilationUnitImpl parseCode({
     required String code,
-    required DiagnosticOrErrorListener diagnosticListener,
+    required DiagnosticListener diagnosticListener,
     required OperationPerformanceImpl performance,
   }) {
     return performance.run('parseCode', (performance) {
@@ -1011,13 +1011,27 @@ class FileState {
     var topLevelDeclarations = <String>{};
     for (var declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
-        topLevelDeclarations.add(declaration.name.lexeme);
+        if (useDeclaringConstructorsAst) {
+          topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
+        } else {
+          topLevelDeclarations.add(declaration.name.lexeme);
+        }
       } else if (declaration is EnumDeclaration) {
-        topLevelDeclarations.add(declaration.name.lexeme);
+        if (useDeclaringConstructorsAst) {
+          topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
+        } else {
+          topLevelDeclarations.add(declaration.name.lexeme);
+        }
       } else if (declaration is ExtensionDeclaration) {
         var name = declaration.name;
         if (name != null) {
           topLevelDeclarations.add(name.lexeme);
+        }
+      } else if (declaration is ExtensionTypeDeclaration) {
+        if (useDeclaringConstructorsAst) {
+          topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
+        } else {
+          topLevelDeclarations.add(declaration.name.lexeme);
         }
       } else if (declaration is FunctionDeclaration) {
         topLevelDeclarations.add(declaration.name.lexeme);
@@ -1160,7 +1174,7 @@ class FileState {
 
   static UnlinkedPartDirective _serializePart(PartDirective node) {
     return UnlinkedPartDirective(
-      configurations: _serializeConfigurations(node.configurations),
+      configurations: [],
       partKeywordOffset: node.partKeyword.offset,
       uri: node.uri.stringValue,
     );

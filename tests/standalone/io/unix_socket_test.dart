@@ -7,11 +7,15 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:expect/expect.dart';
+import 'package:path/path.dart' as p;
 
 import 'test_utils.dart' show withTempDir;
 
 Future testAddress(String name) async {
-  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  var address = InternetAddress(
+    p.join(name, 'sock'),
+    type: InternetAddressType.unix,
+  );
   var server = await ServerSocket.bind(address, 0);
 
   var client = await Socket.connect(address, server.port);
@@ -34,7 +38,10 @@ Future testAddress(String name) async {
 }
 
 testBindShared(String name) async {
-  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  var address = InternetAddress(
+    p.join(name, 'sock'),
+    type: InternetAddressType.unix,
+  );
   var socket = await ServerSocket.bind(address, 0, shared: true);
   Expect.isTrue(socket.port == 0);
 
@@ -46,7 +53,7 @@ testBindShared(String name) async {
   // Test relative path
   var path = name.substring(name.lastIndexOf('/') + 1);
   address = InternetAddress(
-    '${name}/../${path}/sock',
+    p.join(name, '..', path, 'sock'),
     type: InternetAddressType.unix,
   );
 
@@ -63,8 +70,11 @@ testBindShared(String name) async {
   await socket3.close();
 }
 
-testBind(String name) async {
-  final address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+Future<void> testBind(String name) async {
+  final address = InternetAddress(
+    p.join(name, 'sock'),
+    type: InternetAddressType.unix,
+  );
   final server = await ServerSocket.bind(address, 0, shared: false);
   Expect.isTrue(server.address.toString().contains(name));
   // Unix domain socket does not have a valid port number.
@@ -87,7 +97,10 @@ testBind(String name) async {
 }
 
 Future testListenCloseListenClose(String name) async {
-  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  var address = InternetAddress(
+    p.join(name, 'sock'),
+    type: InternetAddressType.unix,
+  );
   ServerSocket socket = await ServerSocket.bind(address, 0, shared: true);
   ServerSocket socket2 = await ServerSocket.bind(
     address,
@@ -124,12 +137,15 @@ Future testListenCloseListenClose(String name) async {
 }
 
 Future testSourceAddressConnect(String name) async {
-  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  var address = InternetAddress(
+    p.join(name, 'sock'),
+    type: InternetAddressType.unix,
+  );
   ServerSocket server = await ServerSocket.bind(address, 0);
 
   var completer = Completer<void>();
   var localAddress = InternetAddress(
-    '$name/local',
+    p.join(name, 'local'),
     type: InternetAddressType.unix,
   );
   server.listen((Socket socket) async {
@@ -267,7 +283,10 @@ Future testExistingFile(String name) async {
   // Test that a leftover file(In case of previous process being killed and
   // finalizer doesn't clean up the file) will be cleaned up and bind() should
   // be able to bind to the socket.
-  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  var address = InternetAddress(
+    p.join(name, 'sock'),
+    type: InternetAddressType.unix,
+  );
   // Create a file with the same name
   File(address.address).createSync();
   try {
@@ -280,8 +299,19 @@ Future testExistingFile(String name) async {
   Expect.fail("bind should fail with existing file");
 }
 
+bool isUnsupportedOperationError(e) {
+  final msg = e.toString();
+  return e is OSError &&
+      (msg.contains('Operation not supported') ||
+          msg.contains('unsupported option') ||
+          msg.contains('Protocol not available'));
+}
+
 Future testSetSockOpt(String name) async {
-  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  var address = InternetAddress(
+    p.join(name, 'sock'),
+    type: InternetAddressType.unix,
+  );
   var server = await ServerSocket.bind(address, 0, shared: false);
 
   var sub;
@@ -303,7 +333,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -316,7 +346,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -329,7 +359,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -342,7 +372,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -355,7 +385,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Protocol not available'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -368,7 +398,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -381,7 +411,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.getRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -389,7 +419,7 @@ Future testSetSockOpt(String name) async {
   try {
     socket.setOption(SocketOption.tcpNoDelay, true);
   } catch (e) {
-    Expect.isTrue(e.toString().contains('Operation not supported'));
+    Expect.isTrue(isUnsupportedOperationError(e));
   }
 
   for (int i = 0; i < 5; i++) {
@@ -401,7 +431,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -414,7 +444,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -427,7 +457,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -440,7 +470,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -453,7 +483,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Protocol not available'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -466,7 +496,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -479,7 +509,7 @@ Future testSetSockOpt(String name) async {
       );
       var result = socket.setRawOption(option);
     } catch (e) {
-      Expect.isTrue(e.toString().contains('Operation not supported'));
+      Expect.isTrue(isUnsupportedOperationError(e));
     }
   }
 
@@ -488,7 +518,10 @@ Future testSetSockOpt(String name) async {
 }
 
 Future testHttpServer(String name) async {
-  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  var address = InternetAddress(
+    p.join(name, 'sock'),
+    type: InternetAddressType.unix,
+  );
   var httpServer = await HttpServer.bind(address, 0);
 
   var sub;
@@ -512,7 +545,7 @@ Future testFileMessage(String tempDirPath) async {
   final completer = Completer<bool>();
 
   final address = InternetAddress(
-    '$tempDirPath/sock',
+    p.join(tempDirPath, 'sock'),
     type: InternetAddressType.unix,
   );
   final server = await RawServerSocket.bind(address, 0, shared: false);
@@ -553,7 +586,7 @@ Future testFileMessage(String tempDirPath) async {
     });
   });
 
-  final file = File('$tempDirPath/myfile.txt');
+  final file = File(p.join(tempDirPath, 'myfile.txt'));
   final randomAccessFile = file.openSync(mode: FileMode.write);
   // Send a message with sample file.
   final socket = await RawSocket.connect(address, 0);
@@ -593,7 +626,7 @@ Future testTooLargeControlMessage(String tempDirPath) async {
   }
   final completer = Completer<bool>();
   final address = InternetAddress(
-    '$tempDirPath/sock',
+    p.join(tempDirPath, 'sock'),
     type: InternetAddressType.unix,
   );
   final server = await RawServerSocket.bind(address, 0, shared: false);
@@ -610,7 +643,7 @@ Future testTooLargeControlMessage(String tempDirPath) async {
     });
   });
 
-  final file = File('$tempDirPath/myfile.txt');
+  final file = File(p.join(tempDirPath, 'myfile.txt'));
   final randomAccessFile = file.openSync(mode: FileMode.write);
   // Send a message with sample file.
   final socket = await RawSocket.connect(address, 0);
@@ -649,7 +682,7 @@ Future testFileMessageWithShortRead(String tempDirPath) async {
   final completer = Completer<bool>();
 
   final address = InternetAddress(
-    '$tempDirPath/sock',
+    p.join(tempDirPath, 'sock'),
     type: InternetAddressType.unix,
   );
   final server = await RawServerSocket.bind(address, 0, shared: false);
@@ -694,7 +727,7 @@ Future testFileMessageWithShortRead(String tempDirPath) async {
     });
   });
 
-  final file = File('$tempDirPath/myfile.txt');
+  final file = File(p.join(tempDirPath, 'myfile.txt'));
   final randomAccessFile = file.openSync(mode: FileMode.write);
   // Send a message with sample file.
   final socket = await RawSocket.connect(address, 0);
@@ -765,7 +798,7 @@ Future testSocketMessage(String uniqueName) async {
     return;
   }
   final address = InternetAddress(
-    '$uniqueName/sock',
+    p.join(uniqueName, 'sock'),
     type: InternetAddressType.unix,
   );
   final server = await RawServerSocket.bind(address, 0, shared: false);
@@ -876,7 +909,7 @@ Future testStdioMessage(String tempDirPath, {bool caller = false}) async {
   }
 
   final address = InternetAddress(
-    '$tempDirPath/sock',
+    p.join(tempDirPath, 'sock'),
     type: InternetAddressType.unix,
   );
   final server = await RawServerSocket.bind(address, 0, shared: false);
@@ -909,7 +942,7 @@ Future testStdioMessage(String tempDirPath, {bool caller = false}) async {
     });
   });
 
-  final file = File('$tempDirPath/myfile.txt');
+  final file = File(p.join(tempDirPath, 'myfile.txt'));
   final randomAccessFile = file.openSync(mode: FileMode.write);
   // Send a message with sample file.
   var socket = await RawSocket.connect(address, 0);
@@ -940,7 +973,7 @@ Future testReadPipeMessage(String uniqueName) async {
     return;
   }
   final address = InternetAddress(
-    '$uniqueName/sock',
+    p.join(uniqueName, 'sock'),
     type: InternetAddressType.unix,
   );
   final server = await RawServerSocket.bind(address, 0, shared: false);
@@ -1011,7 +1044,7 @@ Future testWritePipeMessage(String uniqueName) async {
     return;
   }
   final address = InternetAddress(
-    '$uniqueName/sock',
+    p.join(uniqueName, 'sock'),
     type: InternetAddressType.unix,
   );
   final server = await RawServerSocket.bind(address, 0, shared: false);
@@ -1080,26 +1113,32 @@ Future testWritePipeMessage(String uniqueName) async {
 }
 
 Future testDeleteFile(String tempDirPath) async {
-  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
-    return;
-  }
-  final name = '$tempDirPath/sock';
+  final name = p.join(tempDirPath, 'sock');
   final address = InternetAddress(name, type: InternetAddressType.unix);
   var server = await RawServerSocket.bind(address, 0, shared: false);
   final file = File(name);
-  Expect.isTrue(file.existsSync());
-  Expect.isTrue(await file.exists());
+
+  bool sockExistsSync() {
+    return FileSystemEntity.typeSync(name) != FileSystemEntityType.notFound;
+  }
+
+  Future<bool> sockExists() async {
+    return await FileSystemEntity.type(name) != FileSystemEntityType.notFound;
+  }
+
+  Expect.isTrue(sockExistsSync());
+  Expect.isTrue(await sockExists());
   file.deleteSync();
-  Expect.isFalse(file.existsSync());
-  Expect.isFalse(await file.exists());
+  Expect.isFalse(sockExistsSync());
+  Expect.isFalse(await sockExists());
   await server.close();
 
   server = await RawServerSocket.bind(address, 0, shared: false);
-  Expect.isTrue(file.existsSync());
-  Expect.isTrue(await file.exists());
+  Expect.isTrue(sockExistsSync());
+  Expect.isTrue(await sockExists());
   await file.delete();
-  Expect.isFalse(file.existsSync());
-  Expect.isFalse(await file.exists());
+  Expect.isFalse(sockExistsSync());
+  Expect.isFalse(await sockExists());
   await server.close();
 }
 
@@ -1107,7 +1146,7 @@ Future testFileStat(String tempDirPath) async {
   if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
-  final name = '$tempDirPath/sock';
+  final name = p.join(tempDirPath, 'sock');
   final address = InternetAddress(name, type: InternetAddressType.unix);
   var server = await RawServerSocket.bind(address, 0, shared: false);
   FileStat fileStat = FileStat.statSync(name);
@@ -1119,8 +1158,8 @@ Future testFileRename(String tempDirPath) async {
   if (!Platform.isLinux && !Platform.isAndroid) {
     return;
   }
-  final name1 = '$tempDirPath/sock1';
-  final name2 = '$tempDirPath/sock2';
+  final name1 = p.join(tempDirPath, 'sock1');
+  final name2 = p.join(tempDirPath, 'sock2');
   final address = InternetAddress(name1, type: InternetAddressType.unix);
   var server = await RawServerSocket.bind(address, 0, shared: false);
   final file1 = File(name1);
@@ -1137,8 +1176,8 @@ Future testFileCopy(String tempDirPath) async {
   if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
-  final name1 = '$tempDirPath/sock1';
-  final name2 = '$tempDirPath/sock2';
+  final name1 = p.join(tempDirPath, 'sock1');
+  final name2 = p.join(tempDirPath, 'sock2');
   final address = InternetAddress(name1, type: InternetAddressType.unix);
   final file1 = File(name1);
   var server = await RawServerSocket.bind(address, 0, shared: false);
@@ -1226,11 +1265,14 @@ void main(List<String> args) async {
       });
     },
     (e, st) {
-      if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
+      if (Platform.isWindows ||
+          Platform.isMacOS ||
+          Platform.isLinux ||
+          Platform.isAndroid) {
         Expect.fail("Unexpected exception $e is thrown:\n$st");
       } else {
         Expect.isTrue(e is SocketException);
-        Expect.isTrue(e.toString().contains('not available'));
+        Expect.contains('not available', e.toString());
       }
     },
   );

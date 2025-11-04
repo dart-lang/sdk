@@ -78,7 +78,7 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   AddressList<SocketAddress>* addresses = new AddressList<SocketAddress>(count);
   for (struct addrinfo* c = info; c != nullptr; c = c->ai_next) {
     if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
-      addresses->SetAt(i, new SocketAddress(c->ai_addr));
+      addresses->SetAt(i, new SocketAddress(RawAddr::FromInet4or6(c->ai_addr)));
       i++;
     }
   }

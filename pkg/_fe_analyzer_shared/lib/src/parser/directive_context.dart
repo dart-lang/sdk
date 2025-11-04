@@ -7,12 +7,12 @@ import '../scanner/token.dart';
 import 'parser_impl.dart';
 
 class DirectiveContext {
-  /// Whether the `enhanced-parts` feature is enabled.
-  final bool enableFeatureEnhancedParts;
+  /// `true` if the 'enhanced-parts' feature is enabled.
+  final bool isEnhancedPartsFeatureEnabled;
 
   DirectiveState state = DirectiveState.Unknown;
 
-  DirectiveContext({required this.enableFeatureEnhancedParts});
+  DirectiveContext({required this.isEnhancedPartsFeatureEnabled});
 
   void checkScriptTag(Parser parser, Token token) {
     if (state == DirectiveState.Unknown) {
@@ -40,7 +40,7 @@ class DirectiveContext {
       case DirectiveState.Part:
         parser.reportRecoverableError(token, codeExportAfterPart);
       case DirectiveState.PartOf:
-        if (enableFeatureEnhancedParts) {
+        if (isEnhancedPartsFeatureEnabled) {
           state = DirectiveState.ImportAndExport;
         } else {
           parser.reportRecoverableError(token, codeNonPartOfDirectiveInPart);
@@ -60,7 +60,7 @@ class DirectiveContext {
       case DirectiveState.Part:
         parser.reportRecoverableError(token, codeImportAfterPart);
       case DirectiveState.PartOf:
-        if (enableFeatureEnhancedParts) {
+        if (isEnhancedPartsFeatureEnabled) {
           state = DirectiveState.ImportAndExport;
         } else {
           parser.reportRecoverableError(token, codeNonPartOfDirectiveInPart);
@@ -94,7 +94,7 @@ class DirectiveContext {
       case DirectiveState.Part:
         state = DirectiveState.Part;
       case DirectiveState.PartOf:
-        if (enableFeatureEnhancedParts) {
+        if (isEnhancedPartsFeatureEnabled) {
           state = DirectiveState.ImportAndExport;
         } else {
           parser.reportRecoverableError(token, codeNonPartOfDirectiveInPart);

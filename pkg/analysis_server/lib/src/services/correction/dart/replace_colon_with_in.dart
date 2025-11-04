@@ -16,10 +16,10 @@ class ReplaceColonWithIn extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_COLON_WITH_IN;
+  FixKind get fixKind => DartFixKind.replaceColonWithIn;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_COLON_WITH_IN_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceColonWithInMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -5431,14 +5431,16 @@ void Class::EnsureDeclarationLoaded() const {
 
 // Ensure that top level parsing of the class has been done.
 ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
-  ASSERT(!IsNull());
-  if (is_finalized()) {
-    return Error::null();
-  }
 #if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
-  UNREACHABLE();
+  RELEASE_ASSERT(is_finalized());
   return Error::null();
 #else
+  {
+    SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+    if (is_finalized()) {
+      return Error::null();
+    }
+  }
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (is_finalized()) {
     return Error::null();
@@ -18235,6 +18237,7 @@ ICDataPtr ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
 
 ICDataPtr ICData::Clone(const ICData& from) {
   Zone* zone = Thread::Current()->zone();
+  SafepointMutexLocker ml(IsolateGroup::Current()->type_feedback_mutex());
 
   // We have to check the megamorphic bit before accessing the entries of the
   // ICData to ensure all writes to the entries have been flushed and are
@@ -19422,86 +19425,6 @@ LocalVarDescriptorsPtr Bytecode::GetLocalVarDescriptors() const {
     set_var_descriptors(var_descs);
   }
   return var_descs.ptr();
-#else
-  UNREACHABLE();
-#endif
-}
-
-#if defined(DART_DYNAMIC_MODULES)
-static const int kLocalVariableKindMaxWidth = strlen(
-    bytecode::BytecodeLocalVariablesIterator::kKindNames
-        [bytecode::BytecodeLocalVariablesIterator::kVariableDeclaration]);
-
-static const int kLocalVariableColumnWidths[] = {
-    kLocalVariableKindMaxWidth,  // kind
-    14,                          // start pc
-    14,                          // end pc
-    7,                           // context level
-    7,                           // index
-    7,                           // start token pos
-    7,                           // end token pos
-    7,                           // decl token pos
-};
-#endif
-
-void Bytecode::WriteLocalVariablesInfo(Zone* zone,
-                                       BaseTextBuffer* buffer) const {
-#if defined(DART_DYNAMIC_MODULES)
-  if (!HasLocalVariablesInfo()) return;
-
-  // "*" in a printf format specifier tells it to read the field width from
-  // the printf argument list.
-  buffer->Printf(
-      " %*s %*s %*s %*s %*s %*s %*s %*s name\n", kLocalVariableColumnWidths[0],
-      "kind", kLocalVariableColumnWidths[1], "start pc",
-      kLocalVariableColumnWidths[2], "end pc", kLocalVariableColumnWidths[3],
-      "ctx", kLocalVariableColumnWidths[4], "index",
-      kLocalVariableColumnWidths[5], "start", kLocalVariableColumnWidths[6],
-      "end", kLocalVariableColumnWidths[7], "decl");
-  auto& name = String::Handle(zone);
-  auto& type = AbstractType::Handle(zone);
-  const uword base = PayloadStart();
-  bytecode::BytecodeLocalVariablesIterator iter(zone, *this);
-  while (iter.MoveNext()) {
-    buffer->Printf(" %*s %-#*" Px "", kLocalVariableColumnWidths[0],
-                   iter.KindName(), kLocalVariableColumnWidths[1],
-                   base + iter.StartPC());
-    if (iter.IsVariableDeclaration() || iter.IsScope()) {
-      buffer->Printf(" %-#*" Px "", kLocalVariableColumnWidths[2],
-                     base + iter.EndPC());
-    } else {
-      buffer->Printf(" %*s", kLocalVariableColumnWidths[2], "");
-    }
-    if (iter.IsScope()) {
-      buffer->Printf(" %*" Pd "", kLocalVariableColumnWidths[3],
-                     iter.ContextLevel());
-    } else {
-      buffer->Printf(" %*s", kLocalVariableColumnWidths[3], "");
-    }
-    if (iter.IsContextVariable() || iter.IsVariableDeclaration()) {
-      buffer->Printf(" %*" Pd "", kLocalVariableColumnWidths[4], iter.Index());
-    } else {
-      buffer->Printf(" %*s", kLocalVariableColumnWidths[4], "");
-    }
-    if (iter.IsVariableDeclaration() || iter.IsScope()) {
-      buffer->Printf(" %*s %*s", kLocalVariableColumnWidths[5],
-                     iter.StartTokenPos().ToCString(),
-                     kLocalVariableColumnWidths[6],
-                     iter.EndTokenPos().ToCString());
-
-    } else {
-      buffer->Printf(" %*s %*s", kLocalVariableColumnWidths[5], "",
-                     kLocalVariableColumnWidths[6], "");
-    }
-    if (iter.IsVariableDeclaration()) {
-      name = iter.Name();
-      type = iter.Type();
-      buffer->Printf(" %*s %s: %s%s", kLocalVariableColumnWidths[7],
-                     iter.DeclarationTokenPos().ToCString(), name.ToCString(),
-                     type.ToCString(), iter.IsCaptured() ? " (captured)" : "");
-    }
-    buffer->AddString("\n");
-  }
 #else
   UNREACHABLE();
 #endif

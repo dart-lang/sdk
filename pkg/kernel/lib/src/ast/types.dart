@@ -46,7 +46,91 @@ enum Nullability {
 /// Type parameters declared by a [FunctionType] are orphans and have a `null`
 /// parent pointer.  [TypeParameter] objects should not be shared between
 /// different [FunctionType] objects.
-class TypeParameter extends TreeNode implements Annotatable {
+abstract interface class TypeParameter implements TreeNode, Annotatable {
+  /// Sentinel value used for the [bound] that has not yet been computed. This
+  /// is needed to make the [bound] field non-nullable while supporting
+  /// recursive bounds.
+  static final DartType unsetBoundSentinel = new InvalidType();
+
+  /// Sentinel value used for the [defaultType] that has not yet been computed.
+  /// This is needed to make the [defaultType] field non-nullable while
+  /// supporting recursive bounds for which the default type need to be set
+  /// late.
+  static final DartType unsetDefaultTypeSentinel = new InvalidType();
+
+  static const int legacyCovariantSerializationMarker = 4;
+
+  factory TypeParameter(
+      [String? name,
+      DartType? bound,
+      DartType? defaultType]) = NominalParameter;
+
+  abstract int flags;
+
+  @override
+  abstract List<Expression> annotations;
+
+  /// Cosmetic name.
+  abstract String? name;
+
+  /// The bound on the type variable.
+  ///
+  /// This is set to [unsetBoundSentinel] temporarily during IR construction.
+  /// This is set to the `Object?` for type parameters without an explicit
+  /// bound.
+  abstract DartType bound;
+
+  /// The default value of the type variable. It is used to provide the
+  /// corresponding missing type argument in type annotations and as the
+  /// fall-back type value in type inference at compile time. At run time,
+  /// [defaultType] is used by the backends in place of the missing type
+  /// argument of a dynamic invocation of a generic function.
+  abstract DartType defaultType;
+
+  /// Describes variance of the type parameter w.r.t. declaration on which it is
+  /// defined. For classes, if variance is not explicitly set, the type
+  /// parameter has legacy covariance defined by [isLegacyCovariant] which
+  /// on the lattice is equivalent to [Variance.covariant]. For typedefs, it's
+  /// the variance of the type parameters in the type term on the r.h.s. of the
+  /// typedef.
+  Variance get variance;
+
+  void set variance(Variance? newVariance);
+
+  bool get isLegacyCovariant;
+
+  @Deprecated("Use TypeParameter.declaration instead.")
+  @override
+  TreeNode? get parent;
+
+  @Deprecated("Use TypeParameter.declaration instead.")
+  @override
+  void set parent(TreeNode? value);
+
+  // TODO(johnniwinther): Make this non-nullable.
+  GenericDeclaration? get declaration;
+
+  void set declaration(GenericDeclaration? value);
+
+  /// If this [TypeParameter] is a type parameter of a generic method, indicates
+  /// whether the method implementation needs to contain a runtime type check to
+  /// deal with generic covariance.
+  ///
+  /// When `true`, runtime checks may need to be performed.
+  bool get isCovariantByClass;
+
+  void set isCovariantByClass(bool value);
+
+  /// Computes the nullability of a type-parameter type based on [bound].
+  ///
+  /// This is a helper function to be used when the bound of the type parameter
+  /// is changing or is being set for the first time, and the update on some
+  /// type-parameter types is required.
+  Nullability computeNullabilityFromBound();
+}
+
+class NominalParameter extends TreeNode implements TypeParameter {
+  @override
   int flags = 0;
 
   /// List of metadata annotations on the type parameter.
@@ -56,65 +140,35 @@ class TypeParameter extends TreeNode implements Annotatable {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  String? name; // Cosmetic name.
+  @override
+  String? name;
 
-  /// Sentinel value used for the [bound] that has not yet been computed. This
-  /// is needed to make the [bound] field non-nullable while supporting
-  /// recursive bounds.
-  static final DartType unsetBoundSentinel = new InvalidType();
-
-  /// The bound on the type variable.
-  ///
-  /// This is set to [unsetBoundSentinel] temporarily during IR construction.
-  /// This is set to the `Object?` for type parameters without an explicit
-  /// bound.
+  @override
   DartType bound;
 
-  /// Sentinel value used for the [defaultType] that has not yet been computed.
-  /// This is needed to make the [defaultType] field non-nullable while
-  /// supporting recursive bounds for which the default type need to be set
-  /// late.
-  static final DartType unsetDefaultTypeSentinel = new InvalidType();
-
-  /// The default value of the type variable. It is used to provide the
-  /// corresponding missing type argument in type annotations and as the
-  /// fall-back type value in type inference at compile time. At run time,
-  /// [defaultType] is used by the backends in place of the missing type
-  /// argument of a dynamic invocation of a generic function.
+  @override
   DartType defaultType;
 
-  /// Describes variance of the type parameter w.r.t. declaration on which it is
-  /// defined. For classes, if variance is not explicitly set, the type
-  /// parameter has legacy covariance defined by [isLegacyCovariant] which
-  /// on the lattice is equivalent to [Variance.covariant]. For typedefs, it's
-  /// the variance of the type parameters in the type term on the r.h.s. of the
-  /// typedef.
   Variance? _variance;
 
+  @override
   Variance get variance => _variance ?? Variance.covariant;
 
+  @override
   void set variance(Variance? newVariance) => _variance = newVariance;
 
+  @override
   bool get isLegacyCovariant => _variance == null;
 
-  static const int legacyCovariantSerializationMarker = 4;
-
-  TypeParameter([this.name, DartType? bound, DartType? defaultType])
-      : bound = bound ?? unsetBoundSentinel,
-        defaultType = defaultType ?? unsetDefaultTypeSentinel;
+  NominalParameter([this.name, DartType? bound, DartType? defaultType])
+      : bound = bound ?? TypeParameter.unsetBoundSentinel,
+        defaultType = defaultType ?? TypeParameter.unsetDefaultTypeSentinel;
 
   // Must match serialized bit positions.
   static const int FlagCovariantByClass = 1 << 0;
 
-  @Deprecated("Used TypeParameter.declaration instead.")
-  @override
-  TreeNode? get parent;
-
-  @Deprecated("Used TypeParameter.declaration instead.")
-  @override
-  void set parent(TreeNode? value);
-
   // TODO(johnniwinther): Make this non-nullable.
+  @override
   GenericDeclaration? get declaration {
     // TODO(johnniwinther): Store the declaration directly when [parent] is
     // removed.
@@ -131,6 +185,7 @@ class TypeParameter extends TreeNode implements Annotatable {
     return null;
   }
 
+  @override
   void set declaration(GenericDeclaration? value) {
     switch (value) {
       case Typedef():
@@ -147,13 +202,10 @@ class TypeParameter extends TreeNode implements Annotatable {
     }
   }
 
-  /// If this [TypeParameter] is a type parameter of a generic method, indicates
-  /// whether the method implementation needs to contain a runtime type check to
-  /// deal with generic covariance.
-  ///
-  /// When `true`, runtime checks may need to be performed.
+  @override
   bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
+  @override
   void set isCovariantByClass(bool value) {
     flags = value
         ? (flags | FlagCovariantByClass)
@@ -169,11 +221,11 @@ class TypeParameter extends TreeNode implements Annotatable {
   }
 
   @override
-  R accept<R>(TreeVisitor<R> v) => v.visitTypeParameter(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitNominalParameter(this);
 
   @override
   R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
-      v.visitTypeParameter(this, arg);
+      v.visitNominalParameter(this, arg);
 
   @override
   void visitChildren(Visitor v) {
@@ -200,7 +252,7 @@ class TypeParameter extends TreeNode implements Annotatable {
   /// with the names used across all [toString] calls.
   @override
   String toString() {
-    return "TypeParameter(${toStringInternal()})";
+    return "NominalTypeParameter(${toStringInternal()})";
   }
 
   @override
@@ -208,11 +260,7 @@ class TypeParameter extends TreeNode implements Annotatable {
     printer.writeTypeParameterName(this);
   }
 
-  /// Computes the nullability of a type-parameter type based on [bound].
-  ///
-  /// This is a helper function to be used when the bound of the type parameter
-  /// is changing or is being set for the first time, and the update on some
-  /// type-parameter types is required.
+  @override
   Nullability computeNullabilityFromBound() {
     // If the bound is nullable or 'undetermined', both nullable and
     // non-nullable types can be passed in for the type parameter, making the
@@ -617,6 +665,26 @@ abstract class AuxiliaryType extends DartType {
   @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
       v.visitAuxiliaryType(this, arg);
+}
+
+/// The root of the sealed sub-hierarchy for all experimental [DartType]s.
+///
+/// The purpose of [ExperimentalType] is to be a stand-in in exhaustive switch
+/// statements and alike in the backend code. That way, the backends won't need
+/// an update whenever an experimental type (a subclass of [ExperimentalType])
+/// is added or removed in the CFE.
+sealed class ExperimentalType extends DartType {
+  const ExperimentalType();
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) {
+    throw new UnsupportedError("`ExperimentalType.accept` is unsupported.");
+  }
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    throw new UnsupportedError("`ExperimentalType.accept1` is unsupported.");
+  }
 }
 
 /// The type arising from invalid type annotations.
@@ -1956,11 +2024,12 @@ class IntersectionType extends DartType {
 }
 
 /// Reference to a type variable.
-class TypeParameterType extends DartType {
+class TypeParameterType extends DartType implements TypeParameterTypeInterface {
   /// The declared nullability of a type-parameter type.
   @override
   Nullability declaredNullability;
 
+  @override
   final TypeParameter parameter;
 
   TypeParameterType(this.parameter, this.declaredNullability);
@@ -2277,5 +2346,191 @@ class RecordType extends DartType implements SharedRecordType {
       printer.write("}");
     }
     printer.write(")");
+  }
+}
+
+/// Type variables of functions.
+///
+/// [TypeVariable] represents type variables of functions, such as top-level
+/// methods, static and instance methods, local declarations, and function
+/// expressions.
+class TypeVariable extends Variable {
+  @override
+  String? cosmeticName;
+
+  /// Function type parameter this [TypeVariable] is associated with.
+  final TypeParameter parameter;
+
+  TypeVariable({this.cosmeticName, required this.parameter});
+
+  @override
+  R accept<R>(TreeVisitor<R> v) {
+    // TODO(cstefantsova): Implement accept.
+    throw UnimplementedError();
+  }
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+    // TODO(cstefantsova): Implement accept1.
+    throw UnimplementedError();
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // TODO(cstefantsova): Implement transformChildren.
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // TODO(cstefantsova): Implement transformOrRemoveChildren.
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    // TODO(cstefantsova): Implement visitChildren.
+  }
+
+  /// Returns a possibly synthesized name for the nominal parameter, consistent
+  /// with the names used across all [toString] calls.
+  @override
+  String toString() {
+    return "TypeVariable(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeTypeParameterName(parameter);
+  }
+}
+
+/// The shared interface between all types referring type parameters.
+abstract class TypeParameterTypeInterface {
+  TypeParameter get parameter;
+}
+
+/// A type-parameter type referring to [TypeVariable] of a function.
+class FunctionTypeParameterType extends ExperimentalType
+    implements TypeParameterTypeInterface {
+  final TypeVariable variable;
+
+  @override
+  Nullability declaredNullability;
+
+  FunctionTypeParameterType(
+      {required this.variable, required this.declaredNullability});
+
+  @override
+  TypeParameter get parameter => variable.parameter;
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) {
+    // TODO(cstefantsova): Implement accept.
+    throw UnimplementedError();
+  }
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    // TODO(cstefantsova): Implement accept1.
+    throw UnimplementedError();
+  }
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    // TODO(cstefantsova): Implement equals.
+    throw UnimplementedError();
+  }
+
+  @override
+  // TODO(cstefantsova): Implement hasNonObjectMemberAccess.
+  bool get hasNonObjectMemberAccess => throw UnimplementedError();
+
+  @override
+  // TODO(cstefantsova): Implement nonTypeParameterBound.
+  DartType get nonTypeParameterBound => throw UnimplementedError();
+
+  @override
+  // TODO(cstefantsova): Implement nullability.
+  Nullability get nullability => throw UnimplementedError();
+
+  @override
+  void visitChildren(Visitor v) {
+    // TODO(cstefantsova): Implement visitChildren.
+  }
+
+  @override
+  DartType withDeclaredNullability(Nullability declaredNullability) {
+    // TODO(cstefantsova): Implement withDeclaredNullability.
+    throw UnimplementedError();
+  }
+
+  @override
+  String toString() {
+    return "FunctionTypeParameterType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeTypeParameterName(variable.parameter);
+    printer.writeNullability(declaredNullability);
+  }
+}
+
+/// A type-parameter type referring to [TypeParameter] of a class, mixin, or
+/// enum.
+///
+/// The generic class, mixin, or enum is accessible via [thisVariable].
+class ClassTypeParameterType extends ExperimentalType
+    implements TypeParameterTypeInterface {
+  final ThisVariable thisVariable;
+
+  @override
+  final TypeParameter parameter;
+
+  @override
+  Nullability declaredNullability;
+
+  ClassTypeParameterType(
+      {required this.thisVariable,
+      required this.parameter,
+      required this.declaredNullability});
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    // TODO: implement equals
+    throw UnimplementedError();
+  }
+
+  @override
+  // TODO: implement hasNonObjectMemberAccess
+  bool get hasNonObjectMemberAccess => throw UnimplementedError();
+
+  @override
+  // TODO: implement nonTypeParameterBound
+  DartType get nonTypeParameterBound => throw UnimplementedError();
+
+  @override
+  // TODO: implement nullability
+  Nullability get nullability => throw UnimplementedError();
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    // TODO: implement visitChildren
+  }
+
+  @override
+  DartType withDeclaredNullability(Nullability declaredNullability) {
+    // TODO: implement withDeclaredNullability
+    throw UnimplementedError();
+  }
+
+  @override
+  String toString() {
+    return "ClassTypeParameterType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeTypeParameterName(parameter);
+    printer.writeNullability(declaredNullability);
   }
 }

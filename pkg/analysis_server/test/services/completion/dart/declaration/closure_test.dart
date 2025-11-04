@@ -41,16 +41,14 @@ void g() {
 ''');
     assertResponse('''
 suggestions
-  (a, b) => ,
+  (a, b) => ^,
     kind: invocation
     displayText: (a, b) =>
-    selection: 10
   (a, b) {
-${' ' * 4}
+    ^
   },
     kind: invocation
     displayText: (a, b) {}
-    selection: 13
 ''');
   }
 
@@ -70,11 +68,10 @@ suggestions
     kind: invocation
     displayText: (a, b) =>
   (a, b) {
-${' ' * 6}
+      ^
     }
     kind: invocation
     displayText: (a, b) {}
-    selection: 15
 ''');
   }
 
@@ -88,16 +85,14 @@ void g() {
 ''');
     assertResponse('''
 suggestions
-  (a, b) => ,
+  (a, b) => ^,
     kind: invocation
     displayText: (a, b) =>
-    selection: 10
   (a, b) {
-${' ' * 4}
+    ^
   },
     kind: invocation
     displayText: (a, b) {}
-    selection: 13
 ''');
   }
 
@@ -115,11 +110,10 @@ suggestions
     kind: invocation
     displayText: (a, b) =>
   (a, b) {
-${' ' * 4}
+    ^
   }
     kind: invocation
     displayText: (a, b) {}
-    selection: 13
 ''');
   }
 
@@ -138,11 +132,29 @@ suggestions
     kind: invocation
     displayText: (a, b, [c]) =>
   (List<int> a, Object? b, [dynamic c]) {
-${' ' * 2}
+  ^
 }
     kind: invocation
     displayText: (a, b, [c]) {}
-    selection: 42
+''');
+  }
+
+  Future<void> test_parameter_unnamed() async {
+    await computeSuggestions('''
+void f(void Function(int) x) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  (p0) => ^,
+    kind: invocation
+    displayText: (p0) =>
+  (p0) {
+    ^
+  },
+    kind: invocation
+    displayText: (p0) {}
 ''');
   }
 
@@ -156,16 +168,14 @@ void g() {
 ''');
     assertResponse('''
 suggestions
-  (a, {b, c}) => ,
+  (a, {b, c}) => ^,
     kind: invocation
     displayText: (a, {b, c}) =>
-    selection: 15
   (a, {b, c}) {
-${' ' * 4}
+    ^
   },
     kind: invocation
     displayText: (a, {b, c}) {}
-    selection: 18
 ''');
   }
 
@@ -179,16 +189,14 @@ void g() {
 ''');
     assertResponse('''
 suggestions
-  (a, [b, c]) => ,
+  (a, [b, c]) => ^,
     kind: invocation
     displayText: (a, [b, c]) =>
-    selection: 15
   (a, [b, c]) {
-${' ' * 4}
+    ^
   },
     kind: invocation
     displayText: (a, [b, c]) {}
-    selection: 18
 ''');
   }
 
@@ -202,16 +210,14 @@ void g() {
 ''');
     assertResponse('''
 suggestions
-  (a, {b, required c}) => ,
+  (a, {b, required c}) => ^,
     kind: invocation
     displayText: (a, {b, c}) =>
-    selection: 24
   (a, {b, required c}) {
-${' ' * 4}
+    ^
   },
     kind: invocation
     displayText: (a, {b, c}) {}
-    selection: 27
 ''');
   }
 
@@ -225,11 +231,10 @@ suggestions
     kind: invocation
     displayText: (a, b) =>
   (a, b) {
-${' ' * 2}
+  ^
 }
     kind: invocation
     displayText: (a, b) {}
-    selection: 11
 ''');
   }
 }

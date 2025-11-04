@@ -77,7 +77,7 @@ abstract class FragmentFactory {
     List<TypeParameterFragment>? typeParameters,
   );
 
-  void beginEnumDeclarationHeader(String name);
+  void beginEnumDeclarationHeader();
 
   /// Registers that this builder is preparing for an enum declaration with
   /// the given [name] and [typeParameters] located at [nameOffset].

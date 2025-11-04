@@ -1,3 +1,0 @@
-# The protozero compiler generates empty .pbzero.cc files for compatibility
-# reasons (crbug.com/998165). We can ignore them.
-*.pbzero.cc

@@ -9,6 +9,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_code_values.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 /// An error reporter that knows how to convert a Fasta error into an analyzer
@@ -332,7 +333,18 @@ class FastaErrorReporter {
         // Reported by [ErrorVerifier._checkForBuiltInIdentifierAsName].
         return;
       case PseudoSharedCode.privateOptionalParameter:
-        // Reported by [ErrorVerifier._checkForPrivateOptionalParameter].
+        diagnosticReporter?.atOffset(
+          offset: offset,
+          length: length,
+          diagnosticCode: ParserErrorCode.privateOptionalParameter,
+        );
+        return;
+      case PseudoSharedCode.privateNamedNonFieldParameter:
+        diagnosticReporter?.atOffset(
+          offset: offset,
+          length: length,
+          diagnosticCode: ParserErrorCode.privateNamedNonFieldParameter,
+        );
         return;
       case PseudoSharedCode.nonSyncAbstractMethod:
         // Not reported but followed by a MISSING_FUNCTION_BODY error.
@@ -352,7 +364,7 @@ class FastaErrorReporter {
       case PseudoSharedCode.unexpectedSeparatorInNumber:
       case PseudoSharedCode.unsupportedOperator:
         // This is handled by `translateErrorToken` in
-        // `package:_fe_analyzer_shared/src/scanner/errors.dart`.
+        // `package:analyzer/src/dart/error/syntactic_errors.dart`.
         assert(false, 'Should be handled by translateErrorToken');
         return;
       case PseudoSharedCode.setOrMapLiteralTooManyTypeArguments:
@@ -377,34 +389,31 @@ class FastaErrorReporter {
       case null:
         break;
     }
-    assert(false, "Unreported message $pseudoSharedCode.");
+    assert(false, "Unreported message $pseudoSharedCode (${message.code}).");
   }
 
   /// Report an error based on the given [message] whose range is described by
   /// the given [offset] and [length].
   void reportMessage(Message message, int offset, int length) {
     Code code = message.code;
-    int index = code.index;
-    if (index > 0 && index < fastaAnalyzerErrorCodes.length) {
-      var errorCode = fastaAnalyzerErrorCodes[index];
-      if (errorCode != null) {
-        diagnosticReporter!.reportError(
-          Diagnostic.tmp(
-            source: diagnosticReporter!.source,
-            offset: offset,
-            length: length,
-            diagnosticCode: errorCode,
-            arguments: message.arguments.values.toList(),
-          ),
-        );
-        return;
-      }
+    if (code.sharedCode case var sharedCode?) {
+      var errorCode = sharedAnalyzerCodes[sharedCode.index];
+      diagnosticReporter!.reportError(
+        Diagnostic.tmp(
+          source: diagnosticReporter!.source,
+          offset: offset,
+          length: length,
+          diagnosticCode: errorCode,
+          arguments: message.arguments.values.toList(),
+        ),
+      );
+      return;
     }
     reportByCode(code.pseudoSharedCode, offset, length, message);
   }
 
   void reportScannerError(
-    ScannerErrorCode errorCode,
+    DiagnosticCode errorCode,
     int offset,
     List<Object>? arguments,
   ) {

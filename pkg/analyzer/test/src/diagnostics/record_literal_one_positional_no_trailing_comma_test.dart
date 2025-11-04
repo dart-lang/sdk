@@ -47,7 +47,7 @@ void f((int,) i) {
 ''',
       [
         error(
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingCommaByType,
           23,
           3,
         ),
@@ -94,7 +94,7 @@ void f((int,) r) {
 ''',
       [
         error(
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingCommaByType,
           25,
           3,
         ),
@@ -117,7 +117,7 @@ void f((int,) r) {
 ''',
       [
         error(
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingCommaByType,
           11,
           3,
         ),
@@ -160,7 +160,7 @@ void f((int,) r) {
 ''',
       [
         error(
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingCommaByType,
           22,
           3,
         ),
@@ -193,7 +193,7 @@ void f((int,) r) {
 ''',
       [
         error(
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingCommaByType,
           14,
           3,
         ),

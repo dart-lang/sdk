@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -39,9 +40,17 @@ class VarianceBuilder {
           if (node is ClassTypeAliasImpl) {
             _typeParameters(node.typeParameters);
           } else if (node is ClassDeclarationImpl) {
-            _typeParameters(node.typeParameters);
+            if (useDeclaringConstructorsAst) {
+              _typeParameters(node.namePart.typeParameters);
+            } else {
+              _typeParameters(node.typeParameters);
+            }
           } else if (node is EnumDeclarationImpl) {
-            _typeParameters(node.typeParameters);
+            if (useDeclaringConstructorsAst) {
+              _typeParameters(node.namePart.typeParameters);
+            } else {
+              _typeParameters(node.typeParameters);
+            }
           } else if (node is FunctionTypeAliasImpl) {
             _functionTypeAlias(node);
           } else if (node is GenericTypeAliasImpl) {

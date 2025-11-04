@@ -398,7 +398,7 @@ class Cascade extends InternalExpression {
       printer.newLine();
     }
     printer.write('} => ');
-    printer.write(printer.getVariableName(variable));
+    printer.write(printer.getVariableDeclarationName(variable));
   }
 }
 
@@ -853,7 +853,7 @@ class ReturnStatementImpl extends ReturnStatement {
 }
 
 /// Front end specific implementation of [VariableDeclaration].
-class VariableDeclarationImpl extends VariableDeclaration {
+class VariableDeclarationImpl extends VariableStatement {
   final bool forSyntheticToken;
 
   /// Determine whether the given [VariableDeclarationImpl] had an implicit

@@ -567,11 +567,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       CommandArtifact? artifact) {
     final wasmFilename = artifact!.filename;
     final args = testFile.dartOptions;
-    final isD8 = runtimeConfiguration is D8RuntimeConfiguration;
     return [
-      if (isD8) ...[
-        '--shell-option=--experimental-wasm-imported-strings',
-      ],
       wasmFilename,
       ...testFile.sharedObjects
           .map((obj) => '${_configuration.buildDirectory}/wasm/$obj.wasm'),
@@ -1422,6 +1418,12 @@ abstract mixin class VMKernelCompilerMixin {
         case System.win:
           return Path('$tempDir/out.dll').toNativePath();
       }
+    }
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.machODylib) {
+      return Path('$tempDir/libout.dylib').toNativePath();
+    }
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.elf) {
+      return Path('$tempDir/libout.so').toNativePath();
     }
     return Path('$tempDir/out.aotsnapshot').toNativePath();
   }

@@ -1,0 +1,40 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object /*isMixinDeclaration*/  {
+  static get mixinGetter() → core::String
+    ;
+  static set mixinSetter(core::num value) → void
+    ;
+  static method mixinMethod() → core::String
+    ;
+}
+extension E on self::A {
+  static get mixinGetter = get self::E|mixinGetter;
+  static get extensionGetter = get self::E|extensionGetter;
+  static set mixinSetter = set self::E|mixinSetter;
+  static set extensionSetter = set self::E|extensionSetter;
+  static method mixinMethod = self::E|mixinMethod;
+  static method extensionMethod = self::E|extensionMethod;
+}
+static extension-member get E|mixinGetter() → core::String
+  ;
+static extension-member get E|extensionGetter() → core::String
+  ;
+static extension-member set E|mixinSetter(core::num value) → void
+  ;
+static extension-member set E|extensionSetter(core::bool value) → void
+  ;
+static extension-member method E|mixinMethod() → core::String
+  ;
+static extension-member method E|extensionMethod() → core::String
+  ;
+static method main() → dynamic
+  ;
+static method expectEqual(dynamic a, dynamic b) → dynamic
+  ;
+static method expectThrows(() → dynamic f) → dynamic
+  ;
+static method expectDoesntThrow(() → dynamic f) → dynamic
+  ;

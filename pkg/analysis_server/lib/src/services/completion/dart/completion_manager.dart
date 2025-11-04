@@ -305,13 +305,12 @@ class DartCompletionRequest {
     required String filePath,
     required String fileContent,
     required LibraryFragment libraryFragment,
-    required AstNode enclosingNode,
     required int offset,
     required CompilationUnit unit,
     DartdocDirectiveInfo? dartdocDirectiveInfo,
     CompletionPreference completionPreference = CompletionPreference.insert,
   }) {
-    var target = CompletionTarget.forOffset(enclosingNode, offset);
+    var target = CompletionTarget.forOffset(unit, offset);
 
     var libraryElement = libraryFragment.element;
     var featureComputer = FeatureComputer(
@@ -364,7 +363,6 @@ class DartCompletionRequest {
       filePath: resolvedUnit.path,
       fileContent: resolvedUnit.content,
       libraryFragment: resolvedUnit.libraryFragment,
-      enclosingNode: resolvedUnit.unit,
       offset: offset,
       unit: resolvedUnit.unit,
       dartdocDirectiveInfo: dartdocDirectiveInfo,

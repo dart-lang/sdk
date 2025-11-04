@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ReplaceWithPartOfUriTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_PART_OF_URI;
+  FixKind get kind => DartFixKind.replaceWithPartOfUri;
 
   @override
   String get lintCode => LintNames.use_string_in_part_of_directives;

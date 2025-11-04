@@ -127,9 +127,10 @@ intptr_t IOHandle::Write(const void* buffer, intptr_t num_bytes) {
   return written_bytes;
 }
 
-intptr_t IOHandle::Accept(struct sockaddr* addr, socklen_t* addrlen) {
+intptr_t IOHandle::Accept(RawAddr* addr) {
   MutexLocker ml(&mutex_);
-  const intptr_t socket = NO_RETRY_EXPECTED(accept(fd_, addr, addrlen));
+  const intptr_t socket =
+      NO_RETRY_EXPECTED(accept(fd_, &addr->addr, &addr->size));
   const int err = errno;
   LOG_INFO("IOHandle::Accept: fd = %ld. socket = %ld\n", fd_, socket);
 

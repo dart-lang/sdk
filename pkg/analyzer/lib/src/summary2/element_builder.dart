@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -13,7 +14,6 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -1034,8 +1034,15 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitBlockClassBody(BlockClassBody node) {
+    node.members.accept(this);
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
-    var nameToken = node.name;
+    var nameToken = useDeclaringConstructorsAst
+        ? node.namePart.typeName
+        : node.name;
 
     var fragmentName = _getFragmentName(nameToken);
     var fragment = ClassFragmentImpl(name: fragmentName);
@@ -1059,8 +1066,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
-      node.typeParameters?.accept(this);
-      node.members.accept(this);
+      if (useDeclaringConstructorsAst) {
+        node.namePart.accept(this);
+        node.body.accept(this);
+      } else {
+        node.typeParameters?.accept(this);
+        node.members.accept(this);
+      }
     });
     fragment.typeParameters = holder.typeParameters;
 
@@ -1149,8 +1161,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitEmptyClassBody(EmptyClassBody node) {}
+
+  @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
-    var nameToken = node.name;
+    var nameToken = useDeclaringConstructorsAst
+        ? node.namePart.typeName
+        : node.name;
     var fragmentName = _getFragmentName(nameToken);
 
     var fragment = EnumFragmentImpl(name: fragmentName);
@@ -1168,7 +1185,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       // Build fields for all enum constants.
-      var constants = node.constants;
+      var constants = useDeclaringConstructorsAst
+          ? node.body.constants
+          : node.constants;
       var valuesElements = <SimpleIdentifierImpl>[];
       var valuesNames = <String>{};
       for (var i = 0; i < constants.length; ++i) {
@@ -1304,8 +1323,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         valuesInitializer: initializer,
       );
 
-      node.typeParameters?.accept(this);
-      node.members.accept(this);
+      if (useDeclaringConstructorsAst) {
+        node.namePart.typeParameters?.accept(this);
+        node.body.members.accept(this);
+      } else {
+        node.typeParameters?.accept(this);
+        node.members.accept(this);
+      }
     });
 
     fragment.typeParameters = holder.typeParameters;
@@ -1341,7 +1365,11 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
-      node.members.accept(this);
+      if (useDeclaringConstructorsAst) {
+        node.body.members.accept(this);
+      } else {
+        node.members.accept(this);
+      }
     });
     fragment.typeParameters = holder.typeParameters;
 
@@ -1357,7 +1385,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
-    var nameToken = node.name;
+    var nameToken = useDeclaringConstructorsAst
+        ? node.namePart.typeName
+        : node.name;
     var fragmentName = _getFragmentName(nameToken);
 
     var fragment = ExtensionTypeFragmentImpl(name: fragmentName);
@@ -1371,13 +1401,24 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
-      node.typeParameters?.accept(this);
-      _builtRepresentationDeclaration(
-        extensionNode: node,
-        representation: node.representation,
-        extensionFragment: fragment,
-      );
-      node.members.accept(this);
+      if (useDeclaringConstructorsAst) {
+        node.namePart.typeParameters?.accept(this);
+        _buildExtensionTypePrimaryConstructor(
+          // TODO(scheglov): support for absence of primary constructor
+          primaryConstructor:
+              node.namePart as PrimaryConstructorDeclarationImpl,
+          extensionFragment: fragment,
+        );
+        node.body.accept(this);
+      } else {
+        node.typeParameters?.accept(this);
+        _builtRepresentationDeclaration(
+          extensionNode: node,
+          representation: node.representation,
+          extensionFragment: fragment,
+        );
+        node.members.accept(this);
+      }
     });
 
     fragment.typeParameters = holder.typeParameters;
@@ -1562,11 +1603,16 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var name2 = _getFragmentName(nameToken);
 
-    var fragment = FormalParameterFragmentImpl(
-      name: name2,
-      nameOffset: null,
-      parameterKind: node.kind,
-    );
+    FormalParameterFragmentImpl fragment;
+    if (_linker.getDeclaringFormalInfo(node) case var declaring?) {
+      fragment = declaring.formalFragment;
+    } else {
+      fragment = FormalParameterFragmentImpl(
+        name: name2,
+        nameOffset: null,
+        parameterKind: node.kind,
+      );
+    }
     _linker.elementNodes[fragment] = node;
     _enclosingContext.addParameter(fragment);
 
@@ -1732,7 +1778,11 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
-      node.members.accept(this);
+      if (useDeclaringConstructorsAst) {
+        node.body.members.accept(this);
+      } else {
+        node.members.accept(this);
+      }
     });
     fragment.typeParameters = holder.typeParameters;
 
@@ -1751,6 +1801,11 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNameWithTypeParameters(NameWithTypeParameters node) {
+    node.typeParameters?.accept(this);
+  }
+
+  @override
   void visitPartDirective(covariant PartDirectiveImpl node) {
     var index = _partDirectiveIndex++;
     var partElement = _unitElement.parts[index];
@@ -1760,6 +1815,55 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {}
+
+  @override
+  void visitPrimaryConstructorDeclaration(
+    covariant PrimaryConstructorDeclarationImpl node,
+  ) {
+    node.typeParameters?.accept(this);
+
+    var fragmentName = 'new';
+    if (node.constructorName?.name case var nameToken?) {
+      fragmentName = _getFragmentName(nameToken) ?? 'new';
+    }
+
+    var fragment = ConstructorFragmentImpl(name: fragmentName);
+    fragment.isConst = node.constKeyword != null;
+    fragment.typeName = node.typeName.lexeme;
+    _linker.elementNodes[fragment] = node;
+
+    _addChildFragment(fragment);
+
+    // Handle declaring formal parameters.
+    for (var formalParameter in node.formalParameters.parameters) {
+      if (formalParameter.hasFinalOrVarKeyword) {
+        var name = _getFragmentName(formalParameter.name);
+        var fieldFragment = FieldFragmentImpl(name: name);
+        fieldFragment.isFinal = formalParameter.isFinal;
+        fieldFragment.isSynthetic = true;
+        _linker.elementNodes[fieldFragment] = formalParameter;
+        _addChildFragment(fieldFragment);
+
+        var formalFragment = FieldFormalParameterFragmentImpl(
+          name: name,
+          nameOffset: null,
+          parameterKind: formalParameter.kind,
+        );
+
+        _linker.declaringFormalParameters[formalParameter] =
+            DeclaringFormalParameterInfo(
+              node: formalParameter,
+              fieldFragment: fieldFragment,
+              formalFragment: formalFragment,
+            );
+      }
+    }
+
+    _buildExecutableElementChildren(
+      fragment: fragment,
+      formalParameters: node.formalParameters,
+    );
+  }
 
   @override
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
@@ -1793,11 +1897,16 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var name2 = _getFragmentName(nameToken);
 
-    var fragment = FormalParameterFragmentImpl(
-      name: name2,
-      nameOffset: null,
-      parameterKind: node.kind,
-    );
+    FormalParameterFragmentImpl fragment;
+    if (_linker.getDeclaringFormalInfo(node) case var declaring?) {
+      fragment = declaring.formalFragment;
+    } else {
+      fragment = FormalParameterFragmentImpl(
+        name: name2,
+        nameOffset: null,
+        parameterKind: node.kind,
+      );
+    }
     _linker.elementNodes[fragment] = node;
     _enclosingContext.addParameter(fragment);
 
@@ -1948,12 +2057,60 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     });
   }
 
-  MetadataImpl _buildMetadata(List<AnnotationImpl> nodeList) {
-    var annotations = nodeList.map((ast) {
-      return ElementAnnotationImpl(_unitElement, ast);
-    }).toFixedList();
+  void _buildExtensionTypePrimaryConstructor({
+    required ExtensionTypeFragmentImpl extensionFragment,
+    required PrimaryConstructorDeclarationImpl primaryConstructor,
+  }) {
+    var formalParameter = primaryConstructor.formalParameters.parameters.first;
+    formalParameter as SimpleFormalParameterImpl;
 
-    return MetadataImpl(annotations);
+    var fieldNameToken = formalParameter.name;
+
+    var fieldFragment = FieldFragmentImpl(
+      name: _getFragmentName(fieldNameToken),
+    );
+    fieldFragment.isAugmentation = extensionFragment.isAugmentation;
+    fieldFragment.isFinal = true;
+    fieldFragment.metadata = _buildMetadata(formalParameter.metadata);
+    _linker.elementNodes[fieldFragment] = primaryConstructor;
+
+    _addChildFragment(fieldFragment);
+
+    var formalParameterFragment = FieldFormalParameterFragmentImpl(
+      name: _getFragmentName(fieldNameToken),
+      nameOffset: null,
+      parameterKind: ParameterKind.REQUIRED,
+    )..hasImplicitType = true;
+
+    formalParameter.declaredFragment = formalParameterFragment;
+
+    {
+      var constructorFragment =
+          ConstructorFragmentImpl(
+              name: primaryConstructor.constructorName?.name.lexeme ?? 'new',
+            )
+            ..isAugmentation = extensionFragment.isAugmentation
+            ..isConst = primaryConstructor.constKeyword != null
+            ..formalParameters = [formalParameterFragment];
+      constructorFragment.typeName = extensionFragment.name;
+      _linker.elementNodes[constructorFragment] = primaryConstructor;
+
+      _addChildFragment(constructorFragment);
+    }
+
+    formalParameter.type!.accept(this);
+  }
+
+  MetadataImpl _buildMetadata(List<AnnotationImpl> nodeList) {
+    var length = nodeList.length;
+    if (length == 0) return MetadataImpl(const []);
+    return MetadataImpl(
+      List.generate(
+        length,
+        (index) => ElementAnnotationImpl(_unitElement, nodeList[index]),
+        growable: false,
+      ),
+    );
   }
 
   void _builtRepresentationDeclaration({
@@ -2036,5 +2193,32 @@ class _EnclosingContext {
 
   void addTypeParameter(TypeParameterFragmentImpl fragment) {
     typeParameters.add(fragment);
+  }
+}
+
+extension _FormalParameterImplExtension on FormalParameterImpl {
+  bool get hasFinalOrVarKeyword {
+    switch (this) {
+      case DefaultFormalParameterImpl self:
+        return self.parameter.hasFinalOrVarKeyword;
+      case FunctionTypedFormalParameterImpl self:
+        return self.finalKeyword != null || self.varKeyword != null;
+      case SimpleFormalParameterImpl self:
+        return self.finalKeyword != null || self.varKeyword != null;
+      default:
+        return false;
+    }
+  }
+
+  FormalParameterImpl get selfOrParentDefault {
+    return parent.ifTypeOrNull<DefaultFormalParameterImpl>() ?? this;
+  }
+}
+
+extension _LinkerExtension on Linker {
+  DeclaringFormalParameterInfo? getDeclaringFormalInfo(
+    FormalParameterImpl node,
+  ) {
+    return declaringFormalParameters[node.selfOrParentDefault];
   }
 }

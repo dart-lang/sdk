@@ -201,7 +201,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await monitorDynamicReregistration(registrations, () async {
       var plugin = configureTestPlugin();
       plugin.currentSession = PluginSession(plugin)
-        ..interestingFiles = ['*.dart'];
+        ..interestingFileGlobs = ['*.dart'];
       pluginManager.pluginsChangedController.add(null);
     });
 
@@ -289,7 +289,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       plugin.currentSession = PluginSession(plugin);
       // Ensure they have different file types so the registrations change,
       // otherwise they will be optimised out as not changing.
-      plugin.currentSession!.interestingFiles = ['*.foo$i'];
+      plugin.currentSession!.interestingFileGlobs = ['*.foo$i'];
       pluginManager.pluginsChangedController.add(null);
       await null; // Allow the server to begin processing the change.
     }
@@ -620,7 +620,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       () {
         var plugin = configureTestPlugin();
         plugin.currentSession = PluginSession(plugin)
-          ..interestingFiles = ['*.foo'];
+          ..interestingFileGlobs = ['*.foo'];
         pluginManager.pluginsChangedController.add(null);
       },
     );
@@ -662,7 +662,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     var request = await expectRequest(Method.client_registerCapability, () {
       var plugin = configureTestPlugin();
       plugin.currentSession = PluginSession(plugin)
-        ..interestingFiles = ['*.sql'];
+        ..interestingFileGlobs = ['*.sql'];
       pluginManager.pluginsChangedController.add(null);
     });
 
@@ -999,7 +999,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(response.error, isNotNull);
     expect(
       response.error!.code,
-      equals(ServerErrorCodes.ServerAlreadyInitialized),
+      equals(ServerErrorCodes.serverAlreadyInitialized),
     );
   }
 

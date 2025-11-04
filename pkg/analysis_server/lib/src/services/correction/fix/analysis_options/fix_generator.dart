@@ -132,7 +132,7 @@ class AnalysisOptionsFixGenerator {
     if (builder != null) {
       _addFixFromBuilder(
         builder,
-        AnalysisOptionsFixKind.REMOVE_LINT,
+        AnalysisOptionsFixKind.removeLint,
         args: [coveringNodePath[0].toString()],
       );
     }
@@ -143,7 +143,7 @@ class AnalysisOptionsFixGenerator {
     if (builder != null) {
       _addFixFromBuilder(
         builder,
-        AnalysisOptionsFixKind.REMOVE_SETTING,
+        AnalysisOptionsFixKind.removeSetting,
         args: [coveringNodePath[0].toString()],
       );
     }
@@ -172,7 +172,7 @@ class AnalysisOptionsFixGenerator {
     });
     _addFixFromBuilder(
       builder,
-      AnalysisOptionsFixKind.REPLACE_WITH_STRICT_CASTS,
+      AnalysisOptionsFixKind.replaceWithStrictCasts,
       args: [coveringNodePath[0].toString()],
     );
   }
@@ -200,7 +200,7 @@ class AnalysisOptionsFixGenerator {
     });
     _addFixFromBuilder(
       builder,
-      AnalysisOptionsFixKind.REPLACE_WITH_STRICT_RAW_TYPES,
+      AnalysisOptionsFixKind.replaceWithStrictRawTypes,
       args: [coveringNodePath[0].toString()],
     );
   }

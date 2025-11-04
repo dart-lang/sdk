@@ -22,11 +22,5 @@ abstract class Scope {
 abstract class ScopeLookupResult {
   Element? get getter;
 
-  @Deprecated('Use getter instead')
-  Element? get getter2;
-
   Element? get setter;
-
-  @Deprecated('Use setter instead')
-  Element? get setter2;
 }

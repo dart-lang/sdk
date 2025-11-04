@@ -42,7 +42,7 @@ class C {
 @reflectiveTest
 class RemoveQuestionMarkTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_QUESTION_MARK;
+  FixKind get kind => DartFixKind.removeQuestionMark;
 
   Future<void> test_casePattern() async {
     await resolveTestCode('''
@@ -155,7 +155,7 @@ class B with A {}
 class UnnecessaryNullableForFinalVariableDeclarationsTest
     extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_QUESTION_MARK;
+  FixKind get kind => DartFixKind.removeQuestionMark;
 
   @override
   String get lintCode =>

@@ -58,8 +58,8 @@ class ReplaceEmptyMapPattern extends ResolvedCorrectionProducer {
 
 /// An indication of the style of replacement being offered.
 enum _Style {
-  any(DartFixKind.MATCH_ANY_MAP),
-  empty(DartFixKind.MATCH_EMPTY_MAP);
+  any(DartFixKind.matchAnyMap),
+  empty(DartFixKind.matchEmptyMap);
 
   final FixKind fixKind;
 

@@ -268,6 +268,14 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    var fragment = node.declaredFragment;
+    if (fragment == null) return;
+    computer._addRegionForFragment(node.name, fragment);
+    super.visitCatchClauseParameter(node);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     computer._addRegionForFragment(node.name, node.declaredFragment);
     super.visitClassDeclaration(node);
@@ -412,9 +420,21 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    computer._addRegionForFragment(node.name, node.declaredFragment);
+    super.visitEnumDeclaration(node);
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {
     _addUriDirectiveRegion(node, node.libraryExport?.uri);
     super.visitExportDirective(node);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    computer._addRegionForFragment(node.name, node.declaredFragment);
+    super.visitExtensionDeclaration(node);
   }
 
   @override
@@ -440,6 +460,18 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     computer._addRegionForFragment(node.name, node.declaredFragment);
     super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    computer._addRegionForFragment(node.name, node.declaredFragment);
+    super.visitFunctionTypeAlias(node);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    computer._addRegionForFragment(node.name, node.declaredFragment);
+    super.visitGenericTypeAlias(node);
   }
 
   @override
@@ -486,6 +518,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     computer._addRegionForFragment(node.name, node.declaredFragment);
     super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    computer._addRegionForFragment(node.name, node.declaredFragment);
+    super.visitMixinDeclaration(node);
   }
 
   @override

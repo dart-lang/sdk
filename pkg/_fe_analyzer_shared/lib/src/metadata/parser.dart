@@ -1019,6 +1019,7 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,
@@ -1395,7 +1396,8 @@ Expression parseAnnotation(
   Token atToken,
   Uri fileUri,
   Scope scope,
-  References references, {
+  References references,
+  ExperimentalFeatures experimentalFeatures, {
   required bool isDartLibrary,
   bool delayLookupForTesting = false,
 }) {
@@ -1406,7 +1408,11 @@ Expression parseAnnotation(
     delayLookup: delayLookupForTesting,
     isDartLibrary: isDartLibrary,
   );
-  Parser parser = new Parser(listener, useImplicitCreationExpression: false);
+  Parser parser = new Parser(
+    listener,
+    useImplicitCreationExpression: false,
+    experimentalFeatures: experimentalFeatures,
+  );
   parser.parseMetadata(parser.syntheticPreviousToken(atToken));
   return listener.pop() as Expression;
 }
@@ -1416,7 +1422,8 @@ Expression parseExpression(
   Token initializerToken,
   Uri fileUri,
   Scope scope,
-  References references, {
+  References references,
+  ExperimentalFeatures experimentalFeatures, {
   required bool isDartLibrary,
   bool delayLookupForTesting = false,
 }) {
@@ -1427,7 +1434,11 @@ Expression parseExpression(
     delayLookup: delayLookupForTesting,
     isDartLibrary: isDartLibrary,
   );
-  Parser parser = new Parser(listener, useImplicitCreationExpression: false);
+  Parser parser = new Parser(
+    listener,
+    useImplicitCreationExpression: false,
+    experimentalFeatures: experimentalFeatures,
+  );
   parser.parseExpression(parser.syntheticPreviousToken(initializerToken));
   return listener._popExpression();
 }

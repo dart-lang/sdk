@@ -27,7 +27,7 @@ class AssertStatementTest extends PartialCodeTest {
           'assert (',
           [
             ParserErrorCode.missingIdentifier,
-            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
             ParserErrorCode.expectedToken,
           ],
           "assert (_s_);",
@@ -43,22 +43,22 @@ class AssertStatementTest extends PartialCodeTest {
         ),
         TestDescriptor('condition', 'assert (a', [
           ParserErrorCode.expectedToken,
-          ScannerErrorCode.expectedToken,
+          ParserErrorCode.expectedToken,
         ], "assert (a);"),
         TestDescriptor(
           'comma',
           'assert (a,',
-          [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
+          [ParserErrorCode.expectedToken, ParserErrorCode.expectedToken],
           "assert (a,);",
           failing: allExceptEof,
         ),
         TestDescriptor('message', 'assert (a, b', [
           ParserErrorCode.expectedToken,
-          ScannerErrorCode.expectedToken,
+          ParserErrorCode.expectedToken,
         ], "assert (a, b);"),
         TestDescriptor('trailingComma', 'assert (a, b,', [
           ParserErrorCode.expectedToken,
-          ScannerErrorCode.expectedToken,
+          ParserErrorCode.expectedToken,
         ], "assert (a, b,);"),
         TestDescriptor('rightParen', 'assert (a, b)', [
           ParserErrorCode.expectedToken,

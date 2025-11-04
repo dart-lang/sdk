@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveUnusedCatchStackMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_CATCH_STACK_MULTI;
+  FixKind get kind => DartFixKind.removeUnusedCatchStackMulti;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -46,7 +46,7 @@ void f() {
 @reflectiveTest
 class RemoveUnusedCatchStackTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_CATCH_STACK;
+  FixKind get kind => DartFixKind.removeUnusedCatchStack;
 
   Future<void> test_removeUnusedCatchStack() async {
     await resolveTestCode('''

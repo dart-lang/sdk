@@ -591,8 +591,8 @@ f() {
       [
         ParserErrorCode.expectedToken,
         ParserErrorCode.expectedToken,
-        ScannerErrorCode.expectedToken,
-        ScannerErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
         ScannerErrorCode.unterminatedStringLiteral,
         ScannerErrorCode.unterminatedStringLiteral,
       ],
@@ -667,6 +667,10 @@ f({a, , b}) {}
       '''
 f({a, _s_, b}) {}
 ''',
+      expectedDiagnosticsInValidCode: [
+        // The synthesized identifier has a private name which isn't valid here.
+        ParserErrorCode.privateOptionalParameter,
+      ],
     );
   }
 
@@ -797,7 +801,7 @@ class C {
       '''
 f({a: 0) {}
 ''',
-      [ScannerErrorCode.expectedToken],
+      [ParserErrorCode.expectedToken],
       '''
 f({a: 0}) {}
 ''',
@@ -809,7 +813,7 @@ f({a: 0}) {}
       '''
 f({a: 0]) {}
 ''',
-      [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
+      [ParserErrorCode.expectedToken, ParserErrorCode.expectedToken],
       '''
 f({a: 0}) {}
 ''',
@@ -845,7 +849,7 @@ f(a) {}
       '''
 f([a = 0}) {}
 ''',
-      [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
+      [ParserErrorCode.expectedToken, ParserErrorCode.expectedToken],
       '''
 f([a = 0]) {}
 ''',
@@ -858,7 +862,7 @@ f([a = 0]) {}
       '''
 f([a = 0) {}
 ''',
-      [ScannerErrorCode.expectedToken],
+      [ParserErrorCode.expectedToken],
       '''
 f([a = 0]) {}
 ''',

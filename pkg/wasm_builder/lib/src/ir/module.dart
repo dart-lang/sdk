@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import '../serialize/serialize.dart';
+import '../serialize/printer.dart';
 import 'ir.dart';
 
 /// A logically const wasm module ready to encode. Created with `ModuleBuilder`.
@@ -118,7 +119,8 @@ class Module implements Serializable {
     SourceMapSection(sourceMapUrl).serialize(s);
   }
 
-  static Module deserialize(Deserializer d) {
+  static (Map<int, List<Deserializer>>, Map<String, List<Deserializer>>)
+      _deserializeTopLevel(Deserializer d) {
     final preamble = d.readBytes(8);
     if (preamble[0] != 0x00 ||
         preamble[1] != 0x61 ||
@@ -149,6 +151,12 @@ class Module implements Serializable {
         sections.putIfAbsent(id, () => []).add(deserializer);
       }
     }
+
+    return (sections, customSections);
+  }
+
+  static Module deserialize(Deserializer d) {
+    final (sections, customSections) = _deserializeTopLevel(d);
 
     final Module module = Module.uninitialized();
 
@@ -232,5 +240,83 @@ class Module implements Serializable {
         [],
         sourceMapUrl,
       );
+  }
+
+  /// Deserialize just the `sourceMapUrl` section of a module as a [Uri].
+  static Uri? deserializeSourceMapUrl(Deserializer d) {
+    final (sections, customSections) = _deserializeTopLevel(d);
+    final sourceMapUrl = SourceMapSection.deserialize(
+        customSections[SourceMapSection.customSectionName]?.single);
+    return sourceMapUrl;
+  }
+
+  String printAsWat(
+      {ModulePrintSettings settings = const ModulePrintSettings()}) {
+    final mp = ModulePrinter(this, settings: settings);
+
+    if (settings.hasFilters) {
+      // If we have any filters, we treat those as roots.
+      if (settings.typeFilters.isNotEmpty) {
+        for (final type in types.defined) {
+          final name = mp.typeNamer
+              .nameDefType(type, activateOnReferenceCallback: false);
+          if (settings.printTypeConstituents(name)) {
+            mp.enqueueType(type);
+          }
+        }
+      }
+      if (settings.globalFilters.isNotEmpty) {
+        for (final global in globals.defined) {
+          final name = mp.globalNamer
+              .nameGlobal(global, activateOnReferenceCallback: false);
+          if (settings.printGlobalInitializer(name)) {
+            mp.enqueueGlobal(global);
+          }
+        }
+      }
+      if (settings.functionFilters.isNotEmpty) {
+        for (final function in functions.defined) {
+          final name = mp.functionNamer
+              .nameFunction(function, activateOnReferenceCallback: false);
+          if (settings.printFunctionBody(name)) {
+            mp.enqueueFunction(function);
+          }
+        }
+      }
+      if (settings.tableFilters.isNotEmpty) {
+        for (final table in tables.defined) {
+          final name = mp.tableNamer
+              .nameTable(table, activateOnReferenceCallback: false);
+          if (settings.printFunctionBody(name)) {
+            mp.enqueueTable(table);
+          }
+        }
+      }
+    } else {
+      // Enqueue all types, tags, globals, functions thereby making the
+      // printed module contain most things we care about.
+      for (final type in types.defined) {
+        if (type is! FunctionType) {
+          mp.enqueueType(type);
+        }
+      }
+
+      for (final table in [...tables.imported, ...tables.defined]) {
+        mp.enqueueTable(table);
+      }
+
+      for (final tag in [...tags.imported, ...tags.defined]) {
+        mp.enqueueTag(tag);
+      }
+
+      for (final global in [...globals.imported, ...globals.defined]) {
+        mp.enqueueGlobal(global);
+      }
+
+      for (final function in [...functions.imported, ...functions.defined]) {
+        mp.enqueueFunction(function);
+      }
+    }
+    return mp.print();
   }
 }

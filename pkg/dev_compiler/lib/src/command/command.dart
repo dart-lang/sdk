@@ -19,6 +19,7 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:kernel/text/debug_printer.dart';
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
@@ -549,18 +550,22 @@ Future<CompilerResult> _compile(
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
       outFiles.add(
-        File('$output.map').writeAsString(json.encode(jsCode.sourceMap)),
+        File('$output.map').writeAsString('${json.encode(jsCode.sourceMap)}\n'),
       );
     }
     if (jsCode.metadata != null) {
       outFiles.add(
-        File('$output.metadata').writeAsString(json.encode(jsCode.metadata)),
+        File(
+          '$output.metadata',
+        ).writeAsString('${json.encode(jsCode.metadata)}\n'),
       );
     }
 
     if (jsCode.symbols != null) {
       outFiles.add(
-        File('$output.symbols').writeAsString(json.encode(jsCode.symbols)),
+        File(
+          '$output.symbols',
+        ).writeAsString('${json.encode(jsCode.symbols)}\n'),
       );
     }
   }
@@ -782,7 +787,7 @@ class JSCode {
 /// Converts [moduleTree] to [JSCode], using [format].
 ///
 /// See [placeSourceMap] for a description of [sourceMapBase], [customScheme],
-/// and [multiRootOutputPath] arguments.
+/// [multiRootOutputPath] and [packageConfig] arguments.
 JSCode jsProgramToCode(
   js_ast.Program moduleTree,
   ModuleFormat format, {
@@ -798,6 +803,7 @@ JSCode jsProgramToCode(
   String? multiRootOutputPath,
   Compiler? compiler,
   Component? component,
+  PackageConfig? packageConfig,
 }) {
   var opts = js_ast.JavaScriptPrintingOptions(
     allowKeywordsInProperties: true,
@@ -831,6 +837,7 @@ JSCode jsProgramToCode(
       customScheme,
       multiRootOutputPath: multiRootOutputPath,
       sourceMapBase: sourceMapBase,
+      packageConfig: packageConfig,
     );
     var jsDir = p.dirname(p.fromUri(jsUrl));
     var relative = p.relative(p.fromUri(mapUrl), from: jsDir);
@@ -1098,6 +1105,17 @@ Uri sourcePathToRelativeUri(String source, {bool? windows}) {
   return uri;
 }
 
+/// Pattern to match when a relative path appears to leave the `lib/` directory
+/// of one package to enter the `lib/` directory of another package.
+final _crossPackageLib = RegExp(
+  // Two or more '../'.
+  r'\.\.\/(?:\.\.\/)+'
+  // The package name (captured).
+  r'([^\/]*)'
+  // The `/lib/` directory.
+  r'\/lib\/',
+);
+
 /// Adjusts the source uris in [sourceMap] to be relative uris, and returns
 /// the new map.
 ///
@@ -1113,6 +1131,11 @@ Uri sourcePathToRelativeUri(String source, {bool? windows}) {
 ///   to the [multiRootOutputPath], and assert that [multiRootOutputPath]
 ///   starts with `/packages` (more explanation inline).
 ///
+/// Passing a [packageConfig] will enable the rewriting of original source paths
+/// when the sourcemap contains files from `lib/` directories across multiple
+/// packages. The rewriting assumes that the sources will be served in a package
+/// directory structure without `lib/` directories.
+///
 // TODO(#40251): Remove this logic from dev_compiler itself, push it to the
 // invokers of dev_compiler which have more knowledge about how they want
 // source paths to look.
@@ -1122,12 +1145,14 @@ Map<String, Object?> placeSourceMap(
   String? multiRootScheme, {
   String? multiRootOutputPath,
   String? sourceMapBase,
+  PackageConfig? packageConfig,
 }) {
   var map = Map.of(sourceMap);
   // Convert to a local file path if it's not.
   sourceMapPath = sourcePathToUri(p.absolute(p.fromUri(sourceMapPath))).path;
   var sourceMapDir = p.url.dirname(sourceMapPath);
   sourceMapBase ??= sourceMapDir;
+  var basePackageName = packageConfig?.packageOf(p.toUri(sourceMapBase))?.name;
   var list = (map['sources'] as List).toList();
 
   String makeRelative(String sourcePath) {
@@ -1157,7 +1182,31 @@ Map<String, Object?> placeSourceMap(
     sourcePath = p.url.relative(sourcePath, from: sourceMapBase);
 
     // Convert from relative local path to relative URI.
-    return p.toUri(sourcePath).path;
+    var relativeUriPath = p.toUri(sourcePath).path;
+    // Handle source paths when the original sources come from the `lib/`
+    // directories from different packages.
+    //
+    // This assumes that the original source files and source map will be hosted
+    // in a packages directory structure with all of the `lib/` directories
+    // removed.
+    // For reference:
+    //  - https://github.com/dart-lang/sdk/issues/40251
+    //  - https://github.com/dart-lang/webdev/issues/1692
+    if (basePackageName != null && uri.isScheme('file')) {
+      var sourcePackage = packageConfig?.packageOf(uri);
+      if (sourcePackage != null && basePackageName != sourcePackage.name) {
+        // The source location is part of a different package.
+        var match = _crossPackageLib.matchAsPrefix(relativeUriPath);
+        if (match != null) {
+          var crossPackageName = match.group(1);
+          return relativeUriPath.replaceFirst(
+            '../../$crossPackageName/lib/',
+            '../$crossPackageName/',
+          );
+        }
+      }
+    }
+    return relativeUriPath;
   }
 
   for (var i = 0; i < list.length; i++) {

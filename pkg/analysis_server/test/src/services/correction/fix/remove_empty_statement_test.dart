@@ -51,7 +51,7 @@ void f2() {
 @reflectiveTest
 class RemoveEmptyStatementTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_EMPTY_STATEMENT;
+  FixKind get kind => DartFixKind.removeEmptyStatement;
 
   @override
   String get lintCode => LintNames.empty_statements;

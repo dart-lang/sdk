@@ -848,30 +848,36 @@ library
       reference: <testLibrary>::@extension::Raw
       firstFragment: #F3
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
     extension HasDocComment
       reference: <testLibrary>::@extension::HasDocComment
       firstFragment: #F4
       documentationComment: /// Comment 1.\n/// Comment 2.
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
     extension HasAnnotation
       reference: <testLibrary>::@extension::HasAnnotation
       firstFragment: #F5
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
     extension AnnotationThenComment
       reference: <testLibrary>::@extension::AnnotationThenComment
       firstFragment: #F6
       documentationComment: /// Comment 1.\n/// Comment 2.
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
     extension CommentThenAnnotation
       reference: <testLibrary>::@extension::CommentThenAnnotation
       firstFragment: #F7
       documentationComment: /// Comment 1.\n/// Comment 2.
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
     extension CommentAroundAnnotation
       reference: <testLibrary>::@extension::CommentAroundAnnotation
       firstFragment: #F8
       documentationComment: /// Comment 2.
       extendedType: A
+      onDeclaration: <testLibrary>::@class::A
 ''');
   }
 
@@ -925,27 +931,27 @@ library
             #F13 synthetic withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::withInit
               formalParameters
-                #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F14 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::withInit::@formalParameter::value
             #F15 synthetic withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::C::@setter::withoutInit
               formalParameters
-                #F16 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+                #F16 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
                   element: <testLibrary>::@class::C::@setter::withoutInit::@formalParameter::value
             #F17 synthetic multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::C::@setter::multiWithInit
               formalParameters
-                #F18 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+                #F18 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
                   element: <testLibrary>::@class::C::@setter::multiWithInit::@formalParameter::value
             #F19 synthetic multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
               element: <testLibrary>::@class::C::@setter::multiWithoutInit
               formalParameters
-                #F20 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
+                #F20 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
                   element: <testLibrary>::@class::C::@setter::multiWithoutInit::@formalParameter::value
             #F21 synthetic multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
               element: <testLibrary>::@class::C::@setter::multiWithInit2
               formalParameters
-                #F22 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
+                #F22 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
                   element: <testLibrary>::@class::C::@setter::multiWithInit2::@formalParameter::value
   classes
     hasNonFinalField class C
@@ -1147,52 +1153,52 @@ library
             #F23 synthetic hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::C::@setter::hasDocComment
               formalParameters
-                #F24 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+                #F24 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
                   element: <testLibrary>::@class::C::@setter::hasDocComment::@formalParameter::value
             #F25 synthetic hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@class::C::@setter::hasDocComment2
               formalParameters
-                #F26 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+                #F26 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
                   element: <testLibrary>::@class::C::@setter::hasDocComment2::@formalParameter::value
             #F27 synthetic hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:100)
               element: <testLibrary>::@class::C::@setter::hasAnnotation
               formalParameters
-                #F28 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:100)
+                #F28 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:100)
                   element: <testLibrary>::@class::C::@setter::hasAnnotation::@formalParameter::value
             #F29 synthetic hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:115)
               element: <testLibrary>::@class::C::@setter::hasAnnotation2
               formalParameters
-                #F30 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:115)
+                #F30 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:115)
                   element: <testLibrary>::@class::C::@setter::hasAnnotation2::@formalParameter::value
             #F31 synthetic annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:184)
               element: <testLibrary>::@class::C::@setter::annotationThenComment
               formalParameters
-                #F32 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:184)
+                #F32 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:184)
                   element: <testLibrary>::@class::C::@setter::annotationThenComment::@formalParameter::value
             #F33 synthetic annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:207)
               element: <testLibrary>::@class::C::@setter::annotationThenComment2
               formalParameters
-                #F34 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:207)
+                #F34 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:207)
                   element: <testLibrary>::@class::C::@setter::annotationThenComment2::@formalParameter::value
             #F35 synthetic commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:284)
               element: <testLibrary>::@class::C::@setter::commentThenAnnotation
               formalParameters
-                #F36 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:284)
+                #F36 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:284)
                   element: <testLibrary>::@class::C::@setter::commentThenAnnotation::@formalParameter::value
             #F37 synthetic commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:307)
               element: <testLibrary>::@class::C::@setter::commentThenAnnotation2
               formalParameters
-                #F38 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:307)
+                #F38 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:307)
                   element: <testLibrary>::@class::C::@setter::commentThenAnnotation2::@formalParameter::value
             #F39 synthetic commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:384)
               element: <testLibrary>::@class::C::@setter::commentAroundAnnotation
               formalParameters
-                #F40 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:384)
+                #F40 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:384)
                   element: <testLibrary>::@class::C::@setter::commentAroundAnnotation::@formalParameter::value
             #F41 synthetic commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:409)
               element: <testLibrary>::@class::C::@setter::commentAroundAnnotation2
               formalParameters
-                #F42 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:409)
+                #F42 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:409)
                   element: <testLibrary>::@class::C::@setter::commentAroundAnnotation2::@formalParameter::value
   classes
     hasNonFinalField class C
@@ -1792,15 +1798,15 @@ library
         #F1 main (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::main
           formalParameters
-            #F2 a (nameOffset:10) (firstTokenOffset:6) (offset:10)
+            #F2 optionalNamed a (nameOffset:10) (firstTokenOffset:6) (offset:10)
               element: <testLibrary>::@function::main::@formalParameter::a
               initializer: expression_0
                 IntegerLiteral
                   literal: 1 @14
                   staticType: int
-            #F3 b (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 optionalNamed b (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@function::main::@formalParameter::b
-            #F4 c (nameOffset:28) (firstTokenOffset:24) (offset:28)
+            #F4 optionalNamed c (nameOffset:28) (firstTokenOffset:24) (offset:28)
               element: <testLibrary>::@function::main::@formalParameter::c
               initializer: expression_1
                 IntegerLiteral
@@ -1811,7 +1817,7 @@ library
       reference: <testLibrary>::@function::main
       firstFragment: #F1
       formalParameters
-        #E0 optionalNamed a
+        #E0 optionalNamed hasDefaultValue a
           firstFragment: #F2
           type: int
           constantInitializer
@@ -1820,7 +1826,7 @@ library
         #E1 optionalNamed b
           firstFragment: #F3
           type: int
-        #E2 optionalNamed c
+        #E2 optionalNamed hasDefaultValue c
           firstFragment: #F4
           type: int
           constantInitializer
@@ -1845,7 +1851,7 @@ library
         #F1 main (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::main
           formalParameters
-            #F2 a (nameOffset:19) (firstTokenOffset:5) (offset:19)
+            #F2 requiredPositional a (nameOffset:19) (firstTokenOffset:5) (offset:19)
               element: <testLibrary>::@function::main::@formalParameter::a
               metadata
                 Annotation
@@ -1858,9 +1864,9 @@ library
                     leftParenthesis: ( @12
                     rightParenthesis: ) @13
                   element: dart:core::@class::Object::@constructor::new
-            #F3 b (nameOffset:26) (firstTokenOffset:22) (offset:26)
+            #F3 requiredPositional b (nameOffset:26) (firstTokenOffset:22) (offset:26)
               element: <testLibrary>::@function::main::@formalParameter::b
-            #F4 c (nameOffset:43) (firstTokenOffset:29) (offset:43)
+            #F4 requiredPositional c (nameOffset:43) (firstTokenOffset:29) (offset:43)
               element: <testLibrary>::@function::main::@formalParameter::c
               metadata
                 Annotation
@@ -1954,27 +1960,27 @@ library
         #F11 synthetic withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::withInit
           formalParameters
-            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+            #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::withInit::@formalParameter::value
         #F13 synthetic withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@setter::withoutInit
           formalParameters
-            #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F14 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@setter::withoutInit::@formalParameter::value
         #F15 synthetic multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@setter::multiWithInit
           formalParameters
-            #F16 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+            #F16 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@setter::multiWithInit::@formalParameter::value
         #F17 synthetic multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
           element: <testLibrary>::@setter::multiWithoutInit
           formalParameters
-            #F18 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
+            #F18 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
               element: <testLibrary>::@setter::multiWithoutInit::@formalParameter::value
         #F19 synthetic multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
           element: <testLibrary>::@setter::multiWithInit2
           formalParameters
-            #F20 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
+            #F20 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
               element: <testLibrary>::@setter::multiWithInit2::@formalParameter::value
   topLevelVariables
     hasInitializer withInit
@@ -2255,52 +2261,52 @@ library
         #F21 synthetic hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
           element: <testLibrary>::@setter::hasDocComment
           formalParameters
-            #F22 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F22 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@setter::hasDocComment::@formalParameter::value
         #F23 synthetic hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@setter::hasDocComment2
           formalParameters
-            #F24 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+            #F24 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@setter::hasDocComment2::@formalParameter::value
         #F25 synthetic hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
           element: <testLibrary>::@setter::hasAnnotation
           formalParameters
-            #F26 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
+            #F26 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
               element: <testLibrary>::@setter::hasAnnotation::@formalParameter::value
         #F27 synthetic hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
           element: <testLibrary>::@setter::hasAnnotation2
           formalParameters
-            #F28 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
+            #F28 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
               element: <testLibrary>::@setter::hasAnnotation2::@formalParameter::value
         #F29 synthetic annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:156)
           element: <testLibrary>::@setter::annotationThenComment
           formalParameters
-            #F30 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:156)
+            #F30 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:156)
               element: <testLibrary>::@setter::annotationThenComment::@formalParameter::value
         #F31 synthetic annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:179)
           element: <testLibrary>::@setter::annotationThenComment2
           formalParameters
-            #F32 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:179)
+            #F32 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:179)
               element: <testLibrary>::@setter::annotationThenComment2::@formalParameter::value
         #F33 synthetic commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:248)
           element: <testLibrary>::@setter::commentThenAnnotation
           formalParameters
-            #F34 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:248)
+            #F34 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:248)
               element: <testLibrary>::@setter::commentThenAnnotation::@formalParameter::value
         #F35 synthetic commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:271)
           element: <testLibrary>::@setter::commentThenAnnotation2
           formalParameters
-            #F36 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:271)
+            #F36 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:271)
               element: <testLibrary>::@setter::commentThenAnnotation2::@formalParameter::value
         #F37 synthetic commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:340)
           element: <testLibrary>::@setter::commentAroundAnnotation
           formalParameters
-            #F38 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:340)
+            #F38 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:340)
               element: <testLibrary>::@setter::commentAroundAnnotation::@formalParameter::value
         #F39 synthetic commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:365)
           element: <testLibrary>::@setter::commentAroundAnnotation2
           formalParameters
-            #F40 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:365)
+            #F40 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:365)
               element: <testLibrary>::@setter::commentAroundAnnotation2::@formalParameter::value
   topLevelVariables
     hasDocComment
@@ -2716,7 +2722,7 @@ library
               typeName: A
               typeNameOffset: 12
               formalParameters
-                #F3 a (nameOffset:18) (firstTokenOffset:14) (offset:18)
+                #F3 requiredPositional a (nameOffset:18) (firstTokenOffset:14) (offset:18)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
   classes
     class A
@@ -2762,7 +2768,7 @@ library
             #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
   classes
     hasNonFinalField class A
@@ -2872,7 +2878,7 @@ library
                 #F4 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
                   element: #E0 T
               formalParameters
-                #F5 a (nameOffset:28) (firstTokenOffset:24) (offset:28)
+                #F5 requiredPositional a (nameOffset:28) (firstTokenOffset:24) (offset:28)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::a
   classes
     class A
@@ -2923,7 +2929,7 @@ library
             #F4 foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                #F5 x (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                #F5 requiredPositional x (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::x
   classes
     class A
@@ -3010,6 +3016,7 @@ library
         #E0 T
           firstFragment: #F2
       extendedType: int
+      onDeclaration: dart:core::@class::int
 ''');
   }
 
@@ -3027,13 +3034,13 @@ library
         #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 f (nameOffset:12) (firstTokenOffset:7) (offset:12)
+            #F2 requiredPositional f (nameOffset:12) (firstTokenOffset:7) (offset:12)
               element: <testLibrary>::@function::f::@formalParameter::f
               typeParameters
                 #F3 U (nameOffset:14) (firstTokenOffset:14) (offset:14)
                   element: #E0 U
               parameters
-                #F4 a (nameOffset:21) (firstTokenOffset:17) (offset:21)
+                #F4 requiredPositional a (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: a@21
   functions
     f
@@ -3068,13 +3075,13 @@ library
         #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 f (nameOffset:22) (firstTokenOffset:8) (offset:22)
+            #F2 requiredNamed f (nameOffset:22) (firstTokenOffset:8) (offset:22)
               element: <testLibrary>::@function::f::@formalParameter::f
               typeParameters
                 #F3 U (nameOffset:24) (firstTokenOffset:24) (offset:24)
                   element: #E0 U
               parameters
-                #F4 a (nameOffset:31) (firstTokenOffset:27) (offset:31)
+                #F4 requiredPositional a (nameOffset:31) (firstTokenOffset:27) (offset:31)
                   element: a@31
   functions
     f

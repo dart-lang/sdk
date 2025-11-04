@@ -50,7 +50,7 @@ class C {
 @reflectiveTest
 class RemoveUnnecessaryIgnoreCommentTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_IGNORE_COMMENT;
+  FixKind get kind => DartFixKind.removeUnnecessaryIgnoreComment;
   @override
   String get lintCode => LintNames.unnecessary_ignore;
   Future<void> test_file() async {

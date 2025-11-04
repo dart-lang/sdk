@@ -22,6 +22,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -320,12 +321,26 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         // Only suggest expression keywords if it's possible that the user is
         // completing a positional argument.
         if (positionalArgumentCount < positionalParameterCount) {
-          _forExpression(parent, mustBeNonVoid: true);
           // This assumes that the positional parameters will always be first in
           // the list of parameters.
           var parameter = parameters[positionalArgumentCount];
           var parameterType = parameter.type;
-          if (parameterType is FunctionType) {
+          var isFunctionType = parameterType is FunctionType;
+          _forExpression(
+            parent,
+            mustBeNonVoid: true,
+            canBeNull:
+                parameterType.nullabilitySuffix != NullabilitySuffix.none ||
+                parameterType is DynamicType,
+            // TODO(FMorschel): Determine if the expected type is bool and only
+            // suggest `true` and `false` in that case.
+            canBeBool: !isFunctionType,
+            // TODO(FMorschel): Determine if the parameter type has a constant
+            // constructor.
+            // Function tear-offs and closures cannot be constant.
+            canSuggestConst: !isFunctionType,
+          );
+          if (isFunctionType) {
             Expression? argument;
             if (argumentIndex < arguments.length) {
               argument = arguments[argumentIndex];
@@ -810,7 +825,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           }
         }
         // Suggest invocations.
-        declarationHelper().addConstructorNamesForType(type: type);
+        declarationHelper().addStaticMembersOfElement(
+          type.element,
+          onlyInvocations: true,
+        );
       }
     }
 
@@ -933,6 +951,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var period = node.period;
     if (offset >= period.end && offset <= node.constructorName.end) {
       var contextType = _computeContextType(node);
+      contextType = _resolveFutureOrType(contextType);
       if (contextType is! InterfaceType) return;
       declarationHelper(
         mustBeConstant: node.isConst,
@@ -947,6 +966,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var period = node.period;
     if (offset >= period.end && offset <= node.memberName.end) {
       var contextType = _computeContextType(node);
+      contextType = _resolveFutureOrType(contextType);
       if (contextType == null) return;
 
       var element = contextType.element;
@@ -963,6 +983,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     var contextType = _computeContextType(node);
+    contextType = _resolveFutureOrType(contextType);
     if (contextType == null) return;
 
     var element = contextType.element;
@@ -3549,6 +3570,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     AstNode node, {
     bool mustBeAssignable = false,
     bool mustBeNonVoid = false,
+    bool canBeBool = true,
+    bool canBeNull = true,
+    bool canSuggestConst = true,
   }) {
     var mustBeConstant =
         node is Expression &&
@@ -3558,6 +3582,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       node,
       mustBeConstant: mustBeConstant,
       mustBeStatic: mustBeStatic,
+      canBeBool: canBeBool,
+      canBeNull: canBeNull,
+      canSuggestConst: canSuggestConst,
     );
     declarationHelper(
       mustBeAssignable: mustBeAssignable,
@@ -4062,6 +4089,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return 'ArgumentList_${context}_$argumentKind';
   }
 
+  DartType? _resolveFutureOrType(DartType? contextType) {
+    if (contextType is InterfaceType && contextType.isDartAsyncFutureOr) {
+      return contextType.typeArguments.firstOrNull;
+    }
+    return contextType;
+  }
+
   /// Suggests overrides in the context of the given [element].
   ///
   /// If the budget has been exceeded, then the results are marked as incomplete
@@ -4090,9 +4124,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     required RecordLiteral? recordLiteral,
     required bool isNewField,
   }) {
-    if (contextType != null && (contextType.isDartAsyncFutureOr)) {
-      contextType = (contextType as InterfaceType).typeArguments.firstOrNull;
-    }
+    contextType = _resolveFutureOrType(contextType);
     RecordType recordType;
     if (contextType is RecordType) {
       recordType = contextType;

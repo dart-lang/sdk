@@ -29,6 +29,7 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -96,7 +97,12 @@ class LspAnalysisServer extends AnalysisServer {
 
   StreamSubscription<void>? _pluginChangeSubscription;
 
-  /// The current workspace folders provided by the client. Used as analysis roots.
+  /// The current workspace folders provided by the client, used as analysis
+  /// roots.
+  ///
+  /// If the user has enabled [onlyAnalyzeProjectsWithOpenFiles] this will never
+  /// be populated, but instead the roots will be computed when they are
+  /// refreshed.
   final _workspaceFolders = <String>{};
 
   /// A progress reporter for analysis status.
@@ -134,7 +140,8 @@ class LspAnalysisServer extends AnalysisServer {
     DartSdkManager sdkManager,
     AnalyticsManager analyticsManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
-    InstrumentationService instrumentationService, {
+    InstrumentationService instrumentationService,
+    SessionLogger sessionLogger, {
     http.Client? httpClient,
     ProcessRunner? processRunner,
     DiagnosticServer? diagnosticServer,
@@ -153,6 +160,7 @@ class LspAnalysisServer extends AnalysisServer {
          crashReportingAttachmentsBuilder,
          baseResourceProvider,
          instrumentationService,
+         sessionLogger,
          httpClient,
          processRunner,
          LspNotificationManager(baseResourceProvider.pathContext),
@@ -227,6 +235,14 @@ class LspAnalysisServer extends AnalysisServer {
   LspNotificationManager get notificationManager =>
       super.notificationManager as LspNotificationManager;
 
+  /// Whether the user has enabled the `dart.onlyAnalyzeProjectsWithOpenFiles`
+  /// setting.
+  ///
+  /// This setting tells us to ignore the workspace folders from the client
+  /// and instead compute analysis roots from the open files as files are
+  /// opened/closed.
+  ///
+  /// [_workspaceFolders] will always be empty in this mode.
   bool get onlyAnalyzeProjectsWithOpenFiles =>
       _initializationOptions?.onlyAnalyzeProjectsWithOpenFiles ?? false;
 
@@ -278,7 +294,12 @@ class LspAnalysisServer extends AnalysisServer {
     assert(didAdd);
     if (didAdd) {
       _updateDriversAndPluginsPriorityFiles();
-      await _refreshAnalysisRoots();
+
+      // If there are no explicit analysis roots, they are inferred from open
+      // files and so must be recomputed.
+      if (_workspaceFolders.isEmpty) {
+        await _refreshAnalysisRoots();
+      }
     }
   }
 
@@ -541,7 +562,7 @@ class LspAnalysisServer extends AnalysisServer {
         sendErrorResponse(
           message,
           ResponseError(
-            code: ServerErrorCodes.UnhandledError,
+            code: ServerErrorCodes.unhandledError,
             message: errorMessage,
           ),
         );
@@ -642,20 +663,13 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   /// Updates an overlay on [path] by applying the [edits] to the current
-  /// overlay.
-  ///
-  /// If the result of applying the edits is already known, [newContent] can be
-  /// set to avoid doing that calculation twice.
+  /// overlay with the result [newContent].
   void onOverlayUpdated(
     String path,
     List<plugin.SourceEdit> edits, {
-    String? newContent,
+    required String newContent,
   }) {
     assert(resourceProvider.hasOverlay(path));
-    if (newContent == null) {
-      var oldContent = resourceProvider.getFile(path).readAsStringSync();
-      newContent = plugin.applySequenceOfEdits(oldContent, edits);
-    }
 
     resourceProvider.setOverlay(
       path,
@@ -663,7 +677,11 @@ class LspAnalysisServer extends AnalysisServer {
       modificationStamp: overlayModificationStamp++,
     );
 
-    _afterOverlayChanged(path, plugin.ChangeContentOverlay(edits));
+    _afterOverlayChanged(
+      path,
+      plugin.ChangeContentOverlay(edits),
+      precomputedNewContentForChange: newContent,
+    );
   }
 
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
@@ -734,7 +752,12 @@ class LspAnalysisServer extends AnalysisServer {
     assert(didRemove);
     if (didRemove) {
       _updateDriversAndPluginsPriorityFiles();
-      await _refreshAnalysisRoots();
+
+      // If there are no explicit analysis roots, they are inferred from open
+      // files and so must be recomputed.
+      if (_workspaceFolders.isEmpty) {
+        await _refreshAnalysisRoots();
+      }
     }
   }
 
@@ -767,7 +790,7 @@ class LspAnalysisServer extends AnalysisServer {
 
     // Handle fatal errors where the client/server state is out of sync and we
     // should not continue.
-    if (error.code == ServerErrorCodes.ClientServerInconsistentState) {
+    if (error.code == ServerErrorCodes.clientServerInconsistentState) {
       // Do not process any further messages.
       messageHandler = FailureStateMessageHandler(this);
 
@@ -982,6 +1005,13 @@ class LspAnalysisServer extends AnalysisServer {
     sendServerErrorNotification('Socket error', error, stackTrace);
   }
 
+  /// Updates the active set of workspace folders.
+  ///
+  /// This is provided by the client at startup and may be updated by
+  /// the `didChangeWorkspcaeFolders` request, however if the user has
+  /// enabled [onlyAnalyzeProjectsWithOpenFiles] then this the set of workspace
+  /// folders will always be empty (and computed when refreshing analysis
+  /// roots).
   Future<void> updateWorkspaceFolders(
     List<String> addedPaths,
     List<String> removedPaths,
@@ -1004,26 +1034,33 @@ class LspAnalysisServer extends AnalysisServer {
     await _refreshAnalysisRoots();
   }
 
-  void _afterOverlayChanged(String path, plugin.HasToJson changeForPlugins) {
+  void _afterOverlayChanged(
+    String path,
+    plugin.HasToJson changeForPlugins, {
+    String? precomputedNewContentForChange,
+  }) {
     for (var driver in driverMap.values) {
       driver.changeFile(path);
     }
-    _notifyPluginsOverlayChanged(path, changeForPlugins);
+    _notifyPluginsOverlayChanged(
+      path,
+      changeForPlugins,
+      precomputedNewContentForChange: precomputedNewContentForChange,
+    );
 
     notifyDeclarationsTracker(path);
     notifyFlutterWidgetDescriptions(path);
   }
 
-  /// Computes analysis roots for a set of open files.
+  /// Computes analysis roots for the set of open files.
   ///
   /// This is used when there are no workspace folders open directly.
-  List<String> _getRootsForOpenFiles() {
+  Set<String> _getRootsForOpenFiles() {
     var openFiles = priorityFiles.toList();
     var contextLocator = ContextLocatorImpl(resourceProvider: resourceProvider);
     var roots = contextLocator.locateRoots(includedPaths: openFiles);
 
-    var packages = <String>{};
-    var additionalFiles = <String>[];
+    var results = <String>{};
     for (var file in openFiles) {
       var package = roots
           .where((root) => root.isAnalyzed(file))
@@ -1031,13 +1068,13 @@ class LspAnalysisServer extends AnalysisServer {
           .nonNulls
           .firstOrNull;
       if (package != null && !package.isRoot) {
-        packages.add(package.path);
+        results.add(package.path);
       } else {
-        additionalFiles.add(file);
+        results.add(file);
       }
     }
 
-    return [...packages, ...additionalFiles];
+    return results;
   }
 
   Future<void> _handleNotificationMessage(
@@ -1083,10 +1120,12 @@ class LspAnalysisServer extends AnalysisServer {
 
   void _notifyPluginsOverlayChanged(
     String path,
-    plugin.HasToJson changeForPlugins,
-  ) {
+    plugin.HasToJson changeForPlugins, {
+    String? precomputedNewContentForChange,
+  }) {
     pluginManager.setAnalysisUpdateContentParams(
       plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
+      precomputedNewContentForChange: precomputedNewContentForChange,
     );
   }
 
@@ -1118,25 +1157,22 @@ class LspAnalysisServer extends AnalysisServer {
         .map(pathContext.normalize)
         .toSet();
 
-    var completer = analysisContextRebuildCompleter = Completer();
-    try {
-      var includedPathsList = includedPaths.toList();
-      var excludedPathsList = excludedPaths.toList();
-      notificationManager.setAnalysisRoots(
+    var includedPathsList = includedPaths.toList();
+    var excludedPathsList = excludedPaths.toList();
+    notificationManager.setAnalysisRoots(includedPathsList, excludedPathsList);
+    if (detachableFileSystemManager != null) {
+      detachableFileSystemManager?.setAnalysisRoots(
+        null,
         includedPathsList,
         excludedPathsList,
       );
-      if (detachableFileSystemManager != null) {
-        detachableFileSystemManager?.setAnalysisRoots(
-          null,
-          includedPathsList,
-          excludedPathsList,
-        );
-      } else {
+    } else {
+      var completer = analysisContextRebuildCompleter = Completer();
+      try {
         await contextManager.setRoots(includedPathsList, excludedPathsList);
+      } finally {
+        completer.complete();
       }
-    } finally {
-      completer.complete();
     }
   }
 

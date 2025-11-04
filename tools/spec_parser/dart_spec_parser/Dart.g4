@@ -4,6 +4,14 @@
 
 // CHANGES:
 //
+// v0.57 Update constructor declaration syntax to allow `constructorHead`.
+// Recatogerize 'factory' to be a reserved word and not a built-in identifier.
+//
+// v0.56 Use `typeWithParameters` consistently, simplify primary constructor
+// rule.
+//
+// v0.55 Simplify members.
+//
 // v0.54 Support declaring constructors.
 //
 // v0.53 Support static access shorthands.
@@ -430,22 +438,22 @@ typeWithParameters
 
 classDeclaration
     :    AUGMENT? (classModifiers | mixinClassModifiers)
-         CLASS classNamePart superclass? interfaces? classBody
+         CLASS classNameMaybePrimary superclass? interfaces? classBody
     |    classModifiers MIXIN? CLASS mixinApplicationClass
     ;
 
-primaryConstructorNoConst
-    :    typeIdentifier typeParameters?
-         ('.' identifierOrNew)? declaringParameterList
+primaryConstructor
+    :    CONST? typeWithParameters ('.' identifierOrNew)?
+         declaringParameterList
     ;
 
-classNamePart
-    :    CONST? primaryConstructorNoConst
+classNameMaybePrimary
+    :    primaryConstructor
     |    typeWithParameters
     ;
 
 classBody
-    :    LBRACE (metadata classMemberDeclaration)* RBRACE
+    :    LBRACE (metadata memberDeclaration)* RBRACE
     |    ';'
     ;
 
@@ -471,7 +479,7 @@ interfaces
     :    IMPLEMENTS typeNotVoidNotFunctionList
     ;
 
-classMemberDeclaration
+memberDeclaration
     :    AUGMENT? methodSignature functionBody
     |    AUGMENT? declaration ';'
     ;
@@ -483,26 +491,18 @@ mixinApplicationClass
 mixinDeclaration
     :    AUGMENT? BASE? MIXIN typeWithParameters
          (ON typeNotVoidNotFunctionList)? interfaces?
-         LBRACE (metadata mixinMemberDeclaration)* RBRACE
-    ;
-
-mixinMemberDeclaration
-    :    classMemberDeclaration
+         LBRACE (metadata memberDeclaration)* RBRACE
     ;
 
 extensionTypeDeclaration
-    :    EXTENSION TYPE classNamePart interfaces? extensionTypeBody
+    :    EXTENSION TYPE classNameMaybePrimary interfaces? extensionTypeBody
     |    AUGMENT EXTENSION TYPE typeWithParameters interfaces?
          extensionTypeBody
     ;
 
 extensionTypeBody
-    :    LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
+    :    LBRACE (metadata memberDeclaration)* RBRACE
     |    ';'
-    ;
-
-extensionTypeMemberDeclaration
-    :    classMemberDeclaration
     ;
 
 extensionDeclaration
@@ -511,12 +511,7 @@ extensionDeclaration
     ;
 
 extensionBody
-    :    LBRACE (metadata extensionMemberDeclaration)* RBRACE
-    ;
-
-// TODO: We might want to make this more strict.
-extensionMemberDeclaration
-    :    classMemberDeclaration
+    :    LBRACE (metadata memberDeclaration)* RBRACE
     ;
 
 methodSignature
@@ -579,16 +574,17 @@ setterSignature
     ;
 
 constructorSignature
-    :    constructorName formalParameterList
+    :    constructorName formalParameterList // Old form.
+    |    constructorHead formalParameterList // New form.
     |    declaringConstructorSignature
     ;
 
 declaringConstructorSignature
-    :    THIS ('.' identifierOrNew)? declaringParameterList?
+    :    THIS identifier? declaringParameterList? // New form only.
     ;
 
 declaringConstantConstructorSignature
-    :    CONST THIS ('.' identifierOrNew)? declaringParameterList
+    :    CONST THIS identifier? declaringParameterList // New form only.
     ;
 
 declaringParameterList
@@ -648,12 +644,15 @@ defaultDeclaringNamedParameter
     ;
 
 constructorName
-    :    typeIdentifierOrNew ('.' identifierOrNew)?
+    :    typeIdentifier ('.' identifierOrNew)?
     ;
 
-typeIdentifierOrNew
-    :    typeIdentifier
-    |    NEW
+constructorHead
+    :    NEW identifier?
+    ;
+
+factoryConstructorHead
+    :    FACTORY identifier?
     ;
 
 identifierOrNew
@@ -688,16 +687,20 @@ initializerExpression
     ;
 
 factoryConstructorSignature
-    :    CONST? FACTORY constructorName formalParameterList
+    :    CONST? FACTORY constructorName formalParameterList // Old form.
+    |    CONST? factoryConstructorHead formalParameterList // New form.
     ;
 
 redirectingFactoryConstructorSignature
     :    CONST? FACTORY constructorName formalParameterList '='
-         constructorDesignation
+         constructorDesignation // Old form.
+    |    CONST? factoryConstructorHead formalParameterList '='
+         constructorDesignation // New form.
     ;
 
 constantConstructorSignature
-    :    CONST constructorName formalParameterList
+    :    CONST constructorName formalParameterList // Old form.
+    |    CONST constructorHead formalParameterList // New form.
     |    declaringConstantConstructorSignature
     ;
 
@@ -706,9 +709,9 @@ mixinApplication
     ;
 
 enumType
-    :    AUGMENT? ENUM classNamePart mixins? interfaces? LBRACE
+    :    AUGMENT? ENUM classNameMaybePrimary mixins? interfaces? LBRACE
          enumEntry (',' enumEntry)* ','?
-         (';' (metadata classMemberDeclaration)*)?
+         (';' (metadata memberDeclaration)*)?
          RBRACE
     ;
 
@@ -1842,7 +1845,7 @@ EXPONENT
 
 fragment
 DIGITS
-    : DIGIT ('_'* DIGIT)*
+    :    DIGIT ('_'* DIGIT)*
     ;
 
 fragment

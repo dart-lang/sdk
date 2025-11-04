@@ -4,6 +4,7 @@
 
 import 'dart:mirrors';
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -11,9 +12,9 @@ import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -642,7 +643,7 @@ class OptionsProviderTest with ResourceProviderMixin {
 
   void assertErrorsInList(
     List<Diagnostic> diagnostics,
-    List<ExpectedError> expectedErrors,
+    List<ExpectedDiagnostic> expectedErrors,
   ) {
     GatheringDiagnosticListener diagnosticListener =
         GatheringDiagnosticListener();
@@ -672,19 +673,25 @@ class OptionsProviderTest with ResourceProviderMixin {
     int offset,
     int length, {
     Pattern? correctionContains,
+    // TODO(FMorschel): refactor the uses of this to prefer `messageContains`
     String? text,
     List<Pattern> messageContains = const [],
     List<ExpectedContextMessage> contextMessages =
         const <ExpectedContextMessage>[],
-  }) => ExpectedError(
-    code,
-    offset,
-    length,
-    correctionContains: correctionContains,
-    message: text,
-    messageContains: messageContains,
-    expectedContextMessages: contextMessages,
-  );
+  }) {
+    assert(
+      text == null || messageContains.isEmpty,
+      'Only use one of text or messageContains',
+    );
+    return ExpectedError(
+      code,
+      offset,
+      length,
+      correctionContains: correctionContains,
+      messageContainsAll: text != null ? [text] : messageContains,
+      contextMessages: contextMessages,
+    );
+  }
 
   void setUp() {
     sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
@@ -909,11 +916,13 @@ version: 0.0.1
   }
 }
 
-class TestRule extends LintRule {
+class TestRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'fantastic_test_rule',
     'Fantastic test rule.',
     correctionMessage: 'Try fantastic test rule.',
+    // ignore: deprecated_member_use_from_same_package
+    uniqueNameCheck: 'LintCode.fantastic_test_rule',
   );
 
   TestRule() : super(name: 'fantastic_test_rule', description: '');

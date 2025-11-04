@@ -12,8 +12,14 @@ main() {
   group('debug mode', () {
     late DapTestSession dap;
     setUp(() async {
-      // Temporarily enable verbose logging to help track down
-      // https://github.com/dart-lang/sdk/issues/55685
+      // Temporarily enable verbose logging to debug some flakes on the bots
+      // https://dart-ci.appspot.com/log/pkg-linux-release/unittest-asserts-release-linux-x64/33507/pkg/dds/test/dap/integration/debug_exceptions_test
+      //
+      // 00:04 debug mode parses line/column information from stack traces
+      //
+      //   Expected: '/b/s/w/iteji7yqhs/dart-sdk-dap-testBGWEDP/appTDIQAM/test_file.dart'
+      //     Actual: <null>
+      //      Which: not an <Instance of 'String'>
       dap = await DapTestSession.setUp(forceVerboseLogging: true);
     });
     tearDown(() => dap.tearDown());
@@ -57,7 +63,7 @@ main() {
       // Run the app and expect it to complete (it should not pause).
       final outputEvents = await client.collectOutput(file: testFile);
 
-      // Expect error info printed to stderr.
+      // Expect error info sent to stdout via `print()`.
       final output = outputEvents
           .where((e) => e.category == 'stdout')
           .map((e) => e.output)

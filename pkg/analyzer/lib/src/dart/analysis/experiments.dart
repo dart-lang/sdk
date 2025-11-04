@@ -4,6 +4,12 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart'
+    as shared
+    show ExperimentalFlag;
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    as parser
+    show ExperimentalFeatures;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart';
 import 'package:meta/meta.dart';
@@ -32,6 +38,17 @@ List<bool> getExperimentalFlags_forTesting(ExperimentStatus status) =>
 @visibleForTesting
 Version getSdkLanguageVersion_forTesting(ExperimentStatus status) =>
     status._sdkLanguageVersion;
+
+class ExperimentalFeaturesStatus implements parser.ExperimentalFeatures {
+  final FeatureSet _featureSet;
+
+  ExperimentalFeaturesStatus(this._featureSet);
+
+  @override
+  bool isExperimentEnabled(shared.ExperimentalFlag flag) {
+    return _featureSet.isEnabled(fromSharedExperimentalFlags(flag));
+  }
+}
 
 /// A representation of the set of experiments that are active and whether they
 /// are enabled.

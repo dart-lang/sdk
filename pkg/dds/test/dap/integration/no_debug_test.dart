@@ -76,6 +76,17 @@ main() {
         ]),
       );
     });
+
+    test('sends an exited event with the exit code', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleThrowingProgram);
+
+      final exitEventFuture = client.exitedEvent;
+
+      await client.start(file: testFile);
+      expect((await exitEventFuture).exitCode, isNot(0));
+    });
+
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
 }

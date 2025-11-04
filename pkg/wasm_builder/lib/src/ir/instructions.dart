@@ -4,6 +4,7 @@
 
 import '../../source_map.dart';
 import '../serialize/serialize.dart';
+import '../serialize/printer.dart';
 import 'ir.dart';
 
 class Instructions implements Serializable {
@@ -67,6 +68,85 @@ class Instructions implements Serializable {
     }
 
     s.sourceMapSerializer.addMapping(s.offset, null);
+  }
+
+  void printInitializerTo(IrPrinter p) {
+    for (int k = 0; k < instructions.length; ++k) {
+      final i = instructions[k];
+      if (i is End) return;
+      if (p.preferMultiline) {
+        p.write('(');
+        i.printTo(p);
+        p.writeln(')');
+      } else {
+        p.write(k > 0 ? ' (' : '(');
+        i.printTo(p);
+        p.write(')');
+      }
+    }
+  }
+
+  void printTo(IrPrinter p) {
+    p.beginLabeledBlock(null);
+    for (int k = 0; k < instructions.length; ++k) {
+      final i = instructions[k];
+
+      final isTry = i is BeginNoEffectTry ||
+          i is BeginOneOutputTry ||
+          i is BeginFunctionTry;
+      final isTryTable = i is BeginNoEffectTryTable ||
+          i is BeginOneOutputTryTable ||
+          i is BeginFunctionTryTable;
+      final isIf =
+          i is BeginNoEffectIf || i is BeginOneOutputIf || i is BeginFunctionIf;
+      final isBlock = i is BeginNoEffectBlock ||
+          i is BeginOneOutputBlock ||
+          i is BeginFunctionBlock;
+      final isLoop = i is BeginNoEffectLoop ||
+          i is BeginOneOutputLoop ||
+          i is BeginFunctionLoop;
+      if (isTry || isIf || isBlock || isTryTable || isLoop) {
+        p.beginLabeledBlock(i);
+        i.printTo(p);
+        p.writeln();
+        p.indent();
+        continue;
+      }
+
+      final isCatch = i is CatchLegacy || i is CatchAllLegacy;
+      final isElse = i is Else;
+      if (isCatch || isElse) {
+        p.deindent();
+        i.printTo(p);
+        p.writeln();
+        p.indent();
+        continue;
+      }
+
+      final isEnd = i is End;
+      if (isEnd) {
+        final labelInfo = p.endLabeledBlock();
+        if (labelInfo?.target != null) {
+          // The outermost label belongs to the function and it wasn't indented
+          // so we don't have to deindent either.
+          p.deindent();
+        }
+        final isLast = k == (instructions.length - 1);
+        if (!isLast) {
+          i.printTo(p);
+          if (labelInfo != null && labelInfo.used) {
+            p.write(' ');
+            p.write(labelInfo.name!);
+          }
+          p.writeln();
+        }
+        continue;
+      }
+
+      i.printTo(p);
+      p.writeln();
+    }
+    p.endLabeledBlock();
   }
 
   static Instructions deserializeConst(

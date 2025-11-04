@@ -264,9 +264,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  Future<List<Future<plugin.Response>>> broadcastWatchEvent(
-    WatchEvent watchEvent,
-  ) async {
+  List<Future<plugin.Response>> broadcastWatchEvent(WatchEvent watchEvent) {
     return [];
   }
 
@@ -300,8 +298,9 @@ class TestPluginManager implements PluginManager {
 
   @override
   void setAnalysisUpdateContentParams(
-    plugin.AnalysisUpdateContentParams params,
-  ) {
+    plugin.AnalysisUpdateContentParams params, {
+    String? precomputedNewContentForChange,
+  }) {
     analysisUpdateContentParams = params;
   }
 }

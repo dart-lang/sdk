@@ -24,16 +24,20 @@ import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
-import '../../../generated/test_support.dart';
 import '../analysis/analyzer_state_printer.dart';
 import 'node_text_expectations.dart';
 import 'resolution.dart';
+
+// TODO(FMorschel): Review both PubPackageResolutionTest classes
+export 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart'
+    show ExpectedDiagnostic;
 
 class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
   @override

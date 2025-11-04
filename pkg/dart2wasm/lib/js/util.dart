@@ -14,7 +14,6 @@ enum AnnotationType { import, export, weakExport }
 class CoreTypesUtil {
   final ExtensionIndex extensionIndex;
   final CoreTypes coreTypes;
-  final Procedure allowInteropTarget;
   final Procedure dartifyRawTarget;
   final Procedure functionToJSTarget;
   final Procedure functionToJSCaptureThisTarget;
@@ -168,9 +167,7 @@ class CoreTypesUtil {
   };
 
   CoreTypesUtil(this.coreTypes, this.extensionIndex)
-      : allowInteropTarget = coreTypes.index
-            .getTopLevelProcedure('dart:js_util', 'allowInterop'),
-        dartifyRawTarget = coreTypes.index
+      : dartifyRawTarget = coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', 'dartifyRaw'),
         functionToJSTarget = coreTypes.index.getTopLevelProcedure(
             'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),

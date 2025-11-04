@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -42,7 +43,16 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
     var variables = parent.variables;
 
     var grandParent = parent.parent;
-    if (grandParent is! VariableDeclarationStatement) return;
+    Token grandParentSemicolon;
+    if (grandParent is VariableDeclarationStatement) {
+      grandParentSemicolon = grandParent.semicolon;
+    } else if (grandParent is FieldDeclaration) {
+      grandParentSemicolon = grandParent.semicolon;
+    } else if (grandParent is TopLevelVariableDeclaration) {
+      grandParentSemicolon = grandParent.semicolon;
+    } else {
+      return;
+    }
 
     var previous = _previous(variables, node);
     var next = _next(variables, node);
@@ -152,7 +162,7 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
         }
       } else if (initializer is FunctionExpression &&
           initializer.body is BlockFunctionBody) {
-        builder.addDeletion(range.token(grandParent.semicolon));
+        builder.addDeletion(range.token(grandParentSemicolon));
       }
     });
   }

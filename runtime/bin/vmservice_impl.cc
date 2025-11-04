@@ -134,12 +134,10 @@ bool VmService::Setup(const char* server_ip,
 
   Dart_Handle result;
 
-  // Prepare builtin and its dependent libraries for use to resolve URIs.
-  // Set up various closures, e.g: printing, timers etc.
-  // Set up 'package root' for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(
+  // Prepare all core libraries for execution of Dart code.
+  result = DartUtils::SetupCoreLibraries(
       /*is_service_isolate=*/true, trace_loading,
-      /*flag_profile_microtasks=*/false);
+      /*flag_profile_microtasks=*/false, DartIoSettings{});
   SHUTDOWN_ON_ERROR(result);
 
   Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);

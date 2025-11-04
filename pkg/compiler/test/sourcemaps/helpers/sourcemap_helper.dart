@@ -696,7 +696,7 @@ class CodePointComputer extends TraceListener {
 
   String nodeToString(js.Node node) {
     js.JavaScriptPrintingOptions options = js.JavaScriptPrintingOptions(
-      shouldCompressOutput: true,
+      minify: true,
       preferSemicolonToNewlineInMinifiedOutput: true,
     );
     LenientPrintingContext printingContext = LenientPrintingContext();

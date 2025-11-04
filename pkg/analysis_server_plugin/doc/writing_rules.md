@@ -1,8 +1,8 @@
 # Writing rules
 
 This package gives analyzer plugin authors the ability to write static rules
-for source code. This document describes briefly how to write such a rule, and
-how to register it in an analyzer plugin.
+for Dart source code. This document describes briefly how to write such a rule,
+and how to register it in an analyzer plugin.
 
 ## Declaring an analysis rule
 
@@ -13,8 +13,8 @@ Every analysis rule is declared in two parts: a rule class that extends
 
 The rule class contains some general information about the rule, like its name
 and the diagnostic or diagnostics that the rule reports. It also registers the
-various syntax tree nodes that the visitor class needs to visit. Let's see an
-example:
+various Dart syntax tree nodes that the visitor class needs to visit. Let's see
+an example:
 
 ```dart
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
@@ -174,7 +174,8 @@ See [writing a plugin][] for information about the `Plugin` class.
 
 ## Testing an analysis rule
 
-Writing tests for an analysis rule is very easy, and is documented at [testing_rules][].
+Writing tests for an analysis rule is very easy, and is documented at [testing
+rules][].
 
 [writing a plugin]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_a_plugin.md
 [testing rules]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/testing_rules.md

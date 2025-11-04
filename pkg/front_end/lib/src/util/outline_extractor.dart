@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
@@ -149,15 +151,18 @@ class _Processor {
         .readAsBytes();
     // TODO: Support updating the configuration; also default it to match
     // the package version.
+    ExperimentalFeatures experimentalFeatures =
+        const DefaultExperimentalFeatures();
     final ScannerConfiguration configuration = new ScannerConfiguration(
-      enableTripleShift: true,
+      enableTripleShift: experimentalFeatures.isExperimentEnabled(
+        ExperimentalFlag.tripleShift,
+      ),
     );
     textualOutlineStopwatch.start();
     final String? outlined = textualOutline(
       bytes,
       configuration,
-      enablePatterns: true,
-      enableEnhancedParts: true,
+      experimentalFeatures: experimentalFeatures,
     );
     textualOutlineStopwatch.stop();
     if (outlined == null) throw "Textual outline returned null";
@@ -166,8 +171,8 @@ class _Processor {
     List<Token> languageVersionsSeen = [];
     final ParserAstNode ast = getAST(
       bytes2,
-      enableTripleShift: configuration.enableTripleShift,
       languageVersionsSeen: languageVersionsSeen,
+      experimentalFeatures: experimentalFeatures,
     );
     getAstStopwatch.stop();
 
@@ -795,7 +800,7 @@ class _ParserAstVisitor extends IgnoreSomeForCompatibilityAstVisitor {
   }
 
   @override
-  void visitEnumEnd(EnumEnd node) {
+  void visitEnumDeclarationEnd(EnumDeclarationEnd node) {
     TopLevelDeclarationEnd parent = node.parent! as TopLevelDeclarationEnd;
     IdentifierHandle identifier = parent.getIdentifier();
     List<IdentifierHandle> ids = node.getIdentifiers();
@@ -815,7 +820,7 @@ class _ParserAstVisitor extends IgnoreSomeForCompatibilityAstVisitor {
       "Hello from enum ${identifier.token} with content "
       "${ids.map((e) => e.token).join(", ")}",
     );
-    super.visitEnumEnd(node);
+    super.visitEnumDeclarationEnd(node);
   }
 
   @override

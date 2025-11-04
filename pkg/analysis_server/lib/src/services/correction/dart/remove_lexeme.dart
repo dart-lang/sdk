@@ -32,13 +32,13 @@ class RemoveLexeme extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_lexemeName, kind];
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_LEXEME;
+  FixKind get fixKind => DartFixKind.removeLexeme;
 
   @override
   List<String>? get multiFixArguments => [_lexemeName];
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_LEXEME_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeLexemeMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

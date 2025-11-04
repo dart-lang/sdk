@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../serialize/serialize.dart';
+import '../serialize/printer.dart';
 import 'ir.dart';
 
 /// An exported tag from the current module.
@@ -36,6 +37,8 @@ abstract class Tag with Indexable, Exportable {
   Export buildExport(String name) {
     return TagExport(name, this);
   }
+
+  void printTo(IrPrinter p);
 }
 
 /// A tag defined in the current module.
@@ -47,6 +50,15 @@ class DefinedTag extends Tag implements Serializable {
     // 0 byte for exception.
     s.writeByte(0x00);
     s.write(type);
+  }
+
+  @override
+  void printTo(IrPrinter p) {
+    p.write('(tag ');
+    p.writeTagReference(this);
+    p.write(' ');
+    type.printOneLineSignatureTo(p);
+    p.write(')');
   }
 }
 
@@ -69,6 +81,17 @@ class ImportedTag extends Tag implements Import {
     // 0 byte for exception.
     s.writeByte(0x00);
     s.write(type);
+  }
+
+  @override
+  void printTo(IrPrinter p) {
+    p.write('(tag ');
+    p.writeTagReference(this);
+    p.write(' ');
+    p.writeImport(module, name);
+    p.write(' ');
+    type.printOneLineSignatureTo(p);
+    p.write(')');
   }
 }
 

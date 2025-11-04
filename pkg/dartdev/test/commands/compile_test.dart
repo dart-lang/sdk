@@ -685,7 +685,7 @@ void main() {
 
     expect(result.stderr, isEmpty);
     // This value should be consistent as long as --random_seed is processed.
-    expect(result.stdout, contains('64'));
+    expect(result.stdout, contains('21'));
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
@@ -813,24 +813,6 @@ void main() {}
       true,
       reason: 'File not found: $exeOutFile',
     );
-  }, skip: isRunningOnIA32);
-
-  test('Compile wasm with wrong output filename', () async {
-    final p = project(mainSrc: 'void main() {}');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final result = await p.run(
-      [
-        'compile',
-        'wasm',
-        '-o',
-        'foo',
-        inFile,
-      ],
-    );
-
-    expect(result.stderr,
-        contains('Error: The output file "foo" does not end with ".wasm"'));
-    expect(result.exitCode, genericErrorExitCode);
   }, skip: isRunningOnIA32);
 
   test('Compile wasm with error', () async {

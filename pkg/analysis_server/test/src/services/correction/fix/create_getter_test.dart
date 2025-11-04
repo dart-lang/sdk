@@ -302,6 +302,94 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_ifNull_LHS() async {
+    await resolveTestCode('''
+class A {
+  late int Function() _f;
+
+  void f() {
+    _defaultF ?? _f;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  late int Function() _f;
+
+  int Function()? get _defaultF => null;
+
+  void f() {
+    _defaultF ?? _f;
+  }
+}
+''');
+  }
+
+  Future<void> test_ifNull_LHS_return() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _defaultF ?? _f;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _defaultF ?? _f;
+  }
+
+  int Function()? get _defaultF => null;
+}
+''');
+  }
+
+  Future<void> test_ifNull_RHS() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+
+  void f() {
+    _f ?? _defaultF;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function()? _f;
+
+  int Function()? get _defaultF => null;
+
+  void f() {
+    _f ?? _defaultF;
+  }
+}
+''');
+  }
+
+  Future<void> test_ifNull_RHS_return() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+
+  int Function() get _defaultF => null;
+}
+''');
+  }
+
   Future<void> test_inExtensionGetter_class() async {
     await resolveTestCode('''
 class A {
@@ -620,6 +708,102 @@ class A {
   int? get myUndefinedGetter => null;
 }
 ''', target: part1Path);
+  }
+
+  Future<void> test_privateAlias() async {
+    newFile(join(testPackageLibPath, 'a.dart'), '''
+class A {
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+typedef _F = int Function(int v);
+void f(A a) {
+  _F v = a.test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function(int v) get test => null;
+}
+''', target: join(testPackageLibPath, 'a.dart'));
+  }
+
+  Future<void> test_privateAlias_2() async {
+    newFile(join(testPackageLibPath, 'a.dart'), '''
+typedef _F = int Function(int v);
+class A {
+  set test(_F f) {}
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+class C {
+  void m(A a) {
+    a.test = test;
+  }
+}
+''');
+    await assertHasFix('''
+import 'a.dart';
+class C {
+  int Function(int v) get test => null;
+
+  void m(A a) {
+    a.test = test;
+  }
+}
+''');
+  }
+
+  Future<void> test_privateType_privateAlias() async {
+    newFile(join(testPackageLibPath, 'a.dart'), '''
+class A {
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+class _C {}
+typedef _T = _C;
+void f(A a) {
+  _T v = a.test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+class A {
+  Object get test => null;
+}
+''', target: join(testPackageLibPath, 'a.dart'));
+  }
+
+  Future<void> test_privateType_privateAlias_2() async {
+    newFile(join(testPackageLibPath, 'a.dart'), '''
+class _C {}
+typedef _T = _C;
+class A {
+  set test(_T t) {}
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+class C {
+  void m(A a) {
+    a.test = test;
+  }
+}
+''');
+    await assertHasFix('''
+import 'a.dart';
+class C {
+  Object get test => null;
+
+  void m(A a) {
+    a.test = test;
+  }
+}
+''');
   }
 
   Future<void> test_qualified_instance() async {

@@ -144,8 +144,8 @@ class DeoptContext : public MallocAllocated {
   TypedDataPtr deopt_info() const { return deopt_info_; }
 
   // Fills the destination frame but defers materialization of
-  // objects.
-  void FillDestFrame();
+  // objects. Returns the number of unoptimized frames.
+  intptr_t FillDestFrame();
 
   // Materializes all deferred objects.  Returns the total number of
   // artificial arguments used during deoptimization.

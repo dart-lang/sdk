@@ -64,11 +64,6 @@ import 'package:pub_semver/pub_semver.dart';
 
 part 'element.g.dart';
 
-// TODO(fshcheglov): Remove after third_party/pkg/dartdoc stops using it.
-// https://github.com/dart-lang/dartdoc/issues/4066
-@Deprecated('Use VariableFragmentImpl instead')
-typedef ConstVariableElement = VariableFragmentImpl;
-
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements BindPatternVariableElement {
   BindPatternVariableElementImpl(super.firstFragment);
@@ -206,6 +201,55 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
       }
 
       return null;
+    });
+  }
+
+  @trackedDirectly
+  List<InterfaceElementImpl> get directSubtypesOfSealed {
+    assert(isSealed);
+    globalResultRequirements?.record_classElement_directSubtypesOfSealed(
+      element: this,
+    );
+
+    return globalResultRequirements.alreadyRecorded(() {
+      List<InterfaceElementImpl> subclasses = [];
+      outer:
+      for (var declaration in library.children) {
+        if (declaration is ExtensionTypeElement) {
+          continue;
+        }
+        if (declaration != this && declaration is InterfaceElementImpl) {
+          bool checkType(InterfaceTypeImpl? type) {
+            if (type?.element == this) {
+              subclasses.add(declaration);
+              return true;
+            }
+            return false;
+          }
+
+          if (checkType(declaration.supertype)) {
+            continue outer;
+          }
+          for (var mixin in declaration.mixins) {
+            if (checkType(mixin)) {
+              continue outer;
+            }
+          }
+          for (var interface in declaration.interfaces) {
+            if (checkType(interface)) {
+              continue outer;
+            }
+          }
+          if (declaration is MixinElementImpl) {
+            for (var type in declaration.superclassConstraints) {
+              if (checkType(type)) {
+                continue outer;
+              }
+            }
+          }
+        }
+      }
+      return subclasses;
     });
   }
 
@@ -379,13 +423,6 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     return visitor.visitClassElement(this);
   }
 
-  @Deprecated('Use accept instead')
-  @override
-  @trackedDirectlyOpaque
-  T? accept2<T>(ElementVisitor2<T> visitor) {
-    return accept(visitor);
-  }
-
   @override
   @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -397,48 +434,6 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     for (var fragment in _fragments) {
       fragment.ensureReadMembers();
     }
-  }
-
-  @Deprecated('Use isExtendableOutside instead')
-  @override
-  @trackedIndirectly
-  bool isExtendableIn(LibraryElement library) {
-    return library == this.library || isExtendableOutside;
-  }
-
-  @Deprecated('Use isExtendableOutside instead')
-  @override
-  @trackedIndirectly
-  bool isExtendableIn2(LibraryElement library) {
-    return isExtendableIn(library);
-  }
-
-  @Deprecated('Use isImplementableOutside instead')
-  @override
-  @trackedIndirectly
-  bool isImplementableIn(LibraryElement library) {
-    return library == this.library || isImplementableOutside;
-  }
-
-  @Deprecated('Use isImplementableOutside instead')
-  @override
-  @trackedIndirectly
-  bool isImplementableIn2(LibraryElement library) {
-    return isImplementableIn(library);
-  }
-
-  @Deprecated('Use isMixableOutside instead')
-  @override
-  @trackedIndirectly
-  bool isMixableIn(LibraryElement library) {
-    return (library == this.library) || isMixableOutside;
-  }
-
-  @Deprecated('Use isMixableOutside instead')
-  @override
-  @trackedIndirectly
-  bool isMixableIn2(LibraryElement library) {
-    return isMixableIn(library);
   }
 
   @trackedInternal
@@ -688,11 +683,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   InterfaceElementImpl get enclosingElement =>
       _firstFragment.enclosingFragment.element;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  @trackedIndirectly
-  InterfaceElementImpl get enclosingElement2 => enclosingElement;
-
   @override
   @trackedDirectlyOpaque
   ConstructorFragmentImpl get firstFragment {
@@ -738,11 +728,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @trackedInternal
   LibraryFragmentImpl get libraryFragment => _firstFragment.libraryFragment;
 
-  @Deprecated('Use name instead')
-  @override
-  @trackedIndirectly
-  String? get name3 => name;
-
   @override
   @trackedIncludedInId
   Element get nonSynthetic {
@@ -762,13 +747,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   set redirectedConstructor(InternalConstructorElement? value) {
     _redirectedConstructor = value;
-  }
-
-  @Deprecated('Use redirectedConstructor instead')
-  @override
-  @trackedIndirectly
-  InternalConstructorElement? get redirectedConstructor2 {
-    return redirectedConstructor;
   }
 
   @override
@@ -793,13 +771,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
     _superConstructor = superConstructor;
   }
 
-  @Deprecated('Use superConstructor instead')
-  @override
-  @trackedIndirectly
-  InternalConstructorElement? get superConstructor2 {
-    return superConstructor;
-  }
-
   @override
   List<ConstructorFragmentImpl> get _fragments {
     return [
@@ -818,11 +789,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
     globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitConstructorElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  @trackedIndirectly
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   @trackedIndirectly
@@ -959,10 +925,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
     return !isFactory;
   }
 
-  @Deprecated('Use name instead')
-  @override
-  String get name2 => name;
-
   @override
   int get offset =>
       nameOffset ??
@@ -1079,10 +1041,6 @@ class DirectiveUriWithLibraryImpl extends DirectiveUriWithSourceImpl
     required super.relativeUri,
     required super.source,
   });
-
-  @override
-  @Deprecated('Use library instead')
-  LibraryElement get library2 => library;
 }
 
 class DirectiveUriWithRelativeUriImpl
@@ -1133,10 +1091,7 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
-class DynamicElementImpl extends ElementImpl
-    implements
-        TypeDefiningElement // ignore:deprecated_member_use_from_same_package
-        {
+class DynamicElementImpl extends ElementImpl {
   /// The unique instance of this class.
   static final DynamicElementImpl instance = DynamicElementImpl._();
 
@@ -1147,10 +1102,6 @@ class DynamicElementImpl extends ElementImpl
 
   @override
   Element? get enclosingElement => null;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement2 => enclosingElement;
 
   @override
   DynamicFragmentImpl get firstFragment => _firstFragment;
@@ -1176,35 +1127,19 @@ class DynamicElementImpl extends ElementImpl
   @override
   Null get library => null;
 
-  @Deprecated('Use library instead')
-  @override
-  Null get library2 => library;
-
   @override
   MetadataImpl get metadata {
     return MetadataImpl(const []);
   }
 
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   @override
   String get name => 'dynamic';
-
-  @Deprecated('Use name instead')
-  @override
-  String get name3 => name;
 
   @override
   DynamicFragmentImpl get _firstFragment => DynamicFragmentImpl.instance;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) => null;
-
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -1213,10 +1148,7 @@ class DynamicElementImpl extends ElementImpl
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
-class DynamicFragmentImpl extends FragmentImpl
-    implements
-        TypeDefiningFragment // ignore:deprecated_member_use_from_same_package
-        {
+class DynamicFragmentImpl extends FragmentImpl {
   /// The unique instance of this class.
   static final DynamicFragmentImpl instance = DynamicFragmentImpl._();
 
@@ -1231,10 +1163,6 @@ class DynamicFragmentImpl extends FragmentImpl
   @override
   List<Fragment> get children => const [];
 
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => const [];
-
   @override
   DynamicElementImpl get element => DynamicElementImpl.instance;
 
@@ -1244,16 +1172,8 @@ class DynamicFragmentImpl extends FragmentImpl
   @override
   Null get libraryFragment => null;
 
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   @override
   String get name => 'dynamic';
-
-  @Deprecated('Use name instead')
-  @override
-  String get name2 => name;
 
   @override
   Null get nameOffset => null;
@@ -1482,10 +1402,6 @@ class ElementAnnotationImpl
   Element? get element => annotationAst.element;
 
   @override
-  @Deprecated('Use element instead')
-  Element? get element2 => element;
-
-  @override
   bool get isAlwaysThrows => _isPackageMetaGetter(_alwaysThrowsVariableName);
 
   @override
@@ -1712,13 +1628,6 @@ sealed class ElementDirectiveImpl implements ElementDirective {
 
   ElementDirectiveImpl({required this.uri});
 
-  @override
-  Null get documentationComment => null;
-
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   /// Append a textual representation to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
 
@@ -1758,11 +1667,6 @@ abstract class ElementImpl implements Element {
   @override
   @trackedIndirectly
   List<Element> get children => const [];
-
-  @Deprecated('Use children instead')
-  @override
-  @trackedIndirectly
-  List<Element> get children2 => children;
 
   @override
   @trackedIndirectly
@@ -1839,11 +1743,6 @@ abstract class ElementImpl implements Element {
   @trackedIncludedInId
   Element get nonSynthetic => this;
 
-  @Deprecated('Use nonSynthetic instead')
-  @override
-  @trackedIndirectly
-  Element get nonSynthetic2 => nonSynthetic;
-
   /// The reference of this element, used during reading summaries.
   ///
   /// Can be `null` if this element cannot be referenced from outside,
@@ -1905,32 +1804,12 @@ abstract class ElementImpl implements Element {
     return builder.toString();
   }
 
-  @Deprecated('Use displayString instead')
-  @override
-  @trackedIndirectly
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) {
-    return displayString(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
-  }
-
   @override
   @trackedIndirectly
   String getExtendedDisplayName({String? shortName}) {
     shortName ??= displayName;
     var source = _firstFragment.libraryFragment?.source;
     return "$shortName (${source?.fullName})";
-  }
-
-  @Deprecated('Use getExtendedDisplayName instead')
-  @override
-  @trackedIndirectly
-  String getExtendedDisplayName2({String? shortName}) {
-    return getExtendedDisplayName(shortName: shortName);
   }
 
   /// Whether this element has the [modifier].
@@ -1945,13 +1824,6 @@ abstract class ElementImpl implements Element {
       return library == this.library;
     }
     return true;
-  }
-
-  @Deprecated('Use isAccessibleIn instead')
-  @override
-  @trackedIndirectly
-  bool isAccessibleIn2(LibraryElement library) {
-    return isAccessibleIn(library);
   }
 
   @override
@@ -1981,13 +1853,6 @@ abstract class ElementImpl implements Element {
     return element;
   }
 
-  @Deprecated('Use thisOrAncestorMatching instead')
-  @override
-  @trackedIndirectly
-  Element? thisOrAncestorMatching2(bool Function(Element p1) predicate) {
-    return thisOrAncestorMatching(predicate);
-  }
-
   @override
   @trackedIncludedInId
   E? thisOrAncestorOfType<E extends Element>() {
@@ -1998,13 +1863,6 @@ abstract class ElementImpl implements Element {
       element = ancestor;
     }
     return element;
-  }
-
-  @Deprecated('Use thisOrAncestorOfType instead')
-  @override
-  @trackedIndirectly
-  E? thisOrAncestorOfType2<E extends Element>() {
-    return thisOrAncestorOfType();
   }
 
   @override
@@ -2022,15 +1880,6 @@ abstract class ElementImpl implements Element {
     for (var child in children) {
       child.accept(visitor);
     }
-  }
-
-  /// Use the given [visitor] to visit all of the children of this element.
-  /// There is no guarantee of the order in which the children will be visited.
-  @Deprecated('Use visitChildren instead')
-  @override
-  @trackedIndirectly
-  void visitChildren2<T>(ElementVisitor2<T> visitor) {
-    visitChildren(visitor);
   }
 
   @trackedInternal
@@ -2057,13 +1906,6 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   @trackedIndirectly
   List<FieldElementImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
-  }
-
-  @Deprecated('Use constants instead')
-  @override
-  @trackedIndirectly
-  List<FieldElementImpl> get constants2 {
-    return constants;
   }
 
   @override
@@ -2110,11 +1952,6 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
     return visitor.visitEnumElement(this);
   }
 
-  @Deprecated('Use accept instead')
-  @override
-  @trackedIndirectly
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
-
   @override
   @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -2150,12 +1987,6 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
     return constants.map((e) => e.asElement2).toList();
   }
 
-  @Deprecated('Use constants instead')
-  @override
-  List<FieldElement> get constants2 {
-    return constants;
-  }
-
   @override
   EnumFragmentImpl? get nextFragment => super.nextFragment as EnumFragmentImpl?;
 
@@ -2187,11 +2018,6 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     ...typeParameters,
     ...formalParameters,
   ];
-
-  @Deprecated('Use children instead')
-  @override
-  @trackedIndirectly
-  List<Element> get children2 => children;
 
   @override
   ExecutableFragmentImpl get firstFragment;
@@ -2298,11 +2124,6 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     }
   }
 
-  @Deprecated('Use library instead')
-  @override
-  @trackedIndirectly
-  LibraryElement get library2 => library;
-
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
@@ -2312,11 +2133,6 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     }
     return MetadataImpl(annotations);
   }
-
-  @Deprecated('Use metadata instead')
-  @override
-  @trackedIndirectly
-  MetadataImpl get metadata2 => metadata;
 
   @override
   @trackedIncludedInId
@@ -2361,16 +2177,11 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @override
   @trackedIncludedInId
   List<TypeParameterElementImpl> get typeParameters {
-    return _firstFragment.typeParameters
-        .map((fragment) => fragment.element)
-        .toList();
-  }
-
-  @Deprecated('Use typeParameters instead')
-  @override
-  @trackedIndirectly
-  List<TypeParameterElementImpl> get typeParameters2 {
-    return typeParameters;
+    var typeParameters = _firstFragment.typeParameters;
+    return List.generate(
+      typeParameters.length,
+      (index) => typeParameters[index].element,
+    );
   }
 
   @override
@@ -2401,10 +2212,6 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
 
   @override
   List<Fragment> get children => [...typeParameters, ...formalParameters];
-
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
 
   @override
   ExecutableElementImpl get element;
@@ -2445,10 +2252,6 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
     return super.metadata;
   }
 
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   @override
   int get offset => nameOffset ?? firstTokenOffset!;
 
@@ -2464,10 +2267,6 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
     }
     _typeParameters = typeParameters;
   }
-
-  @Deprecated('Use typeParameters instead')
-  @override
-  List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
 
   void addTypeParameter(TypeParameterFragmentImpl fragment) {
     _typeParameters.add(fragment);
@@ -2528,6 +2327,66 @@ class ExtensionElementImpl extends InstanceElementImpl
   @trackedIncludedInId
   ElementKind get kind => ElementKind.EXTENSION;
 
+  /// Computes the on-declaration of the extension.
+  ///
+  /// The on-declaration is computed a described in
+  /// https://github.com/dart-lang/language/blob/main/working/0723-static-extensions/feature-specification.md#syntax
+  /// In case the extension declaration doesn't have an on-declaration, `null`
+  /// is returned.
+  @trackedIndirectly
+  InterfaceElementImpl? get onDeclaration {
+    if (extendedType.nullabilitySuffix != NullabilitySuffix.question) {
+      switch (extendedType.element) {
+        // In an extension declaration of the form extension E on C {...} where C
+        // is an identifier (or an identifier with an import prefix) that denotes
+        // a class, mixin, enum, or extension type declaration, we say that the
+        // on-declaration of the extension is C.
+
+        // If C denotes a generic class then E is treated as extension E on C<T1
+        // ..  Tk> {...} where T1 .. Tk are obtained by instantiation to bound.
+
+        // In an extension of the form extension E on C<T1 .. Tk> {...} where C is
+        // an identifier or prefixed identifier that denotes a class, mixin, enum,
+        // or extension type declaration, we say that the on-declaration of E is
+        // C.
+
+        // In an extension of the form extension E on F<T1 .. Tk> {...} where F is
+        // a type alias whose transitive alias expansion denotes a class, mixin,
+        // enum, or extension type C, we say that the on-declaration of E is C,
+        // and the declaration is treated as if F<T1 .. Tk> were replaced by its
+        // transitive alias expansion.
+
+        // Implementation note: type aliases in [extendedType] are already
+        // unaliased at this point, so there's no need to consider them
+        // separately.
+
+        // For the purpose of identifying the on-declaration of a given extension,
+        // the types void, dynamic, and Never are not considered to be classes,
+        // and neither are record types or function types.
+
+        // Also note that none of the following types are classes:
+        //   * A type of the form T? or FutureOr<T>, for any type T.
+        //   * A type variable.
+        //   * An intersection type.
+        case ClassElementImpl() when !extendedType.isDartAsyncFutureOr:
+        case MixinElementImpl():
+        case EnumElementImpl():
+        case ExtensionTypeElementImpl():
+          return extendedType.element as InterfaceElementImpl;
+        default:
+          // In all other cases, an extension declaration does not have an
+          // on-declaration.
+          return null;
+      }
+    } else {
+      // Also note that none of the following types are classes:
+      //   * A type of the form T? or FutureOr<T>, for any type T.
+      //   * A type variable.
+      //   * An intersection type.
+      return null;
+    }
+  }
+
   @override
   @trackedIndirectly
   DartType get thisType => extendedType;
@@ -2538,11 +2397,6 @@ class ExtensionElementImpl extends InstanceElementImpl
     globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitExtensionElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  @trackedIndirectly
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   @trackedIndirectly
@@ -2582,10 +2436,6 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
     ...setters,
     ...typeParameters,
   ];
-
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
 
   @override
   String get displayName => name ?? '';
@@ -2672,13 +2522,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
     return constructors.first;
   }
 
-  @Deprecated('Use primaryConstructor instead')
-  @override
-  @trackedIndirectly
-  ConstructorElement get primaryConstructor2 {
-    return primaryConstructor;
-  }
-
   @trackedIndirectly
   FieldFormalParameterElementImpl get primaryFormalParameter {
     return primaryConstructor.formalParameters.first
@@ -2689,13 +2532,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   @trackedIndirectly
   FieldElementImpl get representation {
     return fields.first;
-  }
-
-  @Deprecated('Use representation instead')
-  @override
-  @trackedIndirectly
-  FieldElementImpl get representation2 {
-    return representation;
   }
 
   @override
@@ -2726,11 +2562,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
     globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitExtensionTypeElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  @trackedIndirectly
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   @trackedIndirectly
@@ -2767,26 +2598,6 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
   ExtensionTypeFragmentImpl? get previousFragment =>
       super.previousFragment as ExtensionTypeFragmentImpl?;
 
-  @Deprecated('Use ExtensionTypeElement.primaryConstructor instead')
-  @override
-  ConstructorFragmentImpl get primaryConstructor {
-    return constructors.first;
-  }
-
-  @Deprecated('Use primaryConstructor instead')
-  @override
-  ConstructorFragmentImpl get primaryConstructor2 => primaryConstructor;
-
-  @Deprecated('Use ExtensionTypeElement.representation instead')
-  @override
-  FieldFragmentImpl get representation {
-    return fields.first;
-  }
-
-  @Deprecated('Use representation instead')
-  @override
-  FieldFragmentImpl get representation2 => representation;
-
   void addFragment(ExtensionTypeFragmentImpl fragment) {
     fragment.element = element;
     fragment.previousFragment = this;
@@ -2821,11 +2632,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
   InstanceElementImpl get enclosingElement {
     return _firstFragment.enclosingFragment.element;
   }
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  @trackedIndirectly
-  InstanceElement get enclosingElement2 => enclosingElement;
 
   @override
   @trackedDirectlyOpaque
@@ -2946,11 +2752,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
     }
   }
 
-  @Deprecated('Use library instead')
-  @override
-  @trackedIndirectly
-  LibraryElementImpl get library2 => library;
-
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
@@ -2961,19 +2762,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
     return MetadataImpl(annotations);
   }
 
-  @Deprecated('Use metadata instead')
-  @override
-  @trackedIndirectly
-  MetadataImpl get metadata2 => metadata;
-
   @override
   @trackedIncludedInId
   String? get name => _firstFragment.name;
-
-  @Deprecated('Use name instead')
-  @override
-  @trackedIndirectly
-  String? get name3 => name;
 
   @override
   @trackedDirectly
@@ -3005,11 +2796,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
     return visitor.visitFieldElement(this);
   }
 
-  @Deprecated('Use accept instead')
-  @override
-  @trackedIndirectly
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
-
   @trackedInternal
   void linkFragments(List<FieldFragmentImpl> fragments) {
     assert(identical(fragments[0], _firstFragment));
@@ -3026,10 +2812,6 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
   FieldElementImpl? field;
 
   FieldFormalParameterElementImpl(super.firstFragment);
-
-  @Deprecated('Use field instead')
-  @override
-  FieldElementImpl? get field2 => field;
 
   @override
   FieldFormalParameterFragmentImpl get firstFragment => _firstFragment;
@@ -3202,10 +2984,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
     return _firstFragment.enclosingFragment?.element;
   }
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement2 => enclosingElement;
-
   @override
   FormalParameterFragmentImpl get firstFragment => _firstFragment;
 
@@ -3292,10 +3070,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   ElementKind get kind => ElementKind.PARAMETER;
 
-  @Deprecated('Use library instead')
-  @override
-  LibraryElementImpl? get library2 => library;
-
   @override
   MetadataImpl get metadata {
     var annotations = <ElementAnnotationImpl>[];
@@ -3305,19 +3079,9 @@ class FormalParameterElementImpl extends PromotableElementImpl
     return MetadataImpl(annotations);
   }
 
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   @override
   String? get name {
     return _firstFragment.name;
-  }
-
-  @Deprecated('Use name instead')
-  @override
-  String? get name3 {
-    return name;
   }
 
   @override
@@ -3330,15 +3094,13 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  List<TypeParameterElementImpl> get typeParameters => _firstFragment
-      .typeParameters
-      .map((fragment) => fragment.element)
-      .toList();
-
-  @Deprecated('Use typeParameters instead')
-  @override
-  // TODO(augmentations): Implement the merge of formal parameters.
-  List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
+  List<TypeParameterElementImpl> get typeParameters {
+    var typeParameters = _firstFragment.typeParameters;
+    return List.generate(
+      typeParameters.length,
+      (index) => typeParameters[index].element,
+    );
+  }
 
   @override
   TypeImpl get typeShared => type;
@@ -3359,10 +3121,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
   T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitFormalParameterElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -3445,10 +3203,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
 
   @override
   List<Fragment> get children => const [];
-
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
 
   @override
   FormalParameterElementImpl get element {
@@ -3544,14 +3298,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   LibraryFragmentImpl? get libraryFragment {
     return enclosingFragment?.libraryFragment;
   }
-
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
-  @Deprecated('Use name instead')
-  @override
-  String? get name2 => name;
 
   /// The type parameters defined by this parameter.
   ///
@@ -3716,10 +3462,6 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
     return name;
   }
 
-  @Deprecated('Use name instead')
-  @override
-  String? get name2 => name;
-
   /// The offset after the last character of the name, or `null` if there is
   /// no declaration in code for this fragment, or the name is absent.
   int? get nameEnd {
@@ -3730,10 +3472,6 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
     }
     return null;
   }
-
-  @override
-  @Deprecated('Use nameOffset instead')
-  int? get nameOffset2 => nameOffset;
 
   /// The version where this SDK API was added.
   ///
@@ -3874,10 +3612,6 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   @override
   Element? get enclosingElement => _firstFragment.enclosingFragment?.element;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement2 => enclosingElement;
-
   @override
   GenericFunctionTypeFragmentImpl get firstFragment => _firstFragment;
 
@@ -3908,23 +3642,11 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   @override
   ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
 
-  @Deprecated('Use library instead')
-  @override
-  LibraryElementImpl get library2 => library;
-
   @override
   MetadataImpl get metadata => _firstFragment.metadata;
 
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   @override
   String? get name => _firstFragment.name;
-
-  @Deprecated('Use name instead')
-  @override
-  String? get name3 => name;
 
   @override
   TypeImpl get returnType => _firstFragment.returnType;
@@ -3937,18 +3659,10 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
       .map((fragment) => fragment.element)
       .toList();
 
-  @Deprecated('Use typeParameters2 instead')
-  @override
-  List<TypeParameterElement> get typeParameters2 => typeParameters;
-
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitGenericFunctionTypeElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -3986,10 +3700,6 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
   @override
   List<Fragment> get children => [...typeParameters, ...formalParameters];
 
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
-
   @override
   GenericFunctionTypeElementImpl get element => _element2;
 
@@ -4010,16 +3720,8 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
   @override
   LibraryFragmentImpl get libraryFragment => enclosingUnit;
 
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   @override
   String? get name => null;
-
-  @Deprecated('Use name instead')
-  @override
-  String? get name2 => name;
 
   @override
   int? get nameOffset => null;
@@ -4077,10 +3779,6 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
     }
     _typeParameters = typeParameters;
   }
-
-  @Deprecated('Use typeParameters instead')
-  @override
-  List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
 }
 
 @elementClass
@@ -4110,13 +3808,6 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   @trackedIndirectly
   SetterElement? get correspondingSetter {
     return variable.setter;
-  }
-
-  @Deprecated('Use correspondingSetter instead')
-  @override
-  @trackedIndirectly
-  SetterElement? get correspondingSetter2 {
-    return correspondingSetter;
   }
 
   @override
@@ -4181,11 +3872,6 @@ class GetterElementImpl extends PropertyAccessorElementImpl
     globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitGetterElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  @trackedIndirectly
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   @trackedIndirectly
@@ -4274,13 +3960,6 @@ abstract class InstanceElementImpl extends ElementImpl
     return [...fields, ...getters, ...setters, ...methods];
   }
 
-  @Deprecated('Use children instead')
-  @override
-  @trackedIndirectly
-  List<Element> get children2 {
-    return children;
-  }
-
   @override
   @trackedIncludedInId
   String get displayName {
@@ -4298,11 +3977,6 @@ abstract class InstanceElementImpl extends ElementImpl
   @trackedIncludedInId
   LibraryElementImpl get enclosingElement => library;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  @trackedIndirectly
-  LibraryElement get enclosingElement2 => enclosingElement;
-
   @override
   @trackedDirectlyExpensive
   List<FieldElementImpl> get fields {
@@ -4314,11 +3988,6 @@ abstract class InstanceElementImpl extends ElementImpl
   set fields(List<FieldElementImpl> value) {
     _fields = value;
   }
-
-  @Deprecated('Use fields instead')
-  @override
-  @trackedIndirectly
-  List<FieldElementImpl> get fields2 => fields;
 
   @override
   InstanceFragmentImpl get firstFragment;
@@ -4337,11 +4006,6 @@ abstract class InstanceElementImpl extends ElementImpl
   set getters(List<GetterElementImpl> value) {
     _getters = value;
   }
-
-  @Deprecated('Use getters instead')
-  @override
-  @trackedIndirectly
-  List<GetterElementImpl> get getters2 => getters;
 
   @override
   @trackedIncludedInId
@@ -4371,21 +4035,11 @@ abstract class InstanceElementImpl extends ElementImpl
   @trackedIncludedInId
   LibraryElementImpl get library => super.library!;
 
-  @Deprecated('Use library instead')
-  @override
-  @trackedIndirectly
-  LibraryElementImpl get library2 => library;
-
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
     return _firstFragment.metadata;
   }
-
-  @Deprecated('Use metadata instead')
-  @override
-  @trackedIndirectly
-  MetadataImpl get metadata2 => metadata;
 
   @override
   @trackedDirectlyExpensive
@@ -4399,21 +4053,11 @@ abstract class InstanceElementImpl extends ElementImpl
     _methods = value;
   }
 
-  @Deprecated('Use methods instead')
-  @override
-  @trackedIndirectly
-  List<MethodElementImpl> get methods2 => methods;
-
   @override
   @trackedIncludedInId
   String? get name {
     return _firstFragment.name;
   }
-
-  @Deprecated('Use name instead')
-  @override
-  @trackedIndirectly
-  String? get name3 => name;
 
   @override
   @trackedDirectlyOpaque
@@ -4434,23 +4078,15 @@ abstract class InstanceElementImpl extends ElementImpl
     _setters = value;
   }
 
-  @Deprecated('Use setters instead')
-  @override
-  @trackedIndirectly
-  List<SetterElementImpl> get setters2 => setters;
-
   @override
   @trackedIncludedInId
   List<TypeParameterElementImpl> get typeParameters {
-    return _firstFragment.typeParameters
-        .map((fragment) => fragment.element)
-        .toList();
+    var typeParameters = _firstFragment.typeParameters;
+    return List.generate(
+      typeParameters.length,
+      (index) => typeParameters[index].element,
+    );
   }
-
-  @Deprecated('Use typeParameters instead')
-  @override
-  @trackedIndirectly
-  List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
 
   @override
   InstanceFragmentImpl get _firstFragment;
@@ -4475,14 +4111,6 @@ abstract class InstanceElementImpl extends ElementImpl
     _setters.add(element);
   }
 
-  @Deprecated('Use displayString instead')
-  @override
-  @trackedIndirectly
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) => displayString(multiline: multiline, preferTypeAlias: preferTypeAlias);
-
   @override
   @trackedDirectly
   FieldElementImpl? getField(String name) {
@@ -4495,11 +4123,6 @@ abstract class InstanceElementImpl extends ElementImpl
       return fields.firstWhereOrNull((e) => e.name == name);
     });
   }
-
-  @Deprecated('Use getField instead')
-  @override
-  @trackedIndirectly
-  FieldElementImpl? getField2(String name) => getField(name);
 
   @override
   @trackedDirectly
@@ -4514,11 +4137,6 @@ abstract class InstanceElementImpl extends ElementImpl
     });
   }
 
-  @Deprecated('Use getGetter instead')
-  @override
-  @trackedIndirectly
-  GetterElementImpl? getGetter2(String name) => getGetter(name);
-
   @override
   @trackedDirectly
   MethodElementImpl? getMethod(String name) {
@@ -4531,11 +4149,6 @@ abstract class InstanceElementImpl extends ElementImpl
       return methods.firstWhereOrNull((e) => e.lookupName == name);
     });
   }
-
-  @Deprecated('Use getMethod instead')
-  @override
-  @trackedIndirectly
-  MethodElementImpl? getMethod2(String name) => getMethod(name);
 
   @override
   @trackedDirectly
@@ -4550,11 +4163,6 @@ abstract class InstanceElementImpl extends ElementImpl
     });
   }
 
-  @Deprecated('Use getSetter instead')
-  @override
-  @trackedIndirectly
-  SetterElementImpl? getSetter2(String name) => getSetter(name);
-
   @override
   @trackedIncludedInId
   bool isAccessibleIn(LibraryElement library) {
@@ -4563,13 +4171,6 @@ abstract class InstanceElementImpl extends ElementImpl
       return library == this.library;
     }
     return true;
-  }
-
-  @Deprecated('Use isAccessibleIn instead')
-  @override
-  @trackedIndirectly
-  bool isAccessibleIn2(LibraryElement library) {
-    return isAccessibleIn(library);
   }
 
   @override
@@ -4585,16 +4186,6 @@ abstract class InstanceElementImpl extends ElementImpl
         as GetterElement?;
   }
 
-  @Deprecated('Use lookUpGetter instead')
-  @override
-  @trackedIndirectly
-  GetterElement? lookUpGetter2({
-    required String name,
-    required LibraryElement library,
-  }) {
-    return lookUpGetter(name: name, library: library);
-  }
-
   @override
   @trackedDirectlyOpaque
   MethodElement? lookUpMethod({
@@ -4605,16 +4196,6 @@ abstract class InstanceElementImpl extends ElementImpl
     return _implementationsOfMethod(
       name,
     ).firstWhereOrNull((method) => method.isAccessibleIn(library));
-  }
-
-  @Deprecated('Use lookUpMethod instead')
-  @override
-  @trackedIndirectly
-  MethodElement? lookUpMethod2({
-    required String name,
-    required LibraryElement library,
-  }) {
-    return lookUpMethod(name: name, library: library);
   }
 
   @override
@@ -4630,16 +4211,6 @@ abstract class InstanceElementImpl extends ElementImpl
         as SetterElement?;
   }
 
-  @Deprecated('Use lookUpSetter instead')
-  @override
-  @trackedIndirectly
-  SetterElement? lookUpSetter2({
-    required String name,
-    required LibraryElement library,
-  }) {
-    return lookUpSetter(name: name, library: library);
-  }
-
   @override
   @trackedIncludedInId
   Element? thisOrAncestorMatching(bool Function(Element) predicate) {
@@ -4649,13 +4220,6 @@ abstract class InstanceElementImpl extends ElementImpl
     return library.thisOrAncestorMatching(predicate);
   }
 
-  @Deprecated('Use thisOrAncestorMatching instead')
-  @override
-  @trackedIndirectly
-  Element? thisOrAncestorMatching2(bool Function(Element) predicate) {
-    return thisOrAncestorMatching(predicate);
-  }
-
   @override
   @trackedIncludedInId
   E? thisOrAncestorOfType<E extends Element>() {
@@ -4663,13 +4227,6 @@ abstract class InstanceElementImpl extends ElementImpl
       return result;
     }
     return library.thisOrAncestorOfType<E>();
-  }
-
-  @Deprecated('Use thisOrAncestorOfType instead')
-  @override
-  @trackedIndirectly
-  E? thisOrAncestorOfType2<E extends Element>() {
-    return thisOrAncestorOfType();
   }
 
   Iterable<InternalPropertyAccessorElement> _implementationsOfGetter(
@@ -4801,10 +4358,6 @@ abstract class InstanceFragmentImpl extends FragmentImpl
     _fields = fields;
   }
 
-  @Deprecated('Use fields instead')
-  @override
-  List<FieldFragment> get fields2 => fields.cast<FieldFragment>();
-
   @override
   List<GetterFragmentImpl> get getters {
     if (!identical(_getters, _Sentinel.getterFragment)) {
@@ -4832,10 +4385,6 @@ abstract class InstanceFragmentImpl extends FragmentImpl
     return super.metadata;
   }
 
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   @override
   List<MethodFragmentImpl> get methods {
     if (!identical(_methods, _Sentinel.methodFragment)) {
@@ -4853,10 +4402,6 @@ abstract class InstanceFragmentImpl extends FragmentImpl
     }
     _methods = methods;
   }
-
-  @Deprecated('Use methods instead')
-  @override
-  List<MethodFragment> get methods2 => methods.cast<MethodFragment>();
 
   @override
   int get offset => nameOffset ?? firstTokenOffset!;
@@ -4891,10 +4436,6 @@ abstract class InstanceFragmentImpl extends FragmentImpl
     }
     _typeParameters = typeParameters;
   }
-
-  @Deprecated('Use typeParameters instead')
-  @override
-  List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
 
   void addField(FieldFragmentImpl fragment) {
     if (identical(_fields, _Sentinel.fieldFragment)) {
@@ -4982,13 +4523,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     return [...super.children, ...constructors];
   }
 
-  @Deprecated('Use children instead')
-  @override
-  @trackedIndirectly
-  List<Element> get children2 {
-    return children;
-  }
-
   @override
   @trackedDirectlyExpensive
   List<ConstructorElementImpl> get constructors {
@@ -5006,13 +4540,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   set constructors(List<ConstructorElementImpl> value) {
     _constructors = value;
-  }
-
-  @Deprecated('Use constructors instead')
-  @override
-  @trackedIndirectly
-  List<ConstructorElementImpl> get constructors2 {
-    return constructors;
   }
 
   @override
@@ -5131,9 +4658,13 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     if (_thisType == null) {
       List<TypeImpl> typeArguments;
       if (typeParameters.isNotEmpty) {
-        typeArguments = typeParameters.map<TypeImpl>((t) {
-          return t.instantiate(nullabilitySuffix: NullabilitySuffix.none);
-        }).toFixedList();
+        typeArguments = List.generate(
+          typeParameters.length,
+          (index) => typeParameters[index].instantiate(
+            nullabilitySuffix: NullabilitySuffix.none,
+          ),
+          growable: false,
+        );
       } else {
         typeArguments = const [];
       }
@@ -5149,13 +4680,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @trackedIndirectly
   ConstructorElementImpl? get unnamedConstructor {
     return getNamedConstructor('new');
-  }
-
-  @Deprecated('Use unnamedConstructor instead')
-  @override
-  @trackedIndirectly
-  ConstructorElementImpl? get unnamedConstructor2 {
-    return unnamedConstructor;
   }
 
   @override
@@ -5198,13 +4722,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     return globalResultRequirements.alreadyRecorded(() {
       return constructors.firstWhereOrNull((e) => e.name == name);
     });
-  }
-
-  @Deprecated('Use getNamedConstructor instead')
-  @override
-  @trackedIndirectly
-  ConstructorElementImpl? getNamedConstructor2(String name) {
-    return getNamedConstructor(name);
   }
 
   @override
@@ -5335,16 +4852,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         .ifTypeOrNull();
   }
 
-  @override
-  @Deprecated('Use lookUpInheritedMethod instead')
-  @trackedIndirectly
-  MethodElement? lookUpInheritedMethod2({
-    required String methodName,
-    required LibraryElement library,
-  }) {
-    return lookUpInheritedMethod(methodName: methodName, library: library);
-  }
-
   /// Return the static getter with the [name], accessible to the [library].
   ///
   /// This method should be used only for error recovery during analysis,
@@ -5421,10 +4928,6 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     ...typeParameters,
   ];
 
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
-
   @override
   List<ConstructorFragmentImpl> get constructors {
     element.ensureReadMembers();
@@ -5444,25 +4947,11 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     _constructors = constructors;
   }
 
-  @Deprecated('Use constructors instead')
-  @override
-  List<ConstructorFragmentImpl> get constructors2 {
-    return constructors;
-  }
-
   @override
   String get displayName => name ?? '';
 
   @override
   InterfaceElementImpl get element;
-
-  @Deprecated('Use InterfaceElement.interfaces instead')
-  @override
-  List<InterfaceTypeImpl> get interfaces => element.interfaces;
-
-  @Deprecated('Use InterfaceElement.mixins instead')
-  @override
-  List<InterfaceTypeImpl> get mixins => element.mixins;
 
   @override
   InterfaceFragmentImpl? get nextFragment {
@@ -5473,10 +4962,6 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   InterfaceFragmentImpl? get previousFragment {
     return super.previousFragment as InterfaceFragmentImpl?;
   }
-
-  @Deprecated('Use InterfaceElement.supertype instead')
-  @override
-  InterfaceTypeImpl? get supertype => element.supertype;
 
   void addConstructor(ConstructorFragmentImpl fragment) {
     if (identical(_constructors, _Sentinel.constructorFragment)) {
@@ -5511,19 +4996,11 @@ mixin InternalConstructorElement on InternalExecutableElement
   @override
   InternalConstructorElement? get redirectedConstructor;
 
-  @Deprecated('Use redirectedConstructor instead')
-  @override
-  InternalConstructorElement? get redirectedConstructor2;
-
   @override
   InterfaceTypeImpl get returnType;
 
   @override
   InternalConstructorElement? get superConstructor;
-
-  @Deprecated('Use superConstructor instead')
-  @override
-  InternalConstructorElement? get superConstructor2;
 }
 
 mixin InternalExecutableElement implements ExecutableElement {
@@ -5593,12 +5070,6 @@ mixin InternalFormalParameterElement on InternalVariableElement
       buffer.write(defaultValueCode);
     }
   }
-
-  @Deprecated('Use appendToWithoutDelimiters instead')
-  @override
-  void appendToWithoutDelimiters2(StringBuffer buffer) {
-    appendToWithoutDelimiters(buffer);
-  }
 }
 
 mixin InternalGetterElement on InternalPropertyAccessorElement
@@ -5638,10 +5109,6 @@ mixin InternalPropertyAccessorElement on InternalExecutableElement
 
   @override
   InternalPropertyInducingElement get variable;
-
-  @Deprecated('Use variable instead')
-  @override
-  InternalPropertyInducingElement? get variable3;
 }
 
 mixin InternalPropertyInducingElement on InternalVariableElement
@@ -5658,10 +5125,6 @@ mixin InternalPropertyInducingElement on InternalVariableElement
   @override
   InternalGetterElement? get getter;
 
-  @Deprecated('Use getter instead')
-  @override
-  InternalGetterElement? get getter2;
-
   @override
   LibraryElementImpl get library;
 
@@ -5670,10 +5133,6 @@ mixin InternalPropertyInducingElement on InternalVariableElement
 
   @override
   InternalSetterElement? get setter;
-
-  @Deprecated('Use setter instead')
-  @override
-  InternalSetterElement? get setter2;
 }
 
 mixin InternalSetterElement on InternalPropertyAccessorElement
@@ -5759,13 +5218,6 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
   List<PatternVariableElementImpl> get variables =>
       _firstFragment.variables.map((fragment) => fragment.element).toList();
 
-  /// The variables that join into this variable.
-  @Deprecated('Use variables instead')
-  @override
-  List<PatternVariableElementImpl> get variables2 {
-    return variables;
-  }
-
   @override
   JoinPatternVariableFragmentImpl get _firstFragment =>
       super._firstFragment as JoinPatternVariableFragmentImpl;
@@ -5837,10 +5289,6 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   @override
   ExecutableElement? get enclosingElement => null;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  ExecutableElement? get enclosingElement2 => enclosingElement;
-
   @override
   LabelFragmentImpl get firstFragment => _firstFragment;
 
@@ -5862,37 +5310,18 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   @override
   LibraryElementImpl get library => super.library!;
 
-  @Deprecated('Use library instead')
-  @override
-  LibraryElement get library2 => library;
-
   @override
   String? get name => _firstFragment.name;
-
-  @Deprecated('Use name instead')
-  @override
-  String? get name3 => name;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitLabelElement(this);
   }
 
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeLabelElement(this);
   }
-
-  @Deprecated('Use displayString instead')
-  @override
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) => displayString(multiline: multiline, preferTypeAlias: preferTypeAlias);
 
   @override
   void visitChildren<T>(ElementVisitor2<T> visitor) {}
@@ -5921,10 +5350,6 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
 
   @override
   List<Fragment> get children => const [];
-
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
 
   @override
   String get displayName => name ?? '';
@@ -6087,13 +5512,6 @@ class LibraryElementImpl extends ElementImpl
     ];
   }
 
-  @Deprecated('Use children instead')
-  @override
-  @trackedIndirectly
-  List<Element> get children2 {
-    return children;
-  }
-
   @override
   @trackedDirectlyExpensive
   List<ClassElementImpl> get classes {
@@ -6131,11 +5549,6 @@ class LibraryElementImpl extends ElementImpl
   @trackedIncludedInId
   Null get enclosingElement => null;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  @trackedIndirectly
-  Null get enclosingElement2 => enclosingElement;
-
   @override
   @trackedDirectly
   TopLevelFunctionElementImpl? get entryPoint {
@@ -6146,13 +5559,6 @@ class LibraryElementImpl extends ElementImpl
 
   set entryPoint(TopLevelFunctionElementImpl? value) {
     _entryPoint = value;
-  }
-
-  @Deprecated('Use entryPoint instead')
-  @override
-  @trackedIndirectly
-  TopLevelFunctionElementImpl? get entryPoint2 {
-    return entryPoint;
   }
 
   @override
@@ -6176,13 +5582,6 @@ class LibraryElementImpl extends ElementImpl
         .nonNulls
         .toSet()
         .toList();
-  }
-
-  @Deprecated('Use exportedLibraries instead')
-  @override
-  @trackedIndirectly
-  List<LibraryElementImpl> get exportedLibraries2 {
-    return exportedLibraries;
   }
 
   @override
@@ -6351,11 +5750,6 @@ class LibraryElementImpl extends ElementImpl
   @trackedIncludedInId
   LibraryElementImpl get library => this;
 
-  @Deprecated('Use library instead')
-  @override
-  @trackedIndirectly
-  LibraryElementImpl get library2 => library;
-
   @trackedInternal
   LibraryDeclarations get libraryDeclarations {
     return _libraryDeclarations ??= LibraryDeclarations(this);
@@ -6365,13 +5759,6 @@ class LibraryElementImpl extends ElementImpl
   @trackedIndirectly
   TopLevelFunctionElementImpl get loadLibraryFunction {
     return loadLibraryProvider.getElement(this);
-  }
-
-  @Deprecated('Use loadLibraryFunction instead')
-  @override
-  @trackedIndirectly
-  TopLevelFunctionElementImpl get loadLibraryFunction2 {
-    return loadLibraryFunction;
   }
 
   @override
@@ -6389,11 +5776,6 @@ class LibraryElementImpl extends ElementImpl
   set metadata(MetadataImpl value) {
     _metadata = value;
   }
-
-  @Deprecated('Use metadata instead')
-  @override
-  @trackedIndirectly
-  MetadataImpl get metadata2 => metadata;
 
   @override
   @trackedDirectlyExpensive
@@ -6416,11 +5798,6 @@ class LibraryElementImpl extends ElementImpl
   set name(String name) {
     _name = name;
   }
-
-  @Deprecated('Use name instead')
-  @override
-  @trackedIndirectly
-  String? get name3 => name;
 
   @trackedDirectlyOpaque
   int get nameLength {
@@ -6555,11 +5932,6 @@ class LibraryElementImpl extends ElementImpl
     return visitor.visitLibraryElement(this);
   }
 
-  @Deprecated('Use accept instead')
-  @override
-  @trackedIndirectly
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
-
   @trackedInternal
   void addClass(ClassElementImpl element) {
     _classes.add(element);
@@ -6611,19 +5983,6 @@ class LibraryElementImpl extends ElementImpl
     builder.writeLibraryElement(this);
   }
 
-  @Deprecated('Use displayString instead')
-  @override
-  @trackedIndirectly
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) {
-    return displayString(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
-  }
-
   @override
   @trackedDirectly
   ClassElementImpl? getClass(String name) {
@@ -6637,13 +5996,6 @@ class LibraryElementImpl extends ElementImpl
     });
   }
 
-  @Deprecated('Use getClass instead')
-  @override
-  @trackedIndirectly
-  ClassElementImpl? getClass2(String name) {
-    return getClass(name);
-  }
-
   @override
   @trackedDirectly
   EnumElement? getEnum(String name) {
@@ -6654,26 +6006,12 @@ class LibraryElementImpl extends ElementImpl
     });
   }
 
-  @Deprecated('Use getEnum instead')
-  @override
-  @trackedIndirectly
-  EnumElement? getEnum2(String name) {
-    return getEnum(name);
-  }
-
   @override
   @trackedIndirectly
   String getExtendedDisplayName({String? shortName}) {
     shortName ??= displayName;
     var source = this.source;
     return "$shortName (${source.fullName})";
-  }
-
-  @Deprecated('Use getExtendedDisplayName instead')
-  @override
-  @trackedIndirectly
-  String getExtendedDisplayName2({String? shortName}) {
-    return getExtendedDisplayName(shortName: shortName);
   }
 
   @override
@@ -6726,13 +6064,6 @@ class LibraryElementImpl extends ElementImpl
     return globalResultRequirements.alreadyRecorded(() {
       return _getElementByName(mixins, name);
     });
-  }
-
-  @Deprecated('Use getMixin instead')
-  @override
-  @trackedIndirectly
-  MixinElement? getMixin2(String name) {
-    return getMixin(name);
   }
 
   @override
@@ -6793,13 +6124,6 @@ class LibraryElementImpl extends ElementImpl
     return true;
   }
 
-  @Deprecated('Use isAccessibleIn instead')
-  @override
-  @trackedIndirectly
-  bool isAccessibleIn2(LibraryElement library) {
-    return isAccessibleIn(library);
-  }
-
   /// Return `true` if [reference] comes only from deprecated exports.
   @trackedInternal
   bool isFromDeprecatedExport(ExportedReference reference) {
@@ -6838,26 +6162,10 @@ class LibraryElementImpl extends ElementImpl
     return predicate(this) ? this : null;
   }
 
-  @Deprecated('Use thisOrAncestorMatching instead')
-  @override
-  @trackedIndirectly
-  LibraryElementImpl? thisOrAncestorMatching2(
-    bool Function(Element) predicate,
-  ) {
-    return thisOrAncestorMatching(predicate);
-  }
-
   @override
   @trackedIncludedInId
   E? thisOrAncestorOfType<E extends Element>() {
     return E is LibraryElement ? this as E : null;
-  }
-
-  @Deprecated('Use thisOrAncestorOfType instead')
-  @override
-  @trackedIndirectly
-  E? thisOrAncestorOfType2<E extends Element>() {
-    return thisOrAncestorOfType();
   }
 
   @override
@@ -6921,12 +6229,6 @@ class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
       return uri.library;
     }
     return null;
-  }
-
-  @Deprecated('Use exportedLibrary instead')
-  @override
-  LibraryElementImpl? get exportedLibrary2 {
-    return exportedLibrary;
   }
 
   @override
@@ -7006,12 +6308,6 @@ class LibraryFragmentImpl extends FragmentImpl
     return scope.accessibleExtensions;
   }
 
-  @Deprecated('Use accessibleExtensions instead')
-  @override
-  List<ExtensionElement> get accessibleExtensions2 {
-    return accessibleExtensions;
-  }
-
   List<PropertyAccessorFragmentImpl> get accessors {
     return [...getters, ...setters];
   }
@@ -7032,12 +6328,6 @@ class LibraryFragmentImpl extends FragmentImpl
     ];
   }
 
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 {
-    return children;
-  }
-
   @override
   List<ClassFragmentImpl> get classes => _classes;
 
@@ -7048,10 +6338,6 @@ class LibraryFragmentImpl extends FragmentImpl
     }
     _classes = classes;
   }
-
-  @Deprecated('Use classes instead')
-  @override
-  List<ClassFragment> get classes2 => classes;
 
   @override
   LibraryElementImpl get element => library;
@@ -7076,10 +6362,6 @@ class LibraryFragmentImpl extends FragmentImpl
     _enums = enums;
   }
 
-  @Deprecated('Use enums instead')
-  @override
-  List<EnumFragment> get enums2 => enums;
-
   @override
   List<ExtensionFragmentImpl> get extensions => _extensions;
 
@@ -7092,10 +6374,6 @@ class LibraryFragmentImpl extends FragmentImpl
     _extensions = extensions;
   }
 
-  @Deprecated('Use extensions instead')
-  @override
-  List<ExtensionFragment> get extensions2 => extensions;
-
   @override
   List<ExtensionTypeFragmentImpl> get extensionTypes => _extensionTypes;
 
@@ -7105,10 +6383,6 @@ class LibraryFragmentImpl extends FragmentImpl
     }
     _extensionTypes = elements;
   }
-
-  @Deprecated('Use extensionTypes instead')
-  @override
-  List<ExtensionTypeFragment> get extensionTypes2 => extensionTypes;
 
   @override
   List<TopLevelFunctionFragmentImpl> get functions {
@@ -7123,10 +6397,6 @@ class LibraryFragmentImpl extends FragmentImpl
     }
     _functions = functions;
   }
-
-  @Deprecated('Use functions instead')
-  @override
-  List<TopLevelFunctionFragment> get functions2 => functions;
 
   @override
   List<GetterFragmentImpl> get getters => _getters;
@@ -7150,12 +6420,6 @@ class LibraryFragmentImpl extends FragmentImpl
         .toList();
   }
 
-  @Deprecated('Use importedLibraries instead')
-  @override
-  List<LibraryElement> get importedLibraries2 {
-    return importedLibraries;
-  }
-
   @override
   List<LibraryExportImpl> get libraryExports {
     _ensureReadResolution();
@@ -7168,10 +6432,6 @@ class LibraryFragmentImpl extends FragmentImpl
     }
     _libraryExports = exports;
   }
-
-  @Deprecated('Use libraryExports instead')
-  @override
-  List<LibraryExport> get libraryExports2 => libraryExports;
 
   @override
   LibraryFragmentImpl get libraryFragment => this;
@@ -7189,10 +6449,6 @@ class LibraryFragmentImpl extends FragmentImpl
     _libraryImports = imports;
   }
 
-  @Deprecated('Use libraryImports instead')
-  @override
-  List<LibraryImport> get libraryImports2 => libraryImports;
-
   @override
   List<MixinFragmentImpl> get mixins => _mixins;
 
@@ -7204,16 +6460,8 @@ class LibraryFragmentImpl extends FragmentImpl
     _mixins = mixins;
   }
 
-  @Deprecated('Use mixins instead')
-  @override
-  List<MixinFragment> get mixins2 => mixins;
-
   @override
   String? get name => null;
-
-  @Deprecated('Use name instead')
-  @override
-  String? get name2 => name;
 
   @override
   int? get nameOffset => null;
@@ -7296,10 +6544,6 @@ class LibraryFragmentImpl extends FragmentImpl
     _variables = variables;
   }
 
-  @Deprecated('Use topLevelVariables instead')
-  @override
-  List<TopLevelVariableFragment> get topLevelVariables2 => topLevelVariables;
-
   @override
   List<TypeAliasFragmentImpl> get typeAliases {
     return _typeAliases;
@@ -7312,10 +6556,6 @@ class LibraryFragmentImpl extends FragmentImpl
     }
     _typeAliases = typeAliases;
   }
-
-  @Deprecated('Use typeAliases instead')
-  @override
-  List<TypeAliasFragment> get typeAliases2 => typeAliases;
 
   void addClass(ClassFragmentImpl fragment) {
     if (identical(_classes, _Sentinel.classFragment)) {
@@ -7509,12 +6749,6 @@ class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
     return null;
   }
 
-  @Deprecated('Use importedLibrary instead')
-  @override
-  LibraryElementImpl? get importedLibrary2 {
-    return importedLibrary;
-  }
-
   @override
   Namespace get namespace {
     var uri = this.uri;
@@ -7528,10 +6762,6 @@ class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
     }
     return Namespace.EMPTY;
   }
-
-  @Deprecated('Use prefix instead')
-  @override
-  PrefixFragment? get prefix2 => prefix;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -7574,10 +6804,6 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   // Local functions belong to Fragments, not Elements.
   Element? get enclosingElement => null;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement2 => enclosingElement;
-
   @override
   LocalFunctionFragmentImpl get firstFragment => _firstFragment;
 
@@ -7593,10 +6819,6 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
 
   @override
   String? get name => _firstFragment.name;
-
-  @Deprecated('Use name instead')
-  @override
-  String? get name3 => name;
 
   @override
   List<LocalFunctionFragmentImpl> get _fragments {
@@ -7615,21 +6837,10 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
     return visitor.visitLocalFunctionElement(this);
   }
 
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeLocalFunctionElement(this);
   }
-
-  @Deprecated('Use displayString instead')
-  @override
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) => displayString(multiline: multiline, preferTypeAlias: preferTypeAlias);
 }
 
 /// A concrete implementation of a [LocalFunctionFragment].
@@ -7672,10 +6883,6 @@ class LocalVariableElementImpl extends PromotableElementImpl
     return _firstFragment.enclosingFragment.element;
   }
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement2 => enclosingElement;
-
   @override
   LocalVariableFragmentImpl get firstFragment => _firstFragment;
 
@@ -7708,23 +6915,11 @@ class LocalVariableElementImpl extends PromotableElementImpl
   @override
   LibraryElementImpl get library => super.library!;
 
-  @Deprecated('Use library instead')
-  @override
-  LibraryElementImpl get library2 => library;
-
   @override
   MetadataImpl get metadata => _firstFragment.metadata;
 
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   @override
   String? get name => _firstFragment.name;
-
-  @Deprecated('Use name instead')
-  @override
-  String? get name3 => name;
 
   @override
   List<LocalVariableFragmentImpl> get _fragments {
@@ -7734,22 +6929,6 @@ class LocalVariableElementImpl extends PromotableElementImpl
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitLocalVariableElement(this);
-  }
-
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
-
-  @Deprecated('Use displayString instead')
-  @override
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) {
-    return displayString(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
   }
 }
 
@@ -7777,10 +6956,6 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
 
   @override
   List<Fragment> get children => const [];
-
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
 
   @override
   LocalVariableElementImpl get element => _element2;
@@ -8246,11 +7421,6 @@ class MethodElementImpl extends ExecutableElementImpl
     return _firstFragment.enclosingFragment.element;
   }
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  @trackedIndirectly
-  Element? get enclosingElement2 => enclosingElement;
-
   @override
   @trackedDirectlyOpaque
   MethodFragmentImpl get firstFragment {
@@ -8289,11 +7459,6 @@ class MethodElementImpl extends ExecutableElementImpl
     return name;
   }
 
-  @Deprecated('Use name instead')
-  @override
-  @trackedIndirectly
-  String? get name3 => name;
-
   @override
   List<MethodFragmentImpl> get _fragments {
     return [
@@ -8312,11 +7477,6 @@ class MethodElementImpl extends ExecutableElementImpl
     globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitMethodElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  @trackedIndirectly
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   @trackedIndirectly
@@ -8505,32 +7665,10 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
     return visitor.visitMixinElement(this);
   }
 
-  @Deprecated('Use accept instead')
-  @override
-  @trackedIndirectly
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
-
   @override
   @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeMixinElement(this);
-  }
-
-  @Deprecated('Use isImplementableOutside instead')
-  @override
-  @trackedIndirectly
-  bool isImplementableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    }
-    return !isBase;
-  }
-
-  @Deprecated('Use isImplementableOutside instead')
-  @override
-  @trackedIndirectly
-  bool isImplementableIn2(LibraryElement library) {
-    return isImplementableIn(library);
   }
 
   @trackedInternal
@@ -8564,10 +7702,6 @@ class MixinFragmentImpl extends InterfaceFragmentImpl
   /// given [offset] in the file that contains the declaration of this element.
   MixinFragmentImpl({required super.name});
 
-  @Deprecated('Use InterfaceElement.mixins instead')
-  @override
-  List<InterfaceTypeImpl> get mixins => const [];
-
   @override
   MixinFragmentImpl? get nextFragment =>
       super.nextFragment as MixinFragmentImpl?;
@@ -8580,10 +7714,6 @@ class MixinFragmentImpl extends InterfaceFragmentImpl
   List<InterfaceTypeImpl> get superclassConstraints {
     return element.superclassConstraints;
   }
-
-  @Deprecated('Use InterfaceElement.supertype instead')
-  @override
-  InterfaceTypeImpl? get supertype => null;
 
   void addFragment(MixinFragmentImpl fragment) {
     fragment.element = element;
@@ -8744,23 +7874,11 @@ class MultiplyDefinedElementImpl extends ElementImpl
   @override
   List<Element> get children => const [];
 
-  @Deprecated('Use children instead')
-  @override
-  List<Element> get children2 => children;
-
-  @Deprecated('Use conflictingElements instead')
-  @override
-  List<Element> get conflictingElements2 => conflictingElements;
-
   @override
   String get displayName => name;
 
   @override
   Null get enclosingElement => null;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Null get enclosingElement2 => enclosingElement;
 
   @override
   MultiplyDefinedFragmentImpl get firstFragment => _firstFragment;
@@ -8789,14 +7907,6 @@ class MultiplyDefinedElementImpl extends ElementImpl
   @override
   LibraryElementImpl get library => libraryFragment.element;
 
-  @Deprecated('Use library instead')
-  @override
-  LibraryElement get library2 => library;
-
-  @Deprecated('Use name instead')
-  @override
-  String get name3 => name;
-
   @override
   Element get nonSynthetic => this;
 
@@ -8804,10 +7914,6 @@ class MultiplyDefinedElementImpl extends ElementImpl
   T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitMultiplyDefinedElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   String displayString({bool multiline = false, bool preferTypeAlias = false}) {
@@ -8817,18 +7923,6 @@ class MultiplyDefinedElementImpl extends ElementImpl
         })
         .join(', ');
     return '[$elementsStr]';
-  }
-
-  @Deprecated('Use displayString instead')
-  @override
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) {
-    return displayString(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
   }
 
   @override
@@ -8841,32 +7935,14 @@ class MultiplyDefinedElementImpl extends ElementImpl
     return false;
   }
 
-  @Deprecated('Use isAccessibleIn instead')
-  @override
-  bool isAccessibleIn2(LibraryElement library) {
-    return isAccessibleIn(library);
-  }
-
   @override
   Element? thisOrAncestorMatching(bool Function(Element p1) predicate) {
     return null;
   }
 
-  @Deprecated('Use thisOrAncestorMatching instead')
-  @override
-  Element? thisOrAncestorMatching2(bool Function(Element p1) predicate) {
-    return thisOrAncestorMatching(predicate);
-  }
-
   @override
   E? thisOrAncestorOfType<E extends Element>() {
     return null;
-  }
-
-  @Deprecated('Use thisOrAncestorOfType instead')
-  @override
-  E? thisOrAncestorOfType2<E extends Element>() {
-    return thisOrAncestorOfType();
   }
 
   @override
@@ -8908,10 +7984,6 @@ class MultiplyDefinedFragmentImpl extends FragmentImpl
   @override
   List<Fragment> get children => [];
 
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
-
   @override
   String? get documentationComment => null;
 
@@ -8927,16 +7999,8 @@ class MultiplyDefinedFragmentImpl extends FragmentImpl
   @override
   String? get name => element.name;
 
-  @Deprecated('Use name instead')
-  @override
-  String? get name2 => name;
-
   @override
   Null get nameOffset => null;
-
-  @Deprecated('Use nameOffset instead')
-  @override
-  int? get nameOffset2 => nameOffset;
 
   @override
   Null get nextFragment => null;
@@ -8949,10 +8013,7 @@ class MultiplyDefinedFragmentImpl extends FragmentImpl
 }
 
 /// The synthetic element representing the declaration of the type `Never`.
-class NeverElementImpl extends ElementImpl
-    implements
-        TypeDefiningElement // ignore:deprecated_member_use_from_same_package
-        {
+class NeverElementImpl extends ElementImpl {
   /// The unique instance of this class.
   static final instance = NeverElementImpl._();
 
@@ -8963,10 +8024,6 @@ class NeverElementImpl extends ElementImpl
 
   @override
   Element? get enclosingElement => null;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement2 => enclosingElement;
 
   @override
   NeverFragmentImpl get firstFragment => _firstFragment;
@@ -8985,25 +8042,13 @@ class NeverElementImpl extends ElementImpl
   @override
   Null get library => null;
 
-  @Deprecated('Use library instead')
-  @override
-  Null get library2 => library;
-
   @override
   MetadataImpl get metadata {
     return MetadataImpl(const []);
   }
 
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   @override
   String get name => 'Never';
-
-  @Deprecated('Use name instead')
-  @override
-  String get name3 => name;
 
   @override
   NeverFragmentImpl get _firstFragment => NeverFragmentImpl.instance;
@@ -9012,10 +8057,6 @@ class NeverElementImpl extends ElementImpl
   T? accept<T>(ElementVisitor2<T> visitor) {
     return null;
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -9036,10 +8077,7 @@ class NeverElementImpl extends ElementImpl
 }
 
 /// The synthetic element representing the declaration of the type `Never`.
-class NeverFragmentImpl extends FragmentImpl
-    implements
-        TypeDefiningFragment // ignore:deprecated_member_use_from_same_package
-        {
+class NeverFragmentImpl extends FragmentImpl {
   /// The unique instance of this class.
   static final instance = NeverFragmentImpl._();
 
@@ -9054,10 +8092,6 @@ class NeverFragmentImpl extends FragmentImpl
   @override
   List<Fragment> get children => const [];
 
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
-
   @override
   NeverElementImpl get element => NeverElementImpl.instance;
 
@@ -9067,16 +8101,8 @@ class NeverFragmentImpl extends FragmentImpl
   @override
   Null get libraryFragment => null;
 
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   @override
   String get name => 'Never';
-
-  @Deprecated('Use name instead')
-  @override
-  String get name2 => name;
 
   @override
   Null get nameOffset => null;
@@ -9172,12 +8198,6 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
     return _firstFragment.join?.asElement2;
   }
 
-  @Deprecated('Use join instead')
-  @override
-  JoinPatternVariableElementImpl? get join2 {
-    return join;
-  }
-
   /// Return the root [join], or self.
   PatternVariableElementImpl get rootVariable {
     return join?.rootVariable ?? this;
@@ -9217,10 +8237,6 @@ class PatternVariableFragmentImpl extends LocalVariableFragmentImpl
   PatternVariableElementImpl get element =>
       super.element as PatternVariableElementImpl;
 
-  @Deprecated('Use join instead')
-  @override
-  JoinPatternVariableFragment? get join2 => join;
-
   @override
   PatternVariableFragmentImpl? get nextFragment =>
       super.nextFragment as PatternVariableFragmentImpl?;
@@ -9258,10 +8274,6 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   @override
   Null get enclosingElement => null;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Null get enclosingElement2 => enclosingElement;
-
   @override
   PrefixFragmentImpl get firstFragment => _firstFragment;
 
@@ -9293,16 +8305,8 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   @override
   LibraryElementImpl get library => super.library!;
 
-  @Deprecated('Use library instead')
-  @override
-  LibraryElementImpl get library2 => library;
-
   @override
   String? get name => _firstFragment.name;
-
-  @Deprecated('Use name instead')
-  @override
-  String? get name3 => name;
 
   @override
   PrefixScope get scope {
@@ -9320,10 +8324,6 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
     return visitor.visitPrefixElement(this);
   }
 
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
-
   void addFragment(PrefixFragmentImpl fragment) {
     lastFragment.nextFragment = fragment;
     fragment.previousFragment = lastFragment;
@@ -9333,18 +8333,6 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writePrefixElement(this);
-  }
-
-  @Deprecated('Use displayString instead')
-  @override
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) {
-    return displayString(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
   }
 
   @override
@@ -9383,10 +8371,6 @@ class PrefixFragmentImpl extends FragmentImpl implements PrefixFragment {
   @override
   List<Fragment> get children => const [];
 
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
-
   @override
   LibraryFragmentImpl get enclosingFragment =>
       super.enclosingFragment as LibraryFragmentImpl;
@@ -9410,11 +8394,6 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
   @trackedIncludedInId
   Element get enclosingElement => _firstFragment.enclosingFragment.element;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  @trackedIndirectly
-  Element get enclosingElement2 => enclosingElement;
-
   @override
   PropertyAccessorFragmentImpl get firstFragment;
 
@@ -9432,11 +8411,6 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
   @trackedIncludedInId
   String? get name => _firstFragment.name;
 
-  @Deprecated('Use name instead')
-  @override
-  @trackedIndirectly
-  String? get name3 => name;
-
   @override
   List<TypeParameterElementImpl> get typeParameters;
 
@@ -9453,13 +8427,6 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   set variable(PropertyInducingElementImpl? value) {
     _variable3 = value;
-  }
-
-  @Deprecated('Use variable instead')
-  @override
-  @trackedIndirectly
-  PropertyInducingElementImpl? get variable3 {
-    return variable;
   }
 }
 
@@ -9538,11 +8505,6 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     return _fragments;
   }
 
-  @Deprecated('Use getter instead')
-  @override
-  @trackedIndirectly
-  GetterElementImpl? get getter2 => getter;
-
   @override
   @trackedIncludedInId
   bool get hasInitializer {
@@ -9571,11 +8533,6 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
 
   @override
   Reference get reference;
-
-  @Deprecated('Use setter instead')
-  @override
-  @trackedIndirectly
-  SetterElementImpl? get setter2 => setter;
 
   @trackedIncludedInId
   bool get shouldUseTypeForInitializerInference {
@@ -9671,10 +8628,6 @@ abstract class PropertyInducingFragmentImpl
   @override
   List<Fragment> get children => const [];
 
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
-
   @override
   PropertyInducingElementImpl get element;
 
@@ -9695,10 +8648,6 @@ abstract class PropertyInducingFragmentImpl
   LibraryFragmentImpl get libraryFragment {
     return enclosingFragment.libraryFragment!;
   }
-
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
 }
 
 @elementClass
@@ -9730,21 +8679,9 @@ class SetterElementImpl extends PropertyAccessorElementImpl
     return variable.getter;
   }
 
-  @Deprecated('Use correspondingGetter instead')
-  @override
-  @trackedIndirectly
-  GetterElement? get correspondingGetter2 {
-    return correspondingGetter;
-  }
-
   @override
   @trackedIncludedInId
   Element get enclosingElement => _firstFragment.enclosingFragment.element;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  @trackedIndirectly
-  Element get enclosingElement2 => enclosingElement;
 
   @override
   @trackedDirectlyOpaque
@@ -9822,11 +8759,6 @@ class SetterElementImpl extends PropertyAccessorElementImpl
     globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitSetterElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  @trackedIndirectly
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   @trackedIndirectly
@@ -9980,12 +8912,6 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
     return null;
   }
 
-  @Deprecated('Use superConstructorParameter instead')
-  @override
-  InternalFormalParameterElement? get superConstructorParameter2 {
-    return superConstructorParameter;
-  }
-
   @override
   SuperFormalParameterFragmentImpl get _firstFragment =>
       super._firstFragment as SuperFormalParameterFragmentImpl;
@@ -10101,11 +9027,6 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   @trackedIncludedInId
   LibraryElementImpl get enclosingElement => library;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  @trackedIndirectly
-  LibraryElementImpl get enclosingElement2 => enclosingElement;
-
   @override
   @trackedDirectlyOpaque
   TopLevelFunctionFragmentImpl get firstFragment {
@@ -10143,19 +9064,9 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
     return super.lastFragment as TopLevelFunctionFragmentImpl;
   }
 
-  @Deprecated('Use library instead')
-  @override
-  @trackedIncludedInId
-  LibraryElementImpl get library2 => library;
-
   @override
   @trackedIncludedInId
   String? get name => _firstFragment.name;
-
-  @Deprecated('Use name instead')
-  @override
-  @trackedIndirectly
-  String? get name3 => name;
 
   @override
   List<TopLevelFunctionFragmentImpl> get _fragments {
@@ -10175,11 +9086,6 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
     globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitTopLevelFunctionElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  @trackedIndirectly
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   @trackedIndirectly
@@ -10257,11 +9163,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @trackedIncludedInId
   LibraryElementImpl get enclosingElement => library;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  @trackedIndirectly
-  LibraryElement get enclosingElement2 => enclosingElement;
-
   @override
   @trackedDirectlyOpaque
   TopLevelVariableFragmentImpl get firstFragment {
@@ -10320,11 +9221,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     return current;
   }
 
-  @Deprecated('Use library instead')
-  @override
-  @trackedIndirectly
-  LibraryElement get library2 => library;
-
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
@@ -10335,19 +9231,9 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     return MetadataImpl(annotations);
   }
 
-  @Deprecated('Use metadata instead')
-  @override
-  @trackedIndirectly
-  MetadataImpl get metadata2 => metadata;
-
   @override
   @trackedIncludedInId
   String? get name => _firstFragment.name;
-
-  @Deprecated('Use name instead')
-  @override
-  @trackedIndirectly
-  String? get name3 => name;
 
   @override
   List<TopLevelVariableFragmentImpl> get _fragments {
@@ -10367,11 +9253,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitTopLevelVariableElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  @trackedIndirectly
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @trackedInternal
   void linkFragments(List<TopLevelVariableFragmentImpl> fragments) {
@@ -10445,25 +9326,6 @@ class TypeAliasElementImpl extends ElementImpl
 
   @override
   @trackedIncludedInId
-  ElementImpl? get aliasedElement {
-    switch (_firstFragment.aliasedElement) {
-      case InstanceFragmentImpl instance:
-        return instance.element;
-      case GenericFunctionTypeFragmentImpl instance:
-        return instance.element;
-    }
-    return null;
-  }
-
-  @Deprecated('Use aliasedElement instead')
-  @override
-  @trackedIndirectly
-  Element? get aliasedElement2 {
-    return aliasedElement;
-  }
-
-  @override
-  @trackedIncludedInId
   TypeImpl get aliasedType {
     _ensureReadResolution();
     return _aliasedType!;
@@ -10486,11 +9348,6 @@ class TypeAliasElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   LibraryElementImpl get enclosingElement => library;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  @trackedIndirectly
-  LibraryElement get enclosingElement2 => enclosingElement;
 
   @override
   @trackedDirectlyOpaque
@@ -10568,11 +9425,6 @@ class TypeAliasElementImpl extends ElementImpl
   @trackedIncludedInId
   LibraryElementImpl get library => super.library!;
 
-  @Deprecated('Use library instead')
-  @override
-  @trackedIndirectly
-  LibraryElementImpl get library2 => library;
-
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
@@ -10583,19 +9435,9 @@ class TypeAliasElementImpl extends ElementImpl
     return MetadataImpl(annotations);
   }
 
-  @Deprecated('Use metadata instead')
-  @override
-  @trackedIndirectly
-  MetadataImpl get metadata2 => metadata;
-
   @override
   @trackedIncludedInId
   String? get name => _firstFragment.name;
-
-  @Deprecated('Use name instead')
-  @override
-  @trackedIndirectly
-  String? get name3 => name;
 
   @override
   @trackedIncludedInId
@@ -10604,11 +9446,6 @@ class TypeAliasElementImpl extends ElementImpl
         .map((fragment) => fragment.element)
         .toList();
   }
-
-  @Deprecated('Use typeParameters instead')
-  @override
-  @trackedIndirectly
-  List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
 
   List<TypeAliasFragmentImpl> get _fragments {
     return [
@@ -10627,11 +9464,6 @@ class TypeAliasElementImpl extends ElementImpl
     globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitTypeAliasElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  @trackedIndirectly
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   @trackedIndirectly
@@ -10776,10 +9608,6 @@ class TypeAliasFragmentImpl extends FragmentImpl
   @override
   List<Fragment> get children => const [];
 
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
-
   @override
   String get displayName => name ?? '';
 
@@ -10796,10 +9624,6 @@ class TypeAliasFragmentImpl extends FragmentImpl
     return super.metadata;
   }
 
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   @override
   int get offset => nameOffset ?? firstTokenOffset!;
 
@@ -10815,10 +9639,6 @@ class TypeAliasFragmentImpl extends FragmentImpl
     }
     _typeParameters = typeParameters;
   }
-
-  @Deprecated('Use typeParameters instead')
-  @override
-  List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
 }
 
 class TypeParameterElementImpl extends ElementImpl
@@ -10864,10 +9684,6 @@ class TypeParameterElementImpl extends ElementImpl
     return _firstFragment.enclosingFragment?.element;
   }
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement2 => enclosingElement;
-
   @override
   TypeParameterFragmentImpl get firstFragment => _firstFragment;
 
@@ -10896,10 +9712,6 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
-  @Deprecated('Use library instead')
-  @override
-  LibraryElementImpl? get library2 => library;
-
   @override
   MetadataImpl get metadata {
     var annotations = <ElementAnnotationImpl>[];
@@ -10909,16 +9721,8 @@ class TypeParameterElementImpl extends ElementImpl
     return MetadataImpl(annotations);
   }
 
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   @override
   String? get name => _firstFragment.name;
-
-  @Deprecated('Use name instead')
-  @override
-  String? get name3 => name;
 
   @override
   shared.Variance get variance {
@@ -10931,10 +9735,6 @@ class TypeParameterElementImpl extends ElementImpl
   T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitTypeParameterElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -11036,10 +9836,6 @@ class TypeParameterFragmentImpl extends FragmentImpl
   @override
   List<Fragment> get children => const [];
 
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
-
   @override
   String get displayName => name ?? '';
 
@@ -11067,10 +9863,6 @@ class TypeParameterFragmentImpl extends FragmentImpl
   LibraryFragmentImpl? get libraryFragment {
     return enclosingFragment?.libraryFragment;
   }
-
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
 
   @override
   int get offset =>

@@ -52,18 +52,15 @@
 namespace dart {
 namespace bin {
 
-SocketAddress::SocketAddress(struct sockaddr* sa, bool unnamed_unix_socket) {
+SocketAddress::SocketAddress(const RawAddr& addr) : addr_(addr) {
   // Fuchsia does not support unix domain sockets.
-  if (unnamed_unix_socket) {
+  if (addr.is_unnamed_unix_socket()) {
     FATAL("Fuchsia does not support unix domain sockets.");
   }
-  ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
-  if (!SocketBase::FormatNumericAddress(*reinterpret_cast<RawAddr*>(sa),
-                                        as_string_, INET6_ADDRSTRLEN)) {
+  if (!SocketBase::FormatNumericAddress(addr, as_string_,
+                                        kMaxAddressStringLength)) {
     as_string_[0] = 0;
   }
-  socklen_t salen = GetAddrLength(*reinterpret_cast<RawAddr*>(sa));
-  memmove(reinterpret_cast<void*>(&addr_), sa, salen);
 }
 
 bool SocketBase::Initialize() {
@@ -74,9 +71,8 @@ bool SocketBase::Initialize() {
 bool SocketBase::FormatNumericAddress(const RawAddr& addr,
                                       char* address,
                                       int len) {
-  socklen_t salen = SocketAddress::GetAddrLength(addr);
   LOG_INFO("SocketBase::FormatNumericAddress: calling getnameinfo\n");
-  return (NO_RETRY_EXPECTED(getnameinfo(&addr.addr, salen, address, len,
+  return (NO_RETRY_EXPECTED(getnameinfo(&addr.addr, addr.size, address, len,
                                         nullptr, 0, NI_NUMERICHOST) == 0));
 }
 
@@ -182,30 +178,18 @@ intptr_t SocketBase::SendMessage(intptr_t fd,
   return -1;
 }
 
-bool SocketBase::GetSocketName(intptr_t fd, SocketAddress* p_sa) {
+bool SocketBase::GetSocketName(intptr_t fd, RawAddr* raw) {
   ASSERT(fd >= 0);
-  ASSERT(p_sa != nullptr);
-  RawAddr raw;
-  socklen_t size = sizeof(raw);
-  if (NO_RETRY_EXPECTED(getsockname(fd, &raw.addr, &size))) {
-    return false;
-  }
-
-  // sockaddr_un contains sa_family_t sun_family and char[] sun_path.
-  // If size is the size of sa_family_t, this is an unnamed socket and
-  // sun_path contains garbage.
-  new (p_sa) SocketAddress(&raw.addr,
-                           /*unnamed_unix_socket=*/size == sizeof(sa_family_t));
-  return true;
+  ASSERT(raw != nullptr);
+  return NO_RETRY_EXPECTED(getsockname(fd, &raw->addr, &raw->size)) == 0;
 }
 
 intptr_t SocketBase::GetPort(intptr_t fd) {
   IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
   ASSERT(handle->fd() >= 0);
   RawAddr raw;
-  socklen_t size = sizeof(raw);
   LOG_INFO("SocketBase::GetPort: calling getsockname(%ld)\n", handle->fd());
-  if (NO_RETRY_EXPECTED(getsockname(handle->fd(), &raw.addr, &size))) {
+  if (NO_RETRY_EXPECTED(getsockname(handle->fd(), &raw.addr, &raw.size))) {
     return 0;
   }
   return SocketAddress::GetAddrPort(raw);
@@ -215,12 +199,11 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
   ASSERT(handle->fd() >= 0);
   RawAddr raw;
-  socklen_t size = sizeof(raw);
-  if (NO_RETRY_EXPECTED(getpeername(handle->fd(), &raw.addr, &size))) {
+  if (NO_RETRY_EXPECTED(getpeername(handle->fd(), &raw.addr, &raw.size))) {
     return nullptr;
   }
   *port = SocketAddress::GetAddrPort(raw);
-  return new SocketAddress(&raw.addr);
+  return new SocketAddress(raw);
 }
 
 void SocketBase::GetError(intptr_t fd, OSError* os_error) {
@@ -279,7 +262,7 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   AddressList<SocketAddress>* addresses = new AddressList<SocketAddress>(count);
   for (struct addrinfo* c = info; c != nullptr; c = c->ai_next) {
     if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
-      addresses->SetAt(i, new SocketAddress(c->ai_addr));
+      addresses->SetAt(i, new SocketAddress(RawAddr::FromInet4or6(c->ai_addr)));
       i++;
     }
   }
@@ -357,9 +340,9 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
   for (struct ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
     if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
       char* ifa_name = DartUtils::ScopedCopyCString(ifa->ifa_name);
-      addresses->SetAt(
-          i, new InterfaceSocketAddress(ifa->ifa_addr, ifa_name,
-                                        if_nametoindex(ifa->ifa_name)));
+      addresses->SetAt(i, new InterfaceSocketAddress(
+                              RawAddr::FromInet4or6(ifa->ifa_addr), ifa_name,
+                              if_nametoindex(ifa->ifa_name)));
       i++;
     }
   }

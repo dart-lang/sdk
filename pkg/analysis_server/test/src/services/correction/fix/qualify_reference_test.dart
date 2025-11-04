@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class QualifyReferenceTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.QUALIFY_REFERENCE;
+  FixKind get kind => DartFixKind.qualifyReference;
 
   Future<void> test_class_direct() async {
     await resolveTestCode('''

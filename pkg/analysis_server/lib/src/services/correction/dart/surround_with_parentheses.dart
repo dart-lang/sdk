@@ -16,7 +16,7 @@ class SurroundWithParentheses extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.SURROUND_WITH_PARENTHESES;
+  FixKind get fixKind => DartFixKind.surroundWithParentheses;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

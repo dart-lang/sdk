@@ -1,0 +1,9 @@
+class A {}
+
+class B extends A {}
+
+extension type E1(A a) implements A {}
+
+extension type E2(B b) implements B, E1 {}
+
+test(E2 e) {}

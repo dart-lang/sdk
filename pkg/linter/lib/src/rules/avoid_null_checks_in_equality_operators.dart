@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -36,7 +37,7 @@ bool _isParameterWithQuestionQuestion(
     node.operator.type == TokenType.QUESTION_QUESTION &&
     _isParameter(node.leftOperand, parameter);
 
-class AvoidNullChecksInEqualityOperators extends LintRule {
+class AvoidNullChecksInEqualityOperators extends AnalysisRule {
   AvoidNullChecksInEqualityOperators()
     : super(
         name: LintNames.avoid_null_checks_in_equality_operators,
@@ -59,7 +60,7 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
 
 class _BodyVisitor extends RecursiveAstVisitor<void> {
   final Element? parameter;
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _BodyVisitor(this.parameter, this.rule);
 
@@ -92,7 +93,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

@@ -77,7 +77,7 @@ class DartSdkManager {
   Map<SdkDescription, DartSdk> sdkMap = HashMap<SdkDescription, DartSdk>();
 
   /// Initialize a newly created manager.
-  DartSdkManager(this.defaultSdkDirectory, [@deprecated bool? canUseSummaries]);
+  DartSdkManager(this.defaultSdkDirectory);
 
   /// Return any SDK that has been created, or `null` if no SDKs have been
   /// created.

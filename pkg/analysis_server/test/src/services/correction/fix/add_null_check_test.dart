@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class AddNullCheckReplaceWithNullAwareTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
+  FixKind get kind => DartFixKind.replaceWithNullAware;
 
   Future<void> test_cascade() async {
     await resolveTestCode('''
@@ -389,7 +389,7 @@ void g() {
 }
 ''');
     await assertNoFix(
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
@@ -402,7 +402,7 @@ void g(int i) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.argumentTypeNotAssignable;
       },
@@ -445,7 +445,7 @@ void g(int i, int? x) {
   f(i ?? x!);
 }
 ''',
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.argumentTypeNotAssignable;
       },
@@ -460,7 +460,7 @@ void g(int i, int x) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.argumentTypeNotAssignable;
       },
@@ -475,7 +475,7 @@ void g(int i, int? x) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) {
+      filter: (error) {
         return error.diagnosticCode ==
             CompileTimeErrorCode.argumentTypeNotAssignable;
       },
@@ -566,7 +566,7 @@ void f (List<int>? args) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode !=
           CompileTimeErrorCode.listElementTypeNotAssignable,
     );
@@ -616,7 +616,7 @@ f(List<String>? args) {
   });
 }
 ''',
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode !=
           CompileTimeErrorCode.yieldEachOfInvalidType,
     );
@@ -638,7 +638,7 @@ g() {
   }
 }
 ''',
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode ==
           CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach,
     );
@@ -660,7 +660,7 @@ class C {
   }
 }
 ''',
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode !=
           CompileTimeErrorCode.yieldEachOfInvalidType,
     );
@@ -678,7 +678,7 @@ Iterable<String> f(List<String>? args) sync* {
   yield* args!;
 }
 ''',
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode !=
           CompileTimeErrorCode.yieldEachOfInvalidType,
     );

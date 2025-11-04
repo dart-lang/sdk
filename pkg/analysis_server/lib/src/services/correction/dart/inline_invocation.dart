@@ -28,10 +28,10 @@ class InlineInvocation extends ResolvedCorrectionProducer {
   List<String> get fixArguments => ['add'];
 
   @override
-  FixKind get fixKind => DartFixKind.INLINE_INVOCATION;
+  FixKind get fixKind => DartFixKind.inlineInvocation;
 
   @override
-  FixKind get multiFixKind => DartFixKind.INLINE_INVOCATION_MULTI;
+  FixKind get multiFixKind => DartFixKind.inlineInvocationMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

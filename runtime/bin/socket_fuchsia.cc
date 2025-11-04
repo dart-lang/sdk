@@ -82,8 +82,8 @@ static intptr_t Create(const RawAddr& addr) {
 static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
   LOG_INFO("Connect: calling connect(%ld)\n", handle->fd());
-  intptr_t result = NO_RETRY_EXPECTED(
-      connect(handle->fd(), &addr.addr, SocketAddress::GetAddrLength(addr)));
+  intptr_t result =
+      NO_RETRY_EXPECTED(connect(handle->fd(), &addr.addr, addr.size));
   if ((result == 0) || (errno == EINPROGRESS)) {
     return reinterpret_cast<intptr_t>(handle);
   }
@@ -166,8 +166,7 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   }
 
   LOG_INFO("ServerSocket::CreateBindListen: calling bind(%ld)\n", fd);
-  if (NO_RETRY_EXPECTED(
-          bind(fd, &addr.addr, SocketAddress::GetAddrLength(addr))) < 0) {
+  if (NO_RETRY_EXPECTED(bind(fd, &addr.addr, addr.size)) < 0) {
     LOG_ERR("ServerSocket::CreateBindListen: bind(%ld) failed\n", fd);
     FDUtils::SaveErrorAndClose(fd);
     return -1;
@@ -229,10 +228,9 @@ static bool IsTemporaryAcceptError(int error) {
 intptr_t ServerSocket::Accept(intptr_t fd) {
   IOHandle* listen_handle = reinterpret_cast<IOHandle*>(fd);
   intptr_t socket;
-  struct sockaddr clientaddr;
-  socklen_t addrlen = sizeof(clientaddr);
+  RawAddr client_addr;
   LOG_INFO("ServerSocket::Accept: calling accept(%ld)\n", fd);
-  socket = listen_handle->Accept(&clientaddr, &addrlen);
+  socket = listen_handle->Accept(&client_addr);
   if (socket == -1) {
     if (IsTemporaryAcceptError(errno)) {
       // We need to signal to the caller that this is actually not an

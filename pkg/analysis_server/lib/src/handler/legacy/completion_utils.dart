@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/element/element.dart' as e;
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
@@ -81,7 +82,7 @@ Future<CompletionSuggestion?> candidateToCompletionSuggestion(
           false,
           displayText: data?.displayText ?? candidate.displayText,
         ),
-
+        FunctionCall functionCall => _getFunctionCallSuggestion(functionCall),
         MethodSuggestion(kind: var suggestionKind) =>
           // TODO(brianwilkerson): Correctly set the kind of suggestion in cases
           //  where `isFunctionalArgument` would return `true` so we can stop
@@ -195,23 +196,6 @@ Future<CompletionSuggestion?> candidateToCompletionSuggestion(
         isNotImportedLibrary,
         libraryUriStr,
         requiredImports,
-      );
-    case FunctionCall():
-      return CompletionSuggestion(
-        CompletionSuggestionKind.INVOCATION,
-        candidate.relevanceScore,
-        e.MethodElement.CALL_METHOD_NAME,
-        e.MethodElement.CALL_METHOD_NAME.length,
-        0,
-        false,
-        false,
-        displayText: candidate.completion,
-        element: _getElementForFunctionCall(),
-        returnType: 'void',
-        parameterNames: [],
-        parameterTypes: [],
-        requiredParameterCount: 0,
-        hasNamedParameters: false,
       );
     case IdentifierSuggestion():
       return CompletionSuggestion(
@@ -447,6 +431,48 @@ Future<CompletionSuggestion?> candidateToCompletionSuggestion(
   }
 }
 
+({
+  List<String> parameterNames,
+  List<String> parameterTypes,
+  int requiredParameterCount,
+  bool hasNamedParameters,
+  CompletionDefaultArgumentList defaultArgumentList,
+})
+createParametersCompletionData(
+  List<e.FormalParameterElement> formalParameters,
+) {
+  var parameterNames = formalParameters.map((parameter) {
+    return parameter.displayName;
+  }).toList();
+  var parameterTypes = formalParameters.map((
+    e.FormalParameterElement parameter,
+  ) {
+    return parameter.type.getDisplayString();
+  }).toList();
+
+  var requiredParameters = formalParameters.where(
+    (e.FormalParameterElement param) => param.isRequiredPositional,
+  );
+  var requiredParameterCount = requiredParameters.length;
+
+  var namedParameters = formalParameters.where(
+    (e.FormalParameterElement param) => param.isNamed,
+  );
+  var hasNamedParameters = namedParameters.isNotEmpty;
+
+  var defaultArgumentList = computeCompletionDefaultArgumentList(
+    requiredParameters,
+    namedParameters,
+  );
+  return (
+    parameterNames: parameterNames,
+    parameterTypes: parameterTypes,
+    requiredParameterCount: requiredParameterCount,
+    hasNamedParameters: hasNamedParameters,
+    defaultArgumentList: defaultArgumentList,
+  );
+}
+
 _ParameterData _createParameterData(e.Element element) {
   List<String>? parameterNames;
   List<String>? parameterTypes;
@@ -454,29 +480,14 @@ _ParameterData _createParameterData(e.Element element) {
   bool? hasNamedParameters;
   CompletionDefaultArgumentList? defaultArgumentList;
   if (element is e.ExecutableElement && element is! e.PropertyAccessorElement) {
-    parameterNames = element.formalParameters.map((parameter) {
-      return parameter.displayName;
-    }).toList();
-    parameterTypes = element.formalParameters.map((
-      e.FormalParameterElement parameter,
-    ) {
-      return parameter.type.getDisplayString();
-    }).toList();
-
-    var requiredParameters = element.formalParameters.where(
-      (e.FormalParameterElement param) => param.isRequiredPositional,
-    );
-    requiredParameterCount = requiredParameters.length;
-
-    var namedParameters = element.formalParameters.where(
-      (e.FormalParameterElement param) => param.isNamed,
-    );
-    hasNamedParameters = namedParameters.isNotEmpty;
-
-    defaultArgumentList = computeCompletionDefaultArgumentList(
-      element,
-      requiredParameters,
-      namedParameters,
+    (
+      :parameterNames,
+      :parameterTypes,
+      :requiredParameterCount,
+      :hasNamedParameters,
+      :defaultArgumentList,
+    ) = createParametersCompletionData(
+      element.formalParameters,
     );
   }
   return _ParameterData(
@@ -592,13 +603,44 @@ String? _getDeclaringType(e.Element element) {
   return declaringType;
 }
 
-Element _getElementForFunctionCall() {
+Element _getElementForFunctionCall(
+  FunctionType type,
+  String parameters,
+  String? typeParameters,
+) {
   return Element(
     ElementKind.METHOD,
     e.MethodElement.CALL_METHOD_NAME,
     Element.makeFlags(),
-    parameters: '()',
-    returnType: 'void',
+    parameters: parameters,
+    typeParameters: typeParameters,
+    returnType: type.returnType.getDisplayString(),
+  );
+}
+
+DartCompletionSuggestion _getFunctionCallSuggestion(FunctionCall functionCall) {
+  var FunctionCall(:kind, :relevanceScore, :completion, :type) = functionCall;
+  var record = createParametersCompletionData(type.formalParameters);
+  return DartCompletionSuggestion(
+    kind,
+    relevanceScore,
+    completion,
+    completion.length,
+    0,
+    false,
+    false,
+    displayText: completion,
+    element: _getElementForFunctionCall(
+      type,
+      '(${record.parameterNames.join(',')})',
+      record.parameterTypes.joinWithCommaAndSurroundWithAngle(),
+    ),
+    returnType: type.returnType.getDisplayString(),
+    parameterNames: record.parameterNames,
+    parameterTypes: record.parameterTypes,
+    requiredParameterCount: record.requiredParameterCount,
+    hasNamedParameters: record.hasNamedParameters,
+    defaultArgumentListString: record.defaultArgumentList.text,
   );
 }
 
@@ -770,4 +812,13 @@ class _ParameterData {
     this.hasNamedParameters,
     this.defaultArgumentList,
   );
+}
+
+extension on List<String> {
+  String? joinWithCommaAndSurroundWithAngle() {
+    if (isEmpty) {
+      return null;
+    }
+    return '<${join(', ')}>';
+  }
 }

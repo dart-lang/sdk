@@ -50,7 +50,7 @@ class B {
 @reflectiveTest
 class SortUnnamedConstructorFirstTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.SORT_UNNAMED_CONSTRUCTOR_FIRST;
+  FixKind get kind => DartFixKind.sortUnnamedConstructorFirst;
 
   @override
   String get lintCode => LintNames.sort_unnamed_constructors_first;

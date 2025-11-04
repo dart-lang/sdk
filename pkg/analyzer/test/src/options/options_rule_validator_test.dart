@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
@@ -104,17 +105,17 @@ include:
   - [!included2.yaml!]
 ''');
     await assertErrorsInCode(testCode.code, [
-      ExpectedError(
+      error(
         AnalysisOptionsWarningCode.incompatibleLintIncluded,
         testCode.range.sourceRange.offset,
         testCode.range.sourceRange.length,
-        expectedContextMessages: [
-          ExpectedContextMessage(
+        contextMessages: [
+          contextMessage(
             included2,
             included2Code.range.sourceRange.offset,
             included2Code.range.sourceRange.length,
           ),
-          ExpectedContextMessage(
+          contextMessage(
             included1,
             included1Code.range.sourceRange.offset,
             included1Code.range.sourceRange.length,
@@ -165,17 +166,17 @@ include:
   - [!included2.yaml!]
 ''');
     await assertErrorsInCode(testCode.code, [
-      ExpectedError(
+      error(
         AnalysisOptionsWarningCode.incompatibleLintIncluded,
         testCode.range.sourceRange.offset,
         testCode.range.sourceRange.length,
-        expectedContextMessages: [
-          ExpectedContextMessage(
+        contextMessages: [
+          contextMessage(
             included2,
             included2Code.range.sourceRange.offset,
             included2Code.range.sourceRange.length,
           ),
-          ExpectedContextMessage(
+          contextMessage(
             included1,
             included1Code.range.sourceRange.offset,
             included1Code.range.sourceRange.length,
@@ -240,12 +241,12 @@ linter:
     [!rule_pos!]: true
 ''');
     await assertErrorsInCode(testCode.code, [
-      ExpectedError(
+      error(
         AnalysisOptionsWarningCode.incompatibleLintFiles,
         testCode.range.sourceRange.offset,
         testCode.range.sourceRange.length,
-        expectedContextMessages: [
-          ExpectedContextMessage(
+        contextMessages: [
+          contextMessage(
             included,
             includedCode.range.sourceRange.offset,
             includedCode.range.sourceRange.length,
@@ -338,6 +339,19 @@ linter:
 include: included.yaml
 ''');
   }
+
+  /// https://github.com/dart-lang/sdk/issues/59869
+  test_removed_rule_previousSdk() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    - removed_in_2_12_lint
+''',
+      [AnalysisOptionsWarningCode.removedLint],
+      sdk: dart3_3,
+    );
+  }
 }
 
 @reflectiveTest
@@ -348,9 +362,9 @@ class OptionsRuleValidatorTest extends AbstractAnalysisOptionsTest
       '''
 linter:
   rules:
-    - deprecated_lint_with_replacement
+    - deprecated_lint
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLintWithReplacement],
+      [AnalysisOptionsWarningCode.deprecatedLint],
     );
   }
 
@@ -365,14 +379,26 @@ linter:
     );
   }
 
+  void test_deprecated_rule_previousSDK() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    - deprecated_since_3_lint
+''',
+      [AnalysisOptionsWarningCode.deprecatedLint],
+      sdk: dart3_3,
+    );
+  }
+
   void test_deprecated_rule_withReplacement() {
     assertErrors(
       '''
 linter:
   rules:
-    - deprecated_lint
+    - deprecated_lint_with_replacement
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLint],
+      [AnalysisOptionsWarningCode.deprecatedLintWithReplacement],
     );
   }
 
@@ -424,12 +450,12 @@ linter:
     - /*[1*/rule_neg/*1]*/
 ''');
     await assertErrorsInCode(testCode.code, [
-      ExpectedError(
+      error(
         AnalysisOptionsWarningCode.incompatibleLint,
         testCode.ranges.last.sourceRange.offset,
         testCode.ranges.last.sourceRange.length,
-        expectedContextMessages: [
-          ExpectedContextMessage(
+        contextMessages: [
+          contextMessage(
             analysisOptionsFile,
             testCode.ranges.first.sourceRange.offset,
             testCode.ranges.first.sourceRange.length,
@@ -447,12 +473,12 @@ linter:
     /*[1*/rule_neg/*1]*/: true
 ''');
     await assertErrorsInCode(testCode.code, [
-      ExpectedError(
+      error(
         AnalysisOptionsWarningCode.incompatibleLint,
         testCode.ranges.last.sourceRange.offset,
         testCode.ranges.last.sourceRange.length,
-        expectedContextMessages: [
-          ExpectedContextMessage(
+        contextMessages: [
+          contextMessage(
             analysisOptionsFile,
             testCode.ranges.first.sourceRange.offset,
             testCode.ranges.first.sourceRange.length,
@@ -722,11 +748,13 @@ class StableLint extends TestLintRule {
   StableLint() : super(name: 'stable_lint', state: RuleState.stable());
 }
 
-abstract class TestLintRule extends LintRule {
+abstract class TestLintRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'lint_code',
     'Lint code.',
     correctionMessage: 'Lint code.',
+    // ignore: deprecated_member_use_from_same_package
+    uniqueNameCheck: 'LintCode.lint_code',
   );
 
   TestLintRule({required super.name, super.state}) : super(description: '');

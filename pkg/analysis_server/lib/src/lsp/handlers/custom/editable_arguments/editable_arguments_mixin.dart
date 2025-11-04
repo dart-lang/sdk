@@ -132,8 +132,7 @@ mixin EditableArgumentsMixin {
     // first or look up whether a parameter is editable based on the argument.
     var parameterArguments = {
       for (var argument in argumentList.arguments)
-        if (argument.correspondingParameter case var parameter?)
-          parameter: argument,
+        ?argument.correspondingParameter: argument,
     };
 
     return (

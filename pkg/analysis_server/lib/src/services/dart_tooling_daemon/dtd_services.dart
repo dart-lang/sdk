@@ -12,6 +12,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/scheduler/scheduled_message.dart';
+import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:dtd/dtd.dart';
@@ -190,6 +191,11 @@ class DtdServices {
         responseCompleter: completer,
       ),
     );
+    _server.sessionLogger.logMessage(
+      from: ProcessId.dtd,
+      to: ProcessId.server,
+      message: message.toJson(),
+    );
     return completer.future;
   }
 
@@ -197,11 +203,7 @@ class DtdServices {
   /// closing the connection.
   void _handleError(Object? error, Object? stack) {
     _server.instrumentationService.logError(
-      [
-        'Failed to connect to/initialize DTD:',
-        error,
-        if (stack != null) stack,
-      ].join('\n'),
+      ['Failed to connect to/initialize DTD:', error, ?stack].join('\n'),
     );
 
     _close(DtdConnectionState.Error);

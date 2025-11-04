@@ -644,7 +644,7 @@ void foo(int a) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (e) {
+      filter: (e) {
         return e.diagnosticCode == CompileTimeErrorCode.invalidAssignment;
       },
     );

@@ -47,9 +47,12 @@ class ExpectedContextMessage {
     this.file,
     this.offset,
     this.length, {
-    this.text,
+    @Deprecated('Use textContains instead') this.text,
     this.textContains = const [],
-  });
+  }) : assert(
+         text == null || textContains.isEmpty,
+         'Use only one of text or textContains',
+       );
 
   /// Return `true` if the [message] matches this description of what it's
   /// expected to be.
@@ -64,8 +67,11 @@ class ExpectedContextMessage {
       return false;
     }
     var messageText = message.messageText(includeUrl: true);
-    if (text != null && messageText != text) {
-      return false;
+    List<Pattern> textContains;
+    if (text != null) {
+      textContains = [text!];
+    } else {
+      textContains = this.textContains;
     }
     for (var pattern in textContains) {
       if (!messageText.contains(pattern)) {
@@ -88,7 +94,7 @@ class ExpectedDiagnostic {
 
   /// A pattern that should be contained in the diagnostic message or `null` if
   /// the message contents should not be checked.
-  final Pattern? _messageContains;
+  final List<Pattern> _messageContains;
 
   /// A pattern that should be contained in the error's correction message, or
   /// `null` if the correction message contents should not be checked.
@@ -97,26 +103,38 @@ class ExpectedDiagnostic {
   /// The list of context messages that are expected to be associated with the
   /// error, or `null` if the context messages should not be checked.
   final List<ExpectedContextMessage>? _contextMessages;
-
   ExpectedDiagnostic(
     this.diagnosticMatcher,
     this.offset,
     this.length, {
-    Pattern? messageContains,
+    @Deprecated('Use messageContainsAll instead') Pattern? messageContains,
+    List<Pattern> messageContainsAll = const [],
     Pattern? correctionContains,
     List<ExpectedContextMessage>? contextMessages,
-  }) : _contextMessages = contextMessages,
-       _messageContains = messageContains,
+  }) : assert(
+         messageContains == null || messageContainsAll.isEmpty,
+         'Use only one of messageContains or messageContainsAll',
+       ),
+       _contextMessages = contextMessages,
+       _messageContains = messageContains != null
+           ? [messageContains]
+           : messageContainsAll,
        _correctionContains = correctionContains;
+
+  List<ExpectedContextMessage>? get contextMessages => _contextMessages;
+  Pattern? get correctionContains => _correctionContains;
+
+  List<Pattern> get messageContains => _messageContains;
 
   /// Whether the [diagnostic] matches this description of what it's expected to be.
   bool matches(Diagnostic diagnostic) {
     if (!diagnosticMatcher(diagnostic)) return false;
     if (diagnostic.offset != offset) return false;
     if (diagnostic.length != length) return false;
-    if (_messageContains != null &&
-        !diagnostic.message.contains(_messageContains)) {
-      return false;
+    for (var pattern in _messageContains) {
+      if (!diagnostic.message.contains(pattern)) {
+        return false;
+      }
     }
     if (_correctionContains != null) {
       var correctionMessage = diagnostic.correctionMessage;
@@ -144,12 +162,12 @@ class ExpectedDiagnostic {
 /// A description of an expected error.
 final class ExpectedError extends ExpectedDiagnostic {
   final DiagnosticCode _code;
-
   ExpectedError(
     this._code,
     int offset,
     int length, {
-    super.messageContains,
+    @Deprecated('Use messageContainsAll instead') super.messageContains,
+    super.messageContainsAll,
     super.correctionContains,
     super.contextMessages,
   }) : super(
@@ -157,17 +175,19 @@ final class ExpectedError extends ExpectedDiagnostic {
          offset,
          length,
        );
+
+  DiagnosticCode get code => _code;
 }
 
 /// A description of an expected lint rule violation.
 final class ExpectedLint extends ExpectedDiagnostic {
   final String _lintName;
-
   ExpectedLint(
     this._lintName,
     int offset,
     int length, {
-    super.messageContains,
+    @Deprecated('Use messageContainsAll instead') super.messageContains,
+    super.messageContainsAll,
     super.correctionContains,
     super.contextMessages,
   }) : super(
@@ -175,6 +195,8 @@ final class ExpectedLint extends ExpectedDiagnostic {
          offset,
          length,
        );
+
+  String get lintName => _lintName;
 }
 
 class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
@@ -445,13 +467,48 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
       }
       buffer.write(' [${expected.offset}, ');
       buffer.write(expected.length);
-      if (expected._messageContains case Pattern messageContains) {
+      if (expected._messageContains.isNotEmpty) {
         buffer.write(', messageContains: ');
-        buffer.write(json.encode(messageContains.toString()));
+        buffer.write(
+          json.encode([
+            for (var pattern in expected._messageContains) pattern.toString(),
+          ]),
+        );
       }
       if (expected._correctionContains case Pattern correctionContains) {
         buffer.write(', correctionContains: ');
         buffer.write(json.encode(correctionContains.toString()));
+      }
+
+      if (expected._contextMessages
+          case List(:var isNotEmpty) && var contextMessages when isNotEmpty) {
+        buffer.write(', contextMessages: [');
+        for (var i = 0; i < contextMessages.length; i++) {
+          var contextMessage = contextMessages[i];
+          if (i > 0) {
+            buffer.write(', ');
+          }
+          buffer.write('message(');
+          buffer.write(contextMessage.file.path);
+          buffer.write(', ');
+          buffer.write(contextMessage.offset);
+          buffer.write(', ');
+          buffer.write(contextMessage.length);
+          if (contextMessage.text != null) {
+            buffer.write(', text: ');
+            buffer.write(json.encode(contextMessage.text));
+          }
+          if (contextMessage.textContains.isNotEmpty) {
+            buffer.write(', textContains: ');
+            buffer.write(
+              json.encode([
+                for (var pattern in contextMessage.textContains)
+                  pattern.toString(),
+              ]),
+            );
+          }
+          buffer.write(')');
+        }
       }
       buffer.writeln(']');
     }
@@ -510,12 +567,42 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
       buffer.writeln();
     }
     buffer.writeln('Found but did not expect:');
-    for (var actual in unmatchedActual) {
-      buffer.write('  ${actual.diagnosticCode} [');
-      buffer.write('${actual.offset}, ${actual.length}, ${actual.message}');
-      if (actual.correctionMessage case Pattern correctionMessage) {
+    for (Diagnostic actual in unmatchedActual) {
+      buffer.write('  ');
+      buffer.write(actual.diagnosticCode);
+      buffer.write(' [');
+      buffer.write(actual.offset);
+      buffer.write(', ');
+      buffer.write(actual.length);
+      buffer.write(', ');
+      buffer.write(json.encode(actual.message));
+      if (actual.correctionMessage != null) {
         buffer.write(', ');
-        buffer.write(json.encode(correctionMessage));
+        buffer.write(json.encode(actual.correctionMessage));
+      }
+      if (actual.contextMessages.isNotEmpty) {
+        buffer.write(', contextMessages: [');
+        for (var i = 0; i < actual.contextMessages.length; i++) {
+          var message = actual.contextMessages[i];
+          if (i > 0) {
+            buffer.write(', ');
+          }
+          buffer.write('message(');
+          // Special case for `testFile`, used very often.
+          switch (message.filePath) {
+            case '/home/test/lib/test.dart':
+              buffer.write('testFile');
+            case var filePath:
+              buffer.write("'$filePath'");
+          }
+          buffer.write(', ');
+          buffer.write(message.offset);
+          buffer.write(', ');
+          buffer.write(message.length);
+          buffer.write(', ');
+          buffer.write(json.encode(message.messageText(includeUrl: false)));
+          buffer.write(')');
+        }
       }
       buffer.writeln(']');
     }
@@ -526,6 +613,8 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     newFile(path, config.toContent(pathContext: pathContext));
   }
 
+  /// Writes a `package_config.json` file from [config], and for packages that
+  /// have been added via [newPackage].
   void writeTestPackageConfig(PackageConfigFileBuilder config) {
     var configCopy = config.copy();
 
@@ -571,6 +660,11 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
       );
     }
 
+    for (var packageName in _packagesToAdd) {
+      var packagePath = convertPath('/package/$packageName');
+      configCopy.add(name: packageName, rootPath: packagePath);
+    }
+
     var path = '$testPackageRootPath/.dart_tool/package_config.json';
     writePackageConfig(path, configCopy);
   }
@@ -613,5 +707,38 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
   void _writeTestPackagePubspecYamlFile(String content) {
     newPubspecYamlFile(testPackageRootPath, content);
+  }
+
+  /// The names of packages which should be added to the
+  /// [PackageConfigFileBuilder].
+  final Set<String> _packagesToAdd = {};
+
+  /// Registers a package named [name].
+  ///
+  /// The returned [PackageBuilder] can be used to add Dart source files in the
+  /// package sources, via [PackageBuilder.addFile].
+  PackageBuilder newPackage(String name) {
+    var packagePath = convertPath('/package/$name');
+    _packagesToAdd.add(name);
+    return PackageBuilder._(packagePath, this);
+  }
+}
+
+/// A builder for package files (for example, mocks); generally accessed via
+/// [PubPackageResolutionTest.newPackage].
+class PackageBuilder {
+  final String _packagePath;
+  final PubPackageResolutionTest _test;
+
+  PackageBuilder._(String packagePath, PubPackageResolutionTest test)
+    : _packagePath = packagePath,
+      _test = test;
+
+  /// Adds a file to [PubPackageResolutionTest.resourceProvider].
+  ///
+  /// The file is added at [localPath] relative to the package path of this
+  /// [PackageBuilder], with [content].
+  void addFile(String localPath, String content) {
+    _test.newFile('$_packagePath/$localPath', content);
   }
 }

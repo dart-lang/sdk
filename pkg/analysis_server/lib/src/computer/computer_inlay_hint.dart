@@ -38,6 +38,20 @@ class DartInlayHintComputer {
        _lineInfo = result.lineInfo,
        _config = config ?? LspClientInlayHintsConfiguration(null);
 
+  /// Adds a type hint before [period] showing a label for the type [type].
+  void addDotShorthandTypePrefix(Token period, DartType? type) {
+    if (type == null) {
+      return;
+    }
+
+    _addTypePrefix(
+      period,
+      type,
+      _InlayHintKind.dotShorthandType,
+      paddingRight: false,
+    );
+  }
+
   /// Adds a parameter name hint before [nodeOrToken] showing a the name for
   /// [parameter].
   ///
@@ -80,7 +94,12 @@ class DartInlayHintComputer {
   ///
   /// Padding will be added between the hint and [entity] automatically.
   void addParameterTypePrefix(SyntacticEntity entity, DartType type) {
-    _addTypePrefix(entity, type, _InlayHintKind.parameterType);
+    _addTypePrefix(
+      entity,
+      type,
+      _InlayHintKind.parameterType,
+      paddingRight: true,
+    );
   }
 
   /// Adds a return type hint before [token] showing a label for the type
@@ -88,7 +107,7 @@ class DartInlayHintComputer {
   ///
   /// Padding will be added between the hint and [token] automatically.
   void addReturnTypePrefix(Token token, DartType type) {
-    _addTypePrefix(token, type, _InlayHintKind.returnType);
+    _addTypePrefix(token, type, _InlayHintKind.returnType, paddingRight: true);
   }
 
   /// Adds a type hint for [nodeOrToken] showing a label for type arguments
@@ -128,7 +147,12 @@ class DartInlayHintComputer {
   ///
   /// Padding will be added between the hint and [entity] automatically.
   void addVariableTypePrefix(SyntacticEntity entity, DartType type) {
-    _addTypePrefix(entity, type, _InlayHintKind.variableType);
+    _addTypePrefix(
+      entity,
+      type,
+      _InlayHintKind.variableType,
+      paddingRight: true,
+    );
   }
 
   List<InlayHint> compute() {
@@ -157,6 +181,7 @@ class DartInlayHintComputer {
   /// Record [hint] if the user configuration has [kind] enabled.
   void _addHint(InlayHint hint, _InlayHintKind kind) {
     var isEnabled = switch (kind) {
+      _InlayHintKind.dotShorthandType => _config.dotShorthandTypesEnabled,
       _InlayHintKind.parameterNameLiteral =>
         _config.parameterNamesMode != InlayHintsParameterNamesMode.none,
       _InlayHintKind.parameterNameNonLiteral =>
@@ -174,12 +199,15 @@ class DartInlayHintComputer {
 
   /// Adds a type hint before [nodeOrToken] showing a label for the type [type].
   ///
-  /// Padding will be added between the hint and [nodeOrToken] automatically.
+  /// If [paddingRight] is `true`, padding will be added to the right of the
+  /// type name automatically (which is desired except in the case where the
+  /// following character is a `.` such as a dot shorthand).
   void _addTypePrefix(
     SyntacticEntity nodeOrToken,
     DartType type,
-    _InlayHintKind inlayHintKind,
-  ) {
+    _InlayHintKind inlayHintKind, {
+    required bool paddingRight,
+  }) {
     var offset = nodeOrToken.offset;
     var position = toPosition(_lineInfo.getLocation(offset));
     var labelParts = <InlayHintLabelPart>[];
@@ -189,7 +217,7 @@ class DartInlayHintComputer {
         label: Either2<List<InlayHintLabelPart>, String>.t1(labelParts),
         position: position,
         kind: InlayHintKind.Type,
-        paddingRight: true,
+        paddingRight: paddingRight,
       ),
       inlayHintKind,
     );
@@ -357,6 +385,29 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    super.visitDotShorthandConstructorInvocation(node);
+
+    _computer.addDotShorthandTypePrefix(node.period, node.staticType);
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    super.visitDotShorthandInvocation(node);
+
+    _computer.addDotShorthandTypePrefix(node.period, node.staticType);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    super.visitDotShorthandPropertyAccess(node);
+
+    _computer.addDotShorthandTypePrefix(node.period, node.staticType);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     super.visitFunctionDeclaration(node);
 
@@ -489,10 +540,11 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
 ///
 /// Each of these can be mapped into a configuration setting that controls it.
 enum _InlayHintKind {
+  dotShorthandType,
   parameterNameLiteral,
   parameterNameNonLiteral,
-  returnType,
   parameterType,
-  variableType,
+  returnType,
   typeArgument,
+  variableType,
 }
