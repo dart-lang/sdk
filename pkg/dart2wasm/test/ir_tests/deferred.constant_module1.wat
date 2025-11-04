@@ -6,6 +6,8 @@
   (type $Array<_Type> <...>)
   (type $JSStringImpl <...>)
   (type $type20 <...>)
+  (type $_TopType <...>)
+  (type $Array<_NamedParameter> <...>)
   (type $_FunctionType <...>)
   (type $#ClosureBase <...>)
   (type $#Vtable-0-1 <...>)
@@ -23,8 +25,12 @@
   (func $print (import "module0" "func5") (param (ref null $#Top)) (result (ref null $#Top)))
   (func $JSStringImpl._interpolate (import "module0" "func6") (param (ref $Array<Object?>)) (result (ref $JSStringImpl)))
   (global $"C21 \")\"" (import "module0" "global0") (ref $JSStringImpl))
-  (global $"C28 _InterfaceType" (import "module0" "global5") (ref $_InterfaceType))
-  (global $"C455 _FunctionType" (import "module0" "global7") (ref $_FunctionType))
+  (global $"C1 WasmArray<_Type>[0]" (import "module0" "global1") (ref $Array<_Type>))
+  (global $"C331 _TopType" (import "module0" "global2") (ref $_TopType))
+  (global $"C62 WasmArray<_Type>[1]" (import "module0" "global3") (ref $Array<_Type>))
+  (global $"C306 WasmArray<_NamedParameter>[0]" (import "module0" "global4") (ref $Array<_NamedParameter>))
+  (global $"C455 _FunctionType" (import "module0" "global5") (ref null $_FunctionType))
+  (global $"C28 _InterfaceType" (import "module0" "global8") (ref $_InterfaceType))
   (global $S.globalH1Bar< (import "S" "globalH1Bar<") (ref extern))
   (global $global7 (ref $#Vtable-1-1) <...>)
   (global $global4 (ref $#DummyStruct) <...>)
@@ -97,8 +103,9 @@
   (func $instantiation constant trampoline (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (result (ref null $#Top)) <...>)
   (func $"C462 H1 (lazy initializer)}" (result (ref $H1))
     (local $var0 (ref $#Closure-1-1))
-    (local $var1 (ref $#Closure-0-1))
-    (local $var2 (ref $H1))
+    (local $var1 (ref $_FunctionType))
+    (local $var2 (ref $#Closure-0-1))
+    (local $var3 (ref $H1))
     i32.const 105
     i32.const 0
     block $label0 (result (ref $#Closure-0-1))
@@ -125,15 +132,32 @@
       ref.func $"#dummy function (ref struct) -> (ref null #Top)"
       ref.func $"instantiation constant trampoline"
       struct.new $#Vtable-0-1
-      global.get $"C455 _FunctionType"
+      block $label2 (result (ref $_FunctionType))
+        global.get $"C455 _FunctionType"
+        br_on_non_null $label2
+        i32.const 12
+        i32.const 0
+        i32.const 0
+        i64.const 0
+        global.get $"C1 WasmArray<_Type>[0]"
+        global.get $"C1 WasmArray<_Type>[0]"
+        global.get $"C331 _TopType"
+        global.get $"C62 WasmArray<_Type>[1]"
+        i64.const 1
+        global.get $"C306 WasmArray<_NamedParameter>[0]"
+        struct.new $_FunctionType
+        local.tee $var1
+        global.set $"C455 _FunctionType"
+        local.get $var1
+      end $label2
       struct.new $#Closure-0-1
-      local.tee $var1
+      local.tee $var2
       global.set $"C461 InstantiationConstant(globalH1Foo<int>)"
-      local.get $var1
+      local.get $var2
     end $label0
     struct.new $H1
-    local.tee $var2
+    local.tee $var3
     global.set $"C462 H1"
-    local.get $var2
+    local.get $var3
   )
 )
