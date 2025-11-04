@@ -82,6 +82,9 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
+import 'package:analyzer/src/workspace/basic.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
@@ -951,7 +954,7 @@ abstract class AnalysisServer {
     var transitiveFilePaths = <String>{};
     var transitiveFileUniqueLineCount = 0;
     var libraryCycles = <LibraryCycle>{};
-    var workspaceTypes = <int>[0, 0, 0];
+    var workspaceTypes = List<int>.filled(5, 0);
     var numberOfPackages = <int>[];
     var driverMap = contextManager.driverMap;
     for (var entry in driverMap.entries) {
@@ -962,17 +965,21 @@ abstract class AnalysisServer {
         var contextRoot = analysisContext.contextRoot;
         packagesFileMap[rootPath] = contextRoot.packagesFile;
         var workspace = contextRoot.workspace;
-        if (workspace is PackageConfigWorkspace) {
-          if (workspace.isPubWorkspace) {
-            // Pub workspace index = 2, Package workspace index = 1
-            workspaceTypes[2]++;
-            numberOfPackages.add(workspace.allPackages.length);
-          } else {
-            workspaceTypes[1]++;
-          }
-        } else {
-          // Blaze, GN or other workspace index  = 0
-          workspaceTypes[0]++;
+        switch (workspace) {
+          case PackageConfigWorkspace():
+            if (workspace.isPubWorkspace) {
+              // Pub workspace index = 2, Package workspace index = 1
+              workspaceTypes[2]++;
+              numberOfPackages.add(workspace.allPackages.length);
+            } else {
+              workspaceTypes[1]++;
+            }
+          case BlazeWorkspace():
+            workspaceTypes[3]++;
+          case GnWorkspace():
+            workspaceTypes[4]++;
+          case BasicWorkspace():
+            workspaceTypes[0]++;
         }
       }
       var fileSystemState = driver.fsState;
