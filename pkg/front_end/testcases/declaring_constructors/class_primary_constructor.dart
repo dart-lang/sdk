@@ -13,3 +13,15 @@ class C3() {
 class const C4() { // Error
   int? i;
 }
+
+test() {
+  new C3();
+  new C4();
+  const C4();
+}
+
+main() {
+  new C1();
+  new C2();
+  const C2();
+}

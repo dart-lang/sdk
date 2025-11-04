@@ -39,3 +39,26 @@ class C4 extends core::Object /*hasConstConstructor*/  {
     : super core::Object::•()
     ;
 }
+static method test() → dynamic {
+  new self::C3::•();
+  new self::C4::•();
+  #C2;
+}
+static method main() → dynamic {
+  new self::C1::•();
+  new self::C2::•();
+  #C3;
+}
+
+constants  {
+  #C1 = null
+  #C2 = self::C4 {i:#C1}
+  #C3 = self::C2 {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///class_primary_constructor.dart:
+- C4. (from org-dartlang-testcase:///class_primary_constructor.dart:13:15)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- C2. (from org-dartlang-testcase:///class_primary_constructor.dart:7:15)

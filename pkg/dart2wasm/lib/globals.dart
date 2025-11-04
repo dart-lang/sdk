@@ -72,6 +72,25 @@ class Globals {
     return global.type.type;
   }
 
+  /// Dual to [readGlobal]
+  void writeGlobal(w.InstructionsBuilder b, w.Global global) {
+    final owningModule = translator.moduleToBuilder[global.enclosingModule]!;
+    final callingModule = b.moduleBuilder;
+    if (owningModule == callingModule) {
+      b.global_set(global);
+    } else if (translator.isMainModule(owningModule)) {
+      final importedGlobal = _globalsModuleMap.get(global, callingModule);
+      b.global_set(importedGlobal);
+    } else {
+      // NOTE: Currently unused but we can support this just like in
+      // [readGlobal] via an indirect call to a setter function that's installed
+      // by the global-owning module.
+      throw UnsupportedError(
+          'Currently we can only write to globals in the main module or in the '
+          'local module in which the write happens.');
+    }
+  }
+
   /// Return (and if needed create) the Wasm global corresponding to a static
   /// field.
   w.Global getGlobalForStaticField(Field field) {

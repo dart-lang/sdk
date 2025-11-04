@@ -1596,13 +1596,15 @@ class FragmentFactoryImpl implements FragmentFactory {
   @override
   void addPrimaryConstructorField({
     required List<MetadataBuilder>? metadata,
+    required Modifiers modifiers,
     required TypeBuilder type,
     required String name,
     required int nameOffset,
   }) {
-    _declarationFragments.current.addPrimaryConstructorField(
+    _declarationFragments.current.registerPrimaryConstructorField(
       _addPrimaryConstructorField(
         metadata: metadata,
+        modifiers: modifiers,
         type: type,
         name: name,
         nameOffset: nameOffset,
@@ -2143,6 +2145,7 @@ class FragmentFactoryImpl implements FragmentFactory {
 
   PrimaryConstructorFieldFragment _addPrimaryConstructorField({
     required List<MetadataBuilder>? metadata,
+    required Modifiers modifiers,
     required TypeBuilder type,
     required String name,
     required int nameOffset,
@@ -2155,6 +2158,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           fileUri: _compilationUnit.fileUri,
           nameOffset: nameOffset,
           metadata: metadata,
+          modifiers: modifiers,
           type: type,
           enclosingScope: enclosingDeclaration.bodyScope,
           enclosingDeclaration: enclosingDeclaration,

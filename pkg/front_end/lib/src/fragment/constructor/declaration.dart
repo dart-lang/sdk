@@ -1291,9 +1291,7 @@ class PrimaryConstructorDeclaration
     returnType.registerInferredTypeListener(this);
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
-        if (formal.isInitializingFormal ||
-            // Coverage-ignore(suite): Not run.
-            formal.isSuperInitializingFormal) {
+        if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
           formal.type.registerInferable(inferable);
         }
       }

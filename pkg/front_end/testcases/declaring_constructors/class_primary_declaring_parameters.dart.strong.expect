@@ -1,0 +1,102 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/declaring_constructors/class_primary_declaring_parameters.dart:13:15: Error: Constructor is marked 'const' so all fields must be final.
+// class const C5(var int a) {} // Error
+//               ^
+// pkg/front_end/testcases/declaring_constructors/class_primary_declaring_parameters.dart:13:24: Context: Field isn't final, but constructor is 'const'.
+// class const C5(var int a) {} // Error
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  constructor •(core::int a, [core::int? b = #C1]) → self::C1
+    : super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  field core::int a;
+  field core::int? b;
+  constructor •(core::int a, [core::int? b = #C1]) → self::C2
+    : self::C2::a = a, self::C2::b = b, super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  final field core::int a;
+  final field core::int? b;
+  constructor •(final core::int a, [final core::int? b = #C1]) → self::C3
+    : self::C3::a = a, self::C3::b = b, super core::Object::•()
+    ;
+}
+class C4 extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::int a) → self::C4
+    : super core::Object::•()
+    ;
+}
+class C5 extends core::Object /*hasConstConstructor*/  {
+  field core::int a;
+  const constructor •(core::int a) → self::C5
+    : self::C5::a = a, super core::Object::•()
+    ;
+}
+class C6 extends core::Object /*hasConstConstructor*/  {
+  final field core::int b;
+  const constructor •(final core::int b) → self::C6
+    : self::C6::b = b, super core::Object::•()
+    ;
+}
+class C7 extends core::Object {
+  constructor •({core::int? a = #C1, required core::int b}) → self::C7
+    : super core::Object::•()
+    ;
+}
+class C8 extends core::Object {
+  field core::int? a;
+  field core::int b;
+  constructor •({core::int? a = #C1, required core::int b}) → self::C8
+    : self::C8::a = a, self::C8::b = b, super core::Object::•()
+    ;
+}
+class C9 extends core::Object {
+  final field core::int? a;
+  final field core::int b;
+  constructor •({final core::int? a = #C1, required final core::int b}) → self::C9
+    : self::C9::a = a, self::C9::b = b, super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  new self::C1::•(0);
+  new self::C1::•(0, 1);
+  new self::C2::•(0);
+  new self::C2::•(0, 1);
+  new self::C3::•(0);
+  new self::C3::•(0, 1);
+  new self::C4::•(0);
+  #C2;
+  new self::C5::•(0);
+  new self::C6::•(0);
+  #C4;
+  new self::C7::•(b: 1);
+  new self::C7::•(a: 0, b: 1);
+  new self::C8::•(b: 1);
+  new self::C8::•(a: 0, b: 1);
+  new self::C9::•(b: 1);
+  new self::C9::•(a: 0, b: 1);
+}
+
+constants  {
+  #C1 = null
+  #C2 = self::C4 {}
+  #C3 = 0
+  #C4 = self::C6 {b:#C3}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///class_primary_declaring_parameters.dart:
+- C4. (from org-dartlang-testcase:///class_primary_declaring_parameters.dart:11:15)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- C6. (from org-dartlang-testcase:///class_primary_declaring_parameters.dart:15:15)

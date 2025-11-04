@@ -364,6 +364,7 @@ abstract class FragmentFactory {
 
   void addPrimaryConstructorField({
     required List<MetadataBuilder>? metadata,
+    required Modifiers modifiers,
     required TypeBuilder type,
     required String name,
     required int nameOffset,
