@@ -5,6 +5,7 @@
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -42,6 +43,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       '',
       notificationManager,
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
     );
   }
 
@@ -393,6 +395,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
       sdkPath,
       notificationManager,
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
     );
   }
 

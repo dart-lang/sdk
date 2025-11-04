@@ -351,6 +351,7 @@ abstract class AnalysisServer {
       sdkManager.defaultSdkDirectory,
       notificationManager,
       instrumentationService,
+      sessionLogger,
     );
     var pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
 
