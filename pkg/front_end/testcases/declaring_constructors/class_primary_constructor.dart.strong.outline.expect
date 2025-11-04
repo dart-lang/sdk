@@ -22,3 +22,7 @@ class C4 extends core::Object /*hasConstConstructor*/  {
     : super core::Object::•()
     ;
 }
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

@@ -1149,21 +1149,18 @@ class DietListener extends StackListenerImpl {
       // TODO(johnniwinther): Handle [ParserRecovery].
       pop() as Identifier;
     }
-    // TODO(johnniwinther): Support primary constructors in general.
-    if (forExtensionType) {
-      FunctionFragment functionFragment = _offsetMap.lookupPrimaryConstructor(
-        beginToken,
+    FunctionFragment functionFragment = _offsetMap.lookupPrimaryConstructor(
+      beginToken,
+    );
+    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+        .createFunctionBodyBuildingContext();
+    if (functionBodyBuildingContext.shouldBuild) {
+      libraryBuilder.loader.createResolver().buildPrimaryConstructor(
+        libraryBuilder: libraryBuilder,
+        functionBodyBuildingContext: functionBodyBuildingContext,
+        fileUri: uri,
+        startToken: formalsToken,
       );
-      FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
-          .createFunctionBodyBuildingContext();
-      if (functionBodyBuildingContext.shouldBuild) {
-        libraryBuilder.loader.createResolver().buildPrimaryConstructor(
-          libraryBuilder: libraryBuilder,
-          functionBodyBuildingContext: functionBodyBuildingContext,
-          fileUri: uri,
-          startToken: formalsToken,
-        );
-      }
     }
 
     // The [memberScope] is set in [beginClassOrMixinOrExtensionBody] and

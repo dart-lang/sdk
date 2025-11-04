@@ -62,7 +62,9 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
       DeclarationFragmentKind.extensionTypeDeclaration;
 
   @override
-  void addPrimaryConstructorField(PrimaryConstructorFieldFragment fragment) {
+  void registerPrimaryConstructorField(
+    PrimaryConstructorFieldFragment fragment,
+  ) {
     primaryConstructorFields.add(fragment);
   }
 

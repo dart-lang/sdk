@@ -9,3 +9,7 @@ class const C2() {}
 class const C4() {
   int? i;
 }
+
+main() {}
+
+test() {}
