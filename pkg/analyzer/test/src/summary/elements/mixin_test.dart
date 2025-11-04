@@ -13,9 +13,9 @@ import '../elements_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinElementTest_keepLinking);
-    defineReflectiveTests(MixinElementTest_keepLinking_declaringConstructors);
     defineReflectiveTests(MixinElementTest_fromBytes);
-    defineReflectiveTests(MixinElementTest_fromBytes_declaringConstructors);
+    defineReflectiveTests(MixinElementTest_declaringConstructors_keepLinking);
+    defineReflectiveTests(MixinElementTest_declaringConstructors_fromBytes);
     defineReflectiveTests(MixinElementTest_augmentation_fromBytes);
     defineReflectiveTests(MixinElementTest_augmentation_keepLinking);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -5794,6 +5794,47 @@ class MixinElementTest_augmentation_keepLinking
   bool get keepLinkingLibraries => true;
 }
 
+abstract class MixinElementTest_declaringConstructors
+    extends MixinElementTest {}
+
+@reflectiveTest
+class MixinElementTest_declaringConstructors_fromBytes
+    extends MixinElementTest_declaringConstructors {
+  @override
+  bool get keepLinkingLibraries => false;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
+}
+
+@reflectiveTest
+class MixinElementTest_declaringConstructors_keepLinking
+    extends MixinElementTest_declaringConstructors {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
+}
+
 @reflectiveTest
 class MixinElementTest_fromBytes extends MixinElementTest {
   @override
@@ -5801,45 +5842,7 @@ class MixinElementTest_fromBytes extends MixinElementTest {
 }
 
 @reflectiveTest
-class MixinElementTest_fromBytes_declaringConstructors
-    extends MixinElementTest {
-  @override
-  bool get keepLinkingLibraries => false;
-
-  @override
-  void setUp() {
-    useDeclaringConstructorsAst = true;
-    super.setUp();
-  }
-
-  @override
-  Future<void> tearDown() {
-    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
-    return super.tearDown();
-  }
-}
-
-@reflectiveTest
 class MixinElementTest_keepLinking extends MixinElementTest {
   @override
   bool get keepLinkingLibraries => true;
-}
-
-@reflectiveTest
-class MixinElementTest_keepLinking_declaringConstructors
-    extends MixinElementTest {
-  @override
-  bool get keepLinkingLibraries => true;
-
-  @override
-  void setUp() {
-    useDeclaringConstructorsAst = true;
-    super.setUp();
-  }
-
-  @override
-  Future<void> tearDown() {
-    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
-    return super.tearDown();
-  }
 }

@@ -221,9 +221,6 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   final String testPackageName = 'test';
 
-  /// Whether to automatically normalize line endings for the current platform.
-  bool useLineEndingsForPlatform = true;
-
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, an empty list if there are no experiments that should be enabled.
   List<String> get experiments => experimentsForTests;
@@ -277,9 +274,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   // TODO(scheglov): rename
   void addTestFile(String content) {
-    parsedTestCode = useLineEndingsForPlatform
-        ? TestCode.parseNormalized(content)
-        : TestCode.parse(content);
+    parsedTestCode = TestCode.parseNormalized(content);
     newFile(testFilePath, parsedTestCode.code);
   }
 
@@ -322,9 +317,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   @override
   File newFile(String path, String content) {
-    if (useLineEndingsForPlatform) {
-      content = normalizeNewlinesForPlatform(content);
-    }
+    content = normalizeNewlinesForPlatform(content);
     return super.newFile(path, content);
   }
 

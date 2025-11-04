@@ -1324,7 +1324,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       );
 
       if (useDeclaringConstructorsAst) {
-        node.namePart.typeParameters?.accept(this);
+        node.namePart.accept(this);
         node.body.members.accept(this);
       } else {
         node.typeParameters?.accept(this);
@@ -1828,7 +1828,8 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     }
 
     var fragment = ConstructorFragmentImpl(name: fragmentName);
-    fragment.isConst = node.constKeyword != null;
+    fragment.isConst =
+        node.constKeyword != null || node.parent is EnumDeclarationImpl;
     fragment.typeName = node.typeName.lexeme;
     _linker.elementNodes[fragment] = node;
 

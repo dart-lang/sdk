@@ -76,9 +76,7 @@ abstract class AbstractCompletionDriverTest
   @override
   @protected
   Future<List<CompletionSuggestion>> addTestFile(String content) async {
-    if (useLineEndingsForPlatform) {
-      content = normalizeNewlinesForPlatform(content);
-    }
+    content = normalizeNewlinesForPlatform(content);
     driver.addTestFile(content);
 
     // Wait after adding the test file, this might affect diagnostics.
