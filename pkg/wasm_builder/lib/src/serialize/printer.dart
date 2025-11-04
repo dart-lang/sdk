@@ -20,12 +20,15 @@ class ModulePrinter {
       _TagNamer(settings.scrubAbsoluteUris, _module, enqueueTag);
   late final tableNamer =
       _TableNamer(settings.scrubAbsoluteUris, _module, enqueueTable);
+  late final dataNamer =
+      _DataNamer(settings.scrubAbsoluteUris, _module, enqueueDataSegment);
 
   final _types = <ir.DefType, String>{};
   final _tags = <ir.Tag, String>{};
   final _tables = <ir.Table, String>{};
   final _globals = <ir.Global, String>{};
   final _functions = <ir.BaseFunction, String>{};
+  final _dataSegments = <ir.BaseDataSegment, String>{};
 
   final _typeQueue = Queue<ir.DefType>();
   final _functionsQueue = Queue<ir.DefinedFunction>();
@@ -37,7 +40,7 @@ class ModulePrinter {
   ModulePrinter(this._module, {this.settings = const ModulePrintSettings()});
 
   IrPrinter newIrPrinter() => IrPrinter._(settings.preferMultiline, _module,
-      typeNamer, globalNamer, functionNamer, tagNamer, tableNamer);
+      typeNamer, globalNamer, functionNamer, tagNamer, tableNamer, dataNamer);
 
   void enqueueType(ir.DefType type) {
     if (!_types.containsKey(type)) {
@@ -81,6 +84,17 @@ class ModulePrinter {
       _generateTable(table,
           includeElements: settings.printTableElements(
               tableNamer.nameTable(table, activateOnReferenceCallback: false)));
+    }
+  }
+
+  void enqueueDataSegment(ir.BaseDataSegment dataSegment) {
+    if (!_dataSegments.containsKey(dataSegment)) {
+      // Since below `printTo` will call namer to name the data segment which
+      // will trigger this callback again if not pre-initialized to ''.
+      _dataSegments[dataSegment] = '';
+      final ip = newIrPrinter();
+      dataSegment.printTo(ip);
+      _dataSegments[dataSegment] = ip.getText();
     }
   }
 
@@ -160,6 +174,13 @@ class ModulePrinter {
       }
       for (final fun in _module.functions.defined) {
         final s = _functions[fun];
+        if (s != null) {
+          mp.write(s);
+          mp.writeln();
+        }
+      }
+      for (final d in _module.dataSegments.defined) {
+        final s = _dataSegments[d];
         if (s != null) {
           mp.write(s);
           mp.writeln();
@@ -343,17 +364,25 @@ class IrPrinter extends IndentPrinter {
   final _FunctionNamer _functionNamer;
   final _TagNamer _tagNamer;
   final _TableNamer _tableNamer;
+  final _DataNamer _dataNamer;
 
   _LocalNamer? _localNamer;
   final _labelNamer = _LabelNamer();
 
-  IrPrinter._(this.preferMultiline, this.module, this._typeNamer,
-      this._globalNamer, this._functionNamer, this._tagNamer, this._tableNamer);
+  IrPrinter._(
+      this.preferMultiline,
+      this.module,
+      this._typeNamer,
+      this._globalNamer,
+      this._functionNamer,
+      this._tagNamer,
+      this._tableNamer,
+      this._dataNamer);
 
   /// Returns a new [IrPrinter] with same settings, but empty indentation,
   /// empty text content and no local namer.
   IrPrinter dup() => IrPrinter._(preferMultiline, module, _typeNamer,
-      _globalNamer, _functionNamer, _tagNamer, _tableNamer);
+      _globalNamer, _functionNamer, _tagNamer, _tableNamer, _dataNamer);
 
   void beginLabeledBlock(ir.Instruction? instruction) {
     _labelNamer.stack.add(LabelInfo(instruction));
@@ -480,7 +509,7 @@ class IrPrinter extends IndentPrinter {
   }
 
   void writeDataReference(ir.BaseDataSegment dataSegment) {
-    throw UnimplementedError();
+    write(_dataNamer.nameDataSegment(dataSegment));
   }
 
   void writeMemoryReference(ir.Memory memory) {
@@ -609,6 +638,14 @@ class _GlobalNamer extends _Namer<ir.Global> {
       gn = '${global.module}.${global.name}';
     }
     return super._name(global, gn, 'global', activateOnReferenceCallback);
+  }
+}
+
+class _DataNamer extends _Namer<ir.BaseDataSegment> {
+  _DataNamer(super.scubUris, super.module, super.onReference);
+
+  String nameDataSegment(ir.BaseDataSegment data) {
+    return super._name(data, null, 'data', true);
   }
 }
 

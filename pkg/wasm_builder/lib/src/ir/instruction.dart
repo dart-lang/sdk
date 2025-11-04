@@ -102,51 +102,19 @@ abstract class Instruction implements Serializable {
       case 0x01:
         return Nop.deserialize(d);
       case 0x02:
-        {
-          if (d.peekByte() == 0x40) {
-            return BeginNoEffectBlock.deserialize(d);
-          }
-
-          final oldOffset = d.offset;
-          final value = d.readSigned();
-          d.offset = oldOffset;
-          if (value >= 0) {
-            return BeginFunctionBlock.deserialize(d, types);
-          }
-
-          return BeginOneOutputBlock.deserialize(d, types);
-        }
+        return d.deserializeBlock(types, tags, BeginNoEffectBlock.deserialize,
+            BeginOneOutputBlock.deserialize, BeginFunctionBlock.deserialize);
       case 0x03:
-        {
-          if (d.peekByte() == 0x40) {
-            return BeginNoEffectLoop.deserialize(d);
-          }
-          return BeginOneOutputLoop.deserialize(d, types);
-        }
+        return d.deserializeBlock(types, tags, BeginNoEffectLoop.deserialize,
+            BeginOneOutputLoop.deserialize, BeginFunctionLoop.deserialize);
       case 0x04:
-        {
-          if (d.peekByte() == 0x40) {
-            return BeginNoEffectIf.deserialize(d);
-          }
-          return BeginOneOutputIf.deserialize(d, types);
-        }
+        return d.deserializeBlock(types, tags, BeginNoEffectIf.deserialize,
+            BeginOneOutputIf.deserialize, BeginFunctionIf.deserialize);
       case 0x05:
         return Else.deserialize(d);
       case 0x06:
-        {
-          if (d.peekByte() == 0x40) {
-            return BeginNoEffectTry.deserialize(d);
-          }
-
-          final oldOffset = d.offset;
-          final value = d.readSigned();
-          d.offset = oldOffset;
-          if (value >= 0) {
-            return BeginFunctionTry.deserialize(d, types);
-          }
-
-          return BeginOneOutputTry.deserialize(d, types);
-        }
+        return d.deserializeBlock(types, tags, BeginNoEffectTry.deserialize,
+            BeginOneOutputTry.deserialize, BeginFunctionTry.deserialize);
       case 0x07:
         return CatchLegacy.deserialize(d, tags);
       case 0x08:
@@ -178,12 +146,12 @@ abstract class Instruction implements Serializable {
       case 0x1C:
         return SelectWithType.deserialize(d, types);
       case 0x1F:
-        {
-          if (d.peekByte() == 0x40) {
-            return BeginNoEffectTryTable.deserialize(d, tags);
-          }
-          return BeginOneOutputTryTable.deserialize(d, types, tags);
-        }
+        return d.deserializeBlock(
+            types,
+            tags,
+            BeginNoEffectTryTable.deserialize,
+            BeginOneOutputTryTable.deserialize,
+            BeginFunctionTryTable.deserialize);
       case 0x20:
         return LocalGet.deserialize(d);
       case 0x21:
@@ -628,7 +596,7 @@ class Nop extends SingleByteInstruction {
 class BeginNoEffectBlock extends Instruction {
   const BeginNoEffectBlock();
 
-  static BeginNoEffectBlock deserialize(Deserializer d) {
+  static BeginNoEffectBlock deserialize(Deserializer d, Tags _) {
     d.readByte();
     return const BeginNoEffectBlock();
   }
@@ -658,7 +626,7 @@ class BeginOneOutputBlock extends Instruction {
 
   BeginOneOutputBlock(this.type);
 
-  static BeginOneOutputBlock deserialize(Deserializer d, Types types) {
+  static BeginOneOutputBlock deserialize(Deserializer d, Tags _, Types types) {
     final type = ValueType.deserialize(d, types.defined);
     assert(type is! FunctionType);
     return BeginOneOutputBlock(type);
@@ -693,7 +661,7 @@ class BeginFunctionBlock extends Instruction {
 
   BeginFunctionBlock(this.type);
 
-  static BeginFunctionBlock deserialize(Deserializer d, Types types) {
+  static BeginFunctionBlock deserialize(Deserializer d, Tags _, Types types) {
     return BeginFunctionBlock(types.defined[d.readSigned()] as FunctionType);
   }
 
@@ -725,7 +693,7 @@ class BeginNoEffectLoop extends Instruction {
     s.writeByte(0x40);
   }
 
-  static BeginNoEffectLoop deserialize(Deserializer d) {
+  static BeginNoEffectLoop deserialize(Deserializer d, Tags _) {
     d.readByte();
     return const BeginNoEffectLoop();
   }
@@ -749,7 +717,7 @@ class BeginOneOutputLoop extends Instruction {
 
   BeginOneOutputLoop(this.type);
 
-  static BeginOneOutputLoop deserialize(Deserializer d, Types types) {
+  static BeginOneOutputLoop deserialize(Deserializer d, Tags _, Types types) {
     final type = ValueType.deserialize(d, types.defined);
     return BeginOneOutputLoop(type);
   }
@@ -781,6 +749,10 @@ class BeginFunctionLoop extends Instruction {
 
   BeginFunctionLoop(this.type);
 
+  static BeginFunctionLoop deserialize(Deserializer d, Tags _, Types types) {
+    return BeginFunctionLoop(types.defined[d.readSigned()] as FunctionType);
+  }
+
   @override
   void serialize(Serializer s) {
     s.writeByte(0x03);
@@ -809,7 +781,7 @@ class BeginNoEffectIf extends Instruction {
     s.writeByte(0x40);
   }
 
-  static BeginNoEffectIf deserialize(Deserializer d) {
+  static BeginNoEffectIf deserialize(Deserializer d, Tags _) {
     d.readByte();
     return const BeginNoEffectIf();
   }
@@ -826,7 +798,7 @@ class BeginOneOutputIf extends Instruction {
 
   BeginOneOutputIf(this.type);
 
-  static BeginOneOutputIf deserialize(Deserializer d, Types types) {
+  static BeginOneOutputIf deserialize(Deserializer d, Tags _, Types types) {
     final type = ValueType.deserialize(d, types.defined);
     return BeginOneOutputIf(type);
   }
@@ -857,6 +829,10 @@ class BeginFunctionIf extends Instruction {
 
   BeginFunctionIf(this.type);
 
+  static BeginFunctionIf deserialize(Deserializer d, Tags _, Types types) {
+    return BeginFunctionIf(types.defined[d.readSigned()] as FunctionType);
+  }
+
   @override
   void serialize(Serializer s) {
     s.writeByte(0x04);
@@ -886,7 +862,7 @@ class Else extends SingleByteInstruction {
 class BeginNoEffectTry extends Instruction {
   const BeginNoEffectTry();
 
-  static BeginNoEffectTry deserialize(Deserializer d) {
+  static BeginNoEffectTry deserialize(Deserializer d, Tags _) {
     d.readByte();
     return const BeginNoEffectTry();
   }
@@ -916,7 +892,7 @@ class BeginOneOutputTry extends Instruction {
 
   BeginOneOutputTry(this.type);
 
-  static BeginOneOutputTry deserialize(Deserializer d, Types types) {
+  static BeginOneOutputTry deserialize(Deserializer d, Tags _, Types types) {
     final type = ValueType.deserialize(d, types.defined);
     assert(type is! FunctionType);
     return BeginOneOutputTry(type);
@@ -949,7 +925,7 @@ class BeginFunctionTry extends Instruction {
 
   BeginFunctionTry(this.type);
 
-  static BeginFunctionTry deserialize(Deserializer d, Types types) {
+  static BeginFunctionTry deserialize(Deserializer d, Tags _, Types types) {
     return BeginFunctionTry(types.defined[d.readSigned()] as FunctionType);
   }
 
@@ -4348,7 +4324,7 @@ class BeginOneOutputTryTable extends Instruction {
   BeginOneOutputTryTable(this.type, this.catches);
 
   static BeginOneOutputTryTable deserialize(
-      Deserializer d, Types types, Tags tags) {
+      Deserializer d, Tags tags, Types types) {
     final type = ValueType.deserialize(d, types.defined);
     final catches = d.readList((d) => TryTableCatch.deserialize(d, tags));
     return BeginOneOutputTryTable(type, catches);
@@ -4373,6 +4349,13 @@ class BeginFunctionTryTable extends Instruction {
   final List<TryTableCatch> catches;
 
   BeginFunctionTryTable(this.type, this.catches);
+
+  static BeginFunctionTryTable deserialize(
+      Deserializer d, Tags tags, Types types) {
+    final type = types.defined[d.readSigned()] as FunctionType;
+    final catches = d.readList((d) => TryTableCatch.deserialize(d, tags));
+    return BeginFunctionTryTable(type, catches);
+  }
 
   @override
   List<DefType> get usedDefTypes => [type];
@@ -4473,4 +4456,27 @@ extension on Serializer {
 
 extension on Deserializer {
   int readTypeIndex() => readUnsigned();
+
+  Instruction deserializeBlock(
+      Types types,
+      Tags tags,
+      Instruction Function(Deserializer, Tags) deserializeNoInputNoOutput,
+      Instruction Function(Deserializer, Tags, Types) deserializeOneOutput,
+      Instruction Function(Deserializer, Tags, Types) deserializeGeneral) {
+    if (peekByte() == 0x40) {
+      // 0x40 means empty type, the block has neither inputs nor outputs.
+      return deserializeNoInputNoOutput(this, tags);
+    }
+    final oldOffset = offset;
+    final value = readSigned();
+    offset = oldOffset;
+    if (value < 0) {
+      // not positive signed integer, the block has no inputs and exactly one
+      // output.
+      return deserializeOneOutput(this, tags, types);
+    }
+    // positive signed integer is index into defined types and must be a
+    // function type representing the input & output types.
+    return deserializeGeneral(this, tags, types);
+  }
 }
