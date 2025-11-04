@@ -243,11 +243,6 @@ abstract class DiagnosticCode {
    * associated with the error will be created from the given [problemMessage]
    * template. The correction associated with the error will be created from the
    * given [correctionMessage] template.
-   * 
-   * If a non-null value is supplied for [uniqueNameCheck], it should be the
-   * same as [uniqueName]. This parameter is marked `@deprecated` because it
-   * should not be used by client; it exists as a temporary measure to aid in
-   * migration and will soon be removed.
    */
   const DiagnosticCode({
     String? correctionMessage,
@@ -256,12 +251,7 @@ abstract class DiagnosticCode {
     required this.name,
     required String problemMessage,
     required this.uniqueName,
-    @deprecated String? uniqueNameCheck,
-  }) : assert(
-         uniqueName == uniqueNameCheck || uniqueNameCheck == null,
-         '$uniqueName != $uniqueNameCheck',
-       ),
-       _correctionMessage = correctionMessage,
+  }) : _correctionMessage = correctionMessage,
        _problemMessage = problemMessage;
 
   /**
@@ -339,7 +329,6 @@ class DiagnosticCodeImpl extends DiagnosticCode {
     required super.problemMessage,
     required this.type,
     required super.uniqueName,
-    required super.uniqueNameCheck,
   });
 
   @override
@@ -359,7 +348,6 @@ abstract class DiagnosticCodeWithExpectedTypes extends DiagnosticCodeImpl {
     required super.problemMessage,
     required super.type,
     required super.uniqueName,
-    required super.uniqueNameCheck,
     this.expectedTypes,
   });
 }

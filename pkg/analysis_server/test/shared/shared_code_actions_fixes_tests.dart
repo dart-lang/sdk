@@ -876,8 +876,7 @@ class _DeprecatedCamelCaseTypes extends AnalysisRule {
     correctionMessage:
         'Try changing the name to follow the UpperCamelCase style.',
     hasPublishedDocs: true,
-    // ignore: deprecated_member_use
-    uniqueNameCheck: 'LintCode.camel_case_types',
+    uniqueName: 'LintCode.camel_case_types',
   );
 
   _DeprecatedCamelCaseTypes()

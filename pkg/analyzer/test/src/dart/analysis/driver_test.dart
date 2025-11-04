@@ -101310,8 +101310,7 @@ class _AlwaysReportedLint extends AnalysisRule {
   static const LintCode code = LintCode(
     'always_reported_lint',
     'This lint is reported for all files',
-    // ignore: deprecated_member_use_from_same_package
-    uniqueNameCheck: 'LintCode.always_reported_lint',
+    uniqueName: 'LintCode.always_reported_lint',
   );
 
   _AlwaysReportedLint() : super(name: 'always_reported_lint', description: '');

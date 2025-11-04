@@ -29,7 +29,7 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   fixme = TodoTemplate(
     name: 'FIXME',
     problemMessage: "{0}",
-    uniqueNameCheck: 'TodoCode.FIXME',
+    uniqueName: 'TodoCode.FIXME',
     withArguments: _withArgumentsFixme,
     expectedTypes: [ExpectedType.string],
   );
@@ -44,7 +44,7 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   hack = TodoTemplate(
     name: 'HACK',
     problemMessage: "{0}",
-    uniqueNameCheck: 'TodoCode.HACK',
+    uniqueName: 'TodoCode.HACK',
     withArguments: _withArgumentsHack,
     expectedTypes: [ExpectedType.string],
   );
@@ -59,7 +59,7 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   todo = TodoTemplate(
     name: 'TODO',
     problemMessage: "{0}",
-    uniqueNameCheck: 'TodoCode.TODO',
+    uniqueName: 'TodoCode.TODO',
     withArguments: _withArgumentsTodo,
     expectedTypes: [ExpectedType.string],
   );
@@ -74,7 +74,7 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   undone = TodoTemplate(
     name: 'UNDONE',
     problemMessage: "{0}",
-    uniqueNameCheck: 'TodoCode.UNDONE',
+    uniqueName: 'TodoCode.UNDONE',
     withArguments: _withArgumentsUndone,
     expectedTypes: [ExpectedType.string],
   );
@@ -86,13 +86,9 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    String? uniqueName,
-    required String super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
-  }) : super(
-         type: DiagnosticType.TODO,
-         uniqueName: 'TodoCode.${uniqueName ?? name}',
-       );
+  }) : super(type: DiagnosticType.TODO);
 
   static LocatableDiagnostic _withArgumentsFixme({required String message}) {
     return LocatableDiagnosticImpl(TodoCode.fixme, [message]);
@@ -123,8 +119,7 @@ final class TodoTemplate<T extends Function> extends TodoCode
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    super.uniqueName,
-    required super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
     required this.withArguments,
   });
@@ -139,8 +134,7 @@ final class TodoWithoutArguments extends TodoCode
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    super.uniqueName,
-    required super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
   });
 }

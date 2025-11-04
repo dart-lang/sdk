@@ -29,7 +29,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
         "will not be supported in language version 3.0 and later.",
     correctionMessage: "Try replacing the colon with an equal sign.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
+    uniqueName: 'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     expectedTypes: [],
   );
 
@@ -44,7 +44,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'HintCode.DEPRECATED_MEMBER_USE',
+    uniqueName: 'HintCode.DEPRECATED_MEMBER_USE',
     withArguments: _withArgumentsDeprecatedMemberUse,
     expectedTypes: [ExpectedType.string],
   );
@@ -61,8 +61,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
-    uniqueName: 'DEPRECATED_MEMBER_USE_WITH_MESSAGE',
-    uniqueNameCheck: 'HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE',
+    uniqueName: 'HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE',
     withArguments: _withArgumentsDeprecatedMemberUseWithMessage,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -78,7 +77,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
         "Try changing the import to not be deferred, or rename the function in "
         "the imported library.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
+    uniqueName: 'HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
     expectedTypes: [],
   );
 
@@ -95,7 +94,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
         "also provided by the import of '{1}'.",
     correctionMessage: "Try removing the import directive.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'HintCode.UNNECESSARY_IMPORT',
+    uniqueName: 'HintCode.UNNECESSARY_IMPORT',
     withArguments: _withArgumentsUnnecessaryImport,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
@@ -107,13 +106,9 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    String? uniqueName,
-    required String super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
-  }) : super(
-         type: DiagnosticType.HINT,
-         uniqueName: 'HintCode.${uniqueName ?? name}',
-       );
+  }) : super(type: DiagnosticType.HINT);
 
   static LocatableDiagnostic _withArgumentsDeprecatedMemberUse({
     required String p0,
@@ -151,8 +146,7 @@ final class HintTemplate<T extends Function> extends HintCode
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    super.uniqueName,
-    required super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
     required this.withArguments,
   });
@@ -167,8 +161,7 @@ final class HintWithoutArguments extends HintCode
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    super.uniqueName,
-    required super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
   });
 }

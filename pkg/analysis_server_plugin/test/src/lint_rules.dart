@@ -13,8 +13,7 @@ class NeedsPackageRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'needs_package',
     'Needs Package at {0}',
-    // ignore: deprecated_member_use
-    uniqueNameCheck: 'LintCode.needs_package',
+    uniqueName: 'LintCode.needs_package',
   );
 
   NeedsPackageRule()
@@ -39,8 +38,7 @@ class NoBoolsRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'no_bools',
     'No bools message',
-    // ignore: deprecated_member_use
-    uniqueNameCheck: 'LintCode.no_bools',
+    uniqueName: 'LintCode.no_bools',
   );
 
   NoBoolsRule() : super(name: 'no_bools', description: 'No bools desc');
@@ -63,8 +61,7 @@ class NoDoublesCustomSeverityRule extends AnalysisRule {
     'no_doubles_custom_severity',
     'No doubles message',
     severity: DiagnosticSeverity.WARNING,
-    // ignore: deprecated_member_use
-    uniqueNameCheck: 'LintCode.no_doubles_custom_severity',
+    uniqueName: 'LintCode.no_doubles_custom_severity',
   );
 
   NoDoublesCustomSeverityRule()
@@ -90,8 +87,7 @@ class NoDoublesRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'no_doubles',
     'No doubles message',
-    // ignore: deprecated_member_use
-    uniqueNameCheck: 'LintCode.no_doubles',
+    uniqueName: 'LintCode.no_doubles',
   );
 
   NoDoublesRule()
@@ -114,8 +110,7 @@ class NoReferencesToStringsRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'no_references_to_strings',
     'No references to Strings',
-    // ignore: deprecated_member_use
-    uniqueNameCheck: 'LintCode.no_references_to_strings',
+    uniqueName: 'LintCode.no_references_to_strings',
   );
 
   NoReferencesToStringsRule()

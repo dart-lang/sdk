@@ -175,8 +175,7 @@ class AnalysisErrorTest {
         'my_lint',
         'my message',
         correctionMessage: 'correction',
-        // ignore: deprecated_member_use
-        uniqueNameCheck: 'LintCode.my_lint',
+        uniqueName: 'LintCode.my_lint',
       ),
       offset: 10,
       length: 20,

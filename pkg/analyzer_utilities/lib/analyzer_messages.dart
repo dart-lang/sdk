@@ -501,14 +501,11 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     if (isUnresolvedIdentifier) {
       constant.writeln('isUnresolvedIdentifier:true,');
     }
-    if (sharedName != null) {
-      constant.writeln("uniqueName: '$diagnosticCode',");
-    }
     String uniqueName = analyzerCode.toString().replaceFirst(
       'LinterLintCode.',
       'LintCode.',
     );
-    constant.writeln("uniqueNameCheck: '$uniqueName',");
+    constant.writeln("uniqueName: '$uniqueName',");
     if (withArgumentsName != null) {
       constant.writeln('withArguments: $withArgumentsName,');
     }

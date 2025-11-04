@@ -33,7 +33,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
         "android:required=\"false\">` `<uses-feature "
         "android:name=\"android.hardware.camera.autofocus\"  "
         "android:required=\"false\">`.",
-    uniqueNameCheck: 'ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE',
+    uniqueName: 'ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE',
     expectedTypes: [],
   );
 
@@ -49,7 +49,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Consider declaring the corresponding activity element with "
         "`resizableActivity=\"true\"` attribute.",
-    uniqueNameCheck: 'ManifestWarningCode.NON_RESIZABLE_ACTIVITY',
+    uniqueName: 'ManifestWarningCode.NON_RESIZABLE_ACTIVITY',
     expectedTypes: [],
   );
 
@@ -67,7 +67,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
         "Consider adding <uses-feature "
         "android:name=\"android.hardware.touchscreen\" android:required=\"false\" "
         "/> to the manifest.",
-    uniqueNameCheck: 'ManifestWarningCode.NO_TOUCHSCREEN_FEATURE',
+    uniqueName: 'ManifestWarningCode.NO_TOUCHSCREEN_FEATURE',
     expectedTypes: [],
   );
 
@@ -87,8 +87,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         " Try adding `<uses-feature android:name=\"{0}\"  "
         "android:required=\"false\">`.",
-    uniqueNameCheck:
-        'ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
+    uniqueName: 'ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
     withArguments: _withArgumentsPermissionImpliesUnsupportedHardware,
     expectedTypes: [ExpectedType.object],
   );
@@ -106,7 +105,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Consider declaring the corresponding activity element with "
         "`screenOrientation=\"unspecified\"` or `\"fullSensor\"` attribute.",
-    uniqueNameCheck: 'ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY',
+    uniqueName: 'ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY',
     expectedTypes: [],
   );
 
@@ -124,7 +123,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
         "optional.",
     correctionMessage:
         "Try changing to `android:required=\"false\"` for this feature.",
-    uniqueNameCheck: 'ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE',
+    uniqueName: 'ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE',
     withArguments: _withArgumentsUnsupportedChromeOsFeature,
     expectedTypes: [ExpectedType.string],
   );
@@ -144,7 +143,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
         "optional.",
     correctionMessage:
         "Try adding `android:required=\"false\"` for this feature.",
-    uniqueNameCheck: 'ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE',
+    uniqueName: 'ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE',
     withArguments: _withArgumentsUnsupportedChromeOsHardware,
     expectedTypes: [ExpectedType.string],
   );
@@ -156,13 +155,9 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    String? uniqueName,
-    required String super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
-  }) : super(
-         type: DiagnosticType.STATIC_WARNING,
-         uniqueName: 'ManifestWarningCode.${uniqueName ?? name}',
-       );
+  }) : super(type: DiagnosticType.STATIC_WARNING);
 
   static LocatableDiagnostic
   _withArgumentsPermissionImpliesUnsupportedHardware({required Object p0}) {
@@ -204,8 +199,7 @@ final class ManifestWarningTemplate<T extends Function>
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    super.uniqueName,
-    required super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
     required this.withArguments,
   });
@@ -220,8 +214,7 @@ final class ManifestWarningWithoutArguments extends ManifestWarningCode
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    super.uniqueName,
-    required super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
   });
 }

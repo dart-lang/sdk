@@ -28,7 +28,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try creating the directory or fixing the path to the directory.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST',
+    uniqueName: 'PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST',
     withArguments: _withArgumentsAssetDirectoryDoesNotExist,
     expectedTypes: [ExpectedType.string],
   );
@@ -43,7 +43,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The asset file '{0}' doesn't exist.",
     correctionMessage: "Try creating the file or fixing the path to the file.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.ASSET_DOES_NOT_EXIST',
+    uniqueName: 'PubspecWarningCode.ASSET_DOES_NOT_EXIST',
     withArguments: _withArgumentsAssetDoesNotExist,
     expectedTypes: [ExpectedType.string],
   );
@@ -58,7 +58,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try converting the value to be a list of relative file paths.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.ASSET_FIELD_NOT_LIST',
+    uniqueName: 'PubspecWarningCode.ASSET_FIELD_NOT_LIST',
     expectedTypes: [],
   );
 
@@ -69,7 +69,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Asset map entry must contain a 'path' field.",
         correctionMessage: "Try adding a 'path' field.",
         hasPublishedDocs: true,
-        uniqueNameCheck: 'PubspecWarningCode.ASSET_MISSING_PATH',
+        uniqueName: 'PubspecWarningCode.ASSET_MISSING_PATH',
         expectedTypes: [],
       );
 
@@ -83,7 +83,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Assets are required to be file paths (strings).",
         correctionMessage: "Try converting the value to be a string.",
         hasPublishedDocs: true,
-        uniqueNameCheck: 'PubspecWarningCode.ASSET_NOT_STRING',
+        uniqueName: 'PubspecWarningCode.ASSET_NOT_STRING',
         expectedTypes: [],
       );
 
@@ -95,7 +95,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
             "An asset value is required to be a file path (string) or map.",
         correctionMessage: "Try converting the value to be a string or map.",
         hasPublishedDocs: true,
-        uniqueNameCheck: 'PubspecWarningCode.ASSET_NOT_STRING_OR_MAP',
+        uniqueName: 'PubspecWarningCode.ASSET_NOT_STRING_OR_MAP',
         expectedTypes: [],
       );
 
@@ -106,7 +106,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Asset paths are required to be file paths (strings).",
         correctionMessage: "Try converting the value to be a string.",
         hasPublishedDocs: true,
-        uniqueNameCheck: 'PubspecWarningCode.ASSET_PATH_NOT_STRING',
+        uniqueName: 'PubspecWarningCode.ASSET_PATH_NOT_STRING',
         expectedTypes: [],
       );
 
@@ -120,7 +120,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The value of the '{0}' field is expected to be a map.",
     correctionMessage: "Try converting the value to be a map.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP',
+    uniqueName: 'PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP',
     withArguments: _withArgumentsDependenciesFieldNotMap,
     expectedTypes: [ExpectedType.string],
   );
@@ -135,7 +135,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The '{0}' field is no longer used and can be removed.",
     correctionMessage: "Try removing the field.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.DEPRECATED_FIELD',
+    uniqueName: 'PubspecWarningCode.DEPRECATED_FIELD',
     withArguments: _withArgumentsDeprecatedField,
     expectedTypes: [ExpectedType.string],
   );
@@ -148,7 +148,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
             "The value of the 'flutter' field is expected to be a map.",
         correctionMessage: "Try converting the value to be a map.",
         hasPublishedDocs: true,
-        uniqueNameCheck: 'PubspecWarningCode.FLUTTER_FIELD_NOT_MAP',
+        uniqueName: 'PubspecWarningCode.FLUTTER_FIELD_NOT_MAP',
         expectedTypes: [],
       );
 
@@ -164,7 +164,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try adding a 'publish_to: none' entry to mark the package as not for "
         "publishing or remove the {0} dependency.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.INVALID_DEPENDENCY',
+    uniqueName: 'PubspecWarningCode.INVALID_DEPENDENCY',
     withArguments: _withArgumentsInvalidDependency,
     expectedTypes: [ExpectedType.string],
   );
@@ -178,7 +178,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try changing the 'platforms' field to a map with platforms as keys.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.INVALID_PLATFORMS_FIELD',
+    uniqueName: 'PubspecWarningCode.INVALID_PLATFORMS_FIELD',
     expectedTypes: [],
   );
 
@@ -194,7 +194,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "Missing a dependency on imported package '{0}'.",
     correctionMessage: "Try adding {0}.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.MISSING_DEPENDENCY',
+    uniqueName: 'PubspecWarningCode.MISSING_DEPENDENCY',
     withArguments: _withArgumentsMissingDependency,
     expectedTypes: [ExpectedType.string],
   );
@@ -206,7 +206,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "The 'name' field is required but missing.",
         correctionMessage: "Try adding a field named 'name'.",
         hasPublishedDocs: true,
-        uniqueNameCheck: 'PubspecWarningCode.MISSING_NAME',
+        uniqueName: 'PubspecWarningCode.MISSING_NAME',
         expectedTypes: [],
       );
 
@@ -218,7 +218,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
             "The value of the 'name' field is required to be a string.",
         correctionMessage: "Try converting the value to be a string.",
         hasPublishedDocs: true,
-        uniqueNameCheck: 'PubspecWarningCode.NAME_NOT_STRING',
+        uniqueName: 'PubspecWarningCode.NAME_NOT_STRING',
         expectedTypes: [],
       );
 
@@ -233,7 +233,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try creating the referenced path or using a path that exists.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.PATH_DOES_NOT_EXIST',
+    uniqueName: 'PubspecWarningCode.PATH_DOES_NOT_EXIST',
     withArguments: _withArgumentsPathDoesNotExist,
     expectedTypes: [ExpectedType.string],
   );
@@ -248,7 +248,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The path '{0}' isn't a POSIX-style path.",
     correctionMessage: "Try converting the value to a POSIX-style path.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.PATH_NOT_POSIX',
+    uniqueName: 'PubspecWarningCode.PATH_NOT_POSIX',
     withArguments: _withArgumentsPathNotPosix,
     expectedTypes: [ExpectedType.string],
   );
@@ -265,7 +265,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
         "Try creating a pubspec in the referenced directory or using a path "
         "that has a pubspec.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST',
+    uniqueName: 'PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST',
     withArguments: _withArgumentsPathPubspecDoesNotExist,
     expectedTypes: [ExpectedType.string],
   );
@@ -277,7 +277,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
         problemMessage: "Keys in the `platforms` field can't have values.",
         correctionMessage: "Try removing the value, while keeping the key.",
         hasPublishedDocs: true,
-        uniqueNameCheck: 'PubspecWarningCode.PLATFORM_VALUE_DISALLOWED',
+        uniqueName: 'PubspecWarningCode.PLATFORM_VALUE_DISALLOWED',
         expectedTypes: [],
       );
 
@@ -291,7 +291,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage: "The platform '{0}' is not a recognized platform.",
     correctionMessage: "Try correcting the platform name or removing it.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.UNKNOWN_PLATFORM',
+    uniqueName: 'PubspecWarningCode.UNKNOWN_PLATFORM',
     withArguments: _withArgumentsUnknownPlatform,
     expectedTypes: [ExpectedType.object],
   );
@@ -308,7 +308,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
         "dependency on that package.",
     correctionMessage: "Try removing the dev dependency.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
+    uniqueName: 'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
     withArguments: _withArgumentsUnnecessaryDevDependency,
     expectedTypes: [ExpectedType.string],
   );
@@ -323,7 +323,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try converting the value to be a list of relative file paths.",
     hasPublishedDocs: true,
-    uniqueNameCheck: 'PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST',
+    uniqueName: 'PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST',
     expectedTypes: [],
   );
 
@@ -335,7 +335,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
             "Workspace entries are required to be directory paths (strings).",
         correctionMessage: "Try converting the value to be a string.",
         hasPublishedDocs: true,
-        uniqueNameCheck: 'PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING',
+        uniqueName: 'PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING',
         expectedTypes: [],
       );
 
@@ -351,7 +351,7 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try using a subdirectory of the directory containing the "
         "'pubspec.yaml' file.",
-    uniqueNameCheck: 'PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY',
+    uniqueName: 'PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY',
     withArguments: _withArgumentsWorkspaceValueNotSubdirectory,
     expectedTypes: [ExpectedType.string],
   );
@@ -363,13 +363,9 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    String? uniqueName,
-    required String super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
-  }) : super(
-         type: DiagnosticType.STATIC_WARNING,
-         uniqueName: 'PubspecWarningCode.${uniqueName ?? name}',
-       );
+  }) : super(type: DiagnosticType.STATIC_WARNING);
 
   static LocatableDiagnostic _withArgumentsAssetDirectoryDoesNotExist({
     required String p0,
@@ -468,8 +464,7 @@ final class PubspecWarningTemplate<T extends Function>
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    super.uniqueName,
-    required super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
     required this.withArguments,
   });
@@ -484,8 +479,7 @@ final class PubspecWarningWithoutArguments extends PubspecWarningCode
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
-    super.uniqueName,
-    required super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
   });
 }
