@@ -165,9 +165,14 @@ part of ${json.encode(file.parentLibrary)};
     out.writeln('final class $className');
     if (withArguments) out.writeln('<T extends Function>');
     out.writeln('    extends ${diagnosticClass.name}');
-    if (!withArguments) out.writeln('    with DiagnosticWithoutArguments');
+    if (withArguments) {
+      out.writeln('    implements DiagnosticWithArguments<T>');
+    } else {
+      out.writeln('    with DiagnosticWithoutArguments');
+    }
     out.writeln('{');
     if (withArguments) {
+      out.writeln('@override');
       out.writeln('final T withArguments;');
       out.writeln();
     }

@@ -21,7 +21,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// OS.
   ///
   /// No parameters.
-  static const ManifestWarningWithoutArguments
+  static const DiagnosticWithoutArguments
   cameraPermissionsIncompatible = ManifestWarningWithoutArguments(
     name: 'CAMERA_PERMISSIONS_INCOMPATIBLE',
     problemMessage:
@@ -40,7 +40,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// A code indicating that the activity is set to be non resizable.
   ///
   /// No parameters.
-  static const ManifestWarningWithoutArguments
+  static const DiagnosticWithoutArguments
   nonResizableActivity = ManifestWarningWithoutArguments(
     name: 'NON_RESIZABLE_ACTIVITY',
     problemMessage:
@@ -57,7 +57,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// manifest.
   ///
   /// No parameters.
-  static const ManifestWarningWithoutArguments
+  static const DiagnosticWithoutArguments
   noTouchscreenFeature = ManifestWarningWithoutArguments(
     name: 'NO_TOUCHSCREEN_FEATURE',
     problemMessage:
@@ -76,7 +76,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// Object p0: the name of the feature tag
-  static const ManifestWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
   permissionImpliesUnsupportedHardware = ManifestWarningTemplate(
@@ -96,7 +96,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// A code indicating that the activity is locked to an orientation.
   ///
   /// No parameters.
-  static const ManifestWarningWithoutArguments
+  static const DiagnosticWithoutArguments
   settingOrientationOnActivity = ManifestWarningWithoutArguments(
     name: 'SETTING_ORIENTATION_ON_ACTIVITY',
     problemMessage:
@@ -114,7 +114,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String p0: the name of the feature
-  static const ManifestWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
   unsupportedChromeOsFeature = ManifestWarningTemplate(
@@ -134,7 +134,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String p0: the name of the feature
-  static const ManifestWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
   unsupportedChromeOsHardware = ManifestWarningTemplate(
@@ -192,7 +192,9 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
 }
 
 final class ManifestWarningTemplate<T extends Function>
-    extends ManifestWarningCode {
+    extends ManifestWarningCode
+    implements DiagnosticWithArguments<T> {
+  @override
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].

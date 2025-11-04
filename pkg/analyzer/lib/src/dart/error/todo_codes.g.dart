@@ -23,7 +23,7 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String message: the user-supplied problem message
-  static const TodoTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
   fixme = TodoTemplate(
@@ -38,7 +38,7 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String message: the user-supplied problem message
-  static const TodoTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
   hack = TodoTemplate(
@@ -53,7 +53,7 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String message: the user-supplied problem message
-  static const TodoTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
   todo = TodoTemplate(
@@ -68,7 +68,7 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String message: the user-supplied problem message
-  static const TodoTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
   undone = TodoTemplate(
@@ -111,7 +111,9 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   }
 }
 
-final class TodoTemplate<T extends Function> extends TodoCode {
+final class TodoTemplate<T extends Function> extends TodoCode
+    implements DiagnosticWithArguments<T> {
+  @override
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].

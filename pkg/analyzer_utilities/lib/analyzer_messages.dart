@@ -432,26 +432,28 @@ mixin MessageWithAnalyzerCode on Message {
       (value) =>
           value != null && value.any((part) => part is TemplateParameterPart),
     );
-    String className;
-    String templateParameters = '';
+    String concreteClassName;
+    String staticType;
     String? withArgumentsName;
     if (parameters.isNotEmpty && !usesParameters) {
       throw 'Error code declares parameters using a `parameters` entry, but '
           "doesn't use them";
     } else if (parameters.values.any((p) => !p.type.isSupportedByAnalyzer)) {
       // Do not generate literate API yet.
-      className = diagnosticClassInfo.name;
+      concreteClassName = diagnosticClassInfo.name;
+      staticType = 'DiagnosticCode';
     } else if (parameters.isNotEmpty) {
       // Parameters are present so generate a diagnostic template (with
       // `.withArguments` support).
-      className = diagnosticClassInfo.templateName;
+      concreteClassName = diagnosticClassInfo.templateName;
       var withArgumentsParams = parameters.entries
           .map((p) => 'required ${p.value.type.analyzerName} ${p.key}')
           .join(', ');
       var argumentNames = parameters.keys.join(', ');
       withArgumentsName = '_withArguments${analyzerCode.pascalCaseName}';
-      templateParameters =
+      var templateParameters =
           '<LocatableDiagnostic Function({$withArgumentsParams})>';
+      staticType = 'DiagnosticWithArguments$templateParameters';
       var newIfNeeded = diagnosticClassInfo.file.shouldUseExplicitNewOrConst
           ? 'new '
           : '';
@@ -463,18 +465,17 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
 }''';
     } else {
       // Parameters are not present so generate a "withoutArguments" constant.
-      className = diagnosticClassInfo.withoutArgumentsName;
+      concreteClassName = diagnosticClassInfo.withoutArgumentsName;
+      staticType = 'DiagnosticWithoutArguments';
     }
 
     var constant = StringBuffer();
     outputConstantHeader(constant);
-    constant.writeln(
-      '  static const $className$templateParameters $constantName =',
-    );
+    constant.writeln('  static const $staticType $constantName =');
     if (diagnosticClassInfo.file.shouldUseExplicitNewOrConst) {
       constant.writeln('const ');
     }
-    constant.writeln('$className(');
+    constant.writeln('$concreteClassName(');
     constant.writeln(
       'name: ${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
     );
@@ -519,7 +520,7 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
       memberAccumulator.constants[diagnosticCode] =
           '''
   @Deprecated("Please use $constantName")
-  static const ${diagnosticClassInfo.name} $diagnosticCode = $constantName;
+  static const DiagnosticCode $diagnosticCode = $constantName;
 ''';
     }
   }

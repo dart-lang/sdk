@@ -27,7 +27,7 @@ class AnalysisOptionsErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// Object p2: the ending offset of the text in the file that contains the
   ///            error
   /// Object p3: the error message
-  static const AnalysisOptionsErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required Object p0,
       required Object p1,
@@ -52,7 +52,7 @@ class AnalysisOptionsErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// Object p0: the error message from the parse error
-  static const AnalysisOptionsErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
   parseError = AnalysisOptionsErrorTemplate(
@@ -96,7 +96,9 @@ class AnalysisOptionsErrorCode extends DiagnosticCodeWithExpectedTypes {
 }
 
 final class AnalysisOptionsErrorTemplate<T extends Function>
-    extends AnalysisOptionsErrorCode {
+    extends AnalysisOptionsErrorCode
+    implements DiagnosticWithArguments<T> {
+  @override
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
@@ -134,7 +136,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// Object p0: the option name
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
   analysisOptionDeprecated = AnalysisOptionsWarningTemplate(
@@ -150,7 +152,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// Object p0: the option name
   /// Object p1: the replacement option name
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   analysisOptionDeprecatedWithReplacement = AnalysisOptionsWarningTemplate(
@@ -168,7 +170,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String p0: the rule name
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
   deprecatedLint = AnalysisOptionsWarningTemplate(
@@ -185,7 +187,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String p0: the deprecated lint name
   /// String p1: the replacing rule name
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   deprecatedLintWithReplacement = AnalysisOptionsWarningTemplate(
@@ -202,7 +204,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String p0: the rule name
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
   duplicateRule = AnalysisOptionsWarningTemplate(
@@ -224,7 +226,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// Object p2: the ending offset of the text in the file that contains the
   ///            warning
   /// Object p3: the warning message
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required Object p0,
       required Object p1,
@@ -251,7 +253,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// Object p0: the URI of the file to be included
   /// Object p1: the path of the file containing the include directive
   /// Object p2: the path of the context being analyzed
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required Object p0,
       required Object p1,
@@ -278,7 +280,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String p0: the rule name
   /// String p1: the incompatible rules
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   incompatibleLint = AnalysisOptionsWarningTemplate(
@@ -297,7 +299,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String p0: the rule name
   /// String p1: the incompatible rules
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   incompatibleLintFiles = AnalysisOptionsWarningTemplate(
@@ -319,7 +321,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// String p1: the incompatible rules
   /// int p2: the number of files that include the incompatible rule
   /// String p3: plural suffix for the word "file"
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required String p0,
       required String p1,
@@ -352,7 +354,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String p0: the option name
   /// String p1: the detail message
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   invalidOption = AnalysisOptionsWarningTemplate(
@@ -367,7 +369,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String p0: the section name
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
   invalidSectionFormat = AnalysisOptionsWarningTemplate(
@@ -382,7 +384,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String p0: the name of the first plugin
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
   multiplePlugins = AnalysisOptionsWarningTemplate(
@@ -399,7 +401,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String contextRoot: the root of the analysis context
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String contextRoot})
   >
   pluginsInInnerOptions = AnalysisOptionsWarningTemplate(
@@ -419,7 +421,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// Object p0: the URI of the file to be included
   /// Object p1: the path of the file containing the include directive
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   recursiveIncludeFile = AnalysisOptionsWarningTemplate(
@@ -438,7 +440,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String p0: the rule name
   /// String p1: the SDK version in which the lint was removed
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   removedLint = AnalysisOptionsWarningTemplate(
@@ -456,7 +458,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// String p0: the rule name
   /// String p1: the SDK version in which the lint was removed
   /// String p2: the name of a replacing lint
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required String p0,
       required String p1,
@@ -480,7 +482,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String p0: the rule name
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
   undefinedLint = AnalysisOptionsWarningTemplate(
@@ -497,7 +499,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String p0: the unrecognized error code
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
   unrecognizedErrorCode = AnalysisOptionsWarningTemplate(
@@ -515,7 +517,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// String p0: the section name
   /// String p1: the unsupported option key
   /// String p2: the legal value
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required String p0,
       required String p1,
@@ -544,7 +546,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// String p0: the section name
   /// String p1: the unsupported option key
   /// String p2: legal values
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required String p0,
       required String p1,
@@ -571,7 +573,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String p0: the plugin name
   /// String p1: the unsupported option key
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   unsupportedOptionWithoutValues = AnalysisOptionsWarningTemplate(
@@ -590,7 +592,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// String p0: the option name
   /// Object p1: the unsupported value
   /// String p2: legal values
-  static const AnalysisOptionsWarningTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required String p0,
       required Object p1,
@@ -852,7 +854,9 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
 }
 
 final class AnalysisOptionsWarningTemplate<T extends Function>
-    extends AnalysisOptionsWarningCode {
+    extends AnalysisOptionsWarningCode
+    implements DiagnosticWithArguments<T> {
+  @override
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].

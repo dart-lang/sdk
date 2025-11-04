@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/base/errors.dart';
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
     show
+        DiagnosticWithArguments,
         DiagnosticWithoutArguments,
         ExpectedType,
         LocatableDiagnostic,

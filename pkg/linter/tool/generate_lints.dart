@@ -114,7 +114,9 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
 
       out.write('''
 
-final class LinterLintTemplate<T extends Function> extends LinterLintCode {
+final class LinterLintTemplate<T extends Function> extends LinterLintCode
+    implements DiagnosticWithArguments<T> {
+  @override
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].

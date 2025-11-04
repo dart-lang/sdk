@@ -18,7 +18,7 @@ part of "package:analyzer/src/dart/error/syntactic_errors.dart";
 
 class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
-  static const ParserErrorWithoutArguments abstractClassMember =
+  static const DiagnosticWithoutArguments abstractClassMember =
       ParserErrorWithoutArguments(
         name: 'ABSTRACT_CLASS_MEMBER',
         problemMessage:
@@ -31,7 +31,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments abstractExternalField =
+  static const DiagnosticWithoutArguments abstractExternalField =
       ParserErrorWithoutArguments(
         name: 'ABSTRACT_EXTERNAL_FIELD',
         problemMessage:
@@ -42,7 +42,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments abstractFinalBaseClass =
+  static const DiagnosticWithoutArguments abstractFinalBaseClass =
       ParserErrorWithoutArguments(
         name: 'ABSTRACT_FINAL_BASE_CLASS',
         problemMessage:
@@ -53,7 +53,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   abstractFinalInterfaceClass = ParserErrorWithoutArguments(
     name: 'ABSTRACT_FINAL_INTERFACE_CLASS',
     problemMessage:
@@ -65,7 +65,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments abstractLateField =
+  static const DiagnosticWithoutArguments abstractLateField =
       ParserErrorWithoutArguments(
         name: 'ABSTRACT_LATE_FIELD',
         problemMessage: "Abstract fields cannot be late.",
@@ -75,7 +75,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments abstractSealedClass =
+  static const DiagnosticWithoutArguments abstractSealedClass =
       ParserErrorWithoutArguments(
         name: 'ABSTRACT_SEALED_CLASS',
         problemMessage:
@@ -88,7 +88,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments abstractStaticField =
+  static const DiagnosticWithoutArguments abstractStaticField =
       ParserErrorWithoutArguments(
         name: 'ABSTRACT_STATIC_FIELD',
         problemMessage: "Static fields can't be declared 'abstract'.",
@@ -98,7 +98,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments abstractStaticMethod =
+  static const DiagnosticWithoutArguments abstractStaticMethod =
       ParserErrorWithoutArguments(
         name: 'ABSTRACT_STATIC_METHOD',
         problemMessage: "Static methods can't be declared to be 'abstract'.",
@@ -108,7 +108,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   annotationOnTypeArgument = ParserErrorWithoutArguments(
     name: 'ANNOTATION_ON_TYPE_ARGUMENT',
     problemMessage:
@@ -118,7 +118,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments annotationSpaceBeforeParenthesis =
+  static const DiagnosticWithoutArguments annotationSpaceBeforeParenthesis =
       ParserErrorWithoutArguments(
         name: 'ANNOTATION_SPACE_BEFORE_PARENTHESIS',
         problemMessage:
@@ -130,7 +130,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments annotationWithTypeArguments =
+  static const DiagnosticWithoutArguments annotationWithTypeArguments =
       ParserErrorWithoutArguments(
         name: 'ANNOTATION_WITH_TYPE_ARGUMENTS',
         problemMessage: "An annotation can't use type arguments.",
@@ -139,7 +139,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   annotationWithTypeArgumentsUninstantiated = ParserErrorWithoutArguments(
     name: 'ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED',
     problemMessage:
@@ -154,7 +154,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// body marked with either async, async, or sync.
   ///
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   asyncKeywordUsedAsIdentifier = ParserErrorWithoutArguments(
     name: 'ASYNC_KEYWORD_USED_AS_IDENTIFIER',
     problemMessage:
@@ -165,7 +165,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments baseEnum =
+  static const DiagnosticWithoutArguments baseEnum =
       ParserErrorWithoutArguments(
         name: 'BASE_ENUM',
         problemMessage: "Enums can't be declared to be 'base'.",
@@ -177,7 +177,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String string: undocumented
   /// String string2: undocumented
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required String string,
       required String string2,
@@ -195,7 +195,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   breakOutsideOfLoop = ParserErrorWithoutArguments(
     name: 'BREAK_OUTSIDE_OF_LOOP',
     problemMessage:
@@ -206,7 +206,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   catchSyntax = ParserErrorWithoutArguments(
     name: 'CATCH_SYNTAX',
     problemMessage:
@@ -219,7 +219,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   catchSyntaxExtraParameters = ParserErrorWithoutArguments(
     name: 'CATCH_SYNTAX_EXTRA_PARAMETERS',
     problemMessage:
@@ -232,7 +232,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments classInClass =
+  static const DiagnosticWithoutArguments classInClass =
       ParserErrorWithoutArguments(
         name: 'CLASS_IN_CLASS',
         problemMessage: "Classes can't be declared inside other classes.",
@@ -242,7 +242,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments colonInPlaceOfIn =
+  static const DiagnosticWithoutArguments colonInPlaceOfIn =
       ParserErrorWithoutArguments(
         name: 'COLON_IN_PLACE_OF_IN',
         problemMessage: "For-in loops use 'in' rather than a colon.",
@@ -254,7 +254,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String string: undocumented
   /// String string2: undocumented
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required String string,
       required String string2,
@@ -270,7 +270,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   constAndFinal = ParserErrorWithoutArguments(
     name: 'CONST_AND_FINAL',
     problemMessage: "Members can't be declared to be both 'const' and 'final'.",
@@ -280,7 +280,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   constClass = ParserErrorWithoutArguments(
     name: 'CONST_CLASS',
     problemMessage: "Classes can't be declared to be 'const'.",
@@ -293,7 +293,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments constConstructorWithBody =
+  static const DiagnosticWithoutArguments constConstructorWithBody =
       ParserErrorWithoutArguments(
         name: 'CONST_CONSTRUCTOR_WITH_BODY',
         problemMessage: "Const constructors can't have a body.",
@@ -304,7 +304,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   constFactory = ParserErrorWithoutArguments(
     name: 'CONST_FACTORY',
     problemMessage:
@@ -317,7 +317,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments constMethod =
+  static const DiagnosticWithoutArguments constMethod =
       ParserErrorWithoutArguments(
         name: 'CONST_METHOD',
         problemMessage:
@@ -328,7 +328,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments constructorWithReturnType =
+  static const DiagnosticWithoutArguments constructorWithReturnType =
       ParserErrorWithoutArguments(
         name: 'CONSTRUCTOR_WITH_RETURN_TYPE',
         problemMessage: "Constructors can't have a return type.",
@@ -338,7 +338,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   constructorWithTypeArguments = ParserErrorWithoutArguments(
     name: 'CONSTRUCTOR_WITH_TYPE_ARGUMENTS',
     problemMessage:
@@ -351,7 +351,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   constWithoutPrimaryConstructor = ParserErrorWithoutArguments(
     name: 'CONST_WITHOUT_PRIMARY_CONSTRUCTOR',
     problemMessage:
@@ -364,7 +364,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   continueOutsideOfLoop = ParserErrorWithoutArguments(
     name: 'CONTINUE_OUTSIDE_OF_LOOP',
     problemMessage:
@@ -375,7 +375,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   continueWithoutLabelInCase = ParserErrorWithoutArguments(
     name: 'CONTINUE_WITHOUT_LABEL_IN_CASE',
     problemMessage:
@@ -388,7 +388,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments covariantAndStatic =
+  static const DiagnosticWithoutArguments covariantAndStatic =
       ParserErrorWithoutArguments(
         name: 'COVARIANT_AND_STATIC',
         problemMessage:
@@ -400,7 +400,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments covariantConstructor =
+  static const DiagnosticWithoutArguments covariantConstructor =
       ParserErrorWithoutArguments(
         name: 'COVARIANT_CONSTRUCTOR',
         problemMessage: "A constructor can't be declared to be 'covariant'.",
@@ -410,7 +410,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments covariantMember =
+  static const DiagnosticWithoutArguments covariantMember =
       ParserErrorWithoutArguments(
         name: 'COVARIANT_MEMBER',
         problemMessage:
@@ -423,7 +423,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   ///
   /// No parameters.
-  static const ParserErrorWithoutArguments defaultInSwitchExpression =
+  static const DiagnosticWithoutArguments defaultInSwitchExpression =
       ParserErrorWithoutArguments(
         name: 'DEFAULT_IN_SWITCH_EXPRESSION',
         problemMessage:
@@ -434,7 +434,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments defaultValueInFunctionType =
+  static const DiagnosticWithoutArguments defaultValueInFunctionType =
       ParserErrorWithoutArguments(
         name: 'DEFAULT_VALUE_IN_FUNCTION_TYPE',
         problemMessage:
@@ -446,7 +446,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   deferredAfterPrefix = ParserErrorWithoutArguments(
     name: 'DEFERRED_AFTER_PREFIX',
     problemMessage:
@@ -458,7 +458,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments directiveAfterDeclaration =
+  static const DiagnosticWithoutArguments directiveAfterDeclaration =
       ParserErrorWithoutArguments(
         name: 'DIRECTIVE_AFTER_DECLARATION',
         problemMessage: "Directives must appear before any declarations.",
@@ -468,7 +468,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments duplicateDeferred =
+  static const DiagnosticWithoutArguments duplicateDeferred =
       ParserErrorWithoutArguments(
         name: 'DUPLICATE_DEFERRED',
         problemMessage:
@@ -483,7 +483,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// Token lexeme: undocumented
-  static const ParserErrorCode duplicatedModifier = ParserErrorCode(
+  static const DiagnosticCode duplicatedModifier = ParserErrorCode(
     name: 'DUPLICATED_MODIFIER',
     problemMessage: "The modifier '{0}' was already specified.",
     correctionMessage: "Try removing all but one occurrence of the modifier.",
@@ -496,18 +496,17 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// Name name: undocumented
-  static const ParserErrorCode duplicateLabelInSwitchStatement =
-      ParserErrorCode(
-        name: 'DUPLICATE_LABEL_IN_SWITCH_STATEMENT',
-        problemMessage:
-            "The label '{0}' was already used in this switch statement.",
-        correctionMessage: "Try choosing a different name for this label.",
-        uniqueNameCheck: 'ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT',
-        expectedTypes: [ExpectedType.name],
-      );
+  static const DiagnosticCode duplicateLabelInSwitchStatement = ParserErrorCode(
+    name: 'DUPLICATE_LABEL_IN_SWITCH_STATEMENT',
+    problemMessage:
+        "The label '{0}' was already used in this switch statement.",
+    correctionMessage: "Try choosing a different name for this label.",
+    uniqueNameCheck: 'ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT',
+    expectedTypes: [ExpectedType.name],
+  );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments duplicatePrefix =
+  static const DiagnosticWithoutArguments duplicatePrefix =
       ParserErrorWithoutArguments(
         name: 'DUPLICATE_PREFIX',
         problemMessage:
@@ -518,7 +517,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments emptyEnumBody =
+  static const DiagnosticWithoutArguments emptyEnumBody =
       ParserErrorWithoutArguments(
         name: 'EMPTY_ENUM_BODY',
         problemMessage: "An enum must declare at least one constant name.",
@@ -528,7 +527,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments emptyRecordLiteralWithComma =
+  static const DiagnosticWithoutArguments emptyRecordLiteralWithComma =
       ParserErrorWithoutArguments(
         name: 'EMPTY_RECORD_LITERAL_WITH_COMMA',
         problemMessage:
@@ -540,7 +539,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments emptyRecordTypeNamedFieldsList =
+  static const DiagnosticWithoutArguments emptyRecordTypeNamedFieldsList =
       ParserErrorWithoutArguments(
         name: 'EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST',
         problemMessage:
@@ -552,7 +551,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments emptyRecordTypeWithComma =
+  static const DiagnosticWithoutArguments emptyRecordTypeWithComma =
       ParserErrorWithoutArguments(
         name: 'EMPTY_RECORD_TYPE_WITH_COMMA',
         problemMessage:
@@ -564,7 +563,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments enumInClass =
+  static const DiagnosticWithoutArguments enumInClass =
       ParserErrorWithoutArguments(
         name: 'ENUM_IN_CLASS',
         problemMessage: "Enums can't be declared inside classes.",
@@ -574,7 +573,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments equalityCannotBeEqualityOperand =
+  static const DiagnosticWithoutArguments equalityCannotBeEqualityOperand =
       ParserErrorWithoutArguments(
         name: 'EQUALITY_CANNOT_BE_EQUALITY_OPERAND',
         problemMessage:
@@ -587,7 +586,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedCaseOrDefault =
+  static const DiagnosticWithoutArguments expectedCaseOrDefault =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_CASE_OR_DEFAULT',
         problemMessage: "Expected 'case' or 'default'.",
@@ -597,7 +596,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedCatchClauseBody =
+  static const DiagnosticWithoutArguments expectedCatchClauseBody =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_BODY',
         problemMessage: "A catch clause must have a body, even if it is empty.",
@@ -608,7 +607,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedClassBody =
+  static const DiagnosticWithoutArguments expectedClassBody =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_BODY',
         problemMessage:
@@ -620,7 +619,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedClassMember =
+  static const DiagnosticWithoutArguments expectedClassMember =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_CLASS_MEMBER',
         problemMessage: "Expected a class member.",
@@ -630,7 +629,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedElseOrComma =
+  static const DiagnosticWithoutArguments expectedElseOrComma =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_ELSE_OR_COMMA',
         problemMessage: "Expected 'else' or comma.",
@@ -639,7 +638,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   expectedExecutable = ParserErrorWithoutArguments(
     name: 'EXPECTED_EXECUTABLE',
     problemMessage:
@@ -651,7 +650,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedExtensionBody =
+  static const DiagnosticWithoutArguments expectedExtensionBody =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_BODY',
         problemMessage:
@@ -663,7 +662,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   expectedExtensionTypeBody = ParserErrorWithoutArguments(
     name: 'EXPECTED_BODY',
     problemMessage:
@@ -675,7 +674,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedFinallyClauseBody =
+  static const DiagnosticWithoutArguments expectedFinallyClauseBody =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_BODY',
         problemMessage:
@@ -688,20 +687,19 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// Token lexeme: undocumented
-  static const ParserErrorCode expectedIdentifierButGotKeyword =
-      ParserErrorCode(
-        name: 'EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD',
-        problemMessage:
-            "'{0}' can't be used as an identifier because it's a keyword.",
-        correctionMessage:
-            "Try renaming this to be an identifier that isn't a keyword.",
-        uniqueNameCheck: 'ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD',
-        expectedTypes: [ExpectedType.token],
-      );
+  static const DiagnosticCode expectedIdentifierButGotKeyword = ParserErrorCode(
+    name: 'EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD',
+    problemMessage:
+        "'{0}' can't be used as an identifier because it's a keyword.",
+    correctionMessage:
+        "Try renaming this to be an identifier that isn't a keyword.",
+    uniqueNameCheck: 'ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD',
+    expectedTypes: [ExpectedType.token],
+  );
 
   /// Parameters:
   /// String string: undocumented
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String string})
   >
   expectedInstead = ParserErrorTemplate(
@@ -713,7 +711,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   expectedListOrMapLiteral = ParserErrorWithoutArguments(
     name: 'EXPECTED_LIST_OR_MAP_LITERAL',
     problemMessage: "Expected a list or map literal.",
@@ -724,7 +722,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedMixinBody =
+  static const DiagnosticWithoutArguments expectedMixinBody =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_BODY',
         problemMessage:
@@ -736,7 +734,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedNamedTypeExtends =
+  static const DiagnosticWithoutArguments expectedNamedTypeExtends =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_NAMED_TYPE',
         problemMessage: "Expected a class name.",
@@ -748,7 +746,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedNamedTypeImplements =
+  static const DiagnosticWithoutArguments expectedNamedTypeImplements =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_NAMED_TYPE',
         problemMessage: "Expected the name of a class or mixin.",
@@ -760,7 +758,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedNamedTypeOn =
+  static const DiagnosticWithoutArguments expectedNamedTypeOn =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_NAMED_TYPE',
         problemMessage: "Expected the name of a class or mixin.",
@@ -772,7 +770,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedNamedTypeWith =
+  static const DiagnosticWithoutArguments expectedNamedTypeWith =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_NAMED_TYPE',
         problemMessage: "Expected a mixin name.",
@@ -784,7 +782,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedRepresentationField =
+  static const DiagnosticWithoutArguments expectedRepresentationField =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_REPRESENTATION_FIELD',
         problemMessage: "Expected a representation field.",
@@ -795,7 +793,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedRepresentationType =
+  static const DiagnosticWithoutArguments expectedRepresentationType =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_REPRESENTATION_TYPE',
         problemMessage: "Expected a representation type.",
@@ -806,7 +804,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedStringLiteral =
+  static const DiagnosticWithoutArguments expectedStringLiteral =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_STRING_LITERAL',
         problemMessage: "Expected a string literal.",
@@ -815,7 +813,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedSwitchExpressionBody =
+  static const DiagnosticWithoutArguments expectedSwitchExpressionBody =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_BODY',
         problemMessage:
@@ -827,7 +825,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedSwitchStatementBody =
+  static const DiagnosticWithoutArguments expectedSwitchStatementBody =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_BODY',
         problemMessage:
@@ -840,7 +838,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String p0: the token that was expected but not found
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
   expectedToken = ParserErrorTemplate(
@@ -852,7 +850,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedTryStatementBody =
+  static const DiagnosticWithoutArguments expectedTryStatementBody =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_BODY',
         problemMessage:
@@ -864,7 +862,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments expectedTypeName =
+  static const DiagnosticWithoutArguments expectedTypeName =
       ParserErrorWithoutArguments(
         name: 'EXPECTED_TYPE_NAME',
         problemMessage: "Expected a type name.",
@@ -875,7 +873,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String string: undocumented
   /// String string2: undocumented
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required String string,
       required String string2,
@@ -894,7 +892,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String string: undocumented
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String string})
   >
   experimentNotEnabledOffByDefault = ParserErrorTemplate(
@@ -909,7 +907,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments exportDirectiveAfterPartDirective =
+  static const DiagnosticWithoutArguments exportDirectiveAfterPartDirective =
       ParserErrorWithoutArguments(
         name: 'EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
         problemMessage: "Export directives must precede part directives.",
@@ -923,7 +921,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   ///
   /// No parameters.
-  static const ParserErrorWithoutArguments extensionAugmentationHasOnClause =
+  static const DiagnosticWithoutArguments extensionAugmentationHasOnClause =
       ParserErrorWithoutArguments(
         name: 'EXTENSION_AUGMENTATION_HAS_ON_CLAUSE',
         problemMessage: "Extension augmentations can't have 'on' clauses.",
@@ -935,7 +933,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   ///
   /// No parameters.
-  static const ParserErrorWithoutArguments extensionDeclaresAbstractMember =
+  static const DiagnosticWithoutArguments extensionDeclaresAbstractMember =
       ParserErrorWithoutArguments(
         name: 'EXTENSION_DECLARES_ABSTRACT_MEMBER',
         problemMessage: "Extensions can't declare abstract members.",
@@ -948,7 +946,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   ///
   /// No parameters.
-  static const ParserErrorWithoutArguments extensionDeclaresConstructor =
+  static const DiagnosticWithoutArguments extensionDeclaresConstructor =
       ParserErrorWithoutArguments(
         name: 'EXTENSION_DECLARES_CONSTRUCTOR',
         problemMessage: "Extensions can't declare constructors.",
@@ -959,7 +957,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments extensionTypeExtends =
+  static const DiagnosticWithoutArguments extensionTypeExtends =
       ParserErrorWithoutArguments(
         name: 'EXTENSION_TYPE_EXTENDS',
         problemMessage:
@@ -972,7 +970,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments extensionTypeWith =
+  static const DiagnosticWithoutArguments extensionTypeWith =
       ParserErrorWithoutArguments(
         name: 'EXTENSION_TYPE_WITH',
         problemMessage:
@@ -985,7 +983,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments externalClass =
+  static const DiagnosticWithoutArguments externalClass =
       ParserErrorWithoutArguments(
         name: 'EXTERNAL_CLASS',
         problemMessage: "Classes can't be declared to be 'external'.",
@@ -995,7 +993,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   externalConstructorWithFieldInitializers = ParserErrorWithoutArguments(
     name: 'EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS',
     problemMessage: "An external constructor can't initialize fields.",
@@ -1008,7 +1006,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments externalConstructorWithInitializer =
+  static const DiagnosticWithoutArguments externalConstructorWithInitializer =
       ParserErrorWithoutArguments(
         name: 'EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER',
         problemMessage: "An external constructor can't have any initializers.",
@@ -1018,7 +1016,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments externalEnum =
+  static const DiagnosticWithoutArguments externalEnum =
       ParserErrorWithoutArguments(
         name: 'EXTERNAL_ENUM',
         problemMessage: "Enums can't be declared to be 'external'.",
@@ -1028,7 +1026,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments externalFactoryRedirection =
+  static const DiagnosticWithoutArguments externalFactoryRedirection =
       ParserErrorWithoutArguments(
         name: 'EXTERNAL_FACTORY_REDIRECTION',
         problemMessage: "A redirecting factory can't be external.",
@@ -1038,7 +1036,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments externalFactoryWithBody =
+  static const DiagnosticWithoutArguments externalFactoryWithBody =
       ParserErrorWithoutArguments(
         name: 'EXTERNAL_FACTORY_WITH_BODY',
         problemMessage: "External factories can't have a body.",
@@ -1050,7 +1048,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments externalGetterWithBody =
+  static const DiagnosticWithoutArguments externalGetterWithBody =
       ParserErrorWithoutArguments(
         name: 'EXTERNAL_GETTER_WITH_BODY',
         problemMessage: "External getters can't have a body.",
@@ -1062,7 +1060,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments externalLateField =
+  static const DiagnosticWithoutArguments externalLateField =
       ParserErrorWithoutArguments(
         name: 'EXTERNAL_LATE_FIELD',
         problemMessage: "External fields cannot be late.",
@@ -1072,7 +1070,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments externalMethodWithBody =
+  static const DiagnosticWithoutArguments externalMethodWithBody =
       ParserErrorWithoutArguments(
         name: 'EXTERNAL_METHOD_WITH_BODY',
         problemMessage: "An external or native method can't have a body.",
@@ -1081,7 +1079,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments externalOperatorWithBody =
+  static const DiagnosticWithoutArguments externalOperatorWithBody =
       ParserErrorWithoutArguments(
         name: 'EXTERNAL_OPERATOR_WITH_BODY',
         problemMessage: "External operators can't have a body.",
@@ -1093,7 +1091,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments externalSetterWithBody =
+  static const DiagnosticWithoutArguments externalSetterWithBody =
       ParserErrorWithoutArguments(
         name: 'EXTERNAL_SETTER_WITH_BODY',
         problemMessage: "External setters can't have a body.",
@@ -1105,7 +1103,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments externalTypedef =
+  static const DiagnosticWithoutArguments externalTypedef =
       ParserErrorWithoutArguments(
         name: 'EXTERNAL_TYPEDEF',
         problemMessage: "Typedefs can't be declared to be 'external'.",
@@ -1116,7 +1114,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// Token lexeme: undocumented
-  static const ParserErrorCode extraneousModifier = ParserErrorCode(
+  static const DiagnosticCode extraneousModifier = ParserErrorCode(
     name: 'EXTRANEOUS_MODIFIER',
     problemMessage: "Can't have modifier '{0}' here.",
     correctionMessage: "Try removing '{0}'.",
@@ -1126,7 +1124,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// Token lexeme: undocumented
-  static const ParserErrorCode extraneousModifierInExtensionType =
+  static const DiagnosticCode extraneousModifierInExtensionType =
       ParserErrorCode(
         name: 'EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE',
         problemMessage: "Can't have modifier '{0}' in an extension type.",
@@ -1138,7 +1136,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// Token lexeme: undocumented
-  static const ParserErrorCode extraneousModifierInPrimaryConstructor =
+  static const DiagnosticCode extraneousModifierInPrimaryConstructor =
       ParserErrorCode(
         name: 'EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR',
         problemMessage: "Can't have modifier '{0}' in a primary constructor.",
@@ -1149,7 +1147,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments factoryTopLevelDeclaration =
+  static const DiagnosticWithoutArguments factoryTopLevelDeclaration =
       ParserErrorWithoutArguments(
         name: 'FACTORY_TOP_LEVEL_DECLARATION',
         problemMessage:
@@ -1160,7 +1158,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments factoryWithInitializers =
+  static const DiagnosticWithoutArguments factoryWithInitializers =
       ParserErrorWithoutArguments(
         name: 'FACTORY_WITH_INITIALIZERS',
         problemMessage: "A 'factory' constructor can't have initializers.",
@@ -1172,7 +1170,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments factoryWithoutBody =
+  static const DiagnosticWithoutArguments factoryWithoutBody =
       ParserErrorWithoutArguments(
         name: 'FACTORY_WITHOUT_BODY',
         problemMessage:
@@ -1183,7 +1181,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   fieldInitializedOutsideDeclaringClass = ParserErrorWithoutArguments(
     name: 'FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS',
     problemMessage: "A field can only be initialized in its declaring class",
@@ -1196,7 +1194,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments finalAndCovariant =
+  static const DiagnosticWithoutArguments finalAndCovariant =
       ParserErrorWithoutArguments(
         name: 'FINAL_AND_COVARIANT',
         problemMessage:
@@ -1208,7 +1206,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   finalAndCovariantLateWithInitializer = ParserErrorWithoutArguments(
     name: 'FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER',
     problemMessage:
@@ -1223,7 +1221,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments finalAndVar =
+  static const DiagnosticWithoutArguments finalAndVar =
       ParserErrorWithoutArguments(
         name: 'FINAL_AND_VAR',
         problemMessage:
@@ -1234,7 +1232,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments finalConstructor =
+  static const DiagnosticWithoutArguments finalConstructor =
       ParserErrorWithoutArguments(
         name: 'FINAL_CONSTRUCTOR',
         problemMessage: "A constructor can't be declared to be 'final'.",
@@ -1244,7 +1242,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments finalEnum =
+  static const DiagnosticWithoutArguments finalEnum =
       ParserErrorWithoutArguments(
         name: 'FINAL_ENUM',
         problemMessage: "Enums can't be declared to be 'final'.",
@@ -1254,7 +1252,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments finalMethod =
+  static const DiagnosticWithoutArguments finalMethod =
       ParserErrorWithoutArguments(
         name: 'FINAL_METHOD',
         problemMessage:
@@ -1265,7 +1263,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments finalMixin =
+  static const DiagnosticWithoutArguments finalMixin =
       ParserErrorWithoutArguments(
         name: 'FINAL_MIXIN',
         problemMessage: "A mixin can't be declared 'final'.",
@@ -1275,7 +1273,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments finalMixinClass =
+  static const DiagnosticWithoutArguments finalMixinClass =
       ParserErrorWithoutArguments(
         name: 'FINAL_MIXIN_CLASS',
         problemMessage: "A mixin class can't be declared 'final'.",
@@ -1285,7 +1283,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   functionTypedParameterVar = ParserErrorWithoutArguments(
     name: 'FUNCTION_TYPED_PARAMETER_VAR',
     problemMessage:
@@ -1297,7 +1295,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments getterConstructor =
+  static const DiagnosticWithoutArguments getterConstructor =
       ParserErrorWithoutArguments(
         name: 'GETTER_CONSTRUCTOR',
         problemMessage: "Constructors can't be a getter.",
@@ -1307,7 +1305,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   getterInFunction = ParserErrorWithoutArguments(
     name: 'GETTER_IN_FUNCTION',
     problemMessage: "Getters can't be defined within methods or functions.",
@@ -1319,7 +1317,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments getterWithParameters =
+  static const DiagnosticWithoutArguments getterWithParameters =
       ParserErrorWithoutArguments(
         name: 'GETTER_WITH_PARAMETERS',
         problemMessage: "Getters must be declared without a parameter list.",
@@ -1331,7 +1329,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments illegalAssignmentToNonAssignable =
+  static const DiagnosticWithoutArguments illegalAssignmentToNonAssignable =
       ParserErrorWithoutArguments(
         name: 'ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE',
         problemMessage: "Illegal assignment to non-assignable expression.",
@@ -1344,7 +1342,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// Token lexeme: undocumented
-  static const ParserErrorCode illegalPatternAssignmentVariableName =
+  static const DiagnosticCode illegalPatternAssignmentVariableName =
       ParserErrorCode(
         name: 'ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME',
         problemMessage:
@@ -1360,7 +1358,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// Token lexeme: undocumented
-  static const ParserErrorCode illegalPatternIdentifierName = ParserErrorCode(
+  static const DiagnosticCode illegalPatternIdentifierName = ParserErrorCode(
     name: 'ILLEGAL_PATTERN_IDENTIFIER_NAME',
     problemMessage: "A pattern can't refer to an identifier named '{0}'.",
     correctionMessage: "Match the identifier using '==",
@@ -1373,7 +1371,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// Token lexeme: undocumented
-  static const ParserErrorCode illegalPatternVariableName = ParserErrorCode(
+  static const DiagnosticCode illegalPatternVariableName = ParserErrorCode(
     name: 'ILLEGAL_PATTERN_VARIABLE_NAME',
     problemMessage:
         "The variable declared by a variable pattern can't be named '{0}'.",
@@ -1383,7 +1381,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments implementsBeforeExtends =
+  static const DiagnosticWithoutArguments implementsBeforeExtends =
       ParserErrorWithoutArguments(
         name: 'IMPLEMENTS_BEFORE_EXTENDS',
         problemMessage:
@@ -1395,7 +1393,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments implementsBeforeOn =
+  static const DiagnosticWithoutArguments implementsBeforeOn =
       ParserErrorWithoutArguments(
         name: 'IMPLEMENTS_BEFORE_ON',
         problemMessage: "The on clause must be before the implements clause.",
@@ -1406,7 +1404,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments implementsBeforeWith =
+  static const DiagnosticWithoutArguments implementsBeforeWith =
       ParserErrorWithoutArguments(
         name: 'IMPLEMENTS_BEFORE_WITH',
         problemMessage: "The with clause must be before the implements clause.",
@@ -1417,7 +1415,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments importDirectiveAfterPartDirective =
+  static const DiagnosticWithoutArguments importDirectiveAfterPartDirective =
       ParserErrorWithoutArguments(
         name: 'IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
         problemMessage: "Import directives must precede part directives.",
@@ -1429,7 +1427,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments initializedVariableInForEach =
+  static const DiagnosticWithoutArguments initializedVariableInForEach =
       ParserErrorWithoutArguments(
         name: 'INITIALIZED_VARIABLE_IN_FOR_EACH',
         problemMessage:
@@ -1441,7 +1439,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments interfaceEnum =
+  static const DiagnosticWithoutArguments interfaceEnum =
       ParserErrorWithoutArguments(
         name: 'INTERFACE_ENUM',
         problemMessage: "Enums can't be declared to be 'interface'.",
@@ -1451,7 +1449,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments interfaceMixin =
+  static const DiagnosticWithoutArguments interfaceMixin =
       ParserErrorWithoutArguments(
         name: 'INTERFACE_MIXIN',
         problemMessage: "A mixin can't be declared 'interface'.",
@@ -1461,7 +1459,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments interfaceMixinClass =
+  static const DiagnosticWithoutArguments interfaceMixinClass =
       ParserErrorWithoutArguments(
         name: 'INTERFACE_MIXIN_CLASS',
         problemMessage: "A mixin class can't be declared 'interface'.",
@@ -1471,7 +1469,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments invalidAwaitInFor =
+  static const DiagnosticWithoutArguments invalidAwaitInFor =
       ParserErrorWithoutArguments(
         name: 'INVALID_AWAIT_IN_FOR',
         problemMessage:
@@ -1484,7 +1482,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String p0: the invalid escape sequence
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
   invalidCodePoint = ParserErrorTemplate(
@@ -1496,7 +1494,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidCommentReference = ParserErrorWithoutArguments(
     name: 'INVALID_COMMENT_REFERENCE',
     problemMessage:
@@ -1507,7 +1505,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidConstantConstPrefix = ParserErrorWithoutArguments(
     name: 'INVALID_CONSTANT_CONST_PREFIX',
     problemMessage:
@@ -1520,7 +1518,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// Name name: undocumented
-  static const ParserErrorCode invalidConstantPatternBinary = ParserErrorCode(
+  static const DiagnosticCode invalidConstantPatternBinary = ParserErrorCode(
     name: 'INVALID_CONSTANT_PATTERN_BINARY',
     problemMessage:
         "The binary operator {0} is not supported as a constant pattern.",
@@ -1530,17 +1528,18 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
-  invalidConstantPatternDuplicateConst = ParserErrorWithoutArguments(
-    name: 'INVALID_CONSTANT_PATTERN_DUPLICATE_CONST',
-    problemMessage: "Duplicate 'const' keyword in constant expression.",
-    correctionMessage: "Try removing one of the 'const' keywords.",
-    uniqueNameCheck: 'ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidConstantPatternDuplicateConst =
+      ParserErrorWithoutArguments(
+        name: 'INVALID_CONSTANT_PATTERN_DUPLICATE_CONST',
+        problemMessage: "Duplicate 'const' keyword in constant expression.",
+        correctionMessage: "Try removing one of the 'const' keywords.",
+        uniqueNameCheck:
+            'ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST',
+        expectedTypes: [],
+      );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidConstantPatternEmptyRecordLiteral = ParserErrorWithoutArguments(
     name: 'INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL',
     problemMessage:
@@ -1551,7 +1550,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments invalidConstantPatternGeneric =
+  static const DiagnosticWithoutArguments invalidConstantPatternGeneric =
       ParserErrorWithoutArguments(
         name: 'INVALID_CONSTANT_PATTERN_GENERIC',
         problemMessage:
@@ -1562,7 +1561,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidConstantPatternNegation = ParserErrorWithoutArguments(
     name: 'INVALID_CONSTANT_PATTERN_NEGATION',
     problemMessage:
@@ -1574,7 +1573,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// Name name: undocumented
-  static const ParserErrorCode invalidConstantPatternUnary = ParserErrorCode(
+  static const DiagnosticCode invalidConstantPatternUnary = ParserErrorCode(
     name: 'INVALID_CONSTANT_PATTERN_UNARY',
     problemMessage:
         "The unary operator {0} is not supported as a constant pattern.",
@@ -1584,7 +1583,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidConstructorName = ParserErrorWithoutArguments(
     name: 'INVALID_CONSTRUCTOR_NAME',
     problemMessage:
@@ -1594,7 +1593,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidGenericFunctionType = ParserErrorWithoutArguments(
     name: 'INVALID_GENERIC_FUNCTION_TYPE',
     problemMessage: "Invalid generic function type.",
@@ -1606,7 +1605,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidHexEscape = ParserErrorWithoutArguments(
     name: 'INVALID_HEX_ESCAPE',
     problemMessage:
@@ -1617,7 +1616,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments invalidInitializer =
+  static const DiagnosticWithoutArguments invalidInitializer =
       ParserErrorWithoutArguments(
         name: 'INVALID_INITIALIZER',
         problemMessage: "Not a valid initializer.",
@@ -1630,7 +1629,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   ///
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidInsideUnaryPattern = ParserErrorWithoutArguments(
     name: 'INVALID_INSIDE_UNARY_PATTERN',
     problemMessage:
@@ -1644,7 +1643,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments invalidLiteralInConfiguration =
+  static const DiagnosticWithoutArguments invalidLiteralInConfiguration =
       ParserErrorWithoutArguments(
         name: 'INVALID_LITERAL_IN_CONFIGURATION',
         problemMessage:
@@ -1659,7 +1658,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// Token lexeme: undocumented
-  static const ParserErrorCode invalidOperator = ParserErrorCode(
+  static const DiagnosticCode invalidOperator = ParserErrorCode(
     name: 'INVALID_OPERATOR',
     problemMessage: "The string '{0}' isn't a user-definable operator.",
     uniqueNameCheck: 'ParserErrorCode.INVALID_OPERATOR',
@@ -1671,7 +1670,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// Object p0: the operator being applied to 'super'
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
   invalidOperatorForSuper = ParserErrorTemplate(
@@ -1683,7 +1682,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidOperatorQuestionmarkPeriodForSuper = ParserErrorWithoutArguments(
     name: 'INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER',
     problemMessage:
@@ -1696,7 +1695,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidStarAfterAsync = ParserErrorWithoutArguments(
     name: 'INVALID_STAR_AFTER_ASYNC',
     problemMessage:
@@ -1707,7 +1706,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments invalidSuperInInitializer =
+  static const DiagnosticWithoutArguments invalidSuperInInitializer =
       ParserErrorWithoutArguments(
         name: 'INVALID_SUPER_IN_INITIALIZER',
         problemMessage:
@@ -1718,7 +1717,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidSync = ParserErrorWithoutArguments(
     name: 'INVALID_SYNC',
     problemMessage:
@@ -1729,7 +1728,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidThisInInitializer = ParserErrorWithoutArguments(
     name: 'INVALID_THIS_IN_INITIALIZER',
     problemMessage:
@@ -1741,7 +1740,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments invalidUnicodeEscapeStarted =
+  static const DiagnosticWithoutArguments invalidUnicodeEscapeStarted =
       ParserErrorWithoutArguments(
         name: 'INVALID_UNICODE_ESCAPE_STARTED',
         problemMessage: "The string '\\' can't stand alone.",
@@ -1752,7 +1751,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidUnicodeEscapeUBracket = ParserErrorWithoutArguments(
     name: 'INVALID_UNICODE_ESCAPE_U_BRACKET',
     problemMessage:
@@ -1763,7 +1762,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidUnicodeEscapeUNoBracket = ParserErrorWithoutArguments(
     name: 'INVALID_UNICODE_ESCAPE_U_NO_BRACKET',
     problemMessage:
@@ -1774,7 +1773,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidUnicodeEscapeUStarted = ParserErrorWithoutArguments(
     name: 'INVALID_UNICODE_ESCAPE_U_STARTED',
     problemMessage:
@@ -1788,7 +1787,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// Token lexeme: undocumented
-  static const ParserErrorCode invalidUseOfCovariantInExtension =
+  static const DiagnosticCode invalidUseOfCovariantInExtension =
       ParserErrorCode(
         name: 'INVALID_USE_OF_COVARIANT_IN_EXTENSION',
         problemMessage: "Can't have modifier '{0}' in an extension.",
@@ -1800,7 +1799,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   invalidUseOfIdentifierAugmented = ParserErrorWithoutArguments(
     name: 'INVALID_USE_OF_IDENTIFIER_AUGMENTED',
     problemMessage:
@@ -1814,7 +1813,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   ///
   /// No parameters.
-  static const ParserErrorWithoutArguments latePatternVariableDeclaration =
+  static const DiagnosticWithoutArguments latePatternVariableDeclaration =
       ParserErrorWithoutArguments(
         name: 'LATE_PATTERN_VARIABLE_DECLARATION',
         problemMessage:
@@ -1825,7 +1824,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments libraryDirectiveNotFirst =
+  static const DiagnosticWithoutArguments libraryDirectiveNotFirst =
       ParserErrorWithoutArguments(
         name: 'LIBRARY_DIRECTIVE_NOT_FIRST',
         problemMessage:
@@ -1839,7 +1838,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String string: undocumented
   /// Token lexeme: undocumented
-  static const ParserErrorCode literalWithClass = ParserErrorCode(
+  static const DiagnosticCode literalWithClass = ParserErrorCode(
     name: 'LITERAL_WITH_CLASS',
     problemMessage: "A {0} literal can't be prefixed by '{1}'.",
     correctionMessage: "Try removing '{1}'",
@@ -1850,7 +1849,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String string: undocumented
   /// Token lexeme: undocumented
-  static const ParserErrorCode literalWithClassAndNew = ParserErrorCode(
+  static const DiagnosticCode literalWithClassAndNew = ParserErrorCode(
     name: 'LITERAL_WITH_CLASS_AND_NEW',
     problemMessage: "A {0} literal can't be prefixed by 'new {1}'.",
     correctionMessage: "Try removing 'new' and '{1}'",
@@ -1859,7 +1858,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments literalWithNew =
+  static const DiagnosticWithoutArguments literalWithNew =
       ParserErrorWithoutArguments(
         name: 'LITERAL_WITH_NEW',
         problemMessage: "A literal can't be prefixed by 'new'.",
@@ -1869,7 +1868,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments localFunctionDeclarationModifier =
+  static const DiagnosticWithoutArguments localFunctionDeclarationModifier =
       ParserErrorWithoutArguments(
         name: 'LOCAL_FUNCTION_DECLARATION_MODIFIER',
         problemMessage:
@@ -1880,7 +1879,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments memberWithClassName =
+  static const DiagnosticWithoutArguments memberWithClassName =
       ParserErrorWithoutArguments(
         name: 'MEMBER_WITH_CLASS_NAME',
         problemMessage:
@@ -1891,7 +1890,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingAssignableSelector =
+  static const DiagnosticWithoutArguments missingAssignableSelector =
       ParserErrorWithoutArguments(
         name: 'MISSING_ASSIGNABLE_SELECTOR',
         problemMessage: "Missing selector such as '.identifier' or '[0]'.",
@@ -1901,7 +1900,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingAssignmentInInitializer =
+  static const DiagnosticWithoutArguments missingAssignmentInInitializer =
       ParserErrorWithoutArguments(
         name: 'MISSING_ASSIGNMENT_IN_INITIALIZER',
         problemMessage: "Expected an assignment after the field name.",
@@ -1912,7 +1911,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   missingCatchOrFinally = ParserErrorWithoutArguments(
     name: 'MISSING_CATCH_OR_FINALLY',
     problemMessage:
@@ -1925,7 +1924,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingClosingParenthesis =
+  static const DiagnosticWithoutArguments missingClosingParenthesis =
       ParserErrorWithoutArguments(
         name: 'MISSING_CLOSING_PARENTHESIS',
         problemMessage: "The closing parenthesis is missing.",
@@ -1935,7 +1934,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   missingConstFinalVarOrType = ParserErrorWithoutArguments(
     name: 'MISSING_CONST_FINAL_VAR_OR_TYPE',
     problemMessage:
@@ -1948,7 +1947,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   missingEnumBody = ParserErrorWithoutArguments(
     name: 'MISSING_ENUM_BODY',
     problemMessage:
@@ -1959,7 +1958,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingExpressionInInitializer =
+  static const DiagnosticWithoutArguments missingExpressionInInitializer =
       ParserErrorWithoutArguments(
         name: 'MISSING_EXPRESSION_IN_INITIALIZER',
         problemMessage: "Expected an expression after the assignment operator.",
@@ -1971,7 +1970,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   missingExpressionInThrow = ParserErrorWithoutArguments(
     name: 'MISSING_EXPRESSION_IN_THROW',
     problemMessage: "Missing expression after 'throw'.",
@@ -1983,7 +1982,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingFunctionBody =
+  static const DiagnosticWithoutArguments missingFunctionBody =
       ParserErrorWithoutArguments(
         name: 'MISSING_FUNCTION_BODY',
         problemMessage: "A function body must be provided.",
@@ -1993,7 +1992,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   missingFunctionKeyword = ParserErrorWithoutArguments(
     name: 'MISSING_FUNCTION_KEYWORD',
     problemMessage:
@@ -2005,7 +2004,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingFunctionParameters =
+  static const DiagnosticWithoutArguments missingFunctionParameters =
       ParserErrorWithoutArguments(
         name: 'MISSING_FUNCTION_PARAMETERS',
         problemMessage: "Functions must have an explicit list of parameters.",
@@ -2015,7 +2014,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingGet =
+  static const DiagnosticWithoutArguments missingGet =
       ParserErrorWithoutArguments(
         name: 'MISSING_GET',
         problemMessage:
@@ -2026,7 +2025,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingIdentifier =
+  static const DiagnosticWithoutArguments missingIdentifier =
       ParserErrorWithoutArguments(
         name: 'MISSING_IDENTIFIER',
         problemMessage: "Expected an identifier.",
@@ -2035,7 +2034,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingInitializer =
+  static const DiagnosticWithoutArguments missingInitializer =
       ParserErrorWithoutArguments(
         name: 'MISSING_INITIALIZER',
         problemMessage: "Expected an initializer.",
@@ -2044,7 +2043,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingKeywordOperator =
+  static const DiagnosticWithoutArguments missingKeywordOperator =
       ParserErrorWithoutArguments(
         name: 'MISSING_KEYWORD_OPERATOR',
         problemMessage:
@@ -2055,7 +2054,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingMethodParameters =
+  static const DiagnosticWithoutArguments missingMethodParameters =
       ParserErrorWithoutArguments(
         name: 'MISSING_METHOD_PARAMETERS',
         problemMessage: "Methods must have an explicit list of parameters.",
@@ -2065,7 +2064,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   missingNameForNamedParameter = ParserErrorWithoutArguments(
     name: 'MISSING_NAME_FOR_NAMED_PARAMETER',
     problemMessage: "Named parameters in a function type must have a name",
@@ -2076,7 +2075,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   missingNameInLibraryDirective = ParserErrorWithoutArguments(
     name: 'MISSING_NAME_IN_LIBRARY_DIRECTIVE',
     problemMessage: "Library directives must include a library name.",
@@ -2088,7 +2087,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingNameInPartOfDirective =
+  static const DiagnosticWithoutArguments missingNameInPartOfDirective =
       ParserErrorWithoutArguments(
         name: 'MISSING_NAME_IN_PART_OF_DIRECTIVE',
         problemMessage: "Part-of directives must include a library name.",
@@ -2098,7 +2097,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingPrefixInDeferredImport =
+  static const DiagnosticWithoutArguments missingPrefixInDeferredImport =
       ParserErrorWithoutArguments(
         name: 'MISSING_PREFIX_IN_DEFERRED_IMPORT',
         problemMessage: "Deferred imports should have a prefix.",
@@ -2109,7 +2108,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   missingPrimaryConstructor = ParserErrorWithoutArguments(
     name: 'MISSING_PRIMARY_CONSTRUCTOR',
     problemMessage:
@@ -2122,7 +2121,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingPrimaryConstructorParameters =
+  static const DiagnosticWithoutArguments missingPrimaryConstructorParameters =
       ParserErrorWithoutArguments(
         name: 'MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS',
         problemMessage:
@@ -2135,7 +2134,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingStarAfterSync =
+  static const DiagnosticWithoutArguments missingStarAfterSync =
       ParserErrorWithoutArguments(
         name: 'MISSING_STAR_AFTER_SYNC',
         problemMessage: "The modifier 'sync' must be followed by a star ('*').",
@@ -2145,7 +2144,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingStatement =
+  static const DiagnosticWithoutArguments missingStatement =
       ParserErrorWithoutArguments(
         name: 'MISSING_STATEMENT',
         problemMessage: "Expected a statement.",
@@ -2155,7 +2154,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// Object p0: the terminator that is missing
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
   missingTerminatorForParameterGroup = ParserErrorTemplate(
@@ -2168,7 +2167,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments missingTypedefParameters =
+  static const DiagnosticWithoutArguments missingTypedefParameters =
       ParserErrorWithoutArguments(
         name: 'MISSING_TYPEDEF_PARAMETERS',
         problemMessage: "Typedefs must have an explicit list of parameters.",
@@ -2178,7 +2177,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   missingVariableInForEach = ParserErrorWithoutArguments(
     name: 'MISSING_VARIABLE_IN_FOR_EACH',
     problemMessage:
@@ -2190,7 +2189,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   mixedParameterGroups = ParserErrorWithoutArguments(
     name: 'MIXED_PARAMETER_GROUPS',
     problemMessage:
@@ -2202,7 +2201,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments mixinDeclaresConstructor =
+  static const DiagnosticWithoutArguments mixinDeclaresConstructor =
       ParserErrorWithoutArguments(
         name: 'MIXIN_DECLARES_CONSTRUCTOR',
         problemMessage: "Mixins can't declare constructors.",
@@ -2211,7 +2210,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments mixinWithClause =
+  static const DiagnosticWithoutArguments mixinWithClause =
       ParserErrorWithoutArguments(
         name: 'MIXIN_WITH_CLAUSE',
         problemMessage: "A mixin can't have a with clause.",
@@ -2222,7 +2221,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String string: undocumented
   /// String string2: undocumented
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required String string,
       required String string2,
@@ -2240,7 +2239,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String string: undocumented
   /// String string2: undocumented
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required String string,
       required String string2,
@@ -2257,7 +2256,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   multipleExtendsClauses = ParserErrorWithoutArguments(
     name: 'MULTIPLE_EXTENDS_CLAUSES',
     problemMessage:
@@ -2270,7 +2269,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   multipleImplementsClauses = ParserErrorWithoutArguments(
     name: 'MULTIPLE_IMPLEMENTS_CLAUSES',
     problemMessage:
@@ -2282,7 +2281,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments multipleLibraryDirectives =
+  static const DiagnosticWithoutArguments multipleLibraryDirectives =
       ParserErrorWithoutArguments(
         name: 'MULTIPLE_LIBRARY_DIRECTIVES',
         problemMessage: "Only one library directive may be declared in a file.",
@@ -2293,7 +2292,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   multipleNamedParameterGroups = ParserErrorWithoutArguments(
     name: 'MULTIPLE_NAMED_PARAMETER_GROUPS',
     problemMessage:
@@ -2305,7 +2304,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments multipleOnClauses =
+  static const DiagnosticWithoutArguments multipleOnClauses =
       ParserErrorWithoutArguments(
         name: 'MULTIPLE_ON_CLAUSES',
         problemMessage: "Each mixin definition can have at most one on clause.",
@@ -2316,7 +2315,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments multiplePartOfDirectives =
+  static const DiagnosticWithoutArguments multiplePartOfDirectives =
       ParserErrorWithoutArguments(
         name: 'MULTIPLE_PART_OF_DIRECTIVES',
         problemMessage: "Only one part-of directive may be declared in a file.",
@@ -2327,7 +2326,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   multiplePositionalParameterGroups = ParserErrorWithoutArguments(
     name: 'MULTIPLE_POSITIONAL_PARAMETER_GROUPS',
     problemMessage:
@@ -2339,7 +2338,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments multipleRepresentationFields =
+  static const DiagnosticWithoutArguments multipleRepresentationFields =
       ParserErrorWithoutArguments(
         name: 'MULTIPLE_REPRESENTATION_FIELDS',
         problemMessage:
@@ -2352,7 +2351,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// Object p0: the number of variables being declared
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
   multipleVariablesInForEach = ParserErrorTemplate(
@@ -2368,7 +2367,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments multipleVarianceModifiers =
+  static const DiagnosticWithoutArguments multipleVarianceModifiers =
       ParserErrorWithoutArguments(
         name: 'MULTIPLE_VARIANCE_MODIFIERS',
         problemMessage:
@@ -2380,7 +2379,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments multipleWithClauses =
+  static const DiagnosticWithoutArguments multipleWithClauses =
       ParserErrorWithoutArguments(
         name: 'MULTIPLE_WITH_CLAUSES',
         problemMessage:
@@ -2392,7 +2391,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments namedFunctionExpression =
+  static const DiagnosticWithoutArguments namedFunctionExpression =
       ParserErrorWithoutArguments(
         name: 'NAMED_FUNCTION_EXPRESSION',
         problemMessage: "Function expressions can't be named.",
@@ -2404,7 +2403,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments namedFunctionType =
+  static const DiagnosticWithoutArguments namedFunctionType =
       ParserErrorWithoutArguments(
         name: 'NAMED_FUNCTION_TYPE',
         problemMessage: "Function types can't be named.",
@@ -2415,7 +2414,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments namedParameterOutsideGroup =
+  static const DiagnosticWithoutArguments namedParameterOutsideGroup =
       ParserErrorWithoutArguments(
         name: 'NAMED_PARAMETER_OUTSIDE_GROUP',
         problemMessage:
@@ -2427,7 +2426,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   nativeClauseInNonSdkCode = ParserErrorWithoutArguments(
     name: 'NATIVE_CLAUSE_IN_NON_SDK_CODE',
     problemMessage:
@@ -2439,7 +2438,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments nativeClauseShouldBeAnnotation =
+  static const DiagnosticWithoutArguments nativeClauseShouldBeAnnotation =
       ParserErrorWithoutArguments(
         name: 'NATIVE_CLAUSE_SHOULD_BE_ANNOTATION',
         problemMessage: "Native clause in this form is deprecated.",
@@ -2451,7 +2450,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   nativeFunctionBodyInNonSdkCode = ParserErrorWithoutArguments(
     name: 'NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE',
     problemMessage:
@@ -2463,7 +2462,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments nonConstructorFactory =
+  static const DiagnosticWithoutArguments nonConstructorFactory =
       ParserErrorWithoutArguments(
         name: 'NON_CONSTRUCTOR_FACTORY',
         problemMessage: "Only a constructor can be declared to be a factory.",
@@ -2473,7 +2472,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments nonIdentifierLibraryName =
+  static const DiagnosticWithoutArguments nonIdentifierLibraryName =
       ParserErrorWithoutArguments(
         name: 'NON_IDENTIFIER_LIBRARY_NAME',
         problemMessage: "The name of a library must be an identifier.",
@@ -2484,7 +2483,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   nonPartOfDirectiveInPart = ParserErrorWithoutArguments(
     name: 'NON_PART_OF_DIRECTIVE_IN_PART',
     problemMessage:
@@ -2497,7 +2496,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments nonStringLiteralAsUri =
+  static const DiagnosticWithoutArguments nonStringLiteralAsUri =
       ParserErrorWithoutArguments(
         name: 'NON_STRING_LITERAL_AS_URI',
         problemMessage: "The URI must be a string literal.",
@@ -2509,7 +2508,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// Object p0: the operator that the user is trying to define
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
   nonUserDefinableOperator = ParserErrorTemplate(
@@ -2521,7 +2520,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments normalBeforeOptionalParameters =
+  static const DiagnosticWithoutArguments normalBeforeOptionalParameters =
       ParserErrorWithoutArguments(
         name: 'NORMAL_BEFORE_OPTIONAL_PARAMETERS',
         problemMessage:
@@ -2534,7 +2533,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   nullAwareCascadeOutOfOrder = ParserErrorWithoutArguments(
     name: 'NULL_AWARE_CASCADE_OUT_OF_ORDER',
     problemMessage:
@@ -2549,7 +2548,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String string: undocumented
   /// String string2: undocumented
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
       required String string,
       required String string2,
@@ -2565,7 +2564,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   partOfName = ParserErrorWithoutArguments(
     name: 'PART_OF_NAME',
     problemMessage:
@@ -2577,7 +2576,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// Name name: undocumented
-  static const ParserErrorCode patternAssignmentDeclaresVariable =
+  static const DiagnosticCode patternAssignmentDeclaresVariable =
       ParserErrorCode(
         name: 'PATTERN_ASSIGNMENT_DECLARES_VARIABLE',
         problemMessage:
@@ -2592,7 +2591,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   ///
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   patternVariableDeclarationOutsideFunctionOrMethod = ParserErrorWithoutArguments(
     name: 'PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD',
     problemMessage:
@@ -2607,7 +2606,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments positionalAfterNamedArgument =
+  static const DiagnosticWithoutArguments positionalAfterNamedArgument =
       ParserErrorWithoutArguments(
         name: 'POSITIONAL_AFTER_NAMED_ARGUMENT',
         problemMessage:
@@ -2620,7 +2619,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   positionalParameterOutsideGroup = ParserErrorWithoutArguments(
     name: 'POSITIONAL_PARAMETER_OUTSIDE_GROUP',
     problemMessage:
@@ -2632,7 +2631,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   prefixAfterCombinator = ParserErrorWithoutArguments(
     name: 'PREFIX_AFTER_COMBINATOR',
     problemMessage:
@@ -2643,7 +2642,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   privateNamedNonFieldParameter = ParserErrorWithoutArguments(
     name: 'PRIVATE_NAMED_NON_FIELD_PARAMETER',
     problemMessage:
@@ -2654,7 +2653,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments privateOptionalParameter =
+  static const DiagnosticWithoutArguments privateOptionalParameter =
       ParserErrorWithoutArguments(
         name: 'PRIVATE_OPTIONAL_PARAMETER',
         problemMessage: "Named parameters can't start with an underscore.",
@@ -2664,7 +2663,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   recordLiteralOnePositionalNoTrailingComma = ParserErrorWithoutArguments(
     name: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
     problemMessage:
@@ -2678,7 +2677,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   recordTypeOnePositionalNoTrailingComma = ParserErrorWithoutArguments(
     name: 'RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA',
     problemMessage:
@@ -2692,7 +2691,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   redirectingConstructorWithBody = ParserErrorWithoutArguments(
     name: 'REDIRECTING_CONSTRUCTOR_WITH_BODY',
     problemMessage: "Redirecting constructors can't have a body.",
@@ -2703,7 +2702,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments redirectionInNonFactoryConstructor =
+  static const DiagnosticWithoutArguments redirectionInNonFactoryConstructor =
       ParserErrorWithoutArguments(
         name: 'REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR',
         problemMessage: "Only factory constructor can specify '=' redirection.",
@@ -2715,7 +2714,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments representationFieldModifier =
+  static const DiagnosticWithoutArguments representationFieldModifier =
       ParserErrorWithoutArguments(
         name: 'REPRESENTATION_FIELD_MODIFIER',
         problemMessage: "Representation fields can't have modifiers.",
@@ -2725,7 +2724,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments representationFieldTrailingComma =
+  static const DiagnosticWithoutArguments representationFieldTrailingComma =
       ParserErrorWithoutArguments(
         name: 'REPRESENTATION_FIELD_TRAILING_COMMA',
         problemMessage: "The representation field can't have a trailing comma.",
@@ -2735,7 +2734,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments sealedEnum =
+  static const DiagnosticWithoutArguments sealedEnum =
       ParserErrorWithoutArguments(
         name: 'SEALED_ENUM',
         problemMessage: "Enums can't be declared to be 'sealed'.",
@@ -2745,7 +2744,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments sealedMixin =
+  static const DiagnosticWithoutArguments sealedMixin =
       ParserErrorWithoutArguments(
         name: 'SEALED_MIXIN',
         problemMessage: "A mixin can't be declared 'sealed'.",
@@ -2755,7 +2754,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments sealedMixinClass =
+  static const DiagnosticWithoutArguments sealedMixinClass =
       ParserErrorWithoutArguments(
         name: 'SEALED_MIXIN_CLASS',
         problemMessage: "A mixin class can't be declared 'sealed'.",
@@ -2765,7 +2764,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments setterConstructor =
+  static const DiagnosticWithoutArguments setterConstructor =
       ParserErrorWithoutArguments(
         name: 'SETTER_CONSTRUCTOR',
         problemMessage: "Constructors can't be a setter.",
@@ -2775,7 +2774,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments setterInFunction =
+  static const DiagnosticWithoutArguments setterInFunction =
       ParserErrorWithoutArguments(
         name: 'SETTER_IN_FUNCTION',
         problemMessage: "Setters can't be defined within methods or functions.",
@@ -2786,7 +2785,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments stackOverflow =
+  static const DiagnosticWithoutArguments stackOverflow =
       ParserErrorWithoutArguments(
         name: 'STACK_OVERFLOW',
         problemMessage:
@@ -2797,7 +2796,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments staticConstructor =
+  static const DiagnosticWithoutArguments staticConstructor =
       ParserErrorWithoutArguments(
         name: 'STATIC_CONSTRUCTOR',
         problemMessage: "Constructors can't be static.",
@@ -2807,7 +2806,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   staticGetterWithoutBody = ParserErrorWithoutArguments(
     name: 'STATIC_GETTER_WITHOUT_BODY',
     problemMessage: "A 'static' getter must have a body.",
@@ -2818,7 +2817,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments staticOperator =
+  static const DiagnosticWithoutArguments staticOperator =
       ParserErrorWithoutArguments(
         name: 'STATIC_OPERATOR',
         problemMessage: "Operators can't be static.",
@@ -2828,7 +2827,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   staticSetterWithoutBody = ParserErrorWithoutArguments(
     name: 'STATIC_SETTER_WITHOUT_BODY',
     problemMessage: "A 'static' setter must have a body.",
@@ -2839,7 +2838,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments switchHasCaseAfterDefaultCase =
+  static const DiagnosticWithoutArguments switchHasCaseAfterDefaultCase =
       ParserErrorWithoutArguments(
         name: 'SWITCH_HAS_CASE_AFTER_DEFAULT_CASE',
         problemMessage:
@@ -2851,7 +2850,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments switchHasMultipleDefaultCases =
+  static const DiagnosticWithoutArguments switchHasMultipleDefaultCases =
       ParserErrorWithoutArguments(
         name: 'SWITCH_HAS_MULTIPLE_DEFAULT_CASES',
         problemMessage: "The 'default' case can only be declared once.",
@@ -2861,7 +2860,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   topLevelOperator = ParserErrorWithoutArguments(
     name: 'TOP_LEVEL_OPERATOR',
     problemMessage: "Operators must be declared within a class.",
@@ -2874,7 +2873,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// Name name: undocumented
-  static const ParserErrorCode typeArgumentsOnTypeVariable = ParserErrorCode(
+  static const DiagnosticCode typeArgumentsOnTypeVariable = ParserErrorCode(
     name: 'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
     problemMessage: "Can't use type arguments with type variable '{0}'.",
     correctionMessage: "Try removing the type arguments.",
@@ -2883,7 +2882,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments typeBeforeFactory =
+  static const DiagnosticWithoutArguments typeBeforeFactory =
       ParserErrorWithoutArguments(
         name: 'TYPE_BEFORE_FACTORY',
         problemMessage: "Factory constructors cannot have a return type.",
@@ -2893,7 +2892,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments typedefInClass =
+  static const DiagnosticWithoutArguments typedefInClass =
       ParserErrorWithoutArguments(
         name: 'TYPEDEF_IN_CLASS',
         problemMessage: "Typedefs can't be declared inside classes.",
@@ -2903,7 +2902,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments typeParameterOnConstructor =
+  static const DiagnosticWithoutArguments typeParameterOnConstructor =
       ParserErrorWithoutArguments(
         name: 'TYPE_PARAMETER_ON_CONSTRUCTOR',
         problemMessage: "Constructors can't have type parameters.",
@@ -2916,7 +2915,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// operator.
   ///
   /// No parameters.
-  static const ParserErrorWithoutArguments typeParameterOnOperator =
+  static const DiagnosticWithoutArguments typeParameterOnOperator =
       ParserErrorWithoutArguments(
         name: 'TYPE_PARAMETER_ON_OPERATOR',
         problemMessage:
@@ -2927,11 +2926,11 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   @Deprecated("Please use unexpectedToken")
-  static const ParserErrorCode UNEXPECTED_TOKEN = unexpectedToken;
+  static const DiagnosticCode UNEXPECTED_TOKEN = unexpectedToken;
 
   /// Parameters:
   /// Object p0: the starting character that was missing
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
   unexpectedTerminatorForParameterGroup = ParserErrorTemplate(
@@ -2946,7 +2945,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String p0: the unexpected text that was found
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
   unexpectedToken = ParserErrorTemplate(
@@ -2959,7 +2958,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments unexpectedTokens =
+  static const DiagnosticWithoutArguments unexpectedTokens =
       ParserErrorWithoutArguments(
         name: 'UNEXPECTED_TOKENS',
         problemMessage: "Unexpected tokens.",
@@ -2968,7 +2967,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments varAndType =
+  static const DiagnosticWithoutArguments varAndType =
       ParserErrorWithoutArguments(
         name: 'VAR_AND_TYPE',
         problemMessage:
@@ -2979,7 +2978,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments varAsTypeName =
+  static const DiagnosticWithoutArguments varAsTypeName =
       ParserErrorWithoutArguments(
         name: 'VAR_AS_TYPE_NAME',
         problemMessage: "The keyword 'var' can't be used as a type name.",
@@ -2988,7 +2987,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments varClass =
+  static const DiagnosticWithoutArguments varClass =
       ParserErrorWithoutArguments(
         name: 'VAR_CLASS',
         problemMessage: "Classes can't be declared to be 'var'.",
@@ -2998,19 +2997,18 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments varEnum =
-      ParserErrorWithoutArguments(
-        name: 'VAR_ENUM',
-        problemMessage: "Enums can't be declared to be 'var'.",
-        correctionMessage: "Try removing the keyword 'var'.",
-        uniqueNameCheck: 'ParserErrorCode.VAR_ENUM',
-        expectedTypes: [],
-      );
+  static const DiagnosticWithoutArguments varEnum = ParserErrorWithoutArguments(
+    name: 'VAR_ENUM',
+    problemMessage: "Enums can't be declared to be 'var'.",
+    correctionMessage: "Try removing the keyword 'var'.",
+    uniqueNameCheck: 'ParserErrorCode.VAR_ENUM',
+    expectedTypes: [],
+  );
 
   /// No parameters.
   ///
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   variablePatternKeywordInDeclarationContext = ParserErrorWithoutArguments(
     name: 'VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT',
     problemMessage:
@@ -3024,7 +3022,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   varReturnType = ParserErrorWithoutArguments(
     name: 'VAR_RETURN_TYPE',
     problemMessage: "The return type can't be 'var'.",
@@ -3036,7 +3034,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   varTypedef = ParserErrorWithoutArguments(
     name: 'VAR_TYPEDEF',
     problemMessage: "Typedefs can't be declared to be 'var'.",
@@ -3048,7 +3046,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments voidWithTypeArguments =
+  static const DiagnosticWithoutArguments voidWithTypeArguments =
       ParserErrorWithoutArguments(
         name: 'VOID_WITH_TYPE_ARGUMENTS',
         problemMessage: "Type 'void' can't have type arguments.",
@@ -3058,7 +3056,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments withBeforeExtends =
+  static const DiagnosticWithoutArguments withBeforeExtends =
       ParserErrorWithoutArguments(
         name: 'WITH_BEFORE_EXTENDS',
         problemMessage: "The extends clause must be before the with clause.",
@@ -3069,7 +3067,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments wrongNumberOfParametersForSetter =
+  static const DiagnosticWithoutArguments wrongNumberOfParametersForSetter =
       ParserErrorWithoutArguments(
         name: 'WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER',
         problemMessage:
@@ -3081,7 +3079,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ParserErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   wrongSeparatorForPositionalParameter = ParserErrorWithoutArguments(
     name: 'WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER',
     problemMessage:
@@ -3094,7 +3092,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// Object p0: the terminator that was expected
   /// Object p1: the terminator that was found
-  static const ParserErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
   wrongTerminatorForParameterGroup = ParserErrorTemplate(
@@ -3264,7 +3262,9 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
   }
 }
 
-final class ParserErrorTemplate<T extends Function> extends ParserErrorCode {
+final class ParserErrorTemplate<T extends Function> extends ParserErrorCode
+    implements DiagnosticWithArguments<T> {
+  @override
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
@@ -3298,7 +3298,7 @@ final class ParserErrorWithoutArguments extends ParserErrorCode
 
 class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
-  static const ScannerErrorWithoutArguments encoding =
+  static const DiagnosticWithoutArguments encoding =
       ScannerErrorWithoutArguments(
         name: 'ENCODING',
         problemMessage: "Unable to decode bytes as UTF-8.",
@@ -3308,7 +3308,7 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// Object p0: the illegal character
-  static const ScannerErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
   illegalCharacter = ScannerErrorTemplate(
@@ -3320,7 +3320,7 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ScannerErrorWithoutArguments missingDigit =
+  static const DiagnosticWithoutArguments missingDigit =
       ScannerErrorWithoutArguments(
         name: 'MISSING_DIGIT',
         problemMessage: "Decimal digit expected.",
@@ -3329,7 +3329,7 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ScannerErrorWithoutArguments missingHexDigit =
+  static const DiagnosticWithoutArguments missingHexDigit =
       ScannerErrorWithoutArguments(
         name: 'MISSING_HEX_DIGIT',
         problemMessage: "Hexadecimal digit expected.",
@@ -3338,7 +3338,7 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ScannerErrorWithoutArguments missingQuote =
+  static const DiagnosticWithoutArguments missingQuote =
       ScannerErrorWithoutArguments(
         name: 'MISSING_QUOTE',
         problemMessage: "Expected quote (' or \").",
@@ -3348,7 +3348,7 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// Object p0: the path of the file that cannot be read
-  static const ScannerErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
   unableGetContent = ScannerErrorTemplate(
@@ -3360,7 +3360,7 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ScannerErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   unexpectedDollarInString = ScannerErrorWithoutArguments(
     name: 'UNEXPECTED_DOLLAR_IN_STRING',
     problemMessage:
@@ -3372,7 +3372,7 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ScannerErrorWithoutArguments
+  static const DiagnosticWithoutArguments
   unexpectedSeparatorInNumber = ScannerErrorWithoutArguments(
     name: 'UNEXPECTED_SEPARATOR_IN_NUMBER',
     problemMessage:
@@ -3385,7 +3385,7 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String p0: the unsupported operator
-  static const ScannerErrorTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
   unsupportedOperator = ScannerErrorTemplate(
@@ -3397,7 +3397,7 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const ScannerErrorWithoutArguments unterminatedMultiLineComment =
+  static const DiagnosticWithoutArguments unterminatedMultiLineComment =
       ScannerErrorWithoutArguments(
         name: 'UNTERMINATED_MULTI_LINE_COMMENT',
         problemMessage: "Unterminated multi-line comment.",
@@ -3409,7 +3409,7 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const ScannerErrorWithoutArguments unterminatedStringLiteral =
+  static const DiagnosticWithoutArguments unterminatedStringLiteral =
       ScannerErrorWithoutArguments(
         name: 'UNTERMINATED_STRING_LITERAL',
         problemMessage: "Unterminated string literal.",
@@ -3451,7 +3451,9 @@ class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
   }
 }
 
-final class ScannerErrorTemplate<T extends Function> extends ScannerErrorCode {
+final class ScannerErrorTemplate<T extends Function> extends ScannerErrorCode
+    implements DiagnosticWithArguments<T> {
+  @override
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].

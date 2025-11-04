@@ -21,7 +21,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   /// plan to go through the exercise of converting it to a Warning.
   ///
   /// No parameters.
-  static const HintWithoutArguments
+  static const DiagnosticWithoutArguments
   deprecatedColonForDefaultValue = HintWithoutArguments(
     name: 'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     problemMessage:
@@ -35,7 +35,9 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
 
   /// Parameters:
   /// String p0: the name of the member
-  static const HintTemplate<LocatableDiagnostic Function({required String p0})>
+  static const DiagnosticWithArguments<
+    LocatableDiagnostic Function({required String p0})
+  >
   deprecatedMemberUse = HintTemplate(
     name: 'DEPRECATED_MEMBER_USE',
     problemMessage: "'{0}' is deprecated and shouldn't be used.",
@@ -50,7 +52,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String p0: the name of the member
   /// String p1: message details
-  static const HintTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   deprecatedMemberUseWithMessage = HintTemplate(
@@ -66,7 +68,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const HintWithoutArguments
+  static const DiagnosticWithoutArguments
   importDeferredLibraryWithLoadFunction = HintWithoutArguments(
     name: 'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
     problemMessage:
@@ -83,7 +85,7 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String p0: the URI that is not necessary
   /// String p1: the URI that makes it unnecessary
-  static const HintTemplate<
+  static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   unnecessaryImport = HintTemplate(
@@ -137,7 +139,9 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   }
 }
 
-final class HintTemplate<T extends Function> extends HintCode {
+final class HintTemplate<T extends Function> extends HintCode
+    implements DiagnosticWithArguments<T> {
+  @override
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].

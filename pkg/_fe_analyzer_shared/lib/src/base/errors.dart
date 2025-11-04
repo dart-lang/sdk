@@ -576,6 +576,22 @@ class DiagnosticType implements Comparable<DiagnosticType> {
 }
 
 /// Common functionality for [DiagnosticCode]-derived classes that represent
+/// errors that take arguments.
+///
+/// This class provides a [withArguments] getter, which can be used to supply
+/// arguments and produce a [LocatableDiagnostic].
+abstract class DiagnosticWithArguments<T extends Function>
+    implements DiagnosticCode {
+  /// Function accepting named arguments and returning [LocatableDiagnostic].
+  ///
+  /// The value returned by this function can
+  /// be associated with a location in the source code using the
+  /// [LocatableDiagnostic.at] method, and then the result can be passed to
+  /// [DiagnosticReporter.reportError].
+  T get withArguments;
+}
+
+/// Common functionality for [DiagnosticCode]-derived classes that represent
 /// errors that do not take arguments.
 ///
 /// This class implements [LocatableDiagnostic], which means that instances can
