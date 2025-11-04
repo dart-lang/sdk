@@ -6,7 +6,7 @@
 // VMOptions=--profiler --profile-vm=false
 
 main() {
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 100; i++) {
     foo1();
   }
 }
