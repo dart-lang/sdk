@@ -29,9 +29,9 @@
   (global $"C331 _TopType" (import "module0" "global2") (ref $_TopType))
   (global $"C62 WasmArray<_Type>[1]" (import "module0" "global3") (ref $Array<_Type>))
   (global $"C306 WasmArray<_NamedParameter>[0]" (import "module0" "global4") (ref $Array<_NamedParameter>))
-  (global $"C455 _FunctionType" (import "module0" "global5") (ref null $_FunctionType))
-  (global $"C28 _InterfaceType" (import "module0" "global8") (ref $_InterfaceType))
+  (global $"C28 _InterfaceType" (import "module0" "global7") (ref $_InterfaceType))
   (global $S.globalH1Bar< (import "S" "globalH1Bar<") (ref extern))
+  (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType) <...>)
   (global $global7 (ref $#Vtable-1-1) <...>)
   (global $global4 (ref $#DummyStruct) <...>)
   (global $"C459 _FunctionType" (ref $_FunctionType) <...>)
@@ -133,8 +133,10 @@
       ref.func $"instantiation constant trampoline"
       struct.new $#Vtable-0-1
       block $label2 (result (ref $_FunctionType))
-        global.get $"C455 _FunctionType"
+        i32.const 0
+        table.get $module0.constant-table0
         br_on_non_null $label2
+        i32.const 0
         i32.const 12
         i32.const 0
         i32.const 0
@@ -147,7 +149,7 @@
         global.get $"C306 WasmArray<_NamedParameter>[0]"
         struct.new $_FunctionType
         local.tee $var1
-        global.set $"C455 _FunctionType"
+        table.set $module0.constant-table0
         local.get $var1
       end $label2
       struct.new $#Closure-0-1

@@ -13,9 +13,9 @@
     (field $field1 (mut i32))
     (field $b (ref $JSStringImpl)))))
   (global $S.shared-const (import "S" "shared-const") (ref extern))
-  (global $"C489 \"shared-const\"" (import "module0" "global0") (ref null $JSStringImpl))
-  (global $"C490 MyConstClass" (import "module0" "global1") (ref null $MyConstClass))
   (global $S.h0-nonshared-const (import "S" "h0-nonshared-const") (ref extern))
+  (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $JSStringImpl) <...>)
+  (table $module0.constant-table1 (import "module0" "constant-table1") 1 (ref null $MyConstClass) <...>)
   (global $"C492 MyConstClass" (ref $MyConstClass)
     (i32.const 107)
     (i32.const 0)
@@ -32,24 +32,28 @@
       global.get $"C492 MyConstClass"
     else
       block $label0 (result (ref $MyConstClass))
-        global.get $"C490 MyConstClass"
+        i32.const 0
+        table.get $module0.constant-table1
         br_on_non_null $label0
+        i32.const 0
         i32.const 107
         i32.const 0
         block $label1 (result (ref $JSStringImpl))
-          global.get $"C489 \"shared-const\""
+          i32.const 0
+          table.get $module0.constant-table0
           br_on_non_null $label1
+          i32.const 0
           i32.const 4
           i32.const 0
           global.get $S.shared-const
           struct.new $JSStringImpl
           local.tee $var1
-          global.set $"C489 \"shared-const\""
+          table.set $module0.constant-table0
           local.get $var1
         end $label1
         struct.new $MyConstClass
         local.tee $var2
-        global.set $"C490 MyConstClass"
+        table.set $module0.constant-table1
         local.get $var2
       end $label0
     end

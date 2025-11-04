@@ -20,8 +20,8 @@
   (global $"C331 _TopType" (import "module0" "global2") (ref $_TopType))
   (global $"C62 WasmArray<_Type>[1]" (import "module0" "global3") (ref $Array<_Type>))
   (global $"C306 WasmArray<_NamedParameter>[0]" (import "module0" "global4") (ref $Array<_NamedParameter>))
-  (global $"C455 _FunctionType" (import "module0" "global5") (ref null $_FunctionType))
   (global $S.globalH0Foo (import "S" "globalH0Foo") (ref extern))
+  (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType) <...>)
   (global $global6 (ref $#Vtable-0-1) <...>)
   (global $global3 (ref $#DummyStruct) <...>)
   (global $"C465 globalH0Foo tear-off" (mut (ref null $#Closure-0-1))
@@ -59,8 +59,10 @@
       global.get $global3
       global.get $global6
       block $label1 (result (ref $_FunctionType))
-        global.get $"C455 _FunctionType"
+        i32.const 0
+        table.get $module0.constant-table0
         br_on_non_null $label1
+        i32.const 0
         i32.const 12
         i32.const 0
         i32.const 0
@@ -73,7 +75,7 @@
         global.get $"C306 WasmArray<_NamedParameter>[0]"
         struct.new $_FunctionType
         local.tee $var0
-        global.set $"C455 _FunctionType"
+        table.set $module0.constant-table0
         local.get $var0
       end $label1
       struct.new $#Closure-0-1
