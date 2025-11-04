@@ -25,12 +25,14 @@ EXECUTABLE_NAMES = {
     'win32': {
         'chrome': 'chrome.exe',
         'crashpad_handler': 'crashpad_handler.exe',
-        'dart': 'dart.exe',\
-        'dart_product': 'dart_product.exe',
+        'dart': 'dart.exe',
+        'dartvm': 'dartvm.exe',
         'dartaotruntime': 'dartaotruntime.exe',
         'dartaotruntime_product': 'dartaotruntime_product.exe',
         'firefox': 'firefox.exe',
         'gen_snapshot': 'gen_snapshot.exe',
+        'gen_snapshot_product': 'gen_snapshot_product.exe',
+        'run_vm_tests': 'run_vm_tests.exe',
         'git': 'git.exe',
         'iexplore': 'iexplore.exe',
         'vctip': 'vctip.exe',
@@ -39,11 +41,13 @@ EXECUTABLE_NAMES = {
     'linux': {
         'chrome': 'chrome',
         'dart': 'dart',
-        'dart_product': 'dart_product',
+        'dartvm': 'dartvm',
         'dartaotruntime': 'dartaotruntime',
         'dartaotruntime_product': 'dartaotruntime_product',
         'firefox': 'firefox',
         'gen_snapshot': 'gen_snapshot',
+        'gen_snapshot_product': 'gen_snapshot_product',
+        'run_vm_tests': 'run_vm_tests',
         'flutter_tester': 'flutter_tester',
         'git': 'git',
     },
@@ -51,11 +55,13 @@ EXECUTABLE_NAMES = {
         'chrome': 'Chrome',
         'chrome_helper': 'Chrome Helper',
         'dart': 'dart',
-        'dart_product': 'dart_product',
+        'dartvm': 'dartvm',
         'dartaotruntime': 'dartaotruntime',
         'dartaotruntime_product': 'dartaotruntime_product',
         'firefox': 'firefox',
         'gen_snapshot': 'gen_snapshot',
+        'gen_snapshot_product': 'gen_snapshot_product',
+        'run_vm_tests': 'run_vm_tests',
         'git': 'git',
         'safari': 'Safari',
     }
@@ -274,9 +280,12 @@ def KillVSBuild():
 
 def KillDart():
     status = Kill("dart", dump_stacks=True)
+    status += Kill("dartvm", dump_stacks=True)
     status += Kill("gen_snapshot", dump_stacks=True)
+    status += Kill("gen_snapshot_product", dump_stacks=True)
     status += Kill("dartaotruntime", dump_stacks=True)
     status += Kill("dartaotruntime_product", dump_stacks=True)
+    status += Kill("run_vm_tests", dump_stacks=True)
     status += Kill("flutter_tester", dump_stacks=True)
     status += Kill("crashpad_handler", dump_stacks=True)
     return status
