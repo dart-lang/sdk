@@ -12,9 +12,9 @@ import '../elements_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EnumElementTest_keepLinking);
-    defineReflectiveTests(EnumElementTest_keepLinking_declaringConstructors);
     defineReflectiveTests(EnumElementTest_fromBytes);
-    defineReflectiveTests(EnumElementTest_fromBytes_declaringConstructors);
+    defineReflectiveTests(EnumElementTest_declaringConstructors_keepLinking);
+    defineReflectiveTests(EnumElementTest_declaringConstructors_fromBytes);
     defineReflectiveTests(EnumElementTest_augmentation_keepLinking);
     defineReflectiveTests(EnumElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -15091,6 +15091,46 @@ class EnumElementTest_augmentation_keepLinking
   bool get keepLinkingLibraries => true;
 }
 
+abstract class EnumElementTest_declaringConstructors extends EnumElementTest {}
+
+@reflectiveTest
+class EnumElementTest_declaringConstructors_fromBytes
+    extends EnumElementTest_declaringConstructors {
+  @override
+  bool get keepLinkingLibraries => false;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
+}
+
+@reflectiveTest
+class EnumElementTest_declaringConstructors_keepLinking
+    extends EnumElementTest_declaringConstructors {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
+}
+
 @reflectiveTest
 class EnumElementTest_fromBytes extends EnumElementTest {
   @override
@@ -15098,44 +15138,7 @@ class EnumElementTest_fromBytes extends EnumElementTest {
 }
 
 @reflectiveTest
-class EnumElementTest_fromBytes_declaringConstructors extends EnumElementTest {
-  @override
-  bool get keepLinkingLibraries => false;
-
-  @override
-  void setUp() {
-    useDeclaringConstructorsAst = true;
-    super.setUp();
-  }
-
-  @override
-  Future<void> tearDown() {
-    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
-    return super.tearDown();
-  }
-}
-
-@reflectiveTest
 class EnumElementTest_keepLinking extends EnumElementTest {
   @override
   bool get keepLinkingLibraries => true;
-}
-
-@reflectiveTest
-class EnumElementTest_keepLinking_declaringConstructors
-    extends EnumElementTest {
-  @override
-  bool get keepLinkingLibraries => true;
-
-  @override
-  void setUp() {
-    useDeclaringConstructorsAst = true;
-    super.setUp();
-  }
-
-  @override
-  Future<void> tearDown() {
-    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
-    return super.tearDown();
-  }
 }

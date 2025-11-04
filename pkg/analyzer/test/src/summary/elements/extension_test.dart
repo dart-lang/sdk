@@ -12,11 +12,11 @@ import '../elements_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionElementTest_keepLinking);
-    defineReflectiveTests(
-      ExtensionElementTest_keepLinking_declaringConstructors,
-    );
     defineReflectiveTests(ExtensionElementTest_fromBytes);
-    defineReflectiveTests(ExtensionElementTest_fromBytes_declaringConstructors);
+    defineReflectiveTests(
+      ExtensionElementTest_declaringConstructors_keepLinking,
+    );
+    defineReflectiveTests(ExtensionElementTest_declaringConstructors_fromBytes);
     defineReflectiveTests(ExtensionElementTest_augmentation_keepLinking);
     defineReflectiveTests(ExtensionElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -3080,6 +3080,47 @@ class ExtensionElementTest_augmentation_keepLinking
   bool get keepLinkingLibraries => true;
 }
 
+abstract class ExtensionElementTest_declaringConstructors
+    extends ExtensionElementTest {}
+
+@reflectiveTest
+class ExtensionElementTest_declaringConstructors_fromBytes
+    extends ExtensionElementTest_declaringConstructors {
+  @override
+  bool get keepLinkingLibraries => false;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
+}
+
+@reflectiveTest
+class ExtensionElementTest_declaringConstructors_keepLinking
+    extends ExtensionElementTest_declaringConstructors {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  @override
+  void setUp() {
+    useDeclaringConstructorsAst = true;
+    super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() {
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
+    return super.tearDown();
+  }
+}
+
 @reflectiveTest
 class ExtensionElementTest_fromBytes extends ExtensionElementTest {
   @override
@@ -3087,45 +3128,7 @@ class ExtensionElementTest_fromBytes extends ExtensionElementTest {
 }
 
 @reflectiveTest
-class ExtensionElementTest_fromBytes_declaringConstructors
-    extends ExtensionElementTest {
-  @override
-  bool get keepLinkingLibraries => false;
-
-  @override
-  void setUp() {
-    useDeclaringConstructorsAst = true;
-    super.setUp();
-  }
-
-  @override
-  Future<void> tearDown() {
-    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
-    return super.tearDown();
-  }
-}
-
-@reflectiveTest
 class ExtensionElementTest_keepLinking extends ExtensionElementTest {
   @override
   bool get keepLinkingLibraries => true;
-}
-
-@reflectiveTest
-class ExtensionElementTest_keepLinking_declaringConstructors
-    extends ExtensionElementTest {
-  @override
-  bool get keepLinkingLibraries => true;
-
-  @override
-  void setUp() {
-    useDeclaringConstructorsAst = true;
-    super.setUp();
-  }
-
-  @override
-  Future<void> tearDown() {
-    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
-    return super.tearDown();
-  }
 }

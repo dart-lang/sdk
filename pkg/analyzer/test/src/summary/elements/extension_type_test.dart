@@ -14,10 +14,10 @@ main() {
     defineReflectiveTests(ExtensionTypeElementTest_keepLinking);
     defineReflectiveTests(ExtensionTypeElementTest_fromBytes);
     defineReflectiveTests(
-      ExtensionTypeElementTest_keepLinking_declaringConstructors,
+      ExtensionTypeElementTest_declaringConstructors_keepLinking,
     );
     defineReflectiveTests(
-      ExtensionTypeElementTest_fromBytes_declaringConstructors,
+      ExtensionTypeElementTest_declaringConstructors_fromBytes,
     );
     defineReflectiveTests(ExtensionTypeElementTest_augmentation_keepLinking);
     defineReflectiveTests(ExtensionTypeElementTest_augmentation_fromBytes);
@@ -25,7 +25,7 @@ main() {
   });
 }
 
-mixin ExtensionTypeElementMixin on ElementsBaseTest {
+abstract class ExtensionTypeElementTest extends ElementsBaseTest {
   test_allSupertypes() async {
     var library = await buildLibrary(r'''
 extension type A(int? it) {}
@@ -6770,17 +6770,12 @@ class ExtensionTypeElementTest_augmentation_keepLinking
   bool get keepLinkingLibraries => true;
 }
 
-@reflectiveTest
-class ExtensionTypeElementTest_fromBytes extends ElementsBaseTest
-    with ExtensionTypeElementMixin {
-  @override
-  bool get keepLinkingLibraries => false;
-}
+abstract class ExtensionTypeElementTest_declaringConstructors
+    extends ExtensionTypeElementTest {}
 
 @reflectiveTest
-class ExtensionTypeElementTest_fromBytes_declaringConstructors
-    extends ElementsBaseTest
-    with ExtensionTypeElementMixin {
+class ExtensionTypeElementTest_declaringConstructors_fromBytes
+    extends ExtensionTypeElementTest_declaringConstructors {
   @override
   bool get keepLinkingLibraries => false;
 
@@ -6798,16 +6793,8 @@ class ExtensionTypeElementTest_fromBytes_declaringConstructors
 }
 
 @reflectiveTest
-class ExtensionTypeElementTest_keepLinking extends ElementsBaseTest
-    with ExtensionTypeElementMixin {
-  @override
-  bool get keepLinkingLibraries => true;
-}
-
-@reflectiveTest
-class ExtensionTypeElementTest_keepLinking_declaringConstructors
-    extends ElementsBaseTest
-    with ExtensionTypeElementMixin {
+class ExtensionTypeElementTest_declaringConstructors_keepLinking
+    extends ExtensionTypeElementTest_declaringConstructors {
   @override
   bool get keepLinkingLibraries => true;
 
@@ -6822,4 +6809,16 @@ class ExtensionTypeElementTest_keepLinking_declaringConstructors
     useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
     return super.tearDown();
   }
+}
+
+@reflectiveTest
+class ExtensionTypeElementTest_fromBytes extends ExtensionTypeElementTest {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class ExtensionTypeElementTest_keepLinking extends ExtensionTypeElementTest {
+  @override
+  bool get keepLinkingLibraries => true;
 }
