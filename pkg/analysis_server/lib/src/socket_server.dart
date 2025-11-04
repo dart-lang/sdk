@@ -11,6 +11,7 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -39,6 +40,9 @@ class SocketServer implements AbstractSocketServer {
 
   final InstrumentationService instrumentationService;
 
+  /// The session logger.
+  final SessionLogger sessionLogger;
+
   final RequestStatisticsHelper? requestStatistics;
 
   @override
@@ -61,6 +65,7 @@ class SocketServer implements AbstractSocketServer {
     this.sdkManager,
     this.crashReportingAttachmentsBuilder,
     this.instrumentationService,
+    this.sessionLogger,
     this.requestStatistics,
     this.diagnosticServer,
     this.analyticsManager,
@@ -96,6 +101,7 @@ class SocketServer implements AbstractSocketServer {
       analyticsManager,
       crashReportingAttachmentsBuilder,
       instrumentationService,
+      sessionLogger,
       requestStatistics: requestStatistics,
       diagnosticServer: diagnosticServer,
       detachableFileSystemManager: detachableFileSystemManager,

@@ -24,12 +24,19 @@ class LintCode extends DiagnosticCode {
   @override
   final DiagnosticSeverity severity;
 
+  /// Initializes a lint code.
+  ///
+  /// If a non-null value is supplied for [uniqueNameCheck], it should be the
+  /// same as [uniqueName]. This parameter is marked `@deprecated` because it
+  /// should not be used by client; it exists as a temporary measure to aid in
+  /// migration and will soon be removed.
   const LintCode(
     String name,
     String problemMessage, {
     super.correctionMessage,
     super.hasPublishedDocs,
     String? uniqueName,
+    @deprecated super.uniqueNameCheck,
     this.severity = DiagnosticSeverity.INFO,
   }) : super(
          problemMessage: problemMessage,
@@ -61,6 +68,7 @@ class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
     super.correctionMessage,
     super.hasPublishedDocs,
     String? uniqueName,
+    required super.uniqueNameCheck,
     required super.expectedTypes,
   }) : super(
          type: DiagnosticType.LINT,
@@ -93,6 +101,7 @@ class SecurityLintCode extends DiagnosticCodeImpl implements LintCode {
          problemMessage: problemMessage,
          type: DiagnosticType.LINT,
          uniqueName: uniqueName ?? 'LintCode.$name',
+         uniqueNameCheck: null,
        );
 
   @override

@@ -9,6 +9,7 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
 import 'package:analyzer/file_system/file_system.dart';
@@ -175,6 +176,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
       AnalyticsManager(NoOpAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
       dartFixPromptManager: dartFixPromptManager,
       providedByteStore: _byteStore,
       pluginManager: pluginManager,

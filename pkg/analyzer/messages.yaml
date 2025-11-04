@@ -13901,6 +13901,35 @@ CompileTimeErrorCode:
 
       If you need both of the mixins, then rename the conflicting member in one
       of the two mixins.
+  PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME:
+    parameters: none
+    problemMessage: "A private named parameter must be a public identifier after removing the leading underscore."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the name of a named parameter
+      starts with an underscore and the result of removing the underscore isn't
+      a valid public identifier.
+
+      #### Example
+
+      The following code produces this diagnostic because the named parameter
+      `_2legit` without the `_` is `2legit`, which isn't a valid public
+      identifier:
+
+      ```dart
+      class C {
+        final int? _2legit;
+        C({this.[!_2legit!] = 0});
+        int? get twoLegit => _2legit;
+      }
+      ```
+
+      #### Common fixes
+
+      Rename the parameter so that the character following the leading
+      underscore is a letter.
   PRIVATE_SETTER:
     parameters:
       String p0: the name of the setter
@@ -21795,9 +21824,8 @@ ParserErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when the name of a named parameter
-      starts with an underscore and the parameter isn't an initializing formal
-      or field parameter.
+      The analyzer produces this diagnostic when a named parameter starts with
+      an underscore, unless it's an initializing formal or field parameter.
 
       #### Example
 
@@ -21812,7 +21840,8 @@ ParserErrorCode:
 
       #### Common fixes
 
-      Only use a private named parameter when it refers to a field:
+      If the parameter is intended to refer to a field, then add the missing
+      field:
 
       ```dart
       class C {
@@ -21821,6 +21850,16 @@ ParserErrorCode:
         int get x => _x;
       }
       ```
+
+      If the parameter isn't intended to refer to a field, then remove the
+      underscore:
+
+      ```dart
+      class C {
+        C({int x = 0});
+      }
+      ```
+
   REPRESENTATION_FIELD_MODIFIER:
     parameters: none
     problemMessage: "Representation fields can't have modifiers."

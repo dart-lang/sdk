@@ -46,10 +46,20 @@ class A {
       [
         error(WarningCode.unusedField, 16, 1),
         error(
+          CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
+          29,
+          1,
+        ),
+        error(
           CompileTimeErrorCode.duplicateFieldFormalParameter,
           41,
           1,
           contextMessages: [message(testFile, 29, 1)],
+        ),
+        error(
+          CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
+          41,
+          1,
         ),
       ],
     );
@@ -234,10 +244,20 @@ class A {
       [
         error(WarningCode.unusedField, 16, 1),
         error(
+          CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
+          38,
+          1,
+        ),
+        error(
           CompileTimeErrorCode.duplicateFieldFormalParameter,
           55,
           1,
           contextMessages: [message(testFile, 38, 1)],
+        ),
+        error(
+          CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
+          55,
+          1,
         ),
       ],
     );

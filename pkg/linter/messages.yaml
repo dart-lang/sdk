@@ -27,7 +27,7 @@
 # * unusedCode - rules that protect against unused code.
 # * web - rules that help to write code deployed to the web.
 
-LintCode:
+LinterLintCode:
   always_declare_return_types_of_functions:
     parameters:
       Object p0: undocumented

@@ -93,6 +93,8 @@ class _AvoidIntRule extends AnalysisRule {
     'avoid_int',
     'Avoid int.',
     correctionMessage: 'Try avoiding int.',
+    // ignore: deprecated_member_use_from_same_package
+    uniqueNameCheck: 'LintCode.avoid_int',
   );
 
   _AvoidIntRule() : super(name: 'avoid_int', description: '');

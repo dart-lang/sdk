@@ -9,6 +9,8 @@ import 'dart:isolate';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/session_logger/process_id.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 
@@ -77,6 +79,9 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
   /// The instrumentation service that is to be used by this analysis server.
   final InstrumentationService _instrumentationService;
 
+  /// The session logger.
+  final SessionLogger _sessionLogger;
+
   /// The helper for recording request / response statistics.
   final RequestStatisticsHelper? _requestStatistics;
 
@@ -98,7 +103,8 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
   );
 
   ByteStreamServerChannel(
-    this._instrumentationService, {
+    this._instrumentationService,
+    this._sessionLogger, {
     RequestStatisticsHelper? requestStatistics,
   }) : _requestStatistics = requestStatistics {
     _requestStatistics?.serverChannel = this;
@@ -129,10 +135,16 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closeRequested) {
       return;
     }
-    var jsonEncoding = json.encode(notification.toJson());
+    var jsonMap = notification.toJson();
+    var jsonEncoding = json.encode(jsonMap);
     _outputLine(jsonEncoding);
     if (!identical(notification.event, 'server.log')) {
       _instrumentationService.logNotification(jsonEncoding);
+      _sessionLogger.logMessage(
+        from: ProcessId.server,
+        to: ProcessId.ide,
+        message: jsonMap,
+      );
       _requestStatistics?.logNotification(notification);
     }
   }
@@ -144,9 +156,15 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closeRequested) {
       return;
     }
-    var jsonEncoding = json.encode(request.toJson());
+    var jsonMap = request.toJson();
+    var jsonEncoding = json.encode(jsonMap);
     _outputLine(jsonEncoding);
     _instrumentationService.logRequest(jsonEncoding);
+    _sessionLogger.logMessage(
+      from: ProcessId.server,
+      to: ProcessId.ide,
+      message: jsonMap,
+    );
   }
 
   @override
@@ -157,9 +175,15 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
       return;
     }
     _requestStatistics?.addResponse(response);
-    var jsonEncoding = json.encode(response.toJson());
+    var jsonMap = response.toJson();
+    var jsonEncoding = json.encode(jsonMap);
     _outputLine(jsonEncoding);
     _instrumentationService.logResponse(jsonEncoding);
+    _sessionLogger.logMessage(
+      from: ProcessId.server,
+      to: ProcessId.ide,
+      message: jsonMap,
+    );
   }
 
   /// Send the string [s] to [_output] followed by a newline.
@@ -184,8 +208,7 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
     _instrumentationService.logRequest(data);
     // Parse the string as a JSON descriptor and process the resulting
     // structure as either a request or a response.
-    var requestOrResponse =
-        Request.fromString(data) ?? Response.fromString(data);
+    var requestOrResponse = _readRequestOrResponse(data);
     if (requestOrResponse == null) {
       // If the data isn't valid, then assume it was an invalid request so that
       // clients won't be left waiting for a response.
@@ -196,6 +219,28 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
       _requestStatistics?.addRequest(requestOrResponse);
     }
     sink.add(requestOrResponse);
+  }
+
+  /// Returns a request or a response read from the given [data].
+  RequestOrResponse? _readRequestOrResponse(String data) {
+    try {
+      var result = json.decode(data);
+      if (result is Map<String, Object?>) {
+        var requestOrResponse =
+            Request.fromJson(result) ?? Response.fromJson(result);
+        if (requestOrResponse != null) {
+          _sessionLogger.logMessage(
+            from: ProcessId.ide,
+            to: ProcessId.server,
+            message: result,
+          );
+          return requestOrResponse;
+        }
+      }
+    } catch (exception) {
+      // Ignore exceptions and fall through to return `null`.
+    }
+    return null;
   }
 }
 
@@ -216,7 +261,8 @@ class InputOutputByteStreamServerChannel extends ByteStreamServerChannel {
   InputOutputByteStreamServerChannel(
     this._input,
     this._output,
-    super._instrumentationService, {
+    super._instrumentationService,
+    super._sessionLogger, {
     super.requestStatistics,
   });
 }
@@ -236,7 +282,8 @@ class StdinStdoutLineStreamServerChannel extends ByteStreamServerChannel {
   late final Stream<String> _lines = _linesFromIsolate.cast();
 
   StdinStdoutLineStreamServerChannel(
-    super._instrumentationService, {
+    super._instrumentationService,
+    super._sessionLogger, {
     super.requestStatistics,
   }) {
     Isolate.spawn(_stdinInAnIsolate, _linesFromIsolate.sendPort);

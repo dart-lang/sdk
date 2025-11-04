@@ -1378,6 +1378,8 @@ CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION:
   status: noFix
 CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION:
   status: noFix
+CompileTimeErrorCode.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME:
+  status: noFix
 CompileTimeErrorCode.PRIVATE_SETTER:
   status: noFix
 CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL:

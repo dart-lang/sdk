@@ -325,6 +325,8 @@ class InternalRule extends AnalysisRule {
     'internal_rule',
     'Internal rule.',
     correctionMessage: 'Try internal rule.',
+    // ignore: deprecated_member_use
+    uniqueNameCheck: 'LintCode.internal_rule',
   );
 
   InternalRule()
@@ -339,7 +341,12 @@ class InternalRule extends AnalysisRule {
 }
 
 class _RemovedLint extends AnalysisRule {
-  static const LintCode _code = LintCode('removed_lint', 'Removed rule.');
+  static const LintCode _code = LintCode(
+    'removed_lint',
+    'Removed rule.',
+    // ignore: deprecated_member_use
+    uniqueNameCheck: 'LintCode.removed_lint',
+  );
 
   _RemovedLint()
     : super(name: 'removed_lint', state: RuleState.removed(), description: '');

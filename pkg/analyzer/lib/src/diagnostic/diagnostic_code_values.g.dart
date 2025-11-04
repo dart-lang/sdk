@@ -463,6 +463,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   CompileTimeErrorCode.prefixIdentifierNotFollowedByDot,
   CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
   CompileTimeErrorCode.privateCollisionInMixinApplication,
+  CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
   CompileTimeErrorCode.privateSetter,
   CompileTimeErrorCode.readPotentiallyUnassignedFinal,
   CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingCommaByType,

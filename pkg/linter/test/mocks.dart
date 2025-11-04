@@ -71,6 +71,7 @@ class TestDiagnosticCode extends DiagnosticCodeImpl {
          problemMessage: message,
          name: name,
          uniqueName: 'TestErrorCode.$name',
+         uniqueNameCheck: 'TestErrorCode.$name',
        );
 
   @override

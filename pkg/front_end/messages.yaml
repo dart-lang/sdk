@@ -1578,6 +1578,15 @@ PrivateNamedNonFieldParameter:
   script: |
     void foo({int? _hello}) {}
 
+PrivateNamedParameterWithoutPublicName:
+  parameters: none
+  problemMessage: "A private named parameter must have a corresponding public name."
+  script: |
+    class C {
+      int? _123;
+      C({this._123});
+    }
+
 GetterWithFormals:
   pseudoSharedCode: GETTER_WITH_PARAMETERS
   parameters: none
