@@ -632,9 +632,6 @@ class SampleBuffer {
     }
   }
 
-  virtual Sample* ReserveSample() = 0;
-  virtual Sample* ReserveSampleAndLink(Sample* previous) = 0;
-
   Sample* At(intptr_t idx) const {
     ASSERT(idx >= 0);
     ASSERT(idx < capacity_);
@@ -673,8 +670,8 @@ class SampleBlock : public SampleBuffer {
   Isolate* owner() const { return owner_; }
   void set_owner(Isolate* isolate) { owner_ = isolate; }
 
-  virtual Sample* ReserveSample();
-  virtual Sample* ReserveSampleAndLink(Sample* previous);
+  Sample* ReserveSample();
+  static Sample* ReserveSampleAndLink(Sample* previous, Isolate* isolate);
 
   bool TryAllocateFree() {
     State expected = kFree;
