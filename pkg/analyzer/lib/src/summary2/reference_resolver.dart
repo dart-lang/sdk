@@ -173,7 +173,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.metadata.accept(this);
     if (useDeclaringConstructorsAst) {
-      node.namePart.typeParameters?.accept(this);
+      node.namePart.accept(this);
     } else {
       node.typeParameters?.accept(this);
     }
