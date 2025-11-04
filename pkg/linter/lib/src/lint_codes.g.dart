@@ -2659,7 +2659,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   /// A lint code that removed lints can specify as their `lintCode`.
   ///
   /// Avoid other usages as it should be made unnecessary and removed.
-  static const LintCode removedLint = LinterLintCode.internal(
+  static const LintCode removedLint = LinterLintCode(
     name: 'removed_lint',
     problemMessage: 'Removed lint.',
     expectedTypes: [],
@@ -3740,21 +3740,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
         expectedTypes: [],
       );
 
-  @Deprecated('Please use LintCode instead')
-  const LinterLintCode(
-    String name,
-    String problemMessage, {
-    super.expectedTypes,
-    super.correctionMessage,
-    super.hasPublishedDocs,
-    String? uniqueName,
-  }) : super(
-         name: name,
-         problemMessage: problemMessage,
-         uniqueName: 'LintCode.${uniqueName ?? name}',
-       );
-
-  const LinterLintCode.internal({
+  const LinterLintCode({
     required super.name,
     required super.problemMessage,
     required super.uniqueName,
@@ -4419,7 +4405,7 @@ final class LinterLintTemplate<T extends Function> extends LinterLintCode
     required super.uniqueName,
     super.correctionMessage,
     super.hasPublishedDocs = false,
-  }) : super.internal();
+  });
 }
 
 final class LinterLintWithoutArguments extends LinterLintCode
@@ -4432,5 +4418,5 @@ final class LinterLintWithoutArguments extends LinterLintCode
     required super.uniqueName,
     super.correctionMessage,
     super.hasPublishedDocs = false,
-  }) : super.internal();
+  });
 }

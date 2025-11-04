@@ -27,7 +27,7 @@ void main() {
   });
 }
 
-const LintCode _customCode = LinterLintCode.internal(
+const LintCode _customCode = LinterLintCode(
   name: 'hash_and_equals',
   problemMessage: 'Override `==` if overriding `hashCode`.',
   correctionMessage: 'Implement `==`.',
@@ -35,7 +35,7 @@ const LintCode _customCode = LinterLintCode.internal(
   uniqueName: 'LintCode.hash_and_equals',
 );
 
-const LintCode _customCodeWithDocs = LinterLintCode.internal(
+const LintCode _customCodeWithDocs = LinterLintCode(
   name: 'hash_and_equals',
   problemMessage: 'Override `==` if overriding `hashCode`.',
   correctionMessage: 'Implement `==`.',
