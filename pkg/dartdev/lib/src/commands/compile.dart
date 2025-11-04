@@ -964,10 +964,11 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       }
     }
 
-    final isMultiModule = args.flag('enable-deferred-loading') ||
-        // Used in testing to force multiple modules.
-        extraCompilerOptions
-            .any((e) => e.contains('enable-multi-module-stress-test'));
+    final isDeferredLoading = args.flag('enable-deferred-loading');
+    // Used in testing to force multiple modules.
+    final isMultiStressTestMode = extraCompilerOptions
+        .any((e) => e.contains('enable-multi-module-stress-test'));
+    final isMultiModule = isDeferredLoading || isMultiStressTestMode;
     final optimizationLevel = int.parse(args.option('optimization-level')!);
 
     final runWasmOpt =
@@ -1012,7 +1013,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       if (args.flag('print-kernel')) '--print-kernel',
       if (args.flag(enableAssertsOption.flag)) '--${enableAssertsOption.flag}',
       if (!generateSourceMap) '--no-source-maps',
-      if (isMultiModule) '--enable-deferred-loading',
+      if (isDeferredLoading) '--enable-deferred-loading',
       for (final define in defines) '-D$define',
       if (maxPages != null) ...[
         '--import-shared-memory',
