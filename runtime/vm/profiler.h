@@ -386,8 +386,8 @@ class Sample {
   uword pc_array_[kPCArraySizeInWords];
   uword vm_tag_;
   uword user_tag_;
-  uint32_t state_;
   Sample* next_;
+  uint32_t state_;
   uint32_t allocation_identity_hash_;
 
   using HeadSampleBit = BitField<decltype(state_), bool, 0, 1>;
