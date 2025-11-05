@@ -1,100 +1,74 @@
-///
-//  Generated code. Do not modify.
-//  source: foo.proto
+// This is a generated file - do not edit.
 //
-// @dart = 2.12
-// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
+// Generated from foo.proto.
+
+// @dart = 3.3
+
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names
 
 import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
+
 class FooKeep extends $pb.GeneratedMessage {
+  factory FooKeep() => create();
+
+  FooKeep._();
+
+  factory FooKeep.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory FooKeep.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'FooKeep',
+      _omitMessageNames ? '' : 'FooKeep',
       createEmptyInstance: create)
-    ..aOM<BarKeep>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'barKeep',
-        protoName: 'barKeep',
-        subBuilder: BarKeep.create)
-    ..aOM<BarKeep>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'barDrop',
-        protoName: 'barDrop',
-        subBuilder: BarKeep.create)
-    ..m<$core.String, BarKeep>(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'mapKeep',
+    ..aOM<BarKeep>(1, _omitFieldNames ? '' : 'barKeep',
+        protoName: 'barKeep', subBuilder: BarKeep.create)
+    ..aOM<BarKeep>(2, _omitFieldNames ? '' : 'barDrop',
+        protoName: 'barDrop', subBuilder: BarKeep.create)
+    ..m<$core.String, BarKeep>(3, _omitFieldNames ? '' : 'mapKeep',
         protoName: 'mapKeep',
         entryClassName: 'FooKeep.MapKeepEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OM,
-        valueCreator: BarKeep.create)
-    ..m<$core.String, ZopDrop>(
-        4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'mapDrop',
+        valueCreator: BarKeep.create,
+        valueDefaultOrMaker: BarKeep.getDefault)
+    ..m<$core.String, ZopDrop>(4, _omitFieldNames ? '' : 'mapDrop',
         protoName: 'mapDrop',
         entryClassName: 'FooKeep.MapDropEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OM,
-        valueCreator: ZopDrop.create)
-    ..a<$core.int>(
-        5,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'aKeep',
-        $pb.PbFieldType.O3,
-        protoName: 'aKeep')
-    ..aOM<HasKeep>(
-        6,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'hasKeep',
-        protoName: 'hasKeep',
-        subBuilder: HasKeep.create)
-    ..aOM<ClearKeep>(
-        7,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'clearKeep',
-        protoName: 'clearKeep',
-        subBuilder: ClearKeep.create)
+        valueCreator: ZopDrop.create,
+        valueDefaultOrMaker: ZopDrop.getDefault)
+    ..aI(5, _omitFieldNames ? '' : 'aKeep', protoName: 'aKeep')
+    ..aOM<HasKeep>(6, _omitFieldNames ? '' : 'hasKeep',
+        protoName: 'hasKeep', subBuilder: HasKeep.create)
+    ..aOM<ClearKeep>(7, _omitFieldNames ? '' : 'clearKeep',
+        protoName: 'clearKeep', subBuilder: ClearKeep.create)
     ..hasRequiredFields = false;
 
-  FooKeep._() : super();
-  factory FooKeep() => create();
-  factory FooKeep.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory FooKeep.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  FooKeep clone() => FooKeep()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  FooKeep clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   FooKeep copyWith(void Function(FooKeep) updates) =>
-      super.copyWith((message) => updates(message as FooKeep))
-          as FooKeep; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as FooKeep)) as FooKeep;
+
+  @$core.override
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static FooKeep create() => FooKeep._();
+  @$core.override
   FooKeep createEmptyInstance() => create();
-  static $pb.PbList<FooKeep> createRepeated() => $pb.PbList<FooKeep>();
   @$core.pragma('dart2js:noInline')
   static FooKeep getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<FooKeep>(create);
@@ -103,123 +77,95 @@ class FooKeep extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   BarKeep get barKeep => $_getN(0);
   @$pb.TagNumber(1)
-  set barKeep(BarKeep v) {
-    setField(1, v);
-  }
-
+  set barKeep(BarKeep value) => $_setField(1, value);
   @$pb.TagNumber(1)
   $core.bool hasBarKeep() => $_has(0);
   @$pb.TagNumber(1)
-  void clearBarKeep() => clearField(1);
+  void clearBarKeep() => $_clearField(1);
   @$pb.TagNumber(1)
   BarKeep ensureBarKeep() => $_ensure(0);
 
   @$pb.TagNumber(2)
   BarKeep get barDrop => $_getN(1);
   @$pb.TagNumber(2)
-  set barDrop(BarKeep v) {
-    setField(2, v);
-  }
-
+  set barDrop(BarKeep value) => $_setField(2, value);
   @$pb.TagNumber(2)
   $core.bool hasBarDrop() => $_has(1);
   @$pb.TagNumber(2)
-  void clearBarDrop() => clearField(2);
+  void clearBarDrop() => $_clearField(2);
   @$pb.TagNumber(2)
   BarKeep ensureBarDrop() => $_ensure(1);
 
   @$pb.TagNumber(3)
-  $core.Map<$core.String, BarKeep> get mapKeep => $_getMap(2);
+  $pb.PbMap<$core.String, BarKeep> get mapKeep => $_getMap(2);
 
   @$pb.TagNumber(4)
-  $core.Map<$core.String, ZopDrop> get mapDrop => $_getMap(3);
+  $pb.PbMap<$core.String, ZopDrop> get mapDrop => $_getMap(3);
 
   @$pb.TagNumber(5)
   $core.int get aKeep => $_getIZ(4);
   @$pb.TagNumber(5)
-  set aKeep($core.int v) {
-    $_setSignedInt32(4, v);
-  }
-
+  set aKeep($core.int value) => $_setSignedInt32(4, value);
   @$pb.TagNumber(5)
   $core.bool hasAKeep() => $_has(4);
   @$pb.TagNumber(5)
-  void clearAKeep() => clearField(5);
+  void clearAKeep() => $_clearField(5);
 
   @$pb.TagNumber(6)
   HasKeep get hasKeep => $_getN(5);
   @$pb.TagNumber(6)
-  set hasKeep(HasKeep v) {
-    setField(6, v);
-  }
-
+  set hasKeep(HasKeep value) => $_setField(6, value);
   @$pb.TagNumber(6)
   $core.bool hasHasKeep() => $_has(5);
   @$pb.TagNumber(6)
-  void clearHasKeep() => clearField(6);
+  void clearHasKeep() => $_clearField(6);
   @$pb.TagNumber(6)
   HasKeep ensureHasKeep() => $_ensure(5);
 
   @$pb.TagNumber(7)
   ClearKeep get clearKeep => $_getN(6);
   @$pb.TagNumber(7)
-  set clearKeep(ClearKeep v) {
-    setField(7, v);
-  }
-
+  set clearKeep(ClearKeep value) => $_setField(7, value);
   @$pb.TagNumber(7)
   $core.bool hasClearKeep() => $_has(6);
   @$pb.TagNumber(7)
-  void clearClearKeep() => clearField(7);
+  void clearClearKeep() => $_clearField(7);
   @$pb.TagNumber(7)
   ClearKeep ensureClearKeep() => $_ensure(6);
 }
 
 class BarKeep extends $pb.GeneratedMessage {
+  factory BarKeep() => create();
+
+  BarKeep._();
+
+  factory BarKeep.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory BarKeep.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'BarKeep',
+      _omitMessageNames ? '' : 'BarKeep',
       createEmptyInstance: create)
-    ..a<$core.int>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'aKeep',
-        $pb.PbFieldType.O3,
-        protoName: 'aKeep')
-    ..a<$core.int>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'bDrop',
-        $pb.PbFieldType.O3,
-        protoName: 'bDrop')
+    ..aI(1, _omitFieldNames ? '' : 'aKeep', protoName: 'aKeep')
+    ..aI(2, _omitFieldNames ? '' : 'bDrop', protoName: 'bDrop')
     ..hasRequiredFields = false;
 
-  BarKeep._() : super();
-  factory BarKeep() => create();
-  factory BarKeep.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory BarKeep.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  BarKeep clone() => BarKeep()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  BarKeep clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   BarKeep copyWith(void Function(BarKeep) updates) =>
-      super.copyWith((message) => updates(message as BarKeep))
-          as BarKeep; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as BarKeep)) as BarKeep;
+
+  @$core.override
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static BarKeep create() => BarKeep._();
+  @$core.override
   BarKeep createEmptyInstance() => create();
-  static $pb.PbList<BarKeep> createRepeated() => $pb.PbList<BarKeep>();
   @$core.pragma('dart2js:noInline')
   static BarKeep getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BarKeep>(create);
@@ -228,66 +174,53 @@ class BarKeep extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.int get aKeep => $_getIZ(0);
   @$pb.TagNumber(1)
-  set aKeep($core.int v) {
-    $_setSignedInt32(0, v);
-  }
-
+  set aKeep($core.int value) => $_setSignedInt32(0, value);
   @$pb.TagNumber(1)
   $core.bool hasAKeep() => $_has(0);
   @$pb.TagNumber(1)
-  void clearAKeep() => clearField(1);
+  void clearAKeep() => $_clearField(1);
 
   @$pb.TagNumber(2)
   $core.int get bDrop => $_getIZ(1);
   @$pb.TagNumber(2)
-  set bDrop($core.int v) {
-    $_setSignedInt32(1, v);
-  }
-
+  set bDrop($core.int value) => $_setSignedInt32(1, value);
   @$pb.TagNumber(2)
   $core.bool hasBDrop() => $_has(1);
   @$pb.TagNumber(2)
-  void clearBDrop() => clearField(2);
+  void clearBDrop() => $_clearField(2);
 }
 
 class HasKeep extends $pb.GeneratedMessage {
+  factory HasKeep() => create();
+
+  HasKeep._();
+
+  factory HasKeep.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory HasKeep.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'HasKeep',
+      _omitMessageNames ? '' : 'HasKeep',
       createEmptyInstance: create)
-    ..a<$core.int>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'aDrop',
-        $pb.PbFieldType.O3,
-        protoName: 'aDrop')
+    ..aI(1, _omitFieldNames ? '' : 'aDrop', protoName: 'aDrop')
     ..hasRequiredFields = false;
 
-  HasKeep._() : super();
-  factory HasKeep() => create();
-  factory HasKeep.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory HasKeep.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  HasKeep clone() => HasKeep()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  HasKeep clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   HasKeep copyWith(void Function(HasKeep) updates) =>
-      super.copyWith((message) => updates(message as HasKeep))
-          as HasKeep; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as HasKeep)) as HasKeep;
+
+  @$core.override
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static HasKeep create() => HasKeep._();
+  @$core.override
   HasKeep createEmptyInstance() => create();
-  static $pb.PbList<HasKeep> createRepeated() => $pb.PbList<HasKeep>();
   @$core.pragma('dart2js:noInline')
   static HasKeep getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<HasKeep>(create);
@@ -296,54 +229,44 @@ class HasKeep extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.int get aDrop => $_getIZ(0);
   @$pb.TagNumber(1)
-  set aDrop($core.int v) {
-    $_setSignedInt32(0, v);
-  }
-
+  set aDrop($core.int value) => $_setSignedInt32(0, value);
   @$pb.TagNumber(1)
   $core.bool hasADrop() => $_has(0);
   @$pb.TagNumber(1)
-  void clearADrop() => clearField(1);
+  void clearADrop() => $_clearField(1);
 }
 
 class ClearKeep extends $pb.GeneratedMessage {
+  factory ClearKeep() => create();
+
+  ClearKeep._();
+
+  factory ClearKeep.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ClearKeep.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'ClearKeep',
+      _omitMessageNames ? '' : 'ClearKeep',
       createEmptyInstance: create)
-    ..a<$core.int>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'aDrop',
-        $pb.PbFieldType.O3,
-        protoName: 'aDrop')
+    ..aI(1, _omitFieldNames ? '' : 'aDrop', protoName: 'aDrop')
     ..hasRequiredFields = false;
 
-  ClearKeep._() : super();
-  factory ClearKeep() => create();
-  factory ClearKeep.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory ClearKeep.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  ClearKeep clone() => ClearKeep()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ClearKeep clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ClearKeep copyWith(void Function(ClearKeep) updates) =>
-      super.copyWith((message) => updates(message as ClearKeep))
-          as ClearKeep; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as ClearKeep)) as ClearKeep;
+
+  @$core.override
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static ClearKeep create() => ClearKeep._();
+  @$core.override
   ClearKeep createEmptyInstance() => create();
-  static $pb.PbList<ClearKeep> createRepeated() => $pb.PbList<ClearKeep>();
   @$core.pragma('dart2js:noInline')
   static ClearKeep getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ClearKeep>(create);
@@ -352,54 +275,44 @@ class ClearKeep extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.int get aDrop => $_getIZ(0);
   @$pb.TagNumber(1)
-  set aDrop($core.int v) {
-    $_setSignedInt32(0, v);
-  }
-
+  set aDrop($core.int value) => $_setSignedInt32(0, value);
   @$pb.TagNumber(1)
   $core.bool hasADrop() => $_has(0);
   @$pb.TagNumber(1)
-  void clearADrop() => clearField(1);
+  void clearADrop() => $_clearField(1);
 }
 
 class ZopDrop extends $pb.GeneratedMessage {
+  factory ZopDrop() => create();
+
+  ZopDrop._();
+
+  factory ZopDrop.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ZopDrop.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'ZopDrop',
+      _omitMessageNames ? '' : 'ZopDrop',
       createEmptyInstance: create)
-    ..a<$core.int>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'aDrop',
-        $pb.PbFieldType.O3,
-        protoName: 'aDrop')
+    ..aI(1, _omitFieldNames ? '' : 'aDrop', protoName: 'aDrop')
     ..hasRequiredFields = false;
 
-  ZopDrop._() : super();
-  factory ZopDrop() => create();
-  factory ZopDrop.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory ZopDrop.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  ZopDrop clone() => ZopDrop()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ZopDrop clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ZopDrop copyWith(void Function(ZopDrop) updates) =>
-      super.copyWith((message) => updates(message as ZopDrop))
-          as ZopDrop; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as ZopDrop)) as ZopDrop;
+
+  @$core.override
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static ZopDrop create() => ZopDrop._();
+  @$core.override
   ZopDrop createEmptyInstance() => create();
-  static $pb.PbList<ZopDrop> createRepeated() => $pb.PbList<ZopDrop>();
   @$core.pragma('dart2js:noInline')
   static ZopDrop getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ZopDrop>(create);
@@ -408,54 +321,44 @@ class ZopDrop extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.int get aDrop => $_getIZ(0);
   @$pb.TagNumber(1)
-  set aDrop($core.int v) {
-    $_setSignedInt32(0, v);
-  }
-
+  set aDrop($core.int value) => $_setSignedInt32(0, value);
   @$pb.TagNumber(1)
   $core.bool hasADrop() => $_has(0);
   @$pb.TagNumber(1)
-  void clearADrop() => clearField(1);
+  void clearADrop() => $_clearField(1);
 }
 
 class MobDrop extends $pb.GeneratedMessage {
+  factory MobDrop() => create();
+
+  MobDrop._();
+
+  factory MobDrop.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MobDrop.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'MobDrop',
+      _omitMessageNames ? '' : 'MobDrop',
       createEmptyInstance: create)
-    ..a<$core.int>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'aDrop',
-        $pb.PbFieldType.O3,
-        protoName: 'aDrop')
+    ..aI(1, _omitFieldNames ? '' : 'aDrop', protoName: 'aDrop')
     ..hasRequiredFields = false;
 
-  MobDrop._() : super();
-  factory MobDrop() => create();
-  factory MobDrop.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory MobDrop.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  MobDrop clone() => MobDrop()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MobDrop clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MobDrop copyWith(void Function(MobDrop) updates) =>
-      super.copyWith((message) => updates(message as MobDrop))
-          as MobDrop; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as MobDrop)) as MobDrop;
+
+  @$core.override
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static MobDrop create() => MobDrop._();
+  @$core.override
   MobDrop createEmptyInstance() => create();
-  static $pb.PbList<MobDrop> createRepeated() => $pb.PbList<MobDrop>();
   @$core.pragma('dart2js:noInline')
   static MobDrop getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MobDrop>(create);
@@ -464,12 +367,14 @@ class MobDrop extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.int get aDrop => $_getIZ(0);
   @$pb.TagNumber(1)
-  set aDrop($core.int v) {
-    $_setSignedInt32(0, v);
-  }
-
+  set aDrop($core.int value) => $_setSignedInt32(0, value);
   @$pb.TagNumber(1)
   $core.bool hasADrop() => $_has(0);
   @$pb.TagNumber(1)
-  void clearADrop() => clearField(1);
+  void clearADrop() => $_clearField(1);
 }
+
+const $core.bool _omitFieldNames =
+    $core.bool.fromEnvironment('protobuf.omit_field_names');
+const $core.bool _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');
