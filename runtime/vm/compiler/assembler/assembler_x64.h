@@ -1345,6 +1345,8 @@ class Assembler : public AssemblerBase {
   // Debugging and bringup support.
   void Breakpoint() override { int3(); }
 
+  void StoreStoreFence() override {}
+
   static bool AddressCanHoldConstantIndex(const Object& constant,
                                           bool is_external,
                                           intptr_t cid,

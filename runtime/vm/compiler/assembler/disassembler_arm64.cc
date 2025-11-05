@@ -994,8 +994,12 @@ void ARM64Decoder::DecodeSystem(Instr* instr) {
     return;
   }
 
-  if (instr->InstructionBits() == kDataMemoryBarrier) {
+  if (instr->InstructionBits() == kDMB_ISH) {
     Format(instr, "dmb ish");
+    return;
+  }
+  if (instr->InstructionBits() == kDMB_ISHST) {
+    Format(instr, "dmb ishst");
     return;
   }
 

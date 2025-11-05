@@ -1318,8 +1318,9 @@ float ReciprocalStep(float op1, float op2);
 float ReciprocalSqrtEstimate(float op);
 float ReciprocalSqrtStep(float op1, float op2);
 
-constexpr uword kBreakInstructionFiller = 0xE1200070;   // bkpt #0
-constexpr uword kDataMemoryBarrier = 0xf57ff050 | 0xb;  // dmb ish
+constexpr uword kBreakInstructionFiller = 0xE1200070;  // bkpt #0
+constexpr uword kDMB_ISH = 0xf57ff05b;                 // dmb ish
+constexpr uword kDMB_ISHST = 0xf57ff05a;               // dmb ishst
 
 struct LinkRegister {
   const int32_t code = LR;
