@@ -165,22 +165,32 @@
 //   field1 = 42;
 //   ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:123:9: Error: Cannot invoke constructor 'C8._' from a dynamic module.
-// Try removing the call or update the dynamic interface to list constructor 'C8._' as callable.
-//   print(C8());
-//         ^
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:124:12: Error: Cannot invoke member 'C8.fact1' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C8.fact1' as callable.
+//   print(C8.fact1());
+//            ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:129:9: Error: Cannot use extension type 'ExtType1' in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:125:12: Error: Cannot invoke member 'C8.fact2' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C8.fact2' as callable.
+//   print(C8.fact2());
+//            ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:126:15: Error: Cannot invoke member 'C8.fact4' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C8.fact4' as callable.
+//   print(const C8.fact4());
+//               ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:134:9: Error: Cannot use extension type 'ExtType1' in a dynamic module.
 // Try removing the reference to extension type 'ExtType1' or update the dynamic interface to list extension type 'ExtType1' as callable.
 //   print(ExtType1);
 //         ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:130:9: Error: Cannot invoke member 'ExtType1.new' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:135:9: Error: Cannot invoke member 'ExtType1.new' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'ExtType1.new' as callable.
 //   print(ExtType1(42));
 //         ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:131:12: Error: Cannot invoke member 'Ext1.isPositive' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:136:12: Error: Cannot invoke member 'Ext1.isPositive' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'Ext1.isPositive' as callable.
 //   print(42.isPositive);
 //            ^
@@ -331,15 +341,19 @@ static method test() → void {
   mai::field1 = 42;
   core::print(mai::field2);
   mai::field2 = 42;
-  core::print(new mai::C8::_());
-  core::print(new mai::C9::_());
+  core::print(new mai::C8::•());
+  core::print(mai::C8::fact3());
   core::print(#C13);
+  core::print(new mai::C9::•());
+  core::print(mai::C9::fact3());
+  core::print(#C14);
+  core::print(#C15);
   core::print(mai::ExtType1|constructor#(42));
   core::print(mai::Ext1|get#isPositive(42));
   core::print(new mai2::Lib3Class::•());
   mai2::lib3Method();
   mai2::lib3Field = 42;
-  core::print(#C13);
+  core::print(#C15);
   core::print(mai2::Lib3ExtType|constructor#(42));
   core::print(mai2::Lib3Ext|get#lib3IsPositive(42));
 }
@@ -440,17 +454,35 @@ class C7 extends core::Object {
     : super core::Object::•()
     ;
 }
-class C8 extends core::Object {
-  constructor _() → mai::C8
+class C8 extends core::Object /*hasConstConstructor*/  {
+  constructor •() → mai::C8
     : super core::Object::•() {}
-  static factory •() → mai::C8 /* redirection-target: mai::C8::_ */
-    return new mai::C8::_();
+  const constructor constConstr() → mai::C8
+    : super core::Object::•()
+    ;
+  static factory fact1() → mai::C8 /* redirection-target: mai::C8::• */
+    return new mai::C8::•();
+  static factory fact2() → mai::C8 /* redirection-target: mai::C8::fact3 */
+    return mai::C8::fact3();
+  static factory fact3() → mai::C8
+    return new mai::C8::•();
+  static factory fact4() → mai::C8 /* redirection-target: mai::C8::constConstr */
+    return new mai::C8::constConstr();
 }
-class C9 extends core::Object {
-  constructor _() → mai::C9
+class C9 extends core::Object /*hasConstConstructor*/  {
+  constructor •() → mai::C9
     : super core::Object::•() {}
-  static factory •() → mai::C9 /* redirection-target: mai::C9::_ */
-    return new mai::C9::_();
+  const constructor constConstr() → mai::C9
+    : super core::Object::•()
+    ;
+  static factory fact1() → mai::C9 /* redirection-target: mai::C9::• */
+    return new mai::C9::•();
+  static factory fact2() → mai::C9 /* redirection-target: mai::C9::fact3 */
+    return mai::C9::fact3();
+  static factory fact3() → mai::C9
+    return new mai::C9::•();
+  static factory fact4() → mai::C9 /* redirection-target: mai::C9::constConstr */
+    return new mai::C9::constConstr();
 }
 extension Ext1 on core::int {
   get isPositive = mai::Ext1|get#isPositive;
@@ -462,8 +494,8 @@ extension type ExtType1(core::int raw) {
 }
 static field core::int field1 = 4;
 static field core::int field2 = 4;
-static const field mai::_C5 const1 = #C15;
-static const field mai::_C5 const2 = #C17;
+static const field mai::_C5 const1 = #C17;
+static const field mai::_C5 const2 = #C19;
 static method method1() → void {}
 static method method2() → void {}
 static method _privateMethod1() → void {}
@@ -533,11 +565,13 @@ constants  {
   #C10 = constructor-tearoff mai::C2::•
   #C11 = static-tearoff mai::method1
   #C12 = static-tearoff mai::method2
-  #C13 = TypeLiteralConstant(core::int)
-  #C14 = static-tearoff mai::_privateMethod1
-  #C15 = mai::_C5 {func:#C14}
-  #C16 = static-tearoff mai::_privateMethod2
+  #C13 = mai::C8 {}
+  #C14 = mai::C9 {}
+  #C15 = TypeLiteralConstant(core::int)
+  #C16 = static-tearoff mai::_privateMethod1
   #C17 = mai::_C5 {func:#C16}
+  #C18 = static-tearoff mai::_privateMethod2
+  #C19 = mai::_C5 {func:#C18}
 }
 
 
@@ -547,3 +581,8 @@ org-dartlang-testcase:///main_lib1.dart:
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - _ConstForC7. (from org-dartlang-testcase:///main_lib1.dart:82:9)
 - _C5. (from org-dartlang-testcase:///main_lib1.dart:60:9)
+
+org-dartlang-testcase:///main.dart:
+- C8.constConstr (from org-dartlang-testcase:///main_lib1.dart:98:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- C9.constConstr (from org-dartlang-testcase:///main_lib1.dart:107:9)

@@ -17,6 +17,8 @@ library name_mangling.pb.dart;
 import self as self;
 import "package:protobuf/src/protobuf/internal.dart" as int;
 import "dart:core" as core;
+import "package:protobuf/src/protobuf/annotations.dart" as ann;
+additionalExports = (int::GeneratedMessageGenericExtensions)
 
 import "dart:core" as $core;
 import "package:protobuf/src/protobuf/internal.dart";
@@ -53,9 +55,9 @@ class NameManglingKeep extends int::GeneratedMessage {
     ;
 
   [@vm.inferred-return-type.metadata=name_mangling.pb.dart::NameManglingKeep]
-  static factory fromBuffer([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<core::int> i) → self::NameManglingKeep
+  static factory fromBuffer([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<core::int> data) → self::NameManglingKeep
     return let final self::NameManglingKeep #t4 = [@vm.inferred-type.metadata=name_mangling.pb.dart::NameManglingKeep] self::NameManglingKeep::create() in block {
-      [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.mergeFromBuffer] [@vm.inferred-type.metadata=? (skip check)] #t4.{int::GeneratedMessage::mergeFromBuffer}(i){(core::List<core::int>, [int::ExtensionRegistry]) → void};
+      [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.mergeFromBuffer] [@vm.inferred-type.metadata=? (skip check)] #t4.{int::GeneratedMessage::mergeFromBuffer}(data){(core::List<core::int>, [int::ExtensionRegistry]) → void};
     } =>#t4;
 
   [@vm.inferred-return-type.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo]
@@ -82,5 +84,5 @@ constants  {
   #C5 = core::pragma {name:#C3, options:#C4}
   #C6 = static-tearoff self::NameManglingKeep::create
   #C7 = 10
-  #C8 = int::TagNumber {tagNumber:#C7}
+  #C8 = ann::TagNumber {tagNumber:#C7}
 }
