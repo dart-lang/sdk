@@ -114,9 +114,12 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 // whenever timeline with perfetto support is included as well as in
 // precompiler builds (to enable stack dumping when precompiler crashes).
 #if !defined(PRODUCT) ||                                                       \
-    (defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)) ||                \
-    defined(DART_PRECOMPILER)
+    (defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO))
 #define DART_INCLUDE_PROFILER 1
+#endif
+
+#if defined(DART_INCLUDE_PROFILER) || defined(DART_PRECOMPILER)
+#define DART_INCLUDE_STACK_DUMPER 1
 #endif
 
 // Include IL printer and disassembler functionality into non-PRODUCT builds,

@@ -512,7 +512,6 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     required SourceMethodBuilder methodBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {
     Name toStringName = new Name(
       _enumToStringName,
@@ -872,7 +871,6 @@ class _EnumValuesFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {}
 
   @override

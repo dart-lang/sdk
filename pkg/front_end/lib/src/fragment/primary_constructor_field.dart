@@ -194,7 +194,6 @@ class PrimaryConstructorFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {}
 
   @override

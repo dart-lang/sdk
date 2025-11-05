@@ -3,19 +3,21 @@ import self as self;
 import "dart:core" as core;
 
 class C1 extends core::Object {
-  constructor •(core::int a, [core::int? b = null]) → self::C1
+  constructor •(core::int a, [core::int? b = null, core::int c = 42]) → self::C1
     ;
 }
 class C2 extends core::Object {
   field core::int a;
   field core::int? b;
-  constructor •(core::int a, [core::int? b = null]) → self::C2
+  field core::int c;
+  constructor •(core::int a, [core::int? b = null, core::int c = 42]) → self::C2
     ;
 }
 class C3 extends core::Object {
   final field core::int a;
   final field core::int? b;
-  constructor •(final core::int a, [final core::int? b = null]) → self::C3
+  final field core::int c;
+  constructor •(final core::int a, [final core::int? b = null, final core::int c = 42]) → self::C3
     ;
 }
 class C4 extends core::Object /*hasConstConstructor*/  {
@@ -36,19 +38,37 @@ class C6 extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class C7 extends core::Object {
-  constructor •({core::int? a = null, required core::int b}) → self::C7
+  constructor •({core::int? a = null, required core::int b, core::int c = 42}) → self::C7
     ;
 }
 class C8 extends core::Object {
   field core::int? a;
   field core::int b;
-  constructor •({core::int? a = null, required core::int b}) → self::C8
+  field core::int c;
+  constructor •({core::int? a = null, required core::int b, core::int c = 42}) → self::C8
     ;
 }
 class C9 extends core::Object {
   final field core::int? a;
   final field core::int b;
-  constructor •({final core::int? a = null, required final core::int b}) → self::C9
+  final field core::int c;
+  constructor •({final core::int? a = null, required final core::int b, final core::int c = 42}) → self::C9
+    ;
+}
+class C10 extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int? b;
+  final field core::int c;
+  const constructor •(final core::int a, [final core::int? b = null, final core::int c = 42]) → self::C10
+    : self::C10::a = a, self::C10::b = b, self::C10::c = c, super core::Object::•()
+    ;
+}
+class C11 extends core::Object /*hasConstConstructor*/  {
+  final field core::int? a;
+  final field core::int b;
+  final field core::int c;
+  const constructor •({final core::int? a = null, required final core::int b, final core::int c = 42}) → self::C11
+    : self::C11::a = a, self::C11::b = b, self::C11::c = c, super core::Object::•()
     ;
 }
 static method main() → dynamic

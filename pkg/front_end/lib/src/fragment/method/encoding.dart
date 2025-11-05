@@ -49,10 +49,10 @@ sealed class MethodEncoding implements InferredTypeListener {
     required ClassHierarchy classHierarchy,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder? declarationBuilder,
+    required SourceMethodBuilder methodBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   });
 
   void buildOutlineNode(
@@ -166,10 +166,10 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     required ClassHierarchy classHierarchy,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder? declarationBuilder,
+    required SourceMethodBuilder methodBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -181,19 +181,17 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       metadata: _fragment.metadata,
       annotationsFileUri: _fragment.fileUri,
     );
-    buildTypeParametersForOutlineExpressions(
-      classHierarchy,
-      libraryBuilder,
-      bodyBuilderContext,
-      _fragment.declaredTypeParameters?.builders,
+    _fragment.declaredTypeParameters?.builders.buildOutlineExpressions(
+      classHierarchy: classHierarchy,
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
     );
-    buildFormalsForOutlineExpressions(
-      libraryBuilder,
-      declarationBuilder,
-      _fragment.declaredFormals,
+    _fragment.declaredFormals.buildOutlineExpressions(
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: declarationBuilder,
+      memberBuilder: methodBuilder,
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
-      isClassInstanceMember: isClassInstanceMember,
     );
   }
 
@@ -485,10 +483,10 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     required ClassHierarchy classHierarchy,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder? declarationBuilder,
+    required SourceMethodBuilder methodBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -501,34 +499,30 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       annotationsFileUri: _fragment.fileUri,
     );
 
-    buildTypeParametersForOutlineExpressions(
-      classHierarchy,
-      libraryBuilder,
-      bodyBuilderContext,
-      _fragment.declaredTypeParameters?.builders,
+    _fragment.declaredTypeParameters?.builders.buildOutlineExpressions(
+      classHierarchy: classHierarchy,
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
     );
-    buildFormalsForOutlineExpressions(
-      libraryBuilder,
-      declarationBuilder,
-      _fragment.declaredFormals,
+    _fragment.declaredFormals.buildOutlineExpressions(
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: declarationBuilder,
+      memberBuilder: methodBuilder,
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
-      isClassInstanceMember: isClassInstanceMember,
     );
 
-    buildTypeParametersForOutlineExpressions(
-      classHierarchy,
-      libraryBuilder,
-      bodyBuilderContext,
-      _clonedDeclarationTypeParameters,
+    _clonedDeclarationTypeParameters.buildOutlineExpressions(
+      classHierarchy: classHierarchy,
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
     );
-    buildFormalForOutlineExpressions(
-      libraryBuilder,
-      declarationBuilder,
-      _thisFormal,
+    _thisFormal.buildOutlineExpressions(
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: declarationBuilder,
+      memberBuilder: methodBuilder,
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
-      isClassInstanceMember: isClassInstanceMember,
     );
   }
 

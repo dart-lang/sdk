@@ -70,7 +70,7 @@ DEFINE_FLAG(
     "the oldest ones. This flag itself does not enable the profiler; the "
     "profiler must be enabled separately, e.g. with --profiler.");
 
-#if defined(DART_INCLUDE_PROFILER)
+#if defined(DART_INCLUDE_STACK_DUMPER)
 ProfilerCounters Profiler::counters_ = {};
 
 static void DumpStackFrame(uword pc, uword fp, const char* name, uword offset) {
@@ -367,6 +367,7 @@ static bool ValidateThreadStackBounds(uintptr_t fp,
   return true;
 }
 
+#if defined(DART_INCLUDE_PROFILER)
 // Get |thread|'s stack boundary and verify that |sp| and |fp| are within
 // it. Return |false| if anything looks suspicious.
 static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
@@ -410,6 +411,7 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
 
   return ValidateThreadStackBounds(fp, sp, *stack_lower, *stack_upper);
 }
+#endif  // defined(DART_INCLUDE_PROFILER)
 
 static bool GetAndValidateCurrentThreadStackBounds(uintptr_t fp,
                                                    uintptr_t sp,
@@ -600,6 +602,9 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 
   DumpCompilerState(thread);
 }
+#endif  // defined(DART_INCLUDE_STACK_DUMPER)
+
+#if defined(DART_INCLUDE_PROFILER)
 
 RelaxedAtomic<bool> Profiler::initialized_ = false;
 SampleBlockBuffer* Profiler::sample_block_buffer_ = nullptr;

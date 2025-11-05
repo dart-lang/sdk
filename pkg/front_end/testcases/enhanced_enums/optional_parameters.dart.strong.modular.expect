@@ -1,0 +1,91 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class E1 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E1 x = #C6;
+  enum-element static const field self::E1 y = #C8;
+  enum-element static const field self::E1 z = #C11;
+  final field core::int? a;
+  final field core::int b;
+  final field core::int c;
+  static const field core::List<self::E1> values = #C12;
+  const constructor •(core::int #index, core::String #name, {core::int? a = #C1, required core::int b, core::int c = #C3}) → self::E1
+    : self::E1::a = a, self::E1::b = b, self::E1::c = c, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E2 x = #C13;
+  enum-element static const field self::E2 y = #C14;
+  enum-element static const field self::E2 z = #C15;
+  final field core::int a;
+  final field core::int? b;
+  final field core::int c;
+  static const field core::List<self::E2> values = #C16;
+  const constructor •(core::int #index, core::String #name, core::int a, [core::int? b = #C1, core::int c = #C3]) → self::E2
+    : self::E2::a = a, self::E2::b = b, self::E2::c = c, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E3 x = #C17;
+  enum-element static const field self::E3 y = #C18;
+  enum-element static const field self::E3 z = #C19;
+  static const field core::List<self::E3> values = #C20;
+  const constructor •(core::int #index, core::String #name, {core::int? a = #C1, required core::int b, core::int c = #C3}) → self::E3
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+class E4 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E4 x = #C21;
+  enum-element static const field self::E4 y = #C22;
+  enum-element static const field self::E4 z = #C23;
+  static const field core::List<self::E4> values = #C24;
+  const constructor •(core::int #index, core::String #name, core::int a, [core::int? b = #C1, core::int c = #C3]) → self::E4
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+}
+
+constants  {
+  #C1 = null
+  #C2 = 1
+  #C3 = 42
+  #C4 = 0
+  #C5 = "x"
+  #C6 = self::E1 {a:#C1, b:#C2, c:#C3, index:#C4, _name:#C5}
+  #C7 = "y"
+  #C8 = self::E1 {a:#C4, b:#C2, c:#C3, index:#C2, _name:#C7}
+  #C9 = 2
+  #C10 = "z"
+  #C11 = self::E1 {a:#C1, b:#C2, c:#C9, index:#C9, _name:#C10}
+  #C12 = <self::E1>[#C6, #C8, #C11]
+  #C13 = self::E2 {a:#C4, b:#C1, c:#C3, index:#C4, _name:#C5}
+  #C14 = self::E2 {a:#C4, b:#C2, c:#C3, index:#C2, _name:#C7}
+  #C15 = self::E2 {a:#C4, b:#C2, c:#C9, index:#C9, _name:#C10}
+  #C16 = <self::E2>[#C13, #C14, #C15]
+  #C17 = self::E3 {index:#C4, _name:#C5}
+  #C18 = self::E3 {index:#C2, _name:#C7}
+  #C19 = self::E3 {index:#C9, _name:#C10}
+  #C20 = <self::E3>[#C17, #C18, #C19]
+  #C21 = self::E4 {index:#C4, _name:#C5}
+  #C22 = self::E4 {index:#C2, _name:#C7}
+  #C23 = self::E4 {index:#C9, _name:#C10}
+  #C24 = <self::E4>[#C21, #C22, #C23]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///optional_parameters.dart:
+- E1. (from org-dartlang-testcase:///optional_parameters.dart:14:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- E2. (from org-dartlang-testcase:///optional_parameters.dart:26:9)
+- E3. (from org-dartlang-testcase:///optional_parameters.dart:34:9)
+- E4. (from org-dartlang-testcase:///optional_parameters.dart:42:9)
