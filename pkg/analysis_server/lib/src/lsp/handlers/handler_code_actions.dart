@@ -74,7 +74,7 @@ class CodeActionRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => CodeActionRegistrationOptions(
-    documentSelector: fullySupportedTypes,
+    documentSelector: supportedTypes,
     codeActionKinds: DartCodeActionKind.serverSupportedKinds,
   );
 
@@ -93,6 +93,22 @@ class CodeActionRegistrations extends FeatureRegistration
           ),
         )
       : Either2.t1(true);
+
+  /// Types of documents for which code actions are provided.
+  ///
+  /// Includes Dart files, plugin types, pubspec.yaml, and analysis_options.yaml.
+  List<TextDocumentFilterScheme> get supportedTypes {
+    return
+    // Join in a Set because fullSupportedTypes includes plugin registrations
+    // and might overlap.
+    {
+      ...fullySupportedTypes,
+      // We support code actions in pubspec+analysis_options even though they're
+      // not "fully supported" (most handlers do not support them).
+      pubspecFile,
+      analysisOptionsFile,
+    }.toList();
+  }
 
   @override
   bool get supportsDynamic => clientDynamic.codeActions;
