@@ -587,6 +587,17 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   @override
+  void visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) {
+    _verifyCallable(node.redirectingFactoryTarget, node);
+    // Do not visit node.expression in order to avoid checking
+    // that target of a redirecting factory is callable.
+    // However, still visit children of node.expression to validate arguments.
+    final InvocationExpression expr = node.expression;
+    assert(expr is ConstructorInvocation || expr is StaticInvocation);
+    expr.visitChildren(this);
+  }
+
+  @override
   // Coverage-ignore(suite): Not run.
   void visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
     _verifyCallable(node.target, node);
@@ -724,6 +735,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         case Constructor():
           String name = target.enclosingClass.name;
           if (target.name.text.isNotEmpty) {
+            // Coverage-ignore-block(suite): Not run.
             name += '.' + target.name.text;
           }
           loader.addProblem(

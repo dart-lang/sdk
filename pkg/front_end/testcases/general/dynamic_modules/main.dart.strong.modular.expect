@@ -165,22 +165,32 @@
 //   field1 = 42;
 //   ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:123:9: Error: Cannot invoke constructor 'C8._' from a dynamic module.
-// Try removing the call or update the dynamic interface to list constructor 'C8._' as callable.
-//   print(C8());
-//         ^
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:124:12: Error: Cannot invoke member 'C8.fact1' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C8.fact1' as callable.
+//   print(C8.fact1());
+//            ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:129:9: Error: Cannot use extension type 'ExtType1' in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:125:12: Error: Cannot invoke member 'C8.fact2' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C8.fact2' as callable.
+//   print(C8.fact2());
+//            ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:126:15: Error: Cannot invoke member 'C8.fact4' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C8.fact4' as callable.
+//   print(const C8.fact4());
+//               ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:134:9: Error: Cannot use extension type 'ExtType1' in a dynamic module.
 // Try removing the reference to extension type 'ExtType1' or update the dynamic interface to list extension type 'ExtType1' as callable.
 //   print(ExtType1);
 //         ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:130:9: Error: Cannot invoke member 'ExtType1.new' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:135:9: Error: Cannot invoke member 'ExtType1.new' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'ExtType1.new' as callable.
 //   print(ExtType1(42));
 //         ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:131:12: Error: Cannot invoke member 'Ext1.isPositive' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:136:12: Error: Cannot invoke member 'Ext1.isPositive' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'Ext1.isPositive' as callable.
 //   print(42.isPositive);
 //            ^
@@ -332,15 +342,19 @@ static method test() → void {
   mai::field1 = 42;
   core::print(mai::field2);
   mai::field2 = 42;
-  core::print(new mai::C8::_());
-  core::print(new mai::C9::_());
+  core::print(new mai::C8::•());
+  core::print(mai::C8::fact3());
   core::print(#C13);
+  core::print(new mai::C9::•());
+  core::print(mai::C9::fact3());
+  core::print(#C14);
+  core::print(#C15);
   core::print(mai::ExtType1|constructor#(42));
   core::print(mai::Ext1|get#isPositive(42));
   core::print(new mai2::Lib3Class::•());
   mai2::lib3Method();
   mai2::lib3Field = 42;
-  core::print(#C13);
+  core::print(#C15);
   core::print(mai2::Lib3ExtType|constructor#(42));
   core::print(mai2::Lib3Ext|get#lib3IsPositive(42));
 }
@@ -359,7 +373,9 @@ constants  {
   #C10 = constructor-tearoff mai::C2::•
   #C11 = static-tearoff mai::method1
   #C12 = static-tearoff mai::method2
-  #C13 = TypeLiteralConstant(core::int)
+  #C13 = mai::C8 {}
+  #C14 = mai::C9 {}
+  #C15 = TypeLiteralConstant(core::int)
 }
 
 
@@ -368,3 +384,5 @@ org-dartlang-testcase:///main.dart:
 - _ConstForC6. (from org-dartlang-testcase:///main_lib1.dart:71:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - _ConstForC7. (from org-dartlang-testcase:///main_lib1.dart:82:9)
+- C8.constConstr (from org-dartlang-testcase:///main_lib1.dart:98:9)
+- C9.constConstr (from org-dartlang-testcase:///main_lib1.dart:107:9)

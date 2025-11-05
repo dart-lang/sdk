@@ -119,11 +119,16 @@ void test() {
   print(field2);
   field2 = 42;
 
-  // Not allowed - target of redirecting factory is not callable.
-  print(C8());
+  // Not allowed - redirecting factories are not callable
+  // (although their targets are callable).
+  print(C8.fact1());
+  print(C8.fact2());
+  print(const C8.fact4());
 
-  // Allowed - target of redirecting factory is callable.
-  print(C9());
+  // Allowed - redirecting factories are callable.
+  print(C9.fact1());
+  print(C9.fact2());
+  print(const C9.fact4());
 
   // Not allowed.
   print(ExtType1);
