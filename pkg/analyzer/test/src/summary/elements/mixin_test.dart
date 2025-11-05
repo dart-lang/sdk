@@ -1586,6 +1586,7 @@ library
           firstFragment: #F4
           type: int
           getter: <testLibrary>::@extensionType::B::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
@@ -1947,6 +1948,7 @@ library
           firstFragment: #F4
           type: int
           getter: <testLibrary>::@extensionType::B::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it

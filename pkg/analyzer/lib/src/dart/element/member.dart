@@ -50,6 +50,9 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
   bool get isConst => baseElement.isConst;
 
   @override
+  bool get isDeclaring => baseElement.isDeclaring;
+
+  @override
   bool get isDefaultConstructor => baseElement.isDefaultConstructor;
 
   @override
@@ -57,6 +60,9 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
 
   @override
   bool get isGenerative => baseElement.isGenerative;
+
+  @override
+  bool get isPrimary => baseElement.isPrimary;
 
   @override
   LibraryElementImpl get library => baseElement.library;
@@ -400,6 +406,11 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
   List<Element> get children => const [];
 
   @override
+  FieldFormalParameterElementImpl? get declaringFormalParameter {
+    return baseElement.declaringFormalParameter;
+  }
+
+  @override
   String? get documentationComment => baseElement.documentationComment;
 
   @override
@@ -541,6 +552,9 @@ class SubstitutedFieldFormalParameterElementImpl
 
   @override
   bool get isCovariant => baseElement.isCovariant;
+
+  @override
+  bool get isDeclaring => baseElement.isDeclaring;
 }
 
 /// A parameter element defined in a parameterized type where the values of the

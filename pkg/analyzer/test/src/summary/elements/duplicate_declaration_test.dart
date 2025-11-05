@@ -945,12 +945,13 @@ library
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@extensionType::E::@def::0::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::E::@def::0::@constructor::new::@formalParameter::it
       constructors
-        isExtensionTypeMember new
+        declaring isExtensionTypeMember primary new
           reference: <testLibrary>::@extensionType::E::@def::0::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType this.it
+            #E0 requiredPositional final hasImplicitType declaring this.it
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::E::@def::0::@field::it
@@ -972,12 +973,13 @@ library
           firstFragment: #F7
           type: double
           getter: <testLibrary>::@extensionType::E::@def::1::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::E::@def::1::@constructor::new::@formalParameter::it
       constructors
-        isExtensionTypeMember new
+        declaring isExtensionTypeMember primary new
           reference: <testLibrary>::@extensionType::E::@def::1::@constructor::new
           firstFragment: #F8
           formalParameters
-            #E1 requiredPositional final hasImplicitType this.it
+            #E1 requiredPositional final hasImplicitType declaring this.it
               firstFragment: #F9
               type: double
               field: <testLibrary>::@extensionType::E::@def::1::@field::it

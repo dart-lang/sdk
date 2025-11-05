@@ -59,6 +59,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
@@ -228,6 +229,10 @@ abstract class ConstructorElement implements ExecutableElement {
   /// Whether the constructor is a const constructor.
   bool get isConst;
 
+  /// Whether this is a declaring constructor.
+  @experimental
+  bool get isDeclaring;
+
   /// Whether the constructor can be used as a default constructor - unnamed,
   /// and has no required parameters.
   bool get isDefaultConstructor;
@@ -237,6 +242,11 @@ abstract class ConstructorElement implements ExecutableElement {
 
   /// Whether the constructor represents a generative constructor.
   bool get isGenerative;
+
+  /// Whether this is a primary constructor.
+  /// When `true`, [isDeclaring] is also `true`.
+  @experimental
+  bool get isPrimary;
 
   /// The name of this constructor.
   ///
@@ -1193,6 +1203,10 @@ abstract class FieldElement implements PropertyInducingElement {
   @override
   FieldElement get baseElement;
 
+  /// The declaring formal parameter, if created from one.
+  @experimental
+  FieldFormalParameterElement? get declaringFormalParameter;
+
   @override
   InstanceElement get enclosingElement;
 
@@ -1235,6 +1249,10 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
 
   @override
   List<FieldFormalParameterFragment> get fragments;
+
+  /// Whether this is a declaring formal parameter.
+  @experimental
+  bool get isDeclaring;
 }
 
 /// The portion of a [FieldFormalParameterElement] contributed by a single

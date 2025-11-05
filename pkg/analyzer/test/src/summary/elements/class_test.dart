@@ -12351,6 +12351,7 @@ library
           firstFragment: #F5
           type: int
           getter: <testLibrary>::@extensionType::B::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
@@ -13940,6 +13941,7 @@ library
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::B::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
@@ -17249,6 +17251,7 @@ library
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
@@ -31579,12 +31582,13 @@ library
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        const new
+        const declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final this.foo
+            #E0 requiredPositional final declaring this.foo
               firstFragment: #F4
               type: int
               field: <testLibrary>::@class::A::@field::foo
@@ -31634,12 +31638,13 @@ library
           firstFragment: #F2
           type: int Function()
           getter: <testLibrary>::@class::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 optionalNamed final this.foo
+            #E0 optionalNamed final declaring this.foo
               firstFragment: #F4
               type: int Function()
               field: <testLibrary>::@class::A::@field::foo
@@ -31689,12 +31694,13 @@ library
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 optionalNamed final this.foo
+            #E0 optionalNamed final declaring this.foo
               firstFragment: #F4
               type: int
               field: <testLibrary>::@class::A::@field::foo
@@ -31744,12 +31750,13 @@ library
           firstFragment: #F2
           type: int Function()
           getter: <testLibrary>::@class::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 optionalPositional final this.foo
+            #E0 optionalPositional final declaring this.foo
               firstFragment: #F4
               type: int Function()
               field: <testLibrary>::@class::A::@field::foo
@@ -31799,12 +31806,13 @@ library
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 optionalPositional final this.foo
+            #E0 optionalPositional final declaring this.foo
               firstFragment: #F4
               type: int
               field: <testLibrary>::@class::A::@field::foo
@@ -31854,12 +31862,13 @@ library
           firstFragment: #F2
           type: int Function()
           getter: <testLibrary>::@class::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredNamed final this.foo
+            #E0 requiredNamed final declaring this.foo
               firstFragment: #F4
               type: int Function()
               field: <testLibrary>::@class::A::@field::foo
@@ -31909,12 +31918,13 @@ library
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredNamed final this.foo
+            #E0 requiredNamed final declaring this.foo
               firstFragment: #F4
               type: int
               field: <testLibrary>::@class::A::@field::foo
@@ -31964,12 +31974,13 @@ library
           firstFragment: #F2
           type: int Function()
           getter: <testLibrary>::@class::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final this.foo
+            #E0 requiredPositional final declaring this.foo
               firstFragment: #F4
               type: int Function()
               field: <testLibrary>::@class::A::@field::foo
@@ -32026,12 +32037,13 @@ library
           type: int Function()
           getter: <testLibrary>::@class::A::@getter::foo
           setter: <testLibrary>::@class::A::@setter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final this.foo
+            #E0 requiredPositional final declaring this.foo
               firstFragment: #F4
               type: int Function()
               field: <testLibrary>::@class::A::@field::foo
@@ -32091,12 +32103,13 @@ library
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final this.foo
+            #E0 requiredPositional final declaring this.foo
               firstFragment: #F4
               type: int
               field: <testLibrary>::@class::A::@field::foo
@@ -32153,12 +32166,13 @@ library
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
           setter: <testLibrary>::@class::A::@setter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final this.foo
+            #E0 requiredPositional final declaring this.foo
               firstFragment: #F4
               type: int
               field: <testLibrary>::@class::A::@field::foo
@@ -32225,12 +32239,13 @@ library
           hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@class::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
           formalParameters
-            #E1 requiredPositional final this.foo
+            #E1 requiredPositional final declaring this.foo
               firstFragment: #F5
               type: T
               field: <testLibrary>::@class::A::@field::foo
@@ -32270,7 +32285,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           formalParameters
@@ -32306,7 +32321,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           formalParameters
@@ -32353,7 +32368,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           formalParameters
@@ -32365,7 +32380,7 @@ library
       firstFragment: #F4
       supertype: A
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -32417,7 +32432,7 @@ library
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
-        new
+        declaring primary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters

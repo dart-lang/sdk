@@ -3376,9 +3376,11 @@ package:analyzer/dart/element/element.dart:
     firstFragment (getter: ConstructorFragment)
     fragments (getter: List<ConstructorFragment>)
     isConst (getter: bool)
+    isDeclaring (getter: bool, experimental)
     isDefaultConstructor (getter: bool)
     isFactory (getter: bool)
     isGenerative (getter: bool)
+    isPrimary (getter: bool, experimental)
     name (getter: String?)
     redirectedConstructor (getter: ConstructorElement?)
     returnType (getter: InterfaceType)
@@ -3611,6 +3613,7 @@ package:analyzer/dart/element/element.dart:
   FieldElement (class extends Object implements PropertyInducingElement):
     new (constructor: FieldElement Function())
     baseElement (getter: FieldElement)
+    declaringFormalParameter (getter: FieldFormalParameterElement?, experimental)
     enclosingElement (getter: InstanceElement)
     firstFragment (getter: FieldFragment)
     fragments (getter: List<FieldFragment>)
@@ -3624,6 +3627,7 @@ package:analyzer/dart/element/element.dart:
     field (getter: FieldElement?)
     firstFragment (getter: FieldFormalParameterFragment)
     fragments (getter: List<FieldFormalParameterFragment>)
+    isDeclaring (getter: bool, experimental)
   FieldFormalParameterFragment (class extends Object implements FormalParameterFragment):
     new (constructor: FieldFormalParameterFragment Function())
     element (getter: FieldFormalParameterElement)

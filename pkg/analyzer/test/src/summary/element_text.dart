@@ -353,8 +353,10 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isConst, 'const ');
+      _sink.writeIf(e.isDeclaring, 'declaring ');
       _sink.writeIf(e.isFactory, 'factory ');
       _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
+      _sink.writeIf(e.isPrimary, 'primary ');
       expect(e.isAbstract, isFalse);
       _writeElementName(e);
     });
@@ -582,6 +584,10 @@ class _Element2Writer extends _AbstractElementWriter {
       // writeLinking();
       _writeElementReference('getter', e.getter);
       _writeElementReference('setter', e.setter);
+      _writeElementReference(
+        'declaringFormalParameter',
+        e.declaringFormalParameter,
+      );
     });
   }
 
@@ -667,6 +673,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       switch (e) {
         case FieldFormalParameterElementImpl():
+          _sink.writeIf(e.isDeclaring, 'declaring ');
           _sink.write('this.');
         case SuperFormalParameterElementImpl():
           _sink.write('super.');

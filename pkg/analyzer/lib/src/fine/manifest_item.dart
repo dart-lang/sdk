@@ -183,7 +183,9 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
     return context.withFormalParameters(element.formalParameters, () {
       return super.match(context, element) &&
           flags.isConst == element.isConst &&
+          flags.isDeclaring == element.isDeclaring &&
           flags.isFactory == element.isFactory &&
+          flags.isPrimary == element.isPrimary &&
           constantInitializers.match(context, element.constantInitializers) &&
           redirectedConstructor.match(context, element.redirectedConstructor) &&
           superConstructor.match(context, element.superConstructor);
@@ -1584,7 +1586,7 @@ enum _ClassItemFlag {
   isSealed,
 }
 
-enum _ConstructorItemFlag { isConst, isFactory }
+enum _ConstructorItemFlag { isConst, isDeclaring, isFactory, isPrimary }
 
 enum _ExecutableItemFlag {
   hasEnclosingTypeParameterReference,
@@ -1720,8 +1722,14 @@ extension type _ConstructorItemFlags._(int _bits)
     if (element.isConst) {
       bits |= _maskFor(_ConstructorItemFlag.isConst);
     }
+    if (element.isDeclaring) {
+      bits |= _maskFor(_ConstructorItemFlag.isDeclaring);
+    }
     if (element.isFactory) {
       bits |= _maskFor(_ConstructorItemFlag.isFactory);
+    }
+    if (element.isPrimary) {
+      bits |= _maskFor(_ConstructorItemFlag.isPrimary);
     }
     return _ConstructorItemFlags._(bits);
   }
@@ -1734,8 +1742,16 @@ extension type _ConstructorItemFlags._(int _bits)
     return _has(_ConstructorItemFlag.isConst);
   }
 
+  bool get isDeclaring {
+    return _has(_ConstructorItemFlag.isDeclaring);
+  }
+
   bool get isFactory {
     return _has(_ConstructorItemFlag.isFactory);
+  }
+
+  bool get isPrimary {
+    return _has(_ConstructorItemFlag.isPrimary);
   }
 
   void write(BinaryWriter writer) {

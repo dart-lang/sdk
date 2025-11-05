@@ -2699,6 +2699,7 @@ library
           firstFragment: #F9
           type: int
           getter: <testLibrary>::@extensionType::B::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
@@ -3495,6 +3496,7 @@ library
           firstFragment: #F9
           type: int
           getter: <testLibrary>::@extensionType::B::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
@@ -15187,12 +15189,13 @@ library
           firstFragment: #F4
           type: int?
           getter: <testLibrary>::@enum::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const new
+        const declaring primary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 optionalNamed final this.foo
+            #E0 optionalNamed final declaring this.foo
               firstFragment: #F6
               type: int?
               field: <testLibrary>::@enum::A::@field::foo
@@ -15303,12 +15306,13 @@ library
           firstFragment: #F4
           type: int?
           getter: <testLibrary>::@enum::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const new
+        const declaring primary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 optionalPositional final this.foo
+            #E0 optionalPositional final declaring this.foo
               firstFragment: #F6
               type: int?
               field: <testLibrary>::@enum::A::@field::foo
@@ -15426,12 +15430,13 @@ library
           firstFragment: #F4
           type: int
           getter: <testLibrary>::@enum::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const new
+        const declaring primary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 requiredNamed final this.foo
+            #E0 requiredNamed final declaring this.foo
               firstFragment: #F6
               type: int
               field: <testLibrary>::@enum::A::@field::foo
@@ -15542,12 +15547,13 @@ library
           firstFragment: #F4
           type: int Function()
           getter: <testLibrary>::@enum::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const new
+        const declaring primary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional final this.foo
+            #E0 requiredPositional final declaring this.foo
               firstFragment: #F6
               type: int Function()
               field: <testLibrary>::@enum::A::@field::foo
@@ -15658,12 +15664,13 @@ library
           firstFragment: #F4
           type: int
           getter: <testLibrary>::@enum::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const new
+        const declaring primary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional final this.foo
+            #E0 requiredPositional final declaring this.foo
               firstFragment: #F6
               type: int
               field: <testLibrary>::@enum::A::@field::foo
@@ -15781,12 +15788,13 @@ library
           type: int
           getter: <testLibrary>::@enum::A::@getter::foo
           setter: <testLibrary>::@enum::A::@setter::foo
+          declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const new
+        const declaring primary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional final this.foo
+            #E0 requiredPositional final declaring this.foo
               firstFragment: #F6
               type: int
               field: <testLibrary>::@enum::A::@field::foo
@@ -15916,12 +15924,13 @@ library
           hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@enum::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const new
+        const declaring primary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
           formalParameters
-            #E1 requiredPositional final this.foo
+            #E1 requiredPositional final declaring this.foo
               firstFragment: #F7
               type: T
               field: <testLibrary>::@enum::A::@field::foo
@@ -16025,7 +16034,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        const new
+        const declaring primary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
           formalParameters
@@ -16126,7 +16135,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        const new
+        const declaring primary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
           formalParameters
@@ -16239,7 +16248,7 @@ library
           type: int
           getter: <testLibrary>::@enum::A::@getter::foo
       constructors
-        const new
+        const declaring primary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -16345,7 +16354,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        const named
+        const declaring primary named
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F4
       getters
@@ -16441,7 +16450,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        const named
+        const declaring primary named
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F4
       getters
@@ -16531,7 +16540,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        const new
+        const declaring primary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
       getters
@@ -16621,7 +16630,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        const new
+        const declaring primary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
       getters

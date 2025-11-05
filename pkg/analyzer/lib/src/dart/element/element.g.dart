@@ -91,12 +91,28 @@ mixin _ConstructorFragmentImplMixin {
     setModifier(Modifier.CONST, value);
   }
 
+  bool get isDeclaring {
+    return hasModifier(Modifier.DECLARING);
+  }
+
+  set isDeclaring(bool value) {
+    setModifier(Modifier.DECLARING, value);
+  }
+
   bool get isFactory {
     return hasModifier(Modifier.FACTORY);
   }
 
   set isFactory(bool value) {
     setModifier(Modifier.FACTORY, value);
+  }
+
+  bool get isPrimary {
+    return hasModifier(Modifier.PRIMARY);
+  }
+
+  set isPrimary(bool value) {
+    setModifier(Modifier.PRIMARY, value);
   }
 
   bool hasModifier(Modifier modifier);
@@ -165,6 +181,20 @@ mixin _ExecutableFragmentImplMixin {
 
   set isStatic(bool value) {
     setModifier(Modifier.STATIC, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _FieldFormalParameterFragmentImplMixin {
+  bool get isDeclaring {
+    return hasModifier(Modifier.DECLARING);
+  }
+
+  set isDeclaring(bool value) {
+    setModifier(Modifier.DECLARING, value);
   }
 
   bool hasModifier(Modifier modifier);

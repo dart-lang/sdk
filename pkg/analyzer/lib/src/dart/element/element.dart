@@ -702,6 +702,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
   bool get isConst => _firstFragment.isConst;
 
   @override
+  @trackedIncludedInId
+  bool get isDeclaring => _firstFragment.isDeclaring;
+
+  @override
   @trackedIndirectly
   bool get isDefaultConstructor => _firstFragment.isDefaultConstructor;
 
@@ -712,6 +716,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   @trackedIndirectly
   bool get isGenerative => !isFactory;
+
+  @override
+  @trackedIncludedInId
+  bool get isPrimary => _firstFragment.isPrimary;
 
   @override
   @trackedIncludedInId
@@ -2628,6 +2636,22 @@ class FieldElementImpl extends PropertyInducingElementImpl
   FieldElementImpl get baseElement => this;
 
   @override
+  @trackedIndirectly
+  FieldFormalParameterElementImpl? get declaringFormalParameter {
+    if (enclosingElement case InterfaceElementImpl enclosingElement) {
+      var declaringConstructor = enclosingElement.constructors.firstWhereOrNull(
+        (constructor) => constructor.isDeclaring,
+      );
+      return declaringConstructor?.formalParameters
+          .whereType<FieldFormalParameterElementImpl>()
+          .firstWhereOrNull((f) {
+            return f.isDeclaring && f.field == this;
+          });
+    }
+    return null;
+  }
+
+  @override
   @trackedIncludedInId
   InstanceElementImpl get enclosingElement {
     return _firstFragment.enclosingFragment.element;
@@ -2829,11 +2853,16 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
   }
 
   @override
+  bool get isDeclaring => _firstFragment.isDeclaring;
+
+  @override
   FieldFormalParameterFragmentImpl get _firstFragment =>
       super._firstFragment as FieldFormalParameterFragmentImpl;
 }
 
+@GenerateFragmentImpl(modifiers: _FieldFormalParameterFragmentModifiers.values)
 class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
+    with _FieldFormalParameterFragmentImplMixin
     implements FieldFormalParameterFragment {
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
@@ -7754,7 +7783,12 @@ enum Modifier {
   /// Indicates that the class is `Object` from `dart:core`.
   DART_CORE_OBJECT,
 
-  /// Indicates that the import element represents a deferred library.
+  /// Indicates that the element is either:
+  /// 1. Declaring formal parameters.
+  /// 2. Declaring constructor.
+  DECLARING,
+
+  /// Indicates that the element is a declaring formal parameter.
   DEFERRED,
 
   /// Indicates that a class element was defined by an enum declaration.
@@ -7822,6 +7856,10 @@ enum Modifier {
   /// enclosing element. This includes not only explicitly specified type
   /// annotations, but also inferred types.
   NO_ENCLOSING_TYPE_PARAMETER_REFERENCE,
+
+  /// Whether the constructor is primary.
+  PRIMARY,
+
   PROMOTABLE,
 
   /// Indicates whether the type of a [PropertyInducingFragmentImpl] should be
@@ -10053,7 +10091,12 @@ enum _ClassFragmentImplModifiers {
   isSealed,
 }
 
-enum _ConstructorFragmentImplModifiers { isConst, isFactory }
+enum _ConstructorFragmentImplModifiers {
+  isConst,
+  isDeclaring,
+  isFactory,
+  isPrimary,
+}
 
 enum _ExecutableFragmentImplModifiers {
   hasImplicitReturnType,
@@ -10072,6 +10115,8 @@ enum _ExecutableFragmentImplModifiers {
   isGenerator,
   isStatic,
 }
+
+enum _FieldFormalParameterFragmentModifiers { isDeclaring }
 
 enum _FieldFragmentImplModifiers {
   /// Whether the field was explicitly marked as being covariant.
