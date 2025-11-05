@@ -1830,6 +1830,8 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var fragment = ConstructorFragmentImpl(name: fragmentName);
     fragment.isConst =
         node.constKeyword != null || node.parent is EnumDeclarationImpl;
+    fragment.isDeclaring = true;
+    fragment.isPrimary = true;
     fragment.typeName = node.typeName.lexeme;
     _linker.elementNodes[fragment] = node;
 
@@ -1850,6 +1852,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
           nameOffset: null,
           parameterKind: formalParameter.kind,
         );
+        formalFragment.isDeclaring = true;
 
         _linker.declaringFormalParameters[formalParameter] =
             DeclaringFormalParameterInfo(
@@ -2077,11 +2080,14 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     _addChildFragment(fieldFragment);
 
-    var formalParameterFragment = FieldFormalParameterFragmentImpl(
-      name: _getFragmentName(fieldNameToken),
-      nameOffset: null,
-      parameterKind: ParameterKind.REQUIRED,
-    )..hasImplicitType = true;
+    var formalParameterFragment =
+        FieldFormalParameterFragmentImpl(
+            name: _getFragmentName(fieldNameToken),
+            nameOffset: null,
+            parameterKind: ParameterKind.REQUIRED,
+          )
+          ..isDeclaring = true
+          ..hasImplicitType = true;
 
     formalParameter.declaredFragment = formalParameterFragment;
 
@@ -2092,6 +2098,8 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
             )
             ..isAugmentation = extensionFragment.isAugmentation
             ..isConst = primaryConstructor.constKeyword != null
+            ..isDeclaring = true
+            ..isPrimary = true
             ..formalParameters = [formalParameterFragment];
       constructorFragment.typeName = extensionFragment.name;
       _linker.elementNodes[constructorFragment] = primaryConstructor;
@@ -2133,11 +2141,14 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     _addChildFragment(fieldFragment);
 
-    var formalParameterFragment = FieldFormalParameterFragmentImpl(
-      name: _getFragmentName(fieldNameToken),
-      nameOffset: null,
-      parameterKind: ParameterKind.REQUIRED,
-    )..hasImplicitType = true;
+    var formalParameterFragment =
+        FieldFormalParameterFragmentImpl(
+            name: _getFragmentName(fieldNameToken),
+            nameOffset: null,
+            parameterKind: ParameterKind.REQUIRED,
+          )
+          ..isDeclaring = true
+          ..hasImplicitType = true;
 
     {
       var constructorFragment =
@@ -2146,6 +2157,8 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
             )
             ..isAugmentation = extensionFragment.isAugmentation
             ..isConst = extensionNode.constKeyword != null
+            ..isDeclaring = true
+            ..isPrimary = true
             ..formalParameters = [formalParameterFragment];
       constructorFragment.typeName = extensionFragment.name;
 

@@ -886,12 +886,13 @@ library
           firstFragment: #F3
           type: Object?
           getter: <testLibrary>::@extensionType::A::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        isExtensionTypeMember new
+        declaring isExtensionTypeMember primary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional final hasImplicitType this.it
+            #E0 requiredPositional final hasImplicitType declaring this.it
               firstFragment: #F5
               type: Object?
               field: <testLibrary>::@extensionType::A::@field::it
