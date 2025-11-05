@@ -5,6 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -58,6 +59,7 @@ class AssistsTest extends PubPackageAnalysisServerTest {
       'c',
       TestNotificationManager(),
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
       isLegacy: true,
     );
     var message = 'From a plugin';

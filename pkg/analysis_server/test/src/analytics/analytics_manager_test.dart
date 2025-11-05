@@ -11,6 +11,7 @@ import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -570,6 +571,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     '/some/packages/path',
     TestNotificationManager(),
     InstrumentationService.NULL_SERVICE,
+    SessionLogger(),
     isLegacy: true,
   );
 }

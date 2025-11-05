@@ -11,6 +11,8 @@ import 'dart:io' show Platform;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin/server_isolate_channel.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -18,7 +20,6 @@ import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
-import 'package:analyzer_plugin/src/channel/isolate_channel.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:meta/meta.dart';
 
@@ -43,6 +44,9 @@ class PluginIsolate {
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService _instrumentationService;
 
+  /// The session logger that is to be used by the isolate.
+  final SessionLogger sessionLogger;
+
   /// The context roots that are currently using the results produced by the
   /// plugin.
   Set<analyzer.ContextRoot> contextRoots = HashSet<analyzer.ContextRoot>();
@@ -60,7 +64,8 @@ class PluginIsolate {
     this.executionPath,
     this.packagesPath,
     this._notificationManager,
-    this._instrumentationService, {
+    this._instrumentationService,
+    this.sessionLogger, {
     required this.isLegacy,
   });
 
@@ -207,6 +212,7 @@ class PluginIsolate {
       Uri.file(executionPath!, windows: Platform.isWindows),
       Uri.file(packagesPath!, windows: Platform.isWindows),
       _instrumentationService,
+      sessionLogger,
     );
   }
 

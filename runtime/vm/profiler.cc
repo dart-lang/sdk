@@ -129,19 +129,19 @@ class ProfilerStackWalker : public ValueObject {
  public:
   ProfilerStackWalker(Dart_Port port_id,
                       Sample* head_sample,
-                      SampleBuffer* sample_buffer,
+                      Isolate* isolate,
                       intptr_t skip_count = 0)
       : port_id_(port_id),
         sample_(head_sample),
-        sample_buffer_(sample_buffer),
+        isolate_(isolate),
         skip_count_(skip_count),
         frames_skipped_(0),
         frame_index_(0),
         total_frames_(0) {
     if (sample_ == nullptr) {
-      ASSERT(sample_buffer_ == nullptr);
+      ASSERT(isolate_ == nullptr);
     } else {
-      ASSERT(sample_buffer_ != nullptr);
+      ASSERT(isolate_ != nullptr);
       ASSERT(sample_->head_sample());
     }
   }
@@ -164,7 +164,7 @@ class ProfilerStackWalker : public ValueObject {
     }
     ASSERT(sample_ != nullptr);
     if (frame_index_ == Sample::kPCArraySizeInWords) {
-      Sample* new_sample = sample_buffer_->ReserveSampleAndLink(sample_);
+      Sample* new_sample = SampleBlock::ReserveSampleAndLink(sample_, isolate_);
       if (new_sample == nullptr) {
         // Could not reserve new sample- mark this as truncated.
         sample_->set_truncated_trace(true);
@@ -183,7 +183,7 @@ class ProfilerStackWalker : public ValueObject {
  protected:
   Dart_Port port_id_;
   Sample* sample_;
-  SampleBuffer* sample_buffer_;
+  Isolate* isolate_;
   intptr_t skip_count_;
   intptr_t frames_skipped_;
   intptr_t frame_index_;
@@ -245,14 +245,14 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
   ProfilerNativeStackWalker(ProfilerCounters* counters,
                             Dart_Port port_id,
                             Sample* sample,
-                            SampleBuffer* sample_buffer,
+                            Isolate* isolate,
                             uword stack_lower,
                             uword stack_upper,
                             uword pc,
                             uword fp,
                             uword sp,
                             intptr_t skip_count = 0)
-      : ProfilerStackWalker(port_id, sample, sample_buffer, skip_count),
+      : ProfilerStackWalker(port_id, sample, isolate, skip_count),
         counters_(counters),
         stack_upper_(stack_upper),
         original_pc_(pc),
@@ -845,10 +845,9 @@ Sample* SampleBlock::ReserveSample() {
   return nullptr;
 }
 
-Sample* SampleBlock::ReserveSampleAndLink(Sample* previous) {
+Sample* SampleBlock::ReserveSampleAndLink(Sample* previous, Isolate* isolate) {
   ASSERT(previous != nullptr);
   SampleBlockBuffer* buffer = Profiler::sample_block_buffer();
-  Isolate* isolate = owner_;
   ASSERT(isolate != nullptr);
   Sample* next = previous->is_allocation_sample()
                      ? buffer->ReserveAllocationSample(isolate)
@@ -1050,20 +1049,16 @@ void ClearProfileVisitor::VisitSample(Sample* sample) {
 class ProfilerDartStackWalker : public ProfilerStackWalker {
  public:
   ProfilerDartStackWalker(Thread* thread,
+                          Dart_Port port,
                           Sample* sample,
-                          SampleBuffer* sample_buffer,
+                          Isolate* isolate,
                           uword pc,
                           uword fp,
                           uword sp,
                           uword lr,
                           bool allocation_sample,
                           intptr_t skip_count = 0)
-      : ProfilerStackWalker((thread->IGNORE_RACE(isolate)() != nullptr)
-                                ? thread->IGNORE_RACE(isolate)()->main_port()
-                                : ILLEGAL_PORT,
-                            sample,
-                            sample_buffer,
-                            skip_count),
+      : ProfilerStackWalker(port, sample, isolate, skip_count),
         thread_(thread),
         pc_(reinterpret_cast<uword*>(pc)),
         fp_(reinterpret_cast<uword*>(fp)),
@@ -1368,7 +1363,7 @@ void Profiler::SampleAllocation(Thread* thread,
   }
 
   Sample* sample =
-      SetupSample(thread, /*allocation_block*/ true, os_thread->trace_id());
+      SetupSample(thread, /*allocation_sample=*/true, os_thread->trace_id());
   if (sample == nullptr) {
     // We were unable to assign a sample for this allocation.
     counters_.sample_allocation_failure++;
@@ -1377,16 +1372,16 @@ void Profiler::SampleAllocation(Thread* thread,
   sample->SetAllocationCid(cid);
   sample->set_allocation_identity_hash(identity_hash);
 
+  Dart_Port port = (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT;
   if (FLAG_profile_vm_allocation) {
-    ProfilerNativeStackWalker native_stack_walker(
-        &counters_, (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT,
-        sample, isolate->current_allocation_sample_block(), stack_lower,
-        stack_upper, pc, fp, sp);
+    ProfilerNativeStackWalker native_stack_walker(&counters_, port, sample,
+                                                  isolate, stack_lower,
+                                                  stack_upper, pc, fp, sp);
     native_stack_walker.walk();
   } else if (exited_dart_code) {
-    ProfilerDartStackWalker dart_exit_stack_walker(
-        thread, sample, isolate->current_allocation_sample_block(), pc, fp, sp,
-        lr, /* allocation_sample*/ true);
+    ProfilerDartStackWalker dart_exit_stack_walker(thread, port, sample,
+                                                   isolate, pc, fp, sp, lr,
+                                                   /*allocation_sample=*/true);
     dart_exit_stack_walker.walk();
   } else {
     // Fall back.
@@ -1504,7 +1499,7 @@ void Profiler::SampleThread(Thread* thread,
 
   // Setup sample.
   Sample* sample =
-      SetupSample(thread, /*allocation_block*/ false, os_thread->trace_id());
+      SetupSample(thread, /*allocation_sample=*/false, os_thread->trace_id());
   if (sample == nullptr) {
     // We were unable to assign a sample for this profiler tick.
     counters_.sample_allocation_failure++;
@@ -1543,14 +1538,13 @@ void Profiler::SampleThread(Thread* thread,
   }
 #endif
 
+  Dart_Port port = (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT;
   ProfilerNativeStackWalker native_stack_walker(
-      &counters_, (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT,
-      sample, isolate->current_sample_block(), stack_lower, stack_upper, pc, fp,
-      sp);
+      &counters_, port, sample, isolate, stack_lower, stack_upper, pc, fp, sp);
   const bool exited_dart_code = thread->IGNORE_RACE2(HasExitedDartCode)();
-  ProfilerDartStackWalker dart_stack_walker(
-      thread, sample, isolate->current_sample_block(), pc, fp, sp, lr,
-      /* allocation_sample*/ false);
+  ProfilerDartStackWalker dart_stack_walker(thread, port, sample, isolate, pc,
+                                            fp, sp, lr,
+                                            /*allocation_sample=*/false);
 
   // All memory access is done inside CollectSample.
   CollectSample(isolate, exited_dart_code, in_dart_code, sample,
@@ -1768,7 +1762,7 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
   }
 
   if (!sample->exit_frame_sample()) {
-    processed_sample->FixupCaller(clt, /* pc_marker */ 0,
+    processed_sample->FixupCaller(clt, /*pc_marker=*/0,
                                   sample->GetStackBuffer());
   }
 

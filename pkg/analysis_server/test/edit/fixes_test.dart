@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
@@ -101,6 +102,7 @@ void f() {
       'c',
       TestNotificationManager(),
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
       isLegacy: true,
     );
     var fixes = plugin.AnalysisErrorFixes(

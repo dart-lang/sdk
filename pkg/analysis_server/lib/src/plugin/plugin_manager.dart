@@ -13,6 +13,7 @@ import 'dart:io' show Platform, Process, ProcessResult;
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/sdk.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
@@ -87,6 +88,9 @@ class PluginManager {
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService instrumentationService;
 
+  /// The session logger that is being used by the analysis server.
+  final SessionLogger sessionLogger;
+
   /// A table mapping the paths of plugins to information about those plugins.
   final Map<String, PluginIsolate> _pluginMap = <String, PluginIsolate>{};
 
@@ -125,6 +129,7 @@ class PluginManager {
     this._sdkPath,
     this._notificationManager,
     this.instrumentationService,
+    this.sessionLogger,
   );
 
   /// All of the legacy plugins that are currently known.
@@ -167,6 +172,7 @@ class PluginManager {
           null,
           _notificationManager,
           instrumentationService,
+          sessionLogger,
           isLegacy: isLegacyPlugin,
         );
         pluginIsolate.reportException(CaughtException(exception, stackTrace));
@@ -179,6 +185,7 @@ class PluginManager {
         pluginFiles.packageConfig.path,
         _notificationManager,
         instrumentationService,
+        sessionLogger,
         isLegacy: isLegacyPlugin,
       );
       _pluginMap[path] = pluginIsolate;

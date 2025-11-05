@@ -88,6 +88,7 @@ class TypeSection extends Section {
     final List<List<ir.DefType>> recursionGroups = [];
 
     final count = d.readUnsigned();
+    int typeIndex = 0;
     for (int i = 0; i < count; i++) {
       late int recursionGroupMemberCount;
       if (d.peekByte() == 0x4E) {
@@ -111,6 +112,7 @@ class TypeSection extends Section {
       final startOffset = d.offset;
       for (int j = 0; j < recursionGroupMemberCount; j++) {
         final type = ir.DefType.deserializeAllocate(d, definedTypes);
+        type.index = typeIndex++;
         typesInGroup.add(type);
         definedTypes.add(type);
       }
@@ -200,8 +202,11 @@ class ImportSection extends Section {
           case 0x04: // Tag
             final exceptionByte = d.readByte();
             if (exceptionByte != 0x00) throw 'unexpected';
-            d.readUnsigned(); // typeIndex
-            throw 'runtimeType';
+            final type = types[d.readUnsigned()] as ir.FunctionType;
+            final tag = ir.ImportedTag(
+                module, moduleName, name, ir.FinalizableIndex(), type);
+            tag.finalizableIndex.value = importedTags.length;
+            importedTags.add(tag);
           default:
             throw "Invalid import kind: $kind";
         }

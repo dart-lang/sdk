@@ -5,6 +5,7 @@
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/packages.dart';
@@ -48,6 +49,7 @@ class PluginIsolateTest with ResourceProviderMixin, _ContextRoot {
       packagesPath,
       notificationManager,
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
       isLegacy: true,
     );
   }
@@ -134,6 +136,7 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
           packagesPath,
           notificationManager,
           InstrumentationService.NULL_SERVICE,
+          SessionLogger(),
           isLegacy: true,
         );
         var session = PluginSession(pluginIsolate);
@@ -167,6 +170,7 @@ class PluginSessionTest with ResourceProviderMixin {
       packagesPath,
       notificationManager,
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
       isLegacy: true,
     );
     session = PluginSession(pluginIsolate);
