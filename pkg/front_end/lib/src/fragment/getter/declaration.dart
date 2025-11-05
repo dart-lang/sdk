@@ -50,7 +50,6 @@ abstract class GetterDeclaration {
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   });
 
   void buildGetterOutlineNode({
@@ -166,16 +165,15 @@ class RegularGetterDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {
     _encoding.buildOutlineExpressions(
       classHierarchy: classHierarchy,
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
+      propertyBuilder: propertyBuilder,
       bodyBuilderContext: createBodyBuilderContext(propertyBuilder),
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
-      isClassInstanceMember: isClassInstanceMember,
     );
   }
 

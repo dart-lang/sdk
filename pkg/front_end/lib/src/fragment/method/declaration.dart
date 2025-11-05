@@ -53,7 +53,6 @@ abstract class MethodDeclaration {
     required SourceMethodBuilder methodBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   });
 
   void buildOutlineNode(
@@ -149,16 +148,15 @@ class MethodDeclarationImpl
     required SourceMethodBuilder methodBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {
     _encoding.buildOutlineExpressions(
       classHierarchy: classHierarchy,
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
+      methodBuilder: methodBuilder,
       bodyBuilderContext: createBodyBuilderContext(methodBuilder),
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
-      isClassInstanceMember: isClassInstanceMember,
     );
   }
 

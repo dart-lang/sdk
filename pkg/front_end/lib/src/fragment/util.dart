@@ -84,48 +84,28 @@ void buildTypeParametersForOutlineExpressions(
   }
 }
 
-void buildFormalsForOutlineExpressions(
-  SourceLibraryBuilder libraryBuilder,
-  DeclarationBuilder? declarationBuilder,
-  List<FormalParameterBuilder>? formals, {
-  required ExtensionScope extensionScope,
-  required LookupScope scope,
-  required bool isClassInstanceMember,
-}) {
-  if (formals != null) {
-    for (int i = 0; i < formals.length; i++) {
-      FormalParameterBuilder formal = formals[i];
-      buildFormalForOutlineExpressions(
-        libraryBuilder,
-        declarationBuilder,
-        formal,
-        extensionScope: extensionScope,
-        scope: scope,
-        isClassInstanceMember: isClassInstanceMember,
-      );
+extension FormalsExtension on List<FormalParameterBuilder>? {
+  void buildOutlineExpressions({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required SourceMemberBuilder memberBuilder,
+    required ExtensionScope extensionScope,
+    required LookupScope scope,
+  }) {
+    List<FormalParameterBuilder>? formals = this;
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        FormalParameterBuilder formal = formals[i];
+        formal.buildOutlineExpressions(
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          memberBuilder: memberBuilder,
+          extensionScope: extensionScope,
+          scope: scope,
+        );
+      }
     }
   }
-}
-
-void buildFormalForOutlineExpressions(
-  SourceLibraryBuilder libraryBuilder,
-  DeclarationBuilder? declarationBuilder,
-  FormalParameterBuilder formal, {
-  required ExtensionScope extensionScope,
-  required LookupScope scope,
-  required bool isClassInstanceMember,
-}) {
-  // For const constructors we need to include default parameter values
-  // into the outline. For all other formals we need to call
-  // buildOutlineExpressions to clear initializerToken to prevent
-  // consuming too much memory.
-  formal.buildOutlineExpressions(
-    libraryBuilder,
-    declarationBuilder,
-    extensionScope: extensionScope,
-    scope: scope,
-    buildDefaultValue: isClassInstanceMember,
-  );
 }
 
 sealed class PropertyEncodingStrategy {

@@ -212,7 +212,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
         propertyBuilder: this,
         annotatable: readTarget as Annotatable,
         annotatableFileUri: readTarget!.fileUri,
-        isClassInstanceMember: isClassInstanceMember,
       );
       List<GetterDeclaration>? getterAugmentations = _getterAugmentations;
       if (getterAugmentations != null) {
@@ -224,7 +223,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
             propertyBuilder: this,
             annotatable: readTarget as Annotatable,
             annotatableFileUri: readTarget!.fileUri,
-            isClassInstanceMember: isClassInstanceMember,
           );
         }
       }
@@ -235,7 +233,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
         propertyBuilder: this,
         annotatable: writeTarget as Annotatable,
         annotatableFileUri: writeTarget!.fileUri,
-        isClassInstanceMember: isClassInstanceMember,
       );
       List<SetterDeclaration>? setterAugmentations = _setterAugmentations;
       if (setterAugmentations != null) {
@@ -247,7 +244,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
             propertyBuilder: this,
             annotatable: writeTarget as Annotatable,
             annotatableFileUri: writeTarget!.fileUri,
-            isClassInstanceMember: isClassInstanceMember,
           );
         }
       }

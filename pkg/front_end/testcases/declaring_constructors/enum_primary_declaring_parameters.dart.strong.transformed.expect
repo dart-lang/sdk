@@ -2,6 +2,14 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/declaring_constructors/enum_primary_declaring_parameters.dart:31:15: Error: Can't find '}' to match '{'.
+// enum const E7({int? a, required int b, int c = 42]) {
+//               ^
+//
+// pkg/front_end/testcases/declaring_constructors/enum_primary_declaring_parameters.dart:31:50: Error: Expected '}' before this.
+// enum const E7({int? a, required int b, int c = 42]) {
+//                                                  ^
+//
 // pkg/front_end/testcases/declaring_constructors/enum_primary_declaring_parameters.dart:7:14: Error: Constructor is marked 'const' so all fields must be final.
 // enum const E2(var int i) { x(0) } // Error
 //              ^
@@ -15,7 +23,7 @@ import "dart:core" as core;
 class E1 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E1 x = #C3;
   static const field core::List<self::E1> values = #C4;
-  const constructor •(core::int #index, core::String #name, core::int i) → self::E1
+  const constructor •(core::int #index, core::String #name, core::int a) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -44,11 +52,13 @@ class E3 extends core::_Enum /*isEnum*/  {
 class E4 extends core::_Enum /*isEnum*/  {
   final field core::int? a;
   final field core::int b;
-  enum-element static const field self::E4 x = #C11;
-  enum-element static const field self::E4 y = #C13;
-  static const field core::List<self::E4> values = #C14;
-  const constructor •(core::int #index, core::String #name, {final core::int? a = #C9, required final core::int b}) → self::E4
-    : self::E4::a = a, self::E4::b = b, super core::_Enum::•(#index, #name)
+  final field core::int c;
+  enum-element static const field self::E4 x = #C12;
+  enum-element static const field self::E4 y = #C14;
+  enum-element static const field self::E4 z = #C17;
+  static const field core::List<self::E4> values = #C18;
+  const constructor •(core::int #index, core::String #name, {final core::int? a = #C9, required final core::int b, final core::int c = #C11}) → self::E4
+    : self::E4::a = a, self::E4::b = b, self::E4::c = c, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
@@ -56,14 +66,38 @@ class E4 extends core::_Enum /*isEnum*/  {
 class E5 extends core::_Enum /*isEnum*/  {
   final field core::int a;
   final field core::int? b;
-  enum-element static const field self::E5 x = #C15;
-  enum-element static const field self::E5 y = #C16;
-  static const field core::List<self::E5> values = #C17;
-  const constructor •(core::int #index, core::String #name, final core::int a, [final core::int? b = #C9]) → self::E5
-    : self::E5::a = a, self::E5::b = b, super core::_Enum::•(#index, #name)
+  final field core::int c;
+  enum-element static const field self::E5 x = #C19;
+  enum-element static const field self::E5 y = #C20;
+  enum-element static const field self::E5 z = #C21;
+  static const field core::List<self::E5> values = #C22;
+  const constructor •(core::int #index, core::String #name, final core::int a, [final core::int? b = #C9, final core::int c = #C11]) → self::E5
+    : self::E5::a = a, self::E5::b = b, self::E5::c = c, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E5.${this.{core::_Enum::_name}{core::String}}";
+}
+class E6 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E6 x = #C23;
+  enum-element static const field self::E6 y = #C24;
+  enum-element static const field self::E6 z = #C25;
+  static const field core::List<self::E6> values = #C26;
+  const constructor •(core::int #index, core::String #name, core::int a, [core::int? b = #C9, core::int c = #C11]) → self::E6
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+}
+class E7 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E7 x = #C27;
+  enum-element static const field self::E7 y = #C28;
+  enum-element static const field self::E7 z = #C29;
+  static const field core::List<self::E7> values = #C30;
+  const constructor •(core::int #index, core::String #name, {core::int? a = #C9, required core::int b, core::int c = #C11}) → self::E7
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E7.${this.{core::_Enum::_name}{core::String}}";
 }
 
 constants  {
@@ -77,13 +111,26 @@ constants  {
   #C8 = <self::E3>[#C7]
   #C9 = null
   #C10 = 1
-  #C11 = self::E4 {a:#C9, b:#C10, index:#C1, _name:#C2}
-  #C12 = "y"
-  #C13 = self::E4 {a:#C1, b:#C10, index:#C10, _name:#C12}
-  #C14 = <self::E4>[#C11, #C13]
-  #C15 = self::E5 {a:#C1, b:#C9, index:#C1, _name:#C2}
-  #C16 = self::E5 {a:#C1, b:#C10, index:#C10, _name:#C12}
-  #C17 = <self::E5>[#C15, #C16]
+  #C11 = 42
+  #C12 = self::E4 {a:#C9, b:#C10, c:#C11, index:#C1, _name:#C2}
+  #C13 = "y"
+  #C14 = self::E4 {a:#C1, b:#C10, c:#C11, index:#C10, _name:#C13}
+  #C15 = 2
+  #C16 = "z"
+  #C17 = self::E4 {a:#C9, b:#C10, c:#C15, index:#C15, _name:#C16}
+  #C18 = <self::E4>[#C12, #C14, #C17]
+  #C19 = self::E5 {a:#C1, b:#C9, c:#C11, index:#C1, _name:#C2}
+  #C20 = self::E5 {a:#C1, b:#C10, c:#C11, index:#C10, _name:#C13}
+  #C21 = self::E5 {a:#C1, b:#C10, c:#C15, index:#C15, _name:#C16}
+  #C22 = <self::E5>[#C19, #C20, #C21]
+  #C23 = self::E6 {index:#C1, _name:#C2}
+  #C24 = self::E6 {index:#C10, _name:#C13}
+  #C25 = self::E6 {index:#C15, _name:#C16}
+  #C26 = <self::E6>[#C23, #C24, #C25]
+  #C27 = self::E7 {index:#C1, _name:#C2}
+  #C28 = self::E7 {index:#C10, _name:#C13}
+  #C29 = self::E7 {index:#C15, _name:#C16}
+  #C30 = <self::E7>[#C27, #C28, #C29]
 }
 
 
@@ -95,4 +142,6 @@ org-dartlang-testcase:///enum_primary_declaring_parameters.dart:
 - E2. (from org-dartlang-testcase:///enum_primary_declaring_parameters.dart:7:14)
 - E3. (from org-dartlang-testcase:///enum_primary_declaring_parameters.dart:9:14)
 - E4. (from org-dartlang-testcase:///enum_primary_declaring_parameters.dart:11:14)
-- E5. (from org-dartlang-testcase:///enum_primary_declaring_parameters.dart:16:14)
+- E5. (from org-dartlang-testcase:///enum_primary_declaring_parameters.dart:17:14)
+- E6. (from org-dartlang-testcase:///enum_primary_declaring_parameters.dart:24:14)
+- E7. (from org-dartlang-testcase:///enum_primary_declaring_parameters.dart:31:14)

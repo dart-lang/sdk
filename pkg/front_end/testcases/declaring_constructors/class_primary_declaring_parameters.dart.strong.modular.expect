@@ -13,22 +13,24 @@ import self as self;
 import "dart:core" as core;
 
 class C1 extends core::Object {
-  constructor •(core::int a, [core::int? b = #C1]) → self::C1
+  constructor •(core::int a, [core::int? b = #C1, core::int c = #C2]) → self::C1
     : super core::Object::•()
     ;
 }
 class C2 extends core::Object {
   field core::int a;
   field core::int? b;
-  constructor •(core::int a, [core::int? b = #C1]) → self::C2
-    : self::C2::a = a, self::C2::b = b, super core::Object::•()
+  field core::int c;
+  constructor •(core::int a, [core::int? b = #C1, core::int c = #C2]) → self::C2
+    : self::C2::a = a, self::C2::b = b, self::C2::c = c, super core::Object::•()
     ;
 }
 class C3 extends core::Object {
   final field core::int a;
   final field core::int? b;
-  constructor •(final core::int a, [final core::int? b = #C1]) → self::C3
-    : self::C3::a = a, self::C3::b = b, super core::Object::•()
+  final field core::int c;
+  constructor •(final core::int a, [final core::int? b = #C1, final core::int c = #C2]) → self::C3
+    : self::C3::a = a, self::C3::b = b, self::C3::c = c, super core::Object::•()
     ;
 }
 class C4 extends core::Object /*hasConstConstructor*/  {
@@ -49,49 +51,94 @@ class C6 extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class C7 extends core::Object {
-  constructor •({core::int? a = #C1, required core::int b}) → self::C7
+  constructor •({core::int? a = #C1, required core::int b, core::int c = #C2}) → self::C7
     : super core::Object::•()
     ;
 }
 class C8 extends core::Object {
   field core::int? a;
   field core::int b;
-  constructor •({core::int? a = #C1, required core::int b}) → self::C8
-    : self::C8::a = a, self::C8::b = b, super core::Object::•()
+  field core::int c;
+  constructor •({core::int? a = #C1, required core::int b, core::int c = #C2}) → self::C8
+    : self::C8::a = a, self::C8::b = b, self::C8::c = c, super core::Object::•()
     ;
 }
 class C9 extends core::Object {
   final field core::int? a;
   final field core::int b;
-  constructor •({final core::int? a = #C1, required final core::int b}) → self::C9
-    : self::C9::a = a, self::C9::b = b, super core::Object::•()
+  final field core::int c;
+  constructor •({final core::int? a = #C1, required final core::int b, final core::int c = #C2}) → self::C9
+    : self::C9::a = a, self::C9::b = b, self::C9::c = c, super core::Object::•()
+    ;
+}
+class C10 extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int? b;
+  final field core::int c;
+  const constructor •(final core::int a, [final core::int? b = #C1, final core::int c = #C2]) → self::C10
+    : self::C10::a = a, self::C10::b = b, self::C10::c = c, super core::Object::•()
+    ;
+}
+class C11 extends core::Object /*hasConstConstructor*/  {
+  final field core::int? a;
+  final field core::int b;
+  final field core::int c;
+  const constructor •({final core::int? a = #C1, required final core::int b, final core::int c = #C2}) → self::C11
+    : self::C11::a = a, self::C11::b = b, self::C11::c = c, super core::Object::•()
     ;
 }
 static method main() → dynamic {
   new self::C1::•(0);
   new self::C1::•(0, 1);
+  new self::C1::•(0, 1, 2);
   new self::C2::•(0);
   new self::C2::•(0, 1);
+  new self::C2::•(0, 1, 2);
   new self::C3::•(0);
   new self::C3::•(0, 1);
+  new self::C3::•(0, 1, 2);
   new self::C4::•(0);
-  #C2;
+  #C3;
   new self::C5::•(0);
   new self::C6::•(0);
-  #C4;
+  #C5;
   new self::C7::•(b: 1);
   new self::C7::•(a: 0, b: 1);
+  new self::C7::•(a: 0, b: 1, c: 2);
   new self::C8::•(b: 1);
   new self::C8::•(a: 0, b: 1);
+  new self::C8::•(a: 0, b: 1, c: 2);
   new self::C9::•(b: 1);
   new self::C9::•(a: 0, b: 1);
+  new self::C9::•(a: 0, b: 1, c: 2);
+  new self::C10::•(0);
+  new self::C10::•(0, 1);
+  new self::C10::•(0, 1, 2);
+  #C6;
+  #C8;
+  #C10;
+  new self::C11::•(b: 1);
+  new self::C11::•(a: 0, b: 1);
+  new self::C11::•(a: 0, b: 1, c: 2);
+  #C11;
+  #C12;
+  #C13;
 }
 
 constants  {
   #C1 = null
-  #C2 = self::C4 {}
-  #C3 = 0
-  #C4 = self::C6 {b:#C3}
+  #C2 = 42
+  #C3 = self::C4 {}
+  #C4 = 0
+  #C5 = self::C6 {b:#C4}
+  #C6 = self::C10 {a:#C4, b:#C1, c:#C2}
+  #C7 = 1
+  #C8 = self::C10 {a:#C4, b:#C7, c:#C2}
+  #C9 = 2
+  #C10 = self::C10 {a:#C4, b:#C7, c:#C9}
+  #C11 = self::C11 {a:#C1, b:#C7, c:#C2}
+  #C12 = self::C11 {a:#C4, b:#C7, c:#C2}
+  #C13 = self::C11 {a:#C4, b:#C7, c:#C9}
 }
 
 
@@ -100,3 +147,5 @@ org-dartlang-testcase:///class_primary_declaring_parameters.dart:
 - C4. (from org-dartlang-testcase:///class_primary_declaring_parameters.dart:11:15)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - C6. (from org-dartlang-testcase:///class_primary_declaring_parameters.dart:15:15)
+- C10. (from org-dartlang-testcase:///class_primary_declaring_parameters.dart:23:16)
+- C11. (from org-dartlang-testcase:///class_primary_declaring_parameters.dart:25:16)

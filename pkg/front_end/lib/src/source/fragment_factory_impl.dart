@@ -2205,9 +2205,10 @@ class FragmentFactoryImpl implements FragmentFactory {
       formalName,
       charOffset,
       fileUri: _compilationUnit.fileUri,
+      initializerToken: initializerToken,
       hasImmediatelyDeclaredInitializer: initializerToken != null,
       isWildcard: isWildcard,
-    )..initializerToken = initializerToken;
+    );
     return formal;
   }
 

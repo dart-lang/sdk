@@ -1,8 +1,8 @@
-class C1(int a, [int? b]) {}
+class C1(int a, [int? b, int c = 42]) {}
 
-class C2(var int a, [var int? b]) {}
+class C2(var int a, [var int? b, var int c = 42]) {}
 
-class C3(final int a, [final int? b]) {}
+class C3(final int a, [final int? b, final int c = 42]) {}
 
 class const C4(int a) {}
 
@@ -10,10 +10,14 @@ class const C5(var int a) {}
 
 class const C6(final int b) {}
 
-class C7({int? a, required int b}) {}
+class C7({int? a, required int b, int c = 42}) {}
 
-class C8({var int? a, required var int b}) {}
+class C8({var int? a, required var int b, var int c = 42}) {}
 
-class C9({final int? a, required final int b}) {}
+class C9({final int? a, required final int b, final int c = 42}) {}
+
+class const C10(final int a, [final int? b, final int c = 42]) {}
+
+class const C11({final int? a, required final int b, final int c = 42}) {}
 
 main() {}
