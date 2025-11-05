@@ -67,19 +67,22 @@ void buildMetadataForOutlineExpressions({
   );
 }
 
-void buildTypeParametersForOutlineExpressions(
-  ClassHierarchy classHierarchy,
-  SourceLibraryBuilder libraryBuilder,
-  BodyBuilderContext bodyBuilderContext,
-  List<SourceNominalParameterBuilder>? typeParameters,
-) {
-  if (typeParameters != null) {
-    for (int i = 0; i < typeParameters.length; i++) {
-      typeParameters[i].buildOutlineExpressions(
-        libraryBuilder,
-        bodyBuilderContext,
-        classHierarchy,
-      );
+extension TypeParametersExtension on List<SourceNominalParameterBuilder>? {
+  void buildOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+  }) {
+    List<SourceNominalParameterBuilder>? typeParameters = this;
+
+    if (typeParameters != null) {
+      for (int i = 0; i < typeParameters.length; i++) {
+        typeParameters[i].buildOutlineExpressions(
+          libraryBuilder,
+          bodyBuilderContext,
+          classHierarchy,
+        );
+      }
     }
   }
 }

@@ -181,11 +181,10 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       metadata: _fragment.metadata,
       annotationsFileUri: _fragment.fileUri,
     );
-    buildTypeParametersForOutlineExpressions(
-      classHierarchy,
-      libraryBuilder,
-      bodyBuilderContext,
-      _fragment.declaredTypeParameters?.builders,
+    _fragment.declaredTypeParameters?.builders.buildOutlineExpressions(
+      classHierarchy: classHierarchy,
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
     );
     _fragment.declaredFormals.buildOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -500,11 +499,10 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       annotationsFileUri: _fragment.fileUri,
     );
 
-    buildTypeParametersForOutlineExpressions(
-      classHierarchy,
-      libraryBuilder,
-      bodyBuilderContext,
-      _fragment.declaredTypeParameters?.builders,
+    _fragment.declaredTypeParameters?.builders.buildOutlineExpressions(
+      classHierarchy: classHierarchy,
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
     );
     _fragment.declaredFormals.buildOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -514,11 +512,10 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       scope: _fragment.typeParameterScope,
     );
 
-    buildTypeParametersForOutlineExpressions(
-      classHierarchy,
-      libraryBuilder,
-      bodyBuilderContext,
-      _clonedDeclarationTypeParameters,
+    _clonedDeclarationTypeParameters.buildOutlineExpressions(
+      classHierarchy: classHierarchy,
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
     );
     _thisFormal.buildOutlineExpressions(
       libraryBuilder: libraryBuilder,

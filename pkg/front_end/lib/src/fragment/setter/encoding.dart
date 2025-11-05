@@ -250,15 +250,16 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       annotationsFileUri: _fragment.fileUri,
     );
 
-    buildTypeParametersForOutlineExpressions(
-      classHierarchy,
-      libraryBuilder,
-      bodyBuilderContext,
-      _fragment
-          .declaredTypeParameters
-          // Coverage-ignore(suite): Not run.
-          ?.builders,
-    );
+    _fragment
+        .declaredTypeParameters
+        // Coverage-ignore(suite): Not run.
+        ?.builders
+        // Coverage-ignore(suite): Not run.
+        .buildOutlineExpressions(
+          classHierarchy: classHierarchy,
+          libraryBuilder: libraryBuilder,
+          bodyBuilderContext: bodyBuilderContext,
+        );
     _fragment.declaredFormals.buildOutlineExpressions(
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
@@ -539,15 +540,16 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       annotationsFileUri: _fragment.fileUri,
     );
 
-    buildTypeParametersForOutlineExpressions(
-      classHierarchy,
-      libraryBuilder,
-      bodyBuilderContext,
-      _fragment
-          .declaredTypeParameters
-          // Coverage-ignore(suite): Not run.
-          ?.builders,
-    );
+    _fragment
+        .declaredTypeParameters
+        // Coverage-ignore(suite): Not run.
+        ?.builders
+        // Coverage-ignore(suite): Not run.
+        .buildOutlineExpressions(
+          classHierarchy: classHierarchy,
+          libraryBuilder: libraryBuilder,
+          bodyBuilderContext: bodyBuilderContext,
+        );
     _fragment.declaredFormals.buildOutlineExpressions(
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
@@ -556,11 +558,10 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       scope: _fragment.typeParameterScope,
     );
 
-    buildTypeParametersForOutlineExpressions(
-      classHierarchy,
-      libraryBuilder,
-      bodyBuilderContext,
-      _clonedDeclarationTypeParameters,
+    _clonedDeclarationTypeParameters.buildOutlineExpressions(
+      classHierarchy: classHierarchy,
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
     );
     _thisFormal.buildOutlineExpressions(
       libraryBuilder: libraryBuilder,
