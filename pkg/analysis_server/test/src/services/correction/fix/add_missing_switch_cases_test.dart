@@ -358,6 +358,60 @@ int f(num x) {
 ''');
   }
 
+  Future<void> test_privateEnum() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum _E { first, second }
+
+_E f() => _E.first;
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g() {
+  return switch (f()) {
+  };
+}
+''');
+    await assertHasFix('''
+import 'enum.dart';
+
+int g() {
+  return switch (f()) {
+    // TODO: Handle this case.
+    _ => throw UnimplementedError(),
+  };
+}
+''');
+  }
+
+  Future<void> test_privateEnumConstant() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum E { first, second, _unknown }
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g(E e) {
+  return switch (e) {
+  };
+}
+''');
+    await assertHasFix('''
+import 'enum.dart';
+
+int g(E e) {
+  return switch (e) {
+    // TODO: Handle this case.
+    E.first => throw UnimplementedError(),
+    // TODO: Handle this case.
+    E.second => throw UnimplementedError(),
+    // TODO: Handle this case.
+    _ => throw UnimplementedError(),
+  };
+}
+''');
+  }
+
   Future<void> test_sealed_impl() async {
     var otherRoot = getFolder('$packagesRootPath/other');
     newFile('$otherRoot/lib/src/private.dart', '''
@@ -877,6 +931,64 @@ void f(num x) {
       // TODO: Handle this case.
       throw UnimplementedError();
     case int():
+      // TODO: Handle this case.
+      throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_privateEnum() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum _E { first, second }
+
+_E f() => _E.first;
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g() {
+  switch (f()) {
+  }
+}
+''');
+    await assertHasFix('''
+import 'enum.dart';
+
+int g() {
+  switch (f()) {
+    default:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_privateEnumConstant() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum E { first, second, _unknown }
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFix('''
+import 'enum.dart';
+
+int g(E e) {
+  switch (e) {
+    case E.first:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+    case E.second:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+    default:
       // TODO: Handle this case.
       throw UnimplementedError();
   }
