@@ -454,49 +454,49 @@ library
             #F32 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:212)
               element: <testLibrary>::@setter::vMinusDoubleDouble::@formalParameter::value
   topLevelVariables
-    hasInitializer vPlusIntInt
+    hasImplicitType hasInitializer vPlusIntInt
       reference: <testLibrary>::@topLevelVariable::vPlusIntInt
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::vPlusIntInt
       setter: <testLibrary>::@setter::vPlusIntInt
-    hasInitializer vPlusIntDouble
+    hasImplicitType hasInitializer vPlusIntDouble
       reference: <testLibrary>::@topLevelVariable::vPlusIntDouble
       firstFragment: #F2
       type: double
       getter: <testLibrary>::@getter::vPlusIntDouble
       setter: <testLibrary>::@setter::vPlusIntDouble
-    hasInitializer vPlusDoubleInt
+    hasImplicitType hasInitializer vPlusDoubleInt
       reference: <testLibrary>::@topLevelVariable::vPlusDoubleInt
       firstFragment: #F3
       type: double
       getter: <testLibrary>::@getter::vPlusDoubleInt
       setter: <testLibrary>::@setter::vPlusDoubleInt
-    hasInitializer vPlusDoubleDouble
+    hasImplicitType hasInitializer vPlusDoubleDouble
       reference: <testLibrary>::@topLevelVariable::vPlusDoubleDouble
       firstFragment: #F4
       type: double
       getter: <testLibrary>::@getter::vPlusDoubleDouble
       setter: <testLibrary>::@setter::vPlusDoubleDouble
-    hasInitializer vMinusIntInt
+    hasImplicitType hasInitializer vMinusIntInt
       reference: <testLibrary>::@topLevelVariable::vMinusIntInt
       firstFragment: #F5
       type: int
       getter: <testLibrary>::@getter::vMinusIntInt
       setter: <testLibrary>::@setter::vMinusIntInt
-    hasInitializer vMinusIntDouble
+    hasImplicitType hasInitializer vMinusIntDouble
       reference: <testLibrary>::@topLevelVariable::vMinusIntDouble
       firstFragment: #F6
       type: double
       getter: <testLibrary>::@getter::vMinusIntDouble
       setter: <testLibrary>::@setter::vMinusIntDouble
-    hasInitializer vMinusDoubleInt
+    hasImplicitType hasInitializer vMinusDoubleInt
       reference: <testLibrary>::@topLevelVariable::vMinusDoubleInt
       firstFragment: #F7
       type: double
       getter: <testLibrary>::@getter::vMinusDoubleInt
       setter: <testLibrary>::@setter::vMinusDoubleInt
-    hasInitializer vMinusDoubleDouble
+    hasImplicitType hasInitializer vMinusDoubleDouble
       reference: <testLibrary>::@topLevelVariable::vMinusDoubleDouble
       firstFragment: #F8
       type: double
@@ -642,7 +642,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::V::@formalParameter::value
   topLevelVariables
-    hasInitializer V
+    hasImplicitType hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: #F1
       type: num
@@ -710,19 +710,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@setter::t2::@formalParameter::value
   topLevelVariables
-    hasInitializer a
+    hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    hasInitializer t1
+    hasImplicitType hasInitializer t1
       reference: <testLibrary>::@topLevelVariable::t1
       firstFragment: #F2
       type: int
       getter: <testLibrary>::@getter::t1
       setter: <testLibrary>::@setter::t1
-    hasInitializer t2
+    hasImplicitType hasInitializer t2
       reference: <testLibrary>::@topLevelVariable::t2
       firstFragment: #F3
       type: int
@@ -818,19 +818,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@setter::t2::@formalParameter::value
   topLevelVariables
-    hasInitializer a
+    hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: List<int>
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    hasInitializer t1
+    hasImplicitType hasInitializer t1
       reference: <testLibrary>::@topLevelVariable::t1
       firstFragment: #F2
       type: int
       getter: <testLibrary>::@getter::t1
       setter: <testLibrary>::@setter::t1
-    hasInitializer t2
+    hasImplicitType hasInitializer t2
       reference: <testLibrary>::@topLevelVariable::t2
       firstFragment: #F3
       type: int
@@ -979,19 +979,19 @@ library
           returnType: void
           variable: <testLibrary>::@class::A::@field::f
   topLevelVariables
-    hasInitializer a
+    hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: A
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    hasInitializer t1
+    hasImplicitType hasInitializer t1
       reference: <testLibrary>::@topLevelVariable::t1
       firstFragment: #F8
       type: int
       getter: <testLibrary>::@getter::t1
       setter: <testLibrary>::@setter::t1
-    hasInitializer t2
+    hasImplicitType hasInitializer t2
       reference: <testLibrary>::@topLevelVariable::t2
       firstFragment: #F9
       type: int
@@ -1162,13 +1162,13 @@ library
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    hasInitializer t1
+    hasImplicitType hasInitializer t1
       reference: <testLibrary>::@topLevelVariable::t1
       firstFragment: #F10
       type: int
       getter: <testLibrary>::@getter::t1
       setter: <testLibrary>::@setter::t1
-    hasInitializer t2
+    hasImplicitType hasInitializer t2
       reference: <testLibrary>::@topLevelVariable::t2
       firstFragment: #F11
       type: int
@@ -1327,13 +1327,13 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F8
   topLevelVariables
-    hasInitializer t1
+    hasImplicitType hasInitializer t1
       reference: <testLibrary>::@topLevelVariable::t1
       firstFragment: #F9
       type: int
       getter: <testLibrary>::@getter::t1
       setter: <testLibrary>::@setter::t1
-    hasInitializer t2
+    hasImplicitType hasInitializer t2
       reference: <testLibrary>::@topLevelVariable::t2
       firstFragment: #F10
       type: int
@@ -1420,13 +1420,13 @@ library
         #F10 fFuture (nameOffset:53) (firstTokenOffset:41) (offset:53)
           element: <testLibrary>::@function::fFuture
   topLevelVariables
-    hasInitializer uValue
+    hasImplicitType hasInitializer uValue
       reference: <testLibrary>::@topLevelVariable::uValue
       firstFragment: #F1
       type: Future<int> Function()
       getter: <testLibrary>::@getter::uValue
       setter: <testLibrary>::@setter::uValue
-    hasInitializer uFuture
+    hasImplicitType hasInitializer uFuture
       reference: <testLibrary>::@topLevelVariable::uFuture
       firstFragment: #F2
       type: Future<int> Function()
@@ -1537,31 +1537,31 @@ library
             #F20 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
               element: <testLibrary>::@setter::vBitShiftRight::@formalParameter::value
   topLevelVariables
-    hasInitializer vBitXor
+    hasImplicitType hasInitializer vBitXor
       reference: <testLibrary>::@topLevelVariable::vBitXor
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::vBitXor
       setter: <testLibrary>::@setter::vBitXor
-    hasInitializer vBitAnd
+    hasImplicitType hasInitializer vBitAnd
       reference: <testLibrary>::@topLevelVariable::vBitAnd
       firstFragment: #F2
       type: int
       getter: <testLibrary>::@getter::vBitAnd
       setter: <testLibrary>::@setter::vBitAnd
-    hasInitializer vBitOr
+    hasImplicitType hasInitializer vBitOr
       reference: <testLibrary>::@topLevelVariable::vBitOr
       firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::vBitOr
       setter: <testLibrary>::@setter::vBitOr
-    hasInitializer vBitShiftLeft
+    hasImplicitType hasInitializer vBitShiftLeft
       reference: <testLibrary>::@topLevelVariable::vBitShiftLeft
       firstFragment: #F4
       type: int
       getter: <testLibrary>::@getter::vBitShiftLeft
       setter: <testLibrary>::@setter::vBitShiftLeft
-    hasInitializer vBitShiftRight
+    hasImplicitType hasInitializer vBitShiftRight
       reference: <testLibrary>::@topLevelVariable::vBitShiftRight
       firstFragment: #F5
       type: int
@@ -1747,19 +1747,19 @@ library
           firstFragment: #F7
           returnType: void
   topLevelVariables
-    hasInitializer vSetField
+    hasImplicitType hasInitializer vSetField
       reference: <testLibrary>::@topLevelVariable::vSetField
       firstFragment: #F8
       type: A
       getter: <testLibrary>::@getter::vSetField
       setter: <testLibrary>::@setter::vSetField
-    hasInitializer vInvokeMethod
+    hasImplicitType hasInitializer vInvokeMethod
       reference: <testLibrary>::@topLevelVariable::vInvokeMethod
       firstFragment: #F9
       type: A
       getter: <testLibrary>::@getter::vInvokeMethod
       setter: <testLibrary>::@setter::vInvokeMethod
-    hasInitializer vBoth
+    hasImplicitType hasInitializer vBoth
       reference: <testLibrary>::@topLevelVariable::vBoth
       firstFragment: #F10
       type: A
@@ -2143,55 +2143,55 @@ library
           type: C
           getter: <testLibrary>::@class::X::@getter::c
           setter: <testLibrary>::@class::X::@setter::c
-        hasInitializer t01
+        hasImplicitType hasInitializer t01
           reference: <testLibrary>::@class::X::@field::t01
           firstFragment: #F23
           type: int
           getter: <testLibrary>::@class::X::@getter::t01
           setter: <testLibrary>::@class::X::@setter::t01
-        hasInitializer t02
+        hasImplicitType hasInitializer t02
           reference: <testLibrary>::@class::X::@field::t02
           firstFragment: #F24
           type: int
           getter: <testLibrary>::@class::X::@getter::t02
           setter: <testLibrary>::@class::X::@setter::t02
-        hasInitializer t03
+        hasImplicitType hasInitializer t03
           reference: <testLibrary>::@class::X::@field::t03
           firstFragment: #F25
           type: int
           getter: <testLibrary>::@class::X::@getter::t03
           setter: <testLibrary>::@class::X::@setter::t03
-        hasInitializer t11
+        hasImplicitType hasInitializer t11
           reference: <testLibrary>::@class::X::@field::t11
           firstFragment: #F26
           type: int
           getter: <testLibrary>::@class::X::@getter::t11
           setter: <testLibrary>::@class::X::@setter::t11
-        hasInitializer t12
+        hasImplicitType hasInitializer t12
           reference: <testLibrary>::@class::X::@field::t12
           firstFragment: #F27
           type: int
           getter: <testLibrary>::@class::X::@getter::t12
           setter: <testLibrary>::@class::X::@setter::t12
-        hasInitializer t13
+        hasImplicitType hasInitializer t13
           reference: <testLibrary>::@class::X::@field::t13
           firstFragment: #F28
           type: int
           getter: <testLibrary>::@class::X::@getter::t13
           setter: <testLibrary>::@class::X::@setter::t13
-        hasInitializer t21
+        hasImplicitType hasInitializer t21
           reference: <testLibrary>::@class::X::@field::t21
           firstFragment: #F29
           type: int
           getter: <testLibrary>::@class::X::@getter::t21
           setter: <testLibrary>::@class::X::@setter::t21
-        hasInitializer t22
+        hasImplicitType hasInitializer t22
           reference: <testLibrary>::@class::X::@field::t22
           firstFragment: #F30
           type: int
           getter: <testLibrary>::@class::X::@getter::t22
           setter: <testLibrary>::@class::X::@setter::t22
-        hasInitializer t23
+        hasImplicitType hasInitializer t23
           reference: <testLibrary>::@class::X::@field::t23
           firstFragment: #F31
           type: int
@@ -2410,7 +2410,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::V::@formalParameter::value
   topLevelVariables
-    hasInitializer V
+    hasImplicitType hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: #F1
       type: num
@@ -2468,13 +2468,13 @@ library
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@setter::vNotEq::@formalParameter::value
   topLevelVariables
-    hasInitializer vEq
+    hasImplicitType hasInitializer vEq
       reference: <testLibrary>::@topLevelVariable::vEq
       firstFragment: #F1
       type: bool
       getter: <testLibrary>::@getter::vEq
       setter: <testLibrary>::@setter::vEq
-    hasInitializer vNotEq
+    hasImplicitType hasInitializer vNotEq
       reference: <testLibrary>::@topLevelVariable::vNotEq
       firstFragment: #F2
       type: bool
@@ -2546,13 +2546,13 @@ library
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::b::@formalParameter::value
   topLevelVariables
-    hasInitializer a
+    hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    hasInitializer b
+    hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       type: dynamic
@@ -2614,7 +2614,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::a::@formalParameter::value
   topLevelVariables
-    hasInitializer a
+    hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -2682,19 +2682,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@setter::b1::@formalParameter::value
   topLevelVariables
-    hasInitializer a
+    hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: List<num>
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    hasInitializer b0
+    hasImplicitType hasInitializer b0
       reference: <testLibrary>::@topLevelVariable::b0
       firstFragment: #F2
       type: num
       getter: <testLibrary>::@getter::b0
       setter: <testLibrary>::@setter::b0
-    hasInitializer b1
+    hasImplicitType hasInitializer b1
       reference: <testLibrary>::@topLevelVariable::b1
       firstFragment: #F3
       type: num
@@ -2778,7 +2778,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
@@ -2879,7 +2879,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::C::@field::f
   topLevelVariables
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F7
       type: int
@@ -2936,7 +2936,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
@@ -2992,7 +2992,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
@@ -3066,7 +3066,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer f
+        hasImplicitType hasInitializer f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: int
@@ -3093,7 +3093,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::C::@field::f
   topLevelVariables
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F7
       type: int
@@ -3150,7 +3150,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
@@ -3262,7 +3262,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F7
       fields
-        static hasInitializer t
+        static hasImplicitType hasInitializer t
           reference: <testLibrary>::@class::B::@field::t
           firstFragment: #F8
           type: int
@@ -3383,7 +3383,7 @@ library
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F8
       type: bool
@@ -3530,7 +3530,7 @@ library
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F10
       type: bool
@@ -3665,7 +3665,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F8
   topLevelVariables
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F9
       type: bool
@@ -3780,13 +3780,13 @@ library
           firstFragment: #F6
           returnType: int
   topLevelVariables
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F7
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
-    hasInitializer y
+    hasImplicitType hasInitializer y
       reference: <testLibrary>::@topLevelVariable::y
       firstFragment: #F8
       type: int
@@ -3901,37 +3901,37 @@ library
             #F24 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:282)
               element: <testLibrary>::@setter::v_async_returnFuture::@formalParameter::value
   topLevelVariables
-    hasInitializer vFuture
+    hasImplicitType hasInitializer vFuture
       reference: <testLibrary>::@topLevelVariable::vFuture
       firstFragment: #F1
       type: Future<int>
       getter: <testLibrary>::@getter::vFuture
       setter: <testLibrary>::@setter::vFuture
-    hasInitializer v_noParameters_inferredReturnType
+    hasImplicitType hasInitializer v_noParameters_inferredReturnType
       reference: <testLibrary>::@topLevelVariable::v_noParameters_inferredReturnType
       firstFragment: #F2
       type: int Function()
       getter: <testLibrary>::@getter::v_noParameters_inferredReturnType
       setter: <testLibrary>::@setter::v_noParameters_inferredReturnType
-    hasInitializer v_hasParameter_withType_inferredReturnType
+    hasImplicitType hasInitializer v_hasParameter_withType_inferredReturnType
       reference: <testLibrary>::@topLevelVariable::v_hasParameter_withType_inferredReturnType
       firstFragment: #F3
       type: int Function(String)
       getter: <testLibrary>::@getter::v_hasParameter_withType_inferredReturnType
       setter: <testLibrary>::@setter::v_hasParameter_withType_inferredReturnType
-    hasInitializer v_hasParameter_withType_returnParameter
+    hasImplicitType hasInitializer v_hasParameter_withType_returnParameter
       reference: <testLibrary>::@topLevelVariable::v_hasParameter_withType_returnParameter
       firstFragment: #F4
       type: String Function(String)
       getter: <testLibrary>::@getter::v_hasParameter_withType_returnParameter
       setter: <testLibrary>::@setter::v_hasParameter_withType_returnParameter
-    hasInitializer v_async_returnValue
+    hasImplicitType hasInitializer v_async_returnValue
       reference: <testLibrary>::@topLevelVariable::v_async_returnValue
       firstFragment: #F5
       type: Future<int> Function()
       getter: <testLibrary>::@getter::v_async_returnValue
       setter: <testLibrary>::@setter::v_async_returnValue
-    hasInitializer v_async_returnFuture
+    hasImplicitType hasInitializer v_async_returnFuture
       reference: <testLibrary>::@topLevelVariable::v_async_returnFuture
       firstFragment: #F6
       type: Future<int> Function()
@@ -4050,7 +4050,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasInitializer v
+    hasImplicitType hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int
@@ -4115,13 +4115,13 @@ library
             #F10 T (nameOffset:4) (firstTokenOffset:4) (offset:4)
               element: #E0 T
   topLevelVariables
-    hasInitializer vHasTypeArgument
+    hasImplicitType hasInitializer vHasTypeArgument
       reference: <testLibrary>::@topLevelVariable::vHasTypeArgument
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::vHasTypeArgument
       setter: <testLibrary>::@setter::vHasTypeArgument
-    hasInitializer vNoTypeArgument
+    hasImplicitType hasInitializer vNoTypeArgument
       reference: <testLibrary>::@topLevelVariable::vNoTypeArgument
       firstFragment: #F2
       type: dynamic
@@ -4208,13 +4208,13 @@ library
             #F10 requiredPositional p (nameOffset:13) (firstTokenOffset:9) (offset:13)
               element: <testLibrary>::@function::f::@formalParameter::p
   topLevelVariables
-    hasInitializer vOkArgumentType
+    hasImplicitType hasInitializer vOkArgumentType
       reference: <testLibrary>::@topLevelVariable::vOkArgumentType
       firstFragment: #F1
       type: String
       getter: <testLibrary>::@getter::vOkArgumentType
       setter: <testLibrary>::@setter::vOkArgumentType
-    hasInitializer vWrongArgumentType
+    hasImplicitType hasInitializer vWrongArgumentType
       reference: <testLibrary>::@topLevelVariable::vWrongArgumentType
       firstFragment: #F2
       type: String
@@ -4421,7 +4421,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        static hasInitializer staticClassVariable
+        static hasImplicitType hasInitializer staticClassVariable
           reference: <testLibrary>::@class::A::@field::staticClassVariable
           firstFragment: #F2
           type: int
@@ -4475,7 +4475,7 @@ library
               type: int
           returnType: String
   topLevelVariables
-    hasInitializer topLevelVariable
+    hasImplicitType hasInitializer topLevelVariable
       reference: <testLibrary>::@topLevelVariable::topLevelVariable
       firstFragment: #F13
       type: int
@@ -4486,49 +4486,49 @@ library
       firstFragment: #F14
       type: int
       getter: <testLibrary>::@getter::topLevelGetter
-    hasInitializer r_topLevelFunction
+    hasImplicitType hasInitializer r_topLevelFunction
       reference: <testLibrary>::@topLevelVariable::r_topLevelFunction
       firstFragment: #F15
       type: String Function(int)
       getter: <testLibrary>::@getter::r_topLevelFunction
       setter: <testLibrary>::@setter::r_topLevelFunction
-    hasInitializer r_topLevelVariable
+    hasImplicitType hasInitializer r_topLevelVariable
       reference: <testLibrary>::@topLevelVariable::r_topLevelVariable
       firstFragment: #F16
       type: int
       getter: <testLibrary>::@getter::r_topLevelVariable
       setter: <testLibrary>::@setter::r_topLevelVariable
-    hasInitializer r_topLevelGetter
+    hasImplicitType hasInitializer r_topLevelGetter
       reference: <testLibrary>::@topLevelVariable::r_topLevelGetter
       firstFragment: #F17
       type: int
       getter: <testLibrary>::@getter::r_topLevelGetter
       setter: <testLibrary>::@setter::r_topLevelGetter
-    hasInitializer r_staticClassVariable
+    hasImplicitType hasInitializer r_staticClassVariable
       reference: <testLibrary>::@topLevelVariable::r_staticClassVariable
       firstFragment: #F18
       type: int
       getter: <testLibrary>::@getter::r_staticClassVariable
       setter: <testLibrary>::@setter::r_staticClassVariable
-    hasInitializer r_staticGetter
+    hasImplicitType hasInitializer r_staticGetter
       reference: <testLibrary>::@topLevelVariable::r_staticGetter
       firstFragment: #F19
       type: int
       getter: <testLibrary>::@getter::r_staticGetter
       setter: <testLibrary>::@setter::r_staticGetter
-    hasInitializer r_staticClassMethod
+    hasImplicitType hasInitializer r_staticClassMethod
       reference: <testLibrary>::@topLevelVariable::r_staticClassMethod
       firstFragment: #F20
       type: String Function(int)
       getter: <testLibrary>::@getter::r_staticClassMethod
       setter: <testLibrary>::@setter::r_staticClassMethod
-    hasInitializer instanceOfA
+    hasImplicitType hasInitializer instanceOfA
       reference: <testLibrary>::@topLevelVariable::instanceOfA
       firstFragment: #F21
       type: A
       getter: <testLibrary>::@getter::instanceOfA
       setter: <testLibrary>::@setter::instanceOfA
-    hasInitializer r_instanceClassMethod
+    hasImplicitType hasInitializer r_instanceClassMethod
       reference: <testLibrary>::@topLevelVariable::r_instanceClassMethod
       firstFragment: #F22
       type: String Function(int)
@@ -4749,7 +4749,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        static hasInitializer a
+        static hasImplicitType hasInitializer a
           reference: <testLibrary>::@class::A::@field::a
           firstFragment: #F2
           type: dynamic
@@ -4779,7 +4779,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F7
       fields
-        static hasInitializer b
+        static hasImplicitType hasInitializer b
           reference: <testLibrary>::@class::B::@field::b
           firstFragment: #F8
           type: dynamic
@@ -4806,7 +4806,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::B::@field::b
   topLevelVariables
-    hasInitializer c
+    hasImplicitType hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F13
       type: dynamic
@@ -4890,7 +4890,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        static hasInitializer a
+        static hasImplicitType hasInitializer a
           reference: <testLibrary>::@class::A::@field::a
           firstFragment: #F2
           type: dynamic
@@ -4917,13 +4917,13 @@ library
           returnType: void
           variable: <testLibrary>::@class::A::@field::a
   topLevelVariables
-    hasInitializer b
+    hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F7
       type: dynamic
       getter: <testLibrary>::@getter::b
       setter: <testLibrary>::@setter::b
-    hasInitializer c
+    hasImplicitType hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F8
       type: dynamic
@@ -4994,22 +4994,22 @@ library
         #F8 synthetic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
           element: <testLibrary>::@getter::d
   topLevelVariables
-    final hasInitializer a
+    final hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
       getter: <testLibrary>::@getter::a
-    final hasInitializer b
+    final hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       type: dynamic
       getter: <testLibrary>::@getter::b
-    final hasInitializer c
+    final hasImplicitType hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
       type: dynamic
       getter: <testLibrary>::@getter::c
-    final hasInitializer d
+    final hasImplicitType hasInitializer d
       reference: <testLibrary>::@topLevelVariable::d
       firstFragment: #F4
       type: dynamic
@@ -5097,7 +5097,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   topLevelVariables
-    hasInitializer a
+    hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F3
       type: A
@@ -5159,13 +5159,13 @@ library
         #F9 f (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@function::f
   topLevelVariables
-    hasInitializer s
+    hasImplicitType hasInitializer s
       reference: <testLibrary>::@topLevelVariable::s
       firstFragment: #F1
       type: String
       getter: <testLibrary>::@getter::s
       setter: <testLibrary>::@setter::s
-    hasInitializer h
+    hasImplicitType hasInitializer h
       reference: <testLibrary>::@topLevelVariable::h
       firstFragment: #F2
       type: int
@@ -5258,13 +5258,13 @@ library
       type: dynamic
       getter: <testLibrary>::@getter::d
       setter: <testLibrary>::@setter::d
-    hasInitializer s
+    hasImplicitType hasInitializer s
       reference: <testLibrary>::@topLevelVariable::s
       firstFragment: #F2
       type: String
       getter: <testLibrary>::@getter::s
       setter: <testLibrary>::@setter::s
-    hasInitializer h
+    hasImplicitType hasInitializer h
       reference: <testLibrary>::@topLevelVariable::h
       firstFragment: #F3
       type: int
@@ -5350,13 +5350,13 @@ library
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@setter::b::@formalParameter::value
   topLevelVariables
-    hasInitializer a
+    hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: double
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    hasInitializer b
+    hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       type: bool
@@ -5476,25 +5476,25 @@ library
             #F16 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
               element: <testLibrary>::@setter::vInt::@formalParameter::value
   topLevelVariables
-    hasInitializer vObject
+    hasImplicitType hasInitializer vObject
       reference: <testLibrary>::@topLevelVariable::vObject
       firstFragment: #F1
       type: List<Object>
       getter: <testLibrary>::@getter::vObject
       setter: <testLibrary>::@setter::vObject
-    hasInitializer vNum
+    hasImplicitType hasInitializer vNum
       reference: <testLibrary>::@topLevelVariable::vNum
       firstFragment: #F2
       type: List<num>
       getter: <testLibrary>::@getter::vNum
       setter: <testLibrary>::@setter::vNum
-    hasInitializer vNumEmpty
+    hasImplicitType hasInitializer vNumEmpty
       reference: <testLibrary>::@topLevelVariable::vNumEmpty
       firstFragment: #F3
       type: List<num>
       getter: <testLibrary>::@getter::vNumEmpty
       setter: <testLibrary>::@setter::vNumEmpty
-    hasInitializer vInt
+    hasImplicitType hasInitializer vInt
       reference: <testLibrary>::@topLevelVariable::vInt
       firstFragment: #F4
       type: List<int>
@@ -5604,19 +5604,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@setter::vObject::@formalParameter::value
   topLevelVariables
-    hasInitializer vInt
+    hasImplicitType hasInitializer vInt
       reference: <testLibrary>::@topLevelVariable::vInt
       firstFragment: #F1
       type: List<int>
       getter: <testLibrary>::@getter::vInt
       setter: <testLibrary>::@setter::vInt
-    hasInitializer vNum
+    hasImplicitType hasInitializer vNum
       reference: <testLibrary>::@topLevelVariable::vNum
       firstFragment: #F2
       type: List<num>
       getter: <testLibrary>::@getter::vNum
       setter: <testLibrary>::@setter::vNum
-    hasInitializer vObject
+    hasImplicitType hasInitializer vObject
       reference: <testLibrary>::@topLevelVariable::vObject
       firstFragment: #F3
       type: List<Object>
@@ -5744,31 +5744,31 @@ library
             #F20 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:188)
               element: <testLibrary>::@setter::vIntString::@formalParameter::value
   topLevelVariables
-    hasInitializer vObjectObject
+    hasImplicitType hasInitializer vObjectObject
       reference: <testLibrary>::@topLevelVariable::vObjectObject
       firstFragment: #F1
       type: Map<Object, Object>
       getter: <testLibrary>::@getter::vObjectObject
       setter: <testLibrary>::@setter::vObjectObject
-    hasInitializer vComparableObject
+    hasImplicitType hasInitializer vComparableObject
       reference: <testLibrary>::@topLevelVariable::vComparableObject
       firstFragment: #F2
       type: Map<Comparable<int>, Object>
       getter: <testLibrary>::@getter::vComparableObject
       setter: <testLibrary>::@setter::vComparableObject
-    hasInitializer vNumString
+    hasImplicitType hasInitializer vNumString
       reference: <testLibrary>::@topLevelVariable::vNumString
       firstFragment: #F3
       type: Map<num, String>
       getter: <testLibrary>::@getter::vNumString
       setter: <testLibrary>::@setter::vNumString
-    hasInitializer vNumStringEmpty
+    hasImplicitType hasInitializer vNumStringEmpty
       reference: <testLibrary>::@topLevelVariable::vNumStringEmpty
       firstFragment: #F4
       type: Map<num, String>
       getter: <testLibrary>::@getter::vNumStringEmpty
       setter: <testLibrary>::@setter::vNumStringEmpty
-    hasInitializer vIntString
+    hasImplicitType hasInitializer vIntString
       reference: <testLibrary>::@topLevelVariable::vIntString
       firstFragment: #F5
       type: Map<int, String>
@@ -5892,19 +5892,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
               element: <testLibrary>::@setter::vIntObject::@formalParameter::value
   topLevelVariables
-    hasInitializer vIntString
+    hasImplicitType hasInitializer vIntString
       reference: <testLibrary>::@topLevelVariable::vIntString
       firstFragment: #F1
       type: Map<int, String>
       getter: <testLibrary>::@getter::vIntString
       setter: <testLibrary>::@setter::vIntString
-    hasInitializer vNumString
+    hasImplicitType hasInitializer vNumString
       reference: <testLibrary>::@topLevelVariable::vNumString
       firstFragment: #F2
       type: Map<num, String>
       getter: <testLibrary>::@getter::vNumString
       setter: <testLibrary>::@setter::vNumString
-    hasInitializer vIntObject
+    hasImplicitType hasInitializer vIntObject
       reference: <testLibrary>::@topLevelVariable::vIntObject
       firstFragment: #F3
       type: Map<int, Object>
@@ -6032,31 +6032,31 @@ library
             #F20 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@setter::vOr::@formalParameter::value
   topLevelVariables
-    hasInitializer a
+    hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: bool
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    hasInitializer b
+    hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       type: bool
       getter: <testLibrary>::@getter::b
       setter: <testLibrary>::@setter::b
-    hasInitializer vEq
+    hasImplicitType hasInitializer vEq
       reference: <testLibrary>::@topLevelVariable::vEq
       firstFragment: #F3
       type: bool
       getter: <testLibrary>::@getter::vEq
       setter: <testLibrary>::@setter::vEq
-    hasInitializer vAnd
+    hasImplicitType hasInitializer vAnd
       reference: <testLibrary>::@topLevelVariable::vAnd
       firstFragment: #F4
       type: bool
       getter: <testLibrary>::@getter::vAnd
       setter: <testLibrary>::@setter::vAnd
-    hasInitializer vOr
+    hasImplicitType hasInitializer vOr
       reference: <testLibrary>::@topLevelVariable::vOr
       firstFragment: #F5
       type: bool
@@ -6232,19 +6232,19 @@ library
               type: int
           returnType: String
   topLevelVariables
-    hasInitializer instanceOfA
+    hasImplicitType hasInitializer instanceOfA
       reference: <testLibrary>::@topLevelVariable::instanceOfA
       firstFragment: #F5
       type: A
       getter: <testLibrary>::@getter::instanceOfA
       setter: <testLibrary>::@setter::instanceOfA
-    hasInitializer v1
+    hasImplicitType hasInitializer v1
       reference: <testLibrary>::@topLevelVariable::v1
       firstFragment: #F6
       type: String
       getter: <testLibrary>::@getter::v1
       setter: <testLibrary>::@setter::v1
-    hasInitializer v2
+    hasImplicitType hasInitializer v2
       reference: <testLibrary>::@topLevelVariable::v2
       firstFragment: #F7
       type: String
@@ -6420,67 +6420,67 @@ library
             #F44 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:327)
               element: <testLibrary>::@setter::vFloorDivide::@formalParameter::value
   topLevelVariables
-    hasInitializer vModuloIntInt
+    hasImplicitType hasInitializer vModuloIntInt
       reference: <testLibrary>::@topLevelVariable::vModuloIntInt
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::vModuloIntInt
       setter: <testLibrary>::@setter::vModuloIntInt
-    hasInitializer vModuloIntDouble
+    hasImplicitType hasInitializer vModuloIntDouble
       reference: <testLibrary>::@topLevelVariable::vModuloIntDouble
       firstFragment: #F2
       type: double
       getter: <testLibrary>::@getter::vModuloIntDouble
       setter: <testLibrary>::@setter::vModuloIntDouble
-    hasInitializer vMultiplyIntInt
+    hasImplicitType hasInitializer vMultiplyIntInt
       reference: <testLibrary>::@topLevelVariable::vMultiplyIntInt
       firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::vMultiplyIntInt
       setter: <testLibrary>::@setter::vMultiplyIntInt
-    hasInitializer vMultiplyIntDouble
+    hasImplicitType hasInitializer vMultiplyIntDouble
       reference: <testLibrary>::@topLevelVariable::vMultiplyIntDouble
       firstFragment: #F4
       type: double
       getter: <testLibrary>::@getter::vMultiplyIntDouble
       setter: <testLibrary>::@setter::vMultiplyIntDouble
-    hasInitializer vMultiplyDoubleInt
+    hasImplicitType hasInitializer vMultiplyDoubleInt
       reference: <testLibrary>::@topLevelVariable::vMultiplyDoubleInt
       firstFragment: #F5
       type: double
       getter: <testLibrary>::@getter::vMultiplyDoubleInt
       setter: <testLibrary>::@setter::vMultiplyDoubleInt
-    hasInitializer vMultiplyDoubleDouble
+    hasImplicitType hasInitializer vMultiplyDoubleDouble
       reference: <testLibrary>::@topLevelVariable::vMultiplyDoubleDouble
       firstFragment: #F6
       type: double
       getter: <testLibrary>::@getter::vMultiplyDoubleDouble
       setter: <testLibrary>::@setter::vMultiplyDoubleDouble
-    hasInitializer vDivideIntInt
+    hasImplicitType hasInitializer vDivideIntInt
       reference: <testLibrary>::@topLevelVariable::vDivideIntInt
       firstFragment: #F7
       type: double
       getter: <testLibrary>::@getter::vDivideIntInt
       setter: <testLibrary>::@setter::vDivideIntInt
-    hasInitializer vDivideIntDouble
+    hasImplicitType hasInitializer vDivideIntDouble
       reference: <testLibrary>::@topLevelVariable::vDivideIntDouble
       firstFragment: #F8
       type: double
       getter: <testLibrary>::@getter::vDivideIntDouble
       setter: <testLibrary>::@setter::vDivideIntDouble
-    hasInitializer vDivideDoubleInt
+    hasImplicitType hasInitializer vDivideDoubleInt
       reference: <testLibrary>::@topLevelVariable::vDivideDoubleInt
       firstFragment: #F9
       type: double
       getter: <testLibrary>::@getter::vDivideDoubleInt
       setter: <testLibrary>::@setter::vDivideDoubleInt
-    hasInitializer vDivideDoubleDouble
+    hasImplicitType hasInitializer vDivideDoubleDouble
       reference: <testLibrary>::@topLevelVariable::vDivideDoubleDouble
       firstFragment: #F10
       type: double
       getter: <testLibrary>::@getter::vDivideDoubleDouble
       setter: <testLibrary>::@setter::vDivideDoubleDouble
-    hasInitializer vFloorDivide
+    hasImplicitType hasInitializer vFloorDivide
       reference: <testLibrary>::@topLevelVariable::vFloorDivide
       firstFragment: #F11
       type: int
@@ -6688,19 +6688,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@setter::vNotEq::@formalParameter::value
   topLevelVariables
-    hasInitializer a
+    hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    hasInitializer vEq
+    hasImplicitType hasInitializer vEq
       reference: <testLibrary>::@topLevelVariable::vEq
       firstFragment: #F2
       type: bool
       getter: <testLibrary>::@getter::vEq
       setter: <testLibrary>::@setter::vEq
-    hasInitializer vNotEq
+    hasImplicitType hasInitializer vNotEq
       reference: <testLibrary>::@topLevelVariable::vNotEq
       firstFragment: #F3
       type: bool
@@ -6776,7 +6776,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::V::@formalParameter::value
   topLevelVariables
-    hasInitializer V
+    hasImplicitType hasInitializer V
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: #F1
       type: int
@@ -6874,37 +6874,37 @@ library
             #F24 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
               element: <testLibrary>::@setter::vDecDouble::@formalParameter::value
   topLevelVariables
-    hasInitializer vInt
+    hasImplicitType hasInitializer vInt
       reference: <testLibrary>::@topLevelVariable::vInt
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::vInt
       setter: <testLibrary>::@setter::vInt
-    hasInitializer vDouble
+    hasImplicitType hasInitializer vDouble
       reference: <testLibrary>::@topLevelVariable::vDouble
       firstFragment: #F2
       type: double
       getter: <testLibrary>::@getter::vDouble
       setter: <testLibrary>::@setter::vDouble
-    hasInitializer vIncInt
+    hasImplicitType hasInitializer vIncInt
       reference: <testLibrary>::@topLevelVariable::vIncInt
       firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::vIncInt
       setter: <testLibrary>::@setter::vIncInt
-    hasInitializer vDecInt
+    hasImplicitType hasInitializer vDecInt
       reference: <testLibrary>::@topLevelVariable::vDecInt
       firstFragment: #F4
       type: int
       getter: <testLibrary>::@getter::vDecInt
       setter: <testLibrary>::@setter::vDecInt
-    hasInitializer vIncDouble
+    hasImplicitType hasInitializer vIncDouble
       reference: <testLibrary>::@topLevelVariable::vIncDouble
       firstFragment: #F5
       type: double
       getter: <testLibrary>::@getter::vIncDouble
       setter: <testLibrary>::@setter::vIncDouble
-    hasInitializer vDecDouble
+    hasImplicitType hasInitializer vDecDouble
       reference: <testLibrary>::@topLevelVariable::vDecDouble
       firstFragment: #F6
       type: double
@@ -7072,37 +7072,37 @@ library
             #F24 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:122)
               element: <testLibrary>::@setter::vDecDouble::@formalParameter::value
   topLevelVariables
-    hasInitializer vInt
+    hasImplicitType hasInitializer vInt
       reference: <testLibrary>::@topLevelVariable::vInt
       firstFragment: #F1
       type: List<int>
       getter: <testLibrary>::@getter::vInt
       setter: <testLibrary>::@setter::vInt
-    hasInitializer vDouble
+    hasImplicitType hasInitializer vDouble
       reference: <testLibrary>::@topLevelVariable::vDouble
       firstFragment: #F2
       type: List<double>
       getter: <testLibrary>::@getter::vDouble
       setter: <testLibrary>::@setter::vDouble
-    hasInitializer vIncInt
+    hasImplicitType hasInitializer vIncInt
       reference: <testLibrary>::@topLevelVariable::vIncInt
       firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::vIncInt
       setter: <testLibrary>::@setter::vIncInt
-    hasInitializer vDecInt
+    hasImplicitType hasInitializer vDecInt
       reference: <testLibrary>::@topLevelVariable::vDecInt
       firstFragment: #F4
       type: int
       getter: <testLibrary>::@getter::vDecInt
       setter: <testLibrary>::@setter::vDecInt
-    hasInitializer vIncDouble
+    hasImplicitType hasInitializer vIncDouble
       reference: <testLibrary>::@topLevelVariable::vIncDouble
       firstFragment: #F5
       type: double
       getter: <testLibrary>::@getter::vIncDouble
       setter: <testLibrary>::@setter::vIncDouble
-    hasInitializer vDecDouble
+    hasImplicitType hasInitializer vDecDouble
       reference: <testLibrary>::@topLevelVariable::vDecDouble
       firstFragment: #F6
       type: double
@@ -7270,37 +7270,37 @@ library
             #F24 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
               element: <testLibrary>::@setter::vDecInt::@def::1::@formalParameter::value
   topLevelVariables
-    hasInitializer vInt
+    hasImplicitType hasInitializer vInt
       reference: <testLibrary>::@topLevelVariable::vInt
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::vInt
       setter: <testLibrary>::@setter::vInt
-    hasInitializer vDouble
+    hasImplicitType hasInitializer vDouble
       reference: <testLibrary>::@topLevelVariable::vDouble
       firstFragment: #F2
       type: double
       getter: <testLibrary>::@getter::vDouble
       setter: <testLibrary>::@setter::vDouble
-    hasInitializer vIncInt
+    hasImplicitType hasInitializer vIncInt
       reference: <testLibrary>::@topLevelVariable::vIncInt
       firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::vIncInt
       setter: <testLibrary>::@setter::vIncInt
-    hasInitializer vDecInt
+    hasImplicitType hasInitializer vDecInt
       reference: <testLibrary>::@topLevelVariable::vDecInt::@def::0
       firstFragment: #F4
       type: int
       getter: <testLibrary>::@getter::vDecInt::@def::0
       setter: <testLibrary>::@setter::vDecInt::@def::0
-    hasInitializer vIncDouble
+    hasImplicitType hasInitializer vIncDouble
       reference: <testLibrary>::@topLevelVariable::vIncDouble
       firstFragment: #F5
       type: double
       getter: <testLibrary>::@getter::vIncDouble
       setter: <testLibrary>::@setter::vIncDouble
-    hasInitializer vDecInt
+    hasImplicitType hasInitializer vDecInt
       reference: <testLibrary>::@topLevelVariable::vDecInt::@def::1
       firstFragment: #F6
       type: double
@@ -7486,37 +7486,37 @@ library
             #F24 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:122)
               element: <testLibrary>::@setter::vDecInt::@def::1::@formalParameter::value
   topLevelVariables
-    hasInitializer vInt
+    hasImplicitType hasInitializer vInt
       reference: <testLibrary>::@topLevelVariable::vInt
       firstFragment: #F1
       type: List<int>
       getter: <testLibrary>::@getter::vInt
       setter: <testLibrary>::@setter::vInt
-    hasInitializer vDouble
+    hasImplicitType hasInitializer vDouble
       reference: <testLibrary>::@topLevelVariable::vDouble
       firstFragment: #F2
       type: List<double>
       getter: <testLibrary>::@getter::vDouble
       setter: <testLibrary>::@setter::vDouble
-    hasInitializer vIncInt
+    hasImplicitType hasInitializer vIncInt
       reference: <testLibrary>::@topLevelVariable::vIncInt
       firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::vIncInt
       setter: <testLibrary>::@setter::vIncInt
-    hasInitializer vDecInt
+    hasImplicitType hasInitializer vDecInt
       reference: <testLibrary>::@topLevelVariable::vDecInt::@def::0
       firstFragment: #F4
       type: int
       getter: <testLibrary>::@getter::vDecInt::@def::0
       setter: <testLibrary>::@setter::vDecInt::@def::0
-    hasInitializer vIncDouble
+    hasImplicitType hasInitializer vIncDouble
       reference: <testLibrary>::@topLevelVariable::vIncDouble
       firstFragment: #F5
       type: double
       getter: <testLibrary>::@getter::vIncDouble
       setter: <testLibrary>::@setter::vIncDouble
-    hasInitializer vDecInt
+    hasImplicitType hasInitializer vDecInt
       reference: <testLibrary>::@topLevelVariable::vDecInt::@def::1
       firstFragment: #F6
       type: double
@@ -7634,7 +7634,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::vNot::@formalParameter::value
   topLevelVariables
-    hasInitializer vNot
+    hasImplicitType hasInitializer vNot
       reference: <testLibrary>::@topLevelVariable::vNot
       firstFragment: #F1
       type: bool
@@ -7702,19 +7702,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@setter::vComplement::@formalParameter::value
   topLevelVariables
-    hasInitializer vNegateInt
+    hasImplicitType hasInitializer vNegateInt
       reference: <testLibrary>::@topLevelVariable::vNegateInt
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::vNegateInt
       setter: <testLibrary>::@setter::vNegateInt
-    hasInitializer vNegateDouble
+    hasImplicitType hasInitializer vNegateDouble
       reference: <testLibrary>::@topLevelVariable::vNegateDouble
       firstFragment: #F2
       type: double
       getter: <testLibrary>::@getter::vNegateDouble
       setter: <testLibrary>::@setter::vNegateDouble
-    hasInitializer vComplement
+    hasImplicitType hasInitializer vComplement
       reference: <testLibrary>::@topLevelVariable::vComplement
       firstFragment: #F3
       type: int
@@ -7888,7 +7888,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::D::@field::i
   topLevelVariables
-    final hasInitializer x
+    final hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F13
       type: int
@@ -8012,7 +8012,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::D::@field::i
   topLevelVariables
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F11
       type: int
@@ -8090,25 +8090,25 @@ library
             #F16 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
               element: <testLibrary>::@setter::vGreaterOrEqual::@formalParameter::value
   topLevelVariables
-    hasInitializer vLess
+    hasImplicitType hasInitializer vLess
       reference: <testLibrary>::@topLevelVariable::vLess
       firstFragment: #F1
       type: bool
       getter: <testLibrary>::@getter::vLess
       setter: <testLibrary>::@setter::vLess
-    hasInitializer vLessOrEqual
+    hasImplicitType hasInitializer vLessOrEqual
       reference: <testLibrary>::@topLevelVariable::vLessOrEqual
       firstFragment: #F2
       type: bool
       getter: <testLibrary>::@getter::vLessOrEqual
       setter: <testLibrary>::@setter::vLessOrEqual
-    hasInitializer vGreater
+    hasImplicitType hasInitializer vGreater
       reference: <testLibrary>::@topLevelVariable::vGreater
       firstFragment: #F3
       type: bool
       getter: <testLibrary>::@getter::vGreater
       setter: <testLibrary>::@setter::vGreater
-    hasInitializer vGreaterOrEqual
+    hasImplicitType hasInitializer vGreaterOrEqual
       reference: <testLibrary>::@topLevelVariable::vGreaterOrEqual
       firstFragment: #F4
       type: bool
@@ -8337,7 +8337,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer f
+        hasImplicitType hasInitializer f
           reference: <testLibrary>::@class::A::@field::f
           firstFragment: #F2
           type: int
@@ -8536,7 +8536,7 @@ library
       interfaces
         A
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F16
           type: int
@@ -8678,7 +8678,7 @@ library
       interfaces
         A
       fields
-        hasInitializer x
+        hasImplicitType hasInitializer x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F8
           type: dynamic
@@ -9009,7 +9009,7 @@ library
       interfaces
         A<T>
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F18
           hasEnclosingTypeParameterReference: true
@@ -9126,7 +9126,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::A::@field::x
           firstFragment: #F2
           type: dynamic
@@ -9158,7 +9158,7 @@ library
       interfaces
         A
       fields
-        hasInitializer x
+        hasImplicitType hasInitializer x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F8
           type: dynamic
@@ -9276,7 +9276,7 @@ library
       interfaces
         A
       fields
-        hasInitializer x
+        hasImplicitType hasInitializer x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F8
           type: num
@@ -9420,7 +9420,7 @@ library
       interfaces
         A
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F10
           type: int
@@ -9606,7 +9606,7 @@ library
       interfaces
         A<T>
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F12
           hasEnclosingTypeParameterReference: true
@@ -10404,13 +10404,13 @@ library
         A
         B
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F16
           type: dynamic
           getter: <testLibrary>::@class::C::@getter::x
           setter: <testLibrary>::@class::C::@setter::x
-        final y
+        final hasImplicitType y
           reference: <testLibrary>::@class::C::@field::y
           firstFragment: #F17
           type: int
@@ -10817,7 +10817,7 @@ library
         A
         B
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F11
           type: int
@@ -11241,7 +11241,7 @@ library
       interfaces
         A
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F13
           type: int
@@ -11999,19 +11999,19 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer t1
+        hasImplicitType hasInitializer t1
           reference: <testLibrary>::@class::A::@field::t1
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::A::@getter::t1
           setter: <testLibrary>::@class::A::@setter::t1
-        hasInitializer t2
+        hasImplicitType hasInitializer t2
           reference: <testLibrary>::@class::A::@field::t2
           firstFragment: #F3
           type: double
           getter: <testLibrary>::@class::A::@getter::t2
           setter: <testLibrary>::@class::A::@setter::t2
-        hasInitializer t3
+        hasImplicitType hasInitializer t3
           reference: <testLibrary>::@class::A::@field::t3
           firstFragment: #F4
           type: dynamic

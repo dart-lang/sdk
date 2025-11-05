@@ -102,7 +102,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        static const hasInitializer x
+        static const hasImplicitType hasInitializer x
           reference: <testLibrary>::@extension::E::@field::x
           firstFragment: #F2
           type: int
@@ -356,7 +356,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        static const hasInitializer foo
+        static const hasImplicitType hasInitializer foo
           reference: <testLibrary>::@extension::E::@field::foo
           firstFragment: #F3
           type: int
@@ -384,7 +384,7 @@ library
               element: <testLibrary>::@extension::E::@getter::foo
           returnType: void
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F6
       type: int
@@ -449,7 +449,7 @@ library
       extendedType: A
       onDeclaration: <testLibrary>::@class::A
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F4
       type: dynamic
@@ -796,7 +796,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer foo
+        static const enumConstant hasImplicitType hasInitializer foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F2
           type: A

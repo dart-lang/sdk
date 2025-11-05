@@ -563,7 +563,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer x
+        hasImplicitType hasInitializer x
           reference: <testLibrary>::@mixin::M::@field::x
           firstFragment: #F2
           type: int
@@ -615,7 +615,7 @@ library
       superclassConstraints
         Object
       fields
-        final hasInitializer x
+        final hasImplicitType hasInitializer x
           reference: <testLibrary>::@mixin::M::@field::x
           firstFragment: #F2
           type: int

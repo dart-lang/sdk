@@ -120,7 +120,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer aaa
+        static const enumConstant hasImplicitType hasInitializer aaa
           reference: <testLibrary>::@enum::E::@field::aaa
           firstFragment: #F2
           type: E
@@ -128,7 +128,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::aaa
-        static const enumConstant hasInitializer bbb
+        static const enumConstant hasImplicitType hasInitializer bbb
           reference: <testLibrary>::@enum::E::@field::bbb
           firstFragment: #F3
           type: E
@@ -136,7 +136,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::bbb
-        static const enumConstant hasInitializer ccc
+        static const enumConstant hasImplicitType hasInitializer ccc
           reference: <testLibrary>::@enum::E::@field::ccc
           firstFragment: #F4
           type: E
@@ -250,7 +250,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -387,7 +387,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasInitializer int
+        static const enumConstant hasImplicitType hasInitializer int
           reference: <testLibrary>::@enum::E::@field::int
           firstFragment: #F3
           type: E<int>
@@ -395,7 +395,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::int
-        static const enumConstant hasInitializer string
+        static const enumConstant hasImplicitType hasInitializer string
           reference: <testLibrary>::@enum::E::@field::string
           firstFragment: #F4
           type: E<String>
@@ -496,7 +496,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer _name
+        static const enumConstant hasImplicitType hasInitializer _name
           reference: <testLibrary>::@enum::E::@field::_name
           firstFragment: #F2
           type: E
@@ -612,7 +612,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<double>
@@ -707,7 +707,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer _
+        static const enumConstant hasImplicitType hasInitializer _
           reference: <testLibrary>::@enum::E::@field::_
           firstFragment: #F2
           type: E
@@ -804,7 +804,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -900,7 +900,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1004,7 +1004,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1020,7 +1020,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        final x
+        final hasImplicitType x
           reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F4
           type: dynamic
@@ -1130,7 +1130,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1251,7 +1251,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1369,7 +1369,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1488,7 +1488,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1604,7 +1604,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1620,7 +1620,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        final x
+        final hasImplicitType x
           reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F4
           type: dynamic
@@ -1720,7 +1720,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1736,7 +1736,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        final x
+        final hasImplicitType x
           reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F4
           type: dynamic
@@ -1841,7 +1841,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1945,7 +1945,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2058,7 +2058,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -2190,7 +2190,7 @@ library
       documentationComment: /**\n * Docs\n */
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2290,7 +2290,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2306,7 +2306,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        final hasInitializer foo
+        final hasImplicitType hasInitializer foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F4
           type: int
@@ -2425,7 +2425,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2544,7 +2544,7 @@ library
       interfaces
         I
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E
@@ -2659,7 +2659,7 @@ library
         A
         C
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E
@@ -2798,7 +2798,7 @@ library
       interfaces
         I<U>
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F6
           type: E<dynamic>
@@ -2922,7 +2922,7 @@ library
         X
         Z
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F6
           type: E
@@ -3033,7 +3033,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -3144,7 +3144,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -3238,7 +3238,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::0::@field::v
           firstFragment: #F2
           type: InvalidType
@@ -3335,7 +3335,7 @@ library
       mixins
         M
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -3456,7 +3456,7 @@ library
         A
         C
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E
@@ -3579,7 +3579,7 @@ library
         M1<int>
         M2<int>
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -3696,7 +3696,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -3810,7 +3810,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -3915,7 +3915,7 @@ library
           bound: T
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E<num, num>
@@ -4478,7 +4478,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer a
+        static const enumConstant hasImplicitType hasInitializer a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F2
           type: E
@@ -4486,7 +4486,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        static const enumConstant hasInitializer b
+        static const enumConstant hasImplicitType hasInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F3
           type: E
@@ -4621,7 +4621,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer a
+        static const enumConstant hasImplicitType hasInitializer a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F2
           type: E
@@ -4629,7 +4629,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        static const enumConstant hasInitializer b
+        static const enumConstant hasImplicitType hasInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F3
           type: E
@@ -4758,7 +4758,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -4766,7 +4766,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        static const enumConstant hasInitializer <null-name>
+        static const enumConstant hasImplicitType hasInitializer <null-name>
           reference: <testLibrary>::@enum::E::@field::0
           firstFragment: #F3
           type: E
@@ -4878,7 +4878,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer v1
           reference: <testLibrary>::@enum::E::@field::v1
           firstFragment: #F2
           type: E
@@ -4886,7 +4886,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v1
-        static const enumConstant hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer v2
           reference: <testLibrary>::@enum::E::@field::v2
           firstFragment: #F3
           type: E
@@ -5016,7 +5016,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer v1
           reference: <testLibrary>::@enum::E1::@field::v1
           firstFragment: #F2
           type: E1
@@ -5052,7 +5052,7 @@ library
       firstFragment: #F7
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer v2
           reference: <testLibrary>::@enum::E2::@field::v2
           firstFragment: #F8
           type: E2
@@ -5303,7 +5303,7 @@ library
       firstFragment: #F14
       supertype: Enum
       fields
-        static const enumConstant hasInitializer a
+        static const enumConstant hasImplicitType hasInitializer a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F15
           type: E
@@ -5311,7 +5311,7 @@ library
             fragment: #F15
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        static const enumConstant hasInitializer b
+        static const enumConstant hasImplicitType hasInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F16
           type: E
@@ -5319,7 +5319,7 @@ library
             fragment: #F16
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
-        static const enumConstant hasInitializer c
+        static const enumConstant hasImplicitType hasInitializer c
           reference: <testLibrary>::@enum::E::@field::c
           firstFragment: #F17
           type: E
@@ -5426,7 +5426,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -5458,7 +5458,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: int
@@ -5621,7 +5621,7 @@ library
       firstFragment: #F6
       supertype: Enum
       fields
-        static const enumConstant hasInitializer a
+        static const enumConstant hasImplicitType hasInitializer a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F7
           type: E
@@ -5629,7 +5629,7 @@ library
             fragment: #F7
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        static const enumConstant hasInitializer b
+        static const enumConstant hasImplicitType hasInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F8
           type: E
@@ -5637,7 +5637,7 @@ library
             fragment: #F8
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
-        static const enumConstant hasInitializer c
+        static const enumConstant hasImplicitType hasInitializer c
           reference: <testLibrary>::@enum::E::@field::c
           firstFragment: #F9
           type: E
@@ -5739,7 +5739,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -5852,7 +5852,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -5892,7 +5892,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: int
@@ -5990,7 +5990,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -6035,7 +6035,7 @@ library
               element: <testLibrary>::@getter::a
           returnType: void
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F8
       type: int
@@ -6168,7 +6168,7 @@ library
               element: <testLibrary>::@getter::foo
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -6184,7 +6184,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        static const hasInitializer foo
+        static const hasImplicitType hasInitializer foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F5
           type: int
@@ -6226,7 +6226,7 @@ library
               element: <testLibrary>::@enum::E::@getter::foo
           returnType: void
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F11
       type: int
@@ -6335,7 +6335,7 @@ library
               element: <testLibrary>::@getter::a
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -6367,7 +6367,7 @@ library
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F8
       type: int
@@ -6447,7 +6447,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -6479,7 +6479,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: int
@@ -6572,7 +6572,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -6799,7 +6799,7 @@ library
       firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A
@@ -6964,7 +6964,7 @@ library
       firstFragment: #F6
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@def::1::@field::v
           firstFragment: #F8
           type: A
@@ -7176,7 +7176,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -7192,7 +7192,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        static const enumConstant hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F8
           type: A
@@ -7341,7 +7341,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -7357,7 +7357,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        static const enumConstant hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F9
           type: A
@@ -7365,7 +7365,7 @@ library
             fragment: #F9
             expression: expression_2
           getter: <testLibrary>::@enum::A::@getter::v2
-        static const enumConstant hasInitializer v3
+        static const enumConstant hasImplicitType hasInitializer v3
           reference: <testLibrary>::@enum::A::@field::v3
           firstFragment: #F11
           type: A
@@ -7510,7 +7510,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -7526,7 +7526,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        static const enumConstant hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F8
           type: A
@@ -7684,7 +7684,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -7692,7 +7692,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v1
-        static const enumConstant hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F4
           type: A
@@ -7700,7 +7700,7 @@ library
             fragment: #F5
             expression: expression_4
           getter: <testLibrary>::@enum::A::@getter::v2
-        static const enumConstant hasInitializer v3
+        static const enumConstant hasImplicitType hasInitializer v3
           reference: <testLibrary>::@enum::A::@field::v3
           firstFragment: #F6
           type: A
@@ -7868,7 +7868,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -7876,7 +7876,7 @@ library
             fragment: #F4
             expression: expression_3
           getter: <testLibrary>::@enum::A::@getter::v1
-        static const enumConstant hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F5
           type: A
@@ -8025,7 +8025,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -8033,7 +8033,7 @@ library
             fragment: #F4
             expression: expression_3
           getter: <testLibrary>::@enum::A::@getter::v
-        static const enumConstant hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F5
           type: A
@@ -8142,7 +8142,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -8276,7 +8276,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -8389,7 +8389,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -8494,7 +8494,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -8603,7 +8603,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -8721,7 +8721,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -8844,7 +8844,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -8983,7 +8983,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -9132,7 +9132,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -9277,7 +9277,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -9423,7 +9423,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -9566,7 +9566,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -9703,7 +9703,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -9833,7 +9833,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -9966,7 +9966,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -10125,7 +10125,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -10265,7 +10265,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -10389,7 +10389,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -10521,7 +10521,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -10674,7 +10674,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -10813,7 +10813,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -10954,7 +10954,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -11083,7 +11083,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -11219,7 +11219,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -11353,7 +11353,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -11468,7 +11468,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -11606,7 +11606,7 @@ library
         I1
         I2
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F7
           type: A
@@ -11759,7 +11759,7 @@ library
         I2
         I3
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F9
           type: A
@@ -11918,7 +11918,7 @@ library
         I1
         I2<T>
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F10
           type: A<int>
@@ -12069,7 +12069,7 @@ library
         I1
         I2<T>
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F10
           type: A<dynamic>
@@ -12177,7 +12177,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12296,7 +12296,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12421,7 +12421,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12545,7 +12545,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12672,7 +12672,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12800,7 +12800,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12934,7 +12934,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -13076,7 +13076,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -13191,7 +13191,7 @@ library
         M1
         M2
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13356,7 +13356,7 @@ library
         M2<T>
         M3<T>
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -13500,7 +13500,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13645,7 +13645,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13779,7 +13779,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13920,7 +13920,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -14053,7 +14053,7 @@ library
       firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F4
           type: A
@@ -14161,7 +14161,7 @@ library
       firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@def::0::@field::v
           firstFragment: #F3
           type: A
@@ -14309,7 +14309,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -14425,7 +14425,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -14534,7 +14534,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -14652,7 +14652,7 @@ library
       interfaces
         A
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::B::@field::v
           firstFragment: #F3
           type: B
@@ -14779,7 +14779,7 @@ library
       interfaces
         A
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::B::@field::v
           firstFragment: #F3
           type: B
@@ -14906,7 +14906,7 @@ library
       mixins
         A
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::B::@field::v
           firstFragment: #F3
           type: B
@@ -15044,7 +15044,7 @@ library
           bound: B
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F7
           type: A<B>
@@ -15168,7 +15168,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -15285,7 +15285,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -15409,7 +15409,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -15526,7 +15526,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -15643,7 +15643,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -15766,7 +15766,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -15902,7 +15902,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A<int>
@@ -16017,7 +16017,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -16118,7 +16118,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -16226,7 +16226,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -16337,7 +16337,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -16433,7 +16433,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -16523,7 +16523,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -16613,7 +16613,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A

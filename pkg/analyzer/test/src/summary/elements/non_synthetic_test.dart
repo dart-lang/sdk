@@ -265,7 +265,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer a
+        static const enumConstant hasImplicitType hasInitializer a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F2
           type: E
@@ -273,7 +273,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        static const enumConstant hasInitializer b
+        static const enumConstant hasImplicitType hasInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F3
           type: E

@@ -121,7 +121,7 @@ library
       reference: <testLibrary>::@class::A::@def::0
       firstFragment: #F1
       fields
-        static const hasInitializer f01
+        static const hasImplicitType hasInitializer f01
           reference: <testLibrary>::@class::A::@def::0::@field::f01
           firstFragment: #F2
           type: int
@@ -129,7 +129,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@class::A::@def::0::@getter::f01
-        static const hasInitializer f02
+        static const hasImplicitType hasInitializer f02
           reference: <testLibrary>::@class::A::@def::0::@field::f02
           firstFragment: #F3
           type: int
@@ -156,7 +156,7 @@ library
       reference: <testLibrary>::@class::A::@def::1
       firstFragment: #F7
       fields
-        static const hasInitializer f11
+        static const hasImplicitType hasInitializer f11
           reference: <testLibrary>::@class::A::@def::1::@field::f11
           firstFragment: #F8
           type: int
@@ -164,7 +164,7 @@ library
             fragment: #F8
             expression: expression_2
           getter: <testLibrary>::@class::A::@def::1::@getter::f11
-        static const hasInitializer f12
+        static const hasImplicitType hasInitializer f12
           reference: <testLibrary>::@class::A::@def::1::@field::f12
           firstFragment: #F9
           type: int
@@ -191,7 +191,7 @@ library
       reference: <testLibrary>::@class::A::@def::2
       firstFragment: #F13
       fields
-        static const hasInitializer f21
+        static const hasImplicitType hasInitializer f21
           reference: <testLibrary>::@class::A::@def::2::@field::f21
           firstFragment: #F14
           type: int
@@ -199,7 +199,7 @@ library
             fragment: #F14
             expression: expression_4
           getter: <testLibrary>::@class::A::@def::2::@getter::f21
-        static const hasInitializer f22
+        static const hasImplicitType hasInitializer f22
           reference: <testLibrary>::@class::A::@def::2::@field::f22
           firstFragment: #F15
           type: int
@@ -665,7 +665,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer a
+        static const enumConstant hasImplicitType hasInitializer a
           reference: <testLibrary>::@enum::E::@def::0::@field::a
           firstFragment: #F2
           type: E
@@ -673,7 +673,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@def::0::@getter::a
-        static const enumConstant hasInitializer b
+        static const enumConstant hasImplicitType hasInitializer b
           reference: <testLibrary>::@enum::E::@def::0::@field::b
           firstFragment: #F3
           type: E
@@ -714,7 +714,7 @@ library
       firstFragment: #F9
       supertype: Enum
       fields
-        static const enumConstant hasInitializer c
+        static const enumConstant hasImplicitType hasInitializer c
           reference: <testLibrary>::@enum::E::@def::1::@field::c
           firstFragment: #F10
           type: E
@@ -722,7 +722,7 @@ library
             fragment: #F10
             expression: expression_3
           getter: <testLibrary>::@enum::E::@def::1::@getter::c
-        static const enumConstant hasInitializer d
+        static const enumConstant hasImplicitType hasInitializer d
           reference: <testLibrary>::@enum::E::@def::1::@field::d
           firstFragment: #F11
           type: E
@@ -730,7 +730,7 @@ library
             fragment: #F11
             expression: expression_4
           getter: <testLibrary>::@enum::E::@def::1::@getter::d
-        static const enumConstant hasInitializer e
+        static const enumConstant hasImplicitType hasInitializer e
           reference: <testLibrary>::@enum::E::@def::1::@field::e
           firstFragment: #F12
           type: E
@@ -834,7 +834,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        static x
+        static hasImplicitType x
           reference: <testLibrary>::@extension::E::@def::1::@field::x
           firstFragment: #F3
           type: dynamic
@@ -862,7 +862,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        static hasInitializer y
+        static hasImplicitType hasInitializer y
           reference: <testLibrary>::@extension::E::@def::2::@field::y
           firstFragment: #F8
           type: int
@@ -1177,7 +1177,7 @@ library
       superclassConstraints
         Object
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@mixin::A::@def::1::@field::x
           firstFragment: #F3
           type: dynamic
@@ -1205,7 +1205,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer y
+        hasImplicitType hasInitializer y
           reference: <testLibrary>::@mixin::A::@def::2::@field::y
           firstFragment: #F8
           type: int
@@ -1284,18 +1284,18 @@ library
       type: bool
       getter: <testLibrary>::@getter::x::@def::0
       setter: <testLibrary>::@setter::x::@def::0
-    x
+    hasImplicitType x
       reference: <testLibrary>::@topLevelVariable::x::@def::1
       firstFragment: #F2
       type: dynamic
       getter: <testLibrary>::@getter::x::@def::1
       setter: <testLibrary>::@setter::x::@def::1
-    final hasInitializer x
+    final hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x::@def::2
       firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::x::@def::2
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x::@def::3
       firstFragment: #F4
       type: double

@@ -733,7 +733,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@setter::i::@formalParameter::value
   topLevelVariables
-    i
+    external i
       reference: <testLibrary>::@topLevelVariable::i
       firstFragment: #F1
       type: int
@@ -1265,7 +1265,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    x
+    hasImplicitType x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       documentationComment: /**\n * Docs\n */
@@ -1588,7 +1588,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    x
+    hasImplicitType x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: dynamic
@@ -1703,7 +1703,7 @@ library
         #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::v
   topLevelVariables
-    final hasInitializer v
+    final hasImplicitType hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int
@@ -1746,7 +1746,7 @@ library
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::x
   topLevelVariables
-    const hasInitializer x
+    const hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: (int, bool)
@@ -1822,7 +1822,7 @@ library
           firstFragment: #F4
           returnType: int
   topLevelVariables
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F5
       type: int
@@ -1868,7 +1868,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasInitializer v
+    hasImplicitType hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int
@@ -2110,7 +2110,7 @@ library
         #F2 synthetic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::i
   topLevelVariables
-    const hasInitializer i
+    const hasImplicitType hasInitializer i
       reference: <testLibrary>::@topLevelVariable::i
       firstFragment: #F1
       type: int
@@ -2145,7 +2145,7 @@ library
         #F2 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@getter::b
   topLevelVariables
-    final hasInitializer b
+    final hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F1
       type: double
@@ -2194,12 +2194,12 @@ library
         #F5 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::a
   topLevelVariables
-    final hasInitializer b
+    final hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       type: double
       getter: <testLibrary>::@getter::b
-    final hasInitializer a
+    final hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F4
       type: int
@@ -2233,7 +2233,7 @@ library
         #F2 synthetic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::i
   topLevelVariables
-    final hasInitializer i
+    final hasImplicitType hasInitializer i
       reference: <testLibrary>::@topLevelVariable::i
       firstFragment: #F1
       type: int
@@ -2267,7 +2267,7 @@ library
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@getter::x
   topLevelVariables
-    final hasInitializer x
+    final hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: C
@@ -2375,7 +2375,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasInitializer v
+    hasImplicitType hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int
@@ -2424,7 +2424,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::a::@formalParameter::value
   topLevelVariables
-    hasInitializer a
+    hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: Never
@@ -2473,7 +2473,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::a::@formalParameter::value
   topLevelVariables
-    a
+    hasImplicitType a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -3188,7 +3188,7 @@ library
               element: dart:core::@getter::deprecated
           previousFragment: #F2
   topLevelVariables
-    final hasInitializer foo
+    final hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
@@ -3981,7 +3981,7 @@ library
             #F4 requiredPositional _ (nameOffset:47) (firstTokenOffset:43) (offset:47)
               element: <testLibrary>::@setter::foo::@formalParameter::_
   topLevelVariables
-    final hasInitializer foo
+    final hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
@@ -4652,7 +4652,7 @@ library
         #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
   topLevelVariables
-    final hasInitializer foo
+    final hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       metadata
@@ -4817,7 +4817,7 @@ library
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@setter::foo::@formalParameter::value
   topLevelVariables
-    final hasInitializer int
+    final hasImplicitType hasInitializer int
       reference: <testLibrary>::@topLevelVariable::int
       firstFragment: #F1
       type: int
